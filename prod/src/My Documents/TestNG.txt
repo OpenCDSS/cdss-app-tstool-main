@@ -1,8 +1,0 @@
-For the Eclipse plug-in, we suggest using the update site:
-
-    * Select Help / Software updates / Find and Install.
-    * Search for new features to install.
-    * New remote site.
-    * Enter http://beust.com/eclipse in the URL and whatever description you want.
-    * Make sure the check box next to http://beust.com/eclipse is checked and click Next.
-    * Eclipse will then guide you through the process.
