@@ -37,6 +37,7 @@
 	<property name="buildwork.dir"   location="${build.dir}${sep}work"   />
 	<property name="buildtest.dir"   location="build${sep}test"      />
 	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
+	<property name="testOp.dir"      location="test${sep}operational" />
 	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
 	<property name="ext.dir"         location="externals"       />
 	<property name="graphics.dir"    location="graphics"        />
@@ -79,6 +80,22 @@
 		<pathelement location="${dist.dir}${sep}${jarfname}" />
 		<pathelement location="."/>
 	</path>
+	
+	<path id="classpathOp">
+			<pathelement location="${d1}"/>
+			<pathelement location="${d2}"/>
+			<pathelement location="${d3}"/>
+			<pathelement location="${d4}"/>
+			<pathelement location="${d5}"/>
+			<pathelement location="${d6}"/>
+			<pathelement location="${d7}"/>
+			<pathelement location="${d8}"/>
+			<pathelement location="${d9}"/>
+			<pathelement location="${dist.dir}${sep}${jarfname}" />
+			<pathelement location="."/>
+	</path>
+	
+	
 
 	<!-- current timestamp -->
 	<tstamp>
@@ -220,24 +237,45 @@
 
 	
 <!--===================================================
-	Target:   run
-	Function: runs the executable or java class
+	Target:   runDev
+	Function: runs the executable or java class from
+			  the build directory for quick development
+			  testing
 ====================================================-->
-<target name="run" depends="compile">
+<target name="runDev" depends="compile">
 	
-	<echo message="HOME:   test${sep}operational" />
+	<echo message="HOME:   ${testOp.dir}" />
 	
 	<java classname="${classname}" fork="true">
 		<jvmarg    value = "-mx256m" />
 		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home test${sep}operational" />
-		<classpath refid = "classpath" />
-		       
+		<arg       value = "-home" />
+		<arg	   value = "${testOp.dir}" />
+		<classpath refid = "classpath" />   
 	</java>	
-
 
 </target>
 
+
+<!--===================================================
+	Target:   runOp
+	Function: runs the executable from the dist jar
+			  for operational testing
+====================================================-->
+	<target name="runOp" depends="jar">
+		
+		<echo message="HOME:   ${testOp.dir}" />
+		
+		<java classname="${classname}" fork="true">
+			<jvmarg    value = "-mx256m" />
+			<jvmarg    value = "-Djava.compiler=NONE" />
+			<arg       value = "-home" />
+			<arg	   value = "${testOp.dir}" />
+			<classpath refid = "classpathOp" />   
+		</java>	
+
+	</target>
+	
 	
 <!--===================================================
 	Target:   javadoc
