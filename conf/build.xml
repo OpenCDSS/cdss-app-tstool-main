@@ -30,35 +30,37 @@
 	</condition>
 
 	<!--============= General Properties =============-->
-	<property name="src"	     location="src"         />
-	<property name="build"	     location="build"       />
-	<property name="dist"        location="dist" />
-	<property name="buildwork"   location="${build}${sep}work"   />
-	<property name="buildtest"   location="build${sep}test"      />
-	<property name="test"	     location="test${sep}unit${sep}src"        />
-	<property name="jdoc"	     location="doc${sep}javadoc" />
-	<property name="ext"         location="externals"       />
-	<property name="graphics"    location="graphics"        />
-	<property name="package"     value="DWR${sep}DMI${sep}tstool" />
-	<property name="executable"  location="I:${sep}develop${sep}jdk_142${sep}bin${sep}javac" />
-	<property name="classname"   value="DWR.DMI.tstool.tstool" />
-	<property name="quickSuite"  value="DWR.DMI.tstool.RegressionTestSuite" />
-	<property name="fullSuite"   value="DWR.DMI.tstool.testAll" />
-	<property name="jarfname"    value="tstool.jar" />
+	<property name="src.dir"	     location="src"         />
+	<property name="build.dir"	     location="build"       />
+	<property name="dist.dir"        location="dist" />
+	<property name="doc.dir"		 location="doc" />
+	<property name="buildwork.dir"   location="${build.dir}${sep}work"   />
+	<property name="buildtest.dir"   location="build${sep}test"      />
+	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
+	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
+	<property name="ext.dir"         location="externals"       />
+	<property name="graphics.dir"    location="graphics"        />
+	<property name="system.dir"  	 location="test${sep}system"        />
+	<property name="logs.dir"    	 location="test${sep}logs"        />
+	<property name="package"     	 value="DWR${sep}DMI${sep}tstool" />
+	<property name="executable"  	 location="I:${sep}develop${sep}jdk_142${sep}bin${sep}javac" />
+	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
+	<property name="quickSuite"  	 value="DWR.DMI.tstool.RegressionTestSuite" />
+	<property name="fullSuite"   	 value="DWR.DMI.tstool.testAll" />
+	<property name="jarfname"    	 value="tstool.jar" />
 	
 	<!--================ Dependencies ==================-->
-	<property name="d1"	 value="${ext}${sep}HydroBaseDMI_142.jar"    />
-	<property name="d2"	 value="${ext}${sep}msbase.jar" 	     />
-	<property name="d3"  value="${ext}${sep}mssqlserver.jar"         />
-	<property name="d4"	 value="${ext}${sep}msutil.jar"              />
-	<property name="d5"	 value="${ext}${sep}NWSRFS_DMI_142.jar"      />
-	<property name="d6"	 value="${ext}${sep}RiversideDB_DMI_142.jar" />
-	<property name="d7"	 value="${ext}${sep}RTi_142.jar"             />
-	<property name="d8"	 value="${ext}${sep}StateCU_142.jar"         />
-	<property name="d9"	 value="${ext}${sep}StateMod_142.jar"        />
+	<property name="d1"	 value="${ext.dir}${sep}HydroBaseDMI_142.jar"    />
+	<property name="d2"	 value="${ext.dir}${sep}msbase.jar" 	     />
+	<property name="d3"  value="${ext.dir}${sep}mssqlserver.jar"         />
+	<property name="d4"	 value="${ext.dir}${sep}msutil.jar"              />
+	<property name="d5"	 value="${ext.dir}${sep}NWSRFS_DMI_142.jar"      />
+	<property name="d6"	 value="${ext.dir}${sep}RiversideDB_DMI_142.jar" />
+	<property name="d7"	 value="${ext.dir}${sep}RTi_142.jar"             />
+	<property name="d8"	 value="${ext.dir}${sep}StateCU_142.jar"         />
+	<property name="d9"	 value="${ext.dir}${sep}StateMod_142.jar"        />
 	
 	<!-- =========== Compiler Properties ===============-->
-	<property name="cp"	  value="${d1};${d2};${d3};${d4};${d5};${d6};${d7};${d8};${d9};${buildwork}${sep}${package};." />
 	<property name="compiler" value="modern" />
 	
 
@@ -73,9 +75,9 @@
 		<pathelement location="${d7}"/>
 		<pathelement location="${d8}"/>
 		<pathelement location="${d9}"/>
-		<pathelement location="${buildwork}${sep}${package}"/>
+		<pathelement location="${buildwork.dir}"/>
+		<pathelement location="${dist.dir}${sep}${jarfname}" />
 		<pathelement location="."/>
-		<pathelement location="${buildwork}" />
 	</path>
 
 	<!-- current timestamp -->
@@ -94,11 +96,16 @@
 <target name="clean" description="remove compiled files">
 	
 	<!-- delete build stuff -->
-	<delete dir="${buildwork}" />
-	<delete dir="${build}" />
+	<delete dir="${buildwork.dir}" />
+	<delete dir="${build.dir}" />
 
 	<!-- delete javadoc stuff -->
-	<delete dir="${jdoc}" />
+	<delete dir="${jdoc.dir}" />
+	
+	<!-- delete runtime directories -->
+	<delete dir="${system.dir}" />
+	<delete dir="${logs.dir}" />
+	
 	
 </target>
 
@@ -107,23 +114,21 @@
 	Function: compiles code for this project and places
 			  the compiled code in the build/work dir
 ====================================================-->
-<target name="compile" depends="clean">
+<target name="compile" >
 
 	<echo>
 ********* COMPILING SOURCE ************
-	  classpath   : ${cp}
-
-	  destdir     : ${buildwork}
+	  destdir     : ${buildwork.dir}
 	  executable  : ${executable}
 	  compiler    : ${compiler}
 ***************************************
 	</echo>
 
-	<mkdir dir="${buildwork}" />
+	<mkdir dir="${buildwork.dir}" />
 	
-	<javac srcdir 		= "${src}${sep}${package}"
-           destdir 		= "${buildwork}"
-           classpath 		= "${cp}"
+	<javac srcdir 		= "${src.dir}${sep}${package}"
+           destdir 		= "${buildwork.dir}"
+		   classpathref = "classpath"
            debug 		= "on"
 	       fork 		= "yes"
 	       listfiles 	= "true"
@@ -143,21 +148,19 @@
 
 	<echo>
 ********* COMPILING TEST ************
-	  classpath   : ${cp}
-
-	  srcdir      : ${test}${sep}${package}
-	  destdir     : ${build}${sep}test
+	  srcdir      : ${test.dir}${sep}${package}
+	  destdir     : ${build.dir}${sep}test
 	  executable  : ${executable}
 	  compiler    : ${compiler}
 ***************************************
 	</echo>
 
-	<mkdir dir="${build}${sep}test" />
+	<mkdir dir="${build.dir}${sep}test" />
 	
-	<javac srcdir 		= "${test}${sep}${package}"
-	       destdir 	        = "${build}${sep}test"
-               classpath 	= "${cp}"
-               debug 		= "on"
+	<javac srcdir 		= "${test.dir}${sep}${package}"
+	       destdir 	    = "${build.dir}${sep}test"
+           classpathref = "classpath"
+           debug 		= "on"
 	       fork 		= "yes"
 	       listfiles 	= "true"
 	       deprecation 	= "true"
@@ -183,7 +186,7 @@
 	<java classname="junit.textui.TestRunner"
 		fork="true"
 		jvm="${jhome}${sep}java.exe"
-		dir="${build}${sep}test">
+		dir="${build.dir}${sep}test">
 		<jvmarg value="-mx128m"/>
 		<arg value="${quickSuite}"/>
 		<classpath refid="classpath"/>		
@@ -207,7 +210,7 @@
 	<java classname="junit.textui.TestRunner"
 		fork="true"
 		jvm="${jhome}${sep}java.exe"
-		dir="${build}${sep}test" >
+		dir="${build.dir}${sep}test" >
 		<jvmarg value="-mx128m"/>
 		<arg value="${fullSuite}"/>
 		<classpath refid="classpath"/>		
@@ -221,18 +224,13 @@
 	Function: runs the executable or java class
 ====================================================-->
 <target name="run" depends="compile">
-
-	<mkdir dir="${buildwork}${sep}system" />
-	<mkdir dir="${buildwork}${sep}bin" />
-	<copy file="conf${sep}DATAUNIT" todir="${buildwork}${sep}system" />
-	<copy file="conf${sep}TSTool.cfg" todir="${buildwork}${sep}system" />
-	<mkdir dir="${buildwork}${sep}logs" />
-	<copy file="conf${sep}shellcon.exe" todir="${buildwork}${sep}bin"/>
+	
+	<echo message="HOME:   test${sep}operational" />
 	
 	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx128m" />
+		<jvmarg    value = "-mx256m" />
 		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home ${buildwork}" />
+		<arg       value = "-home test${sep}operational" />
 		<classpath refid = "classpath" />
 		       
 	</java>	
@@ -249,20 +247,20 @@
 
 	<echo>
 ********** Creating Javadocs **************
-   Destination:     ${jdoc}
-   From Dir   :     ${src}${sep}${package} 
+   Destination:     ${jdoc.dir}
+   From Dir   :     ${src.dir}${sep}${package} 
 *******************************************
 	</echo>
 	
 	<!-- cleanup old javadocs -->
-	<delete dir="${jdoc}" />
+	<delete dir="${jdoc.dir}" />
 
 	<!-- make dir jdocs --> 
-	<mkdir dir="${jdoc}" />
+	<mkdir dir="${jdoc.dir}" />
 
-	<javadoc destdir="${jdoc}" >
+	<javadoc destdir="${jdoc.dir}" >
 		<classpath refid="classpath"/>
-		<fileset dir="${src}${sep}${package}" >
+		<fileset dir="${src.dir}${sep}${package}" >
     	  		<include name="*.java"/>
     		</fileset>
 	</javadoc>	
@@ -274,18 +272,26 @@
 <!--=====================================================
 	Target: jar 
 =======================================================-->
-<target name="jar" depends="compile">
+<target name="jar" depends="compile, javadoc" >
     
 	<echo>
 ********** Creating jar file *****************
-   Destination:    ${dist}
-   source dir :    ${buildwork}
+   Destination:    ${dist.dir}
+   source dir :    ${buildwork.dir}
    jar filename:   ${jarfname}
 **********************************************
 	</echo>
 
-    <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}${sep}${jarfname}" basedir="${buildwork}" >
+	<!-- copy docs folder into build for the jar -->
+	<copy todir="${buildwork.dir}">
+	<fileset dir=".">
+	<include name="doc${sep}**${sep}*" />
+	<include name="graphics${sep}**${sep}*" />
+	</fileset>
+	</copy>
+	
+    <mkdir dir="${dist.dir}"/>
+    <jar jarfile="${dist.dir}${sep}${jarfname}" basedir="${buildwork.dir}" >
 	<manifest >
     	<attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
       	<attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
