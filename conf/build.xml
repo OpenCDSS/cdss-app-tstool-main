@@ -35,7 +35,7 @@
 	<property name="dist"        location="dist" />
 	<property name="buildwork"   location="${build}${sep}work"   />
 	<property name="buildtest"   location="build${sep}test"      />
-	<property name="test"	     location="test"        />
+	<property name="test"	     location="test${sep}unit${sep}src"        />
 	<property name="jdoc"	     location="doc${sep}javadoc" />
 	<property name="ext"         location="externals"       />
 	<property name="graphics"    location="graphics"        />
@@ -49,7 +49,7 @@
 	<!--================ Dependencies ==================-->
 	<property name="d1"	 value="${ext}${sep}HydroBaseDMI_142.jar"    />
 	<property name="d2"	 value="${ext}${sep}msbase.jar" 	     />
-	<property name="d3"      value="${ext}${sep}mssqlserver.jar"         />
+	<property name="d3"  value="${ext}${sep}mssqlserver.jar"         />
 	<property name="d4"	 value="${ext}${sep}msutil.jar"              />
 	<property name="d5"	 value="${ext}${sep}NWSRFS_DMI_142.jar"      />
 	<property name="d6"	 value="${ext}${sep}RiversideDB_DMI_142.jar" />
