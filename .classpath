@@ -2,5 +2,14 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="externals/HydroBaseDMI_142.jar"/>
+	<classpathentry kind="lib" path="externals/msbase.jar"/>
+	<classpathentry kind="lib" path="externals/mssqlserver.jar"/>
+	<classpathentry kind="lib" path="externals/msutil.jar"/>
+	<classpathentry kind="lib" path="externals/NWSRFS_DMI_142.jar"/>
+	<classpathentry kind="lib" path="externals/RiversideDB_DMI_142.jar"/>
+	<classpathentry kind="lib" path="externals/RTi_142.jar"/>
+	<classpathentry kind="lib" path="externals/StateCU_142.jar"/>
+	<classpathentry kind="lib" path="externals/StateMod_142.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
