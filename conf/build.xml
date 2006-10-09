@@ -8,7 +8,8 @@
 				compileTest
 				quickTest
 				fullTest
-	 			run
+	 			runDev
+	 			runOp
 	 			javadoc
 				jar
 	 			help
@@ -376,7 +377,11 @@
 		clean        cleans the build directories
                              using 
 
-		run          runs the application 
+		runDev       runs the application from the class files in
+					 build${sep}work
+		
+		runOp		 runs the application from the jar file in
+					 dist folder
 
 		javadoc      generates the javadocs using
 		             using $jdoc as dest dir and $src/$package
