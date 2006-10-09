@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="externals/RTi_142.jar"/>
 	<classpathentry kind="lib" path="externals/StateCU_142.jar"/>
 	<classpathentry kind="lib" path="externals/StateMod_142.jar"/>
+	<classpathentry kind="lib" path="externals/junit.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
