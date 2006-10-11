@@ -50,6 +50,8 @@
 	<property name="quickSuite"  	 value="DWR.DMI.tstool.RegressionTestSuite" />
 	<property name="fullSuite"   	 value="DWR.DMI.tstool.testAll" />
 	<property name="jarfname"    	 value="tstool.jar" />
+	<property name="regTest.dir"	 location="test${sep}regression${sep}src" />
+	<property name="command_file"    value="Regression.TSTool" />
 	
 	<!--================ Dependencies ==================-->
 	<property name="d1"	 value="${ext.dir}${sep}HydroBaseDMI_142.jar"    />
@@ -343,6 +345,32 @@
 
     </jar>
 
+</target>
+
+<!--=================================================
+	Target: regTest
+	Function: to regression test this product
+===================================================-->
+<target name="regTest"  >
+	
+	<echo>
+	*************************************************
+	Running Regression Test
+	  TSTool -home ${testOp.dir} -commands ${regTest.dir}${sep}${command_file}
+		
+	*************************************************
+	</echo>
+	
+	<java classname="${classname}" fork="true" >
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${testOp.dir}" />
+		<arg	   value = "-commands" />
+		<arg	   value = "${regTest.dir}${sep}${command_file}" />
+		<classpath refid = "classpathOp" />   
+	</java>	
+	
 </target>
 	
 
