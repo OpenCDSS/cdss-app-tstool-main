@@ -353,14 +353,6 @@
 ===================================================-->
 <target name="regTest"  >
 	
-	<echo>
-	*************************************************
-	Running Regression Test
-	  TSTool -home ${testOp.dir} -commands ${regTest.dir}${sep}${command_file}
-		
-	*************************************************
-	</echo>
-	
 	<java classname="${classname}" fork="true" >
 		<jvmarg    value = "-mx256m" />
 		<jvmarg    value = "-Djava.compiler=NONE" />
