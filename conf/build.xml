@@ -349,7 +349,14 @@
 
 <!--=================================================
 	Target: regTest
-	Function: to regression test this product
+	Function: to regression test this product.  Runs 
+	          TSTool using a commands file and sends
+	          the output to the Regression results
+	          folder.  Next, a Perl script is run to
+	          parse the output from TSTool and generate
+	          readable results.  If a test fails then 
+	          a developer should check out the log file
+	          under Regression results for more info. 
 ===================================================-->
 <target name="regTest"  >
 	
@@ -362,6 +369,11 @@
 		<arg	   value = "${regTest.dir}${sep}${command_file}" />
 		<classpath refid = "classpathOp" />   
 	</java>	
+	
+	<!-- run perl script to parse output and display results -->
+	<exec dir="${regTest.dir}" executable="perl" >
+		<arg value="parseOutput.pl" />
+	</exec>
 	
 </target>
 	
