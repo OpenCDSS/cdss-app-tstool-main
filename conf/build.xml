@@ -45,11 +45,12 @@
 	<property name="system.dir"  	 location="test${sep}system"        />
 	<property name="logs.dir"    	 location="test${sep}logs"        />
 	<property name="package"     	 value="DWR${sep}DMI${sep}tstool" />
+	<property name="nsis.dir"		 location="NSIS" />
 	<property name="executable"  	 location="I:${sep}develop${sep}jdk_142${sep}bin${sep}javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="quickSuite"  	 value="DWR.DMI.tstool.RegressionTestSuite" />
 	<property name="fullSuite"   	 value="DWR.DMI.tstool.testAll" />
-	<property name="jarfname"    	 value="tstool.jar" />
+	<property name="jarfname"    	 value="TSTool_142.jar" />
 	<property name="regTest.dir"	 location="test${sep}regression${sep}src" />
 	<property name="command_file"    value="Regression.TSTool" />
 	
@@ -381,7 +382,17 @@
 	</exec>
 	
 </target>
+
 	
+<target name="nsis" depends="jar" >
+	
+	<!-- run nsis script to create .exe install -->
+		<exec dir="${nsis.dir}" executable="I:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool.nsi" />
+	</exec>
+	
+</target>
+
 
 <!--===================================================
 	Target:   help
