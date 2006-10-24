@@ -621,6 +621,11 @@ import java.util.Vector;
 
 import javax.swing.JFrame;
 
+import rti.domain.timeseries.TimeSeries;
+import rti.domain.timeseries.TimeSeriesFabricator;
+import rti.transfer.TimeSeriesIdBean;
+import rti.type.TimeSeriesInputType;
+
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
@@ -10880,6 +10885,19 @@ throws Exception
 		// file)...
 		try {	ts = DateValueTS.readTimeSeries ( tsident_string,
 				query_date1, query_date2, units, true );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 2, routine, e );
+			ts = null;
+		}
+	}
+	else if (	(input_type != null) &&
+		input_type.equalsIgnoreCase(TimeSeriesInputType.DATE_VALUES.toString()) ) {
+		// Test new data services for DateValue file...
+		try {	TSIdent tsident_full = new TSIdent ( tsident_string );
+				TimeSeriesIdBean requestBean = new TimeSeriesIdBean ( tsident_full );
+				TimeSeries timeseries = new TimeSeriesFabricator().getTimeSeries(requestBean);
+				ts = timeseries.getTs();
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, routine, e );

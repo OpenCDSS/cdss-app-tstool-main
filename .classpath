@@ -12,5 +12,7 @@
 	<classpathentry kind="lib" path="externals/StateCU_142.jar"/>
 	<classpathentry kind="lib" path="externals/StateMod_142.jar"/>
 	<classpathentry kind="lib" path="externals/junit.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/COMMON"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DOMAIN"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
