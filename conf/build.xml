@@ -314,7 +314,7 @@
 <!--=====================================================
 	Target: jar 
 =======================================================-->
-<target name="jar" depends="compile, javadoc" >
+<target name="jar" depends="compile" >
     
 	<echo>
 ********** Creating jar file *****************
@@ -406,17 +406,17 @@
                 compile      uses properies $src and $build
 
 		compileTest  compiles the test source
-                             code from $test to the
-                             $build/$test dir
+                     code from $test to the
+                     $build/$test dir
 
-            	quickTest    runs the quick suite of junit
-                             tests for this product.  Uses 
-                             $build/$test as source and 
-                             and $quickSuite as suite name
+        quickTest    runs the quick suite of junit
+                     tests for this product.  Uses 
+                     $build/$test as source and 
+                     and $quickSuite as suite name
 
-            	fullTest     runs the junit tests for
-                             all classes.  Uses $build/$test
-                             as the source and $fullTest as name
+        fullTest     runs the junit tests for
+                     all classes.  Uses $build/$test
+                     as the source and $fullTest as name
 	
 
 		test         runs the junit tests for

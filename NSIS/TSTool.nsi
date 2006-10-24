@@ -56,7 +56,7 @@ Icon "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 ShowInstDetails show
 AutoCloseWindow false
 LicenseForceSelection radiobuttons
-LicenseData ..\doc\License.txt
+LicenseData ..\doc\TSTool\License.txt
 BGGradient 220099 000000 FFFFFF
 VIProductVersion 6.18.0.0
 VIAddVersionKey ProductName TSTool
