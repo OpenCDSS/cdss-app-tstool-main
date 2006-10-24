@@ -323,12 +323,17 @@
 **********************************************
 	</echo>
 
-	<!-- copy docs folder into build for the jar -->
+	<!-- copy docs folder into build for the jar 
 	<copy todir="${buildwork.dir}">
 	<fileset dir=".">
 	<include name="doc${sep}**${sep}*" />
 	<include name="graphics${sep}**${sep}*" />
 	</fileset>
+	</copy>
+	-->
+	
+	<copy todir="${buildwork.dir}${sep}DWR{sep}DMI{sep}tstool" >
+		<fileset dir="graphics" />
 	</copy>
 	
     <mkdir dir="${dist.dir}"/>
