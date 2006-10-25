@@ -6,8 +6,7 @@
 	 			clean
 	 			compile
 				compileTest
-				quickTest
-				fullTest
+				test
 	 			runDev
 	 			runOp
 	 			javadoc
@@ -48,8 +47,7 @@
 	<property name="nsis.dir"		 location="NSIS" />
 	<property name="executable"  	 location="I:${sep}develop${sep}jdk_142${sep}bin${sep}javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
-	<property name="quickSuite"  	 value="DWR.DMI.tstool.RegressionTestSuite" />
-	<property name="fullSuite"   	 value="DWR.DMI.tstool.testAll" />
+	<property name="testSuite"  	 value="DWR.DMI.tstool.testSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
 	<property name="regTest.dir"	 location="test${sep}regression${sep}src" />
 	<property name="command_file"    value="Regression.TSTool" />
@@ -191,54 +189,22 @@
 
 </target>
 
-
+	
 <!--===================================================
-	Target:   quickTest
+	Target:   test
 	Function: runs Junit tests and outputs results
 ====================================================-->
-<target name="quickTest" depends="compileTest">
+<target name="test" depends="compileTest">
 
-	<echo>
-********* RUNNING JUNIT TESTS ************
-          suite       : ${package}${quickSuite}
-***************************************
-	</echo>
-
-	<java classname="junit.textui.TestRunner"
-		fork="true"
-		jvm="${jhome}${sep}java.exe"
-		dir="${build.dir}${sep}test">
-		<jvmarg value="-mx128m"/>
-		<arg value="${quickSuite}"/>
-		<classpath refid="classpath"/>		
-	</java>
+	<junit printsummary="yes" fork="yes" dir="conf">
+		<formatter type="xml"/>
+		<classpath refid="classpath" />
+		<test name="${testSuite}"
+		  outfile="test${sep}unit${sep}results${sep}${proj_name}" />
+	</junit>
 
 </target>
-
-
-<!--===================================================
-	Target:   fullTest 
-	Function: runs all Junit tests and outputs results
-====================================================-->
-<target name="fullTest" depends="compileTest">
-
-	<echo>
-********* RUNNING JUNIT TESTS ************
-          suite       : ${package}${fullSuite}
-***************************************
-	</echo>
-
-	<java classname="junit.textui.TestRunner"
-		fork="true"
-		jvm="${jhome}${sep}java.exe"
-		dir="${build.dir}${sep}test" >
-		<jvmarg value="-mx128m"/>
-		<arg value="${fullSuite}"/>
-		<classpath refid="classpath"/>		
-	</java>
-
-</target>
-
+	
 	
 <!--===================================================
 	Target:   runDev
@@ -408,16 +374,6 @@
 		compileTest  compiles the test source
                      code from $test to the
                      $build/$test dir
-
-        quickTest    runs the quick suite of junit
-                     tests for this product.  Uses 
-                     $build/$test as source and 
-                     and $quickSuite as suite name
-
-        fullTest     runs the junit tests for
-                     all classes.  Uses $build/$test
-                     as the source and $fullTest as name
-	
 
 		test         runs the junit tests for
                              this product.  uses 
