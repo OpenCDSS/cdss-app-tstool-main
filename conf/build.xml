@@ -53,15 +53,24 @@
 	<property name="command_file"    value="Regression.TSTool" />
 	
 	<!--================ Dependencies ==================-->
-	<property name="d1"	 value="${ext.dir}${sep}HydroBaseDMI_142.jar"    />
-	<property name="d2"	 value="${ext.dir}${sep}msbase.jar" 	     />
-	<property name="d3"  value="${ext.dir}${sep}mssqlserver.jar"         />
-	<property name="d4"	 value="${ext.dir}${sep}msutil.jar"              />
-	<property name="d5"	 value="${ext.dir}${sep}NWSRFS_DMI_142.jar"      />
-	<property name="d6"	 value="${ext.dir}${sep}RiversideDB_DMI_142.jar" />
-	<property name="d7"	 value="${ext.dir}${sep}RTi_142.jar"             />
-	<property name="d8"	 value="${ext.dir}${sep}StateCU_142.jar"         />
-	<property name="d9"	 value="${ext.dir}${sep}StateMod_142.jar"        />
+	<property name="d1"	 
+		value="${ext.dir}${sep}HydroBaseDMI${sep}HydroBaseDMI_142.jar" />
+	<property name="d2"	 
+		value="${ext.dir}${sep}mssql${sep}msbase.jar" />
+	<property name="d3"  
+		value="${ext.dir}${sep}mssql${sep}mssqlserver.jar" />
+	<property name="d4"	 
+		value="${ext.dir}${sep}mssql${sep}msutil.jar" />
+	<property name="d5"	 
+		value="${ext.dir}${sep}NWSRFS_DMI_142.jar" />
+	<property name="d6"	 
+		value="${ext.dir}${sep}RiversideDB_DMI${sep}RiversideDB_DMI_142.jar" />
+	<property name="d7"	 
+		value="${ext.dir}${sep}RTi_Common${sep}RTi_142.jar" />
+	<property name="d8"	 
+		value="${ext.dir}${sep}StateCU${sep}StateCU_142.jar" />
+	<property name="d9"	 
+		value="${ext.dir}${sep}StateMod${sep}StateMod_142.jar" />
 	
 	<!-- =========== Compiler Properties ===============-->
 	<property name="compiler" value="modern" />
@@ -134,15 +143,7 @@
 			  the compiled code in the build/work dir
 ====================================================-->
 <target name="compile" >
-
-	<echo>
-********* COMPILING SOURCE ************
-	  destdir     : ${buildwork.dir}
-	  executable  : ${executable}
-	  compiler    : ${compiler}
-***************************************
-	</echo>
-
+	
 	<mkdir dir="${buildwork.dir}" />
 	
 	<javac srcdir 		= "${src.dir}${sep}${package}"
@@ -164,15 +165,6 @@
 	Function: to compile the code under test/src
 ==========================================================-->
 <target name="compileTest" depends="compile">
-
-	<echo>
-********* COMPILING TEST ************
-	  srcdir      : ${test.dir}${sep}${package}
-	  destdir     : ${build.dir}${sep}test
-	  executable  : ${executable}
-	  compiler    : ${compiler}
-***************************************
-	</echo>
 
 	<mkdir dir="${build.dir}${sep}test" />
 	
