@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>trunk</name>
+	<name>TSTool</name>
 	<comment></comment>
 	<projects>
+		<project>COMMON</project>
+		<project>DAO</project>
+		<project>DOMAIN</project>
+		<project>GUI</project>
+		<project>SERVICE</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

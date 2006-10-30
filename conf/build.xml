@@ -45,7 +45,7 @@
 	<property name="logs.dir"    	 location="test${sep}logs"        />
 	<property name="package"     	 value="DWR${sep}DMI${sep}tstool" />
 	<property name="nsis.dir"		 location="NSIS" />
-	<property name="executable"  	 location="I:${sep}develop${sep}jdk_142${sep}bin${sep}javac" />
+	<property name="executable"  	 location="I:${sep}develop${sep}jdk_150${sep}bin${sep}javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="testSuite"  	 value="DWR.DMI.tstool.testSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
@@ -62,7 +62,7 @@
 	<property name="d4"	 
 		value="${ext.dir}${sep}mssql${sep}msutil.jar" />
 	<property name="d5"	 
-		value="${ext.dir}${sep}NWSRFS_DMI_142.jar" />
+		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142.jar" />
 	<property name="d6"	 
 		value="${ext.dir}${sep}RiversideDB_DMI${sep}RiversideDB_DMI_142.jar" />
 	<property name="d7"	 
@@ -71,6 +71,8 @@
 		value="${ext.dir}${sep}StateCU${sep}StateCU_142.jar" />
 	<property name="d9"	 
 		value="${ext.dir}${sep}StateMod${sep}StateMod_142.jar" />
+	<property name="d10"
+		value="${ext.dir}${sep}TS_Services${sep}TS_Services.jar" />
 	
 	<!-- =========== Compiler Properties ===============-->
 	<property name="compiler" value="modern" />
@@ -87,6 +89,7 @@
 		<pathelement location="${d7}"/>
 		<pathelement location="${d8}"/>
 		<pathelement location="${d9}"/>
+		<pathelement location="${d10}"/>
 		<pathelement location="${buildwork.dir}"/>
 		<pathelement location="${dist.dir}${sep}${jarfname}" />
 		<pathelement location="."/>
@@ -102,6 +105,7 @@
 			<pathelement location="${d7}"/>
 			<pathelement location="${d8}"/>
 			<pathelement location="${d9}"/>
+			<pathelement location="${d10}"/>
 			<pathelement location="${dist.dir}${sep}${jarfname}" />
 			<pathelement location="."/>
 	</path>

@@ -2,17 +2,16 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="externals/NWSRFS_DMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/junit.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/COMMON"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/DOMAIN"/>
-	<classpathentry kind="lib" path="externals/HydroBaseDMI/HydroBaseDMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/mssql/msbase.jar"/>
-	<classpathentry kind="lib" path="externals/mssql/mssqlserver.jar"/>
-	<classpathentry kind="lib" path="externals/mssql/msutil.jar"/>
-	<classpathentry kind="lib" path="externals/RiversideDB_DMI/RiversideDB_DMI_142.jar"/>
+	<classpathentry kind="lib" path="externals/NWSRFS_DMI/NWSRFS_DMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/RTi_Common/RTi_142.jar"/>
 	<classpathentry kind="lib" path="externals/StateCU/StateCU_142.jar"/>
 	<classpathentry kind="lib" path="externals/StateMod/StateMod_142.jar"/>
+	<classpathentry kind="lib" path="externals/mssql/mssqlserver.jar"/>
+	<classpathentry kind="lib" path="externals/mssql/msutil.jar"/>
+	<classpathentry kind="lib" path="externals/HydroBaseDMI/HydroBaseDMI_142.jar"/>
+	<classpathentry kind="lib" path="externals/TS_Services/TS_Services.jar"/>
+	<classpathentry kind="lib" path="externals/RiversideDB_DMI/RiversideDB_DMI_142.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
