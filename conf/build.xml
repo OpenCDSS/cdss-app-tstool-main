@@ -100,6 +100,8 @@
 		value="${ext.dir}${sep}StateMod${sep}StateMod_142.jar" />
 	<property name="d10"
 		value="${ext.dir}${sep}TS_Services${sep}TS_Services.jar" />
+	<property name="d11"	 
+			value="${ext.dir}${sep}SatmonSysDMI${sep}SatmonSysDMI_142.jar" />
 	<property name="junit"
 		value="${ext.dir}${sep}junit.jar" />
 	<property name="blowfish"
@@ -122,6 +124,7 @@
 		<pathelement location="${d8}"/>
 		<pathelement location="${d9}"/>
 		<pathelement location="${d10}"/>
+		<pathelement location="${d11}"/>
 		<pathelement location="${buildwork.dir}"/>
 		<pathelement location="${buildtest.dir}" />
 		<pathelement location="${blowfish}" />
@@ -140,6 +143,8 @@
 			<pathelement location="${d8}"/>
 			<pathelement location="${d9}"/>
 			<pathelement location="${d10}"/>
+			<pathelement location="${d11}"/>
+			<pathelement location="${blowfish}" />
 			<pathelement location="${dist.dir}${sep}${jarfname}" />
 			<pathelement location="."/>
 	</path>
