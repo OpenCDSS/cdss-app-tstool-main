@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msbase.jar"/>
 	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/mssqlserver.jar"/>
 	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msutil.jar"/>
+	<classpathentry kind="lib" path="externals/Blowfish_142.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

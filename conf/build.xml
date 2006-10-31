@@ -101,7 +101,9 @@
 	<property name="d10"
 		value="${ext.dir}${sep}TS_Services${sep}TS_Services.jar" />
 	<property name="junit"
-		value="${ext.dir}junit.jar" />
+		value="${ext.dir}${sep}junit.jar" />
+	<property name="blowfish"
+		value="${ext.dir}${sep}Blowfish_142.jar" />
 	
 	<!-- =========== Compiler Properties ===============-->
 	<property name="compiler" value="modern" />
@@ -122,6 +124,7 @@
 		<pathelement location="${d10}"/>
 		<pathelement location="${buildwork.dir}"/>
 		<pathelement location="${buildtest.dir}" />
+		<pathelement location="${blowfish}" />
 		<pathelement location="${dist.dir}${sep}${jarfname}" />
 		<pathelement location="."/>
 	</path>
@@ -167,6 +170,9 @@
 	<delete dir="${system.dir}" />
 	<delete dir="${logs.dir}" />
 	
+	<delete>
+		<fileset dir="test${sep}unit${sep}results" includes="**/*.xml"/>
+	</delete>
 	
 </target>
 
@@ -355,7 +361,7 @@
 	          a developer should check out the log file
 	          under Regression results for more info. 
 ===================================================-->
-<target name="regTest"  >
+<target name="regTest" depends="test" >
 	
 	<java classname="${classname}" fork="true" >
 		<jvmarg    value = "-mx256m" />
