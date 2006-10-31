@@ -6,7 +6,8 @@
 	or
 	- check cruise control for nightly runs
 	
-3. This product has no unit tests yet.  That is to come.
+3. Running Unit tests
+	- run the test target from the conf/build.xml file
 
 4. To run this product
 	- run the runOp target from the conf/build.xml file

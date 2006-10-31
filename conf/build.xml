@@ -83,11 +83,11 @@
 	<property name="d1"	 
 		value="${ext.dir}${sep}HydroBaseDMI${sep}HydroBaseDMI_142.jar" />
 	<property name="d2"	 
-		value="${ext.dir}${sep}mssql${sep}msbase.jar" />
+		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msbase.jar" />
 	<property name="d3"  
-		value="${ext.dir}${sep}mssql${sep}mssqlserver.jar" />
+		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}mssqlserver.jar" />
 	<property name="d4"	 
-		value="${ext.dir}${sep}mssql${sep}msutil.jar" />
+		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msutil.jar" />
 	<property name="d5"	 
 		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142.jar" />
 	<property name="d6"	 
