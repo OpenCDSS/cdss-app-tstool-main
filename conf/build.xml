@@ -1,14 +1,15 @@
-<!-- Author  :  Kurt Tometich
-	 Date    :  9/19/2006
-	 Purpose :  provides functions to compile, test and
-	            run source code
-	 Targets :
+<!-- TSTool build file 
+	Author  :  Kurt Tometich
+	Date    :  10/30/2006
+	Targets :
 	 			clean
 	 			compile
 				compileTest
 				test
 	 			runDev
 	 			runOp
+	 			regTest
+	 			install
 	 			javadoc
 				jar
 	 			help
@@ -29,12 +30,37 @@
 	</and>
 	</condition>
 
+	<!-- set the javac location for OS type -->
+	<condition property="executable" value="/home/sharedLibs/j2sdk1.4.2_12/bin/javac">
+		<and>
+	       		<os family="unix" />
+		</and>
+	</condition>
+	<condition property="executable" value="I:\develop\jdk_142\bin\javac">
+		<and>
+	       		<os family="windows" />
+		</and>
+	</condition>
+		
+	<!-- set the jhome variable depending on OS type -->
+	<condition property="jhome" value="/home/sharedLibs/j2sdk1.4.2_12">
+		<and>
+		      <os family="unix" />
+		</and>
+	</condition>
+	<condition property="jhome" value="I:\develop\jdk_142">
+		<and>
+		      <os family="windows" />
+		</and>
+	</condition>
+
+	
 	<!--============= General Properties =============-->
 	<property name="src.dir"	     location="src"         />
 	<property name="build.dir"	     location="build"       />
 	<property name="dist.dir"        location="dist" />
 	<property name="doc.dir"		 location="doc" />
-	<property name="buildwork.dir"   location="${build.dir}${sep}work"   />
+	<property name="buildwork.dir"   location="build${sep}work"   />
 	<property name="buildtest.dir"   location="build${sep}test"      />
 	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
 	<property name="testOp.dir"      location="test${sep}operational" />
@@ -47,10 +73,11 @@
 	<property name="nsis.dir"		 location="NSIS" />
 	<property name="executable"  	 location="I:${sep}develop${sep}jdk_150${sep}bin${sep}javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
-	<property name="testSuite"  	 value="DWR.DMI.tstool.testSuite" />
+	<property name="testSuite"  	 value="DWR.DMI.tstool.tstoolTestSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
 	<property name="regTest.dir"	 location="test${sep}regression${sep}src" />
 	<property name="command_file"    value="Regression.TSTool" />
+	<property name="proj_name"		 value="TSTool" />
 	
 	<!--================ Dependencies ==================-->
 	<property name="d1"	 
@@ -66,13 +93,15 @@
 	<property name="d6"	 
 		value="${ext.dir}${sep}RiversideDB_DMI${sep}RiversideDB_DMI_142.jar" />
 	<property name="d7"	 
-		value="${ext.dir}${sep}RTi_Common${sep}RTi_142.jar" />
+		value="${ext.dir}${sep}RTi_Common${sep}RTi_Common_142.jar" />
 	<property name="d8"	 
 		value="${ext.dir}${sep}StateCU${sep}StateCU_142.jar" />
 	<property name="d9"	 
 		value="${ext.dir}${sep}StateMod${sep}StateMod_142.jar" />
 	<property name="d10"
 		value="${ext.dir}${sep}TS_Services${sep}TS_Services.jar" />
+	<property name="junit"
+		value="${ext.dir}junit.jar" />
 	
 	<!-- =========== Compiler Properties ===============-->
 	<property name="compiler" value="modern" />
@@ -80,6 +109,7 @@
 
 	<!-- set classpath -->
 	<path id="classpath">
+		<pathelement location="${junit}" />
 		<pathelement location="${d1}"/>
 		<pathelement location="${d2}"/>
 		<pathelement location="${d3}"/>
@@ -91,6 +121,7 @@
 		<pathelement location="${d9}"/>
 		<pathelement location="${d10}"/>
 		<pathelement location="${buildwork.dir}"/>
+		<pathelement location="${buildtest.dir}" />
 		<pathelement location="${dist.dir}${sep}${jarfname}" />
 		<pathelement location="."/>
 	</path>
@@ -110,8 +141,6 @@
 			<pathelement location="."/>
 	</path>
 	
-	
-
 	<!-- current timestamp -->
 	<tstamp>
 	  <format property="TODAY" pattern="MM/dd/yyyy hh:mm" locale="en"/> 	
@@ -196,9 +225,9 @@
 		<formatter type="xml"/>
 		<classpath refid="classpath" />
 		<test name="${testSuite}"
-		  outfile="test${sep}unit${sep}results${sep}${proj_name}" />
+		 outfile="test${sep}unit${sep}results${sep}${proj_name}" />
 	</junit>
-
+	
 </target>
 	
 	
@@ -361,45 +390,34 @@
 	Function: prints out info on targets and properties
 ====================================================-->
 <target name="help">
+
 	<echo>
-		------------- build.xml Help ---------------
-		VALID TARGETS:
-
-                compile      uses properies $src and $build
-
-		compileTest  compiles the test source
-                     code from $test to the
-                     $build/$test dir
-
-		test         runs the junit tests for
-                             this product.  uses 
-
-		clean        cleans the build directories
-                             using 
-
-		runDev       runs the application from the class files in
-					 build${sep}work
 		
-		runOp		 runs the application from the jar file in
-					 dist folder
+TARGET         FUNCTION
+===========================================================
+compile        compiles source code
 
-		javadoc      generates the javadocs using
-		             using $jdoc as dest dir and $src/$package
-		             as the source directory  
+compileTest    compiles the test source code
 
-		jar          jars class files into $jarfname    
-		             under $dist
+test           runs the junit tests for this product
 
-		help         shows this message
+clean          removes the build directories
 
+runDev         runs the application using class files
 		
+runOp          runs the application from the dist jar file
 
-		PROPERTIES:
+javadoc        generates javadocs from source code
 
-            	Everything with a '$' sign is a property.
-            	To override a property use: -Dpropertyname=value
-            	Example: ant -Dsrc=C:/sandbox
+jar            copies class files into a single jar file in dist    
 		
+nsis           creates an executable installer in the nsis dir
+
+regTest        runs a regression test and stores results in regression/results dir
+	
+help           shows the help for this build file
+===========================================================
+	
 	</echo>
 
 </target>
