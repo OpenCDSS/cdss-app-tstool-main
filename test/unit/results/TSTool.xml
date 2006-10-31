@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite name="DWR.DMI.tstool.tstoolTestSuite" tests="3" failures="0" errors="0" time="0.578">
+<testsuite name="DWR.DMI.tstool.tstoolTestSuite" tests="3" failures="0" errors="0" time="0.766">
   <properties>
     <property name="java.vendor" value="Sun Microsystems Inc."></property>
     <property name="package" value="DWR\DMI\tstool"></property>
     <property name="eclipse.pdebuild.templates" value="/C:/eclipse/plugins/org.eclipse.pde.build_3.2.1.r321_v20060823/templates/"></property>
     <property name="jhome" value="I:\develop\jdk_142"></property>
     <property name="os.name" value="Windows 2000"></property>
-    <property name="jarDate" value="2006-10-31 02:53"></property>
+    <property name="jarDate" value="2006-10-31 03:35"></property>
     <property name="sun.boot.class.path" value="C:\Java\jdk_142\jre\lib\rt.jar;C:\Java\jdk_142\jre\lib\i18n.jar;C:\Java\jdk_142\jre\lib\sunrsasign.jar;C:\Java\jdk_142\jre\lib\jsse.jar;C:\Java\jdk_142\jre\lib\jce.jar;C:\Java\jdk_142\jre\lib\charsets.jar;C:\Java\jdk_142\jre\classes"></property>
-    <property name="TODAY" value="10/31/2006 02:53"></property>
+    <property name="TODAY" value="10/31/2006 03:35"></property>
     <property name="sun.java2d.fontpath" value=""></property>
     <property name="java.vm.specification.vendor" value="Sun Microsystems Inc."></property>
     <property name="ant.home" value="C:\eclipse\plugins\org.apache.ant_1.6.5"></property>
@@ -76,7 +76,7 @@
     <property name="ant.version" value="Apache Ant version 1.6.5 compiled on June 2 2005"></property>
     <property name="d10" value="C:\Development\TSTool\java_142\TSTool\externals\TS_Services\TS_Services.jar"></property>
     <property name="java.class.path" value="C:\Development\TSTool\java_142\TSTool\externals\junit.jar;C:\Development\TSTool\java_142\TSTool\externals\HydroBaseDMI\HydroBaseDMI_142.jar;C:\Development\TSTool\java_142\TSTool\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar;C:\Development\TSTool\java_142\TSTool\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar;C:\Development\TSTool\java_142\TSTool\externals\RTi_Common\RTi_Common_142.jar;C:\Development\TSTool\java_142\TSTool\externals\StateCU\StateCU_142.jar;C:\Development\TSTool\java_142\TSTool\externals\StateMod\StateMod_142.jar;C:\Development\TSTool\java_142\TSTool\externals\TS_Services\TS_Services.jar;C:\Development\TSTool\java_142\TSTool\build\work;C:\Development\TSTool\java_142\TSTool\build\test;C:\Development\TSTool\java_142\TSTool\externals\Blowfish_142.jar;C:\Development\TSTool\java_142\TSTool\dist\TSTool_142.jar;C:\Development\TSTool\java_142\TSTool;C:\Java\jdk_150\bin;I:\DEVELOP\junit\junit3.8.1\junit.jar;C:\eclipse\plugins\org.apache.ant_1.6.5\lib\ant-launcher.jar;C:\eclipse\plugins\org.apache.ant_1.6.5\lib\ant.jar;C:\eclipse\plugins\org.apache.ant_1.6.5\lib\ant-junit.jar"></property>
-    <property name="TSTAMP" value="1453"></property>
+    <property name="TSTAMP" value="1535"></property>
     <property name="compiler" value="modern"></property>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
     <property name="java.vm.specification.version" value="1.0"></property>
@@ -105,7 +105,7 @@
     <property name="src.dir" value="C:\Development\TSTool\java_142\TSTool\src"></property>
     <property name="junit" value="C:\Development\TSTool\java_142\TSTool\externals\junit.jar"></property>
   </properties>
-  <testcase name="testisServer" classname="DWR.DMI.tstool.tstoolTest" time="0.547"></testcase>
+  <testcase name="testisServer" classname="DWR.DMI.tstool.tstoolTest" time="0.734"></testcase>
   <testcase name="testgetJFrame" classname="DWR.DMI.tstool.tstoolTest" time="0.0"></testcase>
   <testcase name="testgetPropValue" classname="DWR.DMI.tstool.tstoolTest" time="0.0"></testcase>
   <system-out><![CDATA[..\test\unit\src
