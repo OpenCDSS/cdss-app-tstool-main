@@ -600,6 +600,8 @@
 //					  __OutputEnd_DateTime to be more
 //					  consistent with other code.
 // 2006-07-13	SAM, RTi		* Manage NDFD Adapters.
+// 2006-10-30   KAT, RTi        * Commented out variables and packages
+//                    pertaining to the legacy dataServices code
 //------------------------------------------------------------------------------
 // EndHeader
 
@@ -651,10 +653,8 @@ import DWR.StateCU.StateCU_TS;
 import DWR.StateMod.StateMod_TS;
 import DWR.StateMod.StateMod_BTS;
 
-import RTi.DataServices.Adapter.NDFD.Adapter;
-
+//import RTi.DataServices.Adapter.NDFD.Adapter;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
-
 import RTi.DMI.NWSRFS_DMI.NWSCardTS;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
@@ -5826,6 +5826,12 @@ Return the NDFD Adapter that is being used.
 @param input_name Input name for the adapter, can be blank.
 @return the NDFD Adapter that is being used (may return null).
 */
+
+// REVISIT KAT 2006-10-30
+// Commenting this out for now to get it to compile
+// Danny will be adding service stuff in the future
+// which should replace this ...
+/**
 public Adapter getNDFDAdapter (String input_name )
 {	int size = __NDFDAdapter_Vector.size();
 	if ( input_name == null ) {
@@ -5845,11 +5851,13 @@ public Adapter getNDFDAdapter (String input_name )
 			}
 			return adapter;
 		}
-		*/
+		
 		return adapter;
 	}
 	return null;
 }
+*/
+
 
 /**
 Return the output period start, or null if all data are to be output.
@@ -11698,13 +11706,19 @@ same location.  If a match is not found, the new instance is added at the end.
 This is mainly for memory management since NDFD Adapters do not currently keep
 a connection open.
 */
+
+//REVISIT KAT 2006-10-30
+//Commenting this out for now to get it to compile
+//Danny will be adding service stuff in the future
+//which should replace this ...
+/**
 private void setNDFDAdapter ( Adapter adapter, boolean close_old )
 {	if ( adapter == null ) {
 		return;
 	}
 	int size = __NDFDAdapter_Vector.size();
 	Adapter adapter2 = null;
-	/* REVISIT SAM 2006-07-15
+	//REVISIT SAM 2006-07-15
 	NDFD Adapters do not have names/identfiers so put in the first slot
 	String input_name = adapter.getIdentifier();
 	for ( int i = 0; i < size; i++ ) {
@@ -11730,7 +11744,7 @@ private void setNDFDAdapter ( Adapter adapter, boolean close_old )
 	}
 	// Add a new instance to the Vector...
 	__NDFDAdapter_Vector.addElement ( adapter );
-	*/
+	
 	if ( __NDFDAdapter_Vector.size() == 0 ) {
 		// Add as the first item...
 		__NDFDAdapter_Vector.addElement ( adapter );
@@ -11738,6 +11752,8 @@ private void setNDFDAdapter ( Adapter adapter, boolean close_old )
 	else {	__NDFDAdapter_Vector.setElementAt ( adapter, 0 );
 	}
 }
+
+*/
 
 /**
 Set the data for a named property, required by the CommandProcessor

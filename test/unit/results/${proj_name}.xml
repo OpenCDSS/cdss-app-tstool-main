@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite name="DWR.DMI.tstool.tstoolTestSuite" tests="1" failures="0" errors="1" time="0.0">
+  <properties>
+    <property name="java.vendor" value="Sun Microsystems Inc."></property>
+    <property name="package" value="DWR\DMI\tstool"></property>
+    <property name="eclipse.pdebuild.templates" value="/C:/eclipse/plugins/org.eclipse.pde.build_3.2.1.r321_v20060823/templates/"></property>
+    <property name="os.name" value="Windows 2000"></property>
+    <property name="jarDate" value="2006-10-31 01:11"></property>
+    <property name="sun.boot.class.path" value="C:\Java\jdk_142\jre\lib\rt.jar;C:\Java\jdk_142\jre\lib\i18n.jar;C:\Java\jdk_142\jre\lib\sunrsasign.jar;C:\Java\jdk_142\jre\lib\jsse.jar;C:\Java\jdk_142\jre\lib\jce.jar;C:\Java\jdk_142\jre\lib\charsets.jar;C:\Java\jdk_142\jre\classes"></property>
+    <property name="TODAY" value="10/31/2006 01:11"></property>
+    <property name="sun.java2d.fontpath" value=""></property>
+    <property name="java.vm.specification.vendor" value="Sun Microsystems Inc."></property>
+    <property name="ant.home" value="C:\eclipse\plugins\org.apache.ant_1.6.5"></property>
+    <property name="system.dir" value="C:\Development\TSTool\java_142\TSTool\test\system"></property>
+    <property name="java.runtime.version" value="1.4.2_03-b02"></property>
+    <property name="user.name" value="kat"></property>
+    <property name="build.dir" value="C:\Development\TSTool\java_142\TSTool\build"></property>
+    <property name="user.language" value="en"></property>
+    <property name="ext.dir" value="C:\Development\TSTool\java_142\TSTool\externals"></property>
+    <property name="sun.boot.library.path" value="C:\Java\jdk_142\jre\bin"></property>
+    <property name="doc.dir" value="C:\Development\TSTool\java_142\TSTool\doc"></property>
+    <property name="ant.project.name" value="buildTemplate"></property>
+    <property name="DSTAMP" value="20061031"></property>
+    <property name="java.version" value="1.4.2_03"></property>
+    <property name="user.timezone" value=""></property>
+    <property name="sun.arch.data.model" value="32"></property>
+    <property name="java.endorsed.dirs" value="C:\Java\jdk_142\jre\lib\endorsed"></property>
+    <property name="sun.cpu.isalist" value="pentium i486 i386"></property>
+    <property name="regTest.dir" value="C:\Development\TSTool\java_142\TSTool\test\regression\src"></property>
+    <property name="testOp.dir" value="C:\Development\TSTool\java_142\TSTool\test\operational"></property>
+    <property name="file.encoding.pkg" value="sun.io"></property>
+    <property name="file.separator" value="\"></property>
+    <property name="jarfname" value="TSTool_142.jar"></property>
+    <property name="java.specification.name" value="Java Platform API Specification"></property>
+    <property name="java.class.version" value="48.0"></property>
+    <property name="user.country" value="US"></property>
+    <property name="java.home" value="C:\Java\jdk_142\jre"></property>
+    <property name="dist.dir" value="C:\Development\TSTool\java_142\TSTool\dist"></property>
+    <property name="java.vm.info" value="mixed mode"></property>
+    <property name="ant.file" value="C:\Development\TSTool\java_142\TSTool\conf\build.xml"></property>
+    <property name="sep" value="\"></property>
+    <property name="os.version" value="5.0"></property>
+    <property name="classname" value="DWR.DMI.tstool.tstool"></property>
+    <property name="path.separator" value=";"></property>
+    <property name="java.vm.version" value="1.4.2_03-b02"></property>
+    <property name="graphics.dir" value="C:\Development\TSTool\java_142\TSTool\graphics"></property>
+    <property name="logs.dir" value="C:\Development\TSTool\java_142\TSTool\test\logs"></property>
+    <property name="d9" value="C:\Development\TSTool\java_142\TSTool\externals\StateMod\StateMod_142.jar"></property>
+    <property name="java.util.prefs.PreferencesFactory" value="java.util.prefs.WindowsPreferencesFactory"></property>
+    <property name="d8" value="C:\Development\TSTool\java_142\TSTool\externals\StateCU\StateCU_142.jar"></property>
+    <property name="user.variant" value=""></property>
+    <property name="d7" value="C:\Development\TSTool\java_142\TSTool\externals\RTi_Common\RTi_Common_142.jar"></property>
+    <property name="ant.library.dir" value="C:\eclipse\plugins\org.apache.ant_1.6.5\lib"></property>
+    <property name="d6" value="C:\Development\TSTool\java_142\TSTool\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar"></property>
+    <property name="d5" value="C:\Development\TSTool\java_142\TSTool\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar"></property>
+    <property name="d4" value="C:\Development\TSTool\java_142\TSTool\externals\mssql\msutil.jar"></property>
+    <property name="d3" value="C:\Development\TSTool\java_142\TSTool\externals\mssql\mssqlserver.jar"></property>
+    <property name="d2" value="C:\Development\TSTool\java_142\TSTool\externals\mssql\msbase.jar"></property>
+    <property name="java.awt.printerjob" value="sun.awt.windows.WPrinterJob"></property>
+    <property name="d1" value="C:\Development\TSTool\java_142\TSTool\externals\HydroBaseDMI\HydroBaseDMI_142.jar"></property>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"></property>
+    <property name="awt.toolkit" value="sun.awt.windows.WToolkit"></property>
+    <property name="buildtest.dir" value="C:\Development\TSTool\java_142\TSTool\build\test"></property>
+    <property name="eclipse.pdebuild.scripts" value="/C:/eclipse/plugins/org.eclipse.pde.build_3.2.1.r321_v20060823/scripts/"></property>
+    <property name="user.home" value="C:\Documents and Settings\kat"></property>
+    <property name="java.specification.vendor" value="Sun Microsystems Inc."></property>
+    <property name="ant.file.buildTemplate" value="C:\Development\TSTool\java_142\TSTool\conf\build.xml"></property>
+    <property name="test.dir" value="C:\Development\TSTool\java_142\TSTool\test\unit\src"></property>
+    <property name="java.library.path" value="C:\Java\jdk_142\jre\bin;.;C:\WINNT\system32;C:\WINNT;C:\WINNT\system32;C:\WINNT;C:\WINNT\System32\Wbem;C:\WINNT\system32\nls;C:\WINNT\system32\nls\ENGLISH;C:\Program Files\Common Files\Adaptec Shared\System;C:\Program Files\Hummingbird\Connectivity\11.00\Accessories\;;C:\Program Files\Vim\vim70;I:\DEVELOP\ant\apache-ant-1.6.5\apache-ant-1.6.5\bin;C:\Java\jdk_150\bin;C:\InstantRails\ruby\lib\ruby\gems\1.8\gems\rails-1.1.2\bin;C:\Program Files\Common Files\GTK\2.0\bin;I:\DEVELOP\Subversion\bin;I:\DEVELOP\Perl\bin;I:\DEVELOP\Antelope\AntelopeApp_3.2.18\;I:\DEVELOP\bin;C:\Program Files\Subversion\bin;I:\DEVELOP\NSIS;C:\Program Files\SSH Communications Security\SSH Secure Shell;C:\Program Files\Vim\vim70;.;Z:.;Y:.;X:.;"></property>
+    <property name="java.vendor.url" value="http://java.sun.com/"></property>
+    <property name="java.vm.vendor" value="Sun Microsystems Inc."></property>
+    <property name="java.runtime.name" value="Java(TM) 2 Runtime Environment, Standard Edition"></property>
+    <property name="java.class.path" value="C:\Development\TSTool\java_142\TSTool\externals\HydroBaseDMI\HydroBaseDMI_142.jar;C:\Development\TSTool\java_142\TSTool\externals\mssql\msbase.jar;C:\Development\TSTool\java_142\TSTool\externals\mssql\mssqlserver.jar;C:\Development\TSTool\java_142\TSTool\externals\mssql\msutil.jar;C:\Development\TSTool\java_142\TSTool\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar;C:\Development\TSTool\java_142\TSTool\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar;C:\Development\TSTool\java_142\TSTool\externals\RTi_Common\RTi_Common_142.jar;C:\Development\TSTool\java_142\TSTool\externals\StateCU\StateCU_142.jar;C:\Development\TSTool\java_142\TSTool\externals\StateMod\StateMod_142.jar;C:\Development\TSTool\java_142\TSTool\externals\TS_Services\TS_Services.jar;C:\Development\TSTool\java_142\TSTool\build\work;C:\Development\TSTool\java_142\TSTool\build\test;C:\Development\TSTool\java_142\TSTool\dist\TSTool_142.jar;C:\Development\TSTool\java_142\TSTool;C:\Java\jdk_150\bin;I:\DEVELOP\junit\junit3.8.1\junit.jar;I:\DEVELOP\ant\apache-ant-1.6.5\apache-ant-1.6.5\lib\junit.jar;C:\eclipse\plugins\org.apache.ant_1.6.5\lib\ant-launcher.jar;C:\eclipse\plugins\org.apache.ant_1.6.5\lib\ant.jar;C:\eclipse\plugins\org.apache.ant_1.6.5\lib\ant-junit.jar"></property>
+    <property name="d10" value="C:\Development\TSTool\java_142\TSTool\externals\TS_Services\TS_Services.jar"></property>
+    <property name="ant.version" value="Apache Ant version 1.6.5 compiled on June 2 2005"></property>
+    <property name="TSTAMP" value="1311"></property>
+    <property name="compiler" value="modern"></property>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"></property>
+    <property name="java.vm.specification.version" value="1.0"></property>
+    <property name="sun.cpu.endian" value="little"></property>
+    <property name="sun.os.patch.level" value="Service Pack 4"></property>
+    <property name="java.io.tmpdir" value="C:\DOCUME~1\kat\LOCALS~1\Temp\"></property>
+    <property name="eclipse.pdebuild.home" value="/C:/eclipse/plugins/org.eclipse.pde.build_3.2.1.r321_v20060823/./"></property>
+    <property name="jdoc.dir" value="C:\Development\TSTool\java_142\TSTool\doc\javadoc"></property>
+    <property name="buildwork.dir" value="C:\Development\TSTool\java_142\TSTool\build\work"></property>
+    <property name="java.vendor.url.bug" value="http://java.sun.com/cgi-bin/bugreport.cgi"></property>
+    <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"></property>
+    <property name="os.arch" value="x86"></property>
+    <property name="java.ext.dirs" value="C:\Java\jdk_142\jre\lib\ext"></property>
+    <property name="user.dir" value="C:\Development\TSTool\java_142\TSTool\conf"></property>
+    <property name="testSuite" value="DWR.DMI.tstool.tstoolTestSuite"></property>
+    <property name="line.separator" value="
+"></property>
+    <property name="java.vm.name" value="Java HotSpot(TM) Client VM"></property>
+    <property name="basedir" value="C:\Development\TSTool\java_142\TSTool"></property>
+    <property name="executable" value="I:\develop\jdk_150\bin\javac"></property>
+    <property name="ant.java.version" value="1.4"></property>
+    <property name="nsis.dir" value="C:\Development\TSTool\java_142\TSTool\NSIS"></property>
+    <property name="file.encoding" value="Cp1252"></property>
+    <property name="command_file" value="Regression.TSTool"></property>
+    <property name="java.specification.version" value="1.4"></property>
+    <property name="src.dir" value="C:\Development\TSTool\java_142\TSTool\src"></property>
+    <property name="junit" value="C:\Development\TSTool\java_142\TSTool\externalsjunit.jar"></property>
+  </properties>
+  <error message="DWR/DMI/tstool/tstoolTestSuite (Unsupported major.minor version 49.0)" type="java.lang.UnsupportedClassVersionError">java.lang.UnsupportedClassVersionError: DWR/DMI/tstool/tstoolTestSuite (Unsupported major.minor version 49.0)
+	at java.lang.ClassLoader.defineClass0(Native Method)
+	at java.lang.ClassLoader.defineClass(ClassLoader.java:537)
+	at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:123)
+	at java.net.URLClassLoader.defineClass(URLClassLoader.java:251)
+	at java.net.URLClassLoader.access$100(URLClassLoader.java:55)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:194)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:187)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:289)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:274)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:235)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:302)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:141)
+</error>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
