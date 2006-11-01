@@ -1,10 +1,20 @@
 # Data units file for CDSS
 #
-# This file provides information for units conversion, labelling, etc.  Use of
-# this file is being phased in.
+# This file provides information for units conversion, labeling, etc.  Use of
+# this file is being phased in to all products.
+#
+# History:
+#
+# 2001-08-21	Steven A. Malers, RTi	Add FRACTION.
+# 2005-11-14	James R. VanShaar, RTi	Corrected error for CFSD factor:  
+#					changed from .50416 to 1.9834973.
+#					Also added CMSD conversion.
+# 2005-11-30	James R. VanShaar, RTi	Added a CMS conversion.
+#					Revised the notes below, as the base
+#                                       discharge is ACFT/D.
 #
 #------------------------------------------------------------------------------
-# DATAUNIT.crdss - CRDSS version of DATAUNIT file
+# DATAUNIT - CDSS version of DATAUNIT file
 #
 # notes:	(1)	To convert FROM one set of units TO another within a
 #			dimension, multiply by the FROM coefficient and divide
@@ -14,11 +24,11 @@
 #
 #				X BASE = 1 OTHR
 #
-#		(2)	This version of the DATAUNIT file should be the same as
-#			the official NWS version except that discharge base
-#			units are CFS, not CMS.  This allows the conversion
-#			from CFS to ACFT to be explicitly set to the conversion
-#			that the State uses.
+#		(2)	This version of the DATAUNIT file should be very similar
+#			to the official NWS version except that discharge base
+#			units are AF/D (ACFT/DAY), not CMS.  This allows the 
+#			conversion from CFS to ACFT to be explicitly set to the
+#			conversion that the State uses.
 #		(3)	Similarly, make ACFT the base unit for volumes.
 #------------------------------------------------------------------------------
 #TYPE|XX |ABBR|SYS| LONGNAME                   |PRECISION|MULT | ADD |
@@ -30,8 +40,14 @@ DIR |OTHR|RAD |   | RADIAN                              |2|57.2958  ||
 DLES|BASE|REAL|   | RATIONAL NUMBER                     |2|1.       ||
 DLES|OTHR|PCT |   | PERCENT                             |0|.01      ||
 DLES|OTHR|PCTD|   | PERCENT/100                         |0|1.       ||
+DLES|OTHR|FRACTION|| FRACTION                           |4|1.       ||
 DLES|OTHR|INT |   | INTEGER NUMBER                      |1|1.       ||
 DLES|OTHR|KIND|   | KIND OF OCCURANCE                   |1|1.       ||
+DLES|OTHR|PPM |ENG| PARTS PER MILLION                   |3|1.       ||
+# Units we don't have a category for yet so put here.
+DLES|OTHR|MBTU|ENG| MILLIIONS OF BRITISH THERMAL UNITS  |3|1.       ||
+DLES|OTHR|LB  |ENG| POUNDS                              |2|1.       ||
+DLES|OTHR|LB/MBTU|ENG| POUNDS PER MILLIONS BTU          |3|1.       ||
 # ENERGY
 E   |BASE|KWH |   | KILOWATT HOURS                      |1|1.       ||
 E   |OTHR|KKWH|   | THOUSAND KILOWATT HOURS             |1|1000.    ||
@@ -46,6 +62,7 @@ E/L2|OTHR|BTF2|   | BTU PER SQUARE FOOT                 |2|.027133  ||
 # POWER
 E/T |BASE|KW  |   | KILOWATTS                           |1|1.       ||
 E/T |OTHR|KKW |   | THOUSAND KILOWATTS                  |1|1000.    ||
+E/T |OTHR|GMW |ENG| GROSS MEGAWATT                      |1|1000000. ||
 # LENGTH
 L   |BASE|MM  |SI | MILLIMETER                          |1|1.       ||
 L   |OTHR|CM  |SI | CENTIMETER                          |2|10.      ||
@@ -76,15 +93,19 @@ L2  |OTHR|NM2 |ENG| SQUARE MILE (NAUTICAL)              |1|3434528. ||
 L2  |OTHR|ACRE|ENG| ACRE                                |1|4046.86  ||
 L2  |OTHR|HECT|SI | HECTARE                             |1|1000.    ||
 # VOLUME
-L3  |BASE|ACFT|ENG| ACRE-FOOT                           |2|1.       ||
+L3  |BASE|ACFT|ENG| ACRE-FOOT                           |1|1.       ||
 L3  |OTHR|AF  |ENG| ACRE-FOOT                           |1|1.       ||
+L3  |BASE|AF/M|ENG| ACRE-FOOT                           |1|1.       ||
 L3  |OTHR|FT3 |ENG| CUBIC FOOT                          |1|.000022956||
-L3  |OTHR|CFSD|ENG| CUBIC FOOT PER SECOND-DAY           |1|.50416   ||
+L3  |OTHR|CFSD|ENG| CUBIC FOOT PER SECOND-DAY           |1|1.9834973||
+L3  |OTHR|CMSD|SI | CUBIC METER PER SECOND-DAY          |1|70.04533976||
 L3  |OTHR|KAFT|ENG| 1000 ACRE-FEET                      |1|1000.0   ||
 # DISCHARGE
 L3/T|BASE|AF/D|ENG| ACRE-FOOT PER DAY                   |1|1.       ||
-L3/T|OTHR|CFS |ENG| CUBIC FOOT PER SECOND               |1|1.9835   ||
+L3/T|OTHR|CFS |ENG| CUBIC FOOT PER SECOND               |2|1.9835   ||
 L3/T|OTHR|KCFS|ENG| 1000 CUBIC FOOT PER SECOND          |1|1983.5   ||
+L3/T|OTHR|MCSFM|ENG| MILLIONS OF CUBIC FEET PER MINUTE  |3|1.       ||
+L3/T|OTHR|CMS |SI | CUBIC METER PER SECOND              |2|70.04533976||
 # PRESSURE
 #RES|BASE|MB  |   | MILLIBAR                            |2|1.       ||
 PRES|OTHR|MMHG|   | MILLIMETER OF MERCURY               |2|1.33322  ||

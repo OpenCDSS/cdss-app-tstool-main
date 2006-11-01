@@ -6,8 +6,10 @@
 	 			compile
 				compileTest
 				test
-	 			runDev
-	 			runOp
+	 			CDSS_runDev
+	 			RTi_runDev
+	 			CDSS_runOp
+	 			RTi_runOp
 	 			regTest
 	 			install
 	 			javadoc
@@ -63,7 +65,8 @@
 	<property name="buildwork.dir"   location="build${sep}work"   />
 	<property name="buildtest.dir"   location="build${sep}test"      />
 	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
-	<property name="testOp.dir"      location="test${sep}operational" />
+	<property name="CDSS_OP.dir"     location="test${sep}operational${sep}CDSS" />
+	<property name="RTi_OP.dir"     location="test${sep}operational${sep}RTi" />
 	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
 	<property name="ext.dir"         location="externals"       />
 	<property name="graphics.dir"    location="graphics"        />
@@ -114,6 +117,8 @@
 	<!-- set classpath -->
 	<path id="classpath">
 		<pathelement location="${junit}" />
+		<pathelement location="${buildwork.dir}"/>
+		<pathelement location="${buildtest.dir}" />
 		<pathelement location="${d1}"/>
 		<pathelement location="${d2}"/>
 		<pathelement location="${d3}"/>
@@ -125,10 +130,7 @@
 		<pathelement location="${d9}"/>
 		<pathelement location="${d10}"/>
 		<pathelement location="${d11}"/>
-		<pathelement location="${buildwork.dir}"/>
-		<pathelement location="${buildtest.dir}" />
 		<pathelement location="${blowfish}" />
-		<pathelement location="${dist.dir}${sep}${jarfname}" />
 		<pathelement location="."/>
 	</path>
 	
@@ -170,13 +172,13 @@
 
 	<!-- delete javadoc stuff -->
 	<delete dir="${jdoc.dir}" />
-	
-	<!-- delete runtime directories -->
-	<delete dir="${system.dir}" />
-	<delete dir="${logs.dir}" />
-	
+		
 	<delete>
 		<fileset dir="test${sep}unit${sep}results" includes="**/*.xml"/>
+		<fileset dir="test${sep}operational${sep}results" />
+		<fileset dir="test${sep}regression${sep}results" />
+		<fileset dir="test${sep}operational${sep}CDSS${sep}logs" />
+		<fileset dir="test${sep}operational${sep}RTi${sep}logs" />
 	</delete>
 	
 </target>
@@ -243,20 +245,23 @@
 	
 	
 <!--===================================================
-	Target:   runDev
+	Target:   CDSS_runDev
 	Function: runs the executable or java class from
 			  the build directory for quick development
-			  testing
+			  testing using the CDSS operational env.
 ====================================================-->
-<target name="runDev" depends="compile">
+<target name="CDSS_runDev" depends="compile">
 	
-	<echo message="HOME:   ${testOp.dir}" />
+	<!-- need to copy graphics files -->
+	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
+		<fileset dir="graphics" />
+	</copy>
 	
 	<java classname="${classname}" fork="true">
 		<jvmarg    value = "-mx256m" />
 		<jvmarg    value = "-Djava.compiler=NONE" />
 		<arg       value = "-home" />
-		<arg	   value = "${testOp.dir}" />
+		<arg	   value = "${CDSS_OP.dir}" />
 		<classpath refid = "classpath" />   
 	</java>	
 
@@ -264,23 +269,63 @@
 
 
 <!--===================================================
-	Target:   runOp
+	Target:   CDSS_runOp
 	Function: runs the executable from the dist jar
-			  for operational testing
+			  file for running in the CDSS operational env.
 ====================================================-->
-	<target name="runOp" depends="jar">
+<target name="CDSS_runOp" depends="jar">
 		
-		<echo message="HOME:   ${testOp.dir}" />
-		
-		<java classname="${classname}" fork="true">
-			<jvmarg    value = "-mx256m" />
-			<jvmarg    value = "-Djava.compiler=NONE" />
-			<arg       value = "-home" />
-			<arg	   value = "${testOp.dir}" />
-			<classpath refid = "classpathOp" />   
-		</java>	
+	<java classname="${classname}" fork="true">
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${CDSS_OP.dir}" />
+		<classpath refid = "classpathOp" />   
+	</java>	
 
-	</target>
+</target>
+	
+	
+<!--===================================================
+	Target:   RTi_runDev
+	Function: runs the executable or java class from
+			  the build directory for quick development
+			  testing using the RTi operational env.
+====================================================-->
+<target name="RTi_runDev" depends="compile">
+	
+	<!-- need to copy graphics files -->
+	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
+		<fileset dir="graphics" />
+	</copy>
+	
+	<java classname="${classname}" fork="true">
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${RTi_OP.dir}" />
+		<classpath refid = "classpath" />   
+	</java>	
+
+</target>
+
+
+<!--===================================================
+	Target:   RTi_runOp
+	Function: runs the executable from the dist jar
+			  file for running in the RTi operational env.
+====================================================-->
+<target name="RTi_runOp" depends="jar">
+	
+	<java classname="${classname}" fork="true">
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${RTi_OP.dir}" />
+		<classpath refid = "classpathOp" />   
+	</java>	
+
+</target>
 	
 	
 <!--===================================================
@@ -335,7 +380,7 @@
 	</copy>
 	-->
 	
-	<copy todir="${buildwork.dir}${sep}DWR{sep}DMI{sep}tstool" >
+	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
 		<fileset dir="graphics" />
 	</copy>
 	
@@ -372,7 +417,7 @@
 		<jvmarg    value = "-mx256m" />
 		<jvmarg    value = "-Djava.compiler=NONE" />
 		<arg       value = "-home" />
-		<arg	   value = "${testOp.dir}" />
+		<arg	   value = "${CDSS_OP.dir}" />
 		<arg	   value = "-commands" />
 		<arg	   value = "${regTest.dir}${sep}${command_file}" />
 		<classpath refid = "classpathOp" />   
@@ -414,9 +459,13 @@ test           runs the junit tests for this product
 
 clean          removes the build directories
 
-runDev         runs the application using class files
+CDSS_runDev    runs the application using class files using CDSS env.
 		
-runOp          runs the application from the dist jar file
+RTi_runDev     runs the application using class files using RTi env.
+		
+CDSS_runOp     runs the application from the dist jar file using CDSS env.
+
+RTi_runOp     runs the application from the dist jar file using RTi env.
 
 javadoc        generates javadocs from source code
 
