@@ -787,6 +787,9 @@
 //					* Add test code to process real-time
 //					  streamflow data into shapefile with
 //					  percent of average statistics.
+// 2006-10-31	SAM, RTi		Update to version 7.00.00.
+//					* Add input filters for HydroBase CASS
+//					  livestock and CUPopulation.
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -957,7 +960,9 @@ import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_CountyRef;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
+import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel;
+import DWR.DMI.HydroBaseDMI.HydroBase_GUI_CUPopulation_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_GroundWater_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel;
@@ -1046,10 +1051,20 @@ private JPanel __selected_input_filter_JPanel = null;
 						// information for queries.
 						// Not an InputFilter_JPanel
 						// because of the generic case.
-private InputFilter_JPanel __input_filter_HydroBase_CASS_JPanel = null;
+private InputFilter_JPanel __input_filter_HydroBase_CASSCropStats_JPanel = null;
 						// InputFilter_JPanel for
 						// HydroBase CASS agricultural
 						// crop statistics time series.
+private InputFilter_JPanel __input_filter_HydroBase_CASSLivestockStats_JPanel =
+						null;
+						// InputFilter_JPanel for
+						// HydroBase CASS agricultural
+						// livestock statistics
+						// time series.
+private InputFilter_JPanel __input_filter_HydroBase_CUPopulation_JPanel = null;
+						// InputFilter_JPanel for
+						// HydroBase CUPopulation
+						// time series.
 private InputFilter_JPanel __input_filter_HydroBase_NASS_JPanel = null;
 						// InputFilter_JPanel for
 						// HydroBase NASS agricultural
@@ -5779,6 +5794,7 @@ private void dataTypeChoiceClicked()
 			HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
 			__selected_data_type,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
+			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
 			HydroBase_Util.DATA_TYPE_HARDWARE |
 			HydroBase_Util.DATA_TYPE_STATION_ALL |
 			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
@@ -8753,26 +8769,70 @@ private void initGUIInputFilters ( int y )
 			Message.printWarning ( 2, routine, e );
 		}
 
-		// Add input filters for CASS agricultural statistics, only
-		// available for newer databases.  For now, just catch an
+		// Add input filters for CASS agricultural crop statistics,
+		// only available for newer databases.  For now, just catch an
 		// exception when not supported.
 
-		try {	__input_filter_HydroBase_CASS_JPanel = new
+		try {	__input_filter_HydroBase_CASSCropStats_JPanel = new
 			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel
 				( __hbdmi );
         		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CASS_JPanel,
+				__input_filter_HydroBase_CASSCropStats_JPanel,
 				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
 				gbc.EAST );
 			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_CASS_JPanel );
+				__input_filter_HydroBase_CASSCropStats_JPanel );
 		}
 		catch ( Exception e ) {
 			// Agricultural_CASS_crop_stats probably not in
 			// HydroBase...
 			Message.printWarning ( 2, routine,
 			"Unable to initialize input filter for HydroBase" +
-			" agricultural_CASS_crop_stats - old database?" );
+			" CASS crop statistics - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for CASS agricultural livestock statistics,
+		// only available for newer databases.  For now, just catch an
+		// exception when not supported.
+
+		try {	__input_filter_HydroBase_CASSLivestockStats_JPanel = new
+			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel
+				( __hbdmi );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_CASSLivestockStats_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
+				gbc.EAST );
+			__input_filter_JPanel_Vector.addElement (
+			__input_filter_HydroBase_CASSLivestockStats_JPanel );
+		}
+		catch ( Exception e ) {
+			// Agricultural_CASS_livestock_stats probably not in
+			// HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" CASS livestock statistics - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for CU population data, only available for
+		// newer databases.  For now, just catch an exception when not
+		// supported.
+
+		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
+			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_CUPopulation_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
+				gbc.EAST );
+			__input_filter_JPanel_Vector.addElement (
+			__input_filter_HydroBase_CUPopulation_JPanel );
+		}
+		catch ( Exception e ) {
+			// CUPopulation probably not in HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" CU population data - old database?" );
 			Message.printWarning ( 2, routine, e );
 		}
 
@@ -10483,6 +10543,7 @@ private void inputTypeChoiceClicked()
 		Vector data_types =
 			HydroBase_Util.getTimeSeriesDataTypes (__hbdmi,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
+			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
 			HydroBase_Util.DATA_TYPE_HARDWARE |
 			HydroBase_Util.DATA_TYPE_STATION_ALL |
 			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
@@ -12218,6 +12279,40 @@ throws Exception
 				TSTool_HydroBase_Ag_CellRenderer cr = new
 					TSTool_HydroBase_Ag_CellRenderer(
 					(TSTool_HydroBase_Ag_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			else if(HydroBase_Util.
+				isAgriculturalCASSLivestockStatsTimeSeriesDataType (
+				__hbdmi, __selected_data_type) ) {
+				// Data from CASS livestock stats...
+				__query_TableModel = new
+					TSTool_HydroBase_CASSLivestockStats_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type );
+				TSTool_HydroBase_CASSLivestockStats_CellRenderer cr = new
+					TSTool_HydroBase_CASSLivestockStats_CellRenderer(
+					(TSTool_HydroBase_CASSLivestockStats_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			else if(HydroBase_Util.isCUPopulationTimeSeriesDataType(
+				__hbdmi, __selected_data_type) ) {
+				// Data from CUPopulation...
+				__query_TableModel = new
+					TSTool_HydroBase_CUPopulation_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type );
+				TSTool_HydroBase_CUPopulation_CellRenderer cr =
+					new
+					TSTool_HydroBase_CUPopulation_CellRenderer(
+					(TSTool_HydroBase_CUPopulation_TableModel)
 					__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
@@ -14885,21 +14980,39 @@ private void setInputFilters()
 			__selected_input_filter_JPanel =
 				__input_filter_HydroBase_structure_JPanel;
 		}
-		else if ( (__input_filter_HydroBase_CASS_JPanel != null) &&
-			HydroBase_Util.
+		else if ((__input_filter_HydroBase_CASSCropStats_JPanel != null)
+			&& HydroBase_Util.
 			isAgriculturalCASSCropStatsTimeSeriesDataType (
 			__hbdmi, __selected_data_type) ) {
-			Message.printStatus (1, "",
-			"Displaying CASS agstats panel");
+			//Message.printStatus (2, "",
+			//"Displaying CASS crop stats panel");
 			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_CASS_JPanel;
+				__input_filter_HydroBase_CASSCropStats_JPanel;
+		}
+		else if ((__input_filter_HydroBase_CASSLivestockStats_JPanel
+			!= null) && HydroBase_Util.
+			isAgriculturalCASSLivestockStatsTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "",
+			//"Displaying CASS livestock stats panel");
+			__selected_input_filter_JPanel =
+			__input_filter_HydroBase_CASSLivestockStats_JPanel;
+		}
+		else if ((__input_filter_HydroBase_CUPopulation_JPanel
+			!= null) && HydroBase_Util.
+			isCUPopulationTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "",
+			//"Displaying CU population panel");
+			__selected_input_filter_JPanel =
+			__input_filter_HydroBase_CUPopulation_JPanel;
 		}
 		else if ( (__input_filter_HydroBase_NASS_JPanel != null) &&
 			HydroBase_Util.
 			isAgriculturalNASSCropStatsTimeSeriesDataType (
 			__hbdmi, __selected_data_type) ) {
-			Message.printStatus (1, "",
-			"Displaying NASS agstats panel");
+			//Message.printStatus (2, "",
+			//"Displaying NASS agstats panel");
 			__selected_input_filter_JPanel =
 				__input_filter_HydroBase_NASS_JPanel;
 		}
@@ -15351,6 +15464,50 @@ private void transferOneTSFromListToCommand ( int row, boolean check_gui_state)
 			TSTool_HydroBase_AgGIS_TableModel){
 			TSTool_HydroBase_AgGIS_TableModel model =
 				(TSTool_HydroBase_AgGIS_TableModel)
+				__query_TableModel;
+			appendResultsToCommands ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_CASSLivestockStats_TableModel){
+			TSTool_HydroBase_CASSLivestockStats_TableModel model =
+				(TSTool_HydroBase_CASSLivestockStats_TableModel)
+				__query_TableModel;
+			appendResultsToCommands ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_CUPopulation_TableModel){
+			TSTool_HydroBase_CUPopulation_TableModel model =
+				(TSTool_HydroBase_CUPopulation_TableModel)
 				__query_TableModel;
 			appendResultsToCommands ( 
 				(String)__query_TableModel.getValueAt(

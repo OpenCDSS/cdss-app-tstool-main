@@ -7,9 +7,13 @@
 				compileTest
 				test
 	 			CDSS_runDev
+	 			CDSS_runDevD30
 	 			RTi_runDev
+	 			RTi_runDevD30
 	 			CDSS_runOp
+	 			CDSS_runOpD30
 	 			RTi_runOp
+	 			RTi_runOpD30
 	 			regTest
 	 			install
 	 			javadoc
@@ -267,7 +271,28 @@
 
 </target>
 
+<!--===================================================
+	Target:   CDSS_runDevD30
+	Function: runs the executable or java class from
+			  the build directory for quick development
+			  testing, at TSTool debug level 30
+====================================================-->
+	<target name="CDSS_runDevD30" depends="compile">
+		
+		<echo message="HOME:   ${testOp.dir}" />
+		
+		<java classname="${classname}" fork="true">
+			<jvmarg    value = "-mx256m" />
+			<jvmarg    value = "-Djava.compiler=NONE" />
+			<arg       value = "-home" />
+			<arg	   value = "${CDSS_Op.dir}" />
+			<arg		value = "-d" />
+			<arg		value = ",30" />
+			<classpath refid = "classpath" />   
+		</java>	
 
+	</target>
+	
 <!--===================================================
 	Target:   CDSS_runOp
 	Function: runs the executable from the dist jar
@@ -285,6 +310,26 @@
 
 </target>
 	
+<!--===================================================
+		Target:   CDSS_runOpD30
+		Function: runs the executable from the dist jar
+				  for operational testing, at TSTool debug level 30
+	====================================================-->
+		<target name="CDSS_runOpD30" depends="jar">
+			
+			<echo message="HOME:   ${testOp.dir}" />
+			
+			<java classname="${classname}" fork="true">
+				<jvmarg    value = "-mx256m" />
+				<jvmarg    value = "-Djava.compiler=NONE" />
+				<arg       value = "-home" />
+				<arg	   value = "${CDSS_Op.dir}" />
+				<arg		value = "-d" />
+				<arg		value = ",30" />
+				<classpath refid = "classpathOp" />   
+			</java>	
+
+		</target>
 	
 <!--===================================================
 	Target:   RTi_runDev
@@ -306,9 +351,33 @@
 		<arg	   value = "${RTi_OP.dir}" />
 		<classpath refid = "classpath" />   
 	</java>	
-
 </target>
 
+	<!--===================================================
+		Target:   RTi_runDevD30
+		Function: runs the executable or java class from
+				  the build directory for quick development
+				  testing using the RTi operational env, at
+				  TSTool debug level 30.
+	====================================================-->
+	<target name="RTi_runDevD30" depends="compile">
+		
+		<!-- need to copy graphics files -->
+		<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
+			<fileset dir="graphics" />
+		</copy>
+		
+		<java classname="${classname}" fork="true">
+			<jvmarg    value = "-mx256m" />
+			<jvmarg    value = "-Djava.compiler=NONE" />
+			<arg       value = "-home" />
+			<arg	   value = "${RTi_OP.dir}" />
+			<arg		value = "-d" />
+			<arg		value = ",30" />
+			<classpath refid = "classpath" />   
+		</java>		
+	
+</target>
 
 <!--===================================================
 	Target:   RTi_runOp
@@ -324,7 +393,26 @@
 		<arg	   value = "${RTi_OP.dir}" />
 		<classpath refid = "classpathOp" />   
 	</java>	
+</target>
+	
+<!--===================================================
+		Target:   RTi_runOpD30
+		Function: runs the executable from the dist jar
+				  file for running in the RTi operational env.,
+			  at TSTool debug level 30
+====================================================-->
+<target name="RTi_runOpD30" depends="jar">
 
+<java classname="${classname}" fork="true">
+	<jvmarg    value = "-mx256m" />
+	<jvmarg    value = "-Djava.compiler=NONE" />
+	<arg       value = "-home" />
+	<arg	   value = "${RTi_OP.dir}" />
+	<arg		value = "-d" />
+	<arg		value = ",30" />
+	<classpath refid = "classpathOp" />   
+</java>	
+	
 </target>
 	
 	

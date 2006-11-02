@@ -390,6 +390,13 @@
 // 2006-06-15	SAM, RTi		Change the version to 6.20.00.
 //					* Add NDFD support, in particular to
 //					  manage NDFD adapters.
+// 2006-10-31	SAM, RTi		Change the version to 7.00.00.
+//					* Begin doing development using the
+//					  new development environment.
+//					* Begin distributing using the NSIS
+//					  build process.
+//					* Add HydroBase livestock and human
+//					  population time series.
 //------------------------------------------------------------------------------
 //EndHeader
 
@@ -411,7 +418,7 @@ import RTi.Util.String.StringUtil;
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "6.20.00 (2006-06-15)";
+public static final String PROGRAM_VERSION = "7.00.00 (2006-10-31)";
 
 private static TSTool_JFrame	__tstool_JFrame;	// Main GUI    
 private static String		__logfile = "tstool.log";// Log file.
