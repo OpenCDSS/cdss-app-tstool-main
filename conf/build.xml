@@ -66,14 +66,14 @@
 	<property name="buildtest.dir"   location="build${sep}test"      />
 	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
 	<property name="CDSS_OP.dir"     location="test${sep}operational${sep}CDSS" />
-	<property name="RTi_OP.dir"     location="test${sep}operational${sep}RTi" />
+	<property name="RTi_OP.dir"      location="test${sep}operational${sep}RTi" />
 	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
 	<property name="ext.dir"         location="externals"       />
 	<property name="graphics.dir"    location="graphics"        />
 	<property name="system.dir"  	 location="test${sep}system"        />
 	<property name="logs.dir"    	 location="test${sep}logs"        />
 	<property name="package"     	 value="DWR${sep}DMI${sep}tstool" />
-	<property name="nsis.dir"		 location="NSIS" />
+	<property name="nsis.dir"		 location="installer" />
 	<property name="executable"  	 location="I:${sep}develop${sep}jdk_150${sep}bin${sep}javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="testSuite"  	 value="DWR.DMI.tstool.tstoolTestSuite" />
@@ -431,7 +431,7 @@
 </target>
 
 	
-<target name="nsis" depends="jar" >
+<target name="install" depends="jar" >
 	
 	<!-- run nsis script to create .exe install -->
 		<exec dir="${nsis.dir}" executable="I:\DEVELOP\NSIS\makensis.exe" >
@@ -465,13 +465,13 @@ RTi_runDev     runs the application using class files using RTi env.
 		
 CDSS_runOp     runs the application from the dist jar file using CDSS env.
 
-RTi_runOp     runs the application from the dist jar file using RTi env.
+RTi_runOp      runs the application from the dist jar file using RTi env.
 
 javadoc        generates javadocs from source code
 
 jar            copies class files into a single jar file in dist    
 		
-nsis           creates an executable installer in the nsis dir
+install        creates an executable installer in the installer dir
 
 regTest        runs a regression test and stores results in regression/results dir
 	

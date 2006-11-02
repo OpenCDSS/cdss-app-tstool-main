@@ -107,6 +107,7 @@ SectionEnd
 !define MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\rti.bmp" ; optional
 !define MUI_ABORTWARNING
 
+MiscButtonText "Back" "Next" "Cancel" "Done"
 
 # Installer languages
 !insertmacro MUI_LANGUAGE English
