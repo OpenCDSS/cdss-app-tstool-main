@@ -29,8 +29,9 @@ Name TSTool
 # Included files
 !include Sections.nsh
 !include MUI.nsh
-!include Util.nsh
-!include BaseComponents.nsh
+!include ..\externals\NSIS_Common\Util.nsh
+!include ..\externals\CDSS\installer\BaseComponents.nsh
+!include ..\externals\CDSS\installer\server_name.nsh
 
 # Reserved Files
 ReserveFile "${NSISDIR}\Plugins\StartMenu.dll"
@@ -46,6 +47,7 @@ Page components
 Page directory
 Page custom StartMenuGroupSelect "" ": Start Menu Folder"
 Page instfiles
+Page custom SetCustom
 
 # Installer attributes
 OutFile TSTool_Setup.exe
@@ -136,7 +138,7 @@ Section /o "Documentation"
     # copy documentation
     SetOutPath $INSTDIR\doc\TSTool
     SetOverwrite on
-    File /r ..\doc\TSTool\*
+    File /r /x *svn* ..\doc\TSTool\*
 
 SectionEnd
 
@@ -160,100 +162,90 @@ Section "TSTool"
 
     # set choseTSTool variable to true since it was chosen
     strcpy $choseTSTool "1"
-
+    
     # copy important bat/jar files specific to this product
     SetOverwrite on
     SetOutPath $INSTDIR\bin
     
     # check access date/time
     strcpy $9 "TSTool_142.jar"
-    strcpy $cur_file "C:\CDSS\$9"
+    strcpy $cur_file "C:\CDSS\bin\$9"
     strcpy $install_file "..\dist\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
+      DetailPrint "Local version $INSTDIR\bin\$9 is current"
       Goto +2
       File ..\dist\TSTool_142.jar
-    
     
     # check access date/time
     strcpy $9 "TSTool.cfg"
     SetOutPath $INSTDIR\system
     strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
+    strcpy $install_file "..\test\operational\CDSS\system\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
       DetailPrint "Local version $INSTDIR\$9 is current"
       Goto +2
-    File ..\externals\TSTool.cfg
+    File ..\test\operational\CDSS\system\TSTool.cfg
   
+    
     ########## TSTool BAT FILES ############  
     
     # check access date/time
     strcpy $9 "TSTool.bat"
     SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
+    strcpy $cur_file "$INSTDIR\bin\$9"
+    strcpy $install_file "..\scripts\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
+      DetailPrint "Local version $INSTDIR\bin\$9 is current"
       Goto +2
-      File ..\externals\TSTool.bat
+      File ..\scripts\TSTool.bat
     
-    # check access date/time
-    strcpy $9 "TSTool_rti.bat"
-    SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
-      Goto +2
-      File ..\externals\TSTool_rti.bat
     
     # check access date/time
     strcpy $9 "NWSRFS_DMI_142.jar"
     SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
+    strcpy $cur_file "$INSTDIR\bin\$9"
+    strcpy $install_file "..\externals\NWSRFS_DMI\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
+      DetailPrint "Local version $INSTDIR\bin\$9 is current"
       Goto +2
-      File ..\externals\NWSRFS_DMI_142.jar
+      File ..\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar
     
     # check access date/time
     strcpy $9 "RiversideDB_DMI_142.jar"
     SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
+    strcpy $cur_file "$INSTDIR\bin\$9"
+    strcpy $install_file "..\externals\RiversideDB_DMI\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
+      DetailPrint "Local version $INSTDIR\bin\$9 is current"
       Goto +2
-      File ..\externals\RiversideDB_DMI_142.jar
+      File ..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
     
     # check access date/time
     strcpy $9 "StateMod_142.jar"
     SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
+    strcpy $cur_file "$INSTDIR\bin\$9"
+    strcpy $install_file "..\externals\StateMod\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
+      DetailPrint "Local version $INSTDIR\bin\$9 is current"
       Goto +2
-      File ..\externals\StateMod_142.jar
+      File ..\externals\StateMod\StateMod_142.jar
     
     # check access date/time
     strcpy $9 "StateCU_142.jar"
     SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\externals\$9"
+    strcpy $cur_file "$INSTDIR\bin\$9"
+    strcpy $install_file "..\externals\StateCU\$9"
     Call CompareFileModificationDates
     strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
+      DetailPrint "Local version $INSTDIR\bin\$9 is current"
       Goto +2
-      File ..\externals\StateCU_142.jar
+      File ..\externals\StateCU\StateCU_142.jar
     
     
    ############################################
@@ -264,7 +256,7 @@ Section "TSTool"
     
     # Installs shortcut in $INSTDIR
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../" "J:\CDSS\System\shortcutIcon.bmp"
+    CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../ "C:\CDSS\graphics\waterMark.bmp""
     
 SectionEnd
 
@@ -290,7 +282,7 @@ Section "Start Menu Shortcuts"
     
     # Shortcut added for launch of java program
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\Run TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../" "J:\CDSS\System\shortcutIcon.bmp"
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\Run TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../ "C:\CDSS\graphics\waterMark.bmp""
     
     skipMenu:
     
@@ -313,7 +305,7 @@ Section /o "DesktopShortcut"
    
     # Installs shortcut on desktop
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../" "J:\CDSS\System\shortcutIcon.bmp"
+    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../ "C:\CDSS\graphics\waterMark.bmp""
 
     skipShortcut:
 
@@ -464,7 +456,7 @@ Function .onInstSuccess
     
     MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
     true:
-      Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../'
+      Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../'
       Goto next
     false:
       DetailPrint "User chose to not start application"
