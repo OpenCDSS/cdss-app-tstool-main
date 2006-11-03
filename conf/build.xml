@@ -183,6 +183,8 @@
 		<fileset dir="test${sep}regression${sep}results" />
 		<fileset dir="test${sep}operational${sep}CDSS${sep}logs" />
 		<fileset dir="test${sep}operational${sep}RTi${sep}logs" />
+		<fileset dir= "test${sep}regression${sep}src${sep}commands" 
+		         includes="**/*Output*.dv" />
 	</delete>
 	
 </target>
@@ -523,7 +525,7 @@
 	
 	<!-- run nsis script to create .exe install -->
 		<exec dir="${nsis.dir}" executable="I:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool.nsi" />
+			<arg value="TSTool_CDSS.nsi" />
 	</exec>
 	
 </target>

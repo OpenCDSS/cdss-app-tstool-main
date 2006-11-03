@@ -602,6 +602,15 @@
 // 2006-07-13	SAM, RTi		* Manage NDFD Adapters.
 // 2006-10-30   KAT, RTi        * Commented out variables and packages
 //                    pertaining to the legacy dataServices code
+// 2006-11-02   KAT, RTi        * Fixed the newDayTSFromMonthAndDayTS
+//                    to multiply the monthly volume by (1 / 1.9835).
+//                    The old code was multiplying by 1.9385 and should 
+//                    have been the reciprocal.  Algorithm is tested with
+//                    with regression test commands.
+// 2006-11-02   KAT, RTi        * Fixed bug where TS wasn't being ignored when 
+//                    daily or monthly data was missing.  Fixed in the
+//                    setUsingMonthAndDay method.  Tested by regression
+//                    test commands under test/regression/commands.
 //------------------------------------------------------------------------------
 // EndHeader
 
@@ -12001,8 +12010,13 @@ public void setUsingMonthAndDay ( DayTS ts, MonthTS monthts, DayTS dayts )
 		for (	i = 1; i <= num_days_in_month;
 			i++, daydate.addInterval(TimeInterval.DAY,1) ) {
 			dayvalue = dayts.getDataValue ( daydate );
+            
+            if ( dayts.isDataMissing(dayvalue) ) {
+                // Don't do anything for the day...
+                continue;
+            }
 			if ( !dayts.isDataMissing(dayvalue) ) {
-				daytotal += dayvalue;
+               daytotal += dayvalue;
 			}
 		}
 //		Message.printStatus ( 1, "", "Day total for " +
@@ -12017,11 +12031,16 @@ public void setUsingMonthAndDay ( DayTS ts, MonthTS monthts, DayTS dayts )
 			for (	i = 1; i <= num_days_in_month;
 				i++, daydate.addInterval(TimeInterval.DAY,1) ) {
 				dayvalue = dayts.getDataValue ( daydate );
+                
+                if ( dayts.isDataMissing(dayvalue) ) {
+                    // Don't do anything for the day...
+                    continue;
+                }    
 				// For now hard-code the conversion factor
 				// from ACFT to CFS...
 				if ( !dayts.isDataMissing(dayvalue) ) {
 					dayvalue =
-					1.9835*monthvalue*(dayvalue/daytotal);
+					(monthvalue * (1 / 1.9835)) * (dayvalue/daytotal) ;
 //		Message.printStatus ( 1, "", "Setting " +
 //			daydate.toString() + " to " + daytotal );
 					ts.setDataValue(daydate,dayvalue);

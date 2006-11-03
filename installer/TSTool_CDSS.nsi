@@ -50,7 +50,7 @@ Page instfiles
 Page custom SetCustom
 
 # Installer attributes
-OutFile TSTool_Setup.exe
+OutFile TSTool_CDSS.exe
 InstallDir C:\CDSS
 CRCCheck on
 XPStyle on
