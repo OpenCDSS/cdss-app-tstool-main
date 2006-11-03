@@ -11986,6 +11986,8 @@ public void setUsingMonthAndDay ( DayTS ts, MonthTS monthts, DayTS dayts )
 	double monthvalue = 0.0;
 	int num_days_in_month = 0;
 	int i = 0;
+    boolean found_missing_day = false;
+    
 	// Loop on the months for the time series being filled...
 	for (	;
 		monthdate.lessThanOrEqualTo ( monthend );
@@ -12007,18 +12009,25 @@ public void setUsingMonthAndDay ( DayTS ts, MonthTS monthts, DayTS dayts )
 		// Get the total of the values in daily time series being used
 		// for the distribution...
 		daytotal = 0.0;
+        
+        // reset the found missing data flag
+        found_missing_day = false;
+        
 		for (	i = 1; i <= num_days_in_month;
 			i++, daydate.addInterval(TimeInterval.DAY,1) ) {
 			dayvalue = dayts.getDataValue ( daydate );
-            
-            if ( dayts.isDataMissing(dayvalue) ) {
-                // Don't do anything for the day...
-                continue;
+           
+            if ( dayts.isDataMissing( dayvalue )) {    
+               found_missing_day = true;
+               break;
             }
-			if ( !dayts.isDataMissing(dayvalue) ) {
-               daytotal += dayvalue;
-			}
+            daytotal += dayvalue;
 		}
+        
+        // If data is missing for the day, skip to next month
+        if ( found_missing_day ) {
+           continue;
+        }
 //		Message.printStatus ( 1, "", "Day total for " +
 //			monthdate.toString() + " is " + daytotal );
 		// Now loop through again and fill in the time series to be
@@ -12031,11 +12040,7 @@ public void setUsingMonthAndDay ( DayTS ts, MonthTS monthts, DayTS dayts )
 			for (	i = 1; i <= num_days_in_month;
 				i++, daydate.addInterval(TimeInterval.DAY,1) ) {
 				dayvalue = dayts.getDataValue ( daydate );
-                
-                if ( dayts.isDataMissing(dayvalue) ) {
-                    // Don't do anything for the day...
-                    continue;
-                }    
+                  
 				// For now hard-code the conversion factor
 				// from ACFT to CFS...
 				if ( !dayts.isDataMissing(dayvalue) ) {
