@@ -397,6 +397,9 @@
 //					  build process.
 //					* Add HydroBase livestock and human
 //					  population time series.
+// 2006-11-07   KAT, RTi        Fixing bug were home argument
+//                    wasn't working for relative paths.  Added
+//                    some code to get canonical path for home.
 //------------------------------------------------------------------------------
 //EndHeader
 
@@ -731,7 +734,11 @@ throws Exception
 					+ "'-home'");
 			}
 			i++;
-			__home = args[i];
+           
+            //Changed __home since old way wasn't supporting relative paths
+            //__home = args[i];
+            __home = (new File(args[i])).getCanonicalPath().toString();
+           
 			// Open the log file so that remaining messages will
 			// be seen in the log file...
 			openLogFile();
@@ -804,7 +811,7 @@ throws Exception
 	String release = a.getParameter("-release");
 
 	if ( home != null ) {
-		__home = home;
+		__home = (new File(home)).getCanonicalPath().toString();
 		IOUtil.setProgramWorkingDir(__home);
 		IOUtil.setApplicationHomeDir(__home);
 		JGUIUtil.setLastFileDialogDirectory(__home);

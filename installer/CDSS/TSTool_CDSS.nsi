@@ -29,9 +29,9 @@ Name TSTool
 # Included files
 !include Sections.nsh
 !include MUI.nsh
-!include ..\externals\NSIS_Common\Util.nsh
-!include ..\externals\CDSS\installer\BaseComponents.nsh
-!include ..\externals\CDSS\installer\server_name.nsh
+!include ..\..\externals\NSIS_Common\Util.nsh
+!include ..\..\externals\CDSS\installer\BaseComponents.nsh
+!include ..\..\externals\CDSS\installer\server_name.nsh
 
 # Reserved Files
 ReserveFile "${NSISDIR}\Plugins\StartMenu.dll"
@@ -41,16 +41,8 @@ Var StartMenuGroup
 Var myInstDir
 Var choseTSTool
 
-# Installer pages
-Page license
-Page components
-Page directory
-Page custom StartMenuGroupSelect "" ": Start Menu Folder"
-Page instfiles
-Page custom SetCustom
-
 # Installer attributes
-OutFile TSTool_CDSS.exe
+OutFile TSTool_Setup.exe
 InstallDir C:\CDSS
 CRCCheck on
 XPStyle on
@@ -58,16 +50,14 @@ Icon "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 ShowInstDetails show
 AutoCloseWindow false
 LicenseForceSelection radiobuttons
-LicenseData ..\doc\TSTool\License.txt
-BGGradient 220099 000000 FFFFFF
+LicenseData License.txt
+LicenseText "Please read and agree to the following license before installing TSTool." 
+BGGradient 3300FF 000000 FFFFFF
 VIProductVersion 6.18.0.0
 VIAddVersionKey ProductName TSTool
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"
 VIAddVersionKey CompanyWebsite "${URL}"
-VIAddVersionKey FileVersion ""
-VIAddVersionKey FileDescription ""
-VIAddVersionKey LegalCopyright ""
 InstallDirRegKey HKLM "${REGKEY}" Path
 UninstallIcon "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 ShowUninstDetails show
@@ -104,13 +94,26 @@ SectionEnd
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Header\rti.bmp" ; optional
+!define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
+!define MUI_HEADERIMAGE_BITMAP "..\..\externals\CDSS\graphics\CDSS_TSTool_Install.bmp"
 !define MUI_ABORTWARNING
+!define MUI_COMPONENTSPAGE_TEXT_COMPLIST "Select the TSTool components to install"
 
+### Use custom button text
 MiscButtonText "Back" "Next" "Cancel" "Done"
 
 # Installer languages
 !insertmacro MUI_LANGUAGE English
+
+
+# Installer pages
+Page license
+Page components
+Page directory
+Page custom StartMenuGroupSelect "" ": Start Menu Folder"
+Page instfiles
+Page custom SetCustom
+
 
 ########################################################
 # SECTION: -Main
@@ -134,12 +137,12 @@ SectionEnd
 # allows the component page to uncheck
 # this box by default.   
 #########################################
-Section /o "Documentation"
+Section /o "Documentation" Docs
     
     # copy documentation
     SetOutPath $INSTDIR\doc\TSTool
     SetOverwrite on
-    File /r /x *svn* ..\doc\TSTool\*
+    File /r /x *svn* ..\..\doc\TSTool\*
 
 SectionEnd
 
@@ -159,106 +162,35 @@ SectionEnd
 #  located in Util.nsh:CompareFileModificationDates  
 #
 ##################################################
-Section "TSTool"
+Section "TSTool" TSTool
 
     # set choseTSTool variable to true since it was chosen
     strcpy $choseTSTool "1"
     
     # copy important bat/jar files specific to this product
-    SetOverwrite on
+    SetOverwrite ifnewer
     SetOutPath $INSTDIR\bin
     
-    # check access date/time
-    strcpy $9 "TSTool_142.jar"
-    strcpy $cur_file "C:\CDSS\bin\$9"
-    strcpy $install_file "..\dist\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\bin\$9 is current"
-      Goto +2
-      File ..\dist\TSTool_142.jar
+    File ..\..\scripts\TSTool.bat
+    File ..\..\dist\TSTool_142.jar
+    File ..\..\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar
+    File ..\..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
+    File ..\..\externals\StateMod\StateMod_142.jar
+    File ..\..\externals\StateCU\StateCU_142.jar
     
-    # check access date/time
-    strcpy $9 "TSTool.cfg"
     SetOutPath $INSTDIR\system
-    strcpy $cur_file "$INSTDIR\$9"
-    strcpy $install_file "..\test\operational\CDSS\system\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\$9 is current"
-      Goto +2
-    File ..\test\operational\CDSS\system\TSTool.cfg
-  
+    File ..\..\test\operational\CDSS\system\TSTool.cfg
     
-    ########## TSTool BAT FILES ############  
-    
-    # check access date/time
-    strcpy $9 "TSTool.bat"
-    SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\bin\$9"
-    strcpy $install_file "..\scripts\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\bin\$9 is current"
-      Goto +2
-      File ..\scripts\TSTool.bat
-    
-    
-    # check access date/time
-    strcpy $9 "NWSRFS_DMI_142.jar"
-    SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\bin\$9"
-    strcpy $install_file "..\externals\NWSRFS_DMI\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\bin\$9 is current"
-      Goto +2
-      File ..\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar
-    
-    # check access date/time
-    strcpy $9 "RiversideDB_DMI_142.jar"
-    SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\bin\$9"
-    strcpy $install_file "..\externals\RiversideDB_DMI\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\bin\$9 is current"
-      Goto +2
-      File ..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
-    
-    # check access date/time
-    strcpy $9 "StateMod_142.jar"
-    SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\bin\$9"
-    strcpy $install_file "..\externals\StateMod\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\bin\$9 is current"
-      Goto +2
-      File ..\externals\StateMod\StateMod_142.jar
-    
-    # check access date/time
-    strcpy $9 "StateCU_142.jar"
-    SetOutPath "$INSTDIR\bin"
-    strcpy $cur_file "$INSTDIR\bin\$9"
-    strcpy $install_file "..\externals\StateCU\$9"
-    Call CompareFileModificationDates
-    strcmp "0" $AccessReturnVal +3 0
-      DetailPrint "Local version $INSTDIR\bin\$9 is current"
-      Goto +2
-      File ..\externals\StateCU\StateCU_142.jar
-    
-    
-   ############################################
-   
+    #### Comment out later if README file needs to be installed
     # add README
-    SetOutPath $INSTDIR
-    File ..\conf\TSTool_README.txt
+    #SetOutPath $INSTDIR
+    #File ..\..\conf\TSTool_README.txt
     
     # Installs shortcut in $INSTDIR
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../ "C:\CDSS\graphics\waterMark.bmp""
-    
+    CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
+   
+
 SectionEnd
 
 
@@ -271,19 +203,21 @@ SectionEnd
 #                             -> run TSTool
 #  
 ##############################################
-Section "Start Menu Shortcuts"
+Section "Start Menu Icons" StartMenu
 
     # make sure user chose to install TSTool
     strcmp $choseTSTool "0" 0 +2
       Goto skipMenu
+        
+    # Shortcut added for launch of java program
+    SetOutPath $SMPROGRAMS\$StartMenuGroup
+    SetOutPath $INSTDIR\bin
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
+   
     
     # Shortcut for uninstall of program
-    SetOutPath $SMPROGRAMS\$StartMenuGroup
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk" $INSTDIR\uninstall_TSTool.exe
-    
-    # Shortcut added for launch of java program
-    SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\Run TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../ "C:\CDSS\graphics\waterMark.bmp""
+    SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk" $INSTDIR\Uninstall\Uninstall_TSTool.exe
     
     skipMenu:
     
@@ -298,7 +232,7 @@ SectionEnd
 #  If its not, you shouldn't be reading this
 #  
 ############################################
-Section /o "DesktopShortcut"
+Section /o "Desktop Shortcut" DesktopShortcut
 
     # make sure user chose to install TSTool
     strcmp $choseTSTool "0" 0 +2
@@ -306,7 +240,7 @@ Section /o "DesktopShortcut"
    
     # Installs shortcut on desktop
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../ "C:\CDSS\graphics\waterMark.bmp""
+    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
 
     skipShortcut:
 
@@ -332,10 +266,6 @@ Section -post SEC0001
     CreateDirectory "$INSTDIR\Uninstall"
     WriteUninstaller $INSTDIR\Uninstall\Uninstall_TSTool.exe
     
-    #!insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-    SetOutPath $SMPROGRAMS\$StartMenuGroup
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk" $INSTDIR\Uninstall\Uninstall_TSTool.exe
-    #!insertmacro MUI_STARTMENU_WRITE_END
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
@@ -377,12 +307,6 @@ done${UNSECTION_ID}:
 Section /o un.Main UNSEC0000
     
     Delete /REBOOTOK $INSTDIR\bin\TSTool.bat
-    Delete /REBOOTOK $INSTDIR\bin\TSTool_rti.bat
-    Delete /REBOOTOK $INSTDIR\bin\NWSRFS_DMI_142.jar
-    Delete /REBOOTOK $INSTDIR\bin\RiversideDB_DMI_142.jar
-    Delete /REBOOTOK $INSTDIR\bin\StateMod_142.jar
-    Delete /REBOOTOK $INSTDIR\bin\StateCU_142.jar
-    Delete /REBOOTOK $INSTDIR\bin\TSTool_142.jar
     RmDir /r /REBOOTOK $INSTDIR\doc\TSTool
     Delete /REBOOTOK $INSTDIR\system\TSTool.cfg
     Delete /REBOOTOK $INSTDIR\TSTool_README.txt
@@ -401,8 +325,9 @@ SectionEnd
 Section un.post UNSEC0001
     
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Run TSTool.lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk"
+    RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk"
     Delete /REBOOTOK "$INSTDIR\TSTool.lnk"
     Delete /REBOOTOK "$DESKTOP\TSTool.lnk"
     Delete /REBOOTOK $INSTDIR\Uninstall\Uninstall_TSTool.exe
@@ -417,6 +342,18 @@ Section un.post UNSEC0001
     
 SectionEnd
 
+
+### Section Descriptions ###
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install documentation into the CDSS\doc\TSTool folder"
+  !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install all TSTool related files and scripts into their designated folders under the home CDSS folder"
+  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders and icons"
+  !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
+  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including the Java runtime environment"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+
+
 #################################################
 # FUNCTION: StartMenuGroupSelect
 #
@@ -426,7 +363,7 @@ SectionEnd
 #################################################
 Function StartMenuGroupSelect
     Push $R1
-    StartMenu::Select /autoadd /text "Select the Start Menu folder in which you would like to create the program's shortcuts:" /lastused $StartMenuGroup CDSS\TSTool
+    StartMenu::Select /autoadd /text "Select the Start Menu folder in which you would like to create this program's menu items:" /lastused $StartMenuGroup CDSS
     Pop $R1
     StrCmp $R1 success success
     StrCmp $R1 cancel done
@@ -455,21 +392,25 @@ Function .onInstSuccess
     strcmp $choseTSTool "0" 0 +2
       Goto skipThis
     
+    
+    ### delete these comments to include a readme
+    #MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
+    #yes:
+    #  Exec 'notepad.exe $INSTDIR\TSTool_README.txt'
+    #  Goto next2
+    #no:
+    #  DetailPrint "Skipping README"
+    #next2:
+    
     MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
     true:
-      Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;msbase.jar;mssqlserver.jar;msutil.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar$\" DWR.DMI.tstool.tstool -home ../'
+      Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
       Goto next
     false:
       DetailPrint "User chose to not start application"
     next:
     
-    MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
-    yes:
-      Exec 'notepad.exe $INSTDIR\TSTool_README.txt'
-      Goto next2
-    no:
-      DetailPrint "Skipping README"
-    next2:
+    
     
     skipThis:
     

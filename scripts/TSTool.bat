@@ -11,42 +11,6 @@ rem			be used (instead of javaw) so that the batch screen
 rem			output is visible.  However, this will cause a DOS
 rem			window to appear when running the GUI.
 rem ---------------------------------------------------------------------------
-rem History:
-rem
-rem 26 May 1998	Steven A. Malers,	Update to handle database configuration.
-rem		Chad G. Bierbaum,
-rem		Riverside Technology,
-rem		inc.
-rem 09 Dec 1998	SAM, RTi		Update to clean up environment
-rem					variables after exiting.
-rem 28 May 1999	SAM, RTi		Update for Java 1.1.8 release using
-rem					JAR files.
-rem 24 Jul 2000	SAM, RTi		Add -mx option to help with memory
-rem					problems for large data sets.
-rem 25 Oct 2000	CEN, RTi		Adding Una2000.jar
-rem 2002-09-30	SAM, RTi		Add the JRE version.  Remove the BROWSER
-rem					and DOCHOME settings since they are
-rem					determined at run time.
-rem 2002-10-11	SAM, RTi		Add separate RiversideDB_DMI Jar.
-rem 2003-01-08	SAM, RTi		Add jar files for Microsoft SQL Server
-rem					driver (ms*.jar).
-rem 2003-12-02	SAM, RTi		Update for Java 142.
-rem 2004-02-19	SAM, RTi		Add jar file for StateCU support.
-rem					Add quotes around command-line
-rem					parameters to allow use with directories
-rem					that contain spaces.
-rem 2004-06-01	SAM, RTi		* Add additional comments explaining
-rem					  the configuration variables.
-rem					* Remove Una2000.jar file reference in
-rem					  favor of the Microsoft-supplied
-rem					  jar files.
-rem 2005-08-03	SAM, RTi		* Change java -mx256m option to
-rem					  -Xmx256m.
-rem					* If -commands is one of the first 3
-rem					  options then run using java, else run
-rem					  using javaw.
-rem ---------------------------------------------------------------------------
-
 rem The HOMED and JREHOMED variables are set during the installation process.
 rem The names are hopefully unique enough that they do not conflict with other
 rem software settings.
@@ -103,12 +67,12 @@ goto interactive
 
 rem Run in batch mode with output to console...
 :batch
-"%JREHOMED%\bin\java" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\java" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\mssqlall.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Run in interactive mode with no output to console...
 :interactive
-"%JREHOMED%\bin\javaw" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\javaw" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\mssqlall.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Clean up the temporary environment variables so that memory is freed for

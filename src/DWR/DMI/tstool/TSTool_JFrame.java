@@ -790,6 +790,10 @@
 // 2006-10-31	SAM, RTi		Update to version 7.00.00.
 //					* Add input filters for HydroBase CASS
 //					  livestock and CUPopulation.
+// 2006-11-07   KAT, RTi        Commented out a line in
+//                    TSTool_JFrame that was changing the
+//                    working directory when it shouldn't
+//                    have been.
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -2308,19 +2312,21 @@ public TSTool_JFrame ( boolean show_main )
 	String message, rtn = "TSTool_JFrame";
 	__show_main = show_main;
 
+   
 	if ( !IOUtil.isBatch() ) {
 		Message.setTopLevel ( this );
 		// If batch this should have been set in the main program
 		// when command line options were parsed...
 		String last_directory_selected=System.getProperty ("user.dir") +
 			System.getProperty("file.separator");
-		IOUtil.setProgramWorkingDir(last_directory_selected);
+		//IOUtil.setProgramWorkingDir(last_directory_selected);
 		JGUIUtil.setLastFileDialogDirectory(last_directory_selected);
 	}
+    
 	__props = new PropList("TSTool_JFrame");
 	__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());	
 	__initial_working_dir = __props.getValue ( "WorkingDir" );
-
+ 
 	addWindowListener ( this );
 
 	// Determine which data sources are available.  This controls the look

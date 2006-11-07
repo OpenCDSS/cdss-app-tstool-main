@@ -90,11 +90,7 @@
 	<property name="d1"	 
 		value="${ext.dir}${sep}HydroBaseDMI${sep}HydroBaseDMI_142.jar" />
 	<property name="d2"	 
-		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msbase.jar" />
-	<property name="d3"  
-		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}mssqlserver.jar" />
-	<property name="d4"	 
-		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msutil.jar" />
+		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}mssqlall.jar" />
 	<property name="d5"	 
 		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142.jar" />
 	<property name="d6"	 
@@ -149,7 +145,7 @@
 			<pathelement location="${d8}"/>
 			<pathelement location="${d9}"/>
 			<pathelement location="${d10}"/>
-			<pathelement location="${d11}"/>
+			<pathelement location="${d11}"/>		
 			<pathelement location="${blowfish}" />
 			<pathelement location="${dist.dir}${sep}${jarfname}" />
 			<pathelement location="."/>
@@ -168,7 +164,7 @@
 	Function: cleans the build/work and build/test
 	          directories to ensure a clean compilation
 ====================================================-->
-<target name="clean" description="remove compiled files">
+<target name="clean" description="removes compiled files">
 	
 	<!-- delete build stuff -->
 	<delete dir="${buildwork.dir}" />
@@ -194,7 +190,7 @@
 	Function: compiles code for this project and places
 			  the compiled code in the build/work dir
 ====================================================-->
-<target name="compile" >
+<target name="compile" description="compiles source code to build/work">
 	
 	<mkdir dir="${buildwork.dir}" />
 	
@@ -216,7 +212,8 @@
 	Target: compileTest
 	Function: to compile the code under test/src
 ==========================================================-->
-<target name="compileTest" depends="compile">
+<target name="compileTest" depends="compile"
+	description="compiles all test source code into build/test dir">
 
 	<mkdir dir="${build.dir}${sep}test" />
 	
@@ -238,7 +235,8 @@
 	Target:   test
 	Function: runs Junit tests and outputs results
 ====================================================-->
-<target name="test" depends="compileTest">
+<target name="test" depends="compileTest"
+	description="runs Junit test suite">
 
 	<junit printsummary="yes" fork="yes" dir="conf">
 		<formatter type="xml"/>
@@ -256,7 +254,8 @@
 			  the build directory for quick development
 			  testing using the CDSS operational env.
 ====================================================-->
-<target name="CDSS_runDev" depends="compile">
+<target name="CDSS_runDev" depends="compile"
+	description="runs CDSS env. class files">
 	
 	<!-- need to copy graphics files -->
 	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
@@ -279,28 +278,28 @@
 			  the build directory for quick development
 			  testing, at TSTool debug level 30
 ====================================================-->
-	<target name="CDSS_runDevD30" depends="compile">
-		
-		<echo message="HOME:   ${testOp.dir}" />
-		
-		<java classname="${classname}" fork="true">
-			<jvmarg    value = "-mx256m" />
-			<jvmarg    value = "-Djava.compiler=NONE" />
-			<arg       value = "-home" />
-			<arg	   value = "${CDSS_Op.dir}" />
-			<arg		value = "-d" />
-			<arg		value = ",30" />
-			<classpath refid = "classpath" />   
-		</java>	
+<target name="CDSS_runDevD30" depends="compile"
+	description="runs CDSS env. with class files and debug=30">
 
-	</target>
+	<java classname="${classname}" fork="true">
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${CDSS_OP.dir}" />
+		<arg		value = "-d" />
+		<arg		value = ",30" />
+		<classpath refid = "classpath" />   
+	</java>	
+
+</target>
 	
 <!--===================================================
 	Target:   CDSS_runOp
 	Function: runs the executable from the dist jar
 			  file for running in the CDSS operational env.
 ====================================================-->
-<target name="CDSS_runOp" depends="jar">
+<target name="CDSS_runOp" depends="jar"
+	description="runs CDSS env. with final jar file">
 		
 	<java classname="${classname}" fork="true">
 		<jvmarg    value = "-mx256m" />
@@ -313,33 +312,35 @@
 </target>
 	
 <!--===================================================
-		Target:   CDSS_runOpD30
-		Function: runs the executable from the dist jar
-				  for operational testing, at TSTool debug level 30
-	====================================================-->
-		<target name="CDSS_runOpD30" depends="jar">
-			
-			<echo message="HOME:   ${testOp.dir}" />
-			
-			<java classname="${classname}" fork="true">
-				<jvmarg    value = "-mx256m" />
-				<jvmarg    value = "-Djava.compiler=NONE" />
-				<arg       value = "-home" />
-				<arg	   value = "${CDSS_Op.dir}" />
-				<arg		value = "-d" />
-				<arg		value = ",30" />
-				<classpath refid = "classpathOp" />   
-			</java>	
-
-		</target>
+	Target:   CDSS_runOpD30
+	Function: runs the executable from the dist jar
+			  for operational testing, at TSTool debug level 30
+====================================================-->
+<target name="CDSS_runOpD30" depends="jar"
+	description="runs CDSS env. with final jar file with debug=30">
 	
+	<echo message="HOME:   ${testOp.dir}" />
+	
+	<java classname="${classname}" fork="true">
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${CDSS_OP.dir}" />
+		<arg		value = "-d" />
+		<arg		value = ",30" />
+		<classpath refid = "classpathOp" />   
+	</java>	
+
+</target>
+
 <!--===================================================
 	Target:   RTi_runDev
 	Function: runs the executable or java class from
 			  the build directory for quick development
 			  testing using the RTi operational env.
 ====================================================-->
-<target name="RTi_runDev" depends="compile">
+<target name="RTi_runDev" depends="compile"
+	description="runs RTi env. using class files">
 	
 	<!-- need to copy graphics files -->
 	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
@@ -355,30 +356,31 @@
 	</java>	
 </target>
 
-	<!--===================================================
-		Target:   RTi_runDevD30
-		Function: runs the executable or java class from
-				  the build directory for quick development
-				  testing using the RTi operational env, at
-				  TSTool debug level 30.
-	====================================================-->
-	<target name="RTi_runDevD30" depends="compile">
-		
-		<!-- need to copy graphics files -->
-		<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
-			<fileset dir="graphics" />
-		</copy>
-		
-		<java classname="${classname}" fork="true">
-			<jvmarg    value = "-mx256m" />
-			<jvmarg    value = "-Djava.compiler=NONE" />
-			<arg       value = "-home" />
-			<arg	   value = "${RTi_OP.dir}" />
-			<arg		value = "-d" />
-			<arg		value = ",30" />
-			<classpath refid = "classpath" />   
-		</java>		
+<!--===================================================
+	Target:   RTi_runDevD30
+	Function: runs the executable or java class from
+			  the build directory for quick development
+			  testing using the RTi operational env, at
+			  TSTool debug level 30.
+====================================================-->
+<target name="RTi_runDevD30" depends="compile"
+	description="runs RTi env. using class files on debug=30">
 	
+	<!-- need to copy graphics files -->
+	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
+		<fileset dir="graphics" />
+	</copy>
+	
+	<java classname="${classname}" fork="true">
+		<jvmarg    value = "-mx256m" />
+		<jvmarg    value = "-Djava.compiler=NONE" />
+		<arg       value = "-home" />
+		<arg	   value = "${RTi_OP.dir}" />
+		<arg		value = "-d" />
+		<arg		value = ",30" />
+		<classpath refid = "classpath" />   
+	</java>		
+
 </target>
 
 <!--===================================================
@@ -386,7 +388,8 @@
 	Function: runs the executable from the dist jar
 			  file for running in the RTi operational env.
 ====================================================-->
-<target name="RTi_runOp" depends="jar">
+<target name="RTi_runOp" depends="jar"
+	description="runs RTi env. with final jar file">
 	
 	<java classname="${classname}" fork="true">
 		<jvmarg    value = "-mx256m" />
@@ -403,7 +406,8 @@
 				  file for running in the RTi operational env.,
 			  at TSTool debug level 30
 ====================================================-->
-<target name="RTi_runOpD30" depends="jar">
+<target name="RTi_runOpD30" depends="jar"
+	description="runs RTi env. with final jar file with debug=30">
 
 <java classname="${classname}" fork="true">
 	<jvmarg    value = "-mx256m" />
@@ -422,14 +426,8 @@
 	Target:   javadoc
 	Function: generates the javadocs for this product
 ====================================================-->
-<target name="javadoc">
-
-	<echo>
-********** Creating Javadocs **************
-   Destination:     ${jdoc.dir}
-   From Dir   :     ${src.dir}${sep}${package} 
-*******************************************
-	</echo>
+<target name="javadoc" 
+	description="creates html javadocs from source code">
 	
 	<!-- cleanup old javadocs -->
 	<delete dir="${jdoc.dir}" />
@@ -451,16 +449,9 @@
 <!--=====================================================
 	Target: jar 
 =======================================================-->
-<target name="jar" depends="compile" >
+<target name="jar" depends="compile" 
+	description="jars all class files into jar file in dist dir">
     
-	<echo>
-********** Creating jar file *****************
-   Destination:    ${dist.dir}
-   source dir :    ${buildwork.dir}
-   jar filename:   ${jarfname}
-**********************************************
-	</echo>
-
 	<!-- copy docs folder into build for the jar 
 	<copy todir="${buildwork.dir}">
 	<fileset dir=".">
@@ -474,7 +465,6 @@
 		<fileset dir="graphics" />
 	</copy>
 	
-    <mkdir dir="${dist.dir}"/>
     <jar jarfile="${dist.dir}${sep}${jarfname}" basedir="${buildwork.dir}" >
 	<manifest >
     	<attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
@@ -487,9 +477,10 @@
       </manifest>
 
     </jar>
-
+	
 </target>
-
+	
+	
 <!--=================================================
 	Target: regTest
 	Function: to regression test this product.  Runs 
@@ -501,7 +492,8 @@
 	          a developer should check out the log file
 	          under Regression results for more info. 
 ===================================================-->
-<target name="regTest" depends="test" >
+<target name="regTest" depends="test"
+	description="runs regression tests and outputs results to test/regression/results">
 	
 	<java classname="${classname}" fork="true" >
 		<jvmarg    value = "-mx256m" />
@@ -521,10 +513,11 @@
 </target>
 
 	
-<target name="install" depends="jar" >
+<target name="install" depends="jar"
+	description="runs NSIS to create an executable installer">
 	
 	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}" executable="I:\DEVELOP\NSIS\makensis.exe" >
+		<exec dir="${nsis.dir}${sep}CDSS" executable="I:\DEVELOP\NSIS\makensis.exe" >
 			<arg value="TSTool_CDSS.nsi" />
 	</exec>
 	
