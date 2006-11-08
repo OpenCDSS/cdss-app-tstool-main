@@ -307,6 +307,7 @@ done${UNSECTION_ID}:
 Section /o un.Main UNSEC0000
     
     Delete /REBOOTOK $INSTDIR\bin\TSTool.bat
+    Delete /REBOOTOK $INSTDIR\bin\TSTool_142.jar
     RmDir /r /REBOOTOK $INSTDIR\doc\TSTool
     Delete /REBOOTOK $INSTDIR\system\TSTool.cfg
     Delete /REBOOTOK $INSTDIR\TSTool_README.txt
