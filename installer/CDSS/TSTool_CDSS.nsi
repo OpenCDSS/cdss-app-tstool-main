@@ -179,7 +179,7 @@ Section "TSTool" TSTool
     File ..\..\externals\StateCU\StateCU_142.jar
     
     SetOutPath $INSTDIR\system
-    File ..\..\test\operational\CDSS\system\TSTool.cfg
+    File ..\..\externals\CDSS\system\TSTool.cfg
     
     #### Comment out later if README file needs to be installed
     # add README
