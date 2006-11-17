@@ -29,9 +29,11 @@ Name TSTool
 # Included files
 !include Sections.nsh
 !include MUI.nsh
+!include ..\..\externals\NSIS_Common\PathManipulation.nsh
 !include ..\..\externals\NSIS_Common\Util.nsh
 !include ..\..\externals\CDSS\installer\BaseComponents.nsh
 !include ..\..\externals\CDSS\installer\server_name.nsh
+!include "TextReplace.nsh"
 
 # Reserved Files
 ReserveFile "${NSISDIR}\Plugins\StartMenu.dll"
@@ -40,6 +42,7 @@ ReserveFile "${NSISDIR}\Plugins\StartMenu.dll"
 Var StartMenuGroup
 Var myInstDir
 Var choseTSTool
+Var choseDocs
 
 # Installer attributes
 OutFile TSTool_Setup.exe
@@ -52,6 +55,7 @@ AutoCloseWindow false
 LicenseForceSelection radiobuttons
 LicenseData License.txt
 LicenseText "Please read and agree to the following license before installing TSTool." 
+ComponentText "Select the components to install by checking the corresponding boxes and clicking next.  To view a component's description, hover over that section with the mouse." "" "Available Components"
 BGGradient 3300FF 000000 FFFFFF
 VIProductVersion 6.18.0.0
 VIAddVersionKey ProductName TSTool
@@ -80,6 +84,7 @@ ShowUninstDetails show
 Section -setSharedInstallDir
     strcpy $myInstDir $INSTDIR
     strcpy $choseTSTool "0"
+    strcpy $choseDocs "0"
 SectionEnd
 
 
@@ -138,6 +143,9 @@ SectionEnd
 # this box by default.   
 #########################################
 Section /o "Documentation" Docs
+   
+    # set boolean choseDocs since documentation was selected
+    strcpy $choseDocs "1"
     
     # copy documentation
     SetOutPath $INSTDIR\doc\TSTool
@@ -190,7 +198,11 @@ Section "TSTool" TSTool
     SetOutPath $INSTDIR\bin
     CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
    
-
+    # Insert the -home Directory into the .bat file
+    # according to the user's install location
+    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
+   
+   
 SectionEnd
 
 
@@ -203,23 +215,32 @@ SectionEnd
 #                             -> run TSTool
 #  
 ##############################################
-Section "Start Menu Icons" StartMenu
+Section "Start Menu" StartMenu
 
     # make sure user chose to install TSTool
     strcmp $choseTSTool "0" 0 +2
       Goto skipMenu
-        
+    
     # Shortcut added for launch of java program
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     SetOutPath $INSTDIR\bin
     CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
-   
     
     # Shortcut for uninstall of program
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
     CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk" $INSTDIR\Uninstall\Uninstall_TSTool.exe
     
     skipMenu:
+    
+    # make sure user chose to install docs
+    strcmp $choseDocs "0" 0 +2
+      Goto Done
+      
+    # Shortcut for TSTool documentation
+    SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\$(^Name).lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
+      
+    Done:
     
 SectionEnd
 
@@ -265,7 +286,6 @@ Section -post SEC0001
     SetOverwrite off
     CreateDirectory "$INSTDIR\Uninstall"
     WriteUninstaller $INSTDIR\Uninstall\Uninstall_TSTool.exe
-    
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
@@ -327,6 +347,8 @@ Section un.post UNSEC0001
     
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\$(^Name).lnk"
+    RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk"
     Delete /REBOOTOK "$INSTDIR\TSTool.lnk"
@@ -346,11 +368,11 @@ SectionEnd
 
 ### Section Descriptions ###
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install documentation into the CDSS\doc\TSTool folder"
-  !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install all TSTool related files and scripts into their designated folders under the home CDSS folder"
-  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders and icons"
+  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install TSTool documentation into the CDSS\doc\TSTool folder"
+  !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool under the main folder"
+  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including the Java runtime environment"
+  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including the Java Runtime Environment (JRE)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 

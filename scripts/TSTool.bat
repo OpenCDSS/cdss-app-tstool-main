@@ -49,7 +49,7 @@ rem 3)If the software is installed on a local drive (e.g., C:) but may be run
 rem   from a different drive, use approach (1).
 
 SET HOMED=\CDSS
-SET JREHOMED=\CDSS\jre_142
+SET JREHOMED=%HOMED%\jre_142
 
 rem Run the Java Runtime Environment (JRE), which runs the TSTool software.
 rem If there is an error, try using "java" instead of "javaw" below.  Using
