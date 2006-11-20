@@ -82,33 +82,58 @@
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="testSuite"  	 value="DWR.DMI.tstool.tstoolTestSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
-	<property name="regTest.dir"	 location="test${sep}regression${sep}src" />
+	<property name="regTest.dir"	 location="test${sep}regression" />
 	<property name="command_file"    value="Regression.TSTool" />
 	<property name="proj_name"		 value="TSTool" />
+	<property name="costello" value="abbot.editor.Costello" />
 	
 	<!--================ Dependencies ==================-->
-	<property name="d1"	 
+	<property name="hydro"	 
 		value="${ext.dir}${sep}HydroBaseDMI${sep}HydroBaseDMI_142.jar" />
-	<property name="d2"	 
-		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}mssqlall.jar" />
-	<property name="d5"	 
+	<property name="msbase"	 
+		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msbase.jar" />
+	<property name="mssqlserver"	 
+			value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}mssqlserver.jar" />
+	<property name="msutil"	 
+			value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msutil.jar" />
+	<property name="NWSRFS_DMI"	 
 		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142.jar" />
-	<property name="d6"	 
+	<property name="RiversideDB"	 
 		value="${ext.dir}${sep}RiversideDB_DMI${sep}RiversideDB_DMI_142.jar" />
-	<property name="d7"	 
+	<property name="RTi_Common"	 
 		value="${ext.dir}${sep}RTi_Common${sep}RTi_Common_142.jar" />
-	<property name="d8"	 
+	<property name="StateCU"	 
 		value="${ext.dir}${sep}StateCU${sep}StateCU_142.jar" />
-	<property name="d9"	 
+	<property name="StateMod"	 
 		value="${ext.dir}${sep}StateMod${sep}StateMod_142.jar" />
-	<property name="d10"
+	<property name="TS_Services"
 		value="${ext.dir}${sep}TS_Services${sep}TS_Services.jar" />
-	<property name="d11"	 
+	<property name="Satmon"	 
 			value="${ext.dir}${sep}SatmonSysDMI${sep}SatmonSysDMI_142.jar" />
 	<property name="junit"
 		value="${ext.dir}${sep}junit.jar" />
 	<property name="blowfish"
 		value="${ext.dir}${sep}Blowfish_142.jar" />
+	
+	<!-- Abbot jar files -->
+	<property name="Abbot.jar" 
+		value="externals${sep}Abbot${sep}abbot.jar" />
+	<property name="jdom.jar" 
+		value="externals${sep}Abbot${sep}jdom.jar" />
+	<property name="xerces.jar" 
+		value="externals${sep}Abbot${sep}xerces.jar" />
+	<property name="xml-apis.jar" 
+			value="externals${sep}Abbot${sep}xml-apis.jar" />
+	<property name="jgraph.jar" 
+		value="externals${sep}Abbot${sep}jgraph.jar" />
+	<property name="bsh.jar" 
+		value="externals${sep}Abbot${sep}bsh.jar" />
+	<property name="MRJ.zip" 
+			value="externals${sep}Abbot${sep}MRJToolkitStubs.zip" />
+	<property name="gnu-regexp.jar" 
+				value="externals${sep}Abbot${sep}gnu-regexp.jar" />
+	<property name="ant4eclipse.jar" 
+		value="externals${sep}Abbot${sep}ant4eclipse.jar" />
 	
 	<!-- =========== Compiler Properties ===============-->
 	<property name="compiler" value="modern" />
@@ -119,36 +144,57 @@
 		<pathelement location="${junit}" />
 		<pathelement location="${buildwork.dir}"/>
 		<pathelement location="${buildtest.dir}" />
-		<pathelement location="${d1}"/>
-		<pathelement location="${d2}"/>
-		<pathelement location="${d3}"/>
-		<pathelement location="${d4}"/>
-		<pathelement location="${d5}"/>
-		<pathelement location="${d6}"/>
-		<pathelement location="${d7}"/>
-		<pathelement location="${d8}"/>
-		<pathelement location="${d9}"/>
-		<pathelement location="${d10}"/>
-		<pathelement location="${d11}"/>
+		<pathelement location="${hydro}"/>
+		<pathelement location="${msbase}"/>
+		<pathelement location="${mssqlserver}"/>
+		<pathelement location="${msutil}"/>
+		<pathelement location="${NWSRFS_DMI}"/>
+		<pathelement location="${RiversideDB}"/>
+		<pathelement location="${RTi_Common}"/>
+		<pathelement location="${StateCU}"/>
+		<pathelement location="${StateMod}"/>
+		<pathelement location="${TS_Services}"/>
+		<pathelement location="${Satmon}"/>
+		<pathelement location="${Abbot.jar}" />
+		<pathelement location="${buildtest.dir}" />
+		<pathelement location="${jdom.jar}" />
+		<pathelement location="${xerces.jar}" />
+		<pathelement location="${xml-apis.jar}" />
+		<pathelement location="${bsh.jar}" />
+		<pathelement location="${jgraph.jar}" />
+		<pathelement location="${MRJ.zip}" />
+		<pathelement location="${gnu-regexp.jar}" />
+		<pathelement location="${ant4eclipse.jar}" />
 		<pathelement location="${blowfish}" />
 		<pathelement location="."/>
 	</path>
 	
 	<path id="classpathOp">
-			<pathelement location="${d1}"/>
-			<pathelement location="${d2}"/>
-			<pathelement location="${d3}"/>
-			<pathelement location="${d4}"/>
-			<pathelement location="${d5}"/>
-			<pathelement location="${d6}"/>
-			<pathelement location="${d7}"/>
-			<pathelement location="${d8}"/>
-			<pathelement location="${d9}"/>
-			<pathelement location="${d10}"/>
-			<pathelement location="${d11}"/>		
-			<pathelement location="${blowfish}" />
-			<pathelement location="${dist.dir}${sep}${jarfname}" />
-			<pathelement location="."/>
+		<pathelement location="${hydro}"/>
+		<pathelement location="${msbase}"/>
+		<pathelement location="${mssqlserver}"/>
+		<pathelement location="${msutil}"/>
+		<pathelement location="${NWSRFS_DMI}"/>
+		<pathelement location="${RiversideDB}"/>
+		<pathelement location="${RTi_Common}"/>
+		<pathelement location="${StateCU}"/>
+		<pathelement location="${StateMod}"/>
+		<pathelement location="${TS_Services}"/>
+		<pathelement location="${Satmon}"/>
+		<pathelement location="${blowfish}" />
+		<pathelement location="${junit}" />
+		<pathelement location="${Abbot.jar}" />
+		<pathelement location="${buildtest.dir}" />
+		<pathelement location="${jdom.jar}" />
+		<pathelement location="${xerces.jar}" />
+		<pathelement location="${xml-apis.jar}" />
+		<pathelement location="${bsh.jar}" />
+		<pathelement location="${jgraph.jar}" />
+		<pathelement location="${MRJ.zip}" />
+		<pathelement location="${gnu-regexp.jar}" />
+		<pathelement location="${ant4eclipse.jar}" />
+		<pathelement location="${dist.dir}${sep}${jarfname}" />
+		<pathelement location="."/>
 	</path>
 	
 	<!-- current timestamp -->
@@ -156,7 +202,6 @@
 	  <format property="TODAY" pattern="MM/dd/yyyy hh:mm" locale="en"/> 	
   	  <format property="jarDate" pattern="yyyy-MM-dd hh:mm" locale="en" />
 	</tstamp>
-	
 	
 
 <!--===================================================
@@ -173,6 +218,9 @@
 	<!-- delete javadoc stuff -->
 	<delete dir="${jdoc.dir}" />
 		
+	<!-- delete the Setup.exe files made from NSIS -->
+	<delete file="installer${sep}CDSS${sep}TSTool_Setup.exe" />
+	
 	<delete>
 		<fileset dir="test${sep}unit${sep}results" includes="**/*.xml"/>
 		<fileset dir="test${sep}operational${sep}results" />
@@ -501,18 +549,22 @@
 		<arg       value = "-home" />
 		<arg	   value = "${CDSS_OP.dir}" />
 		<arg	   value = "-commands" />
-		<arg	   value = "${regTest.dir}${sep}${command_file}" />
+		<arg	   value = "${regTest.dir}${sep}src${sep}${command_file}" />
 		<classpath refid = "classpathOp" />   
 	</java>	
 	
 	<!-- run perl script to parse output and display results -->
-	<exec dir="${regTest.dir}" executable="perl" >
+	<exec dir="${regTest.dir}${sep}src" executable="perl" >
 		<arg value="parseOutput.pl" />
 	</exec>
 	
 </target>
 
-	
+
+<!--=========================================================
+	Target: install
+	Function: creates an executable installer for TSTool
+==========================================================-->
 <target name="install" depends="jar"
 	description="runs NSIS to create an executable installer">
 	
@@ -522,8 +574,60 @@
 	</exec>
 	
 </target>
+	
+<!--========================================================
+	Target: costello
+	Function: runs the Costello editor for Abbot
+=========================================================-->
+<target name="costello">
 
+	<java dir="." classname="${costello}" fork="true" >
+		<jvmarg value="-Djava.compiler=NONE" />
+		<classpath refid="classpath" />
+	</java>
 
+</target>
+
+<!--========================================================
+	Target: testGui
+	Function: runs Abbot script files using Junit framework
+=========================================================-->
+<target name="testGUI" depends="compile">
+
+	<!-- compile Regression Test (old java regTest)
+	<javac srcdir="${GUIRegTest.dir}${sep}src" destdir="${buildwork.dir}" classpathref="classpath" debug="on" fork="yes" listfiles="true" deprecation="true" executable="${executable}" compiler="${compiler}" />
+
+	<java dir="GUI" classname="junit.extensions.abbot.ScriptFixture" fork="true" >
+		<jvmarg value="-mx256m" />
+		<jvmarg value="-Djava.compiler=NONE" />
+		<arg value="test/regression/scripts/smokeTest.xml" />
+		<classpath refid="classpath" />
+	</java>
+	-->
+	
+	<!-- run perl script to parse output and display results -->
+	<exec dir="${regTest.dir}${sep}" executable="perl" >
+		<arg value="runTests.pl" />
+	</exec>
+
+</target>
+
+<!--===============================================================
+	Target: CDSS_Gen_Exe
+	Function: Generate the TSTool.exe file by calling Jsmooth with
+	the properties file needed
+================================================================-->
+<target name="CDSS_Gen_Exe" description="generate CDSS TSTool.exe" >
+	
+	<!--
+	<exec dir="installer${sep}CDSS" 
+		executable=".${sep}installer${sep}CDSS${sep}jsmoothcmd.exe" >
+		<arg value="" />
+	</exec>
+	-->
+	
+</target>
+	
 <!--===================================================
 	Target:   help
 	Function: prints out info on targets and properties
