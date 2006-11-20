@@ -55,7 +55,8 @@ AutoCloseWindow false
 LicenseForceSelection radiobuttons
 LicenseData License.txt
 LicenseText "Please read and agree to the following license before installing TSTool." 
-ComponentText "Select the components to install by checking the corresponding boxes and clicking next.  To view a component's description, hover over that section with the mouse." "" "Available Components"
+ComponentText "Select the components to install by checking the corresponding boxes and clicking Next.  To view a component's description, hover over the component with the mouse." "" "Available Components"
+DirText "Setup will install to the following folder.  To install in a different folder, click Browse and select another folder.  If a previous version of CDSS has been installed the destination folder below should reflect this and should be used by default.  Click Next to continue." "" "" ""
 BGGradient 3300FF 000000 FFFFFF
 VIProductVersion 6.18.0.0
 VIAddVersionKey ProductName TSTool
@@ -68,7 +69,7 @@ ShowUninstDetails show
 
 
 ##################################################################
-# SECTION: -setSharedInstallDir
+# SECTION: -setInstallVariables
 # 
 # initializes some global variables
 #   myInstDir - users chosen install directory
@@ -81,10 +82,12 @@ ShowUninstDetails show
 #  is used to make this a hidden section to the user
 #  this means they cannot choose to not run it
 ###################################################################
-Section -setSharedInstallDir
+Section -setInstallVariables
+    
     strcpy $myInstDir $INSTDIR
     strcpy $choseTSTool "0"
     strcpy $choseDocs "0"
+    
 SectionEnd
 
 
@@ -142,7 +145,7 @@ SectionEnd
 # allows the component page to uncheck
 # this box by default.   
 #########################################
-Section /o "Documentation" Docs
+Section "Documentation" Docs
    
     # set boolean choseDocs since documentation was selected
     strcpy $choseDocs "1"
@@ -187,21 +190,34 @@ Section "TSTool" TSTool
     File ..\..\externals\StateCU\StateCU_142.jar
     
     SetOutPath $INSTDIR\system
-    File ..\..\externals\CDSS\system\TSTool.cfg
+    File ..\..\test\operational\CDSS\system\TSTool.cfg
     
     #### Comment out later if README file needs to be installed
     # add README
     #SetOutPath $INSTDIR
     #File ..\..\conf\TSTool_README.txt
     
-    # Installs shortcut in $INSTDIR
-    SetOutPath $INSTDIR\bin
-    CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
-   
     # Insert the -home Directory into the .bat file
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
    
+    # copy the Jsmooth files and folders
+    # JSmooth is used to create the Executable
+    SetOutPath $INSTDIR\bin
+    File TSTool.jsmooth
+    File ..\..\externals\jsmooth\jsmoothcmd.exe
+    SetOutPath $INSTDIR\bin\lib
+    File /r /x *svn* ..\..\externals\jsmooth\lib\*
+    SetOutPath $INSTDIR\bin\skeletons
+    File /r /x *svn* ..\..\externals\jsmooth\skeletons\*
+    
+    # Replace argument for -home in Jsmooth property file
+    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.jsmooth" \
+    "$INSTDIR\bin\TSTool.jsmooth" "-home C:\CDSS" "-home $INSTDIR" "" $0
+   
+    #SetOutPath $INSTDIR\bin
+    #CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
+    #CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"   
    
 SectionEnd
 
@@ -224,7 +240,8 @@ Section "Start Menu" StartMenu
     # Shortcut added for launch of java program
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"
+    #CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
     
     # Shortcut for uninstall of program
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
@@ -261,7 +278,8 @@ Section /o "Desktop Shortcut" DesktopShortcut
    
     # Installs shortcut on desktop
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
+    #CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
+    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"
 
     skipShortcut:
 
@@ -314,7 +332,6 @@ done${UNSECTION_ID}:
 !macroend
 
 
-
 ####### Uninstaller sections  #######
 
 ######################################################
@@ -331,8 +348,9 @@ Section /o un.Main UNSEC0000
     RmDir /r /REBOOTOK $INSTDIR\doc\TSTool
     Delete /REBOOTOK $INSTDIR\system\TSTool.cfg
     Delete /REBOOTOK $INSTDIR\TSTool_README.txt
+    Delete /REBOOTOK $INSTDIR\bin\TSTool.exe
+    Delete /REBOOTOK $INSTDIR\bin\TSTool.jsmooth
     DeleteRegValue HKLM "${REGKEY}\Components" Main
-    
     
 SectionEnd
 
@@ -415,6 +433,8 @@ Function .onInstSuccess
     strcmp $choseTSTool "0" 0 +2
       Goto skipThis
     
+    # Run Jsmooth to create the .exe file
+    Exec '"$INSTDIR\bin\jsmoothcmd.exe" $INSTDIR\bin\TSTool.jsmooth'
     
     ### delete these comments to include a readme
     #MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
@@ -427,7 +447,8 @@ Function .onInstSuccess
     
     MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
     true:
-      Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
+      Exec '"$INSTDIR\bin\TSTool.exe"'
+      #Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
       Goto next
     false:
       DetailPrint "User chose to not start application"
@@ -450,6 +471,18 @@ FunctionEnd
 Function .onInit
     
     InitPluginsDir
+    
+    # read the CDSS registry key
+    ReadRegStr $0 HKLM SOFTWARE\CDSS "Path"
+    
+    # check if the RegKey exists
+    strcmp "$0" "" 0 +2
+    Goto noCDSSFound
+    
+    # change the $INSTDIR to the path to the previously installed  
+    strcpy $INSTDIR $0
+    
+    noCDSSFound:
     
 FunctionEnd
 
@@ -476,4 +509,5 @@ Function un.onInit
     ReadRegStr $INSTDIR HKLM "${REGKEY}" Path
     ReadRegStr $StartMenuGroup HKLM "${REGKEY}" StartMenuGroup
     !insertmacro SELECT_UNSECTION Main ${UNSEC0000}
+    
 FunctionEnd
