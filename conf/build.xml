@@ -612,21 +612,6 @@
 
 </target>
 
-<!--===============================================================
-	Target: CDSS_Gen_Exe
-	Function: Generate the TSTool.exe file by calling Jsmooth with
-	the properties file needed
-================================================================-->
-<target name="CDSS_Gen_Exe" description="generate CDSS TSTool.exe" >
-	
-	<!--
-	<exec dir="installer${sep}CDSS" 
-		executable=".${sep}installer${sep}CDSS${sep}jsmoothcmd.exe" >
-		<arg value="" />
-	</exec>
-	-->
-	
-</target>
 	
 <!--===================================================
 	Target:   help
