@@ -67,12 +67,12 @@ goto interactive
 
 rem Run in batch mode with output to console...
 :batch
-"%JREHOMED%\bin\java" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\mssqlall.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\java" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\TS_Services.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Run in interactive mode with no output to console...
 :interactive
-"%JREHOMED%\bin\javaw" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\mssqlall.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\javaw" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\TS_Services.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Clean up the temporary environment variables so that memory is freed for
