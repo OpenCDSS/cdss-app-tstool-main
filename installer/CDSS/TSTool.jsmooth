@@ -23,7 +23,7 @@
 <classPath>TSTool_142.jar</classPath>
 <embeddedJar>false</embeddedJar>
 <executableName>TSTool.exe</executableName>
-<iconLocation>..\graphics\waterMark.jpg</iconLocation>
+<iconLocation>..\system\waterMark.jpg</iconLocation>
 <initialMemoryHeap>-1</initialMemoryHeap>
 <mainClassName>DWR.DMI.tstool.tstool</mainClassName>
 <maximumMemoryHeap>268435456</maximumMemoryHeap>

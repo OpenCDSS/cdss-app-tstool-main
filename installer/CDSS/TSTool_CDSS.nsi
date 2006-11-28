@@ -204,16 +204,21 @@ Section "TSTool" TSTool
     # copy the Jsmooth files and folders
     # JSmooth is used to create the Executable
     SetOutPath $INSTDIR\bin
-    File TSTool.jsmooth
-    File ..\..\externals\jsmooth\jsmoothcmd.exe
-    SetOutPath $INSTDIR\bin\lib
-    File /r /x *svn* ..\..\externals\jsmooth\lib\*
-    SetOutPath $INSTDIR\bin\skeletons
-    File /r /x *svn* ..\..\externals\jsmooth\skeletons\*
+    File TSTool.njp
+    File ..\..\externals\NativeJ\nativejc.exe
+    File ..\..\externals\NativeJ\upx.exe
+    File ..\..\externals\NativeJ\javasg.dat
+    File ..\..\externals\NativeJ\javasc.dat
+    #File TSTool.jsmooth
+    #File ..\..\externals\jsmooth\jsmoothcmd.exe
+    #SetOutPath $INSTDIR\bin\lib
+    #File /r /x *svn* ..\..\externals\jsmooth\lib\*
+    #SetOutPath $INSTDIR\bin\skeletons
+    #File /r /x *svn* ..\..\externals\jsmooth\skeletons\*
     
     # Replace argument for -home in Jsmooth property file
-    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.jsmooth" \
-    "$INSTDIR\bin\TSTool.jsmooth" "-home C:\CDSS" "-home $INSTDIR" "" $0
+    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.njp" \
+    "$INSTDIR\bin\TSTool.njp" "-home C:\CDSS" "-home $INSTDIR" "" $0
    
     #SetOutPath $INSTDIR\bin
     #CreateShortCut "$INSTDIR\TSTool.lnk" "$INSTDIR\jre_142\bin\javaw.exe" "-Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\ "C:\CDSS\graphics\waterMark.bmp""
@@ -434,8 +439,8 @@ Function .onInstSuccess
       Goto skipThis
     
     # Run Jsmooth to create the .exe file
-    Exec '"$INSTDIR\bin\jsmoothcmd.exe" $INSTDIR\bin\TSTool.jsmooth'
-    
+    Exec '"$INSTDIR\bin\nativejc.exe" $INSTDIR\bin\TSTool.njp'
+      
     ### delete these comments to include a readme
     #MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
     #yes:
@@ -455,7 +460,14 @@ Function .onInstSuccess
     next:
     
     
-    
+    # Delete the jsmooth property file
+    #Delete /REBOOTOK "$INSTDIR\bin\TSTool.jsmooth"
+    Delete /REBOOTOK "$INSTDIR\bin\TSTool.njp"
+    Delete /REBOOTOK "$INSTDIR\bin\nativejc.exe"
+    Delete /REBOOTOK "$INSTDIR\bin\upx.exe"
+    Delete /REBOOTOK "$INSTDIR\bin\javasc.dat"
+    Delete /REBOOTOK "$INSTDIR\bin\javasg.dat"
+                
     skipThis:
     
 FunctionEnd
@@ -471,6 +483,40 @@ FunctionEnd
 Function .onInit
     
     InitPluginsDir
+    
+    # check user privileges and abort if not admin
+    ClearErrors
+    UserInfo::GetName
+    IfErrors Win9x
+    Pop $0
+    UserInfo::GetAccountType
+    Pop $1
+    StrCmp $1 "Admin" 0 +3
+        #MessageBox MB_OK 'User "$0" is in the Administrators group'
+        Goto done
+    StrCmp $1 "Power" 0 +3
+        #MessageBox MB_OK 'User "$0" is in the Power Users group'
+        Goto InsufficientRights
+    StrCmp $1 "User" 0 +3
+        #MessageBox MB_OK 'User "$0" is just a regular user'
+        Goto InsufficientRights
+    StrCmp $1 "Guest" 0 +3
+        #MessageBox MB_OK 'User "$0" is a guest'
+        Goto InsufficientRights
+    MessageBox MB_OK "Unknown error"
+    Goto done
+
+    Win9x:
+        # This one means you don't need to care about admin or
+        # not admin because Windows 9x doesn't either
+        MessageBox MB_OK "Error! This DLL can't run under Windows 9x!"
+        Abort
+        
+    InsufficientRights:
+        MessageBox MB_OK "You must log on as an administrator to install this application"
+        Abort
+        
+    done:
     
     # read the CDSS registry key
     ReadRegStr $0 HKLM SOFTWARE\CDSS "Path"
