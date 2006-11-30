@@ -70,7 +70,7 @@
 	<property name="buildtest.dir"   location="build${sep}test"      />
 	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
 	<property name="CDSS_OP.dir"     location="test${sep}operational${sep}CDSS" />
-	<property name="RTi_OP.dir"      location="test${sep}operational${sep}RTi" />
+	<property name="RTi_OP.dir"      location="test${sep}operational${sep}Rivertrack" />
 	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
 	<property name="ext.dir"         location="externals"       />
 	<property name="graphics.dir"    location="graphics"        />
@@ -85,7 +85,8 @@
 	<property name="regTest.dir"	 location="test${sep}regression" />
 	<property name="command_file"    value="Regression.TSTool" />
 	<property name="proj_name"		 value="TSTool" />
-	<property name="costello" value="abbot.editor.Costello" />
+	<property name="costello" 		 value="abbot.editor.Costello" />
+	<property name="AbbotSuite"		 value="AbbotTestSuite" />
 	
 	<!--================ Dependencies ==================-->
 	<property name="hydro"	 
@@ -226,7 +227,7 @@
 		<fileset dir="test${sep}operational${sep}results" />
 		<fileset dir="test${sep}regression${sep}results" />
 		<fileset dir="test${sep}operational${sep}CDSS${sep}logs" />
-		<fileset dir="test${sep}operational${sep}RTi${sep}logs" />
+		<fileset dir="test${sep}operational${sep}Rivertrack${sep}logs" />
 		<fileset dir= "test${sep}regression${sep}src${sep}commands" 
 		         includes="**/*Output*.dv" />
 	</delete>
@@ -594,21 +595,24 @@
 =========================================================-->
 <target name="testGUI" depends="compile">
 
-	<!-- compile Regression Test (old java regTest)
-	<javac srcdir="${GUIRegTest.dir}${sep}src" destdir="${buildwork.dir}" classpathref="classpath" debug="on" fork="yes" listfiles="true" deprecation="true" executable="${executable}" compiler="${compiler}" />
+	<!-- compile Abbot Test Suite src  -->
+	<javac srcdir="${regTest.dir}${sep}src" destdir="${buildwork.dir}" 
+		classpathref="classpath" fork="yes" listfiles="true"
+		executable="${executable}" compiler="${compiler}" />
 
-	<java dir="GUI" classname="junit.extensions.abbot.ScriptFixture" fork="true" >
-		<jvmarg value="-mx256m" />
-		<jvmarg value="-Djava.compiler=NONE" />
-		<arg value="test/regression/scripts/smokeTest.xml" />
+	<!-- run the junit tests -->
+	<junit printsummary="yes" dir="." fork="yes" haltonfailure="yes">
+		<formatter type="xml"/>	
 		<classpath refid="classpath" />
-	</java>
-	-->
-	
-	<!-- run perl script to parse output and display results -->
-	<exec dir="${regTest.dir}${sep}" executable="perl" >
+		<test name="${AbbotSuite}" 
+		  outfile="test${sep}regression${sep}results${sep}AbbotResults" />
+	</junit>
+		
+	<!-- old way of running with perl script
+	<exec dir="${regTest.dir}${sep}scripts" executable="perl" >
 		<arg value="runTests.pl" />
 	</exec>
+	-->
 
 </target>
 
@@ -627,7 +631,7 @@ compile        compiles source code
 
 compileTest    compiles the test source code
 
-test           runs the junit tests for this product
+test           runs the unit tests for this product
 
 clean          removes the build directories
 
