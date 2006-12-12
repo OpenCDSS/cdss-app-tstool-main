@@ -1,7 +1,7 @@
 [NativeJ Project Definition]
 ApplicationType=1
 AllowAsService=0
-AppIcon=..\system\waterMark.ico
+AppIcon=C:\Development\TSTool\java_142\TSTool\externals\CDSS\graphics\waterMark.ico
 TargetExe=TSTool.exe
 EmbeddedJars=
 RedirectStdOutType=2
@@ -16,10 +16,11 @@ JvmSearchOrder=012345
 Classpath=Blowfish_142.jar;|HydroBaseDMI_142.jar;|msbase.jar;|mssqlserver.jar;|msutil.jar;|NWSRFS_DMI_142.jar;|RiversideDB_DMI_142.jar;|RTi_Common_142.jar;|SatmonSysDMI_142.jar;|StateCU_142.jar;|StateMod_142.jar;|TS_Services.jar;|TSTool_142.jar|
 DeleteJars=0
 ExtractJarsLocal=2
+AppIniFile=TSTool.ini
 AllPathsRelative=0
 StayInCurrentDir=0
 GraphicalAppClass=DWR.DMI.tstool.tstool
-GraphicalStaticAppOptions=-home C:\CDSS
+GraphicalStaticAppOptions=
 AllowMultipleInstance=1
 SplashScreenWatch=0
 SplashScreenTimeout=0

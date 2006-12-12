@@ -87,6 +87,18 @@
 	<property name="proj_name"		 value="TSTool" />
 	<property name="costello" 		 value="abbot.editor.Costello" />
 	<property name="AbbotSuite"		 value="AbbotTestSuite" />
+	<property name="cobertura.dir"   value="${ext.dir}${sep}cobertura" />
+	<property name="buildcob.dir"    value="build${sep}cobertura" />
+
+	<path id="cobertura.classpath">
+	    <fileset dir="${cobertura.dir}">
+	        <include name="cobertura.jar" />
+	        <include name="lib/**/*.jar" />
+	    </fileset>
+	</path>
+
+	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+
 	
 	<!--================ Dependencies ==================-->
 	<property name="hydro"	 
@@ -115,6 +127,8 @@
 		value="${ext.dir}${sep}junit.jar" />
 	<property name="blowfish"
 		value="${ext.dir}${sep}Blowfish_142.jar" />
+	<property name="emma"
+			value="${ext.dir}${sep}emma.jar" />
 	
 	<!-- Abbot jar files -->
 	<property name="Abbot.jar" 
@@ -143,6 +157,7 @@
 	<!-- set classpath -->
 	<path id="classpath">
 		<pathelement location="${junit}" />
+		<pathelement location="${buildcob.dir}" />
 		<pathelement location="${buildwork.dir}"/>
 		<pathelement location="${buildtest.dir}" />
 		<pathelement location="${hydro}"/>
@@ -167,11 +182,13 @@
 		<pathelement location="${gnu-regexp.jar}" />
 		<pathelement location="${ant4eclipse.jar}" />
 		<pathelement location="${blowfish}" />
+		<pathelement location="${emma}" />
 		<pathelement location="."/>
 	</path>
 	
 	<path id="classpathOp">
 		<pathelement location="${hydro}"/>
+		<pathelement location="${emma}" />
 		<pathelement location="${msbase}"/>
 		<pathelement location="${mssqlserver}"/>
 		<pathelement location="${msutil}"/>
@@ -215,6 +232,7 @@
 	<!-- delete build stuff -->
 	<delete dir="${buildwork.dir}" />
 	<delete dir="${build.dir}" />
+	<delete dir="${buildcob.dir" />
 
 	<!-- delete javadoc stuff -->
 	<delete dir="${jdoc.dir}" />
@@ -288,8 +306,11 @@
 	description="runs Junit test suite">
 
 	<junit printsummary="yes" fork="yes" dir="conf">
+		<sysproperty key="net.sourceforge.cobertura.datafile"
+				file="${buildcob.dir}${sep}cobertura.ser" />
 		<formatter type="xml"/>
 		<classpath refid="classpath" />
+		<classpath refid="cobertura.classpath" />
 		<test name="${testSuite}"
 		 outfile="test${sep}unit${sep}results${sep}${proj_name}" />
 	</junit>
@@ -599,8 +620,7 @@
 	<javac srcdir="${regTest.dir}${sep}src" destdir="${buildwork.dir}" 
 		classpathref="classpath" fork="yes" listfiles="true"
 		executable="${executable}" compiler="${compiler}" />
-
-	<!-- run the junit tests -->
+	
 	<junit printsummary="yes" dir="." fork="yes" haltonfailure="yes">
 		<formatter type="xml"/>	
 		<classpath refid="classpath" />
@@ -615,8 +635,34 @@
 	-->
 
 </target>
-
 	
+<target name="cobertura_init" depends="compileTest" >
+
+	<delete file="${buildcob.dir}${sep}cobertura.ser" />
+
+	<cobertura-instrument todir="${buildcob.dir}" 
+		datafile="${buildcob.dir}${sep}cobertura.ser">
+	    <fileset dir="${buildwork.dir}" >
+	    	<include name="**/*.class" />
+	    	<exclude name="**/*Test*.class" />
+	    </fileset>
+	</cobertura-instrument>
+	
+</target>
+	
+<target name="cobertura" depends="cobertura_init,test" >
+	
+	<cobertura-report format="html" destdir="test${sep}unit${sep}results"
+		datafile="${buildcob.dir}${sep}cobertura.ser" >
+	    <fileset dir="${src.dir}">
+	        <include name="**/*.java" />
+	        <exclude name="**/*Test*.java" />
+	    </fileset>
+	</cobertura-report>
+	
+</target>
+	
+
 <!--===================================================
 	Target:   help
 	Function: prints out info on targets and properties

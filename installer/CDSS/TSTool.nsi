@@ -29,10 +29,6 @@ Name "TSTool"
 # Included files
 !include "UMUI.nsh"
 !include "Registry.nsh"
-!include ..\..\externals\NSIS_Common\PathManipulation.nsh
-!include ..\..\externals\NSIS_Common\Util.nsh
-!include ..\..\externals\CDSS\installer\BaseComponents.nsh
-!include ..\..\externals\CDSS\installer\server_name.nsh
 !include "TextReplace.nsh"
 
 # Reserved Files
@@ -62,6 +58,14 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
+# MUI Overrides for Text
+!define MUI_PAGE_HEADER_SUBTEXT "This wizard will guide you through the installation of $(^Name)"
+!define MUI_WELCOMEPAGE_TEXT "It is recommended that you close all other CDSS applications before starting this Setup. This will make it possible to update relevant CDSS files without any conflicts.  Please close all CDSS specific applications, files and folders and click Next to continue."
+!define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install by checking the corresponding boxes.  Click Next to continue."
+!define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO "Position the mouse over a component to view its description."
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install TSTool in the following folder.  It is recommended that the main CDSS folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "CDSS"
+
 ### Use custom button text
 MiscButtonText "Back" "Next" "Cancel" "Done"
 
@@ -78,6 +82,16 @@ Page custom SetCustom
 
 # Installer language
 !insertmacro MUI_LANGUAGE English
+
+ReserveFile "..\..\externals\CDSS\installer\server_name.ini"
+!insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
+
+
+!include ..\..\externals\NSIS_Common\PathManipulation.nsh
+!include ..\..\externals\NSIS_Common\Util.nsh
+!include ..\..\externals\CDSS\installer\BaseComponents.nsh
+!include ..\..\externals\CDSS\installer\server_name.nsh
+
 
 
 ##################################################################
@@ -114,30 +128,6 @@ SectionEnd
 ########################################################
 Section -Main
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
-SectionEnd
-
-
-#########################################
-# SECTION: Documentation
-#
-# BRIEF:
-#  Installs current documentation   
-#  for TSTool to C:\CDSS\doc\TSTool
-#
-# The /o stands for optional.  This
-# allows the component page to uncheck
-# this box by default.   
-#########################################
-Section "Documentation" Docs
-   
-    # set boolean choseDocs since documentation was selected
-    strcpy $choseDocs "1"
-    
-    # copy documentation
-    SetOutPath $INSTDIR\doc\TSTool
-    SetOverwrite on
-    File /r /x *svn* ..\..\doc\TSTool\*
-
 SectionEnd
 
 
@@ -184,18 +174,14 @@ Section "TSTool" TSTool
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
    
-    # copy the NativeJ files and folders
-    # NativeJ is used to create the Executable
+    # copy the NativeJ executable and config file
     SetOutPath $INSTDIR\bin
-    File TSTool.njp
-    File ..\..\externals\NativeJ\nativejc.exe
-    File ..\..\externals\NativeJ\upx.exe
-    File ..\..\externals\NativeJ\javasg.dat
-    File ..\..\externals\NativeJ\javasc.dat
+    File TSTool.exe
+    File TSTool.ini
     
     # Replace argument for -home in NativeJ property file
-    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.njp" \
-    "$INSTDIR\bin\TSTool.njp" "-home C:\CDSS" "-home $INSTDIR" "" $0
+    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.ini" \
+    "$INSTDIR\bin\TSTool.ini" "-home C:\CDSS" "-home $INSTDIR" "" $0
     
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
@@ -214,6 +200,29 @@ Section "TSTool" TSTool
    
 SectionEnd
 
+
+#########################################
+# SECTION: Documentation
+#
+# BRIEF:
+#  Installs current documentation   
+#  for TSTool to C:\CDSS\doc\TSTool
+#
+# The /o stands for optional.  This
+# allows the component page to uncheck
+# this box by default.   
+#########################################
+Section "Documentation" Docs
+   
+    # set boolean choseDocs since documentation was selected
+    strcpy $choseDocs "1"
+    
+    # copy documentation
+    SetOutPath $INSTDIR\doc\TSTool
+    SetOverwrite on
+    File /r /x *svn* ..\..\doc\TSTool\*
+
+SectionEnd
 
 ##############################################
 # SECTION: Start Menu Shortcuts
@@ -324,7 +333,7 @@ Section "Uninstall"
     Delete /REBOOTOK $INSTDIR\system\TSTool.cfg
     Delete /REBOOTOK $INSTDIR\TSTool_README.txt
     Delete /REBOOTOK $INSTDIR\bin\TSTool.exe
-    Delete /REBOOTOK $INSTDIR\bin\TSTool.jsmooth
+    Delete /REBOOTOK $INSTDIR\bin\TSTool.ini
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 
 SectionEnd
@@ -356,9 +365,6 @@ Function .onInstSuccess
     # if 0 then user didn't choose to install TSTool
     strcmp $choseTSTool "0" 0 +2
       Goto skipThis
-    
-    # Run NativeJ to create the .exe file
-    ExecWait '"$INSTDIR\bin\nativejc.exe" $INSTDIR\bin\TSTool.njp'
       
     ### delete these comments to include a readme
     #MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
@@ -377,14 +383,7 @@ Function .onInstSuccess
     false:
       DetailPrint "User chose to not start application"
     next:
-    
-    
-    # Delete the NativeJ property file
-    Delete /REBOOTOK "$INSTDIR\bin\TSTool.njp"
-    Delete /REBOOTOK "$INSTDIR\bin\nativejc.exe"
-    Delete /REBOOTOK "$INSTDIR\bin\upx.exe"
-    Delete /REBOOTOK "$INSTDIR\bin\javasc.dat"
-    Delete /REBOOTOK "$INSTDIR\bin\javasg.dat"
+       
                 
     skipThis:
     
@@ -400,8 +399,8 @@ FunctionEnd
 ########################################
 Function .onInit
     
-    InitPluginsDir
     
+    InitPluginsDir
     !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "..\..\externals\CDSS\installer\server_name.ini" "server_name.ini"
     
     # check user privileges and abort if not admin
@@ -433,22 +432,22 @@ Function .onInit
         Abort
         
     InsufficientRights:
-        MessageBox MB_OK "You must log on as an administrator to install this application"
+        MessageBox MB_OK "You must log on using an account with administrator$\nprivileges to install this application."
         Abort
         
     done:
     
     # read the CDSS registry key
-    ReadRegStr $0 HKLM SOFTWARE\CDSS "Path"
+    #ReadRegStr $0 ${REGKEY} "Path"
     
     # check if the RegKey exists
-    strcmp "$0" "" 0 +2
-    Goto noCDSSFound
+    #strcmp "$0" "" 0 +2
+    #Goto noCDSSFound
     
     # change the $INSTDIR to the path to the previously installed  
-    strcpy $INSTDIR $0
+    #strcpy $INSTDIR $0
     
-    noCDSSFound:
+    #noCDSSFound:
     
 FunctionEnd
 
