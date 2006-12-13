@@ -232,7 +232,7 @@
 	<!-- delete build stuff -->
 	<delete dir="${buildwork.dir}" />
 	<delete dir="${build.dir}" />
-	<delete dir="${buildcob.dir" />
+	<!--<delete dir="${buildcob.dir)" />-->
 
 	<!-- delete javadoc stuff -->
 	<delete dir="${jdoc.dir}" />
