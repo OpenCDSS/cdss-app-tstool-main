@@ -42,7 +42,7 @@
 	       		<os family="unix" />
 		</and>
 	</condition>
-	<condition property="executable" value="I:\develop\jdk_142\bin\javac">
+	<condition property="executable" value="S:\develop\jdk_142\bin\javac">
 		<and>
 	       		<os family="windows" />
 		</and>
@@ -54,7 +54,7 @@
 		      <os family="unix" />
 		</and>
 	</condition>
-	<condition property="jhome" value="I:\develop\jdk_142">
+	<condition property="jhome" value="S:\develop\jdk_142">
 		<and>
 		      <os family="windows" />
 		</and>
@@ -78,7 +78,7 @@
 	<property name="logs.dir"    	 location="test${sep}logs"        />
 	<property name="package"     	 value="DWR${sep}DMI${sep}tstool" />
 	<property name="nsis.dir"		 location="installer" />
-	<property name="executable"  	 location="I:${sep}develop${sep}jdk_150${sep}bin${sep}javac" />
+	<property name="executable"  	 location="S:${sep}develop${sep}jdk_150${sep}bin${sep}javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="testSuite"  	 value="DWR.DMI.tstool.tstoolTestSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
@@ -591,7 +591,7 @@
 	description="runs NSIS to create an executable installer">
 	
 	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}CDSS" executable="I:\DEVELOP\NSIS\makensis.exe" >
+		<exec dir="${nsis.dir}${sep}CDSS" executable="S:\DEVELOP\NSIS\makensis.exe" >
 			<arg value="TSTool_CDSS.nsi" />
 	</exec>
 	
