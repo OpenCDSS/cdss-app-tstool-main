@@ -26,7 +26,7 @@ public class tstoolTestSuite extends TestCase {
         testList = new ArrayList();
         TestSuite suite = new TestSuite();
         TestCollector tests = new TestCollector();
-        File path = new File("..\\test\\unit\\src");
+        File path = new File("test\\unit\\src");
         System.out.println(path.toString());
         tests.visitAllFiles(path);
         testList = tests.getTestList();
