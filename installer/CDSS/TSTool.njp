@@ -20,7 +20,6 @@ AppIniFile=TSTool.ini
 AllPathsRelative=0
 StayInCurrentDir=0
 GraphicalAppClass=DWR.DMI.tstool.tstool
-GraphicalStaticAppOptions=
 AllowMultipleInstance=1
 SplashScreenWatch=0
 SplashScreenTimeout=0
