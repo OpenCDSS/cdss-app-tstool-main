@@ -36,7 +36,6 @@ public class tstoolTest extends TestCase {
     ********************************************************************/
     public void testisServer()
     {
-       boolean exp_val = false;
        assertEquals(false, tstool.isServer());
     }
     
