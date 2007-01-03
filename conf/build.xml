@@ -90,15 +90,17 @@
 	<property name="cobertura.dir"   value="${ext.dir}${sep}cobertura" />
 	<property name="buildcob.dir"    value="build${sep}cobertura" />
 
+	
 	<path id="cobertura.classpath">
 	    <fileset dir="${cobertura.dir}">
 	        <include name="cobertura.jar" />
 	        <include name="lib/**/*.jar" />
 	    </fileset>
 	</path>
+   
 
 	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
-
+	
 	
 	<!--================ Dependencies ==================-->
 	<property name="hydro"	 
@@ -241,14 +243,18 @@
 	<delete file="installer${sep}CDSS${sep}TSTool_Setup.exe" />
 	
 	<delete>
-		<fileset dir="test${sep}unit${sep}results" includes="**/*.xml"/>
+		<fileset dir="test${sep}unit${sep}results" />
 		<fileset dir="test${sep}operational${sep}results" />
 		<fileset dir="test${sep}regression${sep}results" />
 		<fileset dir="test${sep}operational${sep}CDSS${sep}logs" />
 		<fileset dir="test${sep}operational${sep}Rivertrack${sep}logs" />
-		<fileset dir= "test${sep}regression${sep}src${sep}commands" 
-		         includes="**/*Output*.dv" />
+		<fileset dir="test${sep}data${sep}commands" 
+			includes="**/*Output*.dv" />
 	</delete>
+	
+	<delete dir="test${sep}unit${sep}results${sep}css" />
+	<delete dir="test${sep}unit${sep}results${sep}images" />
+	<delete dir="test${sep}unit${sep}results${sep}js" />
 	
 </target>
 
@@ -261,7 +267,7 @@
 	
 	<mkdir dir="${buildwork.dir}" />
 	
-	<javac srcdir 		= "${src.dir}${sep}${package}"
+	<javac srcdir 		= "${src.dir}"
            destdir 		= "${buildwork.dir}"
 		   classpathref = "classpath"
            debug 		= "on"
@@ -284,7 +290,7 @@
 
 	<mkdir dir="${build.dir}${sep}test" />
 	
-	<javac srcdir 		= "${test.dir}${sep}${package}"
+	<javac srcdir 		= "${test.dir}"
 	       destdir 	    = "${build.dir}${sep}test"
            classpathref = "classpath"
            debug 		= "on"
@@ -562,7 +568,7 @@
 	          a developer should check out the log file
 	          under Regression results for more info. 
 ===================================================-->
-<target name="regTest" depends="test"
+<target name="regTest" depends="compile"
 	description="runs regression tests and outputs results to test/regression/results">
 	
 	<java classname="${classname}" fork="true" >
