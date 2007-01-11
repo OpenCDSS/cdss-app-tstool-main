@@ -22,7 +22,7 @@
 Name "TSTool"
 # Define Vars
 !define REGKEY "Software\State of Colorado\CDSS\$(^Name)"
-!define VERSION 3.08.02
+!define VERSION 7.00.00
 !define COMPANY RTi
 !define URL http://www.riverside.com
 
@@ -42,7 +42,7 @@ Var choseDocs
 #Var numInstComponents
 
 # Installer attributes
-OutFile "TSTool_Setup.exe"
+OutFile "TSTool_${VERSION}_Setup.exe"
 InstallDir "C:\CDSS"
 InstallDirRegKey HKLM "${REGKEY}" Path
 

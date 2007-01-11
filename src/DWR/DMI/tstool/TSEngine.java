@@ -607,10 +607,13 @@
 //                    The old code was multiplying by 1.9385 and should 
 //                    have been the reciprocal.  Algorithm is tested with
 //                    with regression test commands.
-// 2006-11-02   KAT, RTi        * Fixed bug where TS wasn't being ignored when 
+// 2006-11-02   KAT, RTi    * Fixed bug where TS wasn't being ignored when 
 //                    daily or monthly data was missing.  Fixed in the
 //                    setUsingMonthAndDay method.  Tested by regression
 //                    test commands under test/regression/commands.
+// 2007-01-11   KAT, RTi    * Fixed a bug in do_readStateCU() where the
+//                    file from the command was not taking into account
+//                    the current working directory like all other commands.
 //------------------------------------------------------------------------------
 // EndHeader
 
@@ -3800,6 +3803,10 @@ throws Exception
 	boolean IncludeLocationTotal_boolean = true;
 	boolean IncludeDataSetTotal_boolean = true;
 
+    // get the path based on the current working directory
+    InputFile = IOUtil.getPathUsingWorkingDir( InputFile );
+    System.out.println( InputFile );
+    
 	if ( InputFile == null ) {
 		message = "Input file is null - must be specified.";
 		Message.printWarning ( 2, routine, message );
@@ -3829,8 +3836,7 @@ throws Exception
 		}
 		else if ( StateCU_TS.isReportFile ( InputFile ) ) {
 			tslist = StateCU_TS.readTimeSeriesList (
-				TSID, IOUtil.getPathUsingWorkingDir (
-				InputFile ), __query_date1, __query_date2,
+				TSID, InputFile, __query_date1, __query_date2,
 				(String)null, true );
 		}
 		else {	// Not a recognized StateCU file type...

@@ -15,7 +15,7 @@
 	 			RTi_runOp
 	 			RTi_runOpD30
 	 			regTest
-	 			install
+	 			createInstaller
 	 			javadoc
 				jar
 	 			help
@@ -578,7 +578,7 @@
 		<arg	   value = "${CDSS_OP.dir}" />
 		<arg	   value = "-commands" />
 		<arg	   value = "${regTest.dir}${sep}src${sep}${command_file}" />
-		<classpath refid = "classpathOp" />   
+		<classpath refid = "classpath" />   
 	</java>	
 	
 	<!-- run perl script to parse output and display results -->
@@ -590,10 +590,10 @@
 
 
 <!--=========================================================
-	Target: install
+	Target: createInstaller
 	Function: creates an executable installer for TSTool
 ==========================================================-->
-<target name="install" depends="jar"
+<target name="createInstaller" depends="jar"
 	description="runs NSIS to create an executable installer">
 	
 	<!-- run nsis script to create .exe install -->
@@ -699,7 +699,7 @@ javadoc        generates javadocs from source code
 
 jar            copies class files into a single jar file in dist    
 		
-install        creates an executable installer in the installer dir
+createInstaller        creates an executable installer in the installer dir
 
 regTest        runs a regression test and stores results in regression/results dir
 	

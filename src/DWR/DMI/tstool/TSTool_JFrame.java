@@ -794,6 +794,16 @@
 //                    TSTool_JFrame that was changing the
 //                    working directory when it shouldn't
 //                    have been.
+// 2007-01-11   KAT, RTi        Set the preferred size for the 
+//                    Time Series Results Panel .  The problem
+//                    was that when the Input Panel shrunk to fit
+//                    its corresponding data, so did the results
+//                    panel.  The change is to set the minimum size
+//                    for that panel so that it can increase but will
+//                    not descrease past a certain threshold.  The new
+//                    dimensions are the same as the default
+//                    dimensions for the Input panel when HydroBase is
+//                    chosen.
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -8373,7 +8383,7 @@ private void initGUI ( boolean show_main )
         JPanel query_JPanel = new JPanel();
         query_JPanel.setLayout(new BorderLayout());
         getContentPane().add("North", query_JPanel);
-
+        
 	// --------------------------------------------------------------------
 	// Query input components...
 	// --------------------------------------------------------------------
@@ -8384,7 +8394,8 @@ private void initGUI ( boolean show_main )
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
 		"Input/Query Options" ));
-	query_JPanel.add("West", __query_input_JPanel);
+	
+    query_JPanel.add("West", __query_input_JPanel);
  
 	y=0;
         JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Type:"), 
@@ -8454,12 +8465,18 @@ private void initGUI ( boolean show_main )
 	// --------------------------------------------------------------------
 
 	__query_results_JPanel = new JPanel();
-	__query_results_JPanel.setLayout(gbl);
+    __query_results_JPanel.setLayout(gbl);
 	__query_results_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
 		"Time Series List"));
-	query_JPanel.add("Center", __query_results_JPanel);
+    
+    //KAT
+    // set the minimum size for the panel based on the default size
+    // used for HydroBase
+   __query_results_JPanel.setPreferredSize(new Dimension( 460, 200 ));
+    
+    query_JPanel.add("Center", __query_results_JPanel);
 
 	// Add the table for time series list...
 
@@ -8682,6 +8699,7 @@ private void initGUI ( boolean show_main )
 		__input_type_JComboBox.select( __INPUT_TYPE_DateValue );
 	}
 	}
+    
 }
 
 // REVISIT - is this code also called when a new database connection is made
@@ -9018,6 +9036,7 @@ private void initGUIInputFilters ( int y )
 	setInputFilters();
 	validate();
 	repaint();
+
 }
 
 /**

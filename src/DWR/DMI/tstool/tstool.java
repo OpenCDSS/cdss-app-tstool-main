@@ -649,16 +649,18 @@ throws Exception
 					+ "'-commands'");
 			}
 			i++;
-			String commands = args[i];
-			Message.printStatus ( 1, routine,
+			String commands = (new File(args[i])).getCanonicalPath();;
+			
+            Message.printStatus ( 1, routine,
 			"Commands file is \"" + commands + "\"" );
 			// Save this so it can be processed when the GUI
 			// initializes.
 			IOUtil.setProgramCommandFile ( commands );
 			IOUtil.isBatch ( true );
-			File f = new File ( commands );
+                   
+            File f = new File ( commands );
 			// If absolute, set the working directory...
-			String working_dir = null;
+            String working_dir = null;
 			if ( f.isAbsolute() ) {
 				working_dir = f.getParent();
 			}
@@ -676,6 +678,7 @@ throws Exception
 				// directory for the application...
 				working_dir = System.getProperty("user.dir");
 			}
+            
 			IOUtil.setProgramWorkingDir ( working_dir );
 			JGUIUtil.setLastFileDialogDirectory( working_dir );
 			// REVISIT SAM 2005-10-18 This does not display
@@ -683,6 +686,7 @@ throws Exception
 			Message.printStatus ( 2, routine,
 			"Setting working directory to commands file " +
 			"directory: \"" + working_dir +"\".");
+            
 		}
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
 			// Set debug information...
