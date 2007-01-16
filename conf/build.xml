@@ -255,6 +255,7 @@
 	<delete dir="test${sep}unit${sep}results${sep}css" />
 	<delete dir="test${sep}unit${sep}results${sep}images" />
 	<delete dir="test${sep}unit${sep}results${sep}js" />
+	<delete dir="test${sep}output" />
 	
 </target>
 
@@ -570,6 +571,10 @@
 ===================================================-->
 <target name="regTest" depends="compile"
 	description="runs regression tests and outputs results to test/regression/results">
+	
+	<!-- need to create an output directory for
+		     commands that need to write to a temp dir -->
+		<mkdir dir="test${sep}output" />
 	
 	<java classname="${classname}" fork="true" >
 		<jvmarg    value = "-mx256m" />

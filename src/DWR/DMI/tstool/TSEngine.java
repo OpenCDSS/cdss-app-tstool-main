@@ -614,7 +614,9 @@
 // 2007-01-11   KAT, RTi    * Fixed a bug in do_readStateCU() where the
 //                    file from the command was not taking into account
 //                    the current working directory like all other commands.
-//------------------------------------------------------------------------------
+// 2007-01-16   KAT, RTi    * Fixed a bug in do_writeStateCU() where the
+//                    file from the command was not taking into account
+//                    the current working directory like all other commands.
 // EndHeader
 
 package DWR.DMI.tstool;
@@ -3805,7 +3807,6 @@ throws Exception
 
     // get the path based on the current working directory
     InputFile = IOUtil.getPathUsingWorkingDir( InputFile );
-    System.out.println( InputFile );
     
 	if ( InputFile == null ) {
 		message = "Input file is null - must be specified.";
@@ -5453,15 +5454,14 @@ throws Exception
 	if ( (tokens.size() != 2) && (tokens.size() != 3) ) {
 		throw new Exception ( "Bad command \"" + command + "\"" );
 	}
-	String outfile = ((String)tokens.elementAt(1)).trim();
-	Message.printStatus ( 1, routine,
-	"Writing StateCU file \"" + outfile + "\"" );
-
+	String out = ((String)tokens.elementAt(1)).trim();
+    String outfile = IOUtil.getPathUsingWorkingDir( out );
+      
 	// Format the comments to add to the top of the file.  In this
 	// case, add the commands used to generate the file and if available
 	// the hydrobase comments...
 	// REVISIT SAM 2005-04-12 Loop through the instances.
-
+    
 	String comments[] = _commands_array;	// default
 	int hsize = __hbdmi_Vector.size();
 	HydroBaseDMI hbdmi = null;
