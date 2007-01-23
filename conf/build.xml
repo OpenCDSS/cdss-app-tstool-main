@@ -82,6 +82,7 @@
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="testSuite"  	 value="DWR.DMI.tstool.tstoolTestSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
+	<property name="unitTest.dir"	 location="test${sep}unit" />
 	<property name="regTest.dir"	 location="test${sep}regression" />
 	<property name="command_file"    value="Regression.TSTool" />
 	<property name="proj_name"		 value="TSTool" />
@@ -89,6 +90,8 @@
 	<property name="AbbotSuite"		 value="AbbotTestSuite" />
 	<property name="cobertura.dir"   value="${ext.dir}${sep}cobertura" />
 	<property name="buildcob.dir"    value="build${sep}cobertura" />
+	<property name="CDSS_install.dir" value="installer${sep}CDSS" />
+	<property name="RTi_install.dir" value="installer${sep}Rivertrack" />
 
 	
 	<path id="cobertura.classpath">
@@ -246,12 +249,15 @@
 		<fileset dir="test${sep}operational${sep}Rivertrack${sep}logs" />
 		<fileset dir="test${sep}data${sep}commands" 
 			includes="**/*Output*.dv" />
+		<fileset dir="${CDSS_install.dir}" includes="**/*Setup.exe" />
+		<fileset dir="${RTi_install.dir}" includes="**/*Setup.exe" />
 	</delete>
 	
 	<delete dir="test${sep}unit${sep}results${sep}css" />
 	<delete dir="test${sep}unit${sep}results${sep}images" />
 	<delete dir="test${sep}unit${sep}results${sep}js" />
 	<delete dir="test${sep}output" />
+	<delete dir="Release" />
 	
 </target>
 
@@ -300,6 +306,139 @@
 
 </target>
 
+
+<!--=========================================================
+	Target: createAllInstallers
+	Function: Run NSIS to create CDSS and RiverTrak installers
+==========================================================-->
+<target name="createAllInstallers" 
+	description="creates the NSIS installers for CDSS and RTi">
+
+	<antcall target="createInstaller_CDSS" />
+	<antcall target="createInstaller_RTi" />
+	<antcall target="createInstaller_RTiExtended" />
+	
+</target>
+	
+<!--=========================================================
+	Target: createInstaller_CDSS
+	Function: creates an executable installer for TSTool
+==========================================================-->
+<target name="createInstaller_CDSS" depends="jar" 
+	description="runs NSIS to create an executable installer">
+	
+	<!-- run nsis script to create .exe install -->
+		<exec dir="${nsis.dir}${sep}CDSS" 
+			executable="S:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool.nsi" />
+	</exec>
+	
+</target>
+	
+
+<!--=========================================================
+	Target: createInstaller_RTi
+	Function: creates an executable installer for TSTool
+==========================================================-->
+<target name="createInstaller_RTi" depends="jar"
+	description="runs NSIS to create an executable installer">
+	
+	<!-- run nsis script to create .exe install -->
+		<exec dir="${nsis.dir}${sep}Rivertrack" 
+		  executable="S:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool.nsi" />
+	</exec>
+	
+</target>
+	
+
+<!--=========================================================
+	Target: createInstaller_RTiExtended
+	Function: creates an executable installer for TSTool
+==========================================================-->
+<target name="createInstaller_RTiExtended" depends="jar"
+	description="runs NSIS to create an executable installer">
+	
+	<!-- run nsis script to create .exe install -->
+		<exec dir="${nsis.dir}${sep}Rivertrack" 
+		  executable="S:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool_Extended.nsi" />
+	</exec>
+	
+</target>
+		
+<!--===========================================================
+	Target: createRelease
+	Function: create all files and folders needed for a release
+			  of TSTool into a folder named Release.
+============================================================-->
+<target name="createRelease" 
+	depends="test,regTest,javadoc,createAllInstallers" >
+
+	<!-- make a temp directory (Release) and copy all
+	     release specific files and docs here -->
+	<mkdir dir="Release" />
+	<mkdir dir="Release${sep}javadoc" />
+	<mkdir dir="Release${sep}testResults" />
+	<mkdir dir="Release${sep}testResults${sep}unit" />
+	<mkdir dir="Release${sep}testResults${sep}regression" />
+	
+	<!-- CDSS -->
+	<mkdir dir="Release${sep}TSTool_CDSS" />
+	<mkdir dir="Release${sep}TSTool_CDSS${sep}doc" />
+	<mkdir dir="Release${sep}TSTool_CDSS${sep}installer" />
+	
+	<!-- move CDSS files and docs -->
+	<move todir="Release${sep}TSTool_CDSS${sep}installer" >
+		<fileset dir="${CDSS_install.dir}" includes="**/*Setup.exe" />
+	</move>
+	<copy todir="Release${sep}TSTool_CDSS${sep}doc" >
+		<fileset dir="doc${sep}TSTool${sep}CDSS" />
+	</copy>
+	
+	<!-- RiverTrak -->
+	<mkdir dir="Release${sep}TSTool_RiverTrak" />
+	<mkdir dir="Release${sep}TSTool_RiverTrak${sep}doc" />
+	<mkdir dir="Release${sep}TSTool_RiverTrak${sep}installer" />
+
+	<!-- move RiverTrak files and docs -->
+	<move todir="Release${sep}TSTool_RiverTrak${sep}installer" >
+		<fileset dir="${RTi_install.dir}" 
+		 includes="**/*Setup.exe" excludes="**/TSTool_RiverTrakExtended*" />
+	</move>
+	<copy todir="Release${sep}TSTool_RiverTrak${sep}doc" >
+		<fileset dir="doc${sep}TSTool${sep}Rivertrak" />
+	</copy>
+	
+	<!-- RiverTrak Extended -->
+	<mkdir dir="Release${sep}TSTool_RiverTrakExtended" />
+	<mkdir dir="Release${sep}TSTool_RiverTrakExtended${sep}doc" />
+	<mkdir dir="Release${sep}TSTool_RiverTrakExtended${sep}installer" />
+
+	<!-- move RiverTrak files and docs -->
+	<move todir="Release${sep}TSTool_RiverTrakExtended${sep}installer" >
+		<fileset dir="${RTi_install.dir}" 
+		 includes="**/TSTool_RiverTrakExtended*" />
+	</move>
+	<copy todir="Release${sep}TSTool_RiverTrakExtended${sep}doc" >
+		<fileset dir="doc${sep}TSTool${sep}Rivertrak" />
+	</copy>
+	
+	<!-- move TestResults and Javadocs -->
+	<copy todir="Release${sep}testResults${sep}unit" >
+		<fileset dir="${unitTest.dir}${sep}results" 
+		 includes="*.xml" />
+	</copy>
+	<copy todir="Release${sep}testResults${sep}regression" >
+		<fileset dir="${regTest.dir}${sep}results" 
+		 includes="*" />
+	</copy>
+	
+	<copy todir="Release${sep}javadoc">
+	   <fileset dir="${jdoc.dir}"/>
+	 </copy>
+	
+</target>
 	
 <!--===================================================
 	Target:   test
@@ -589,54 +728,6 @@
 	
 </target>
 
-
-<!--=========================================================
-	Target: createInstaller_CDSS
-	Function: creates an executable installer for TSTool
-==========================================================-->
-<target name="createInstaller_CDSS" depends="jar"
-	description="runs NSIS to create an executable installer">
-	
-	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}CDSS" 
-			executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool.nsi" />
-	</exec>
-	
-</target>
-	
-
-<!--=========================================================
-	Target: createInstaller_RTi
-	Function: creates an executable installer for TSTool
-==========================================================-->
-<target name="createInstaller_RTi" depends="jar"
-	description="runs NSIS to create an executable installer">
-	
-	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}Rivertrack" 
-		  executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool.nsi" />
-	</exec>
-	
-</target>
-	
-
-<!--=========================================================
-	Target: createInstaller_RTiExtended
-	Function: creates an executable installer for TSTool
-==========================================================-->
-<target name="createInstaller_RTiExtended" depends="jar"
-	description="runs NSIS to create an executable installer">
-	
-	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}Rivertrack" 
-		  executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool_Extended.nsi" />
-	</exec>
-	
-</target>
-	
 <!--========================================================
 	Target: costello
 	Function: runs the Costello editor for Abbot
