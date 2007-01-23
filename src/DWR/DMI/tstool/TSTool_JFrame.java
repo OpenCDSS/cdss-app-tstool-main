@@ -804,6 +804,8 @@
 //                    dimensions are the same as the default
 //                    dimensions for the Input panel when HydroBase is
 //                    chosen.
+// 2007-01-23	SAM, RTi	Try some changes to get initial paint to draw
+//				completely - still not quite there but better?
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -2667,6 +2669,11 @@ public TSTool_JFrame ( boolean show_main )
 			"input filters at setup." );
 			Message.printWarning ( 3, rtn, e );
 		}
+		// REVISIT SAM 2007-01-23
+		// Force everything to refresh based on the current GUI
+		// layout.
+		// Still evaluating this.
+		this.invalidate ();
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 
@@ -8682,6 +8689,10 @@ private void initGUI ( boolean show_main )
 	JGUIUtil.center ( this );
 	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
         	setVisible ( show_main );
+		// Do this to make sure the GUI redraws.  Otherwise, sometimes
+		// it may show up with gray areas...
+		// SAM testing... does not fix problem yet.
+		//this.invalidate();
 	}
 	}
 	catch ( Exception e ) {
