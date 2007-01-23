@@ -39,8 +39,8 @@ Var choseDocs
 #Var numInstComponents
 
 # Installer attributes
-OutFile "TSTool_Rivertrak_${VERSION}_Setup.exe"
-InstallDir "C:\Program Files\RTi\Rivertrak"
+OutFile "TSTool_RiverTrak_${VERSION}_Setup.exe"
+InstallDir "C:\Program Files\RTi\RiverTrak"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
@@ -57,7 +57,7 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI Overrides for Text
 !define MUI_PAGE_HEADER_SUBTEXT "This wizard will guide you through the installation of $(^Name)"
-!define MUI_WELCOMEPAGE_TEXT "It is recommended that you close all other Rivertrak applications before starting this Setup. This will make it possible to update relevant Rivertrak files without any conflicts.  Please close all Rivertrak specific applications, files and folders and click Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "It is recommended that you close all other RiverTrak® System applications before starting this Setup. This will make it possible to update relevant RiverTrak® System files without any conflicts.  Please close all RiverTrak® System specific applications, files and folders and click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install by checking the corresponding boxes.  Click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO "Position the mouse over a component to view its description."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install TSTool in the following folder.  It is recommended that the main RTi folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
@@ -335,7 +335,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool under the main folder"
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the Rivertrak base components, including the Java Runtime Environment (JRE)"
+  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the RiverTrak® System base components, including the Java Runtime Environment (JRE)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
