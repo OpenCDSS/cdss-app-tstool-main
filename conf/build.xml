@@ -112,7 +112,7 @@
 	<property name="msutil"	 
 			value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msutil.jar" />
 	<property name="NWSRFS_DMI"	 
-		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142.jar" />
+		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142_Extended.jar" />
 	<property name="RiversideDB"	 
 		value="${ext.dir}${sep}RiversideDB_DMI${sep}RiversideDB_DMI_142.jar" />
 	<property name="RTi_Common"	 
@@ -129,8 +129,6 @@
 		value="${ext.dir}${sep}junit.jar" />
 	<property name="blowfish"
 		value="${ext.dir}${sep}Blowfish_142.jar" />
-	<property name="emma"
-			value="${ext.dir}${sep}emma.jar" />
 	
 	<!-- Abbot jar files -->
 	<property name="Abbot.jar" 
@@ -184,13 +182,11 @@
 		<pathelement location="${gnu-regexp.jar}" />
 		<pathelement location="${ant4eclipse.jar}" />
 		<pathelement location="${blowfish}" />
-		<pathelement location="${emma}" />
 		<pathelement location="."/>
 	</path>
 	
 	<path id="classpathOp">
 		<pathelement location="${hydro}"/>
-		<pathelement location="${emma}" />
 		<pathelement location="${msbase}"/>
 		<pathelement location="${mssqlserver}"/>
 		<pathelement location="${msutil}"/>
@@ -240,7 +236,7 @@
 	<delete dir="${jdoc.dir}" />
 		
 	<!-- delete the Setup.exe files made from NSIS -->
-	<delete file="installer${sep}CDSS${sep}TSTool_Setup.exe" />
+	<delete file="installer${sep}CDSS${sep}TSTool_*_Setup.exe" />
 	
 	<delete>
 		<fileset dir="test${sep}unit${sep}results" />
@@ -595,15 +591,48 @@
 
 
 <!--=========================================================
-	Target: createInstaller
+	Target: createInstaller_CDSS
 	Function: creates an executable installer for TSTool
 ==========================================================-->
-<target name="createInstaller" depends="jar"
+<target name="createInstaller_CDSS" depends="jar"
 	description="runs NSIS to create an executable installer">
 	
 	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}CDSS" executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool_CDSS.nsi" />
+		<exec dir="${nsis.dir}${sep}CDSS" 
+			executable="S:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool.nsi" />
+	</exec>
+	
+</target>
+	
+
+<!--=========================================================
+	Target: createInstaller_RTi
+	Function: creates an executable installer for TSTool
+==========================================================-->
+<target name="createInstaller_RTi" depends="jar"
+	description="runs NSIS to create an executable installer">
+	
+	<!-- run nsis script to create .exe install -->
+		<exec dir="${nsis.dir}${sep}Rivertrack" 
+		  executable="S:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool.nsi" />
+	</exec>
+	
+</target>
+	
+
+<!--=========================================================
+	Target: createInstaller_RTiExtended
+	Function: creates an executable installer for TSTool
+==========================================================-->
+<target name="createInstaller_RTiExtended" depends="jar"
+	description="runs NSIS to create an executable installer">
+	
+	<!-- run nsis script to create .exe install -->
+		<exec dir="${nsis.dir}${sep}Rivertrack" 
+		  executable="S:\DEVELOP\NSIS\makensis.exe" >
+			<arg value="TSTool_Extended.nsi" />
 	</exec>
 	
 </target>

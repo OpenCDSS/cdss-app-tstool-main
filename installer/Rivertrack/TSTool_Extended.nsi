@@ -4,13 +4,13 @@
 #
 # BRIEF:
 #  This NSIS script creates an executable
-#  install file:"TsTool_version_setup.exe"
+#  install file:"TsTool_Rivertrak_version_setup.exe"
 #  This .exe install file will setup TsTool
 #  programs and allow the user to choose
 #  from certain components to install
 #
 # COMPONENTS:
-#  BaseComponents - base jar files in CDSS\bin
+#  BaseComponents - base jar files in bin
 #  Documentation  - pdf's and text files for this release
 #  TsTool - installs TsTool specific files (jars, bats, etc)
 #  Start Menu Shortcuts - installs shortcuts to run TsTool
@@ -21,7 +21,7 @@
 
 Name "TSTool"
 # Define Vars
-!define REGKEY "Software\State of Colorado\CDSS\$(^Name)"
+!define REGKEY "Software\RTi\$(^Name)"
 !define VERSION 7.00.00
 !define COMPANY RTi
 !define URL http://www.riverside.com
@@ -31,9 +31,6 @@ Name "TSTool"
 !include "Registry.nsh"
 !include "TextReplace.nsh"
 
-# Reserved Files
-#ReserveFile "${NSISDIR}\Plugins\StartMenu.dll"
-
 # Global Variables
 Var StartMenuGroup
 Var myInstDir
@@ -42,8 +39,8 @@ Var choseDocs
 #Var numInstComponents
 
 # Installer attributes
-OutFile "TSTool_${VERSION}_Setup.exe"
-InstallDir "C:\CDSS"
+OutFile "TSTool_RivertrakExtended_${VERSION}_Setup.exe"
+InstallDir "C:\Program Files\RTi\Rivertrak"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
@@ -51,20 +48,20 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\State of Colorado\CDSS\$(^Name)"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\RTi\$(^Name)"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
-!define MUI_STARTMENUPAGE_DEFAULT_FOLDER CDSS
+!define MUI_STARTMENUPAGE_DEFAULT_FOLDER RTi
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
 # MUI Overrides for Text
 !define MUI_PAGE_HEADER_SUBTEXT "This wizard will guide you through the installation of $(^Name)"
-!define MUI_WELCOMEPAGE_TEXT "It is recommended that you close all other CDSS applications before starting this Setup. This will make it possible to update relevant CDSS files without any conflicts.  Please close all CDSS specific applications, files and folders and click Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "It is recommended that you close all other Rivertrak applications before starting this Setup. This will make it possible to update relevant Rivertrak files without any conflicts.  Please close all Rivertrak specific applications, files and folders and click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install by checking the corresponding boxes.  Click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO "Position the mouse over a component to view its description."
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install TSTool in the following folder.  It is recommended that the main CDSS folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "CDSS"
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install TSTool in the following folder.  It is recommended that the main RTi folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "RTi"
 
 ### Use custom button text
 MiscButtonText "Back" "Next" "Cancel" "Done"
@@ -78,20 +75,18 @@ MiscButtonText "Back" "Next" "Cancel" "Done"
 !insertmacro MUI_PAGE_INSTFILES  
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
-Page custom SetCustom
+#Page custom SetCustom
 
 # Installer language
 !insertmacro MUI_LANGUAGE English
 
-ReserveFile "..\..\externals\CDSS\installer\server_name.ini"
+ReserveFile "..\..\externals\Rivertrak\installer\server_name.ini"
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
-
 
 !include ..\..\externals\NSIS_Common\PathManipulation.nsh
 !include ..\..\externals\NSIS_Common\Util.nsh
-!include ..\..\externals\CDSS\installer\BaseComponents.nsh
-!include ..\..\externals\CDSS\installer\server_name.nsh
-
+!include ..\..\externals\Rivertrak\installer\BaseComponents.nsh
+!include ..\..\externals\Rivertrak\installer\server_name.nsh
 
 
 ##################################################################
@@ -115,7 +110,7 @@ Section -setInstallVariables
     strcpy $myInstDir "$INSTDIR"
     strcpy $choseTSTool "0"
     strcpy $choseDocs "0"
-    strcpy $StartMenuGroup "CDSS"
+    strcpy $StartMenuGroup "RTi"
     SetShellVarContext all
     
 SectionEnd
@@ -157,13 +152,16 @@ Section "TSTool" TSTool
     
     File ..\..\scripts\TSTool.bat
     File ..\..\dist\TSTool_142.jar
-    File ..\..\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar
+    File ..\..\externals\NWSRFS_DMI\NWSRFS_DMI_142_Extended.jar
     File ..\..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
     File ..\..\externals\StateMod\StateMod_142.jar
     File ..\..\externals\StateCU\StateCU_142.jar
     
     SetOutPath $INSTDIR\system
-    File ..\..\test\operational\CDSS\system\TSTool.cfg
+    File ..\licenses\RTiDemo\TSTool.cfg
+    
+    # rename the extended jar to jar used in CP
+    Rename "$INSTDIR\bin\NWSRFS_DMI_142_Extended.jar" "$INSTDIR\bin\NWSRFS_DMI_142.jar"
     
     #### Comment out later if README file needs to be installed
     # add README
@@ -173,6 +171,7 @@ Section "TSTool" TSTool
     # Insert the -home Directory into the .bat file
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
+    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET JREHOMED=%HOMED%\jre_142" "SET JREHOMED=..\..\jre_142" "" $0
    
     # copy the NativeJ executable and config file
     SetOutPath $INSTDIR\bin
@@ -181,7 +180,7 @@ Section "TSTool" TSTool
     
     # Replace argument for -home in NativeJ property file
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.ini" \
-    "$INSTDIR\bin\TSTool.ini" "-home C:\CDSS" "-home $INSTDIR" "" $0
+    "$INSTDIR\bin\TSTool.ini" "-home C:\CDSS" "-home $\"$INSTDIR$\"" "" $0
     
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
@@ -189,7 +188,7 @@ Section "TSTool" TSTool
     SetOverwrite off
     #CreateDirectory "$INSTDIR\Uninstall"
     WriteUninstaller $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "Rivertrack $(^Name)"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
@@ -206,7 +205,7 @@ SectionEnd
 #
 # BRIEF:
 #  Installs current documentation   
-#  for TSTool to C:\CDSS\doc\TSTool
+#  for TSTool to doc\TSTool
 #
 # The /o stands for optional.  This
 # allows the component page to uncheck
@@ -220,7 +219,7 @@ Section "Documentation" Docs
     # copy documentation
     SetOutPath $INSTDIR\doc\TSTool
     SetOverwrite on
-    File /r /x *svn* ..\..\doc\TSTool\CDSS\*
+    File /r /x *svn* ..\..\doc\TSTool\Rivertrak\*
 
 SectionEnd
 
@@ -229,7 +228,7 @@ SectionEnd
 #
 # BRIEF: 
 #  This section creates the start -> apps
-#  shortcuts as CDSS -> TSTool -> uninstall
+#  shortcuts as RTi -> TSTool -> uninstall
 #                             -> run TSTool
 #  
 ##############################################
@@ -244,11 +243,11 @@ Section "Start Menu" StartMenu
     # Shortcut added for launch of java program
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" "$INSTDIR\bin\$(^Name).exe"
     
     # Shortcut for uninstall of program
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk" $INSTDIR\Uninstall_TSTool.exe
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk" $INSTDIR\Uninstall_$(^Name).exe
     
     skipMenu:
     
@@ -299,12 +298,6 @@ Section "Uninstall"
 
     SetShellVarContext all
 
-    # get the number of other CDSS installed programs
-    #Push "HKEY_LOCAL_MACHINE\Software\State Of Colorado\CDSS"
-    #Call un.getNumSubKeys
-    #Pop $R1
-    #DetailPrint "Number Installed Comp:$R1"
-
     # Get the StartMenuFolder
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
 
@@ -323,7 +316,7 @@ Section "Uninstall"
     DeleteRegKey /IfEmpty HKLM "${REGKEY}\Components"
     DeleteRegKey /IfEmpty HKLM "${REGKEY}"
     RmDir /REBOOTOK $SMPROGRAMS\$StartMenuGroup
-    RmDir /REBOOTOK $SMPROGRAMS\CDSS
+    RmDir /REBOOTOK $SMPROGRAMS\RTi
     
     # Remove files from install directory
     Delete /REBOOTOK $INSTDIR\bin\TSTool.bat
@@ -341,11 +334,11 @@ SectionEnd
 
 ### Section Descriptions ###
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install TSTool documentation into the CDSS\doc\TSTool folder"
+  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install TSTool documentation into the Rivertrak\doc\TSTool folder"
   !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool under the main folder"
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including the Java Runtime Environment (JRE)"
+  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the Rivertrak base components, including the Java Runtime Environment (JRE)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
@@ -378,7 +371,6 @@ Function .onInstSuccess
     MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
     true:
       Exec '"$INSTDIR\bin\TSTool.exe"'
-      #Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
       Goto next
     false:
       DetailPrint "User chose to not start application"
@@ -401,7 +393,7 @@ Function .onInit
     
     
     InitPluginsDir
-    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "..\..\externals\CDSS\installer\server_name.ini" "server_name.ini"
+    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "..\..\externals\Rivertrak\installer\server_name.ini" "server_name.ini"
     
     # check user privileges and abort if not admin
     ClearErrors
@@ -437,17 +429,6 @@ Function .onInit
         
     done:
     
-    # read the CDSS registry key
-    #ReadRegStr $0 ${REGKEY} "Path"
-    
-    # check if the RegKey exists
-    #strcmp "$0" "" 0 +2
-    #Goto noCDSSFound
-    
-    # change the $INSTDIR to the path to the previously installed  
-    #strcpy $INSTDIR $0
-    
-    #noCDSSFound:
     
 FunctionEnd
 
