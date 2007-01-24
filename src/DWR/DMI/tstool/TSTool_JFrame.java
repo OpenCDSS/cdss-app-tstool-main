@@ -1003,7 +1003,8 @@ import DWR.StateMod.StateMod_DataSet;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_TS;
 
-import DWR.DMI.tstool.TSCommandProcessorUI;
+import RTi.TS.TSCommandProcessorUI;
+import RTi.TS.TSEngine;
 
 public class TSTool_JFrame extends JFrame
 implements ActionListener, GeoViewListener, ItemListener, JWorksheet_Listener,
