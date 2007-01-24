@@ -1003,10 +1003,12 @@ import DWR.StateMod.StateMod_DataSet;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_TS;
 
+import DWR.DMI.tstool.TSCommandProcessorUI;
+
 public class TSTool_JFrame extends JFrame
 implements ActionListener, GeoViewListener, ItemListener, JWorksheet_Listener,
 KeyListener, ListSelectionListener, MessageLogListener, MouseListener,
-WindowListener
+WindowListener, TSCommandProcessorUI
 {
 
 //  Data Members
@@ -12047,6 +12049,16 @@ throws Exception
 }
 
 /**
+Quits the program with the correct exit status
+@param status
+ */
+public void quitProgram( int status)
+{
+   tstool.quitProgram(status);
+}
+
+
+/**
 Read the list of time series from a DateValue file and list in the GUI.
 */
 public void readDateValueHeaders ()
@@ -15210,6 +15222,13 @@ public synchronized void setVisible(boolean state)
 	}
 	super.setVisible(state);
 }
+
+
+public void setWaitCursor( boolean wait )
+{
+   JGUIUtil.setWaitCursor( this, wait);
+}
+
 
 /**
 Show the Help About dialog.
