@@ -132,6 +132,8 @@
 		value="${ext.dir}${sep}junit.jar" />
 	<property name="blowfish"
 		value="${ext.dir}${sep}Blowfish_142.jar" />
+	<property name="TSCommandProc"
+		value="${ext.dir}${sep}TSCommandProcessor${sep}TSCommandProcessor_142.jar" />
 	
 	<!-- Abbot jar files -->
 	<property name="Abbot.jar" 
@@ -185,6 +187,7 @@
 		<pathelement location="${gnu-regexp.jar}" />
 		<pathelement location="${ant4eclipse.jar}" />
 		<pathelement location="${blowfish}" />
+		<pathelement location="${TSCommandProc}" />
 		<pathelement location="."/>
 	</path>
 	
@@ -213,6 +216,7 @@
 		<pathelement location="${gnu-regexp.jar}" />
 		<pathelement location="${ant4eclipse.jar}" />
 		<pathelement location="${dist.dir}${sep}${jarfname}" />
+		<pathelement location="${TSCommandProc}" />
 		<pathelement location="."/>
 	</path>
 	
