@@ -156,6 +156,7 @@ Section "TSTool" TSTool
     File ..\..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
     File ..\..\externals\StateMod\StateMod_142.jar
     File ..\..\externals\StateCU\StateCU_142.jar
+    File ..\..\externals\TSCommandProcessor\TSCommandProcessor_142.jar
     
     SetOutPath $INSTDIR\system
     File ..\licenses\RTiDemo\TSTool.cfg

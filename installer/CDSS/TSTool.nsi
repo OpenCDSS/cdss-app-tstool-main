@@ -42,7 +42,7 @@ Var choseDocs
 #Var numInstComponents
 
 # Installer attributes
-OutFile "TSTool_${VERSION}_Setup.exe"
+OutFile "TSTool_CDSS_${VERSION}_Setup.exe"
 InstallDir "C:\CDSS"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
@@ -161,6 +161,7 @@ Section "TSTool" TSTool
     File ..\..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
     File ..\..\externals\StateMod\StateMod_142.jar
     File ..\..\externals\StateCU\StateCU_142.jar
+    File ..\..\externals\TSCommandProcessor\TSCommandProcessor_142.jar
     
     SetOutPath $INSTDIR\system
     File ..\..\test\operational\CDSS\system\TSTool.cfg
