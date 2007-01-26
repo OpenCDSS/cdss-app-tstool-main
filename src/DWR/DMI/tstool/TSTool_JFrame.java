@@ -806,6 +806,9 @@
 //                    chosen.
 // 2007-01-23	SAM, RTi	Try some changes to get initial paint to draw
 //				completely - still not quite there but better?
+// 2007-01-26   KAT, RTi    Refactored the fillUsingDiversionComments
+//                      command so that the new generic code handles it.
+//       
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -6536,6 +6539,7 @@ private void editCommand (	String action, Vector command_Vector,
 			TSEngine.getTSIdentifiersFromCommands(
 			getCommandsAboveSelected ())).getText();
 	}
+    /** KAT - let this get handled by the generic code now
 	else if (action.equals(
 		__Commands_Fill_fillUsingDiversionComments_String)||
 		command.regionMatches(
@@ -6544,10 +6548,11 @@ private void editCommand (	String action, Vector command_Vector,
 			Message.printDebug ( dl, routine,
 			"Opening dialog for fillDiversionComments()" );
 		}
-		edited_cv = new fillUsingDiversionComments_JDialog ( this, cv,
+        edited_cv = new fillUsingDiversionComments_JDialog ( this, cv,
 			TSEngine.getTSIdentifiersFromCommands(
 			getCommandsAboveSelected ())).getText();
-	}
+         
+	}*/
 	else if ( action.equals(__Commands_Fill_setAutoExtendPeriod_String)||
 		command.regionMatches(true,0,"setAutoExtendPeriod",0,19) ) {
 		if ( Message.isDebugOn ) {
@@ -7046,10 +7051,11 @@ private void editCommand (	String action, Vector command_Vector,
 		try {	// Do this to update the working directory based on
 			// previous commands...
 			updateDynamicProps ();
+            
 			// Now try to process the command...
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
-				"Trying command factory for \""+command + "\"");
+				"Trying command factory for \""+ command + "\"");
 			}
 			TSCommandFactory cf = new TSCommandFactory();
 			Command c = null;
@@ -7112,8 +7118,9 @@ private void editCommand (	String action, Vector command_Vector,
 					"Using command factory to create new " +
 					"command for \"" + command + "\"" );
 				}
-				c = cf.newCommand( command );
-				c.initializeCommand ( command,
+				
+                c = cf.newCommand( command );
+                c.initializeCommand ( command,
 					new TSCommandProcessor(
 					new TSEngine ( __hbdmi, __rdmi,
 					__DIADvisor_dmi,
@@ -7122,6 +7129,7 @@ private void editCommand (	String action, Vector command_Vector,
 					null,	// Command tag
 					1,	// Warning level
 					false);	// Minimal initialization
+               
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
 					"Initialized blank command for \"" +
@@ -7133,6 +7141,7 @@ private void editCommand (	String action, Vector command_Vector,
 					"Editing command..." );
 				}
 				if ( c.editCommand ( this ) ) {
+    
 					// Command edits were committed...
 					edited_cv = new Vector(1);
 					edited_cv.addElement ( c.toString() );

@@ -400,6 +400,13 @@
 // 2006-11-07   KAT, RTi        Fixing bug were home argument
 //                    wasn't working for relative paths.  Added
 //                    some code to get canonical path for home.
+// 2007-01-26   KAT, RTi    Found out that if command line argument
+//                      -D was used but wasn't given a debug level that
+//                      the code was allowing a debug of level one as a
+//                      fallback, but was also not checking the args array
+//                      bounds before going on.  This was causing an
+//                      ArrayOutOfBoundsException() so I added some checks
+//                      in the parseArgs() method so this doesn't happen.
 //------------------------------------------------------------------------------
 //EndHeader
 
@@ -698,7 +705,7 @@ throws Exception
 				Message.setDebugLevel ( Message.LOG_OUTPUT, 1);
 			}
 			i++;
-			if ( args[i].indexOf(",") >= 0 ) {
+			if ( (i + 1) == args.length && args[i].indexOf(",") >= 0 ) {
 				// Comma, set screen and file debug to different
 				// levels...
 				String token =
@@ -717,7 +724,7 @@ throws Exception
 					StringUtil.atoi(token) );
 				}
 			}
-			else {	// No comma.  Turn screen and log file debug on
+			else if ( (i + 1) == args.length ) {	// No comma.  Turn screen and log file debug on
 				// to the requested level...
 				if ( StringUtil.isInteger(args[i]) ) {
 					Message.isDebugOn = true;
