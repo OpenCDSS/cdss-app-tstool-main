@@ -377,7 +377,7 @@
 			  of TSTool into a folder named Release.
 ============================================================-->
 <target name="createRelease" 
-	depends="test,regTest,javadoc,createAllInstallers" >
+	depends="clean,test,javadoc,createAllInstallers" >
 
 	<!-- make a temp directory (Release) and copy all
 	     release specific files and docs here -->
