@@ -25,6 +25,7 @@ Name "TSTool"
 !define VERSION 7.00.00
 !define COMPANY RTi
 !define URL http://www.riverside.com
+!define EXTERNALS_DIR "..\..\externals"
 
 # Included files
 !include "UMUI.nsh"
@@ -39,6 +40,7 @@ Var StartMenuGroup
 Var myInstDir
 Var choseTSTool
 Var choseDocs
+Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
@@ -86,12 +88,11 @@ Page custom SetCustom
 ReserveFile "..\..\externals\CDSS\installer\server_name.ini"
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 
-
 !include ..\..\externals\NSIS_Common\PathManipulation.nsh
 !include ..\..\externals\NSIS_Common\Util.nsh
 !include ..\..\externals\CDSS\installer\BaseComponents.nsh
 !include ..\..\externals\CDSS\installer\server_name.nsh
-
+!include ..\..\externals\NSIS_Common\JRE.nsh
 
 
 ##################################################################
@@ -115,6 +116,7 @@ Section -setInstallVariables
     strcpy $myInstDir "$INSTDIR"
     strcpy $choseTSTool "0"
     strcpy $choseDocs "0"
+    strcpy $choseJRE "0"
     strcpy $StartMenuGroup "CDSS"
     SetShellVarContext all
     
