@@ -348,7 +348,8 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool under the main folder"
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including the Java Runtime Environment (JRE)"
+ !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components"
+  !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java runtime environment"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
@@ -378,7 +379,7 @@ Function .onInstSuccess
     #  DetailPrint "Skipping README"
     #next2:
     
-    MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
+    MessageBox MB_YESNO "Would you like to run the program?" IDYES true /SD IDNO false
     true:
       Exec '"$INSTDIR\bin\TSTool.exe"'
       #Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
@@ -431,10 +432,12 @@ Function .onInit
     Win9x:
         # This one means you don't need to care about admin or
         # not admin because Windows 9x doesn't either
+        IfSilent done
         MessageBox MB_OK "Error! This DLL can't run under Windows 9x!"
         Abort
         
     InsufficientRights:
+        IfSilent done
         MessageBox MB_OK "You must log on using an account with administrator$\nprivileges to install this application."
         Abort
         

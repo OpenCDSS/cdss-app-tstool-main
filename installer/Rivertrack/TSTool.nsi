@@ -340,7 +340,8 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool under the main folder"
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the RiverTrak® System base components, including the Java Runtime Environment (JRE)"
+  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the RiverTrak® System base components"
+  !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java runtime environment"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
