@@ -407,6 +407,8 @@
 //                      bounds before going on.  This was causing an
 //                      ArrayOutOfBoundsException() so I added some checks
 //                      in the parseArgs() method so this doesn't happen.
+// 2007-02-11	SAM, RTi		Update version to 7.01.00.
+//					Clean up code based on Eclipse feedback.
 //------------------------------------------------------------------------------
 //EndHeader
 
@@ -428,10 +430,9 @@ import RTi.Util.String.StringUtil;
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "7.00.00 (2006-10-31)";
+public static final String PROGRAM_VERSION = "7.01.00 (2007-02-12)";
 
-private static TSTool_JFrame	__tstool_JFrame;	// Main GUI    
-private static String		__logfile = "tstool.log";// Log file.
+private static TSTool_JFrame	__tstool_JFrame;	// Main GUI
 private static String		__home = null;		// Home directory for
 							// system install.
 private static PropList		__tstool_props = null;	// Properties.
@@ -495,9 +496,7 @@ public void init()
 Initialize important data.
 */
 private static void initialize ()
-{	String routine = "tstool.initialize";
-
-	// Initialize message levels...
+{	// Initialize message levels...
 
 	Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
 	Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );

@@ -808,7 +808,8 @@
 //				completely - still not quite there but better?
 // 2007-01-26   KAT, RTi    Refactored the fillUsingDiversionComments
 //                      command so that the new generic code handles it.
-//       
+// 2007-02-11	SAM, RTi	Confirm compatibility with new TSCommandProcessor.
+//					Clean up code based on Eclipse feedback.
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -822,7 +823,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -853,7 +853,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -864,17 +863,14 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
 
 import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 
 import RTi.GRTS.TSProcessor;
-import RTi.GRTS.TSProduct;
 import RTi.GRTS.TSPropertiesJFrame;
 import RTi.GRTS.TSViewJFrame;
 
@@ -901,7 +897,6 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;	// New
 import RTi.DMI.RiversideDB_DMI.LoginJDialog;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasLoc;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
 
@@ -910,19 +905,14 @@ import RTi.TS.DateValueTS;
 import RTi.TS.DayTS;
 import RTi.TS.fillMixedStation_Command;
 import RTi.TS.fillMixedStation_JDialog;
-import RTi.TS.HourTS;
 import RTi.TS.ModsimTS;
 import RTi.TS.MexicoCsmnTS;
 import RTi.TS.RiverWareTS;
 import RTi.TS.ShefATS;
 import RTi.TS.TS;
-import RTi.TS.TSAnalyst;
-import RTi.TS.TSCommandFactory;
-import RTi.TS.TSCommandProcessor;
 import RTi.TS.TSIdent;
 import RTi.TS.TSUtil;
 import RTi.TS.UsgsNwisTS;
-import RTi.TS.YearTS;
 
 import RTi.Util.GUI.FindInJListJDialog;
 import RTi.Util.GUI.JFileChooserFactory;
@@ -941,7 +931,8 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
 import RTi.Util.GUI.TextResponseJDialog;
-import RTi.Util.Help.URLHelp;
+// TODO SAM 2007-02-18 Need to evaluate on-line help system
+//import RTi.Util.Help.URLHelp;
 //import RTi.Util.Help.URLHelpGUI;
 import RTi.Util.IO.Command;
 import RTi.Util.IO.DataType;
@@ -958,26 +949,19 @@ import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.IO.SHEFType;
 import RTi.Util.IO.UnknownCommandException;
-import RTi.Util.Math.MathUtil;
-import RTi.Util.Math.StandardNormal;
 import RTi.Util.Message.Message;
 import RTi.Util.Message.DiagnosticsJFrame;
 import RTi.Util.Message.MessageLogListener;
 import RTi.Util.String.StringUtil;
-import RTi.Util.IO.DataUnits;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeBuilderJDialog;
 import RTi.Util.Time.StopWatch;
-import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.TimeInterval;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
-import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
-import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
-import DWR.DMI.HydroBaseDMI.HydroBase_CountyRef;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel;
@@ -987,11 +971,8 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel;
-import DWR.DMI.HydroBaseDMI.HydroBase_GUI_Util;
 import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
-import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
-import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
 
 import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
@@ -1006,8 +987,10 @@ import DWR.StateMod.StateMod_DataSet;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_TS;
 
-import RTi.TS.TSCommandProcessorUI;
-import RTi.TS.TSEngine;
+import RTi.TSCommandProcessor.TSCommandFactory;
+import RTi.TSCommandProcessor.TSCommandProcessor;
+import RTi.TSCommandProcessor.TSCommandProcessorUI;
+import RTi.TSCommandProcessor.TSEngine;
 
 public class TSTool_JFrame extends JFrame
 implements ActionListener, GeoViewListener, ItemListener, JWorksheet_Listener,
@@ -1269,6 +1252,7 @@ private DefaultListModel __ts_JListModel;	// JList model for final time
 						// time series associated with
 						// __ts_JList).
 
+//TODO SAM 2007-02-18 Need to transition TSEngine to TSCommandProcessor
 private TSEngine __final_ts_engine = null;	// TSEngine used to process the
 						// final list.  This TSEngine
 						// maintains the final list of
@@ -1281,7 +1265,7 @@ private JPopupMenu __results_JPopupMenu = null;
 private final String __STATUS_READY = "Ready";	// General status string to
 						// indicate that the GUI is
 						// ready for user input.
-private final String __STATUS_BUSY = "Wait";	// General status string to
+//private final String __STATUS_BUSY = "Wait";	// General status string to
 						// indicate that the user should
 						// wait for the GUI to finish a
 						// task.
@@ -1289,7 +1273,7 @@ private JTextField __message_JTextField;	// Message area text field
 						// (e.g., "Processing
 						// commands...") - long and
 						// left-most.
-private JProgressBar __processor_JProgressBar;	// Progress bar to show progress
+//private JProgressBar __processor_JProgressBar;	// Progress bar to show progress
 						// running commands.
 private JTextField __status_JTextField;		// Status area text field (e.g.,
 						// "READY", "WAIT") - small and
@@ -1353,7 +1337,6 @@ private boolean	__source_ColoradoSMS_enabled = false,
 		__source_MODSIM_enabled = true,
 		__source_NDFD_enabled = true,
 		__source_NWSCard_enabled = true,
-		__source_NWSRFS_enabled = true,
 		__source_NWSRFS_FS5Files_enabled = false,
 		__source_NWSRFS_ESPTraceEnsemble_enabled = false,
 		__source_RiversideDB_enabled = false,
@@ -2211,7 +2194,6 @@ private String
 
 	// Run menu (order in GUI)...
 
-	__Run_String = "Run",
 		__Run_AllCommandsCreateOutput_String =
 			"All Commands (create all output)",
 		__Run_AllCommandsIgnoreOutput_String =
@@ -2244,10 +2226,6 @@ private String
 			__Tools_Report_YearToDateTotal_String =
 				"Year to Date Total... " +
 				"<Daily or real-time CFS Only!>",
-			__Tools_Report_YearMeanMeanStatistic_String =
-				"Year Mean (Mean Statistic)... ",
-			__Tools_Report_YearTotalMeanStatistic_String =
-				"Year Total (Mean Statistic)... ",
 		__Tools_NWSRFS_String = "NWSRFS",
 			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String =
 				"Convert NWSRFS ESP Trace Ensemble File to " +
@@ -2274,7 +2252,7 @@ private String
 
 	// Input types for the __input_type_JComboBox...
 
-	__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
+	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
 	__INPUT_TYPE_HydroBase = "HydroBase",
@@ -2297,14 +2275,14 @@ private String
 	__TIMESTEP_HOUR		= "Hour",
 	__TIMESTEP_DAY		= "Day",
 	__TIMESTEP_MONTH	= "Month",
-	__TIMESTEP_YEAR		= "Year",
-	__TIMESTEP_REALTIME	= "Real-time",
+	//__TIMESTEP_YEAR		= "Year",
+	//__TIMESTEP_REALTIME	= "Real-time",
 	__TIMESTEP_IRREGULAR	= "Irregular";
 
 // Columns in the time series list.
 
 private final static int
-	__DIADvisor_COL_ROW_COUNT	= 0,
+	//__DIADvisor_COL_ROW_COUNT	= 0,
 	__DIADvisor_COL_ID		= 1,	// Sensor ID
 	__DIADvisor_COL_NAME		= 2,	// Sensor Name
 	__DIADvisor_COL_DATA_SOURCE	= 3,	// blank
@@ -2327,7 +2305,7 @@ public TSTool_JFrame ( boolean show_main )
 {	super();
 	StopWatch swMain = new StopWatch();
 	swMain.start();
-	String message, rtn = "TSTool_JFrame";
+	String rtn = "TSTool_JFrame";
 	__show_main = show_main;
 
    
@@ -2772,7 +2750,7 @@ Handle action events (menu and button actions).
 @param event Event to handle.
 */
 public void actionPerformed (ActionEvent event)
-{	String message, rtn = "TSTool_JFrame.actionPerformed";
+{	String rtn = "TSTool_JFrame.actionPerformed";
 
 	try {	// This will chain, calling several methods, so that each method
 		// does not get so large...
@@ -2955,13 +2933,15 @@ throws Exception
 		else {	DateTime date1, date2;
 			String s1 = "", s2 = "";
 			// Query period...
-			date1 = __final_ts_engine.getQueryDate1();
+			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
+			date1 = __final_ts_engine.getInputStart();
 			if ( date1 == null ) {
 				s1 = "NOT SPECIFIED (use available)";
 			}
 			else {	s1 = date1.toString();
 			}
-			date2 = __final_ts_engine.getQueryDate2();
+			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
+			date2 = __final_ts_engine.getInputEnd();
 			if ( date2 == null ) {
 				s2 = "NOT SPECIFIED (use available)";
 			}
@@ -2969,12 +2949,14 @@ throws Exception
 			}
 			v.addElement ( "Query period: " + s1 + " to " + s2 );
 			// Output period...
+			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 			date1 = __final_ts_engine.getOutputStart();
 			if ( date1 == null ) {
 				s1 = "NOT SPECIFIED (use available)";
 			}
 			else {	s1 = date1.toString();
 			}
+			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 			date2 = __final_ts_engine.getOutputEnd();
 			if ( date2 == null ) {
 				s2 = "NOT SPECIFIED (use available)";
@@ -2983,14 +2965,17 @@ throws Exception
 			}
 			v.addElement ( "Output period: " + s1 + " to " + s2 );
 			// Auto-extend period...
+			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 			v.addElement ( "Automatically extend period to output "+
 				"period during read: " +
 				__final_ts_engine.autoExtendPeriod () );
 			// Include missing TS automatically...
+			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 			v.addElement ( "Include missing TS automatically: " +
 				__final_ts_engine.includeMissingTS() );
 			if ( __source_HydroBase_enabled ) {
 				v.addElement ( "" );
+				// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 				if ( __final_ts_engine.getHydroBaseDMI()==null){
 					v.addElement (
 					"Command processor HydroBase " +
@@ -2998,6 +2983,7 @@ throws Exception
 				}
 				else {	v.addElement ( "Command processor " +
 					"HydroBase connection information:" );
+					// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 					StringUtil.addListToStringList ( v,
 					StringUtil.toVector(
 					__final_ts_engine.getHydroBaseDMI().
@@ -4166,6 +4152,7 @@ throws Exception
 	}
         else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
 		// Get the first time series selected in the view window...
+        // TODO SAM 2007-02-18 Need to encapsulate with command processor property
 		if ( __final_ts_engine != null ) {
 			int pos = 0;
 			if ( JGUIUtil.selectedSize(__ts_JList) == 0 ) {
@@ -4175,6 +4162,7 @@ throws Exception
 			}
 			// Now display the properties...
 			if ( pos >= 0 ) {
+				// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 				new TSPropertiesJFrame ( this,
 				__final_ts_engine.getTimeSeries(pos) );
 			}
@@ -5516,19 +5504,15 @@ private void clearCommands ()
 		// elements will not affect the index of items before that
 		// index.  At some point need to add an undo feature.
 		JGUIUtil.setWaitCursor ( this, true );
-		String item;
 		__ignore_ItemEvent = true;
 		__ignore_ListSelectionEvent = true;
 		for ( int i = (size - 1); i >= 0; i-- ) {
-			item = (String)
-				__commands_JListModel.get(selected_indices[i]);
 			__commands_JListModel.removeElementAt (
 				selected_indices[i] );
 		}
 		__ignore_ItemEvent = false;
 		__ignore_ListSelectionEvent = false;
 		selected_indices = null;
-		item = null;
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 	setCommandsDirty ( true );
@@ -5574,6 +5558,7 @@ private void clearTSList()
 {	__ts_JListModel.removeAllElements();
 	// Also set the engine to null.  Any new displays will require a
 	// re-query...
+	//TODO SAM 2007-02-18 Need to encapsulate with command processor
 	__final_ts_engine = null;
 }
 
@@ -7222,13 +7207,6 @@ private void editCommand (	String action, Vector command_Vector,
 }
 
 /**
-Export time series to a file. 
-*/
-private void export(String format )
-{	export ( format, null );
-}
-
-/**
 Export time series to a file.   Assume that if this is called, the state of the
 GUI is such that time series are available from the TSEngine.
 @param format Format to export, as a tstool command line option.
@@ -7247,6 +7225,7 @@ private void export ( String format, String filename )
 	props.set ( "OutputFormat=" + format );
 	props.set ( "OutputFile=" + filename );
 	// Final list is selected...
+	// TODO SAM 2007-02-18 Need to convert to use command processor
 	if ( __final_ts_engine != null ) {
 		try {	int selected_ts = JGUIUtil.selectedSize(__ts_JList);
 			if ( selected_ts == 0 ) {
@@ -7453,7 +7432,6 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	Message.printStatus ( 1, routine,
 	"Selecting query list time series based on map selections..." );
 	JGUIUtil.setWaitCursor ( this, true );
-	int iend = nrows - 1;
 	__ignore_ListSelectionEvent = true;	// To increase performance
 						// during transfer...
 	__ignore_ItemEvent = true;	// To increase performance
@@ -7464,7 +7442,6 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	}
 	// Loop through the selected features...
 	GeoRecord georec;
-	TableRecord georec_tablerec = null;	// Attribute table record
 	GeoLayerView geolayerview = null;
 	TableRecord rec = null;			// Lookup table record.
 	String geolayer_name = null;
@@ -8068,6 +8045,8 @@ from the TSEngine object.
 @param return_all_if_none_selected If true return all if no time series happen
 to be selected.
 */
+/*
+TODO SAM 2007-02-11 Determine if needed.
 private Vector getSelectedTimeSeriesList ( boolean return_all_if_none_selected )
 {	if ( __final_ts_engine == null ) {
 		return new Vector(1);
@@ -8082,6 +8061,7 @@ private Vector getSelectedTimeSeriesList ( boolean return_all_if_none_selected )
 				__ts_JList.getSelectedIndices() );
 	}
 }
+*/
 
 /**
 Respond to "Get Time Series List" being clicked.
@@ -8333,6 +8313,7 @@ private void graphTS ( String graph_type, String params )
 			props.set ( "Parameters=" + params );
 		}
 		// Final list is selected...
+		// TODO SAM 2007-02-18 Need to convert to command processor
 		if ( __final_ts_engine != null ) {
 			try {	int selected_ts=
 					JGUIUtil.selectedSize(__ts_JList);
@@ -8388,12 +8369,10 @@ private void initGUI ( boolean show_main )
 	Insets insetsNLNR = new Insets(0,buffer,0,buffer);
 	Insets insetsNNNR = new Insets(0,0,0,buffer);
 	Insets insetsNLNN = new Insets(0,buffer,0,0);
-        Insets insetsTLBR = new Insets(buffer,buffer,buffer,buffer);
         Insets insetsNLBR = new Insets(0,buffer,buffer,buffer);
 	Insets insetsTLNR = new Insets(buffer,buffer,0,buffer);
 	Insets insetsNNNN = new Insets(0,0,0,0);
        	GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints gbc = new GridBagConstraints();
 
 	// Panel to hold the query components, added to the top of the main
 	// content pane...
@@ -8418,7 +8397,7 @@ private void initGUI ( boolean show_main )
  
 	y=0;
         JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Type:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, gbc.NONE, gbc.EAST);
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __input_type_JComboBox = new SimpleJComboBox(false);
         __input_type_JComboBox.setMaximumRowCount ( 15 );
         __input_type_JComboBox.setToolTipText (
@@ -8426,10 +8405,10 @@ private void initGUI ( boolean show_main )
 		"</HTML>" );
 	__input_type_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __input_type_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, gbc.NONE, gbc.WEST);
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Name:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, gbc.NONE, gbc.EAST);
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __input_name_JComboBox = new SimpleJComboBox(false);
         __input_name_JComboBox.setToolTipText (
 		"<HTML>The input name is the name of the file or database" +
@@ -8437,10 +8416,10 @@ private void initGUI ( boolean show_main )
 		"selecting the input type.</HTML>" );
 	__input_name_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __input_name_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, gbc.NONE, gbc.WEST);
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Data Type:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, gbc.NONE, gbc.EAST);
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__data_type_JComboBox = new SimpleJComboBox(false);
         __data_type_JComboBox.setMaximumRowCount ( 20 );
 	__data_type_JComboBox.setToolTipText (
@@ -8448,17 +8427,17 @@ private void initGUI ( boolean show_main )
 		"series.</HTML>" );
 	__data_type_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __data_type_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, gbc.NONE, gbc.WEST);
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Time Step:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, gbc.NONE, gbc.EAST);
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __time_step_JComboBox = new SimpleJComboBox(false);
 	__time_step_JComboBox.setToolTipText (
 		"<HTML>The time step is used to filter the list of time " +
 		"series.</HTML>" );
 	__time_step_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __time_step_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, gbc.NONE, gbc.WEST);
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	// Save the position for the input filters, which will be added after
 	// database connections are made...
@@ -8477,7 +8456,7 @@ private void initGUI ( boolean show_main )
 		"series data.<BR>Time series can then be selected for " +
 		"processing.</HTML>" );
         JGUIUtil.addComponent(__query_input_JPanel, __get_ts_list_JButton, 
-		2, y++, 1, 1, 0, 0, insetsTLNR, gbc.NONE, gbc.EAST);
+		2, y++, 1, 1, 0, 0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	// --------------------------------------------------------------------
 	// Query results components...
@@ -8512,7 +8491,7 @@ private void initGUI ( boolean show_main )
 	__query_JWorksheet.addMouseListener ( this );
 	__query_JWorksheet.addJWorksheetListener ( this );
         JGUIUtil.addComponent(__query_results_JPanel, sjw,
-		0, y++, 3, 7, 1.0, 1.0, insetsNLBR, gbc.BOTH, gbc.WEST);
+		0, y++, 3, 7, 1.0, 1.0, insetsNLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 	}
 	catch ( Exception e ) {
 		// Absorb the exception in most cases - print if developing to
@@ -8535,7 +8514,7 @@ private void initGUI ( boolean show_main )
 		"list,<BR>as time series identifiers.</HTML>" );
         JGUIUtil.addComponent ( __query_results_JPanel,
 		__CopySelectedToCommands_JButton, 
-		1, y, 1, 1, 0.0, 0.0, insetsNNNR, gbc.NONE, gbc.EAST );
+		1, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
         __CopyAllToCommands_JButton = new SimpleJButton(
 		BUTTON_TOP_COPY_ALL_TO_COMMANDS,this);
 	__CopyAllToCommands_JButton.setToolTipText (
@@ -8543,7 +8522,7 @@ private void initGUI ( boolean show_main )
 		"list,<BR>as time series identifiers.</HTML>" );
         JGUIUtil.addComponent ( __query_results_JPanel,
 		__CopyAllToCommands_JButton, 
-		2, y, 1, 1, 0.0, 0.0, insetsNNNR, gbc.NONE, gbc.EAST );
+		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 
 	} // end if ( show_main )
  
@@ -8565,7 +8544,7 @@ private void initGUI ( boolean show_main )
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black), "Commands" ));
 	JGUIUtil.addComponent(center_JPanel, __commands_JPanel,
-		0, 0, 1, 1, 1.0, 1.0, insetsNNNN, gbc.BOTH, gbc.CENTER);
+		0, 0, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
 	__commands_JListModel = new DefaultListModel();
 	__commands_JList = new JList ( __commands_JListModel );
@@ -8592,7 +8571,7 @@ private void initGUI ( boolean show_main )
 	__commands_JList.setFixedCellWidth(-1);
 	
 	JGUIUtil.addComponent(__commands_JPanel, commands_JScrollPane,
-		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, gbc.BOTH, gbc.WEST);
+		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 	// Popup menu for the commands list...
 	initGUIMenus_CommandsPopup ();
 
@@ -8611,7 +8590,7 @@ private void initGUI ( boolean show_main )
 		"list below.</HTML>" );
 	JGUIUtil.addComponent(__commands_JPanel,
 		__Run_SelectedCommands_JButton,
-		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, gbc.NONE, gbc.EAST);
+		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Run_AllCommands_JButton =
 		new SimpleJButton(__Button_RunAllCommands_String,
 		__Run_AllCommandsCreateOutput_String, this);
@@ -8620,7 +8599,7 @@ private void initGUI ( boolean show_main )
 		"<BR>which will be shown in the Time Series Results list " +
 		"below.</HTML>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
-		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, gbc.NONE, gbc.EAST);
+		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	// Put on right because we want it to be a decision to clear...
 	__ClearCommands_JButton = new SimpleJButton(
 		__Button_ClearCommands_String, this);
@@ -8628,7 +8607,7 @@ private void initGUI ( boolean show_main )
 		"<HTML>Clear selected commands from above." +
 		"<BR>Clear all commands if none are selected.</HTML>" );
 	JGUIUtil.addComponent(__commands_JPanel, __ClearCommands_JButton, 
-		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, gbc.NONE, gbc.EAST);
+		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	// --------------------------------------------------------------------
 	// Time series output components...
@@ -8643,7 +8622,7 @@ private void initGUI ( boolean show_main )
 		BorderFactory.createLineBorder(Color.black),
 		"Time Series Results" ));
 	JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
-		0, 1, 1, 1, 1.0, 1.0, insetsNNNN, gbc.BOTH, gbc.CENTER);
+		0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
 	__ts_JListModel = new DefaultListModel();
 	__ts_JList = new JList ( __ts_JListModel );
@@ -8654,7 +8633,7 @@ private void initGUI ( boolean show_main )
 	__ts_JList.addMouseListener ( this );
 	JScrollPane ts_JScrollPane = new JScrollPane ( __ts_JList );
 	JGUIUtil.addComponent(__ts_JPanel, ts_JScrollPane, 
-		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, gbc.BOTH, gbc.WEST);
+		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 
 	// Popup menu for the time series results list...
 	initGUIMenus_ResultsPopup ();
@@ -8672,23 +8651,23 @@ private void initGUI ( boolean show_main )
 	__message_JTextField = new JTextField();
 	__message_JTextField.setEditable(false);
 	JGUIUtil.addComponent(bottom_JPanel, __message_JTextField,
-		0, 0, 7, 1, 1.0, 0.0, gbc.HORIZONTAL, gbc.WEST);
+		0, 0, 7, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	/* REVISIT - SAM 2004-02-13 - enable later when commands are a thread
 	  for now replace with a blank text field
 	__processor_JProgressBar = new JProgressBar ();
 	__processor_JProgressBar.setStringPainted ( true );
 	JGUIUtil.addComponent(bottom_JPanel, __processor_JProgressBar,
-		7, 0, 2, 1, 0.0, 0.0, gbc.NONE, gbc.WEST);
+		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	*/
 	JTextField temp_JTextField = new JTextField ( 5 );
 	temp_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(bottom_JPanel, temp_JTextField,
-		7, 0, 2, 1, 0.0, 0.0, gbc.NONE, gbc.WEST);
+		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	// END REVISIT
 	__status_JTextField = new JTextField ( 5 );
 	__status_JTextField.setEditable(false);
 	JGUIUtil.addComponent(bottom_JPanel, __status_JTextField,
-		9, 0, 1, 1, 0.0, 0.0, gbc.NONE, gbc.WEST);
+		9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	getContentPane().add ("South", bottom_JPanel);
 
@@ -8738,7 +8717,6 @@ private void initGUIInputFilters ( int y )
 	String routine = "TSTool_JFrame.initGUIInputFilters";
 	int buffer = 3;
 	Insets insets = new Insets(0,buffer,0,0);
-	GridBagConstraints gbc = new GridBagConstraints ();
 	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
 		// Add input filters for stations...
 
@@ -8747,8 +8725,8 @@ private void initGUIInputFilters ( int y )
 			__hbdmi);
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_station_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_station_JPanel );
 		}
@@ -8768,8 +8746,8 @@ private void initGUIInputFilters ( int y )
 				__hbdmi, false );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_structure_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_structure_JPanel );
 		}
@@ -8785,8 +8763,8 @@ private void initGUIInputFilters ( int y )
 				__hbdmi, true );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_structure_sfut_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_structure_sfut_JPanel);
 		}
@@ -8804,8 +8782,8 @@ private void initGUIInputFilters ( int y )
 				( __hbdmi );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_irrigts_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_irrigts_JPanel );
 		}
@@ -8825,8 +8803,8 @@ private void initGUIInputFilters ( int y )
 				( __hbdmi );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_CASSCropStats_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_CASSCropStats_JPanel );
 		}
@@ -8848,8 +8826,8 @@ private void initGUIInputFilters ( int y )
 				( __hbdmi );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_CASSLivestockStats_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 			__input_filter_HydroBase_CASSLivestockStats_JPanel );
 		}
@@ -8870,8 +8848,8 @@ private void initGUIInputFilters ( int y )
 			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_CUPopulation_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 			__input_filter_HydroBase_CUPopulation_JPanel );
 		}
@@ -8892,8 +8870,8 @@ private void initGUIInputFilters ( int y )
 				( __hbdmi );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_NASS_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_NASS_JPanel );
 		}
@@ -8914,8 +8892,8 @@ private void initGUIInputFilters ( int y )
 				( __hbdmi );
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_WIS_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_HydroBase_WIS_JPanel );
 		}
@@ -8933,8 +8911,8 @@ private void initGUIInputFilters ( int y )
 				(__hbdmi, null, true);
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_HydroBase_wells_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST);
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST);
 			__input_filter_JPanel_Vector.addElement(
 				__input_filter_HydroBase_wells_JPanel);
 		}
@@ -9008,8 +8986,8 @@ private void initGUIInputFilters ( int y )
         	JGUIUtil.addComponent(__query_input_JPanel,
 			__input_filter_MexicoCSMN_JPanel =
 			new InputFilter_JPanel ( input_filters, filter_props ), 
-			0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-			gbc.EAST );
+			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+			GridBagConstraints.EAST );
 		__input_filter_MexicoCSMN_JPanel.setToolTipText (
 			"<HTML>Mexico CSMN queries can be filtered" +
 			"<BR>based on station data.</HTML>" );
@@ -9024,8 +9002,8 @@ private void initGUIInputFilters ( int y )
 			NWSRFS_TS_InputFilter_JPanel ();
         		JGUIUtil.addComponent(__query_input_JPanel,
 				__input_filter_NWSRFS_FS5Files_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.EAST );
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_NWSRFS_FS5Files_JPanel );
 		}
@@ -9043,8 +9021,8 @@ private void initGUIInputFilters ( int y )
 
        	JGUIUtil.addComponent(__query_input_JPanel,
 		__input_filter_generic_JPanel = new InputFilter_JPanel (),
-			0, y, 3, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-			gbc.EAST );
+			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+			GridBagConstraints.EAST );
 	__input_filter_generic_JPanel.setToolTipText (
 		"<HTML>The selected input type does not support" +
 			"<BR>input filters.</HTML>" );
@@ -10076,8 +10054,7 @@ private void initGUIMenus_File ( JMenuBar menu_bar )
 Initialize the GUI "Help" menu.
 */
 private void initGUIMenus_Help ( JMenuBar menu_bar )
-{	String routine = "TSTool_JFrame.initGUIMenus_Help";
-	__Help_JMenu = new JMenu ( __Help_String );
+{	__Help_JMenu = new JMenu ( __Help_String );
 	menu_bar.add ( __Help_JMenu );
 	// REVISIT - not implemented by Java?
 	//menu_bar.setHelpMenu ( _help_JMenu );
@@ -10285,7 +10262,7 @@ Initialize the GUI "Tools" menu.
 */
 private void initGUIMenus_Tools ( JMenuBar menu_bar )
 {	__Tools_JMenu = new JMenu();
-	menu_bar.add( __Tools_JMenu = new JMenu( "Tools", true ) );	
+	menu_bar.add( __Tools_JMenu = new JMenu( __Tools_String, true ) );	
 
 	__Tools_JMenu.add ( __Tools_Analysis_JMenu =
 		new JMenu(__Tools_Analysis_String, true ) );
@@ -10376,7 +10353,7 @@ private void initGUIMenus_Tools ( JMenuBar menu_bar )
 Initialize the View menu.
 */
 private void initGUIMenus_View ( JMenuBar menuBar )
-{	JMenu viewJMenu = new JMenu ("View", true);
+{	JMenu viewJMenu = new JMenu (__View_String, true);
 	menuBar.add (viewJMenu);
 
 	viewJMenu.add ( __View_MapInterface_JCheckBoxMenuItem =
@@ -10815,7 +10792,6 @@ private void inputTypeChoiceClicked()
 			size = mts.size();
 		}
 		if ( size > 0 ) {
-			String dt_description;
 			RiversideDB_MeasType mt = null;
 			int pos;
 			String data_type;
@@ -10989,6 +10965,7 @@ SAMX - may want to change to insert in front of the LAST command selected (in
 time, not position).
 @param command Command to insert.
 */
+/* TODO SAM 2007-02-11 Evaluate if needed.
 private void insertCommand ( String command )
 {	int selectedIndices[] = __commands_JList.getSelectedIndices();
 	int selectedSize = selectedIndices.length;	
@@ -11003,6 +10980,7 @@ private void insertCommand ( String command )
 	setCommandsDirty ( true );
 	updateStatus ();
 }
+*/
 
 /**
 Determine whether an command line is a comment.
@@ -11013,7 +10991,6 @@ public boolean isCommentLine ( String line )
 		// Blank line...
 		return true;
 	}
-	String s = line.trim();
 	if ( line.length() == 0 ) {
 		return true;
 	}
@@ -11047,7 +11024,6 @@ public void itemStateChanged ( ItemEvent evt )
 	}
 
 	Object	o = evt.getItemSelectable();
-	int	dl = 10;
 
 	// If any of the choices are changed, clear the main list so that the
 	// choices and list are in agreement...
@@ -11141,10 +11117,10 @@ prevent multiple events.  Do track when the shift is pressed here.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_SHIFT ) {
+	if ( code == KeyEvent.VK_SHIFT ) {
 		JGUIUtil.setShiftDown ( true );
 	}
-	else if ( code == event.VK_CONTROL ) {
+	else if ( code == KeyEvent.VK_CONTROL ) {
 		JGUIUtil.setControlDown ( true );
 	}
 }
@@ -11155,13 +11131,13 @@ Respond to KeyEvents.
 public void keyReleased ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		if ( event.getSource() == __commands_JList ) {
 			// Same as the Edit...Command event...
 			actionEditCommand ( true );
 		}
 	}
-	else if ( code == event.VK_DELETE ) {
+	else if ( code == KeyEvent.VK_DELETE ) {
 		// Clear a command...
 		if ( event.getSource() == __commands_JList ) {
 			clearCommands();
@@ -11431,7 +11407,6 @@ private void openCommandsFile ()
 	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 		// If the user approves a selection do the following...
 		String directory = fc.getSelectedFile().getParent();
-		String filename = fc.getSelectedFile().getName(); 
 		String path = fc.getSelectedFile().getPath();
 
 		// REVISIT - is this necessary in Swing?
@@ -11441,7 +11416,6 @@ private void openCommandsFile ()
 		JGUIUtil.setLastFileDialogDirectory(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		__initial_working_dir = __props.getValue ( "WorkingDir" );
-		FileReader fr = null;
 		BufferedReader br = null;
 		try {	br = new BufferedReader( new FileReader(path) );
 		}
@@ -11650,10 +11624,6 @@ private void openNWSRFSFS5Files ( PropList props, boolean startup )
 	}
 	try {	String	UseAppsDefaults = null,
 			InputName = null;
-		int needed_prop_count = 0;		// For a connection
-							// method, how many
-							// needed props are
-							// found
 
 		// Get the database connect information...
 
@@ -12035,6 +12005,7 @@ throws Exception
 	}
 	TSProcessor p = new TSProcessor ();
 	// Set up the time series supplier...
+	// TODO SAM 2007-02-18 Need to transition to command processor
 	if ( __final_ts_engine != null ) {
 		// Time series should be in memory so add the TSEngine as a
 		// supplier.  This should result in quick supplying of in-memory
@@ -12090,7 +12061,6 @@ throws IOException
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
-		String filename = fc.getSelectedFile().getName(); 
 		String path = fc.getSelectedFile().getPath();
 		JGUIUtil.setLastFileDialogDirectory ( directory );
 
@@ -12113,11 +12083,6 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		int nts = 0;
-		if ( tslist != null ) {
-			nts = tslist.size();
-		}
-		TS ts = null;
 		// There should not be any non-null time series so use the
 		// Vector size...
 		int size = tslist.size();
@@ -12142,7 +12107,6 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
         		updateStatus ();
 		}
-		ts = null;
 		tslist = null;
 	}
 	catch ( Exception e ) {
@@ -12164,9 +12128,9 @@ private void readDIADvisorHeaders()
 
 	try {	clearQueryList ();
 
-		String location = "";
-		String data_type = StringUtil.getToken(
-			__data_type_JComboBox.getSelected()," ",0,0).trim();
+		//String location = "";
+		//String data_type = StringUtil.getToken(
+			//__data_type_JComboBox.getSelected()," ",0,0).trim();
 		String timestep = __time_step_JComboBox.getSelected().trim();
 
 /* SAMX - need to figure out how to do where - or do we just have choices?
@@ -12204,9 +12168,7 @@ private void readDIADvisorHeaders()
 		DIADvisor_SensorDef data;
 		String start_date_time = "";
 		String end_date_time = "";
-		int interval_mult;
 		String interval = __time_step_JComboBox.getSelected();
-		String interval_base = "";
 		String description = "";
 		// This is either "DataValue" or "DataValue2"...
 		String selected_group = StringUtil.getToken(
@@ -12580,14 +12542,12 @@ throws IOException
 				return;
 			}
 			String directory = fc.getSelectedFile().getParent();
-			String filename = fc.getSelectedFile().getName(); 
 			String path = fc.getSelectedFile().getPath();
 			JGUIUtil.setLastFileDialogDirectory ( directory );
 
 			Message.printStatus ( 1, routine,
 			"Reading Mexico CSMN catalog file \"" + path + "\"" );
 			JGUIUtil.setWaitCursor ( this, true );
-			Vector tslist = null;
 			try {	allts = MexicoCsmnTS.readCatalogFile ( path );
 			}
 			catch ( Exception e ) {
@@ -12749,7 +12709,6 @@ throws IOException
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
-		String filename = fc.getSelectedFile().getName(); 
 		String path = fc.getSelectedFile().getPath();
 		JGUIUtil.setLastFileDialogDirectory ( directory );
 
@@ -12772,11 +12731,6 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		int nts = 0;
-		if ( tslist != null ) {
-			nts = tslist.size();
-		}
-		TS ts = null;
 		// There should not be any non-null time series so use the
 		// Vector size...
 		int size = tslist.size();
@@ -12803,7 +12757,6 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
         		updateStatus ();
 		}
-		ts = null;
 		tslist = null;
 	}
 	catch ( Exception e ) {
@@ -12848,7 +12801,6 @@ throws IOException
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
-		String filename = fc.getSelectedFile().getName(); 
 		String path = fc.getSelectedFile().getPath();
 		JGUIUtil.setLastFileDialogDirectory ( directory );
 
@@ -12927,7 +12879,6 @@ throws IOException
 		}
 		String directory = fc.getSelectedFile().getParent();
 		JGUIUtil.setLastFileDialogDirectory ( directory );
-		String filename = fc.getSelectedFile().getName(); 
 		String path = fc.getSelectedFile().getPath();
 		Message.printStatus ( 1, routine,
 		"Reading NWSRFS ESPTraceEnsemble file \"" + path + "\"" );
@@ -13008,14 +12959,6 @@ throws IOException
 		String datatype = StringUtil.getToken ( 
 			__data_type_JComboBox.getSelected().trim(), " ",0, 0);
 		// Parse the interval into the integer hour...
-		int selected_interval = 0;
-		try {	TimeInterval interval = TimeInterval.parseInterval (
-				__selected_time_step);
-			selected_interval = interval.getMultiplier();
-		}
-		catch ( Exception e ) {
-			// Should never fail...
-		}
 		String selected_input_name=__input_name_JComboBox.getSelected();
 		try {	String tsident_string = id_input + ".NWSRFS." +
 				datatype + "." +
@@ -13037,7 +12980,6 @@ throws IOException
 		}
 		
 		int size = 0;
-		TS ts = null;
 		if ( tslist != null ) {
 			size = tslist.size();
 
@@ -13588,11 +13530,9 @@ throws Exception
 		String directory = fc.getSelectedFile().getParent();
 		JGUIUtil.setLastFileDialogDirectory ( directory );
 		JGUIUtil.setLastFileDialogDirectory(directory);
-		String filename = fc.getSelectedFile().getName(); 
 		String path = fc.getSelectedFile().getPath();
 		Message.printStatus ( 1, routine,
 		"Reading StateMod file \"" + path + "\"" );
-		TS ts = null;
 		// Normal daily or monthly format file...
 		Vector tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
@@ -13662,7 +13602,6 @@ throws IOException
 	try {	String path = __input_name_JComboBox.getSelected();
 		Message.printStatus ( 1, routine,
 		"Reading StateMod binary output file \"" + path + "\"" );
-		TS ts = null;
 		Vector tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
 		StateMod_BTS bin = new StateMod_BTS ( path );
@@ -13713,7 +13652,6 @@ throws IOException
 
        		updateStatus ();
 		tslist = null;
-		ts = null;
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 	catch ( Exception e ) {
@@ -13781,6 +13719,7 @@ throws IOException
 	}
 }
 
+//TODO SAM 2007-02-18 Need to transition TSEngine to command processor
 /**
 Run the commands in the command list.  These time series are saved in
 __final_ts_engine and are then available for export, analysis, or viewing.  This
@@ -14068,7 +14007,7 @@ throws Exception
 		// The NWSRFS_FS5Files input type has been selected as a change
 		// from another type.  Repopululate the list if previous choices
 		// exist...
-		int size = __input_name_NWSRFS_FS5Files.size();
+		//int size = __input_name_NWSRFS_FS5Files.size();
 		// REVISIT - probably not needed...
 		//__input_name_JComboBox.removeAll();
 		// This does NOT include the leading browse, etc...
@@ -14192,12 +14131,10 @@ values from __input_name_StateCU.
 */
 private void selectInputName_StateCU ( boolean reset_input_names )
 throws Exception
-{	String routine = "TSTool_JFrame.selectInputName_StateCU";
-	if ( reset_input_names ) {
+{	if ( reset_input_names ) {
 		// The StateCU input type has been selected as a change from
 		// another type.  Repopululate the list if previous choices
 		// exist...
-		int size = __input_name_StateCU.size();
 		__input_name_JComboBox.setData ( __input_name_StateCU );
 	}
 	// Check the item that is selected...
@@ -14380,7 +14317,6 @@ throws Exception
 		// The StateModB input type has been selected as a change from
 		// another type.  Repopululate the list if previous choices
 		// exist...
-		int size = __input_name_StateModB.size();
 		// REVISIT - probably not needed...
 		//__input_name_JComboBox.removeAll();
 		__input_name_JComboBox.setData ( __input_name_StateModB );
@@ -15251,7 +15187,7 @@ private void showHelpAbout ()
 		"TSTool - Time Series Tool\n" +
 		"A component of CDSS\n" +
 		IOUtil.getProgramVersion() + "\n" +
-		"Copyright 1997-2006\n" +
+		"Copyright 1997-2007\n" +
 		"Developed by Riverside Technology, inc.\n" +
 		"Funded by:\n" +
 		"Colorado Division of Water Resources\n" +
@@ -15264,7 +15200,7 @@ private void showHelpAbout ()
 		new HelpAboutJDialog ( this, "About TSTool",
 		"TSTool - Time Series Tool\n" +
 		IOUtil.getProgramVersion() + "\n" +
-		"Copyright 1997-2006\n" +
+		"Copyright 1997-2007\n" +
 		"Developed by Riverside Technology, inc.\n" +
 		"Licensed to: " + __license_manager.getLicenseOwner() + "\n" +
 		"Contact support at:\n" +
@@ -15623,8 +15559,8 @@ private void transferOneTSFromListToCommand ( int row, boolean check_gui_state)
 		// instead of the normal TSID.
 		TSTool_ESPTraceEnsemble_TableModel model =
 			(TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
-		String alias = ((String)__query_TableModel.getValueAt ( row,
-			model.COL_ALIAS )).trim();
+		//String alias = ((String)__query_TableModel.getValueAt ( row,
+			//model.COL_ALIAS )).trim();
 		boolean use_alias_in_id = false;
 		if ( use_alias_in_id ) {
 			// Need to figure out what to do here...
@@ -16100,7 +16036,6 @@ private void writeCommandsFile ( String file, boolean prompt_for_file )
 		fc.setFileFilter(sff);
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			directory = fc.getSelectedFile().getParent();
-			String filename = fc.getSelectedFile().getName();
 			file = fc.getSelectedFile().getPath();
 			JGUIUtil.setLastFileDialogDirectory ( directory );
 		}		
@@ -16746,7 +16681,7 @@ throws Exception
 		//graphprops.set ( "PrintFont", "Courier" );
 		//graphprops.set ( "PrintSize", "7" );
 		//graphprops.set ( "PageLength", "100" );
-		TSViewJFrame view = new TSViewJFrame ( tslist, graphprops );
+		new TSViewJFrame ( tslist, graphprops );
 	}
 }
 
