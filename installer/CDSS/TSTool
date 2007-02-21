@@ -1,0 +1,5 @@
+#!/bin/bash
+
+JRE=jre_142/bin/java
+
+$JRE -Xmx256m -cp "bin/TSTool_142.jar:bin/HydroBaseDMI_142.jar:bin/RiversideDB_DMI_142.jar:bin/NWSRFS_DMI_142.jar:bin/msbase.jar:bin/mssqlserver.jar:bin/msutil.jar:bin/RTi_Common_142.jar:bin/StateMod_142.jar:bin/StateCU_142.jar:bin/Blowfish_142.jar:bin/SatmonSysDMI_142.jar:bin/TS_Services.jar:bin/TSCommandProcessor_142.jar" DWR.DMI.tstool.tstool -home ./ $1 $2 $3 $4 $5 $6 $7 $8 $9

@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test/regression/src/Abbot"/>
-	<classpathentry kind="src" path="test/unit/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="externals/junit.jar"/>
 	<classpathentry kind="lib" path="externals/StateCU/StateCU_142.jar"/>
@@ -11,7 +10,6 @@
 	<classpathentry kind="lib" path="externals/RiversideDB_DMI/RiversideDB_DMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/Blowfish_142.jar"/>
 	<classpathentry kind="lib" path="externals/SatmonSysDMI/SatmonSysDMI_142.jar"/>
-	<classpathentry kind="lib" path="externals/HydroBaseDMI/HydroBaseDMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/Abbot/abbot.jar"/>
 	<classpathentry kind="lib" path="externals/Abbot/ant4eclipse.jar"/>
 	<classpathentry kind="lib" path="externals/Abbot/bsh.jar"/>
@@ -28,5 +26,7 @@
 	<classpathentry kind="lib" path="externals/NWSRFS_DMI/NWSRFS_DMI_142_Extended.jar"/>
 	<classpathentry kind="lib" path="externals/RTi_Common/RTi_Common_142.jar"/>
 	<classpathentry kind="lib" path="externals/TSCommandProcessor/TSCommandProcessor_142.jar"/>
+	<classpathentry kind="lib" path="externals/HydroBaseDMI/HydroBaseDMI_142.jar"/>
+	<classpathentry kind="lib" path="externals/NWSRFS_DMI/NWSRFS_DMI_142.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

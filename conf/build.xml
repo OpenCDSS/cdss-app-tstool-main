@@ -2,6 +2,8 @@
 	Author  :  Kurt Tometich
 	Date    :  10/30/2006
 	Targets :
+	 			buildProductTestSetWindows
+	 			buildProductTestSetLinux
 	 			clean
 	 			compile
 				compileTest
@@ -92,7 +94,12 @@
 	<property name="buildcob.dir"    value="build${sep}cobertura" />
 	<property name="CDSS_install.dir" value="installer${sep}CDSS" />
 	<property name="RTi_install.dir" value="installer${sep}Rivertrack" />
-
+	<property name="ProductTester" 	 value="${ext.dir}${sep}ProductTester" />
+	<property name="nativejc"		 
+		value="${ext.dir}${sep}NativeJ${sep}nativejc.exe" />
+	<property name="NJProj"			 value="${proj_name}.njp" />
+	<property name="tmpRegTest.dir"  location="tmp" />
+	<property name="NJProj_Reg"	 	 value="${proj_name}_Regression.njp" />
 	
 	<path id="cobertura.classpath">
 	    <fileset dir="${cobertura.dir}">
@@ -101,7 +108,6 @@
 	    </fileset>
 	</path>
    
-
 	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
 	
 	
@@ -226,6 +232,61 @@
   	  <format property="jarDate" pattern="yyyy-MM-dd hh:mm" locale="en" />
 	</tstamp>
 	
+<!-- build product test set with data -->
+<target name="buildProductTesterWindows" 
+ depends="regTestSetup" >
+	
+	<!-- extract the ProductTester into temp -->
+	<unzip src="${ProductTester}${sep}ProductTester.zip"
+			dest="${tmpRegTest.dir}"/>
+	
+	<!-- replace text in .ini files -->
+	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		token="product" value="${proj_name}"/>
+	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		token="program" value="${proj_name}.exe"/>
+	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		token="type" value="command"/>
+	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+			token="automate=true" value="automate=false"/>
+	
+	<zip destfile="${dist.dir}${sep}${proj_name}ProductTester.zip" >
+		<fileset dir="${tmpRegTest.dir}" />
+	</zip>
+	
+	<delete dir="${tmpRegTest.dir}" />
+	
+</target>
+	
+<!-- build product test set with data -->
+<target name="buildProductTesterLinux" 
+ depends="regTestSetup" >
+	
+	<!-- extract the ProductTester into temp -->
+	<gunzip src="${ProductTester}${sep}ProductTester.tar.gz" />
+	<untar src="${ProductTester}${sep}ProductTester.tar" 
+		dest="tmp"/>
+	
+	<replace file="tmp${sep}ProductTester.ini" 
+		token="product" value="${proj_name}"/>
+	<replace file="tmp${sep}ProductTester.ini" 
+		token="program" value="${proj_name}.exe"/>
+	<replace file="tmp${sep}ProductTester.ini" 
+		token="type" value="command"/>
+	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		token="automate=true" value="automate=false"/>
+	
+	<tar destfile="tmp${sep}${proj_name}ProductTester.tar" >
+		<tarfileset dir="tmp"/>
+	</tar>
+	
+	<gzip src="tmp${sep}${proj_name}ProductTester.tar" 
+		destfile="${dist.dir}${sep}${proj_name}ProductTester.tar.gz"/>
+	
+	<delete dir="tmp" />
+	
+</target>
+
 
 <!--===================================================
 	Target:   clean
@@ -251,10 +312,8 @@
 		<fileset dir="test${sep}regression${sep}results" />
 		<fileset dir="test${sep}operational${sep}CDSS${sep}logs" />
 		<fileset dir="test${sep}operational${sep}Rivertrack${sep}logs" />
-		<fileset dir="test${sep}data${sep}commands" 
-			includes="**/*Output*.dv" />
-		<fileset dir="${CDSS_install.dir}" includes="**/*Setup.exe" />
-		<fileset dir="${RTi_install.dir}" includes="**/*Setup.exe" />
+		<fileset dir="${CDSS_install.dir}" includes="**/*.exe" />
+		<fileset dir="${RTi_install.dir}" includes="**/*.exe" />
 	</delete>
 	
 	<delete dir="test${sep}unit${sep}results${sep}css" />
@@ -318,17 +377,44 @@
 <target name="createAllInstallers" 
 	description="creates the NSIS installers for CDSS and RTi">
 
+	<!-- create exe's -->
+	<antcall target="createApplicationExe" />
+	<!-- create all installers -->
 	<antcall target="createInstaller_CDSS" />
 	<antcall target="createInstaller_RTi" />
 	<antcall target="createInstaller_RTiExtended" />
 	
 </target>
 	
+<!--========================================================
+   Target: createApplicationExe
+   Fuction: create all application executables using NativeJ 
+=========================================================-->
+<target name="createApplicationExe" depends="clean,jar"
+	description="creates executables using NativeJ" >
+	
+	<delete file="${RTi_install.dir}${sep}TSTool.exe" />
+	<delete file="${CDSS_install.dir}${sep}TSTool.exe" />
+	
+	<!-- create NativeJ EXE file -->
+	<exec executable="${nativejc}" 
+		dir="${nsis.dir}${sep}CDSS" >
+		<arg value="${NJProj}"/>
+	</exec>
+	
+	<!-- create NativeJ EXE file -->
+	<exec executable="${nativejc}" 
+		dir="${nsis.dir}${sep}Rivertrack" >
+		<arg value="${NJProj}"/>
+	</exec>
+	
+</target>	
+	
 <!--=========================================================
 	Target: createInstaller_CDSS
 	Function: creates an executable installer for TSTool
 ==========================================================-->
-<target name="createInstaller_CDSS" depends="jar" 
+<target name="createInstaller_CDSS" depends="createApplicationExe" 
 	description="runs NSIS to create an executable installer">
 	
 	<!-- run nsis script to create .exe install -->
@@ -339,12 +425,11 @@
 	
 </target>
 	
-
 <!--=========================================================
 	Target: createInstaller_RTi
 	Function: creates an executable installer for TSTool
 ==========================================================-->
-<target name="createInstaller_RTi" depends="jar"
+<target name="createInstaller_RTi" depends="createApplicationExe"
 	description="runs NSIS to create an executable installer">
 	
 	<!-- run nsis script to create .exe install -->
@@ -360,8 +445,16 @@
 	Target: createInstaller_RTiExtended
 	Function: creates an executable installer for TSTool
 ==========================================================-->
-<target name="createInstaller_RTiExtended" depends="jar"
+<target name="createInstaller_RTiExtended" depends="createApplicationExe"
 	description="runs NSIS to create an executable installer">
+	
+	<delete file="${RTi_install.dir}${sep}TSTool.exe" />
+	
+	<!-- create NativeJ EXE file -->
+	<exec executable="${nativejc}" 
+		dir="${nsis.dir}${sep}Rivertrack" >
+		<arg value="TSTool_Extended.njp"/>
+	</exec>
 	
 	<!-- run nsis script to create .exe install -->
 		<exec dir="${nsis.dir}${sep}Rivertrack" 
@@ -668,15 +761,6 @@
 <target name="jar" depends="compile" 
 	description="jars all class files into jar file in dist dir">
     
-	<!-- copy docs folder into build for the jar 
-	<copy todir="${buildwork.dir}">
-	<fileset dir=".">
-	<include name="doc${sep}**${sep}*" />
-	<include name="graphics${sep}**${sep}*" />
-	</fileset>
-	</copy>
-	-->
-	
 	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
 		<fileset dir="graphics" />
 	</copy>
@@ -695,43 +779,127 @@
     </jar>
 	
 </target>
+
 	
+<!-- macro for calling all regTest targets -->
+<macrodef name="regTestGeneric">
+	
+	<attribute name="type" />
+	<attribute name="dir" />
+	<attribute name="projFile" />
+	<sequential>	
+		<!-- create NativeJ EXE file -->
+		<exec executable="${nativejc}" 
+			dir="${nsis.dir}${sep}@{type}" >
+			<arg value="@{projFile}"/>
+		</exec>
+		
+		<!-- extract the ProductTester into temp -->
+		<unzip src="${ProductTester}${sep}ProductTester.zip"
+				dest="${tmpRegTest.dir}"/>
+		
+		<!-- replace text in .ini files -->
+		<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+			token="product" value="${proj_name}"/>
+		<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+			token="program" 
+			value="..${sep}@{dir}${sep}${proj_name}_Regression.exe"/>
+		<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+			token="type" value="command"/>
+		
+		<!-- run the program --> 
+		<exec dir="${tmpRegTest.dir}" 
+			executable="${tmpRegTest.dir}${sep}ProductTester.exe" >
+		</exec>
+		
+		<delete file="@{dir}${sep}${proj_name}_Regression.exe" />
+		
+		<antcall target="regTestCleanup" />
+	</sequential>
+			
+</macrodef>
 	
 <!--=================================================
-	Target: regTest
+	Target: regTestCleanup
+	Function: delete tmp folder where regression
+	   	      tests ran and move results to regression
+	   	      results directory.
+==================================================-->
+<target name="regTestCleanup" >
+
+	<move todir="${regTest.dir}${sep}results" >
+		<fileset dir="${tmpRegTest.dir}${sep}tests" />
+		<fileset dir="${tmpRegTest.dir}" includes="**/*.log" />
+	</move>
+	
+	<delete dir="${tmpRegTest.dir}" />
+	
+</target>
+	
+<!--=================================================
+	Target: regTestCDSS
 	Function: to regression test this product.  Runs 
 	          TSTool using a commands file and sends
 	          the output to the Regression results
-	          folder.  Next, a Perl script is run to
-	          parse the output from TSTool and generate
-	          readable results.  If a test fails then 
-	          a developer should check out the log file
-	          under Regression results for more info. 
+	          folder.   
 ===================================================-->
-<target name="regTest" depends="compile"
-	description="runs regression tests and outputs results to test/regression/results">
+<target name="regTestCDSS" 
+	depends="regTestSetup"
+	description="runs regression tests and outputs results
+	to test/regression/results">
 	
-	<!-- need to create an output directory for
-		     commands that need to write to a temp dir -->
-		<mkdir dir="test${sep}output" />
+	<regTestGeneric dir="${CDSS_install.dir}"
+		type="CDSS" projFile="${NJProj_Reg}" />
+		
+</target>
 	
-	<java classname="${classname}" fork="true" >
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${CDSS_OP.dir}" />
-		<arg	   value = "-commands" />
-		<arg	   value = "${regTest.dir}${sep}src${sep}${command_file}" />
-		<classpath refid = "classpath" />   
-	</java>	
+<!--=================================================
+	Target: regTestRivertrak
+	Function: to regression test this product.  Runs 
+	          TSTool using a commands file and sends
+	          the output to the Regression results
+	          folder.   
+===================================================-->
+<target name="regTestRivertrak" 
+	depends="createApplicationExe,regTestSetup"
+	description="runs regression tests and outputs results
+	to test/regression/results">
 	
-	<!-- run perl script to parse output and display results -->
-	<exec dir="${regTest.dir}${sep}src" executable="perl" >
-		<arg value="parseOutput.pl" />
-	</exec>
+	<regTestGeneric dir="${RTi_install.dir}"
+			type="Rivertrack" projFile="${NJProj_Reg}" />
 	
 </target>
+	
+<!--=================================================
+	Target: regTestRivertrakExt
+	Function: to regression test this product.  Runs 
+	          TSTool using a commands file and sends
+	          the output to the Regression results
+	          folder.   
+===================================================-->
+<target name="regTestRivertrakExt" 
+	depends="createApplicationExe,regTestSetup"
+	description="runs regression tests and outputs results
+	to test/regression/results">
+	
+	<regTestGeneric dir="${RTi_install.dir}"
+		type="Rivertrack" 
+		projFile="${proj_name}_Ext_Regression.njp" />
+	
+</target>	
 
+<!-- product test set initialization -->
+<target name="regTestSetup" >
+	
+	<mkdir dir="${tmpRegTest.dir}" />
+	<mkdir dir="${tmpRegTest.dir}${sep}tests" />
+	<copy todir="${tmpRegTest.dir}${sep}tests" >
+		<fileset dir="${regTest.dir}${sep}commands${sep}coverage"
+		excludes="**${sep}.svn"/>
+	</copy>
+
+</target>	
+	
 <!--========================================================
 	Target: costello
 	Function: runs the Costello editor for Abbot
@@ -808,6 +976,10 @@
 		
 TARGET         FUNCTION
 ===========================================================
+buildProductTestSetWindows     zips product test set to dist folder
+
+buildProductTestSetLinux     gzips product test set to dist folder
+		
 compile        compiles source code
 
 compileTest    compiles the test source code
