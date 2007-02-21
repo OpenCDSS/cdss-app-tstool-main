@@ -306,7 +306,7 @@
 	<!-- delete the Setup.exe files made from NSIS -->
 	<delete file="installer${sep}CDSS${sep}TSTool_*_Setup.exe" />
 	
-	<delete>
+	<delete includeEmptyDirs="true">
 		<fileset dir="test${sep}unit${sep}results" />
 		<fileset dir="test${sep}operational${sep}results" />
 		<fileset dir="test${sep}regression${sep}results" />
