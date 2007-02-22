@@ -1035,7 +1035,7 @@
 		<mkdir dir="${tmp.dir}" />
 		<mkdir dir="${tmp.dir}${sep}tests" />
 		<copy todir="${tmp.dir}${sep}tests" >
-			<fileset dir="${regTest.dir}${sep}@{dataset}"
+			<fileset dir="${regTest.dir}${sep}commands${sep}@{dataset}"
 			excludes="**${sep}.svn"/>
 		</copy>
 	</sequential>
