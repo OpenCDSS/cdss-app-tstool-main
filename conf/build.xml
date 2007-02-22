@@ -889,7 +889,7 @@
 </target>	
 
 <!-- product test set initialization -->
-<target name="regTestSetup" >
+<target name="regTestSetup" depends="jar" >
 	
 	<mkdir dir="${tmpRegTest.dir}" />
 	<mkdir dir="${tmpRegTest.dir}${sep}tests" />
