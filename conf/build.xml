@@ -843,7 +843,7 @@
 	          the output to the Regression results
 	          folder.   
 ===================================================-->
-<target name="regTestCDSS" 
+<target name="regTestCDSS_Coverage" 
 	depends="regTestSetup"
 	description="runs regression tests and outputs results
 	to test/regression/results">
@@ -860,7 +860,7 @@
 	          the output to the Regression results
 	          folder.   
 ===================================================-->
-<target name="regTestRivertrak" 
+<target name="regTestRivertrak_Coverage" 
 	depends="createApplicationExe,regTestSetup"
 	description="runs regression tests and outputs results
 	to test/regression/results">
@@ -877,7 +877,7 @@
 	          the output to the Regression results
 	          folder.   
 ===================================================-->
-<target name="regTestRivertrakExt" 
+<target name="regTestRivertrakExt_Coverage" 
 	depends="createApplicationExe,regTestSetup"
 	description="runs regression tests and outputs results
 	to test/regression/results">
