@@ -98,7 +98,7 @@
 	<property name="nativejc"		 
 		value="${ext.dir}${sep}NativeJ${sep}nativejc.exe" />
 	<property name="NJProj"			 value="${proj_name}.njp" />
-	<property name="tmpRegTest.dir"  location="tmp" />
+	<property name="tmp.dir"  location="tmp" />
 	<property name="NJProj_Reg"	 	 value="${proj_name}_Regression.njp" />
 	
 	<path id="cobertura.classpath">
@@ -231,63 +231,117 @@
 	  <format property="TODAY" pattern="MM/dd/yyyy hh:mm" locale="en"/> 	
   	  <format property="jarDate" pattern="yyyy-MM-dd hh:mm" locale="en" />
 	</tstamp>
+
+<!--==================================================
+	Macro for building product test sets for Windows.
+	Must be called with dataset attribute set to the
+	name of the data wanting to be packaged.
+===================================================-->
+<macrodef name="buildProductTesterWindows" >
+	
+	<attribute name="dataset" />
+	
+	<sequential>
+		<regTestSetup dataset="@{dataset}" />
+		
+		<!-- extract the ProductTester into temp -->
+		<unzip src="${ProductTester}${sep}ProductTester.zip"
+				dest="${tmp.dir}"/>
+		<!-- replace text in .ini files -->
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
+			token="product" value="${proj_name}"/>
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
+			token="program" value="${proj_name}.exe"/>
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
+			token="type" value="command"/>
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
+				token="automate=true" value="automate=false"/>
+		<zip destfile="${dist.dir}${sep}${proj_name}ProductTester.zip" >
+			<fileset dir="${tmp.dir}" />
+		</zip>
+		
+		<delete dir="${tmp.dir}" />
+	</sequential>
+	
+</macrodef>
 	
 <!-- build product test set with data -->
-<target name="buildProductTesterWindows" 
- depends="regTestSetup" >
+<macrodef name="buildProductTesterLinux" >
 	
-	<!-- extract the ProductTester into temp -->
-	<unzip src="${ProductTester}${sep}ProductTester.zip"
-			dest="${tmpRegTest.dir}"/>
-	
-	<!-- replace text in .ini files -->
-	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
-		token="product" value="${proj_name}"/>
-	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
-		token="program" value="${proj_name}.exe"/>
-	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
-		token="type" value="command"/>
-	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+	<attribute name="dataset" />
+	<sequential>
+		<regTestSetup dataset="@{dataset}" />
+		<!-- extract the ProductTester into temp -->
+		<gunzip src="${ProductTester}${sep}ProductTester.tar.gz" />
+		<untar src="${ProductTester}${sep}ProductTester.tar" 
+			dest="tmp"/>
+		
+		<replace file="tmp${sep}ProductTester.ini" 
+			token="product" value="${proj_name}"/>
+		<replace file="tmp${sep}ProductTester.ini" 
+			token="program" value="${proj_name}.exe"/>
+		<replace file="tmp${sep}ProductTester.ini" 
+			token="type" value="command"/>
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
 			token="automate=true" value="automate=false"/>
-	
-	<zip destfile="${dist.dir}${sep}${proj_name}ProductTester.zip" >
-		<fileset dir="${tmpRegTest.dir}" />
-	</zip>
-	
-	<delete dir="${tmpRegTest.dir}" />
-	
+		
+		<tar destfile="tmp${sep}${proj_name}ProductTester.tar" >
+			<tarfileset dir="tmp"/>
+		</tar>
+		
+		<gzip src="tmp${sep}${proj_name}ProductTester.tar" 
+			destfile="${dist.dir}${sep}${proj_name}ProductTester.tar.gz"/>
+		
+		<delete dir="tmp" />
+	</sequential>
+		
+</macrodef>
+
+<!-- several targets for building product testers for Windows -->
+<target name="buildWinProdTester_All" >
+	<regTestSetup dataset="CDSS" />
+	<regTestSetup dataset="general" />
+	<regTestSetup dataset="Rivertrak"/>
+	<antcall target="buildWinProdTester_CDSS_RioGrande" />		
 </target>
 	
-<!-- build product test set with data -->
-<target name="buildProductTesterLinux" 
- depends="regTestSetup" >
-	
-	<!-- extract the ProductTester into temp -->
-	<gunzip src="${ProductTester}${sep}ProductTester.tar.gz" />
-	<untar src="${ProductTester}${sep}ProductTester.tar" 
-		dest="tmp"/>
-	
-	<replace file="tmp${sep}ProductTester.ini" 
-		token="product" value="${proj_name}"/>
-	<replace file="tmp${sep}ProductTester.ini" 
-		token="program" value="${proj_name}.exe"/>
-	<replace file="tmp${sep}ProductTester.ini" 
-		token="type" value="command"/>
-	<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
-		token="automate=true" value="automate=false"/>
-	
-	<tar destfile="tmp${sep}${proj_name}ProductTester.tar" >
-		<tarfileset dir="tmp"/>
-	</tar>
-	
-	<gzip src="tmp${sep}${proj_name}ProductTester.tar" 
-		destfile="${dist.dir}${sep}${proj_name}ProductTester.tar.gz"/>
-	
-	<delete dir="tmp" />
-	
+<!-- several targets for building product testers for Windows -->
+<target name="buildLinuxProdTester_All" >
+	<regTestSetup dataset="CDSS" />
+	<regTestSetup dataset="general" />
+	<regTestSetup dataset="Rivertrak"/>
+	<antcall target="buildLinuxProdTester_CDSS_RioGrande" />		
 </target>
-
-
+	
+<target name="buildWinProdTester_CDSS" >
+	<buildProductTesterWindows dataset="CDSS" />
+</target>
+<target name="buildWinProdTester_General" >
+	<buildProductTesterWindows dataset="general" />
+</target>
+<target name="buildWinProdTester_Rivertrak" >
+	<buildProductTesterWindows dataset="Rivertrak" />
+</target>
+<target name="buildWinProdTester_CDSS_RioGrande" >
+	<buildProductTesterWindows dataset="CDSS_RioGrande" />
+</target>
+<!--========================================================-->
+	
+<!-- several targets for building product testers for Linux -->
+<target name="buildLinuxProdTester_CDSS" >
+	<buildProductTesterLinux dataset="CDSS" />
+</target>
+<target name="buildLinuxProdTester_General" >
+	<buildProductTesterLinux dataset="general" />
+</target>
+<target name="buildLinuxProdTester_Rivertrak" >
+	<buildProductTesterLinux dataset="Rivertrak" />
+</target>
+<target name="buildLinuxProdTester_CDSS_RioGrande" >
+	<buildProductTesterLinux dataset="CDSS_RioGrande" />
+</target>
+<!--=======================================================-->
+	
 <!--===================================================
 	Target:   clean
 	Function: cleans the build/work and build/test
@@ -298,6 +352,7 @@
 	<!-- delete build stuff -->
 	<delete dir="${buildwork.dir}" />
 	<delete dir="${build.dir}" />
+	<delete dir="tmp" />
 	<!--<delete dir="${buildcob.dir)" />-->
 
 	<!-- delete javadoc stuff -->
@@ -307,6 +362,7 @@
 	<delete file="installer${sep}CDSS${sep}TSTool_*_Setup.exe" />
 	
 	<delete includeEmptyDirs="true">
+		<fileset dir="${dist.dir}" />
 		<fileset dir="test${sep}unit${sep}results" />
 		<fileset dir="test${sep}operational${sep}results" />
 		<fileset dir="test${sep}regression${sep}results" />
@@ -535,6 +591,51 @@
 	   <fileset dir="${jdoc.dir}"/>
 	 </copy>
 	
+</target>
+	
+	
+<!--===================================================
+	Target: installerSetup
+	Function: copies all installation files and folders
+	          to a tmp directory to be packaged.
+====================================================-->
+<target name="installerSetupLinux" depends="jar" >
+	
+	<delete dir="tmp" />
+	<mkdir dir="${tmp.dir}" />
+	<mkdir dir="${tmp.dir}${sep}jre_142" />
+	<mkdir dir="${tmp.dir}${sep}logs" />
+	<mkdir dir="${tmp.dir}${sep}system" />
+	<mkdir dir="${tmp.dir}${sep}bin" />
+	
+	<!-- copy all files and folders for install package -->
+	<copy todir="${tmp.dir}${sep}jre_142" >
+		<fileset dir="${ext.dir}${sep}jre_142_linux"
+		excludes="**${sep}.svn"/>
+	</copy>
+	<copy todir="${tmp.dir}${sep}system" >
+		<fileset dir="test${sep}operational${sep}CDSS${sep}system" 
+			excludes="**${sep}.svn" />
+	</copy>
+	<copy todir="${tmp.dir}${sep}bin" >
+		<fileset dir="${ext.dir}${sep}HydroBaseDMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver" 
+			includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}NWSRFS_DMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}RiversideDB_DMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}RTi_Common" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}SatmonSysDMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}StateCU" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}StateMod" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}TS_Services" includes="**/*.jar" />
+		<fileset dir="${ext.dir}${sep}TSCommandProcessor" 
+			includes="**/*.jar" />
+		<fileset dir="${ext.dir}" includes="**/Blowfish_142.jar" />
+		<fileset dir="${ext.dir}${sep}shellcon" includes="**/shellcon.exe" />
+	</copy>
+	<copy todir="${tmp.dir}${sep}bin" 
+		file="${dist.dir}${sep}${proj_name}_142.jar" />
+		
 </target>
 	
 <!--===================================================
@@ -780,9 +881,8 @@
 	
 </target>
 
-	
 <!-- macro for calling all regTest targets -->
-<macrodef name="regTestGeneric">
+<macrodef name="regTestGeneric" >
 	
 	<attribute name="type" />
 	<attribute name="dir" />
@@ -796,20 +896,20 @@
 		
 		<!-- extract the ProductTester into temp -->
 		<unzip src="${ProductTester}${sep}ProductTester.zip"
-				dest="${tmpRegTest.dir}"/>
+				dest="${tmp.dir}"/>
 		
 		<!-- replace text in .ini files -->
-		<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
 			token="product" value="${proj_name}"/>
-		<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
 			token="program" 
 			value="..${sep}@{dir}${sep}${proj_name}_Regression.exe"/>
-		<replace file="${tmpRegTest.dir}${sep}ProductTester.ini" 
+		<replace file="${tmp.dir}${sep}ProductTester.ini" 
 			token="type" value="command"/>
 		
 		<!-- run the program --> 
-		<exec dir="${tmpRegTest.dir}" 
-			executable="${tmpRegTest.dir}${sep}ProductTester.exe" >
+		<exec dir="${tmp.dir}" 
+			executable="${tmp.dir}${sep}ProductTester.exe" >
 		</exec>
 		
 		<delete file="@{dir}${sep}${proj_name}_Regression.exe" />
@@ -828,12 +928,28 @@
 <target name="regTestCleanup" >
 
 	<move todir="${regTest.dir}${sep}results" >
-		<fileset dir="${tmpRegTest.dir}${sep}tests" />
-		<fileset dir="${tmpRegTest.dir}" includes="**/*.log" />
+		<fileset dir="${tmp.dir}${sep}tests" />
+		<fileset dir="${tmp.dir}" includes="**/*.log" />
 	</move>
 	
-	<delete dir="${tmpRegTest.dir}" />
+	<delete dir="${tmp.dir}" />
 	
+</target>
+
+<!-- regression tests all data sets using CDSS config -->
+<target name="regTestAll_CDSS" >
+	<regTestSetup dataset="CDSS_RioGrande" />
+	<regTestSetup dataset="general" />
+	<regTestSetup dataset="Rivertrak"/>
+	<antcall target="regTestCDSS" />
+</target>
+		
+<!-- regression tests all data sets using Rivertrak config -->	
+<target name="regTestAll_Rivertrak" >
+	<regTestSetup dataset="CDSS_RioGrande" />
+	<regTestSetup dataset="general" />
+	<regTestSetup dataset="CDSS"/>
+	<antcall target="regTestRivertrak" />
 </target>
 	
 <!--=================================================
@@ -843,10 +959,29 @@
 	          the output to the Regression results
 	          folder.   
 ===================================================-->
-<target name="regTestCDSS_Coverage" 
-	depends="regTestSetup"
-	description="runs regression tests and outputs results
-	to test/regression/results">
+<target name="regTestCDSS" depends="jar"
+	description="runs CDSS regression tests and outputs 
+	results to test/regression/results">
+	
+	<regTestSetup dataset="CDSS" />
+	
+	<regTestGeneric dir="${CDSS_install.dir}"
+		type="CDSS" projFile="${NJProj_Reg}" />
+		
+</target>
+	
+<!--=================================================
+	Target: regTestCDSS
+	Function: to regression test this product.  Runs 
+	          TSTool using a commands file and sends
+	          the output to the Regression results
+	          folder.   
+===================================================-->
+<target name="regTestGeneral" depends="jar"
+	description="runs CDSS regression tests and outputs 
+	results to test/regression/results">
+	
+	<regTestSetup dataset="general" />
 	
 	<regTestGeneric dir="${CDSS_install.dir}"
 		type="CDSS" projFile="${NJProj_Reg}" />
@@ -860,10 +995,12 @@
 	          the output to the Regression results
 	          folder.   
 ===================================================-->
-<target name="regTestRivertrak_Coverage" 
-	depends="createApplicationExe,regTestSetup"
+<target name="regTestRivertrak" 
+	depends="jar,createApplicationExe"
 	description="runs regression tests and outputs results
 	to test/regression/results">
+	
+	<regTestSetup dataset="Rivertrak" />
 	
 	<regTestGeneric dir="${RTi_install.dir}"
 			type="Rivertrack" projFile="${NJProj_Reg}" />
@@ -877,10 +1014,12 @@
 	          the output to the Regression results
 	          folder.   
 ===================================================-->
-<target name="regTestRivertrakExt_Coverage" 
-	depends="createApplicationExe,regTestSetup"
+<target name="regTestRivertrakExt" 
+	depends="createApplicationExe"
 	description="runs regression tests and outputs results
 	to test/regression/results">
+	
+	<regTestSetup dataset="Rivertrak" />
 	
 	<regTestGeneric dir="${RTi_install.dir}"
 		type="Rivertrack" 
@@ -889,16 +1028,19 @@
 </target>	
 
 <!-- product test set initialization -->
-<target name="regTestSetup" depends="jar" >
+<macrodef name="regTestSetup"  >
 	
-	<mkdir dir="${tmpRegTest.dir}" />
-	<mkdir dir="${tmpRegTest.dir}${sep}tests" />
-	<copy todir="${tmpRegTest.dir}${sep}tests" >
-		<fileset dir="${regTest.dir}${sep}commands${sep}coverage"
-		excludes="**${sep}.svn"/>
-	</copy>
+	<attribute name="dataset"/>
+	<sequential>
+		<mkdir dir="${tmp.dir}" />
+		<mkdir dir="${tmp.dir}${sep}tests" />
+		<copy todir="${tmp.dir}${sep}tests" >
+			<fileset dir="${regTest.dir}${sep}@{dataset}"
+			excludes="**${sep}.svn"/>
+		</copy>
+	</sequential>
 
-</target>	
+</macrodef>	
 	
 <!--========================================================
 	Target: costello
