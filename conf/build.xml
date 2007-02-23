@@ -1,27 +1,6 @@
 <!-- TSTool build file 
 	Author  :  Kurt Tometich
-	Date    :  10/30/2006
-	Targets :
-	 			buildProductTestSetWindows
-	 			buildProductTestSetLinux
-	 			clean
-	 			compile
-				compileTest
-				test
-	 			CDSS_runDev
-	 			CDSS_runDevD30
-	 			RTi_runDev
-	 			RTi_runDevD30
-	 			CDSS_runOp
-	 			CDSS_runOpD30
-	 			RTi_runOp
-	 			RTi_runOpD30
-	 			regTest
-	 			createInstaller
-	 			javadoc
-				jar
-	 			help
-	 			
+	Date    :  10/30/2006 			
 -->
 
 <project name="buildTemplate" basedir="../" default="compile">
@@ -232,113 +211,83 @@
   	  <format property="jarDate" pattern="yyyy-MM-dd hh:mm" locale="en" />
 	</tstamp>
 
-<!--==================================================
-	Macro for building product test sets for Windows.
-	Must be called with dataset attribute set to the
-	name of the data wanting to be packaged.
-===================================================-->
-<macrodef name="buildProductTesterWindows" >
-	
-	<attribute name="dataset" />
-	
-	<sequential>
-		<regTestSetup dataset="@{dataset}" />
-		
-		<!-- extract the ProductTester into temp -->
-		<unzip src="${ProductTester}${sep}ProductTester.zip"
-				dest="${tmp.dir}"/>
-		<!-- replace text in .ini files -->
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="product" value="${proj_name}"/>
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="program" value="${proj_name}.exe"/>
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="type" value="command"/>
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-				token="automate=true" value="automate=false"/>
-		<zip destfile="${dist.dir}${sep}${proj_name}ProductTester.zip" >
-			<fileset dir="${tmp.dir}" />
-		</zip>
-		
-		<delete dir="${tmp.dir}" />
-	</sequential>
-	
-</macrodef>
-	
-<!-- build product test set with data -->
-<macrodef name="buildProductTesterLinux" >
-	
+<!-- calls product tester ant file -->
+<macrodef name="addTestsToSet">
 	<attribute name="dataset" />
 	<sequential>
-		<regTestSetup dataset="@{dataset}" />
-		<!-- extract the ProductTester into temp -->
-		<gunzip src="${ProductTester}${sep}ProductTester.tar.gz" />
-		<untar src="${ProductTester}${sep}ProductTester.tar" 
-			dest="tmp"/>
-		
-		<replace file="tmp${sep}ProductTester.ini" 
-			token="product" value="${proj_name}"/>
-		<replace file="tmp${sep}ProductTester.ini" 
-			token="program" value="${proj_name}.exe"/>
-		<replace file="tmp${sep}ProductTester.ini" 
-			token="type" value="command"/>
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="automate=true" value="automate=false"/>
-		
-		<tar destfile="tmp${sep}${proj_name}ProductTester.tar" >
-			<tarfileset dir="tmp"/>
-		</tar>
-		
-		<gzip src="tmp${sep}${proj_name}ProductTester.tar" 
-			destfile="${dist.dir}${sep}${proj_name}ProductTester.tar.gz"/>
-		
-		<delete dir="tmp" />
+		<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml"
+			target="addTestsToSet">
+			<property name="reg_dataset" value="@{dataset}"/>
+		</ant>
 	</sequential>
-		
 </macrodef>
 
-<!-- several targets for building product testers for Windows -->
-<target name="buildWinProdTester_All" >
-	<regTestSetup dataset="CDSS" />
-	<regTestSetup dataset="general" />
-	<regTestSetup dataset="Rivertrak"/>
-	<antcall target="buildWinProdTester_CDSS_RioGrande" />		
-</target>
+<!-- calls product tester ant file -->
+<macrodef name="buildProdTesterWindows">
+	<attribute name="dataset" />
+	<sequential>
+		<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+			 target="buildProdTesterWindows">
+			<property name="reg_dataset" value="@{dataset}"/>
+		</ant>
+	</sequential>
+</macrodef>
+	
+<!-- calls product tester ant file -->
+<macrodef name="buildProdTesterLinux">
+	<attribute name="dataset" />
+	<sequential>
+		<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+			 target="buildProdTesterLinux">
+			<property name="reg_dataset" value="@{dataset}"/>
+		</ant>
+	</sequential>
+</macrodef>
 	
 <!-- several targets for building product testers for Windows -->
-<target name="buildLinuxProdTester_All" >
-	<regTestSetup dataset="CDSS" />
-	<regTestSetup dataset="general" />
-	<regTestSetup dataset="Rivertrak"/>
-	<antcall target="buildLinuxProdTester_CDSS_RioGrande" />		
+<target name="buildWinProdTester_All" >
+	<addTestsToSet dataset="CDSS"/>
+	<addTestsToSet dataset="general"/>
+	<addTestsToSet dataset="Rivertrak"/>
+	<buildProdTesterWindows dataset="CDSS_RioGrande" />
 </target>
 	
 <target name="buildWinProdTester_CDSS" >
-	<buildProductTesterWindows dataset="CDSS" />
+	<buildProdTesterWindows dataset="CDSS" />
 </target>
+	
 <target name="buildWinProdTester_General" >
-	<buildProductTesterWindows dataset="general" />
+	<buildProdTesterWindows dataset="general" />
 </target>
+	
 <target name="buildWinProdTester_Rivertrak" >
-	<buildProductTesterWindows dataset="Rivertrak" />
+	<buildProdTesterWindows dataset="Rivertrak" />
 </target>
+	
 <target name="buildWinProdTester_CDSS_RioGrande" >
-	<buildProductTesterWindows dataset="CDSS_RioGrande" />
+	<buildProdTesterWindows dataset="CDSS_RioGrande" />
 </target>
 <!--========================================================-->
 	
 <!-- several targets for building product testers for Linux -->
+<target name="buildLinuxProdTester_All" >
+	<addTestsToSet dataset="CDSS"/>
+	<addTestsToSet dataset="general"/>
+	<addTestsToSet dataset="Rivertrak"/>
+	<buildProdTesterLinux dataset="CDSS_RioGrande" />	
+</target>	
+	
 <target name="buildLinuxProdTester_CDSS" >
-	<buildProductTesterLinux dataset="CDSS" />
+	<buildProdTesterLinux dataset="CDSS" />
 </target>
 <target name="buildLinuxProdTester_General" >
-	<buildProductTesterLinux dataset="general" />
+	<buildProdTesterLinux dataset="general" />
 </target>
 <target name="buildLinuxProdTester_Rivertrak" >
-	<buildProductTesterLinux dataset="Rivertrak" />
+	<buildProdTesterLinux dataset="Rivertrak" />
 </target>
 <target name="buildLinuxProdTester_CDSS_RioGrande" >
-	<buildProductTesterLinux dataset="CDSS_RioGrande" />
+	<buildProdTesterLinux dataset="CDSS_RioGrande" />
 </target>
 <!--=======================================================-->
 	
@@ -446,7 +395,7 @@
    Target: createApplicationExe
    Fuction: create all application executables using NativeJ 
 =========================================================-->
-<target name="createApplicationExe" depends="clean,jar"
+<target name="createApplicationExe" depends="jar"
 	description="creates executables using NativeJ" >
 	
 	<delete file="${RTi_install.dir}${sep}TSTool.exe" />
@@ -881,61 +830,6 @@
 	
 </target>
 
-<!-- macro for calling all regTest targets -->
-<macrodef name="regTestGeneric" >
-	
-	<attribute name="type" />
-	<attribute name="dir" />
-	<attribute name="projFile" />
-	<sequential>	
-		<!-- create NativeJ EXE file -->
-		<exec executable="${nativejc}" 
-			dir="${nsis.dir}${sep}@{type}" >
-			<arg value="@{projFile}"/>
-		</exec>
-		
-		<!-- extract the ProductTester into temp -->
-		<unzip src="${ProductTester}${sep}ProductTester.zip"
-				dest="${tmp.dir}"/>
-		
-		<!-- replace text in .ini files -->
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="product" value="${proj_name}"/>
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="program" 
-			value="..${sep}@{dir}${sep}${proj_name}_Regression.exe"/>
-		<replace file="${tmp.dir}${sep}ProductTester.ini" 
-			token="type" value="command"/>
-		
-		<!-- run the program --> 
-		<exec dir="${tmp.dir}" 
-			executable="${tmp.dir}${sep}ProductTester.exe" >
-		</exec>
-		
-		<delete file="@{dir}${sep}${proj_name}_Regression.exe" />
-		
-		<antcall target="regTestCleanup" />
-	</sequential>
-			
-</macrodef>
-	
-<!--=================================================
-	Target: regTestCleanup
-	Function: delete tmp folder where regression
-	   	      tests ran and move results to regression
-	   	      results directory.
-==================================================-->
-<target name="regTestCleanup" >
-
-	<move todir="${regTest.dir}${sep}results" >
-		<fileset dir="${tmp.dir}${sep}tests" />
-		<fileset dir="${tmp.dir}" includes="**/*.log" />
-	</move>
-	
-	<delete dir="${tmp.dir}" />
-	
-</target>
-
 <!-- regression tests all data sets using CDSS config -->
 <target name="regTestAll_CDSS" >
 	<regTestSetup dataset="CDSS_RioGrande" />
@@ -963,15 +857,19 @@
 	description="runs CDSS regression tests and outputs 
 	results to test/regression/results">
 	
-	<regTestSetup dataset="CDSS" />
+	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+		target="regTest">
+		<property name="reg_dataset" value="CDSS"/>
+		<property name="reg_install.dir" 
+			value="${CDSS_install.dir}"/>
+		<property name="reg_proj_file" value="${NJProj_Reg}"/>
+		<property name="reg_type" value="CDSS" />
+	</ant>
 	
-	<regTestGeneric dir="${CDSS_install.dir}"
-		type="CDSS" projFile="${NJProj_Reg}" />
-		
 </target>
 	
 <!--=================================================
-	Target: regTestCDSS
+	Target: regTestGeneral
 	Function: to regression test this product.  Runs 
 	          TSTool using a commands file and sends
 	          the output to the Regression results
@@ -981,10 +879,14 @@
 	description="runs CDSS regression tests and outputs 
 	results to test/regression/results">
 	
-	<regTestSetup dataset="general" />
-	
-	<regTestGeneric dir="${CDSS_install.dir}"
-		type="CDSS" projFile="${NJProj_Reg}" />
+	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	 target="regTest">
+		<property name="reg_dataset" value="general"/>
+		<property name="reg_install.dir" 
+			value="${CDSS_install.dir}"/>
+		<property name="reg_proj_file" value="${NJProj_Reg}"/>
+		<property name="reg_type" value="CDSS" />
+	</ant>
 		
 </target>
 	
@@ -996,14 +898,18 @@
 	          folder.   
 ===================================================-->
 <target name="regTestRivertrak" 
-	depends="jar,createApplicationExe"
+	depends="createApplicationExe"
 	description="runs regression tests and outputs results
 	to test/regression/results">
 	
-	<regTestSetup dataset="Rivertrak" />
-	
-	<regTestGeneric dir="${RTi_install.dir}"
-			type="Rivertrack" projFile="${NJProj_Reg}" />
+	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	 target="regTest">
+		<property name="reg_dataset" value="Rivertrak"/>
+		<property name="reg_install.dir" 
+			value="${RTi_install.dir}"/>
+		<property name="reg_proj_file" value="${NJProj_Reg}"/>
+		<property name="reg_type" value="Rivertrack" />
+	</ant>
 	
 </target>
 	
@@ -1019,28 +925,17 @@
 	description="runs regression tests and outputs results
 	to test/regression/results">
 	
-	<regTestSetup dataset="Rivertrak" />
-	
-	<regTestGeneric dir="${RTi_install.dir}"
-		type="Rivertrack" 
-		projFile="${proj_name}_Ext_Regression.njp" />
+	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	 target="regTest">
+		<property name="reg_dataset" value="Rivertrak"/>
+		<property name="reg_install.dir" 
+			value="${RTi_install.dir}"/>
+		<property name="reg_proj_file" 
+			value="${proj_name}_Ext_Regression.njp"/>
+		<property name="reg_type" value="Rivertrak" />
+	</ant>
 	
 </target>	
-
-<!-- product test set initialization -->
-<macrodef name="regTestSetup"  >
-	
-	<attribute name="dataset"/>
-	<sequential>
-		<mkdir dir="${tmp.dir}" />
-		<mkdir dir="${tmp.dir}${sep}tests" />
-		<copy todir="${tmp.dir}${sep}tests" >
-			<fileset dir="${regTest.dir}${sep}commands${sep}@{dataset}"
-			excludes="**${sep}.svn"/>
-		</copy>
-	</sequential>
-
-</macrodef>	
 	
 <!--========================================================
 	Target: costello
