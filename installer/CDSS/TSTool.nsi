@@ -379,7 +379,7 @@ Function .onInstSuccess
     #  DetailPrint "Skipping README"
     #next2:
     
-    MessageBox MB_YESNO "Would you like to run the program?" IDYES true /SD IDNO false
+    MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
     true:
       Exec '"$INSTDIR\bin\TSTool.exe"'
       #Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
