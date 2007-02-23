@@ -863,7 +863,6 @@
 		<property name="reg_install.dir" 
 			value="${CDSS_install.dir}"/>
 		<property name="reg_proj_file" value="${NJProj_Reg}"/>
-		<property name="reg_type" value="CDSS" />
 	</ant>
 	
 </target>
@@ -885,7 +884,6 @@
 		<property name="reg_install.dir" 
 			value="${CDSS_install.dir}"/>
 		<property name="reg_proj_file" value="${NJProj_Reg}"/>
-		<property name="reg_type" value="CDSS" />
 	</ant>
 		
 </target>
@@ -908,7 +906,6 @@
 		<property name="reg_install.dir" 
 			value="${RTi_install.dir}"/>
 		<property name="reg_proj_file" value="${NJProj_Reg}"/>
-		<property name="reg_type" value="Rivertrack" />
 	</ant>
 	
 </target>
@@ -932,7 +929,6 @@
 			value="${RTi_install.dir}"/>
 		<property name="reg_proj_file" 
 			value="${proj_name}_Ext_Regression.njp"/>
-		<property name="reg_type" value="Rivertrak" />
 	</ant>
 	
 </target>	
