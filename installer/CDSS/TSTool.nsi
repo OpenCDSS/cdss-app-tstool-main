@@ -26,6 +26,8 @@ Name "TSTool"
 !define COMPANY RTi
 !define URL http://www.riverside.com
 !define EXTERNALS_DIR "..\..\externals"
+!define JRE_VERSION "142"
+!define INSTALL_IS_CDSS "true"
 
 # Included files
 !include "UMUI.nsh"
@@ -338,18 +340,21 @@ Section "Uninstall"
     Delete /REBOOTOK $INSTDIR\bin\TSTool.exe
     Delete /REBOOTOK $INSTDIR\bin\TSTool.ini
     DeleteRegValue HKLM "${REGKEY}\Components" Main
+    
+    # uninstall base components
+    Call un.BaseComponents
 
 SectionEnd
 
 
 ### Section Descriptions ###
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install TSTool documentation into the CDSS\doc\TSTool folder"
-  !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool under the main folder"
-  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
-  !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application"
- !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components"
-  !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java runtime environment"
+  !insertmacro MUI_DESCRIPTION_TEXT ${Docs} "Enabling this component will install TSTool documentation to the CDSS\doc\TSTool folder."
+  !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool software in the CDSS\bin folder."
+  !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders."
+  !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool application."
+  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including software and configuration files used by multiple CDSS software applications."
+  !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java Runtime Environment (JRE), which is used to run CDSS software.  CDSS software uses its own copy of the JRE, regardless of what may already by installed elsewhere on the computer."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
