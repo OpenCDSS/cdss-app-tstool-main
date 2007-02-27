@@ -7,6 +7,7 @@
 //
 // 2002-04-21	Steven A. Malers, RTi	Initial version (copy and modify
 //					fillUsingDiversionComments_JDialog).
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -21,12 +22,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -51,7 +49,6 @@ private String __BACKWARD = "Backward";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private JTextField	__MaxIntervals_JTextField=null;
@@ -103,16 +100,16 @@ public void actionPerformed( ActionEvent event )
 Check the user input for errors and set __error_wait accordingly.
 */
 private void checkInput ()
-{	String TSID = __TSID_JComboBox.getSelected();
+{	//TODO SAM
+	//String TSID = __TSID_JComboBox.getSelected();
 	String FillStart = __FillStart_JTextField.getText().trim();
 	String FillEnd = __FillEnd_JTextField.getText().trim();
 	String MaxIntervals = __MaxIntervals_JTextField.getText().trim();
 	String warning = "";
-	DateTime fillstart = null, fillend = null;
 	__error_wait = false;
 
 	try {	if ( FillStart.length() > 0 ) {
-			fillstart = DateTime.parse ( FillStart );
+			DateTime.parse ( FillStart );
 		}
 	}
 	catch ( Exception e ) {
@@ -122,7 +119,7 @@ private void checkInput ()
 			"Specify a date/time or Cancel.";
 	}
 	try {	if ( FillEnd.length() > 0 ) {
-			fillend = DateTime.parse ( FillEnd );
+			DateTime.parse ( FillEnd );
 		}
 	}
 	catch ( Exception e ) {
@@ -157,7 +154,6 @@ throws Throwable
 	__command_JTextField = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -183,8 +179,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -192,33 +187,32 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"This command fills missing data in the time series by" +
 		" repeating non-missing values." ), 
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The fill direction can be forward or backward."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the maximum intervals as blank or zero to fill " +
 		"any gap."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The fill start and end, if specified, will limit the period" +
 		" that is filled." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Use standard date/time formats appropriate for the date/time "+
 		"precision of the time series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time series to fill:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -236,49 +230,49 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__TSID_JComboBox.add ( "*" );
 	__TSID_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Fill start date/time:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillStart_JTextField = new JTextField ( "", 10 );
 	__FillStart_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillStart_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Fill end date/time:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillEnd_JTextField = new JTextField ( "", 10 );
 	__FillEnd_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillEnd_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Fill direction:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillDirection_JComboBox = new SimpleJComboBox ( false );
 	__FillDirection_JComboBox.addItem ( __BACKWARD );
 	__FillDirection_JComboBox.addItem ( __FORWARD );
 	__FillDirection_JComboBox.select ( __FORWARD );
 	__FillDirection_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillDirection_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Max. intervals:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__MaxIntervals_JTextField = new JTextField ( "", 10 );
 	__MaxIntervals_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __MaxIntervals_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -287,7 +281,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -316,7 +310,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

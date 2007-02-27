@@ -11,6 +11,7 @@
 // 2005-05-22	SAM, RTi		Change HydroBase_SheetNameWISFormat to
 //					HydroBase_WISSheetNameWISFormat, as per
 //					HydroBaseDMI package changes.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -19,10 +20,8 @@ import java.util.Vector;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_WISSheetNameWISFormat;
 
-import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for HydroBase
@@ -139,7 +138,6 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	int i;	// Use for integer data.
 	HydroBase_WISSheetNameWISFormat wis =
 		(HydroBase_WISSheetNameWISFormat)_data.elementAt(row);
 	switch (col) {

@@ -11,6 +11,7 @@
 // 2004-08-02	SAM, RTi		Fix bugs where data fields are not
 //					setting properly when editing an
 //					existing command.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -45,12 +46,8 @@ public class relativeDiff_JDialog extends JDialog
 implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 
-private String __DIVISORTS1 = "DivideByTS1";
-private String __DIVISORTS2 = "DivideByTS2";
-
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private JTextField	__alias_JTextField = null;// Field for time series alias
@@ -132,7 +129,6 @@ throws Throwable
 	__ts2_JComboBox = null;
 	__divisor_JComboBox = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__tsids = null;
 	super.finalize ();
 }
@@ -159,8 +155,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__tsids = tsids;
 
 	addWindowListener( this );
@@ -169,32 +164,31 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Create a new unitless time series with data values:" ),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"    TS = (TS1 - TS2)/Divisor"), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"where the Divisor is either TS1 or TS2."), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel("Attempting to divide by" +
 		" zero sets the data point to the missing value."), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("TS Time Series Alias:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ( "" );
 	__alias_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Time Series 1 (TS1):"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__ts1_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -209,10 +203,10 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__ts1_JComboBox.setData ( tsids );
 	__ts1_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __ts1_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Time Series 2 (TS2):"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__ts2_JComboBox = new SimpleJComboBox ( false );
 	size = 0;
 	if ( tsids != null ) {
@@ -227,23 +221,23 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__ts2_JComboBox.setData ( tsids );
 	__ts2_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __ts2_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Divisor:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__divisor_JComboBox = new SimpleJComboBox ( false );
 	__divisor_JComboBox.addItem ( "DivideByTS1" );
 	__divisor_JComboBox.addItem ( "DivideByTS2" );
 	__divisor_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __divisor_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField (50);
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh();
@@ -252,7 +246,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -282,7 +276,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh();
 		checkInput();
 		if ( !__error_wait ) {

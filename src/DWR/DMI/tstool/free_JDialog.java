@@ -12,6 +12,7 @@
 //					* Change so dialog shows parameters -
 //					  transition to new syntax.
 // 2004-08-03	SAM, RTi		Fix typo in comments.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -26,22 +27,13 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import javax.swing.DefaultListModel;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import java.util.Vector;
@@ -58,7 +50,6 @@ implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent Frame GUI class
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as TextField
 private SimpleJComboBox	__TSID_JComboBox = null; // Field for time series
@@ -101,7 +92,8 @@ public void actionPerformed( ActionEvent event )
 Check the user input for errors and set __error_wait accordingly.
 */
 private void checkInput ()
-{	String TSID = __TSID_JComboBox.getSelected();
+{	//TODO SAM
+	//String TSID = __TSID_JComboBox.getSelected();
 	String warning = "";
 
 	if ( warning.length() > 0 ) {
@@ -120,7 +112,6 @@ throws Throwable
 	__command_JTextField = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -146,8 +137,7 @@ TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -155,68 +145,63 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Free time series.  This is useful because some commands "+
 		"operate on all available commands,"),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"and therefore inappropriate time series may need to be " +
 		"removed."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Select the time series to free from the list or enter " +
 		"a time series identifier or alias."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Identifiers follow the pattern:"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"  Location.Source.DataType.Interval.Scenario"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Examples of wildcard use are shown below:"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"* - matches all time series"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"ABC* - matches locations starting with ABC"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"ABC*.*.TYPE.MONTH - matches locations starting with ABC, with"+
 		" data type TYPE and interval MONTH."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"See also the selectTimeSeries() and deselectTimeSeries() " +
 		"commands."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time series to free:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	// Allow edits so that wildcards can be entered.
 	__TSID_JComboBox = new SimpleJComboBox ( true );
-	int size = 0;
-	if ( tsids != null ) {
-		size = tsids.size();
-	}
 	__TSID_JComboBox.setData ( tsids );
 	// Always allow a "*" to let all time series be freed...
 	__TSID_JComboBox.add( "*" );
 	__TSID_JComboBox.addItemListener ( this );
 	__TSID_JComboBox.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 30 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -225,7 +210,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -264,7 +249,7 @@ public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
 	refresh ();
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		checkInput();
 		if ( !__error_wait ) {
 			response ( 1 );

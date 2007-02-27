@@ -9,6 +9,7 @@
 //					readDateValue).
 // 2002-06-26	SAM, RTi		Add comment about date format.
 // 2003-12-07	SAM, RTi		Update to Swing.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -26,7 +27,6 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -56,7 +56,6 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 						// absolute path.
 			__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private String		__working_dir = null;	// Working directory.
 private JTextField	__alias_JTextField = null,// Alias for time series.
@@ -123,7 +122,6 @@ public void actionPerformed( ActionEvent event )
 				return;
 			}
 	
-			String fs = System.getProperty ("file.separator");
 			if (path != null) {
 				__file_JTextField.setText(path );
 				JGUIUtil.setLastFileDialogDirectory( directory);
@@ -259,7 +257,6 @@ throws Throwable
 	__command_Vector = null;
 	__file_JTextField = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__working_dir = null;
 	super.finalize ();
 }
@@ -286,8 +283,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
 			Vector command, Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 try {
@@ -297,87 +293,86 @@ try {
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Read a single time series from a NWS Card format file."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify a full path or relative path (relative to working " +
 		"directory) for a NWS Card file to read." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specifying the period will limit data that are available " +
 		"for fill commands but can increase performance." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify date/times using an hour format (e.g.," +
 		" YYYY-MM-DD HH or MM/DD/YYYY HH,"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"where HH is evenly divisible by the interval)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specifying units causes conversion during the read " +
 		"(currently under development)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If not specified, the period defaults to the query period."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The working directory is: " + __working_dir ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time Series Alias:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ( 30 );
 	__alias_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 3, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 3, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"NWS Card File to Read:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__file_JTextField = new JTextField ( 50 );
 	__file_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __file_JTextField,
-		1, y, 5, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__browse_JButton = new SimpleJButton ( "Browse", this );
         JGUIUtil.addComponent(main_JPanel, __browse_JButton,
-		6, y, 1, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Units to convert to:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__units_JTextField = new JTextField ( "*", 10 );
 	__units_JTextField.addKeyListener ( this );
 	__units_JTextField.setEnabled ( false );
 	JGUIUtil.addComponent(main_JPanel, __units_JTextField,
-		1, y, 3, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 3, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "Period to Read:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__analysis_period_start_JTextField = new JTextField ( "*", 15 );
 	__analysis_period_start_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __analysis_period_start_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "to" ), 
-		3, y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		3, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	__analysis_period_end_JTextField = new JTextField ( "*", 15 );
 	__analysis_period_end_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __analysis_period_end_JTextField,
-		4, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		4, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -386,7 +381,7 @@ try {
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	if ( __working_dir != null ) {
 		// Add the button to allow conversion to/from relative
@@ -423,7 +418,7 @@ public void keyPressed ( KeyEvent event )
 	// Don't want key input to refresh dates unless enter or tab...
 	if (	(event.getSource() == __analysis_period_start_JTextField) ||
 		(event.getSource() == __analysis_period_end_JTextField) ) {
-		if ( (code == event.VK_ENTER) || (code == event.VK_TAB) ) {
+		if ( (code == KeyEvent.VK_ENTER) || (code == KeyEvent.VK_TAB) ) {
 			refresh ();
 		}
 	}
@@ -454,7 +449,6 @@ private void refresh ()
 {	String alias = "";
 	String file = "";
 	__error_wait = false;
-	String units = "*";
 	String analysis_period_start = "*";
 	String analysis_period_end = "*";
 	if ( __first_time ) {

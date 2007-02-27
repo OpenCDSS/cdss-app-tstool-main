@@ -10,6 +10,7 @@
 // 2003-12-10	SAM, RTi		Update to Swing.
 // 2004-02-22	SAM, RTi		Change independent list to single
 //					selection.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -32,7 +33,6 @@ import java.awt.event.WindowListener;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -44,8 +44,6 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 import java.util.Vector;
-
-import RTi.TS.TSUtil;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
@@ -65,7 +63,6 @@ private String __REMOVE_TEMPTS_FLAG = "Remove TEMPTS flag";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__analysis_period_start_JTextField,
 			__analysis_period_end_JTextField,
@@ -148,8 +145,7 @@ private void checkInput ()
 	}
 	if (	!analysis_period_start.equals("*") &&
 		!analysis_period_start.equalsIgnoreCase("OutputStart") ) {
-		try {	DateTime startdate =
-			DateTime.parse(analysis_period_start);
+		try {	DateTime.parse(analysis_period_start);
 		}
 		catch ( Exception e ) {
 			warning += 
@@ -161,7 +157,7 @@ private void checkInput ()
 	}
 	if (	!analysis_period_end.equals("*") &&
 		!analysis_period_end.equalsIgnoreCase("OutputEnd") ) {
-		try {	DateTime enddate = DateTime.parse(analysis_period_end);
+		try {	DateTime.parse(analysis_period_end);
 		}
 		catch ( Exception e ) {
 			warning +=
@@ -187,7 +183,6 @@ throws Throwable
 	__command_Vector = null;
 	__independent_JList = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__ts_JPopupMenu = null;
 	super.finalize ();
 }
@@ -213,8 +208,7 @@ Instantiates the GUI components.
 */
 private void initialize (	JFrame parent, String title, Vector command,
 				Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -225,7 +219,6 @@ private void initialize (	JFrame parent, String title, Vector command,
 try {
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
@@ -234,23 +227,23 @@ try {
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"fillFromTS() copies data values from the independent time" +
 		" series to replace missing values in the"),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"dependent time series.  Only data in the analysis period " +
 		"will be checked."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Use a setOutputPeriod() command if the dependent time series" +
 		" period will be extended." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify dates with precision appropriate for the data, " +
 		"use * for all available data, OutputStart, or OutputEnd." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time Series to Fill (dependent):" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	__alias_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
@@ -266,11 +259,11 @@ try {
 	__alias_JComboBox.setData ( tsids );
 	__alias_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Independent Time Series:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__independent_JListModel = new DefaultListModel();
 	__independent_JList = new JList ( __independent_JListModel );
 	__independent_JList.setSelectionMode (
@@ -282,28 +275,28 @@ try {
 	__independent_JList.addKeyListener ( this );
 	__independent_JList.addMouseListener ( this );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(__independent_JList),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "Analysis Period:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__analysis_period_start_JTextField = new JTextField ( "*", 15 );
 	__analysis_period_start_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __analysis_period_start_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "to" ), 
-		3, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	__analysis_period_end_JTextField = new JTextField ( "*", 15 );
 	__analysis_period_end_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __analysis_period_end_JTextField,
-		5, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		5, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh();
@@ -312,7 +305,7 @@ try {
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -355,7 +348,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		// Only check the format of dates if enter is pressed...
 		refresh ();
 		checkInput();

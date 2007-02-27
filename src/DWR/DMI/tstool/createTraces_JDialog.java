@@ -11,6 +11,7 @@
 // 2003-12-16	SAM, RTi		Update to Swing.
 // 2004-02-22	SAM, RTi		Change independent TS list to single
 //					selection.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -33,7 +34,6 @@ import java.awt.event.WindowListener;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -67,7 +67,6 @@ private String __SHIFT_TO_REFERENCE = "ShiftToReference";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private SimpleJComboBox	__shift_JComboBox = null;// Indicates how to handle
@@ -132,7 +131,8 @@ public void actionPerformed( ActionEvent event )
 Check the user input for errors and set __error_wait accordingly.
 */
 private void checkInput ()
-{	String independent = (String)__independent_JList.getSelectedValue ();
+{	// TODO SAM
+	//String independent = (String)__independent_JList.getSelectedValue ();
 	String reference = __reference_JTextField.getText().trim();
 	String shift_type = __shift_JComboBox.getSelected();
 	String period = __period_JTextField.getText().trim();
@@ -175,7 +175,6 @@ throws Throwable
 	__independent_JListModel = null;
 	__shift_JComboBox = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__ts_JPopupMenu = null;
 	super.finalize ();
 }
@@ -202,8 +201,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 		Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -211,34 +209,33 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Convert a time series to a sequence of traces (typically" +
 		" one trace per year)."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Each trace will start on the reference date and will be as " +
 		"long as specified."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Each trace will have the properties of the original " +
 		"time series with unique sequence numbers."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the reference date using standard date formats to a" +
 		" precision appropriate for the data."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If shifted, each trace will start on the reference date" +
 		" (use to overlay plots)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Time Series to Create Traces From:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	int size = 0;
 	if ( tsids != null ) {
 		size = tsids.size();
@@ -266,40 +263,40 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__independent_JList.addKeyListener ( this );
 	__independent_JList.addMouseListener ( this );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(__independent_JList),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Trace Length (blank=1Year):" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__period_JTextField = new JTextField ( "1Year", 10 );
 	__period_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __period_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Reference Date (blank=Jan 1):" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__reference_JTextField = new JTextField ( 10 );
 	__reference_JTextField.addKeyListener(this);
 	JGUIUtil.addComponent(main_JPanel, __reference_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Shift Data How?:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__shift_JComboBox = new SimpleJComboBox ( false );
 	__shift_JComboBox.addItem ( __SHIFT_NONE );
 	__shift_JComboBox.addItem ( __SHIFT_TO_REFERENCE );
 	__shift_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __shift_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh();
@@ -308,7 +305,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -348,7 +345,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {
@@ -428,7 +425,6 @@ private void refresh ()
 			independent = ((String)v.elementAt(1)).trim();
 			// Check all the items in the list and highlight the
 			// ones that match the command being edited...
-			int size = v.size();
 			String temp = null;
 			boolean found_ts = false;
 			int pos = 0;

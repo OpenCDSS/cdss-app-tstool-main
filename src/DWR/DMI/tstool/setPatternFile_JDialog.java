@@ -12,6 +12,7 @@
 // 2004-02-17	SAM, RTi		Fix bug where directory from file
 //					selection was not getting set as the
 //					last dialog directory in JGUIUtil.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -50,15 +51,12 @@ import RTi.Util.String.StringUtil;
 public class setPatternFile_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {
-private final String __GUI_ONLY = "GUIOnly";
-private final String __GUI_AND_BATCH = "GUIAndBatch";
 
 private SimpleJButton	__browse_JButton = null,	// Button to browse for file
 			__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null,	// Ok Button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths
-private JFrame		__parent_JButton = null;// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private String		__working_dir = null;	// Working directory.
@@ -203,7 +201,6 @@ throws Throwable
 	__command_Vector = null;
 	__ok_JButton = null;
 	__path_JButton = null;
-	__parent_JButton = null;
 	__working_dir = null;
 	super.finalize ();
 }
@@ -230,8 +227,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
 			Vector command, Vector tsids )
-{	__parent_JButton = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 	addWindowListener( this );
@@ -242,7 +238,6 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
@@ -252,29 +247,29 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Set the pattern file used with fillPattern() commands."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.BOTH, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The working directory is: " + __working_dir ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("Pattern File:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__file_JTextField = new JTextField ( 50 );
 	__file_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __file_JTextField,
-		1, y, 5, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__browse_JButton = new SimpleJButton ( "Browse", this );
         JGUIUtil.addComponent(main_JPanel, __browse_JButton,
-		6, y, 1, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -283,7 +278,7 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	if ( __working_dir != null ) {
 		// Add the button to allow conversion to/from relative
@@ -313,7 +308,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

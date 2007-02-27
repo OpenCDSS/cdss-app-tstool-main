@@ -9,6 +9,7 @@
 //					setConstantBefore_Dialog and modify.
 // 2002-04-23	SAM, RTi		Clean up dialog.
 // 2003-12-07	SAM, RTi		Update to Swing.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -45,7 +46,6 @@ implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__date1_JTextField = null,// First date to apply set.
 			__date2_JTextField = null,// Last date to apply set.
@@ -177,7 +177,6 @@ throws Throwable
 	__command_JTextField = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__constant_JTextField = null;
 	__minvalue_JTextField = null;
 	__maxvalue_JTextField = null;
@@ -207,8 +206,7 @@ TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -217,24 +215,23 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Replace a range of data values with a constant."),
-		0, y, 7, 1, 0, 0, insetsMin, gbc.BOTH, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsMin, GridBagConstraints.BOTH, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Leave the maximum value blank if not used." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify dates with precision appropriate for the data, " +
 		"use * for all available data, OutputStart, or OutputEnd." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time Series to Edit:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -251,51 +248,51 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__alias_JComboBox.add( "*" );
 	__alias_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Min. Val. to Replace:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__minvalue_JTextField = new JTextField ( 10 );
 	__minvalue_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __minvalue_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel(
 	"Max. Val. to Replace (optional):"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__maxvalue_JTextField = new JTextField ( 10 );
 	__maxvalue_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __maxvalue_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Constant value to replace with:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__constant_JTextField = new JTextField ( 10 );
 	__constant_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __constant_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Analysis Period:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__date1_JTextField = new JTextField ( "*", 15 );
 	__date1_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __date1_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "to" ), 
-		3, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	__date2_JTextField = new JTextField ( "*", 15 );
 	__date2_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __date2_JTextField,
-		5, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		5, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 30 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -304,7 +301,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -338,7 +335,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		// Only return from dialog if specifying the constant...
 		if ( event.getComponent().equals(__constant_JTextField) ) {

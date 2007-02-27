@@ -11,6 +11,7 @@
 // 2003-12-16	SAM, RTi		Update to Swing.
 // 2004-02-22	SAM, RTi		Change original time series list to
 //					single selection.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -32,7 +33,6 @@ import java.awt.Insets;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
-import javax.swing.DefaultListSelectionModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JDialog;
@@ -51,7 +51,6 @@ import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
-import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
 public class disaggregate_JDialog extends JDialog
@@ -66,7 +65,6 @@ private String __METHOD_SAME_VALUE = "SameValue";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__alias_JTextField = null;// Alias for new time series
 private JTextField	__command_JTextField=null;// Command as JTextField
@@ -173,7 +171,6 @@ throws Throwable
 	__units_JTextField = null;
 	__method_JComboBox = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__ts_JPopupMenu = null;
 	super.finalize ();
 }
@@ -199,8 +196,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 		Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -210,53 +206,52 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Disaggregation converts a longer-interval time series" +
 		" to a shorter interval."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the new interal as Nbase, where base is Minute, " +
 		"Hour, Day (ommitting N assumes a value of 1)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The new interval must be evenly divisible into the old " +
 		" interval."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the new data type as * to use the same data type" +
 		" as the original time series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the new data units as * to use the same units" +
 		" as the original time series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The resulting identifier will use the new interval (" +
 		"and data type if specified)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The Ormsbee method is only enabled to disaggregate 1Day to " +
 		"6Hour time series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The SameValue method can disaggregate Year->Month, Month->Day"+
 		" Day->NHour, Hour->NMinute."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time Series Alias:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ( "" );
 	__alias_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Original Time Series:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	int size = 0;
 	if ( tsids != null ) {
@@ -285,45 +280,45 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__independent_JList.addKeyListener ( this );
 	__independent_JList.addMouseListener ( this );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(__independent_JList),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Method:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__method_JComboBox = new SimpleJComboBox ( false );
 	__method_JComboBox.addItem ( __METHOD_ORMSBEE );
 	__method_JComboBox.addItem ( __METHOD_SAME_VALUE );
 	__method_JComboBox.select ( 1 );
 	__method_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __method_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "New Interval:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__interval_JTextField = new JTextField ( "", 20);
 	__interval_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __interval_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "New Data Type:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__datatype_JTextField = new JTextField ( "*", 20);
 	__datatype_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __datatype_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "New Data Units:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__units_JTextField = new JTextField ( "*", 20);
 	__units_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __units_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	// Refresh the contents...
 	refresh();
@@ -332,7 +327,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -372,7 +367,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {
@@ -382,8 +377,7 @@ public void keyPressed ( KeyEvent event )
 }
 
 public void keyReleased ( KeyEvent event )
-{	int code = event.getKeyCode();
-	refresh();
+{	refresh();
 }
 
 public void keyTyped ( KeyEvent event ) {;}
@@ -469,7 +463,6 @@ private void refresh ()
 			independent = ((String)v.elementAt(2)).trim();
 			// Check all the items in the list and highlight the
 			// ones that match the command being edited...
-			int size = v.size();
 			String temp = null;
 			boolean found_ts = false;
 			int pos = 0;

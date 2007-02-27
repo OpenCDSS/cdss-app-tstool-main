@@ -11,6 +11,7 @@
 // 2004-08-12	SAM, RTi		Change to free-format parameters and
 //					allow single or monthly constant values.
 //					Also allow the set period to be set.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -48,7 +49,6 @@ implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private SimpleJComboBox	__TSID_JComboBox = null;// Field for TSID
@@ -181,7 +181,6 @@ throws Throwable
 	__command_JTextField = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__ConstantValue_JTextField = null;
 	__MonthValues_JTextField = null;
 	__SetStart_JTextField = null;
@@ -211,8 +210,7 @@ TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -222,26 +220,25 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Set time series data values to a single or monthly (Jan - Dec)"
 		+" constant values." ), 
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If the time series data interval is month or smaller, " +
 		"constant values for each month can be specified." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"In this case, each date/time that matches a month will have " +
 		"its corresponding value set." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time series identifier/alias:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -258,54 +255,54 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__TSID_JComboBox.add ( "*" );
 	__TSID_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Constant value:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__ConstantValue_JTextField = new JTextField ( 10 );
 	__ConstantValue_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __ConstantValue_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Use for all intervals.."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Monthly values:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__MonthValues_JTextField = new JTextField ( 20 );
 	__MonthValues_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __MonthValues_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Monthly values, separated by commas."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("Set start:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__SetStart_JTextField = new JTextField (20);
 	__SetStart_JTextField.addKeyListener (this);
         JGUIUtil.addComponent(main_JPanel, __SetStart_JTextField,
-		1, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Set start (optional).  Default is all."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Set End:"), 
-		0, ++y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__SetEnd_JTextField = new JTextField (20);
 	__SetEnd_JTextField.addKeyListener (this);
         JGUIUtil.addComponent(main_JPanel, __SetEnd_JTextField,
-		1, y, 6, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 6, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Set end (optional).  Default is all."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 50 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	// Refresh the contents...
 	refresh ();
@@ -314,7 +311,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -348,7 +345,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

@@ -8,6 +8,7 @@
 // 2004-07-11	Steven A. Malers, RTi	Initial version (copy and modify
 //					readStateModB_JDialog).
 // 2005-06-09	SAM, RTi		Update to read CDS and IPY files.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -51,7 +52,6 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 			__ok_JButton = null,	// Ok Button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths.
-private JFrame		__parent_JFrame = null;	// parent Frame GUI class
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as TextField
 private String		__working_dir = null;	// Working directory.
@@ -173,7 +173,6 @@ to true.  This should be called before response() is allowed to complete.
 */
 private void checkInput ()
 {	String InputFile = __InputFile_JTextField.getText().trim();
-	String routine = "readStateCU_JDialog.checkInput";
 	String warning = "";
 	__error_wait = false;
 	// Adjust the working directory that was passed in by the specified
@@ -213,7 +212,6 @@ throws Throwable
 	__command_Vector = null;
 	__ok_JButton = null;
 	__path_JButton = null;
-	__parent_JFrame = null;
 	__working_dir = null;
 	super.finalize ();
 }
@@ -243,8 +241,7 @@ TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
 			Vector command, Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 	addWindowListener( this );
@@ -255,87 +252,86 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Read 1+ (or all) time series from one of the following " +
 		"file types, using data in the file to assign the identifier:"),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"     Crop pattern time series file (StateCU input file)." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"     Irrigation practice time series file (input)." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"     StateCU IWR or WSL report file (output)." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify a full or relative path (relative to working " +
 		"directory)." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The working directory is: " + __working_dir ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The time series identifier pattern, if specified, will" +
 		" filter the read ONLY for IWR and WSL files;" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"specify blank to read all or use * wildcards to match a" +
 		" time series identifier." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"For example, to read all monthly IWR time series for" +
 		" locations starting with ABC, specify:" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "  ABC.*.IWR.Month"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Location can be X, X*, or *.  Data type and interval can " +
 		"be * or combinations as follows:"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"   CropArea-AllCrops        Year" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"   IWR or WSL               Month, Year" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"   IWR_Depth or WSL_Depth   Month, Year" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"StateCU file to read:" ),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__InputFile_JTextField = new JTextField ( 50 );
 	__InputFile_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __InputFile_JTextField,
-		1, y, 5, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__browse_JButton = new SimpleJButton ( "Browse", this );
         JGUIUtil.addComponent(main_JPanel, __browse_JButton,
-		6, y, 1, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time series ID:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JTextField = new JTextField ( 10 );
 	__TSID_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JTextField,
-		1, y, 1, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 	"Loc.Source.Type.Interval"),
-	3, y, 4, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -344,7 +340,7 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	if ( __working_dir != null ) {
 		// Add the button to allow conversion to/from relative
@@ -375,7 +371,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput ();
 		if ( !__error_wait ) {
@@ -397,7 +393,6 @@ Refresh the command from the other text field contents.
 */
 private void refresh ()
 {	String routine = "readStateCU_JDialog.refresh";
-	String file = "";
 	__error_wait = false;
 	String InputFile="";
 	String TSID="";

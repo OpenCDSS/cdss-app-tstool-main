@@ -7,6 +7,7 @@
 //
 // 2004-01-29	Steven A. Malers, RTi	Initial version (copy and modify
 //					readDateValue).
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -23,7 +24,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import javax.swing.JFileChooser;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -31,14 +31,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
-import java.io.File;
-import java.util.Vector;
-
-import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
-import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -48,10 +42,8 @@ implements ActionListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel JButton
 			__ok_JButton = null;	// Ok JButton
-private JFrame		__parent_JFrame = null;	// parent JFrame GUI class
 private JTextField	__HydroBase_wdid_length_JTextField = null;
 						// WDID length
-private String		__working_dir = null;	// Working directory.
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
@@ -70,7 +62,6 @@ TSTool_Options_JDialog constructor.
 */
 public TSTool_Options_JDialog ( JFrame parent, PropList app_PropList )
 {	super(parent, true);
-	__parent_JFrame = parent;
 	__app_PropList = app_PropList;
 	String prop_value = __app_PropList.getValue ("TSTool.HydroBaseEnabled");
 	__HydroBase_enabled = false;
@@ -128,8 +119,6 @@ throws Throwable
 {	__cancel_JButton = null;
 	__HydroBase_wdid_length_JTextField = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
-	__working_dir = null;
 	super.finalize ();
 }
 
@@ -137,19 +126,16 @@ throws Throwable
 Instantiates the GUI components.
 */
 private void initialize ()
-{	__working_dir = __app_PropList.getValue ( "WorkingDir" );
-
-	addWindowListener( this );
+{	addWindowListener( this );
 
         Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JTabbedPane main_JTabbedPane = new JTabbedPane();
 	GridBagLayout gbl = new GridBagLayout();
-	GridBagConstraints gbc = new GridBagConstraints();
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( gbl );
         JGUIUtil.addComponent(main_JPanel, main_JTabbedPane,
-		0, 0, 1, 1, 1, 1, insetsTLBR, gbc.BOTH, gbc.CENTER);
+		0, 0, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
@@ -158,7 +144,7 @@ private void initialize ()
 	general_JPanel.setLayout ( gbl );
         JGUIUtil.addComponent(general_JPanel, new JLabel (
 		"General properties are being enabled."),
-		0, 0, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	main_JTabbedPane.addTab ( "General", general_JPanel );
 
 	// HydroBase tab...
@@ -169,7 +155,7 @@ private void initialize ()
 		y = 0;
         	JGUIUtil.addComponent(HydroBase_JPanel,
 			new JLabel ( "WDID Length:"),
-			0, y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+			0, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		String wdid_length = __app_PropList.getValue (
 			"HydroBase.WDIDLength" );
 		if ( wdid_length == null ) {
@@ -179,7 +165,7 @@ private void initialize ()
 			new JTextField ( wdid_length, 5 );
 		JGUIUtil.addComponent(HydroBase_JPanel,
 			__HydroBase_wdid_length_JTextField,
-			1, y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+			1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 		main_JTabbedPane.addTab ( "HydroBase", HydroBase_JPanel );
 	}
 
@@ -187,7 +173,7 @@ private void initialize ()
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, 1, 1, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, 1, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -207,7 +193,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		checkInput();
 		if ( !__error_wait ) {
 			response ( 1 );

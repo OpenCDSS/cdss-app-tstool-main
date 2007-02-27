@@ -9,6 +9,7 @@
 //					and modify.
 // 2002-04-24	SAM, RTi		Clean up dialog.
 // 2003-12-16	SAM, RTi		Update to Swing.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -50,7 +51,6 @@ private String __ABSOLUTE_WEIGHTS = "AbsoluteWeights";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private JTextField	__alias_JTextField = null;// Field for time series alias
@@ -62,9 +62,6 @@ private SimpleJComboBox	__weight_JComboBox = null;// Indicates how weights are
 private JTextArea	__trace_JTextArea = null; // Field for traces
 private JTextArea	__weight_JTextArea = null;// Weights for traces.
 						// results.
-private Vector		__tsids = null;		// Time series identifiers
-						// to check against selected
-						// alias
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
@@ -158,8 +155,6 @@ throws Throwable
 	__trace_JTextArea = null;
 	__weight_JTextArea = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
-	__tsids = null;
 	super.finalize ();
 }
 
@@ -185,9 +180,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
-	__tsids = tsids;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -195,28 +188,27 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Create a new time series by weighting traces.  The result" +
 		" is identified by its alias."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Enter trace years and weights one value per line."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time Series Alias:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ();
 	__alias_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Trace Identifier:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST );
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	__independent_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -231,38 +223,38 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__independent_JComboBox.setData ( tsids );
 	__independent_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __independent_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel(
 		"Weights Specified How:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__weight_JComboBox = new SimpleJComboBox ( false );
 	__weight_JComboBox.addItem ( __ABSOLUTE_WEIGHTS );
 	//__weight_JComboBox.addItem ( __NORMALIZED_WEIGHTS );
 	__weight_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __weight_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel( "Trace (year):"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__trace_JTextArea = new JTextArea ( 5, 10 );
 	__trace_JTextArea.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(__trace_JTextArea),
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel( "Weight:"),
-		3, y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		3, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__weight_JTextArea = new JTextArea ( 5, 10 );
 	__weight_JTextArea.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(__weight_JTextArea),
-		4, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		4, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh();
@@ -271,7 +263,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );

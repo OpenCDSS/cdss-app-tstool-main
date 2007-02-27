@@ -10,6 +10,7 @@
 // 2004-02-17	SAM, RTi		Fix bug where directory from file
 //					selection was not getting set as the
 //					last dialog directory in JGUIUtil.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -52,7 +53,6 @@ private SimpleJButton	__browse_JButton = null,// Button to browse for file
 			__ok_JButton = null,	// Ok Button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths
-private JFrame		__parent_JFrame = null;	// parent JFrame GUI class
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private String		__working_dir = null;	// Working directory.
@@ -155,7 +155,6 @@ to true.  This should be called before response() is allowed to complete.
 */
 private void checkInput ()
 {	String file = __file_JTextField.getText().trim();
-	String routine = "writeStateCU_JDialog.checkInput";
 	String warning = "";
 	// Adjust the working directory that was passed in by the specified
 	// directory.  If the directory does not exist, warn the user...
@@ -197,7 +196,6 @@ throws Throwable
 	__browse_JButton = null;
 	__ok_JButton = null;
 	__path_JButton = null;
-	__parent_JFrame = null;
 	__working_dir = null;
 	super.finalize ();
 }
@@ -225,8 +223,7 @@ TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
 			Vector command, Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 	addWindowListener( this );
@@ -237,56 +234,55 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"THIS COMMAND CURRENTLY ONLY WRITES StateCU FROST DATE FILES."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Write in-memory frost date time series to a StateCU " +
 		"format file," +
 		" which can be specified using a full or" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"relative path (relative to the working directory)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The working directory is: " + __working_dir ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The Browse button can be used to select an existing file " +
 		"to overwrite (or edit the file name after selection)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time series with data types FrostDateL28S, FrostDateL32S," +
 		" FrostDateF32F, and FrostDateF28F are processed." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The time series location is used to find a time series of " +
 		"each data type, for output." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"StateCU File to Write:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST );
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	__file_JTextField = new JTextField ( 50 );
 	__file_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __file_JTextField,
-		1, y, 5, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	__browse_JButton = new SimpleJButton ( "Browse", this );
         JGUIUtil.addComponent(main_JPanel, __browse_JButton,
-		6, y, 1, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -295,7 +291,7 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	if ( __working_dir != null ) {
 		// Add the button to allow conversion to/from relative
@@ -325,7 +321,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

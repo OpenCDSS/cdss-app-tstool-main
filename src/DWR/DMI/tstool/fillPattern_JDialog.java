@@ -14,6 +14,7 @@
 // 2005-04-27	SAM, RTi		Change TSList options to be more
 //					specific to allow using first, last,
 //					or all matching TSID.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -38,7 +39,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
@@ -58,7 +58,6 @@ private final String __SelectedTS = "SelectedTS";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextArea	__command_JTextArea=null;// Command as TextArea
 private Vector		__pattern_file_Vector;	// Vector of fill pattern files.
@@ -156,7 +155,6 @@ throws Throwable
 	__command_JTextArea = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__working_dir = null;
 	__pattern_file_Vector = null;
 	super.finalize ();
@@ -188,8 +186,7 @@ private void initialize (	JFrame parent, String title,
 				PropList app_PropList,
 				Vector pattern_file_Vector, Vector command,
 				Vector tsids, Vector patterns )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 	__pattern_file_Vector = pattern_file_Vector;
 
@@ -201,51 +198,50 @@ private void initialize (	JFrame parent, String title,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Monthly time series can be filled using historic average" +
 		" patterns (e.g., WET, DRY, AVG climate patterns)." ), 
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Patterns are defined with setPatternFile() command(s).  " +
 		"The following pattern file(s) are defined:" ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	if (	(__pattern_file_Vector == null) ||
 		(__pattern_file_Vector.size() == 0) ) {
 		JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"     None Defined" ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 	else {	int size = __pattern_file_Vector.size();
 		for ( int i = 0; i < size; i++ ) {
 			JGUIUtil.addComponent(main_JPanel, new JLabel (
 			"     " + (String)__pattern_file_Vector.elementAt(i) ), 
-			0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+			0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 		}
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Pattern file paths are absolute or are relative to the " +
 		"working directory."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 		if ( __working_dir != null ) {
         		JGUIUtil.addComponent(main_JPanel, new JLabel (
 			"The working directory is: " + __working_dir ), 
-			0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+			0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 		}
 	}
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The time series to process are indicated using the TS list."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If TS list is \"AllMatchingTSID\" or \"LastMatchingTSID\", "+
 		"pick a single time series, " +
 		"or enter a wildcard time series identifier pattern."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("TS list:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	Vector tslist_Vector = new Vector();
 	tslist_Vector.addElement ( __AllTS );
 	tslist_Vector.addElement ( __AllMatchingTSID );
@@ -256,14 +252,14 @@ private void initialize (	JFrame parent, String title,
 	__TSList_JComboBox.select ( 0 );
 	__TSList_JComboBox.addActionListener (this);
 	JGUIUtil.addComponent(main_JPanel, __TSList_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"How to get the time series to fill."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Identifier (TSID) to match:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	// Allow edits...
 	__TSID_JComboBox = new SimpleJComboBox ( true );
@@ -287,10 +283,10 @@ private void initialize (	JFrame parent, String title,
 	__TSID_JComboBox.addItemListener ( this );
 	__TSID_JComboBox.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Fill pattern ID:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__PatternID_JComboBox = new SimpleJComboBox ( false );
 	size = 0;
 	if ( patterns != null ) {
@@ -305,19 +301,19 @@ private void initialize (	JFrame parent, String title,
 	__PatternID_JComboBox.setData ( patterns );
 	__PatternID_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __PatternID_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Pattern ID used for filling."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextArea = new JTextArea ( 4, 50 );
 	__command_JTextArea.setLineWrap ( true );
 	__command_JTextArea.setWrapStyleWord ( true );
 	__command_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, new JScrollPane(__command_JTextArea),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -326,7 +322,7 @@ private void initialize (	JFrame parent, String title,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -356,7 +352,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

@@ -20,6 +20,7 @@
 //					last dialog directory in JGUIUtil.
 // 2004-07-21	SAM, RTi		Update to be more generic and use free
 //					format parameter lists.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -69,7 +70,6 @@ private SimpleJButton	__browse_JButton = null,// Browse for file.
 			__ok_JButton = null,	// Ok Button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private String		__working_dir = null;	// Working directory.
 private JTextField	__command_JTextField=null;
@@ -79,7 +79,8 @@ private JTextField	__ListFile_JTextField = null;
 private JTextField	__ID_JTextField = null;	// IDs to process file
 private SimpleJComboBox	__IDCol_JComboBox = null;
 						// ID column in file
-private SimpleJComboBox	__Delim_JComboBox = null;
+// TODO SAM
+// private SimpleJComboBox	__Delim_JComboBox = null;
 						// Delimiter for file
 private JTextField	__DataSource_JTextField = null;
 						// Field for time series
@@ -198,7 +199,8 @@ to true.  This should be called before response() is allowed to complete.
 */
 private void checkInput ()
 {	String ListFile = __ListFile_JTextField.getText().trim();
-	String InputType = __InputType_JTextField.getText().trim();
+	// TODO SAM
+	//String InputType = __InputType_JTextField.getText().trim();
 	String Interval = __Interval_JTextField.getText().trim();
 	String routine = "createFromList_JDialog.checkInput";
 	String warning = "";
@@ -228,7 +230,7 @@ private void checkInput ()
 		"Correct the file or Cancel.";
 	}
 	}
-	try {	TimeInterval tsi = TimeInterval.parseInterval ( Interval );
+	try {	TimeInterval.parseInterval ( Interval );
 	}
 	catch ( Exception e ) {
 		warning += 
@@ -261,7 +263,6 @@ throws Throwable
 	__browse_JButton = null;
 	__ok_JButton = null;
 	__path_JButton = null;
-	__parent_JFrame = null;
 	__working_dir = null;
 	super.finalize ();
 }
@@ -289,8 +290,7 @@ Instantiates the GUI components.
 private void initialize (	JFrame parent, String title,
 				PropList app_PropList, Vector command,
 				Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 	addWindowListener( this );
@@ -301,56 +301,55 @@ private void initialize (	JFrame parent, String title,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Create a list of time series from a list of identifiers " +
 		"in a file." ),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The information specified below is used with the identifiers" +
 		" to create time series identifiers,"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"which are then used to read the time series.  The " +
 		"identifiers are of the form:"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"  ID.DataSource.DataType.Interval.Scenario~InputType~" +
 		"InputName"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"This command is useful for automating time series creation " +
 		"where there is a one-to-one relationship between data."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The list file can contain comment lines starting with #." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"It is recommended that the path to the file be specified " +
 		"using a relative path."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The working directory is: " + __working_dir ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"List file to read:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__ListFile_JTextField = new JTextField ( 50 );
 	__ListFile_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __ListFile_JTextField,
-		1, y, 5, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__browse_JButton = new SimpleJButton ( "Browse", this );
         JGUIUtil.addComponent(main_JPanel, __browse_JButton,
-		6, y, 1, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "ID column:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__IDCol_JComboBox = new SimpleJComboBox ( false );
 	Vector IDCol_Vector = new Vector ( 100 );
 	for ( int i = 1; i < 101; i++ ) {
@@ -359,109 +358,109 @@ private void initialize (	JFrame parent, String title,
 	__IDCol_JComboBox.setData ( IDCol_Vector );
 	__IDCol_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __IDCol_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Indicate the ID column in the list file."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Delim:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Delim_JTextField = new JTextField ( "", 20 );
 	__Delim_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __Delim_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Delimiter(s) between data columns (default is \" ,\")."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "ID:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__ID_JTextField = new JTextField ( "", 20 );
 	__ID_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __ID_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"IDs to use (default is all or use X* to filter)."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Data source:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__DataSource_JTextField = new JTextField ( "", 20 );
 	__DataSource_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __DataSource_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"May be optional or required for input type."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Data type:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__DataType_JTextField = new JTextField ( "", 20 );
 	__DataType_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __DataType_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"As available for the input type."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Data interval:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Interval_JTextField = new JTextField ( "", 20 );
 	__Interval_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __Interval_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"NMinute, NHour, Day, Month, Year, or Irregular."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Scenario:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Scenario_JTextField = new JTextField ( "", 20 );
 	__Scenario_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __Scenario_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Optional."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Input type:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__InputType_JTextField = new JTextField ( "", 20 );
 	__InputType_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __InputType_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Needed to identify format of input."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Input name:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__InputName_JTextField = new JTextField ( "", 20 );
 	__InputName_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __InputName_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify for input types that require a file, etc."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,new JLabel("Handle missing TS how?:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__HandleMissingTSHow_JComboBox = new SimpleJComboBox ( false );
 	__HandleMissingTSHow_JComboBox.addItem ( __DefaultMissingTS );
 	__HandleMissingTSHow_JComboBox.addItem ( __IgnoreMissingTS );
 	__HandleMissingTSHow_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __HandleMissingTSHow_JComboBox,
-		1, y, 1, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Should empty TS be created (requires output period)?"),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	// Refresh the contents...
 	refresh();
@@ -470,7 +469,7 @@ private void initialize (	JFrame parent, String title,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	if ( __working_dir != null ) {
 		// Add the button to allow conversion to/from relative
@@ -508,7 +507,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh();
 		checkInput();
 		if ( !__error_wait ) {

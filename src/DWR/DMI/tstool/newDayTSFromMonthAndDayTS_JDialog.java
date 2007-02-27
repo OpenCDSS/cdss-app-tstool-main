@@ -8,6 +8,7 @@
 // 17 Jan 2001	Steven A. Malers, RTi	Initial version.
 // 2002-04-24	SAM, RTi		Clean up dialog.
 // 2003-12-16	SAM, RTi		Update to Swing.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -44,12 +45,10 @@ implements ActionListener, ItemListener, KeyListener, WindowListener
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private JTextField	__alias0_JTextField =null;// Field for time series alias
 private JTextField	__alias_JTextField = null;// Field for time series alias
-private SimpleJComboBox	__alias_JComboBox = null;// Field for time series alias
 private SimpleJComboBox	__monthts_JComboBox = null;// Field for independent time
 						// series identifier
 private SimpleJComboBox	__dayts_JComboBox = null;// Field for independent time
@@ -111,8 +110,7 @@ Free memory for garbage collection.
 */
 protected void finalize ()
 throws Throwable
-{	__alias_JComboBox = null;
-	__alias0_JTextField = null;
+{	__alias0_JTextField = null;
 	__alias_JTextField = null;
 	__cancel_JButton = null;
 	__command_JTextField = null;
@@ -120,7 +118,6 @@ throws Throwable
 	__monthts_JComboBox = null;
 	__dayts_JComboBox = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -146,8 +143,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 		Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -155,38 +151,37 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Create a daily time series by distributing a monthly total" +
 		" using a daily pattern." ), 
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Currently this command is implemented only to convert from" +
 		" acre-feet to CFS." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time Series Alias:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias0_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent(main_JPanel, __alias0_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__alias0_JTextField.addKeyListener(this);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"New Time Series Identifier:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__alias_JTextField.addKeyListener(this);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Monthly Time Series for Total:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__monthts_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -201,23 +196,23 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__monthts_JComboBox.setData ( tsids );
 	__monthts_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __monthts_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Daily Time Series for Distribution:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__dayts_JComboBox = new SimpleJComboBox ( false );
 	__dayts_JComboBox.setData ( tsids );
 	__dayts_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __dayts_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 50 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh();
@@ -226,7 +221,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -257,7 +252,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {
@@ -285,7 +280,6 @@ private void refresh ()
 	String monthts = "";
 	String dayts = "";
 	__error_wait = false;
-	String command = "newDayTSFromMonthAndDayTS";
 	if ( __first_time ) {
 		__first_time = false;
 		// Parse the incoming string and fill the fields...

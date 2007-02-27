@@ -8,6 +8,7 @@
 // 20 Feb 2001	Steven A. Malers, RTi	Initial version.
 // 2002-04-24	SAM, RTi		Clean up dialog.
 // 2003-12-16	SAM, RTi		Update to Swing.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -37,7 +38,6 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
-import RTi.Util.Time.DateTime;
 
 public class normalize_JDialog extends JDialog
 implements ActionListener, ItemListener, KeyListener, WindowListener
@@ -48,7 +48,6 @@ private String __MINVAL_ZERO = "MinZero";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as TextField
 private JTextField	__alias_JTextField = null;// Field for time series alias
@@ -58,9 +57,6 @@ private SimpleJComboBox	__independent_JComboBox = null;
 private SimpleJComboBox	__minval_JComboBox = null;// Indicates whether minimum
 						// value should be zero or
 						// taken from time series.
-private JTextField	__tsident_JTextField = null;
-						// Field for time series
-						// identifier
 private JTextField	__minval_JTextField = null;
 						// Minimum value in normalized
 						// results.
@@ -149,8 +145,6 @@ throws Throwable
 	__minval_JComboBox = null;
 	__minval_JTextField = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
-	__tsident_JTextField = null;
 	__tsids = null;
 	super.finalize ();
 }
@@ -177,8 +171,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__tsids = tsids;
 
 	addWindowListener( this );
@@ -187,29 +180,28 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Create a new time series by normalizing the data from a" +
 		" time series."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Use the alias to reference the new time series." +
 		"  Data units are not changed."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time Series Alias:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ( 20 );
 	__alias_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,
 		new JLabel("Time Series to Normalize:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__independent_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -224,38 +216,38 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__independent_JComboBox.setData ( tsids );
 	__independent_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __independent_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,new JLabel ("Minimum Output Value:" ),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__minval_JTextField = new JTextField ( "0.0", 10 );
 	JGUIUtil.addComponent(main_JPanel, __minval_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	__minval_JTextField.addKeyListener ( this );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Maximum Output Value:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__maxval_JTextField = new JTextField ( "1.0", 10 );
 	JGUIUtil.addComponent(main_JPanel, __maxval_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	__maxval_JTextField.addKeyListener ( this );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel(
 		"Minimum Data Value to Process:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__minval_JComboBox = new SimpleJComboBox ( false );
 	__minval_JComboBox.addItem ( __MINVAL_TS );
 	__minval_JComboBox.addItem ( __MINVAL_ZERO );
 	__minval_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __minval_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField (50);
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	// Refresh the contents...
 	refresh();
@@ -264,7 +256,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -294,7 +286,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh();
 		checkInput();
 		if ( !__error_wait ) {

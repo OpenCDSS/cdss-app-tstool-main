@@ -13,11 +13,11 @@
 //					for use in other code if necessary.
 // 2004-01-22	SAM, RTi		Update to new JWorksheet row heading
 //					standard.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
 import java.util.Vector;
 
 import RTi.DMI.DMIUtil;

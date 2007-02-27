@@ -8,6 +8,7 @@
 //
 // 2004-09-11	Steven A. Malers, RTi	Initial version (copy and modify
 //					readHydroBase_JDialog).
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -24,12 +25,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -40,12 +38,9 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 
 import RTi.TS.TSIdent;
 
-import RTi.Util.GUI.InputFilter;
 import RTi.Util.GUI.InputFilter_JPanel;
 import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
-import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -61,7 +56,6 @@ implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame GUI class
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__Alias_JTextField = null,// Alias for time series.
 			__location_JTextField,	// Location part of TSID
@@ -219,7 +213,6 @@ throws Throwable
 	__command_JTextField = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -248,7 +241,6 @@ should have a time series identifier and optionally comments.
 private void initialize ( JFrame parent, PropList app_PropList,
 			Vector command, boolean read_one, NWSRFS_DMI nwsrfs_dmi)
 {	String routine = "readNWSRFSFS5Files_JDialog.initialize";
-	__parent_JFrame = parent;
 	__command_Vector = command;
 	__read_one = read_one;
 	__nwsrfs_dmi = nwsrfs_dmi;
@@ -267,87 +259,86 @@ private void initialize ( JFrame parent, PropList app_PropList,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
 	if ( __read_one ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Read a single time series from the NWSRFS FS5Files."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 	else {	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Read one or more time series from the NWSRFS FS5Files."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        		JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The data type and interval must be selected.  Constrain the " +
 		"query using the \"where\" clauses, if necessary." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        		JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"This command is fully enabled only for structure time " +
 		"series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Refer to the NWSRFS FS5Files Input Type documentation for " +
 		"possible values." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specifying the period will limit data that are available " +
 		"for fill commands but can increase performance." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If not specified, the period defaults to the query period."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	if ( __read_one ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time series alias:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		__Alias_JTextField = new JTextField ( 30 );
 		__Alias_JTextField.addKeyListener ( this );
 		JGUIUtil.addComponent(main_JPanel, __Alias_JTextField,
-		1, y, 3, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 3, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Location:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		__location_JTextField = new JTextField ( "" );
 		__location_JTextField.addKeyListener ( this );
         	JGUIUtil.addComponent(main_JPanel, __location_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"For example: station or area ID."),
-		3, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Data source:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		__datasource_JTextField = new JTextField ( "NWSRFS" );
 		__datasource_JTextField.setEditable ( false );
         	JGUIUtil.addComponent(main_JPanel, __datasource_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	}
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Data type:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__DataType_JTextField = new JTextField ( "" );
 	__DataType_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __DataType_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"For example: MAP, QIN."),
-		3, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("Data interval:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Interval_JTextField = new JTextField ( "" );
 	__Interval_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __Interval_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"For example: 6Hour, 24Hour."),
-		3, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	if ( !__read_one ) {
 		int buffer = 3;
@@ -361,8 +352,8 @@ private void initialize ( JFrame parent, PropList app_PropList,
 				NWSRFS_TS_InputFilter_JPanel ();
        			JGUIUtil.addComponent(main_JPanel,
 				__input_filter_NWSRFS_FS5Files_JPanel,
-				0, ++y, 7, 1, 0.0, 0.0, insets, gbc.HORIZONTAL,
-				gbc.WEST );
+				0, ++y, 7, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.WEST );
 			__input_filter_JPanel_Vector.addElement (
 				__input_filter_NWSRFS_FS5Files_JPanel);
 			__input_filter_NWSRFS_FS5Files_JPanel.
@@ -378,43 +369,43 @@ private void initialize ( JFrame parent, PropList app_PropList,
 
 	if ( __read_one ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel ( "TSID (full):"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		__TSID_JTextField = new JTextField ( "" );
 		__TSID_JTextField.setEditable ( false );
 		__TSID_JTextField.addKeyListener ( this );
         	JGUIUtil.addComponent(main_JPanel, __TSID_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	}
 
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "Period to read:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__QueryStart_JTextField = new JTextField ( 15 );
 	__QueryStart_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __QueryStart_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "to" ), 
-		3, y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		3, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	__QueryEnd_JTextField = new JTextField ( 15 );
 	__QueryEnd_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __QueryEnd_JTextField,
-		4, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		4, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("Units:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Units_JTextField = new JTextField ( "" );
 	__Units_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __Units_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Indicate return units (e.g., CFS if database is CMS)."),
-		3, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -423,7 +414,7 @@ private void initialize ( JFrame parent, PropList app_PropList,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton( "Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -483,7 +474,6 @@ private void refresh ()
 	String TSID = "";
 	String DataType = "";
 	String Interval = "";
-	String Where1 = "";
 	String filter_delim = ";";
 	String QueryStart = "";
 	String QueryEnd = "";
@@ -559,11 +549,7 @@ private void refresh ()
 				__input_filter_NWSRFS_FS5Files_JPanel;
 			int nfg = filter_panel.getNumFilterGroups();
 			String where;
-			InputFilter filter;
 			for ( int ifg = 0; ifg < nfg; ifg ++ ) {
-				filter = (InputFilter)
-				__input_filter_NWSRFS_FS5Files_JPanel.
-				getInputFilter(ifg);
 				where = props.getValue ( "Where" + (ifg + 1) );
 				if ( where != null ) {
 					// Set the filter...
@@ -639,13 +625,9 @@ private void refresh ()
 		InputFilter_JPanel filter_panel =
 			__input_filter_NWSRFS_FS5Files_JPanel;
 		int nfg = filter_panel.getNumFilterGroups();
-		InputFilter filter;
 		String where;
 		String delim = ";";	// To separate input filter parts
 		for ( int ifg = 0; ifg < nfg; ifg ++ ) {
-			filter = (InputFilter)
-			__input_filter_NWSRFS_FS5Files_JPanel.
-			getInputFilter(ifg);
 			where = filter_panel.toString(ifg,delim).trim();
 			// Make sure there is a field that is being checked in
 			// a where clause...

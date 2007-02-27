@@ -16,16 +16,15 @@
 //					  part of the time series identifier.
 // 2005-05-18	SAM, RTi		* If a time series is null, return an
 //					  empty string in getValueAt().
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
 import java.util.Vector;
 
 import RTi.TS.TS;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for TS

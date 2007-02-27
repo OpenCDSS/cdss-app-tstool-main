@@ -13,6 +13,7 @@
 // 2005-08-01	SAM, RTi		* Change InitialValue to use an
 //					  editable JComboBox and allow a number
 //					  NearestForward, or NearestBackward.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -35,7 +36,6 @@ import java.awt.event.WindowListener;
 import javax.swing.DefaultListModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -75,7 +75,6 @@ private String __REMOVE_TEMPTS_FLAG = "Remove TEMPTS flag";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextArea	__command_JTextArea=null;// Command as JTextField
 private SimpleJComboBox	__InitialValue_JComboBox = null;
@@ -265,7 +264,6 @@ throws Throwable
 	__command_JTextArea = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -291,8 +289,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -300,55 +297,54 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"This command fills missing data in a time series by" +
 		" prorating values from an independent time series." ), 
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The proration factor is calculated in one of the following " +
 		"ways (indicated by \"Calculate factor how?\"):" ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"1)  Recompute the factor at each point where a non-missing " +
 		"value is found in both time series (NearestPoint)." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"     The initial value in the filled time series is used to " +
 		"compute the initial factor, for missing data at the " +
 		"end of the fill period."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"2)  Recompute the factor as the dependent time series "
 		+ "value divided by the average of independent values " +
 		"(AnalysisAverage)." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The factor (ratio) is TS/IndependentTS and the filled value "+
 		"is calculated as factor*IndependentTS." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If the independent time series data value is zero, the factor "
 		+"remains as previously calculated to avoid division by zero."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The independent time series is not itself filled if * is " +
 		"specified for the time series to fill."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The fill start and end, if specified, will limit the period" +
 		" that is filled." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Use standard date/time formats appropriate for the date/time "+
 		"precision of the time series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("Time series to fill:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -366,11 +362,11 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__TSID_JComboBox.add ( "*" );
 	__TSID_JComboBox.addActionListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Independent time series:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__IndependentTSID_JListModel = new DefaultListModel();
 	for ( int i = 0; i < size; i++ ) {
 		__IndependentTSID_JListModel.addElement(
@@ -384,55 +380,55 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__IndependentTSID_JList.addMouseListener ( this );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(
 		__IndependentTSID_JList),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Fill start date/time:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillStart_JTextField = new JTextField ( "", 10 );
 	__FillStart_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillStart_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Start date/time for filling (blank=fill all)."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Fill end date/time:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillEnd_JTextField = new JTextField ( "", 10 );
 	__FillEnd_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillEnd_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"End date/time for filling (blank=fill all)."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,new JLabel( "Fill flag:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillFlag_JTextField = new JTextField ( "", 10 );
 	__FillFlag_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillFlag_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Optional one-character flag to mark filled data."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Fill direction:"), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__FillDirection_JComboBox = new SimpleJComboBox ( false );
 	__FillDirection_JComboBox.addItem ( __BACKWARD );
 	__FillDirection_JComboBox.addItem ( __FORWARD );
 	__FillDirection_JComboBox.select ( __FORWARD );
 	__FillDirection_JComboBox.addActionListener ( this );
         JGUIUtil.addComponent(main_JPanel, __FillDirection_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Direction to traverse data when filling."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Calculate factor how?:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__CalculateFactorHow_JComboBox = new SimpleJComboBox ( false );
 	__CalculateFactorHow_JComboBox.addItem ( "" );
 	__CalculateFactorHow_JComboBox.addItem ( __AnalyzeAverage );
@@ -440,35 +436,35 @@ private void initialize ( JFrame parent, String title, Vector command,
 	//__CalculateFactorHow_JComboBox.select ( __Constant );
 	__CalculateFactorHow_JComboBox.addActionListener ( this );
         JGUIUtil.addComponent(main_JPanel, __CalculateFactorHow_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"How will factor be calculated? (default=NearestPoint)"),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Analysis start date/time:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__AnalysisStart_JTextField = new JTextField ( "", 10 );
 	__AnalysisStart_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __AnalysisStart_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Analysis start date/time, for AnalyzeAverage."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,new JLabel(
 		"Analysis end date/time:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__AnalysisEnd_JTextField = new JTextField ( "", 10 );
 	__AnalysisEnd_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __AnalysisEnd_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Analysis end date/time, for AnalyzeAverage."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel,new JLabel( "Initial value:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__InitialValue_JComboBox = new SimpleJComboBox ( true );
 	Vector InitialValue_Vector = new Vector  ( 3 );
 	InitialValue_Vector.addElement ( "" );
@@ -478,19 +474,19 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__InitialValue_JComboBox.addKeyListener ( this );
 	__InitialValue_JComboBox.addActionListener ( this );
         JGUIUtil.addComponent(main_JPanel, __InitialValue_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Initial value in time series for missing end-points."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextArea = new JTextArea ( 5, 55 );
 	__command_JTextArea.setLineWrap ( true );
 	__command_JTextArea.setWrapStyleWord ( true );
 	__command_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, new JScrollPane(__command_JTextArea),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -499,7 +495,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -528,7 +524,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

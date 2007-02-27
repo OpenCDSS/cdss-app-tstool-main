@@ -11,6 +11,7 @@
 // 2004-02-17	SAM, RTi		Fix bug where directory from file
 //					selection was not getting set as the
 //					last dialog directory in JGUIUtil.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -36,9 +37,7 @@ import javax.swing.JTextField;
 import java.io.File;
 import java.util.Vector;
 
-import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -59,12 +58,9 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 						// absolute path.
 			__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null;// Command as Vector of String
 private String		__working_dir = null;	// Working directory.
 private JTextField	__alias_JTextField = null,// Alias for time series.
-			__filealias_JTextField,	// TSID/Alias to read in the
-						// file.
 			__analysis_period_start_JTextField,
 			__analysis_period_end_JTextField,
 						// Text fields for analysis
@@ -104,9 +100,6 @@ public void actionPerformed( ActionEvent event )
 		// Browse for the file to read...
 		JFileChooser fc = new JFileChooser();
 		fc.setDialogTitle( "Select RiverWare Time Series File");
-		SimpleFileFilter
-		sff = new SimpleFileFilter("txt",
-			"RiverWare Time Series File");
 		
 		String last_directory_selected =
 			JGUIUtil.getLastFileDialogDirectory();
@@ -125,7 +118,6 @@ public void actionPerformed( ActionEvent event )
 				return;
 			}
 	
-			String fs = System.getProperty ("file.separator");
 			if (path != null) {
 				__file_JTextField.setText(path );
 				JGUIUtil.setLastFileDialogDirectory(directory );
@@ -262,7 +254,6 @@ throws Throwable
 	__command_Vector = null;
 	__file_JTextField = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__working_dir = null;
 	super.finalize ();
 }
@@ -289,8 +280,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
 			Vector command, Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 try {
@@ -300,98 +290,97 @@ try {
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Read a single time series from a RiverWare time series file."+
 		"  It is assumed that the filename follows"),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"the convention ObjectName.SlotName.  The ObjectName and " +
 		"SlotName will be used for the time series"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"identifier location and data type, respectively." ),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify a full path or relative path (relative to working " +
 		"directory) for a RiverWare file to read." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specifying the period will limit data that are available " +
 		"for fill commands but can increase performance." ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specifying units causes conversion during the read " +
 		"(currently under development)."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If not specified, the period defaults to the query period."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The working directory is: " + __working_dir ), 
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time Series Alias:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JTextField = new JTextField ( 30 );
 	__alias_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __alias_JTextField,
-		1, y, 3, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 3, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"RiverWare File to Read:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__file_JTextField = new JTextField ( 50 );
 	__file_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __file_JTextField,
-		1, y, 5, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__browse_JButton = new SimpleJButton ( "Browse", this );
         JGUIUtil.addComponent(main_JPanel, __browse_JButton,
-		6, y, 1, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 
 /* SAMX maybe later if defaults that come back are not ideal.
         JGUIUtil.addComponent(main_JPanel, new JLabel("Identifier/Alias to Read:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__filealias_JTextField = new JTextField ( "*", 30 );
 	__filealias_JTextField.addKeyListener ( this );
 	__filealias_JTextField.setEnabled ( false );
 	JGUIUtil.addComponent(main_JPanel, __filealias_JTextField,
-		1, y, 3, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 3, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 */
 
         JGUIUtil.addComponent(main_JPanel, new JLabel("Units to convert to:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__units_JTextField = new JTextField ( "*", 10 );
 	__units_JTextField.addKeyListener ( this );
 	__units_JTextField.setEnabled ( false );
 	JGUIUtil.addComponent(main_JPanel, __units_JTextField,
-		1, y, 3, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 3, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "Period to Read:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__analysis_period_start_JTextField = new JTextField ( "*", 15 );
 	__analysis_period_start_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __analysis_period_start_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(main_JPanel, new JLabel ( "to" ), 
-		3, y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.CENTER);
+		3, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	__analysis_period_end_JTextField = new JTextField ( "*", 15 );
 	__analysis_period_end_JTextField.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, __analysis_period_end_JTextField,
-		4, y, 2, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		4, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 60 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -400,7 +389,7 @@ try {
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	if ( __working_dir != null ) {
 		// Add the button to allow conversion to/from relative
@@ -437,7 +426,7 @@ public void keyPressed ( KeyEvent event )
 	// Don't want key input to refresh dates unless enter or tab...
 	if (	(event.getSource() == __analysis_period_start_JTextField) ||
 		(event.getSource() == __analysis_period_end_JTextField) ) {
-		if ( (code == event.VK_ENTER) || (code == event.VK_TAB) ) {
+		if ( (code == KeyEvent.VK_ENTER) || (code == KeyEvent.VK_TAB) ) {
 			refresh ();
 		}
 	}

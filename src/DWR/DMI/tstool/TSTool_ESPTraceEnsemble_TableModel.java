@@ -28,18 +28,15 @@
 // 2004-12-01	SAM, RTi		* Move the trace number column to after
 //					  the scenario, consistent with the
 //					  time series identifier conventions.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 // EndHeader
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
-import java.util.Vector;
-
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.TS.TS;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for NWSRFS_ESPTraceEnsemble header information for
@@ -74,7 +71,8 @@ public final int COL_INPUT_NAME	= 12;
 /**
 Local reference to NWSRFS_ESPTraceEnsemble.
 */
-private NWSRFS_ESPTraceEnsemble __ensemble = null;
+//TODO SAM evaluate if needed
+//private NWSRFS_ESPTraceEnsemble __ensemble = null;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
@@ -99,7 +97,8 @@ public TSTool_ESPTraceEnsemble_TableModel (	NWSRFS_ESPTraceEnsemble
 						ensemble,
 						boolean include_alias )
 throws Exception
-{	__ensemble = ensemble;
+{	//TODO SAM
+	//__ensemble = ensemble;
 	if ( (ensemble == null) || (ensemble.getTimeSeriesVector() == null) ) {
 		_rows = 0;
 	}

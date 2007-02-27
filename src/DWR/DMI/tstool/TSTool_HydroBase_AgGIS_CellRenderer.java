@@ -9,12 +9,12 @@
 //
 // 2004-02-08	Steven A. Malers, RTi	Initial version - copy and modify
 //					TSTool_HydroBase_Ag_CellRenderer.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is used to render cells for TSTool_HydroBase_AgGIS_TableModel data,

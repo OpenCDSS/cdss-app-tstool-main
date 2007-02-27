@@ -27,12 +27,12 @@
 //					  formatted to the desired length.
 //					* Also add setWDIDLength() to set the
 //					  length after initialization.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 // EndHeader
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
 import java.util.Vector;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
@@ -43,7 +43,6 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 // REVISIT - need to also allow WIS data?
 /**
@@ -80,7 +79,7 @@ private final int __RECORD_TYPE_UNKNOWN = 0;	// Used with __record_type
 private final int __RECORD_TYPE_STATIONS = 1;
 private final int __RECORD_TYPE_STRUCTURES = 2;
 private final int __RECORD_TYPE_WELL = 3;
-private final int __RECORD_TYPE_WIS = 4;	// REVISIT NOT CURRENTLY USED
+//private final int __RECORD_TYPE_WIS = 4;	// TODO SAM REVISIT NOT CURRENTLY USED
 
 private int __record_type = __RECORD_TYPE_UNKNOWN;	// Type of records being
 							// listed, for use with

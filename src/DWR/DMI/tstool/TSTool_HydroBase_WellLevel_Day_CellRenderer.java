@@ -7,12 +7,12 @@
 // History:
 //
 // 2005-11-15	J. Thomas Sapienza, RTi	Initial version.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is used to render cells for TSTool_HydroBase_WellLevel_Day_TableModel

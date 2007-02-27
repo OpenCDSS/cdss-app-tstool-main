@@ -7,12 +7,12 @@
 // History:
 //
 // 2005-11-15	J. Thomas Sapienza, RTi	Initial version.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 // EndHeader
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
 import java.util.Vector;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
@@ -21,7 +21,6 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for HydroBase

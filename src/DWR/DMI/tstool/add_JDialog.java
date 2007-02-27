@@ -21,6 +21,7 @@
 // 2004-08-02	SAM, RTi		The HandleMissingHow parameter was not
 //					getting output in the command.
 // 2004-11-12	SAM, RTi		Fix typo in notes.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -44,7 +45,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -83,7 +83,6 @@ private String __SET_MISSING_IF_ANY_MISSING = "SetMissingIfAnyMissing";
 
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent JFrame
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private SimpleJComboBox	__TSID_JComboBox = null;// Field for time series ID
@@ -202,7 +201,6 @@ throws Throwable
 	__AddTSID_JListModel = null;
 	__HandleMissingHow_JComboBox = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	__ts_JPopupMenu = null;
 	super.finalize ();
 }
@@ -229,8 +227,7 @@ a subtract() command.
 */
 private void initialize (	JFrame parent, Vector command, boolean is_add,
 				Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 	__command = ((String)command.elementAt(0)).trim();
 	if ( is_add ) {
 		__command = "add";
@@ -245,7 +242,6 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
@@ -253,47 +249,47 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
         	JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Add one or more time series to a time series." +
 		"  The receiving time series is modified."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 	else if ( __command.equals("subtract") ) {
         	JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Subtract one or more time series from a time " +
 		"series.  The receiving time series is modified."),
-		0, y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The time series to be " + __command +
 		"ed can be selected using the TS list parameter:"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"  " + __AllTS + " - " + __command +
 		" all previous time series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"  " + __SelectedTS + " - " + __command +
 		" time series selected with selectTimeSeries() commands"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"  " + __SpecifiedTS + " - " + __command +
 		" time series selected from the list below (* will " +
 		__command + " all previous time series)"),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	if ( __command.equals("add") ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Right-click on \"Time Series to Add\" to convert to" +
 		" TEMPTS."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 	else if ( __command.equals("subtract") ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Right-click on \"Time Series to Subtract\" to convert to" +
 		" TEMPTS."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
 
         JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Time series to receive results:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
 	if ( tsids != null ) {
@@ -308,10 +304,10 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 	__TSID_JComboBox.setData ( tsids );
 	__TSID_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __TSID_JComboBox,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ("TS list:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	Vector tslist_Vector = new Vector();
 	tslist_Vector.addElement ( __AllTS );
 	tslist_Vector.addElement ( __SelectedTS );
@@ -320,14 +316,14 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 	__TSList_JComboBox.setData ( tslist_Vector );
 	__TSList_JComboBox.addItemListener (this);
 	JGUIUtil.addComponent(main_JPanel, __TSList_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"How to get the time series to " + __command + "."),
-		3, y, 3, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST );
+		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Time series to " + __command + ":" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__AddTSID_JListModel = new DefaultListModel();
 	__AddTSID_JListModel.addElement ( "*" );
 	for ( int i = 0; i < size; i++ ) {
@@ -344,25 +340,25 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 	__AddTSID_JList.setSelectionModel ( sm );
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(
 		__AddTSID_JList),
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST );
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Handle missing data how?:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__HandleMissingHow_JComboBox = new SimpleJComboBox ( false );
 	__HandleMissingHow_JComboBox.addItem ( __IGNORE_MISSING );
 	__HandleMissingHow_JComboBox.addItem ( __SET_MISSING_IF_ANY_MISSING );
 	__HandleMissingHow_JComboBox.addItem ( __SET_MISSING_IF_OTHER_MISSING );
 	__HandleMissingHow_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __HandleMissingHow_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh();
@@ -371,7 +367,7 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -410,7 +406,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

@@ -7,12 +7,12 @@
 //
 // 2003-11-25	Steven A. Malers, RTi	Initial version - copy and modify
 //					RiversideDB version.
+
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is used to render cells for TSTool_HydroBase_TableModel data.

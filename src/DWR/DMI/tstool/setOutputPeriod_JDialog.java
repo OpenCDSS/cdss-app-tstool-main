@@ -18,6 +18,7 @@
 // 2003-12-01	SAM, RTi		Update to Swing.
 // 2004-02-03	SAM, RTi		Update comments to indicate when it is
 //					best to use the command.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -51,7 +52,6 @@ implements ActionListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent Frame GUI class
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__date1_JTextField = null,// Dates for period.
 			__date2_JTextField = null,// Dates for period.
@@ -150,7 +150,6 @@ throws Throwable
 	__command_JTextField = null;
 	__command_Vector = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -176,8 +175,7 @@ TSEngine.getTSIdentifiersFromCommands() - ignored.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -188,7 +186,6 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
@@ -196,73 +193,73 @@ private void initialize ( JFrame parent, String title, Vector command,
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "The output period" +
 		" is used ONLY for output products (e.g., files)."),
-		0, y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The time series period" +
 		" after reading will be extended to the output period if " +
 		"necessary."),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Use a setOutputPeriod() "+
 		"command to guarantee longer periods if filling data."),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the command at the top of commands when filling a"+
 		" specific period."),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Enter dates to a " +
 		"precision appropriate for output time series.  For example:"),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"    Year data:   YYYY"),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"    Month data:   MM/YYYY or YYYY-MM"),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"    Day data:     MM/DD/YYYY or YYYY-MM-DD"),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"    Hour data:    MM/DD/YYYY HH or YYYY-MM-DD HH"),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"    Minute data:  MM/DD/YYYY HH:mm or YYYY-MM-DD HH:mm"),
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Enter * to output all available data (default if " +
 		"setOutputPeriod() is not used)."), 
-		0, ++y, 6, 1, 0, 0, insetsMin, gbc.NONE, gbc.WEST);
+		0, ++y, 6, 1, 0, 0, insetsMin, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Output Period Start:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__date1_JTextField = new JTextField ( 20 );
 	__date1_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __date1_JTextField,
-		1, y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Output Period End:" ), 
-		0, ++y, 2, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__date2_JTextField = new JTextField ( 20 );
 	__date2_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __date2_JTextField,
-		1, y, 6, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 6, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 30 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -271,7 +268,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );

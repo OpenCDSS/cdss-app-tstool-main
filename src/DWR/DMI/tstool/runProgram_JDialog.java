@@ -11,6 +11,7 @@
 //					OS finish with files.
 // 2002-04-08	SAM, RTi		Clean up dialog.
 // 2003-12-03	SAM, RTi		Update to Swing.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -43,7 +44,6 @@ implements ActionListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
-private JFrame		__parent_JFrame = null;	// parent Frame GUI class
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as TextField
 private JTextField	__program_JTextField = null,
@@ -89,7 +89,6 @@ Check the user input for errors and set __error_wait accordingly.
 private void checkInput ()
 {	String program = __program_JTextField.getText().trim();
 	String timeout = __timeout_JTextField.getText().trim();
-	String routine = "runProgram_JDialog.checkInput";
 
 	String warning = "";
 
@@ -121,7 +120,6 @@ throws Throwable
 	__program_JTextField = null;
 	__timeout_JTextField = null;
 	__ok_JButton = null;
-	__parent_JFrame = null;
 	super.finalize ();
 }
 
@@ -147,8 +145,7 @@ TSEngine.getTSIdentifiersFromCommands() - ignored.
 */
 private void initialize ( JFrame parent, String title, Vector command,
 			Vector tsids )
-{	__parent_JFrame = parent;
-	__command_Vector = command;
+{	__command_Vector = command;
 
 	addWindowListener( this );
 
@@ -159,51 +156,50 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
-	GridBagConstraints gbc = new GridBagConstraints();
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"TSTool can run other programs as part of a command file."),
-		0, y, 7, 1, 1, 0, insetsMin, gbc.HORIZONTAL, gbc.WEST);
+		0, y, 7, 1, 1, 0, insetsMin, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Commands must use a full path or TSTool must be started " +
 		"from directory to run in"),
-		0, ++y, 7, 1, 1, 0, insetsMin, gbc.HORIZONTAL, gbc.WEST);
+		0, ++y, 7, 1, 1, 0, insetsMin, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
  		"(setWorkingDir() has no effect)."), 
-		0, ++y, 7, 1, 1, 0, insetsMin, gbc.HORIZONTAL, gbc.WEST);
+		0, ++y, 7, 1, 1, 0, insetsMin, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	if ( System.getProperty("os.name").equalsIgnoreCase("Windows NT") ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel ( "Programs can "+
 		"have maximum of 9 command-line arguments."), 
-		0, ++y, 7, 1, 1, 0, insetsMin, gbc.HORIZONTAL, gbc.WEST);
+		0, ++y, 7, 1, 1, 0, insetsMin, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	}
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The timeout should be specified in seconds (value of 0" +
 		" means no timeout."),
-		0, ++y, 7, 1, 1, 0, insetsMin, gbc.HORIZONTAL, gbc.WEST);
+		0, ++y, 7, 1, 1, 0, insetsMin, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "External Command:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__program_JTextField = new JTextField ( 50 );
 	__program_JTextField.setText( "");
 	__program_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __program_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Timeout:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__timeout_JTextField = new JTextField ( "0", 55 );
 	__timeout_JTextField.addKeyListener ( this );
         JGUIUtil.addComponent(main_JPanel, __timeout_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, gbc.NONE, gbc.WEST);
+		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
-		0, ++y, 1, 1, 0, 0, insetsTLBR, gbc.NONE, gbc.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 30 );
 	__command_JTextField.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
-		1, y, 6, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -212,7 +208,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
-		0, ++y, 8, 1, 1, 0, insetsTLBR, gbc.HORIZONTAL, gbc.CENTER);
+		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
@@ -234,7 +230,7 @@ Respond to KeyEvents.
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
 
-	if ( code == event.VK_ENTER ) {
+	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
 		checkInput();
 		if ( !__error_wait ) {

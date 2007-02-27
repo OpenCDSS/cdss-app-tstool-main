@@ -18,22 +18,19 @@
 // 2004-02-20	SAM, RTi		Update to use
 //					HydroBase_AgriculturalCASSCropStats.
 //					Add HydroBase_AgriculturalNASSCropStats.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
 import java.util.Vector;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_Agstats;
-import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
 
-import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for HydroBase
@@ -200,7 +197,6 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	int i;	// Use for integer data.
 	if ( __record_type == __RECORD_TYPE_AGRICULTURAL_CASS_CROP_STATS ) {
 		HydroBase_AgriculturalCASSCropStats ag =
 			(HydroBase_AgriculturalCASSCropStats)

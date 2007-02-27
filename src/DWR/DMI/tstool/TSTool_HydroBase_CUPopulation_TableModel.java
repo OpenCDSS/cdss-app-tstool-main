@@ -8,19 +8,17 @@
 //
 // 2006-11-01	Steven A. Malers, RTi	Initial version. Copy and modify
 //					TSTool_HydroBase_CASSLiveStockStats_TableModel class.
+// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
 
-import java.util.Date;
 import java.util.Vector;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_CUPopulation;
 
-import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for HydroBase
@@ -141,7 +139,6 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	int i;	// Use for integer data.
 	HydroBase_CUPopulation ag = (HydroBase_CUPopulation)
 		_data.elementAt(row);
 	switch (col) {
