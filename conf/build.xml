@@ -832,17 +832,17 @@
 
 <!-- regression tests all data sets using CDSS config -->
 <target name="regTestAll_CDSS" >
-	<regTestSetup dataset="CDSS_RioGrande" />
-	<regTestSetup dataset="general" />
-	<regTestSetup dataset="Rivertrak"/>
+	<addTestsToSet dataset="CDSS_RioGrande" />
+	<addTestsToSet dataset="general" />
+	<addTestsToSet dataset="Rivertrak"/>
 	<antcall target="regTestCDSS" />
 </target>
 		
 <!-- regression tests all data sets using Rivertrak config -->	
 <target name="regTestAll_Rivertrak" >
-	<regTestSetup dataset="CDSS_RioGrande" />
-	<regTestSetup dataset="general" />
-	<regTestSetup dataset="CDSS"/>
+	<addTestsToSet dataset="CDSS_RioGrande" />
+	<addTestsToSet dataset="general" />
+	<addTestsToSet dataset="CDSS"/>
 	<antcall target="regTestRivertrak" />
 </target>
 	
