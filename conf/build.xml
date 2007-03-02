@@ -868,6 +868,29 @@
 </target>
 	
 <!--=================================================
+	Target: regTestCDSS_UpperColorado
+	Function: to regression test this product.  Runs 
+	          TSTool using a commands file and sends
+	          the output to the Regression results
+	          folder.   
+===================================================-->
+<target name="regTestCDSS_UpperColorado" depends="jar"
+	description="runs CDSS regression tests and outputs 
+	results to test/regression/results">
+	
+	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+		target="regTest">
+		<property name="reg_dataset" 
+			value="CDSS_UpperColorado_200701"/>
+		<property name="reg_install.dir" 
+			value="${CDSS_install.dir}"/>
+		<property name="reg_proj_file" value="${NJProj_Reg}"/>
+	</ant>
+	
+</target>	
+
+	
+<!--=================================================
 	Target: regTestGeneral
 	Function: to regression test this product.  Runs 
 	          TSTool using a commands file and sends
