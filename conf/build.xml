@@ -267,6 +267,11 @@
 <target name="buildWinProdTester_CDSS_RioGrande" >
 	<buildProdTesterWindows dataset="CDSS_RioGrande" />
 </target>
+	
+<target name="buildWinProdTester_CDSS_UpperColorado_200701" >
+	<buildProdTesterWindows dataset="CDSS_UpperColorado_200701" />
+</target>	
+	
 <!--========================================================-->
 	
 <!-- several targets for building product testers for Linux -->
@@ -289,6 +294,10 @@
 <target name="buildLinuxProdTester_CDSS_RioGrande" >
 	<buildProdTesterLinux dataset="CDSS_RioGrande" />
 </target>
+	
+<target name="buildLinuxProdTester_CDSS_UpperColorado_200701" >
+	<buildProdTesterLinux dataset="CDSS_UpperColorado_200701" />
+</target>	
 <!--=======================================================-->
 	
 <!--===================================================
@@ -835,6 +844,7 @@
 	<addTestsToSet dataset="CDSS_RioGrande" />
 	<addTestsToSet dataset="general" />
 	<addTestsToSet dataset="Rivertrak"/>
+	<addTestsToSet dataset="CDSS_UpperColorado_200701" />
 	<antcall target="regTestCDSS" />
 </target>
 		
