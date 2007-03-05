@@ -422,6 +422,12 @@
 		<arg value="${NJProj}"/>
 	</exec>
 	
+	<!-- create NativeJ EXE file -->
+	<exec executable="${nativejc}" 
+		dir="${nsis.dir}${sep}Rivertrack" >
+		<arg value="${NJProj}"/>
+	</exec>
+	
 </target>	
 	
 <!--=========================================================
