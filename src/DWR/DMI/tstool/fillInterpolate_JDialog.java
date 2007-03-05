@@ -11,6 +11,7 @@
 // 2003-12-02	SAM, RTi		Update to Swing.
 // 2004-02-17	SAM, RTi		Add clarifying notes for user.
 // 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
+// 2007-03-01	SAM, RTi		Put quotes around TSID to allow for spaces.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -337,7 +338,7 @@ private void refresh ()
 	alias = __alias_JComboBox.getSelected();
 	maxint = __maxint_JTextField.getText().trim();
 	interpolate_type = __interpolate_type_JComboBox.getSelected();
-	__command_JTextField.setText("fillInterpolate(" + alias + "," +
+	__command_JTextField.setText("fillInterpolate(\"" + alias + "\"," +
 	maxint + "," + interpolate_type + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

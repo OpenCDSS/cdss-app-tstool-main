@@ -810,6 +810,7 @@
 //                      command so that the new generic code handles it.
 // 2007-02-11	SAM, RTi	Confirm compatibility with new TSCommandProcessor.
 //					Clean up code based on Eclipse feedback.
+//					Automatically add *.TSTool to the commands file name.
 //-----------------------------------------------------------------------------
 //EndHeader
 
@@ -16016,7 +16017,7 @@ public void worksheetSetRowCount ( int count )
 Write the current commands file list (all lines, whether selected or not) to
 the specified file.  Do not prompt for header comments (and do not add).
 @param prompt_for_file If true, prompt for the file name rather than using the
-value that is passed.
+value that is passed.  An extension of .TSTool is enforced.
 @param file Commands file to write.
 */
 private void writeCommandsFile ( String file, boolean prompt_for_file )
@@ -16037,6 +16038,7 @@ private void writeCommandsFile ( String file, boolean prompt_for_file )
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			directory = fc.getSelectedFile().getParent();
 			file = fc.getSelectedFile().getPath();
+			IOUtil.enforceFileExtension ( file, "TSTool" );
 			JGUIUtil.setLastFileDialogDirectory ( directory );
 		}		
 		else {	// Did not approve...

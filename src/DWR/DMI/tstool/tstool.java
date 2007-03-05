@@ -430,7 +430,7 @@ import RTi.Util.String.StringUtil;
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "7.01.00 (2007-02-12)";
+public static final String PROGRAM_VERSION = "7.01.00 (2007-03-02)";
 
 private static TSTool_JFrame	__tstool_JFrame;	// Main GUI
 private static String		__home = null;		// Home directory for
