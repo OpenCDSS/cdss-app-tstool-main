@@ -5,80 +5,56 @@
 
 <project name="buildTemplate" basedir="../" default="compile">
 
-	<!-- === Set file separator depending on OS ===-->
-	<condition property="sep" value="/">
-	<and>
-       		<os family="unix" />
-	</and>
-	</condition>
-	<condition property="sep" value="\">
-	<and>
-       		<os family="windows" />
-	</and>
-	</condition>
-
 	<!-- set the javac location for OS type -->
 	<condition property="executable" value="/home/sharedLibs/j2sdk1.4.2_12/bin/javac">
 		<and>
-	       		<os family="unix" />
+	       	<os family="unix" />
 		</and>
 	</condition>
 	<condition property="executable" value="S:\develop\jdk_142\bin\javac">
 		<and>
-	       		<os family="windows" />
+	       	<os family="windows" />
 		</and>
 	</condition>
 		
-	<!-- set the jhome variable depending on OS type -->
-	<condition property="jhome" value="/home/sharedLibs/j2sdk1.4.2_12">
-		<and>
-		      <os family="unix" />
-		</and>
-	</condition>
-	<condition property="jhome" value="S:\develop\jdk_142">
-		<and>
-		      <os family="windows" />
-		</and>
-	</condition>
-
-	
 	<!--============= General Properties =============-->
 	<property name="src.dir"	     location="src"         />
 	<property name="build.dir"	     location="build"       />
 	<property name="dist.dir"        location="dist" />
 	<property name="doc.dir"		 location="doc" />
-	<property name="buildwork.dir"   location="build${sep}work"   />
-	<property name="buildtest.dir"   location="build${sep}test"      />
-	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
-	<property name="CDSS_OP.dir"     location="test${sep}operational${sep}CDSS" />
-	<property name="RTi_OP.dir"      location="test${sep}operational${sep}Rivertrack" />
-	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
+	<property name="buildwork.dir"   location="build/work"   />
+	<property name="buildtest.dir"   location="build/test"      />
+	<property name="test.dir"	     location="test/unit/src"        />
+	<property name="CDSS_OP.dir"     location="test/operational/CDSS" />
+	<property name="RTi_OP.dir"      location="test/operational/Rivertrack" />
+	<property name="jdoc.dir"	     location="doc/javadoc" />
 	<property name="ext.dir"         location="externals"       />
 	<property name="graphics.dir"    location="graphics"        />
-	<property name="system.dir"  	 location="test${sep}system"        />
-	<property name="logs.dir"    	 location="test${sep}logs"        />
-	<property name="package"     	 value="DWR${sep}DMI${sep}tstool" />
+	<property name="system.dir"  	 location="test/system"        />
+	<property name="logs.dir"    	 location="test/logs"        />
+	<property name="package"     	 value="DWR/DMI/tstool" />
 	<property name="nsis.dir"		 location="installer" />
-	<property name="executable"  	 location="S:${sep}develop${sep}jdk_150${sep}bin${sep}javac" />
+	<property name="executable"  	 location="S:/develop/jdk_150/bin/javac" />
 	<property name="classname"   	 value="DWR.DMI.tstool.tstool" />
 	<property name="testSuite"  	 value="DWR.DMI.tstool.tstoolTestSuite" />
 	<property name="jarfname"    	 value="TSTool_142.jar" />
-	<property name="unitTest.dir"	 location="test${sep}unit" />
-	<property name="regTest.dir"	 location="test${sep}regression" />
+	<property name="unitTest.dir"	 location="test/unit" />
+	<property name="regTest.dir"	 location="test/regression" />
 	<property name="command_file"    value="Regression.TSTool" />
 	<property name="proj_name"		 value="TSTool" />
 	<property name="costello" 		 value="abbot.editor.Costello" />
 	<property name="AbbotSuite"		 value="AbbotTestSuite" />
-	<property name="cobertura.dir"   value="${ext.dir}${sep}cobertura" />
-	<property name="buildcob.dir"    value="build${sep}cobertura" />
-	<property name="CDSS_install.dir" value="installer${sep}CDSS" />
-	<property name="RTi_install.dir" value="installer${sep}Rivertrack" />
-	<property name="ProductTester" 	 value="${ext.dir}${sep}ProductTester" />
+	<property name="cobertura.dir"   value="${ext.dir}/cobertura" />
+	<property name="buildcob.dir"    value="build/cobertura" />
+	<property name="CDSS_install.dir" value="installer/CDSS" />
+	<property name="RTi_install.dir" value="installer/Rivertrack" />
+	<property name="ProductTester" 	 value="${ext.dir}/ProductTester" />
 	<property name="nativejc"		 
-		value="${ext.dir}${sep}NativeJ${sep}nativejc.exe" />
+		value="${ext.dir}/NativeJ/nativejc.exe" />
 	<property name="NJProj"			 value="${proj_name}.njp" />
 	<property name="tmp.dir"  location="tmp" />
 	<property name="NJProj_Reg"	 	 value="${proj_name}_Regression.njp" />
+	<property name="NJProj_Reg_Ext"  value="${proj_name}_Ext_Regression.njp" />
 	
 	<path id="cobertura.classpath">
 	    <fileset dir="${cobertura.dir}">
@@ -92,53 +68,53 @@
 	
 	<!--================ Dependencies ==================-->
 	<property name="hydro"	 
-		value="${ext.dir}${sep}HydroBaseDMI${sep}HydroBaseDMI_142.jar" />
+		value="${ext.dir}/HydroBaseDMI/HydroBaseDMI_142.jar" />
 	<property name="msbase"	 
-		value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msbase.jar" />
+		value="${ext.dir}/Microsoft_SQL_Server_Java_ODBC_Driver/msbase.jar" />
 	<property name="mssqlserver"	 
-			value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}mssqlserver.jar" />
+			value="${ext.dir}/Microsoft_SQL_Server_Java_ODBC_Driver/mssqlserver.jar" />
 	<property name="msutil"	 
-			value="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver${sep}msutil.jar" />
+			value="${ext.dir}/Microsoft_SQL_Server_Java_ODBC_Driver/msutil.jar" />
 	<property name="NWSRFS_DMI"	 
-		value="${ext.dir}${sep}NWSRFS_DMI${sep}NWSRFS_DMI_142_Extended.jar" />
+		value="${ext.dir}/NWSRFS_DMI/NWSRFS_DMI_142_Extended.jar" />
 	<property name="RiversideDB"	 
-		value="${ext.dir}${sep}RiversideDB_DMI${sep}RiversideDB_DMI_142.jar" />
+		value="${ext.dir}/RiversideDB_DMI/RiversideDB_DMI_142.jar" />
 	<property name="RTi_Common"	 
-		value="${ext.dir}${sep}RTi_Common${sep}RTi_Common_142.jar" />
+		value="${ext.dir}/RTi_Common/RTi_Common_142.jar" />
 	<property name="StateCU"	 
-		value="${ext.dir}${sep}StateCU${sep}StateCU_142.jar" />
+		value="${ext.dir}/StateCU/StateCU_142.jar" />
 	<property name="StateMod"	 
-		value="${ext.dir}${sep}StateMod${sep}StateMod_142.jar" />
+		value="${ext.dir}/StateMod/StateMod_142.jar" />
 	<property name="TS_Services"
-		value="${ext.dir}${sep}TS_Services${sep}TS_Services.jar" />
+		value="${ext.dir}/TS_Services/TS_Services.jar" />
 	<property name="Satmon"	 
-			value="${ext.dir}${sep}SatmonSysDMI${sep}SatmonSysDMI_142.jar" />
+			value="${ext.dir}/SatmonSysDMI/SatmonSysDMI_142.jar" />
 	<property name="junit"
-		value="${ext.dir}${sep}junit.jar" />
+		value="${ext.dir}/junit.jar" />
 	<property name="blowfish"
-		value="${ext.dir}${sep}Blowfish_142.jar" />
+		value="${ext.dir}/Blowfish_142.jar" />
 	<property name="TSCommandProc"
-		value="${ext.dir}${sep}TSCommandProcessor${sep}TSCommandProcessor_142.jar" />
+		value="${ext.dir}/TSCommandProcessor/TSCommandProcessor_142.jar" />
 	
 	<!-- Abbot jar files -->
 	<property name="Abbot.jar" 
-		value="externals${sep}Abbot${sep}abbot.jar" />
+		value="externals/Abbot/abbot.jar" />
 	<property name="jdom.jar" 
-		value="externals${sep}Abbot${sep}jdom.jar" />
+		value="externals/Abbot/jdom.jar" />
 	<property name="xerces.jar" 
-		value="externals${sep}Abbot${sep}xerces.jar" />
+		value="externals/Abbot/xerces.jar" />
 	<property name="xml-apis.jar" 
-			value="externals${sep}Abbot${sep}xml-apis.jar" />
+			value="externals/Abbot/xml-apis.jar" />
 	<property name="jgraph.jar" 
-		value="externals${sep}Abbot${sep}jgraph.jar" />
+		value="externals/Abbot/jgraph.jar" />
 	<property name="bsh.jar" 
-		value="externals${sep}Abbot${sep}bsh.jar" />
+		value="externals/Abbot/bsh.jar" />
 	<property name="MRJ.zip" 
-			value="externals${sep}Abbot${sep}MRJToolkitStubs.zip" />
+			value="externals/Abbot/MRJToolkitStubs.zip" />
 	<property name="gnu-regexp.jar" 
-				value="externals${sep}Abbot${sep}gnu-regexp.jar" />
+				value="externals/Abbot/gnu-regexp.jar" />
 	<property name="ant4eclipse.jar" 
-		value="externals${sep}Abbot${sep}ant4eclipse.jar" />
+		value="externals/Abbot/ant4eclipse.jar" />
 	
 	<!-- =========== Compiler Properties ===============-->
 	<property name="compiler" value="modern" />
@@ -200,7 +176,7 @@
 		<pathelement location="${MRJ.zip}" />
 		<pathelement location="${gnu-regexp.jar}" />
 		<pathelement location="${ant4eclipse.jar}" />
-		<pathelement location="${dist.dir}${sep}${jarfname}" />
+		<pathelement location="${dist.dir}/${jarfname}" />
 		<pathelement location="${TSCommandProc}" />
 		<pathelement location="."/>
 	</path>
@@ -210,12 +186,12 @@
 	  <format property="TODAY" pattern="MM/dd/yyyy hh:mm" locale="en"/> 	
   	  <format property="jarDate" pattern="yyyy-MM-dd hh:mm" locale="en" />
 	</tstamp>
-
+	
 <!-- calls product tester ant file -->
 <macrodef name="addTestsToSet">
 	<attribute name="dataset" />
 	<sequential>
-		<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml"
+		<ant antfile="${ext.dir}/RTiBuild/product-tester.xml"
 			target="addTestsToSet">
 			<property name="reg_dataset" value="@{dataset}"/>
 		</ant>
@@ -226,7 +202,7 @@
 <macrodef name="buildProdTesterWindows">
 	<attribute name="dataset" />
 	<sequential>
-		<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+		<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 			 target="buildProdTesterWindows">
 			<property name="reg_dataset" value="@{dataset}"/>
 		</ant>
@@ -237,7 +213,7 @@
 <macrodef name="buildProdTesterLinux">
 	<attribute name="dataset" />
 	<sequential>
-		<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+		<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 			 target="buildProdTesterLinux">
 			<property name="reg_dataset" value="@{dataset}"/>
 		</ant>
@@ -300,11 +276,8 @@
 </target>	
 <!--=======================================================-->
 	
-<!--===================================================
-	Target:   clean
-	Function: cleans the build/work and build/test
-	          directories to ensure a clean compilation
-====================================================-->
+<!-- Cleans the build/work and build/test
+	 directories to ensure a clean compilation -->
 <target name="clean" description="removes compiled files">
 	
 	<!-- delete build stuff -->
@@ -317,32 +290,29 @@
 	<delete dir="${jdoc.dir}" />
 		
 	<!-- delete the Setup.exe files made from NSIS -->
-	<delete file="installer${sep}CDSS${sep}TSTool_*_Setup.exe" />
+	<delete file="installer/CDSS/TSTool_*_Setup.exe" />
 	
 	<delete includeEmptyDirs="true">
 		<fileset dir="${dist.dir}" />
-		<fileset dir="test${sep}unit${sep}results" />
-		<fileset dir="test${sep}operational${sep}results" />
-		<fileset dir="test${sep}regression${sep}results" />
-		<fileset dir="test${sep}operational${sep}CDSS${sep}logs" />
-		<fileset dir="test${sep}operational${sep}Rivertrack${sep}logs" />
+		<fileset dir="test/unit/results" />
+		<fileset dir="test/operational/results" />
+		<fileset dir="test/regression/results" />
+		<fileset dir="test/operational/CDSS/logs" />
+		<fileset dir="test/operational/Rivertrack/logs" />
 		<fileset dir="${CDSS_install.dir}" includes="**/*.exe" />
 		<fileset dir="${RTi_install.dir}" includes="**/*.exe" />
 	</delete>
 	
-	<delete dir="test${sep}unit${sep}results${sep}css" />
-	<delete dir="test${sep}unit${sep}results${sep}images" />
-	<delete dir="test${sep}unit${sep}results${sep}js" />
-	<delete dir="test${sep}output" />
+	<delete dir="test/unit/results/css" />
+	<delete dir="test/unit/results/images" />
+	<delete dir="test/unit/results/js" />
+	<delete dir="test/output" />
 	<delete dir="Release" />
 	
 </target>
 
-<!--===================================================
-	Target:   compile
-	Function: compiles code for this project and places
-			  the compiled code in the build/work dir
-====================================================-->
+<!-- compiles code for this project and places
+	 the compiled code in the build/work dir -->
 <target name="compile" description="compiles source code to build/work">
 	
 	<mkdir dir="${buildwork.dir}" />
@@ -357,21 +327,16 @@
 	       executable 	= "${executable}"
 	       compiler 	= "${compiler}"
 	/>
-
+	
 </target>
 
-
-<!--========================================================
-	Target: compileTest
-	Function: to compile the code under test/src
-==========================================================-->
+<!-- To compile the code under test/src -->
 <target name="compileTest" depends="compile"
 	description="compiles all test source code into build/test dir">
 
-	<mkdir dir="${build.dir}${sep}test" />
-	
+	<mkdir dir="${build.dir}/test" />
 	<javac srcdir 		= "${test.dir}"
-	       destdir 	    = "${build.dir}${sep}test"
+	       destdir 	    = "${build.dir}/test"
            classpathref = "classpath"
            debug 		= "on"
 	       fork 		= "yes"
@@ -383,423 +348,316 @@
 
 </target>
 
-
-<!--=========================================================
-	Target: createAllInstallers
-	Function: Run NSIS to create CDSS and RiverTrak installers
-==========================================================-->
+<!-- Run NSIS to create CDSS and RiverTrak installers -->
 <target name="createAllInstallers" 
 	description="creates the NSIS installers for CDSS and RTi">
-
-	<!-- create exe's -->
-	<antcall target="createApplicationExe" />
-	<!-- create all installers -->
+	
 	<antcall target="createInstaller_CDSS" />
 	<antcall target="createInstaller_RTi" />
 	<antcall target="createInstaller_RTiExtended" />
 	
 </target>
+
+<!-- macro for creating a general installer -->
+<macrodef name="createInstallerGeneric" >
 	
-<!--========================================================
-   Target: createApplicationExe
-   Fuction: create all application executables using NativeJ 
-=========================================================-->
-<target name="createApplicationExe" depends="jar"
-	description="creates executables using NativeJ" >
+	<attribute name="NJProj.dir" />
+	<sequential>
+		<ant antfile="${ext.dir}/RTiBuild/common-install.xml" 
+			target="createNJandNSIS">
+			<property name="NJProj.dir" 
+				value="${nsis.dir}/@{NJProj.dir}"/>
+			<property name="NJProj" value="${NJProj}" />
+			<property name="nsis.script" value="TSTool.nsi" />
+		</ant>
+	</sequential>
 	
-	<delete file="${RTi_install.dir}${sep}TSTool.exe" />
-	<delete file="${CDSS_install.dir}${sep}TSTool.exe" />
+</macrodef>
+
+<!-- helper method to build CDSS app exe -->
+<target name="createAppExe_CDSS" >
 	
-	<!-- create NativeJ EXE file -->
-	<exec executable="${nativejc}" 
-		dir="${nsis.dir}${sep}CDSS" >
-		<arg value="${NJProj}"/>
-	</exec>
-	
-	<!-- create NativeJ EXE file -->
-	<exec executable="${nativejc}" 
-		dir="${nsis.dir}${sep}Rivertrack" >
-		<arg value="${NJProj}"/>
-	</exec>
-	
-	<!-- create NativeJ EXE file -->
-	<exec executable="${nativejc}" 
-		dir="${nsis.dir}${sep}Rivertrack" >
-		<arg value="${NJProj}"/>
-	</exec>
-	
-</target>	
-	
-<!--=========================================================
-	Target: createInstaller_CDSS
-	Function: creates an executable installer for TSTool
-==========================================================-->
-<target name="createInstaller_CDSS" depends="createApplicationExe" 
-	description="runs NSIS to create an executable installer">
-	
-	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}CDSS" 
-			executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool.nsi" />
-	</exec>
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
+		 target="createAppExe" >
+		<property name="NJProj.dir" value="${nsis.dir}/CDSS" />
+		<property name="NJProj" value="${NJProj_Reg}" />
+	</ant>
 	
 </target>
 	
-<!--=========================================================
-	Target: createInstaller_RTi
-	Function: creates an executable installer for TSTool
-==========================================================-->
-<target name="createInstaller_RTi" depends="createApplicationExe"
-	description="runs NSIS to create an executable installer">
+<!-- helper method to build Rivertrak app exe's -->
+<target name="createAppExe_RTi" >
+		
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
+		 target="createAppExe" >
+		<property name="NJProj.dir" value="${nsis.dir}/Rivertrack" />
+		<property name="NJProj" value="${NJProj_Reg}" />
+	</ant>
 	
-	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}Rivertrack" 
-		  executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool.nsi" />
-	</exec>
-	
+	<!-- build the extended RTi exe -->
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
+		target="createAppExe" >
+		<property name="NJProj.dir" value="${nsis.dir}/Rivertrack" />
+		<property name="NJProj" value="${NJProj_Reg_Ext}" />
+	</ant>
+		
 </target>
 	
 
-<!--=========================================================
-	Target: createInstaller_RTiExtended
-	Function: creates an executable installer for TSTool
-==========================================================-->
-<target name="createInstaller_RTiExtended" depends="createApplicationExe"
+<!-- Function: creates an executable installer for TSTool -->
+<target name="createInstaller_CDSS" depends="clean,jar" 
 	description="runs NSIS to create an executable installer">
 	
-	<delete file="${RTi_install.dir}${sep}TSTool.exe" />
+	<createInstallerGeneric NJProj.dir="CDSS" />
 	
-	<!-- create NativeJ EXE file -->
-	<exec executable="${nativejc}" 
-		dir="${nsis.dir}${sep}Rivertrack" >
-		<arg value="TSTool_Extended.njp"/>
-	</exec>
+</target>
 	
-	<!-- run nsis script to create .exe install -->
-		<exec dir="${nsis.dir}${sep}Rivertrack" 
-		  executable="S:\DEVELOP\NSIS\makensis.exe" >
-			<arg value="TSTool_Extended.nsi" />
-	</exec>
+<!-- creates an executable installer for TSTool -->
+<target name="createInstaller_RTi" depends="clean,jar"
+	description="runs NSIS to create an executable installer">
+	
+	<createInstallerGeneric NJProj.dir="Rivertrack" />
+	
+</target>
+	
+<!-- creates an executable installer for TSTool -->
+<target name="createInstaller_RTiExtended" depends="clean,jar"
+	description="runs NSIS to create an executable installer">
+	
+	<property name="NJProj" value="${NJProj_Reg_Ext}" />
+	<createInstallerGeneric NJProj.dir="Rivertrack" />
 	
 </target>
 		
-<!--===========================================================
-	Target: createRelease
-	Function: create all files and folders needed for a release
-			  of TSTool into a folder named Release.
-============================================================-->
+<!-- create all files and folders needed for a release
+	 of TSTool into a folder named Release -->
 <target name="createRelease" 
 	depends="clean,test,javadoc,createAllInstallers" >
 
 	<!-- make a temp directory (Release) and copy all
 	     release specific files and docs here -->
 	<mkdir dir="Release" />
-	<mkdir dir="Release${sep}javadoc" />
-	<mkdir dir="Release${sep}testResults" />
-	<mkdir dir="Release${sep}testResults${sep}unit" />
-	<mkdir dir="Release${sep}testResults${sep}regression" />
+	<mkdir dir="Release/javadoc" />
+	<mkdir dir="Release/testResults" />
+	<mkdir dir="Release/testResults/unit" />
+	<mkdir dir="Release/testResults/regression" />
 	
 	<!-- CDSS -->
-	<mkdir dir="Release${sep}TSTool_CDSS" />
-	<mkdir dir="Release${sep}TSTool_CDSS${sep}doc" />
-	<mkdir dir="Release${sep}TSTool_CDSS${sep}installer" />
+	<mkdir dir="Release/TSTool_CDSS" />
+	<mkdir dir="Release/TSTool_CDSS/doc" />
+	<mkdir dir="Release/TSTool_CDSS/installer" />
 	
 	<!-- move CDSS files and docs -->
-	<move todir="Release${sep}TSTool_CDSS${sep}installer" >
+	<move todir="Release/TSTool_CDSS/installer" >
 		<fileset dir="${CDSS_install.dir}" includes="**/*Setup.exe" />
 	</move>
-	<copy todir="Release${sep}TSTool_CDSS${sep}doc" >
-		<fileset dir="doc${sep}TSTool${sep}CDSS" />
+	<copy todir="Release/TSTool_CDSS/doc" >
+		<fileset dir="doc/TSTool/CDSS" />
 	</copy>
 	
 	<!-- RiverTrak -->
-	<mkdir dir="Release${sep}TSTool_RiverTrak" />
-	<mkdir dir="Release${sep}TSTool_RiverTrak${sep}doc" />
-	<mkdir dir="Release${sep}TSTool_RiverTrak${sep}installer" />
+	<mkdir dir="Release/TSTool_RiverTrak" />
+	<mkdir dir="Release/TSTool_RiverTrak/doc" />
+	<mkdir dir="Release/TSTool_RiverTrak/installer" />
 
 	<!-- move RiverTrak files and docs -->
-	<move todir="Release${sep}TSTool_RiverTrak${sep}installer" >
+	<move todir="Release/TSTool_RiverTrak/installer" >
 		<fileset dir="${RTi_install.dir}" 
 		 includes="**/*Setup.exe" excludes="**/TSTool_RiverTrakExtended*" />
 	</move>
-	<copy todir="Release${sep}TSTool_RiverTrak${sep}doc" >
-		<fileset dir="doc${sep}TSTool${sep}Rivertrak" />
+	<copy todir="Release/TSTool_RiverTrak/doc" >
+		<fileset dir="doc/TSTool/Rivertrak" />
 	</copy>
 	
 	<!-- RiverTrak Extended -->
-	<mkdir dir="Release${sep}TSTool_RiverTrakExtended" />
-	<mkdir dir="Release${sep}TSTool_RiverTrakExtended${sep}doc" />
-	<mkdir dir="Release${sep}TSTool_RiverTrakExtended${sep}installer" />
+	<mkdir dir="Release/TSTool_RiverTrakExtended" />
+	<mkdir dir="Release/TSTool_RiverTrakExtended/doc" />
+	<mkdir dir="Release/TSTool_RiverTrakExtended/installer" />
 
 	<!-- move RiverTrak files and docs -->
-	<move todir="Release${sep}TSTool_RiverTrakExtended${sep}installer" >
+	<move todir="Release/TSTool_RiverTrakExtended/installer" >
 		<fileset dir="${RTi_install.dir}" 
 		 includes="**/TSTool_RiverTrakExtended*" />
 	</move>
-	<copy todir="Release${sep}TSTool_RiverTrakExtended${sep}doc" >
-		<fileset dir="doc${sep}TSTool${sep}Rivertrak" />
+	<copy todir="Release/TSTool_RiverTrakExtended/doc" >
+		<fileset dir="doc/TSTool/Rivertrak" />
 	</copy>
 	
 	<!-- move TestResults and Javadocs -->
-	<copy todir="Release${sep}testResults${sep}unit" >
-		<fileset dir="${unitTest.dir}${sep}results" 
+	<copy todir="Release/testResults/unit" >
+		<fileset dir="${unitTest.dir}/results" 
 		 includes="*.xml" />
 	</copy>
-	<copy todir="Release${sep}testResults${sep}regression" >
-		<fileset dir="${regTest.dir}${sep}results" 
+	<copy todir="Release/testResults/regression" >
+		<fileset dir="${regTest.dir}/results" 
 		 includes="*" />
 	</copy>
 	
-	<copy todir="Release${sep}javadoc">
+	<copy todir="Release/javadoc">
 	   <fileset dir="${jdoc.dir}"/>
 	 </copy>
 	
 </target>
 	
-	
-<!--===================================================
-	Target: installerSetup
-	Function: copies all installation files and folders
-	          to a tmp directory to be packaged.
-====================================================-->
+<!-- copies all installation files and folders
+	 to a tmp directory to be packaged. -->
 <target name="installerSetupLinux" depends="jar" >
 	
 	<delete dir="tmp" />
 	<mkdir dir="${tmp.dir}" />
-	<mkdir dir="${tmp.dir}${sep}jre_142" />
-	<mkdir dir="${tmp.dir}${sep}logs" />
-	<mkdir dir="${tmp.dir}${sep}system" />
-	<mkdir dir="${tmp.dir}${sep}bin" />
+	<mkdir dir="${tmp.dir}/jre_142" />
+	<mkdir dir="${tmp.dir}/logs" />
+	<mkdir dir="${tmp.dir}/system" />
+	<mkdir dir="${tmp.dir}/bin" />
 	
 	<!-- copy all files and folders for install package -->
-	<copy todir="${tmp.dir}${sep}jre_142" >
-		<fileset dir="${ext.dir}${sep}jre_142_linux"
-		excludes="**${sep}.svn"/>
+	<copy todir="${tmp.dir}/jre_142" >
+		<fileset dir="${ext.dir}/jre_142_linux"
+		excludes="**/.svn"/>
 	</copy>
-	<copy todir="${tmp.dir}${sep}system" >
-		<fileset dir="test${sep}operational${sep}CDSS${sep}system" 
-			excludes="**${sep}.svn" />
+	<copy todir="${tmp.dir}/system" >
+		<fileset dir="test/operational/CDSS/system" 
+			excludes="**/.svn" />
 	</copy>
-	<copy todir="${tmp.dir}${sep}bin" >
-		<fileset dir="${ext.dir}${sep}HydroBaseDMI" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}Microsoft_SQL_Server_Java_ODBC_Driver" 
+	<copy todir="${tmp.dir}/bin" >
+		<fileset dir="${ext.dir}/HydroBaseDMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/Microsoft_SQL_Server_Java_ODBC_Driver" 
 			includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}NWSRFS_DMI" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}RiversideDB_DMI" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}RTi_Common" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}SatmonSysDMI" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}StateCU" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}StateMod" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}TS_Services" includes="**/*.jar" />
-		<fileset dir="${ext.dir}${sep}TSCommandProcessor" 
+		<fileset dir="${ext.dir}/NWSRFS_DMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/RiversideDB_DMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/RTi_Common" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/SatmonSysDMI" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/StateCU" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/StateMod" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/TS_Services" includes="**/*.jar" />
+		<fileset dir="${ext.dir}/TSCommandProcessor" 
 			includes="**/*.jar" />
 		<fileset dir="${ext.dir}" includes="**/Blowfish_142.jar" />
-		<fileset dir="${ext.dir}${sep}shellcon" includes="**/shellcon.exe" />
+		<fileset dir="${ext.dir}/shellcon" includes="**/shellcon.exe" />
 	</copy>
-	<copy todir="${tmp.dir}${sep}bin" 
-		file="${dist.dir}${sep}${proj_name}_142.jar" />
+	<copy todir="${tmp.dir}/bin" 
+		file="${dist.dir}/${proj_name}_142.jar" />
 		
 </target>
 	
-<!--===================================================
-	Target:   test
-	Function: runs Junit tests and outputs results
-====================================================-->
+<!-- runs Junit tests and outputs results -->
 <target name="test" depends="compileTest"
 	description="runs Junit test suite">
 
 	<junit printsummary="yes" fork="yes" dir="conf">
 		<sysproperty key="net.sourceforge.cobertura.datafile"
-				file="${buildcob.dir}${sep}cobertura.ser" />
+				file="${buildcob.dir}/cobertura.ser" />
 		<formatter type="xml"/>
 		<classpath refid="classpath" />
 		<classpath refid="cobertura.classpath" />
 		<test name="${testSuite}"
-		 outfile="test${sep}unit${sep}results${sep}${proj_name}" />
+		 outfile="test/unit/results/${proj_name}" />
 	</junit>
 	
 </target>
 	
-	
-<!--===================================================
-	Target:   CDSS_runDev
-	Function: runs the executable or java class from
-			  the build directory for quick development
-			  testing using the CDSS operational env.
-====================================================-->
 <target name="CDSS_runDev" depends="compile"
 	description="runs CDSS env. class files">
 	
-	<!-- need to copy graphics files -->
-	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
-		<fileset dir="graphics" />
-	</copy>
+	<runMacro home.dir="${CDSS_OP.dir}" cp.ref="classpath" />
 	
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${CDSS_OP.dir}" />
-		<classpath refid = "classpath" />   
-	</java>	
-
 </target>
 
-<!--===================================================
-	Target:   CDSS_runDevD30
-	Function: runs the executable or java class from
-			  the build directory for quick development
-			  testing, at TSTool debug level 30
-====================================================-->
 <target name="CDSS_runDevD30" depends="compile"
 	description="runs CDSS env. with class files and debug=30">
 
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${CDSS_OP.dir}" />
-		<arg		value = "-d" />
-		<arg		value = ",30" />
-		<classpath refid = "classpath" />   
-	</java>	
+	<runMacroDebug home.dir="${CDSS_OP.dir}" cp.ref="classpath" />
 
 </target>
 	
-<!--===================================================
-	Target:   CDSS_runOp
-	Function: runs the executable from the dist jar
-			  file for running in the CDSS operational env.
-====================================================-->
 <target name="CDSS_runOp" depends="jar"
 	description="runs CDSS env. with final jar file">
 		
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${CDSS_OP.dir}" />
-		<classpath refid = "classpathOp" />   
-	</java>	
+	<runMacro home.dir="${CDSS_OP.dir}" cp.ref="classpathOp" />
 
 </target>
 	
-<!--===================================================
-	Target:   CDSS_runOpD30
-	Function: runs the executable from the dist jar
-			  for operational testing, at TSTool debug level 30
-====================================================-->
 <target name="CDSS_runOpD30" depends="jar"
 	description="runs CDSS env. with final jar file with debug=30">
 	
-	<echo message="HOME:   ${testOp.dir}" />
-	
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${CDSS_OP.dir}" />
-		<arg		value = "-d" />
-		<arg		value = ",30" />
-		<classpath refid = "classpathOp" />   
-	</java>	
+	<runMacroDebug home.dir="${CDSS_OP.dir}" cp.ref="classpathOp" />
 
 </target>
 
-<!--===================================================
-	Target:   RTi_runDev
-	Function: runs the executable or java class from
-			  the build directory for quick development
-			  testing using the RTi operational env.
-====================================================-->
 <target name="RTi_runDev" depends="compile"
 	description="runs RTi env. using class files">
 	
-	<!-- need to copy graphics files -->
-	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
-		<fileset dir="graphics" />
-	</copy>
+	<runMacro home.dir="${RTi_OP.dir}" cp.ref="classpath" />
 	
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${RTi_OP.dir}" />
-		<classpath refid = "classpath" />   
-	</java>	
 </target>
 
-<!--===================================================
-	Target:   RTi_runDevD30
-	Function: runs the executable or java class from
-			  the build directory for quick development
-			  testing using the RTi operational env, at
-			  TSTool debug level 30.
-====================================================-->
 <target name="RTi_runDevD30" depends="compile"
 	description="runs RTi env. using class files on debug=30">
 	
-	<!-- need to copy graphics files -->
-	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
-		<fileset dir="graphics" />
-	</copy>
-	
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${RTi_OP.dir}" />
-		<arg		value = "-d" />
-		<arg		value = ",30" />
-		<classpath refid = "classpath" />   
-	</java>		
+	<runMacroDebug home.dir="${RTi_OP.dir}" cp.ref="classpath" />	
 
 </target>
 
-<!--===================================================
-	Target:   RTi_runOp
-	Function: runs the executable from the dist jar
-			  file for running in the RTi operational env.
-====================================================-->
 <target name="RTi_runOp" depends="jar"
 	description="runs RTi env. with final jar file">
 	
-	<java classname="${classname}" fork="true">
-		<jvmarg    value = "-mx256m" />
-		<jvmarg    value = "-Djava.compiler=NONE" />
-		<arg       value = "-home" />
-		<arg	   value = "${RTi_OP.dir}" />
-		<classpath refid = "classpathOp" />   
-	</java>	
+	<runMacro home.dir="${RTi_OP.dir}" cp.ref="classpathOp" />
+	
 </target>
 	
-<!--===================================================
-		Target:   RTi_runOpD30
-		Function: runs the executable from the dist jar
-				  file for running in the RTi operational env.,
-			  at TSTool debug level 30
-====================================================-->
 <target name="RTi_runOpD30" depends="jar"
 	description="runs RTi env. with final jar file with debug=30">
 
-<java classname="${classname}" fork="true">
-	<jvmarg    value = "-mx256m" />
-	<jvmarg    value = "-Djava.compiler=NONE" />
-	<arg       value = "-home" />
-	<arg	   value = "${RTi_OP.dir}" />
-	<arg		value = "-d" />
-	<arg		value = ",30" />
-	<classpath refid = "classpathOp" />   
-</java>	
+	<runMacroDebug home.dir="${RTi_OP.dir}" cp.ref="classpathOp" />
 	
 </target>
+
+<macrodef name="runMacro" description="General method for running product" >
 	
+	<attribute name="home.dir" />
+	<attribute name="cp.ref" />
+	<sequential>
+		<!-- need to copy graphics files -->
+		<copy todir="${buildwork.dir}/DWR/DMI/tstool" >
+			<fileset dir="graphics" />
+		</copy>
+		
+		<java classname="${classname}" fork="true">
+			<jvmarg value = "-mx256m" />
+			<jvmarg value = "-Djava.compiler=NONE" />
+			<arg value = "-home" />
+			<arg value = "@{home.dir}" />
+			<classpath refid = "@{cp.ref}" />   
+		</java>	
+	</sequential>
 	
-<!--===================================================
-	Target:   javadoc
-	Function: generates the javadocs for this product
-====================================================-->
+</macrodef>
+	
+<macrodef name="runMacroDebug" 
+ description="General method for running product with debug" >
+	
+	<attribute name="home.dir" />
+	<attribute name="cp.ref" />
+	<sequential>
+		<!-- need to copy graphics files -->
+		<copy todir="${buildwork.dir}/DWR/DMI/tstool" >
+			<fileset dir="graphics" />
+		</copy>
+		
+		<java classname="${classname}" fork="true">
+			<jvmarg    value = "-mx256m" />
+			<jvmarg    value = "-Djava.compiler=NONE" />
+			<arg       value = "-home" />
+			<arg	   value = "@{home.dir}" />
+			<arg		value = "-d" />
+			<arg		value = ",30" />
+			<classpath refid = "@{cp.ref}" />   
+		</java>	
+	</sequential>
+		
+</macrodef>
+	
+<!-- generates the javadocs for this product -->
 <target name="javadoc" 
 	description="creates html javadocs from source code">
 	
@@ -811,26 +669,22 @@
 
 	<javadoc destdir="${jdoc.dir}" >
 		<classpath refid="classpath"/>
-		<fileset dir="${src.dir}${sep}${package}" >
+		<fileset dir="${src.dir}/${package}" >
     	  		<include name="*.java"/>
     		</fileset>
 	</javadoc>	
 
-
 </target>
 
-
-<!--=====================================================
-	Target: jar 
-=======================================================-->
+<!-- creates jar for app -->
 <target name="jar" depends="compile" 
 	description="jars all class files into jar file in dist dir">
     
-	<copy todir="${buildwork.dir}${sep}DWR${sep}DMI${sep}tstool" >
+	<copy todir="${buildwork.dir}/DWR/DMI/tstool" >
 		<fileset dir="graphics" />
 	</copy>
 	
-    <jar jarfile="${dist.dir}${sep}${jarfname}" basedir="${buildwork.dir}" >
+    <jar jarfile="${dist.dir}/${jarfname}" basedir="${buildwork.dir}" >
 	<manifest >
     	<attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
       	<attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
@@ -862,18 +716,15 @@
 	<antcall target="regTestRivertrak" />
 </target>
 	
-<!--=================================================
-	Target: regTestCDSS
-	Function: to regression test this product.  Runs 
-	          TSTool using a commands file and sends
-	          the output to the Regression results
-	          folder.   
-===================================================-->
-<target name="regTestCDSS" depends="jar"
+<!-- To regression test this product.  Runs 
+	 TSTool using a commands file and sends
+	 the output to the Regression results
+	 folder.  -->
+<target name="regTestCDSS" depends="clean,jar,createAppExe_CDSS"
 	description="runs CDSS regression tests and outputs 
 	results to test/regression/results">
 	
-	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 		target="regTest">
 		<property name="reg_dataset" value="CDSS"/>
 		<property name="reg_install.dir" 
@@ -883,18 +734,16 @@
 	
 </target>
 	
-<!--=================================================
-	Target: regTestCDSS_UpperColorado
-	Function: to regression test this product.  Runs 
-	          TSTool using a commands file and sends
-	          the output to the Regression results
-	          folder.   
-===================================================-->
-<target name="regTestCDSS_UpperColorado" depends="jar"
-	description="runs CDSS regression tests and outputs 
-	results to test/regression/results">
+<!-- To regression test this product.  Runs 
+	 TSTool using a commands file and sends
+	 the output to the Regression results
+	 folder.   -->
+<target name="regTestCDSS_UpperColorado" 
+ depends="clean,jar,createAppExe_CDSS"
+ description="runs CDSS regression tests and outputs 
+	          results to test/regression/results">
 	
-	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 		target="regTest">
 		<property name="reg_dataset" 
 			value="CDSS_UpperColorado_200701"/>
@@ -905,19 +754,15 @@
 	
 </target>	
 
-	
-<!--=================================================
-	Target: regTestGeneral
-	Function: to regression test this product.  Runs 
-	          TSTool using a commands file and sends
-	          the output to the Regression results
-	          folder.   
-===================================================-->
-<target name="regTestGeneral" depends="jar"
+<!-- To regression test this product.  Runs 
+	 TSTool using a commands file and sends
+	 the output to the Regression results
+	 folder.   -->
+<target name="regTestGeneral" depends="clean,jar,createAppExe_CDSS"
 	description="runs CDSS regression tests and outputs 
-	results to test/regression/results">
+	             results to test/regression/results">
 	
-	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 	 target="regTest">
 		<property name="reg_dataset" value="general"/>
 		<property name="reg_install.dir" 
@@ -927,19 +772,16 @@
 		
 </target>
 	
-<!--=================================================
-	Target: regTestRivertrak
-	Function: to regression test this product.  Runs 
-	          TSTool using a commands file and sends
-	          the output to the Regression results
-	          folder.   
+<!-- To regression test this product.  Runs 
+	 TSTool using a commands file and sends
+	 the output to the Regression results
+	 folder.   
 ===================================================-->
-<target name="regTestRivertrak" 
-	depends="createApplicationExe"
+<target name="regTestRivertrak" depends="clean,jar,createAppExe_RTi" 
 	description="runs regression tests and outputs results
 	to test/regression/results">
 	
-	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+	<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 	 target="regTest">
 		<property name="reg_dataset" value="Rivertrak"/>
 		<property name="reg_install.dir" 
@@ -949,19 +791,15 @@
 	
 </target>
 	
-<!--=================================================
-	Target: regTestRivertrakExt
-	Function: to regression test this product.  Runs 
-	          TSTool using a commands file and sends
-	          the output to the Regression results
-	          folder.   
-===================================================-->
-<target name="regTestRivertrakExt" 
-	depends="createApplicationExe"
-	description="runs regression tests and outputs results
-	to test/regression/results">
-	
-	<ant antfile="${ext.dir}${sep}RTiBuild${sep}product-tester.xml" 
+<!-- To regression test this product.  Runs 
+	 TSTool using a commands file and sends
+	 the output to the Regression results
+	 folder   -->
+<target name="regTestRivertrakExt" depends="clean,jar,createAppExe_RTi"
+ description="runs regression tests and outputs results
+	          to test/regression/results">
+
+	<ant antfile="${ext.dir}/RTiBuild/product-tester.xml" 
 	 target="regTest">
 		<property name="reg_dataset" value="Rivertrak"/>
 		<property name="reg_install.dir" 
@@ -972,10 +810,7 @@
 	
 </target>	
 	
-<!--========================================================
-	Target: costello
-	Function: runs the Costello editor for Abbot
-=========================================================-->
+<!-- Runs the Costello editor for Abbot -->
 <target name="costello">
 
 	<java dir="." classname="${costello}" fork="true" >
@@ -985,14 +820,12 @@
 
 </target>
 
-<!--========================================================
-	Target: testGui
-	Function: runs Abbot script files using Junit framework
-=========================================================-->
+
+<!-- Runs Abbot script files using Junit framework -->
 <target name="testGUI" depends="compile">
 
 	<!-- compile Abbot Test Suite src  -->
-	<javac srcdir="${regTest.dir}${sep}src" destdir="${buildwork.dir}" 
+	<javac srcdir="${regTest.dir}/src" destdir="${buildwork.dir}" 
 		classpathref="classpath" fork="yes" listfiles="true"
 		executable="${executable}" compiler="${compiler}" />
 	
@@ -1000,11 +833,11 @@
 		<formatter type="xml"/>	
 		<classpath refid="classpath" />
 		<test name="${AbbotSuite}" 
-		  outfile="test${sep}regression${sep}results${sep}AbbotResults" />
+		  outfile="test/regression/results/AbbotResults" />
 	</junit>
 		
 	<!-- old way of running with perl script
-	<exec dir="${regTest.dir}${sep}scripts" executable="perl" >
+	<exec dir="${regTest.dir}/scripts" executable="perl" >
 		<arg value="runTests.pl" />
 	</exec>
 	-->
@@ -1013,10 +846,10 @@
 	
 <target name="cobertura_init" depends="compileTest" >
 
-	<delete file="${buildcob.dir}${sep}cobertura.ser" />
+	<delete file="${buildcob.dir}/cobertura.ser" />
 
 	<cobertura-instrument todir="${buildcob.dir}" 
-		datafile="${buildcob.dir}${sep}cobertura.ser">
+		datafile="${buildcob.dir}/cobertura.ser">
 	    <fileset dir="${buildwork.dir}" >
 	    	<include name="**/*.class" />
 	    	<exclude name="**/*Test*.class" />
@@ -1027,8 +860,8 @@
 	
 <target name="cobertura" depends="cobertura_init,test" >
 	
-	<cobertura-report format="html" destdir="test${sep}unit${sep}results"
-		datafile="${buildcob.dir}${sep}cobertura.ser" >
+	<cobertura-report format="html" destdir="test/unit/results"
+		datafile="${buildcob.dir}/cobertura.ser" >
 	    <fileset dir="${src.dir}">
 	        <include name="**/*.java" />
 	        <exclude name="**/*Test*.java" />
@@ -1037,11 +870,7 @@
 	
 </target>
 	
-
-<!--===================================================
-	Target:   help
-	Function: prints out info on targets and properties
-====================================================-->
+<!-- prints out info on targets and properties -->
 <target name="help">
 
 	<echo>
