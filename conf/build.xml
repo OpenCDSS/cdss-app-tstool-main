@@ -276,8 +276,6 @@
 </target>	
 <!--=======================================================-->
 	
-<!-- Cleans the build/work and build/test
-	 directories to ensure a clean compilation -->
 <target name="clean" description="removes compiled files">
 	
 	<!-- delete build stuff -->
@@ -311,8 +309,6 @@
 	
 </target>
 
-<!-- compiles code for this project and places
-	 the compiled code in the build/work dir -->
 <target name="compile" description="compiles source code to build/work">
 	
 	<mkdir dir="${buildwork.dir}" />
@@ -330,9 +326,8 @@
 	
 </target>
 
-<!-- To compile the code under test/src -->
 <target name="compileTest" depends="compile"
-	description="compiles all test source code into build/test dir">
+ description="compiles all test source code into build/test dir">
 
 	<mkdir dir="${build.dir}/test" />
 	<javac srcdir 		= "${test.dir}"
@@ -348,9 +343,8 @@
 
 </target>
 
-<!-- Run NSIS to create CDSS and RiverTrak installers -->
 <target name="createAllInstallers" 
-	description="creates the NSIS installers for CDSS and RTi">
+ description="creates the NSIS installers for CDSS and RTi">
 	
 	<antcall target="createInstaller_CDSS" />
 	<antcall target="createInstaller_RTi" />
@@ -358,8 +352,8 @@
 	
 </target>
 
-<!-- macro for creating a general installer -->
-<macrodef name="createInstallerGeneric" >
+<macrodef name="createInstallerGeneric"
+ description="General macro for creating an installer">
 	
 	<attribute name="NJProj.dir" />
 	<sequential>
@@ -374,8 +368,8 @@
 	
 </macrodef>
 
-<!-- helper method to build CDSS app exe -->
-<target name="createAppExe_CDSS" >
+<target name="createAppExe_CDSS" 
+ description="creates CDSS application executables">
 	
 	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
 		 target="createAppExe" >
@@ -385,8 +379,8 @@
 	
 </target>
 	
-<!-- helper method to build Rivertrak app exe's -->
-<target name="createAppExe_RTi" >
+<target name="createAppExe_RTi" 
+ description="builds RTi application executables" >
 		
 	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
 		 target="createAppExe" >
@@ -403,8 +397,6 @@
 		
 </target>
 	
-
-<!-- Function: creates an executable installer for TSTool -->
 <target name="createInstaller_CDSS" depends="clean,jar" 
 	description="runs NSIS to create an executable installer">
 	
@@ -412,7 +404,6 @@
 	
 </target>
 	
-<!-- creates an executable installer for TSTool -->
 <target name="createInstaller_RTi" depends="clean,jar"
 	description="runs NSIS to create an executable installer">
 	
@@ -420,7 +411,6 @@
 	
 </target>
 	
-<!-- creates an executable installer for TSTool -->
 <target name="createInstaller_RTiExtended" depends="clean,jar"
 	description="runs NSIS to create an executable installer">
 	
@@ -429,10 +419,9 @@
 	
 </target>
 		
-<!-- create all files and folders needed for a release
-	 of TSTool into a folder named Release -->
 <target name="createRelease" 
-	depends="clean,test,javadoc,createAllInstallers" >
+ depends="clean,test,javadoc,createAllInstallers"
+ description="creates files and folders needed for release">
 
 	<!-- make a temp directory (Release) and copy all
 	     release specific files and docs here -->
@@ -499,10 +488,8 @@
 	
 </target>
 	
-<!-- copies all installation files and folders
-	 to a tmp directory to be packaged. -->
-<target name="installerSetupLinux" depends="jar" >
-	
+<target name="installerSetupLinux" depends="jar"
+ description="copies installation files to be packaged">
 	<delete dir="tmp" />
 	<mkdir dir="${tmp.dir}" />
 	<mkdir dir="${tmp.dir}/jre_142" />
@@ -536,11 +523,9 @@
 		<fileset dir="${ext.dir}/shellcon" includes="**/shellcon.exe" />
 	</copy>
 	<copy todir="${tmp.dir}/bin" 
-		file="${dist.dir}/${proj_name}_142.jar" />
-		
+		file="${dist.dir}/${proj_name}_142.jar" />	
 </target>
 	
-<!-- runs Junit tests and outputs results -->
 <target name="test" depends="compileTest"
 	description="runs Junit test suite">
 
@@ -633,6 +618,7 @@
 	
 </macrodef>
 	
+	
 <macrodef name="runMacroDebug" 
  description="General method for running product with debug" >
 	
@@ -657,7 +643,7 @@
 		
 </macrodef>
 	
-<!-- generates the javadocs for this product -->
+	
 <target name="javadoc" 
 	description="creates html javadocs from source code">
 	
@@ -676,6 +662,7 @@
 
 </target>
 
+	
 <!-- creates jar for app -->
 <target name="jar" depends="compile" 
 	description="jars all class files into jar file in dist dir">
@@ -690,17 +677,17 @@
       	<attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
       	<attribute name="Address2"  value="Fort Collins, CO 80525"/>
         <attribute name="Phone"     value="970-484-7573"/>
-	<attribute name="Web"       value="http://www.riverside.com"/>
-	<attribute name="BuildDate" value="${jarDate}"/>
+	    <attribute name="Web"       value="http://www.riverside.com"/>
+	    <attribute name="BuildDate" value="${jarDate}"/>
         <attribute name="Contents"  value="Contains tstool Classes"/>
       </manifest>
-
     </jar>
 	
 </target>
 
-<!-- regression tests all data sets using CDSS config -->
-<target name="regTestAll_CDSS" >
+	
+<target name="regTestAll_CDSS" 
+ description="Runs regression tests for all data sets using CDSS config" >
 	<addTestsToSet dataset="CDSS_RioGrande" />
 	<addTestsToSet dataset="general" />
 	<addTestsToSet dataset="Rivertrak"/>
@@ -708,18 +695,14 @@
 	<antcall target="regTestCDSS" />
 </target>
 		
-<!-- regression tests all data sets using Rivertrak config -->	
-<target name="regTestAll_Rivertrak" >
+<target name="regTestAll_Rivertrak" 
+ description="Runs regression tests for all data sets using RTi config" >
 	<addTestsToSet dataset="CDSS_RioGrande" />
 	<addTestsToSet dataset="general" />
 	<addTestsToSet dataset="CDSS"/>
 	<antcall target="regTestRivertrak" />
 </target>
 	
-<!-- To regression test this product.  Runs 
-	 TSTool using a commands file and sends
-	 the output to the Regression results
-	 folder.  -->
 <target name="regTestCDSS" depends="clean,jar,createAppExe_CDSS"
 	description="runs CDSS regression tests and outputs 
 	results to test/regression/results">
@@ -734,10 +717,6 @@
 	
 </target>
 	
-<!-- To regression test this product.  Runs 
-	 TSTool using a commands file and sends
-	 the output to the Regression results
-	 folder.   -->
 <target name="regTestCDSS_UpperColorado" 
  depends="clean,jar,createAppExe_CDSS"
  description="runs CDSS regression tests and outputs 
@@ -754,10 +733,6 @@
 	
 </target>	
 
-<!-- To regression test this product.  Runs 
-	 TSTool using a commands file and sends
-	 the output to the Regression results
-	 folder.   -->
 <target name="regTestGeneral" depends="clean,jar,createAppExe_CDSS"
 	description="runs CDSS regression tests and outputs 
 	             results to test/regression/results">
@@ -772,11 +747,6 @@
 		
 </target>
 	
-<!-- To regression test this product.  Runs 
-	 TSTool using a commands file and sends
-	 the output to the Regression results
-	 folder.   
-===================================================-->
 <target name="regTestRivertrak" depends="clean,jar,createAppExe_RTi" 
 	description="runs regression tests and outputs results
 	to test/regression/results">
@@ -791,10 +761,6 @@
 	
 </target>
 	
-<!-- To regression test this product.  Runs 
-	 TSTool using a commands file and sends
-	 the output to the Regression results
-	 folder   -->
 <target name="regTestRivertrakExt" depends="clean,jar,createAppExe_RTi"
  description="runs regression tests and outputs results
 	          to test/regression/results">
@@ -810,8 +776,7 @@
 	
 </target>	
 	
-<!-- Runs the Costello editor for Abbot -->
-<target name="costello">
+<target name="costello" description="Runs the costello editor from Abbot">
 
 	<java dir="." classname="${costello}" fork="true" >
 		<jvmarg value="-Djava.compiler=NONE" />
@@ -820,9 +785,8 @@
 
 </target>
 
-
-<!-- Runs Abbot script files using Junit framework -->
-<target name="testGUI" depends="compile">
+<target name="testGUI" depends="compile"
+ description="Runs Abbot script files using Junit">
 
 	<!-- compile Abbot Test Suite src  -->
 	<javac srcdir="${regTest.dir}/src" destdir="${buildwork.dir}" 
@@ -836,12 +800,6 @@
 		  outfile="test/regression/results/AbbotResults" />
 	</junit>
 		
-	<!-- old way of running with perl script
-	<exec dir="${regTest.dir}/scripts" executable="perl" >
-		<arg value="runTests.pl" />
-	</exec>
-	-->
-
 </target>
 	
 <target name="cobertura_init" depends="compileTest" >
