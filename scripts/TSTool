@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd /opt/RTi/NWSRFS
+
+if [ -e jre_142_linux ]
+then
+  mv jre_142_linux jre_142
+fi
+
+cd bin
+
+JRE=../jre_142/bin/java
+
+$JRE -Xmx256m -cp "TSTool_142.jar:HydroBaseDMI_142.jar:RiversideDB_DMI_142.jar:NWSRFS_DMI_142.jar:msbase.jar:mssqlserver.jar:msutil.jar:RTi_Common_142.jar:StateMod_142.jar:StateCU_142.jar:Blowfish_142.jar:SatmonSysDMI_142.jar:TS_Services.jar:TSCommandProcessor_142.jar" DWR.DMI.tstool.tstool -home ../ $1 $2 $3 $4 $5 $6 $7 $8 $9

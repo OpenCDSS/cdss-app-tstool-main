@@ -46,13 +46,13 @@
 	<property name="AbbotSuite"		 value="AbbotTestSuite" />
 	<property name="cobertura.dir"   value="${ext.dir}/cobertura" />
 	<property name="buildcob.dir"    value="build/cobertura" />
-	<property name="CDSS_install.dir" value="installer/CDSS" />
-	<property name="RTi_install.dir" value="installer/Rivertrack" />
+	<property name="CDSS_install.dir" location="installer/CDSS" />
+	<property name="RTi_install.dir" location="installer/Rivertrack" />
+	<property name="NWSRFS_install.dir" location="installer/NWSRFS" />
 	<property name="ProductTester" 	 value="${ext.dir}/ProductTester" />
 	<property name="nativejc"		 
 		value="${ext.dir}/NativeJ/nativejc.exe" />
 	<property name="NJProj"			 value="${proj_name}.njp" />
-	<property name="tmp.dir"  location="tmp" />
 	<property name="NJProj_Reg"	 	 value="${proj_name}_Regression.njp" />
 	<property name="NJProj_Reg_Ext"  value="${proj_name}_Ext_Regression.njp" />
 	
@@ -352,22 +352,6 @@
 	
 </target>
 
-<macrodef name="createInstallerGeneric"
- description="General macro for creating an installer">
-	
-	<attribute name="NJProj.dir" />
-	<sequential>
-		<ant antfile="${ext.dir}/RTiBuild/common-install.xml" 
-			target="createNJandNSIS">
-			<property name="NJProj.dir" 
-				value="${nsis.dir}/@{NJProj.dir}"/>
-			<property name="NJProj" value="${NJProj}" />
-			<property name="nsis.script" value="TSTool.nsi" />
-		</ant>
-	</sequential>
-	
-</macrodef>
-
 <target name="createAppExe_CDSS" 
  description="creates CDSS application executables">
 	
@@ -400,22 +384,30 @@
 <target name="createInstaller_CDSS" depends="clean,jar" 
 	description="runs NSIS to create an executable installer">
 	
-	<createInstallerGeneric NJProj.dir="CDSS" />
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml" 
+	 target="createNJandNSIS" >
+		<property name="NJProj.dir" value="${nsis.dir}/CDSS" />
+		<property name="nsis.script" value="TSTool.nsi" />
+	</ant>
 	
 </target>
 	
 <target name="createInstaller_RTi" depends="clean,jar"
 	description="runs NSIS to create an executable installer">
 	
-	<createInstallerGeneric NJProj.dir="Rivertrack" />
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml" 
+	 target="createNJandNSIS" >
+		<property name="NJProj.dir" value="${nsis.dir}/Rivertrack" />
+		<property name="nsis.script" value="TSTool.nsi" />
+	</ant>
 	
 </target>
 	
-<target name="createInstaller_RTiExtended" depends="clean,jar"
+<target name="createInstaller_RTiExtended"
 	description="runs NSIS to create an executable installer">
 	
 	<property name="NJProj" value="${NJProj_Reg_Ext}" />
-	<createInstallerGeneric NJProj.dir="Rivertrack" />
+	<antcall target="createInstaller_RTi" />
 	
 </target>
 		
@@ -488,42 +480,84 @@
 	
 </target>
 	
-<target name="installerSetupLinux" depends="jar"
- description="copies installation files to be packaged">
-	<delete dir="tmp" />
-	<mkdir dir="${tmp.dir}" />
-	<mkdir dir="${tmp.dir}/jre_142" />
-	<mkdir dir="${tmp.dir}/logs" />
-	<mkdir dir="${tmp.dir}/system" />
-	<mkdir dir="${tmp.dir}/bin" />
+<!-- couple of macros for RTi Linux installation -->
+<macrodef name="addRTiFiles" 
+ description="Adds the RTi Extended specific install files">
+	<sequential>
+		<copy todir="tmp/bin" >
+			<fileset dir="${ext.dir}/NWSRFS_DMI" excludes="**/*Extended.jar"/>
+		</copy>
+		<copy todir="tmp/bin" file="scripts/TSTool" />
+	</sequential>
+</macrodef>
 	
-	<!-- copy all files and folders for install package -->
-	<copy todir="${tmp.dir}/jre_142" >
-		<fileset dir="${ext.dir}/jre_142_linux"
-		excludes="**/.svn"/>
-	</copy>
-	<copy todir="${tmp.dir}/system" >
-		<fileset dir="test/operational/CDSS/system" 
-			excludes="**/.svn" />
-	</copy>
-	<copy todir="${tmp.dir}/bin" >
-		<fileset dir="${ext.dir}/HydroBaseDMI" includes="**/*.jar" />
-		<fileset dir="${ext.dir}/Microsoft_SQL_Server_Java_ODBC_Driver" 
-			includes="**/*.jar" />
-		<fileset dir="${ext.dir}/NWSRFS_DMI" includes="**/*.jar" />
+<macrodef name="addRTiExtFiles" 
+ description="Adds the RTi specific install files" >
+	<sequential>
+		<copy todir="tmp/bin" >
+			<fileset dir="${ext.dir}/NWSRFS_DMI" includes="**/*Extended.jar"/>
+		</copy>
+		<copy todir="tmp/bin" file="scripts/TSTool_Ext" />
+		<move file="tmp/bin/TSTool_Ext" tofile="tmp/bin/TSTool"/>
+	</sequential>
+</macrodef>
+	
+<!-- Linux installer targets -->
+<target name="installerSetupLinux" depends="clean,jar"
+ description="copies TSTool installation files to be packaged">
+	
+	<mkdir dir="tmp/bin" />
+	<copy todir="tmp/bin" >
 		<fileset dir="${ext.dir}/RiversideDB_DMI" includes="**/*.jar" />
-		<fileset dir="${ext.dir}/RTi_Common" includes="**/*.jar" />
-		<fileset dir="${ext.dir}/SatmonSysDMI" includes="**/*.jar" />
 		<fileset dir="${ext.dir}/StateCU" includes="**/*.jar" />
 		<fileset dir="${ext.dir}/StateMod" includes="**/*.jar" />
-		<fileset dir="${ext.dir}/TS_Services" includes="**/*.jar" />
-		<fileset dir="${ext.dir}/TSCommandProcessor" 
-			includes="**/*.jar" />
-		<fileset dir="${ext.dir}" includes="**/Blowfish_142.jar" />
-		<fileset dir="${ext.dir}/shellcon" includes="**/shellcon.exe" />
+		<fileset dir="${ext.dir}/TSCommandProcessor" includes="**/*.jar" />
 	</copy>
-	<copy todir="${tmp.dir}/bin" 
-		file="${dist.dir}/${proj_name}_142.jar" />	
+		
+	<copy todir="tmp/bin" file="${dist.dir}/${proj_name}_142.jar" />	
+	
+</target>
+	
+<target name="createLinuxInstallerCDSS" depends="installerSetupLinux" 
+	description="Creates Linux installer for CDSS configuration">
+	
+	<addRTiFiles />
+	
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
+	 target="createLinuxInstallerCDSS" >
+		<property name="mpi.file" 
+		 value="${CDSS_install.dir}/${proj_name}.mpi"/>
+		<property name="type" value="CDSS"/>
+	</ant>
+	
+</target>
+
+<target name="createLinuxInstallerNWSRFS" depends="installerSetupLinux"
+	description="Creates Linux installer for RTi configuration" >
+	
+	<addRTiFiles />
+	
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
+	 target="createLinuxInstallerCDSS" >
+		<property name="mpi.file" 
+		 value="${NWSRFS_install.dir}/${proj_name}.mpi"/>
+		<property name="type" value="NWSRFS"/>
+	</ant>
+	
+</target>
+	
+<target name="createLinuxInstallerNWSRFSExt" depends="installerSetupLinux"
+	description="Creates Linux installer for RTi configuration" >
+	
+	<addRTiExtFiles />
+	
+	<ant antfile="${ext.dir}/RTiBuild/common-install.xml"
+	 target="createLinuxInstallerCDSS" >
+		<property name="mpi.file" 
+		 value="${NWSRFS_install.dir}/${proj_name}_Ext.mpi"/>
+		<property name="type" value="NWSRFS"/>
+	</ant>
+	
 </target>
 	
 <target name="test" depends="compileTest"
