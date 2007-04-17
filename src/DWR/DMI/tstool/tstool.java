@@ -409,6 +409,8 @@
 //                      in the parseArgs() method so this doesn't happen.
 // 2007-02-11	SAM, RTi		Update version to 7.01.00.
 //					Clean up code based on Eclipse feedback.
+// 2007-03-09	SAM, RTi		Update to version 7.02.00.
+//					* Work on Mixed Station Model tool and commands.
 //------------------------------------------------------------------------------
 //EndHeader
 
@@ -430,7 +432,7 @@ import RTi.Util.String.StringUtil;
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "7.01.00 (2007-03-02)";
+public static final String PROGRAM_VERSION = "7.02.00 (2007-03-09)";
 
 private static TSTool_JFrame	__tstool_JFrame;	// Main GUI
 private static String		__home = null;		// Home directory for

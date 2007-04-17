@@ -21,6 +21,8 @@
 // 2004-07-21	SAM, RTi		Update to be more generic and use free
 //					format parameter lists.
 // 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
+// 2007-03-12	SAM, RTi		Quick fix to add DefaultUnits to address
+//					problem with a later add() command.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -101,6 +103,8 @@ private JTextField	__Delim_JTextField = null;
 private SimpleJComboBox	__HandleMissingTSHow_JComboBox = null;
 						// Time series available to
 						// operate on.
+private JTextField	__DefaultUnits_JTextField = null;
+						// Default units when blank time series is created.
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
@@ -260,6 +264,7 @@ throws Throwable
 	__HandleMissingTSHow_JComboBox = null;
 	__DataType_JTextField = null;
 	__Interval_JTextField = null;
+	__DefaultUnits_JTextField = null;
 	__browse_JButton = null;
 	__ok_JButton = null;
 	__path_JButton = null;
@@ -455,6 +460,16 @@ private void initialize (	JFrame parent, String title,
 		"Should empty TS be created (requires output period)?"),
 		3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
+        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Default units:" ), 
+        		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+        __DefaultUnits_JTextField = new JTextField ( "", 20 );
+        __DefaultUnits_JTextField.addKeyListener ( this );
+        JGUIUtil.addComponent(main_JPanel, __DefaultUnits_JTextField,
+        1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(main_JPanel, new JLabel (
+        "Default units when missing time series are created (default is from InputType)."),
+        3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+        
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
@@ -538,6 +553,7 @@ private void refresh ()
 	String InputType = null;
 	String InputName = null;
 	String HandleMissingTSHow = null;
+	String DefaultUnits = null;
 	__error_wait = false;
 	String command_string = ((String)__command_Vector.elementAt(0)).trim();
 	if ( __first_time ) {
@@ -582,6 +598,7 @@ private void refresh ()
 			InputType = props.getValue ( "InputType" );
 			InputName = props.getValue ( "InputName" );
 			HandleMissingTSHow=props.getValue("HandleMissingTSHow");
+			DefaultUnits=props.getValue("DefaultUnits");
 		}
 		// Now select the item in the list.  If not a match,
 		// print a warning.
@@ -651,6 +668,9 @@ private void refresh ()
 				}
 			}
 		}
+		if ( DefaultUnits != null ) {
+			__DefaultUnits_JTextField.setText ( ID );
+		}
 	}
 	// Regardless, reset the command from the fields...
 	ListFile = __ListFile_JTextField.getText().trim();
@@ -670,6 +690,7 @@ private void refresh ()
 		HandleMissingTSHow =
 		__HandleMissingTSHow_JComboBox.getSelected();
 	}
+	DefaultUnits = __DefaultUnits_JTextField.getText().trim();
 	if ( (ListFile == null) || (ListFile.trim().length() == 0) ) {
 		if ( __path_JButton != null ) {
 			__path_JButton.setEnabled ( false );
@@ -707,7 +728,7 @@ private void refresh ()
 		if ( b.length() > 0 ) {
 			b.append ( "," );
 		}
-		b.append ( "DataType=" + DataType );
+		b.append ( "DataType=\"" + DataType + "\"" );
 	}
 	if ( Interval.length() > 0 ) {
 		if ( b.length() > 0 ) {
@@ -738,6 +759,12 @@ private void refresh ()
 			b.append ( "," );
 		}
 		b.append ( "HandleMissingTSHow=" + HandleMissingTSHow );
+	}
+	if ( DefaultUnits.length() > 0 ) {
+		if ( b.length() > 0 ) {
+			b.append ( "," );
+		}
+		b.append ( "DefaultUnits=\"" + DefaultUnits + "\"");
 	}
 	__command_JTextField.setText("createFromList(" + b.toString() + ")" );
 	// Check the path and determine what the label on the path button should

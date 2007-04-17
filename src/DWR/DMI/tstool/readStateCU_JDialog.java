@@ -9,6 +9,9 @@
 //					readStateModB_JDialog).
 // 2005-06-09	SAM, RTi		Update to read CDS and IPY files.
 // 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
+// 2007-04-09	SAM, RTi		Add AutoAdjust to help automatically handle
+//					new crop names that may not work with TSIDs.
+//					Change the command from a text field to text area.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -20,6 +23,8 @@ import java.awt.Insets;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
@@ -30,6 +35,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import java.io.File;
@@ -39,25 +46,33 @@ import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 public class readStateCU_JDialog extends JDialog
-implements ActionListener, KeyListener, WindowListener
+implements ActionListener, ItemListener, KeyListener, WindowListener
 {
+	
+private final String __False = "False";
+private final String __True = "True";
+
 private SimpleJButton	__browse_JButton = null,// File browse button
 			__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null,	// Ok Button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths.
 private Vector		__command_Vector = null;// Command as Vector of String
-private JTextField	__command_JTextField=null;// Command as TextField
+private JTextArea	__command_JTextArea=null;// Command as TextArea
 private String		__working_dir = null;	// Working directory.
 private JTextField	__InputFile_JTextField = null;// Field for input file. 
 private JTextField	__TSID_JTextField = null;// Field for time series
 						// identifier
+private SimpleJComboBox	__AutoAdjust_JComboBox = null;  // For development to
+						// deal with non-standard issues in data (e.g., crop
+						// names that include "."
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
@@ -206,9 +221,10 @@ protected void finalize ()
 throws Throwable
 {	__browse_JButton = null;
 	__cancel_JButton = null;
-	__command_JTextField = null;
+	__command_JTextArea = null;
 	__InputFile_JTextField = null;
 	__TSID_JTextField = null;
+	__AutoAdjust_JComboBox = null;
 	__command_Vector = null;
 	__ok_JButton = null;
 	__path_JButton = null;
@@ -326,11 +342,26 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 	"Loc.Source.Type.Interval"),
 	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
+        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Automatically adjust:" ), 
+        		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+        	__AutoAdjust_JComboBox = new SimpleJComboBox ( false );
+        	__AutoAdjust_JComboBox.addItem ( "" );
+        	__AutoAdjust_JComboBox.addItem ( __False );
+        	__AutoAdjust_JComboBox.addItem ( __True );
+        	__AutoAdjust_JComboBox.addItemListener ( this );
+                JGUIUtil.addComponent(main_JPanel, __AutoAdjust_JComboBox,
+        		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+       	JGUIUtil.addComponent(main_JPanel, new JLabel (
+            	"Convert data type with \".\" to \"-\"."),
+            	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+       	
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	__command_JTextField = new JTextField ( 55 );
-	__command_JTextField.setEditable ( false );
-	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
+    	__command_JTextArea = new JTextArea ( 5, 55 );
+    	__command_JTextArea.setLineWrap ( true );
+    	__command_JTextArea.setWrapStyleWord ( true );
+    	__command_JTextArea.setEditable ( false );
+	JGUIUtil.addComponent(main_JPanel, new JScrollPane(__command_JTextArea),
 		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Refresh the contents...
@@ -366,6 +397,19 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 }
 
 /**
+Handle ItemEvent events.
+@param e ItemEvent to handle.
+*/
+public void itemStateChanged ( ItemEvent e )
+{	Object o = e.getItemSelectable();
+
+	if (	(o == __AutoAdjust_JComboBox) &&
+		(e.getStateChange() == ItemEvent.SELECTED) ) {
+		refresh();
+	}
+}
+
+/**
 Respond to KeyEvents.
 */
 public void keyPressed ( KeyEvent event )
@@ -396,6 +440,7 @@ private void refresh ()
 	__error_wait = false;
 	String InputFile="";
 	String TSID="";
+	String AutoAdjust = "";
 	if ( __first_time ) {
 		__first_time = false;
 		// Parse the incoming string and fill the fields...
@@ -411,16 +456,35 @@ private void refresh ()
 		}
 		InputFile = props.getValue ( "InputFile" );
 		TSID = props.getValue ( "TSID" );
+		AutoAdjust = props.getValue ( "AutoAdjust" );
 		if ( InputFile != null ) {
 			__InputFile_JTextField.setText (InputFile);
 		}
 		if ( TSID != null ) {
 			__TSID_JTextField.setText (TSID);
 		}
+		if (	JGUIUtil.isSimpleJComboBoxItem(
+				__AutoAdjust_JComboBox,
+				AutoAdjust, JGUIUtil.NONE, null, null ) ) {
+				__AutoAdjust_JComboBox.select ( AutoAdjust);
+		}
+		else {	if (	(AutoAdjust == null) ||
+					AutoAdjust.equals("") ) {
+					// New command...select the default...
+					__AutoAdjust_JComboBox.select ( 0 );
+				}
+				else {	Message.printWarning ( 1,
+						routine,
+						"Existing readStateCU() references an " +
+						"invalid\n"+ "AutoAdjust parameter \"" +
+						AutoAdjust + "\".  Correct or Cancel." );
+				}
+		}
 	}
 	// Regardless, reset the command from the fields...
 	InputFile = __InputFile_JTextField.getText().trim();
 	TSID = __TSID_JTextField.getText().trim();
+	AutoAdjust = __AutoAdjust_JComboBox.getSelected();
 	StringBuffer b = new StringBuffer ();
 	if ( InputFile.length() > 0 ) {
 		b.append ( "InputFile=\"" + InputFile + "\"" );
@@ -431,9 +495,15 @@ private void refresh ()
 		}
 		b.append ( "TSID=\"" + TSID + "\"" );
 	}
-	__command_JTextField.setText("readStateCU(" + b.toString() + ")" );
+	if ( AutoAdjust.length() > 0 ) {
+		if ( b.length() > 0 ) {
+			b.append ( "," );
+		}
+		b.append ( "AutoAdjust=\"" + AutoAdjust + "\"" );
+	}
+	__command_JTextArea.setText("readStateCU(" + b.toString() + ")" );
 	__command_Vector.removeAllElements();
-	__command_Vector.addElement ( __command_JTextField.getText() );
+	__command_Vector.addElement ( __command_JTextArea.getText() );
 	// Check the path and determine what the label on the path button should
 	// be...
 	if ( __path_JButton != null ) {

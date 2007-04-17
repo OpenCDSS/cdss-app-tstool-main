@@ -13755,8 +13755,9 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 	String desc = null;
 	String alias = null;
 	BinaryTS binary_ts = null;
-	int size_visible = 0;
+	boolean [] selected_boolean = new boolean[size];
 	for ( int i = 0; i < size; i++ ) {
+		selected_boolean[i] = false;
 		if ( __final_ts_engine.isBinaryTSUsed() ) {
 			try {	binary_ts = __final_ts_engine.getBinaryTS();
 				desc = binary_ts.getDescription(i);
@@ -13799,15 +13800,39 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 				desc + " - " + ts.getIdentifier() +
 				" (" + ts.getDate1() + " to " +
 				ts.getDate2() + ")" );
+				// Determine whether the time series was programmatically selected
+				// in the commands...
+				selected_boolean[i] = ts.isSelected();
 			}
 		}
-		++size_visible;
 	}
-	// Default is to select all the time series...
-	int [] selected = new int[size_visible];
-	for ( int i = 0; i < size_visible; i++ ) {
-		selected[i] = i;
+	// If no time series are selected in the data, then visually select all.
+	// If any are selected, then visually select only the ones that are
+	// selected.  First determine the number that have been selected.
+	int num_selected = 0;
+	for ( int i = 0; i < size; i++ ) {
+		if ( selected_boolean[i] ) {
+			++num_selected;
+		}
 	}
+	// Now create the list of indices to use for visually selecting...
+	int [] selected = null;
+	if ( num_selected == 0 ) {
+		// All need to be selected in output
+		selected = new int[size];	// Whether visually selected
+		for ( int i = 0; i < size; i++ ) {
+			selected[i] = i;
+		}
+	}
+	else {	// Select the time series of interest.
+		selected = new int[num_selected];	// Whether visually selected
+		for ( int i = 0; i < size; i++ ) {
+			if ( selected_boolean[i] ) {
+				selected[i] = i;
+			}
+		}
+	}
+	// Now actually select the time series in the visual output...
 	__ts_JList.setSelectedIndices ( selected );
 	updateStatus ();
 	Message.printStatus ( 1, rtn, "Completed running commands.  Use "+
