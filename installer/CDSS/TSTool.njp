@@ -1,7 +1,7 @@
 [NativeJ Project Definition]
 ApplicationType=1
 AllowAsService=0
-AppIcon=C:\Development\TSTool\java_142\TSTool\externals\CDSS\graphics\waterMark.ico
+AppIcon=..\..\externals\CDSS\graphics\waterMark.ico
 TargetExe=TSTool.exe
 EmbeddedJars=
 RedirectStdOutType=0

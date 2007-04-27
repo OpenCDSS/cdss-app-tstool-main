@@ -223,9 +223,9 @@ Section "Documentation" Docs
     strcpy $choseDocs "1"
     
     # copy documentation
-    SetOutPath $INSTDIR\doc\TSTool
+    SetOutPath $INSTDIR\doc\TSTool\UserManual
     SetOverwrite on
-    File /r /x *svn* ..\..\doc\TSTool\CDSS\*
+    File /r /x *svn* ..\..\doc\TSTool\CDSS\UserManual\TSTool.pdf
 
 SectionEnd
 
