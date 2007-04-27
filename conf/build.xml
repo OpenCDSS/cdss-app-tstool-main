@@ -480,6 +480,28 @@
 	
 </target>
 	
+<target name="createUserManual_CDSS"
+ description="Merges PDF documentation into dist folder" >
+	
+	<ant antfile="${ext.dir}/RTiBuild/common-doc.xml"
+	 target="mergePDF" >
+		<property name="filelist" 
+		 value="doc/TSTool/CDSS/UserManual/PDF/filelist.txt" />
+	</ant>
+	
+</target>
+	
+<target name="createUserManual_Rivertrak"
+ description="Merges PDF documentation into dist folder" >
+	
+	<ant antfile="${ext.dir}/RTiBuild/common-doc.xml"
+	 target="mergePDF" >
+		<property name="filelist" 
+		 value="doc/TSTool/Rivertrak/UserManual/PDF/filelist.txt" />
+	</ant>
+	
+</target>
+	
 <!-- couple of macros for RTi Linux installation -->
 <macrodef name="addRTiFiles" 
  description="Adds the RTi Extended specific install files">
@@ -835,33 +857,7 @@
 	</junit>
 		
 </target>
-	
-<target name="cobertura_init" depends="compileTest" >
-
-	<delete file="${buildcob.dir}/cobertura.ser" />
-
-	<cobertura-instrument todir="${buildcob.dir}" 
-		datafile="${buildcob.dir}/cobertura.ser">
-	    <fileset dir="${buildwork.dir}" >
-	    	<include name="**/*.class" />
-	    	<exclude name="**/*Test*.class" />
-	    </fileset>
-	</cobertura-instrument>
-	
-</target>
-	
-<target name="cobertura" depends="cobertura_init,test" >
-	
-	<cobertura-report format="html" destdir="test/unit/results"
-		datafile="${buildcob.dir}/cobertura.ser" >
-	    <fileset dir="${src.dir}">
-	        <include name="**/*.java" />
-	        <exclude name="**/*Test*.java" />
-	    </fileset>
-	</cobertura-report>
-	
-</target>
-	
+		
 <!-- prints out info on targets and properties -->
 <target name="help">
 
