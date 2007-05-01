@@ -1,7 +1,6 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import RTi.Util.Test.TestCollector;
 import junit.framework.TestCase;
