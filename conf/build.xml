@@ -44,8 +44,6 @@
 	<property name="proj_name"		 value="TSTool" />
 	<property name="costello" 		 value="abbot.editor.Costello" />
 	<property name="AbbotSuite"		 value="AbbotTestSuite" />
-	<property name="cobertura.dir"   value="${ext.dir}/cobertura" />
-	<property name="buildcob.dir"    value="build/cobertura" />
 	<property name="CDSS_install.dir" location="installer/CDSS" />
 	<property name="RTi_install.dir" location="installer/Rivertrack" />
 	<property name="NWSRFS_install.dir" location="installer/NWSRFS" />
@@ -55,16 +53,6 @@
 	<property name="NJProj"			 value="${proj_name}.njp" />
 	<property name="NJProj_Reg"	 	 value="${proj_name}_Regression.njp" />
 	<property name="NJProj_Reg_Ext"  value="${proj_name}_Ext_Regression.njp" />
-	
-	<path id="cobertura.classpath">
-	    <fileset dir="${cobertura.dir}">
-	        <include name="cobertura.jar" />
-	        <include name="lib/**/*.jar" />
-	    </fileset>
-	</path>
-   
-	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
-	
 	
 	<!--================ Dependencies ==================-->
 	<property name="hydro"	 
@@ -486,7 +474,7 @@
 	<ant antfile="${ext.dir}/RTiBuild/common-doc.xml"
 	 target="mergePDF" >
 		<property name="filelist" 
-		 value="doc/TSTool/CDSS/UserManual/PDF/filelist.txt" />
+		 value="doc/TSTool/CDSS/UserManual/PDF/fileList.txt" />
 	</ant>
 	
 </target>
@@ -586,11 +574,8 @@
 	description="runs Junit test suite">
 
 	<junit printsummary="yes" fork="yes" dir="conf">
-		<sysproperty key="net.sourceforge.cobertura.datafile"
-				file="${buildcob.dir}/cobertura.ser" />
 		<formatter type="xml"/>
 		<classpath refid="classpath" />
-		<classpath refid="cobertura.classpath" />
 		<test name="${testSuite}"
 		 outfile="test/unit/results/${proj_name}" />
 	</junit>
