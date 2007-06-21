@@ -70,6 +70,7 @@ private String		__working_dir = null;	// Working directory.
 private JTextField	__InputFile_JTextField = null;// Field for input file. 
 private JTextField	__TSID_JTextField = null;// Field for time series
 						// identifier
+private JTextField	__NewScenario_JTextField = null;// Field for new scenario
 private SimpleJComboBox	__AutoAdjust_JComboBox = null;  // For development to
 						// deal with non-standard issues in data (e.g., crop
 						// names that include "."
@@ -188,6 +189,7 @@ to true.  This should be called before response() is allowed to complete.
 */
 private void checkInput ()
 {	String InputFile = __InputFile_JTextField.getText().trim();
+	String NewScenario = __NewScenario_JTextField.getText().trim();
 	String warning = "";
 	__error_wait = false;
 	// Adjust the working directory that was passed in by the specified
@@ -208,6 +210,9 @@ private void checkInput ()
 		"    \"" + InputFile + "\".\n" +
 		"Correct the file or Cancel.";
 	}
+	if ( NewScenario.indexOf(" ") > 0 ) {
+		warning += "\nThe NewScenario cannot contain a space.";
+	}
 	if ( warning.length() > 0 ) {
 		Message.printWarning ( 1, "readStateCU_JDialog", warning );
 		__error_wait = true;
@@ -224,6 +229,7 @@ throws Throwable
 	__command_JTextArea = null;
 	__InputFile_JTextField = null;
 	__TSID_JTextField = null;
+	__NewScenario_JTextField = null;
 	__AutoAdjust_JComboBox = null;
 	__command_Vector = null;
 	__ok_JButton = null;
@@ -262,7 +268,7 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	// Main panel...
 
@@ -293,74 +299,85 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 		"The working directory is: " + __working_dir ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The time series identifier pattern, if specified, will" +
 		" filter the read ONLY for IWR and WSL files;" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"specify blank to read all or use * wildcards to match a" +
 		" time series identifier." ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"For example, to read all monthly IWR time series for" +
 		" locations starting with ABC, specify:" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "  ABC.*.IWR.Month"),
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "  ABC.*.IWR.Month"),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Location can be X, X*, or *.  Data type and interval can " +
 		"be * or combinations as follows:"),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"   CropArea-AllCrops        Year" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"   IWR or WSL               Month, Year" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"   IWR_Depth or WSL_Depth   Month, Year" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"StateCU file to read:" ),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__InputFile_JTextField = new JTextField ( 50 );
 	__InputFile_JTextField.addKeyListener ( this );
-        JGUIUtil.addComponent(main_JPanel, __InputFile_JTextField,
+    JGUIUtil.addComponent(main_JPanel, __InputFile_JTextField,
 		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__browse_JButton = new SimpleJButton ( "Browse", this );
-        JGUIUtil.addComponent(main_JPanel, __browse_JButton,
+    JGUIUtil.addComponent(main_JPanel, __browse_JButton,
 		6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time series ID:" ), 
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time series ID:" ), 
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JTextField = new JTextField ( 10 );
 	__TSID_JTextField.addKeyListener ( this );
-        JGUIUtil.addComponent(main_JPanel, __TSID_JTextField,
+    JGUIUtil.addComponent(main_JPanel, __TSID_JTextField,
 		1, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-       	JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 	"Loc.Source.Type.Interval"),
 	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Automatically adjust:" ), 
-        		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        	__AutoAdjust_JComboBox = new SimpleJComboBox ( false );
-        	__AutoAdjust_JComboBox.addItem ( "" );
-        	__AutoAdjust_JComboBox.addItem ( __False );
-        	__AutoAdjust_JComboBox.addItem ( __True );
-        	__AutoAdjust_JComboBox.addItemListener ( this );
-                JGUIUtil.addComponent(main_JPanel, __AutoAdjust_JComboBox,
-        		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-       	JGUIUtil.addComponent(main_JPanel, new JLabel (
-            	"Convert data type with \".\" to \"-\"."),
-            	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "New scenario:" ), 
+    	0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    __NewScenario_JTextField = new JTextField ( 10 );
+    __NewScenario_JTextField.addKeyListener ( this );
+    JGUIUtil.addComponent(main_JPanel, __NewScenario_JTextField,
+     	1, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
+       	"New scenario to assign (useful when comparing)."),
+       	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Automatically adjust:" ), 
+   		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+   	__AutoAdjust_JComboBox = new SimpleJComboBox ( false );
+   	__AutoAdjust_JComboBox.addItem ( "" );
+   	__AutoAdjust_JComboBox.addItem ( __False );
+   	__AutoAdjust_JComboBox.addItem ( __True );
+   	__AutoAdjust_JComboBox.addItemListener ( this );
+    JGUIUtil.addComponent(main_JPanel, __AutoAdjust_JComboBox,
+   		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+   	JGUIUtil.addComponent(main_JPanel, new JLabel (
+       	"Convert data type with \".\" to \"-\"."),
+       	3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
        	
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:"),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    	__command_JTextArea = new JTextArea ( 5, 55 );
-    	__command_JTextArea.setLineWrap ( true );
-    	__command_JTextArea.setWrapStyleWord ( true );
-    	__command_JTextArea.setEditable ( false );
+    __command_JTextArea = new JTextArea ( 5, 55 );
+    __command_JTextArea.setLineWrap ( true );
+    __command_JTextArea.setWrapStyleWord ( true );
+    __command_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent(main_JPanel, new JScrollPane(__command_JTextArea),
 		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
@@ -440,6 +457,7 @@ private void refresh ()
 	__error_wait = false;
 	String InputFile="";
 	String TSID="";
+	String NewScenario="";
 	String AutoAdjust = "";
 	if ( __first_time ) {
 		__first_time = false;
@@ -456,12 +474,16 @@ private void refresh ()
 		}
 		InputFile = props.getValue ( "InputFile" );
 		TSID = props.getValue ( "TSID" );
+		NewScenario = props.getValue ( "NewScenario" );
 		AutoAdjust = props.getValue ( "AutoAdjust" );
 		if ( InputFile != null ) {
 			__InputFile_JTextField.setText (InputFile);
 		}
 		if ( TSID != null ) {
 			__TSID_JTextField.setText (TSID);
+		}
+		if ( NewScenario != null ) {
+			__NewScenario_JTextField.setText (NewScenario);
 		}
 		if (	JGUIUtil.isSimpleJComboBoxItem(
 				__AutoAdjust_JComboBox,
@@ -484,6 +506,7 @@ private void refresh ()
 	// Regardless, reset the command from the fields...
 	InputFile = __InputFile_JTextField.getText().trim();
 	TSID = __TSID_JTextField.getText().trim();
+	NewScenario = __NewScenario_JTextField.getText().trim();
 	AutoAdjust = __AutoAdjust_JComboBox.getSelected();
 	StringBuffer b = new StringBuffer ();
 	if ( InputFile.length() > 0 ) {
@@ -494,6 +517,12 @@ private void refresh ()
 			b.append ( "," );
 		}
 		b.append ( "TSID=\"" + TSID + "\"" );
+	}
+	if ( NewScenario.length() > 0 ) {
+		if ( b.length() > 0 ) {
+			b.append ( "," );
+		}
+		b.append ( "NewScenario=\"" + NewScenario + "\"" );
 	}
 	if ( AutoAdjust.length() > 0 ) {
 		if ( b.length() > 0 ) {

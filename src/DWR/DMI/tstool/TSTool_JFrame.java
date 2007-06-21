@@ -985,8 +985,12 @@ import DWR.StateCU.StateCU_TS;
 
 import DWR.StateMod.StateMod_BTS;
 import DWR.StateMod.StateMod_DataSet;
+import DWR.StateMod.StateMod_DiversionRight;
+import DWR.StateMod.StateMod_InstreamFlowRight;
+import DWR.StateMod.StateMod_ReservoirRight;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_TS;
+import DWR.StateMod.StateMod_WellRight;
 
 import RTi.TSCommandProcessor.TSCommandFactory;
 import RTi.TSCommandProcessor.TSCommandProcessor;
@@ -13429,24 +13433,38 @@ throws Exception
 
 	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 				JGUIUtil.getLastFileDialogDirectory() );
-		// REVISIT - need to pick the file first and detect the time
+		// TODO SAM 2007-05-14 Need to better handle picking files.
+		// Need to pick the file first and detect the time
 		// step from the file, similar to the binary file.  For now,
 		// key off the selected time step.
+		SimpleFileFilter ddr_filter = null;
+		SimpleFileFilter ifr_filter = null;
+		SimpleFileFilter rer_filter = null;
+		SimpleFileFilter wer_filter = null;
 		if ( __selected_time_step.equals( __TIMESTEP_DAY)) {
 			fc.setDialogTitle (
 				"Select StateMod Daily Time Series File" );
 			SimpleFileFilter sff = new SimpleFileFilter( "ddd",
 				"StateMod Direct Diversion Demands (Daily)");
 			fc.addChoosableFileFilter(sff);
+			ddr_filter = new SimpleFileFilter( "ddr",
+			"StateMod Diversion Rights (Daily)");
+			fc.addChoosableFileFilter(ddr_filter);
 			sff = new SimpleFileFilter( "ddy",
 				"StateMod Historicial Diversions (Daily)");
 			fc.addChoosableFileFilter(sff);
 			sff = new SimpleFileFilter( "eoy",
 				"StateMod Reservoir Storage (End of Day)");
 			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifd",
+			ifr_filter = new SimpleFileFilter( "ifd",
 				"StateMod Instream Flow Demands (Daily)");
-			fc.addChoosableFileFilter(sff);
+			fc.addChoosableFileFilter(ifr_filter);
+			sff = new SimpleFileFilter( "ifr",
+			"StateMod Instream Flow Rights (Daily)");
+			fc.addChoosableFileFilter(ifr_filter);
+			rer_filter = new SimpleFileFilter( "rer",
+			"StateMod Reservoir Rights (Daily)");
+			fc.addChoosableFileFilter(rer_filter);
 			sff = new SimpleFileFilter( "riy",
 				"StateMod Base Streamflow (Daily)");
 			fc.addChoosableFileFilter(sff);
@@ -13462,12 +13480,16 @@ throws Exception
 			sff = new SimpleFileFilter( "wed",
 				"StateMod Well Demands (Daily)");
 			fc.addChoosableFileFilter(sff);
+			wer_filter = new SimpleFileFilter( "wer",
+			"StateMod Well Rights (Daily)");
+			fc.addChoosableFileFilter(wer_filter);
 			sff = new SimpleFileFilter( "wey",
 				"StateMod Historicial Well Pumping (Daily)");
 			fc.addChoosableFileFilter(sff);
 			fc.setFileFilter(stm_sff);
 		}
-		else {	fc.setDialogTitle (
+		else if ( __selected_time_step.equals( __TIMESTEP_MONTH)) {
+			fc.setDialogTitle (
 				"Select StateMod Monthly Time Series File" );
 			SimpleFileFilter sff = new SimpleFileFilter( "ddh",
 				"StateMod Historicial Diversions (Monthly)");
@@ -13481,6 +13503,9 @@ throws Exception
 			sff = new SimpleFileFilter( "ddo",
 			"StateMod Direct Diversion Demands Override (Monthly)");
 			fc.addChoosableFileFilter(sff);
+			ddr_filter = new SimpleFileFilter( "ddr",
+			"StateMod Diversion Rights (Monthly)");
+			fc.addChoosableFileFilter(ddr_filter);
 			sff = new SimpleFileFilter( "eom",
 				"StateMod Reservoir Storage (End of Month)");
 			fc.addChoosableFileFilter(sff);
@@ -13493,6 +13518,9 @@ throws Exception
 			sff = new SimpleFileFilter( "ifm",
 				"StateMod Instream Flow Demands (Monthly)");
 			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "ifr",
+			"StateMod Instream Flow Rights (Monthly)");
+			fc.addChoosableFileFilter(ifr_filter);
 			sff = new SimpleFileFilter( "ddc",
 				"StateMod/StateCU Irrigation Water" +
 				" Requirement (Monthly)");
@@ -13513,12 +13541,18 @@ throws Exception
 			sff = new SimpleFileFilter( "tar",
 				"StateMod Reservoir Min/Max Targets (Monthly)");
 			fc.addChoosableFileFilter(sff);
+			rer_filter = new SimpleFileFilter( "rer",
+			"StateMod Reservoir Rights (Monthly)");
+			fc.addChoosableFileFilter(rer_filter);
 			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm",
 				"StateMod Time Series (Monthly)");
 			fc.addChoosableFileFilter(stm_sff);
 			sff = new SimpleFileFilter( "wem",
 				"StateMod Well Demands (Monthly)");
 			fc.addChoosableFileFilter(sff);
+			wer_filter = new SimpleFileFilter( "wer",
+			"StateMod Well Rights (Monthly)");
+			fc.addChoosableFileFilter(wer_filter);
 			sff = new SimpleFileFilter( "weh",
 				"StateMod Historicial Well Pumping (Monthly)");
 			fc.addChoosableFileFilter(sff);
@@ -13537,7 +13571,88 @@ throws Exception
 		// Normal daily or monthly format file...
 		Vector tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
-		if ( __selected_time_step.equals(__TIMESTEP_DAY) ) {
+		FileFilter ff = fc.getFileFilter();
+		int interval_base = TimeInterval.MONTH;
+		if ( __selected_time_step.equals(__TIMESTEP_DAY)) {
+			interval_base = TimeInterval.DAY;
+		}
+		else if ( __selected_time_step.equals(__TIMESTEP_MONTH)) {
+			interval_base = TimeInterval.MONTH;
+		}
+		/* TODO SAM 2007-05-16 Resolve later.  Use readStateMod() in the meantime.
+		else if ( __selected_time_step.equals(__TIMESTEP_YEAR)) {
+			interval_base = TimeInterval.YEAR;
+		}
+		*/
+		if ( ff == ddr_filter ) {
+			// First read the diversion rights...
+			Vector ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					ddr_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,             // time series start
+					null,             // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );          // don't read data - only header
+		}
+		else if ( ff == ifr_filter ) {
+			// First read the instream flow rights...
+			Vector ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					ifr_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,              // time series start
+					null,              // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );           // don't read data - only header
+		}
+		else if ( ff == rer_filter ) {
+			// First read the reservoir rights...
+			Vector rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					rer_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,              // time series start
+					null,              // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );           // don't read data - only header
+		}
+		else if ( ff == wer_filter ) {
+			// First read the well rights...
+			Vector wer_Vector = StateMod_WellRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					wer_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,              // time series start
+					null,              // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );           // don't read data - only header
+		}
+		else if ( __selected_time_step.equals(__TIMESTEP_DAY) ) {
 			// Only read the headers...
 			tslist = StateMod_TS.readTimeSeriesList (
 					path, null, null, null, false );
@@ -14983,6 +15098,10 @@ private void setInputFilters()
 		String meas_type = hb_mt[0];
 		//String vax_field = hb_mt[1];
 		//String time_step = hb_mt[2];
+		Message.printStatus(2, "", "isStationTimeSeriesDataType("+ __selected_data_type
+				+ "," + __selected_time_step + "," + meas_type +
+				")=" + HydroBase_Util.isStationTimeSeriesDataType (
+				__hbdmi, meas_type));
 		if ( HydroBase_Util.isStationTimeSeriesDataType (
 			__hbdmi, meas_type) ) {
 			__selected_input_filter_JPanel =

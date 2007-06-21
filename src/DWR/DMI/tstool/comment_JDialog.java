@@ -12,6 +12,9 @@
 //					  resulting in an extra line.
 //					* Fix bug where cancel was returning
 //					  non-null comments.
+// 2007-04-22	SAM, RTi		Fix bug where CTRL-M were getting inserted into
+//					comments.
+// 2007-04-25	SAM, RTi		Add comment column position information.
 // ----------------------------------------------------------------------------
 
 package DWR.DMI.tstool;
@@ -98,6 +101,15 @@ private void checkComments ()
 			__command_Vector.removeElementAt(i);
 			__command_Vector.insertElementAt(("# " + s), i);
 		}
+		// Make sure there are no CTRL-M (^M) carriage returns in the string.
+		// If so, remove because the CTRL-N (newline) is enough for other code
+		// to handle.
+		if ( s.indexOf("\015") > 0 ) {
+			// Replace with a new string that does not have the carriage returns.
+			String s2 = StringUtil.remove ( s, "\015" );
+			__command_Vector.removeElementAt(i);
+			__command_Vector.insertElementAt(s2, i);
+		}
 	}
 }
 
@@ -147,6 +159,8 @@ private void initialize ( JFrame parent, String title, Vector command,
 	addWindowListener( this );
 
         Insets insetsTLBR = new Insets(7,2,7,2);
+        Insets insetsXLXX = new Insets(0,2,0,0);
+        Insets insetsXLBR = new Insets(0,2,7,2);
 
 	// Main panel...
 
@@ -164,13 +178,36 @@ private void initialize ( JFrame parent, String title, Vector command,
 		" automatically if not shown)." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Comments:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JTextArea ref_JTextArea = new JTextArea (2, 80);
+        // Add a string buffer with reference positions (similar to UltraEdit Editor)
+        //0        10        20
+        //12345678901234567890...
+        int n10 = 8; // number to repeat.  Want to make 20 but this causes
+        			// layout issues.
+        // TODO SAM 2007-04-22 REVISIT layout for n10=20
+        StringBuffer b = new StringBuffer();
+        b.append ( StringUtil.formatString(0,"%-9d"));
+        for ( int i = 1; i < n10; i++ ) {
+        	b.append( StringUtil.formatString(i*10,"%-10d"));
+        }
+        b.append ( "\n");
+        b.append ( "1234567890");
+        for ( int i = 1; i < n10; i++ ) {
+        	b.append( "1234567890");
+        }
+        ref_JTextArea.setText( b.toString() );
+    	ref_JTextArea.setEditable (false);
+    	ref_JTextArea.setEnabled ( false );
+    	JGUIUtil.addComponent(main_JPanel, ref_JTextArea,
+    		1, ++y, 6, 1, 1, 1, insetsXLXX, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
+        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Comments:" ), 
+        		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    	
 	__command_JTextArea = new JTextArea ( 10, 80 );
 	__command_JTextArea.setEditable ( true );
 	JGUIUtil.addComponent(main_JPanel, new JScrollPane(__command_JTextArea),
-		1, y, 6, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
+		1, y, 6, 1, 1, 1, insetsXLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
 	// Refresh the contents...
 	refresh ();

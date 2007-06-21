@@ -411,6 +411,10 @@
 //					Clean up code based on Eclipse feedback.
 // 2007-03-09	SAM, RTi		Update to version 7.02.00.
 //					* Work on Mixed Station Model tool and commands.
+//					* Add difference time series to compareTimeSeries().
+//					* Verify support for old and new versions of StateCU CDS file.
+// 2007-04-16	SAM, RTi		Update to version 7.03.00
+//					* Verify support for old and new versions of StateCU IPY file.
 //------------------------------------------------------------------------------
 //EndHeader
 
@@ -432,7 +436,7 @@ import RTi.Util.String.StringUtil;
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "7.02.00 (2007-03-09)";
+public static final String PROGRAM_VERSION = "7.03.00 (2007-04-16)";
 
 private static TSTool_JFrame	__tstool_JFrame;	// Main GUI
 private static String		__home = null;		// Home directory for
