@@ -4153,7 +4153,7 @@ throws Exception
 	// Only on View pop-up...
 
 	else if (command.equals(__Results_FindTimeSeries_String) ) {
-		new FindInJListJDialog ( this, __ts_JList, "Find Time Series" );
+		new FindInJListJDialog ( this, false, __ts_JList, "Find Time Series" );
 	}
         else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
 		// Get the first time series selected in the view window...
@@ -6310,20 +6310,6 @@ private void editCommand (	String action, Vector command_Vector,
 		updateDynamicProps ();
 		edited_cv = new readNWSRFSFS5Files_JDialog ( this, __props,
 			cv, false, __nwsrfs_dmi ).getText();
-	}
-	// Put this in front of the shorter version...
-	else if ( action.equals( __Commands_Read_readStateCU_String)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readStateCU(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readStateCU (",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for readStateCU()" );
-		}
-		updateDynamicProps ();
-		edited_cv = new readStateCU_JDialog ( this, __props,
-			cv, null ).getText();
 	}
 	else if ( action.equals( __Commands_Read_statemodMax_String)||
 		StringUtil.startsWithIgnoreCase(command,"statemodMax") ) {
