@@ -25,9 +25,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -39,8 +41,11 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 import RTi.TS.TSIdent;
 
 import RTi.Util.GUI.InputFilter_JPanel;
+import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
+import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -55,13 +60,16 @@ public class readNWSRFSFS5Files_JDialog extends JDialog
 implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 private SimpleJButton	__cancel_JButton = null,// Cancel Button
-			__ok_JButton = null;	// Ok Button
+			__ok_JButton = null,	// Ok Button
+			__browse_JButton = null,	// To pick FS5Files dir
+			__path_JButton = null;	// Convert between relative and absolute paths
 private Vector		__command_Vector = null;// Command as Vector of String
 private JTextField	__Alias_JTextField = null,// Alias for time series.
 			__location_JTextField,	// Location part of TSID
 			__datasource_JTextField,// Data source part of TSID
 			__DataType_JTextField,	// Data type part of TSID
 			__Interval_JTextField,	// Interval part of TSID
+			__InputName_JTextField,	// Input name (FS5Files dir)
 			__TSID_JTextField,	// Full TSID
 			__QueryStart_JTextField,
 			__QueryEnd_JTextField,	// Text fields for query
@@ -77,6 +85,7 @@ private NWSRFS_DMI	__nwsrfs_dmi = null;	// NWSRFS DMI to do queries.
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
+private String		__working_dir = null;	// Working directory.
 private boolean		__first_time = true;
 private boolean		__read_one = true;	// Indicates if one time series
 						// is being read (TX X =...) or
@@ -105,7 +114,46 @@ Responds to ActionEvents.
 public void actionPerformed( ActionEvent event )
 {	Object o = event.getSource();
 
-	if ( o == __cancel_JButton ) {
+	if ( o == __browse_JButton ) {
+		String last_directory_selected =
+			JGUIUtil.getLastFileDialogDirectory();
+		JFileChooser fc = null;
+		if ( last_directory_selected != null ) {
+			fc = JFileChooserFactory.createJFileChooser(
+				last_directory_selected );
+			fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
+		}
+		else {	fc = JFileChooserFactory.createJFileChooser(
+				__working_dir );
+		}
+		fc.setDialogTitle( "Select NWSRFS ESP Trace Ensemble File");
+		SimpleFileFilter
+		sff = new SimpleFileFilter("CS",
+			"Conditional Simulation Trace File");
+		fc.addChoosableFileFilter(sff);
+		/* REVISIT later when tested.
+		sff = new SimpleFileFilter("HS",
+			"Historical Simulation Trace File");
+		fc.addChoosableFileFilter(sff);
+		*/
+		
+		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			String directory = fc.getSelectedFile().getParent();
+			String filename = fc.getSelectedFile().getName(); 
+			String path = fc.getSelectedFile().getPath(); 
+	
+			if (filename == null || filename.equals("")) {
+				return;
+			}
+	
+			if (path != null) {
+				__InputName_JTextField.setText(path );
+				JGUIUtil.setLastFileDialogDirectory(directory );
+				refresh();
+			}
+		}
+	}
+	else if ( o == __cancel_JButton ) {
 		response ( 0 );
 	}
 	else if ( o == __ok_JButton ) {
@@ -114,6 +162,34 @@ public void actionPerformed( ActionEvent event )
 		if ( !__error_wait ) {
 			response ( 1 );
 		}
+	}
+	else if ( o == __path_JButton ) {
+		if (	__path_JButton.getText().equals(
+			"Add Working Directory") ) {
+			__InputName_JTextField.setText (
+			IOUtil.toAbsolutePath(__working_dir,
+			__InputName_JTextField.getText() ) );
+		}
+		else if ( __path_JButton.getText().equals(
+			"Remove Working Directory") ) {
+			try {	
+				String relative_path = IOUtil.toRelativePath (
+						__working_dir,__InputName_JTextField.getText() );
+				// TODO SAM 2007-07-13 Evaluate
+				// Problem is if blank then the run code tries to use Apps Defaults.
+				// Most often the commands file will not be saved with the FS5Files
+				//if ( relative_path.equals(".") ) {
+				//		relative_path = "";
+				//}
+				__InputName_JTextField.setText ( relative_path );
+			}
+			catch ( Exception e ) {
+				Message.printWarning ( 1,
+				"readNWSRFSFS5Files_JDialog",
+				"Error converting directory to relative path." );
+			}
+		}
+		refresh ();
 	}
 }
 
@@ -125,6 +201,7 @@ private void checkInput ()
 {	String routine = "readNWSRFSFS5Files_JDialog.checkInput";
 	String DataType = __DataType_JTextField.getText().trim();
 	String Interval = __Interval_JTextField.getText().trim();
+	String InputName = __InputName_JTextField.getText().trim();
 	String QueryStart = __QueryStart_JTextField.getText().trim();
 	String QueryEnd = __QueryEnd_JTextField.getText().trim();
 	String warning = "";
@@ -197,6 +274,28 @@ private void checkInput ()
 				"date/time.";
 		}
 	}
+	// Adjust the working directory that was passed in by the specified
+	// directory.  If the directory does not exist, warn the user...
+	if ( __read_one && (InputName.length() > 0) ) {
+	try {	String adjusted_path = IOUtil.adjustPath ( __working_dir, InputName );
+		File f = new File ( adjusted_path );
+		if ( !f.exists() ) {
+			Message.printWarning ( 1, routine,
+			"The NWSRFS ESP Trace Ensemble file does not exist:\n" +
+			"    " + adjusted_path + "\n" +
+		  	"Correct or Cancel." );
+			__error_wait = true;
+		}
+		f = null;
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 1, routine,
+		"The working directory:\n" +
+		"    \"" + __working_dir + "\"\ncannot be adjusted using:\n" +
+		"    \"" + InputName + "\".\n" +
+		"Correct the file or Cancel." );
+	}
+	}
 	if ( warning.length() > 0 ) {
 		Message.printWarning ( 1, routine, warning );
 		__error_wait = true;
@@ -242,6 +341,7 @@ private void initialize ( JFrame parent, PropList app_PropList,
 			Vector command, boolean read_one, NWSRFS_DMI nwsrfs_dmi)
 {	String routine = "readNWSRFSFS5Files_JDialog.initialize";
 	__command_Vector = command;
+	__working_dir = app_PropList.getValue ( "WorkingDir" );
 	__read_one = read_one;
 	__nwsrfs_dmi = nwsrfs_dmi;
 	String title = "";
@@ -255,7 +355,7 @@ private void initialize ( JFrame parent, PropList app_PropList,
 	try {	// REVISIT SAM 2004-09-11 put in until dialog is fully enabled
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -274,22 +374,21 @@ private void initialize ( JFrame parent, PropList app_PropList,
 		"The data type and interval must be selected.  Constrain the " +
 		"query using the \"where\" clauses, if necessary." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-       		JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"This command is fully enabled only for structure time " +
-		"series."),
-		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
-       	JGUIUtil.addComponent(main_JPanel, new JLabel (
+   	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Refer to the NWSRFS FS5Files Input Type documentation for " +
-		"possible values." ), 
+		"possible data type and interval values." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-       	JGUIUtil.addComponent(main_JPanel, new JLabel (
+   	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specifying the period will limit data that are available " +
 		"for fill commands but can increase performance." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-       	JGUIUtil.addComponent(main_JPanel, new JLabel (
+   	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"If not specified, the period defaults to the query period."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+   	JGUIUtil.addComponent(main_JPanel, new JLabel (
+	"If the FS5Files directory is not specified, App Defaults will be used."),
+	0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	if ( __read_one ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
@@ -368,6 +467,19 @@ private void initialize ( JFrame parent, PropList app_PropList,
 	}
 
 	if ( __read_one ) {
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "FS5Files directory:" ), 
+	    	0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	    __InputName_JTextField = new JTextField ( 50 );
+	    __InputName_JTextField.addKeyListener ( this );
+	    JGUIUtil.addComponent(main_JPanel, __InputName_JTextField,
+	    		1, y, 5, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+	    __browse_JButton = new SimpleJButton ( "Browse", "Browse", this );
+	    JGUIUtil.addComponent(main_JPanel, __browse_JButton,
+	    			6, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel (
+		"If blank, use Apps Defaults."),
+		3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		
         	JGUIUtil.addComponent(main_JPanel, new JLabel ( "TSID (full):"),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		__TSID_JTextField = new JTextField ( "" );
@@ -416,6 +528,13 @@ private void initialize ( JFrame parent, PropList app_PropList,
         JGUIUtil.addComponent(main_JPanel, button_JPanel, 
 		0, ++y, 8, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
+   	if ( __working_dir != null ) {
+   		// Add the button to allow conversion to/from relative
+   		// path...
+   		__path_JButton = new SimpleJButton( "Remove Working Directory",
+   			"Remove Working Directory", this);
+   		button_JPanel.add ( __path_JButton );
+   	}
 	__cancel_JButton = new SimpleJButton( "Cancel", this);
 	button_JPanel.add ( __cancel_JButton );
 	__ok_JButton = new SimpleJButton("OK", this);
@@ -474,6 +593,7 @@ private void refresh ()
 	String TSID = "";
 	String DataType = "";
 	String Interval = "";
+	String InputName = "";
 	String filter_delim = ";";
 	String QueryStart = "";
 	String QueryEnd = "";
@@ -514,6 +634,10 @@ private void refresh ()
 			TSID = props.getValue ( "TSID" );
 			DataType = props.getValue ( "DataType" );
 			Interval = props.getValue ( "Interval" );
+			InputName = props.getValue ( "InputName" );
+			if ( InputName != null ) {
+				__InputName_JTextField.setText ( InputName );
+			}
 			QueryStart = props.getValue ( "QueryStart" );
 			QueryEnd = props.getValue ( "QueryEnd" );
 			Units = props.getValue ( "Units" );
@@ -525,6 +649,7 @@ private void refresh ()
 					__Interval_JTextField.setText(Interval);
 				}
 			}
+			if ( __read_one)
 			if ( TSID != null ) {
 				try {	TSIdent tsident = new TSIdent ( TSID );
 					if ( __location_JTextField != null ) {
@@ -539,6 +664,8 @@ private void refresh ()
 						tsident.getType() );
 					__Interval_JTextField.setText (
 						tsident.getInterval() );
+					__InputName_JTextField.setText (
+							tsident.getInputName() );
 				}
 				catch ( Exception e ) {
 					// For now do nothing.
@@ -580,28 +707,38 @@ private void refresh ()
 		}
 	}
 	// Regardless, reset the command from the fields...
+	InputName = __InputName_JTextField.getText().trim();
+	QueryStart = __QueryStart_JTextField.getText().trim();
+	QueryEnd = __QueryEnd_JTextField.getText().trim();
+	Units = __Units_JTextField.getText().trim();
 	if ( __read_one ) {
 		Alias = __Alias_JTextField.getText().trim();
-		if ( __nwsrfs_dmi.openedWithAppsDefaults() ) {
+		//String fs5files_dir = "";	// Unknown
+		//if ( __nwsrfs_dmi != null ) {
+		//	fs5files_dir = __nwsrfs_dmi.getFS5FilesLocation();
+		//}
+		if ( InputName.length() == 0 ) {
+			// Don't show a file path...
+			// TODO SAM 2007-07-12 Evaluate whether should always show or
+			// use more formal data source
 			TSID =	__location_JTextField.getText().trim() + "." +
 			__datasource_JTextField.getText().trim() + "." +
 			__DataType_JTextField.getText().trim() + "." +
 			__Interval_JTextField.getText().trim() +
 			"~NWSRFS_FS5Files";
 		}
-		else {	TSID =	__location_JTextField.getText().trim() + "." +
+		else {
+			// Else show the path that was selected...
+			TSID =	__location_JTextField.getText().trim() + "." +
 			__datasource_JTextField.getText().trim() + "." +
 			__DataType_JTextField.getText().trim() + "." +
 			__Interval_JTextField.getText().trim() +
-			"~NWSRFS_FS5Files~" +__nwsrfs_dmi.getFS5FilesLocation();
+			"~NWSRFS_FS5Files~" + InputName;
 		}
 	}
 	else {	DataType = __DataType_JTextField.getText().trim();
 		Interval = __Interval_JTextField.getText().trim();
 	}
-	QueryStart = __QueryStart_JTextField.getText().trim();
-	QueryEnd = __QueryEnd_JTextField.getText().trim();
-	Units = __Units_JTextField.getText().trim();
 	StringBuffer b = new StringBuffer ();
 	if ( __read_one ) {
 		if ( TSID.length() > 0 ) {
@@ -669,6 +806,17 @@ private void refresh ()
 	}
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
+	// Check the path and determine what the label on the path button should
+	// be...
+	if ( __path_JButton != null ) {
+		__path_JButton.setEnabled ( true );
+		File f = new File ( InputName );
+		if ( f.isAbsolute() ) {
+			__path_JButton.setText ( "Remove Working Directory" );
+		}
+		else {	__path_JButton.setText ( "Add Working Directory" );
+		}
+	}
 }
 
 /**

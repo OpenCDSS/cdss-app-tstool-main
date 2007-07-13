@@ -661,6 +661,9 @@ throws Exception
 					+ "'-commands'");
 			}
 			i++;
+			String user_dir = System.getProperty("user.dir");
+			Message.printStatus (1, routine, "Startup (user) directory is \"" +
+					user_dir + "\"");
 			String commands = (new File(args[i])).getCanonicalPath();;
 			
             Message.printStatus ( 1, routine,
@@ -680,15 +683,14 @@ throws Exception
 				// Append the commands file to the user
 				// directory and set the working directory to
 				// the resulting directory.
-				String commands_full =
-					System.getProperty("user.dir") +
+				String commands_full = user_dir +
 					File.separator + commands;
 				f = new File ( commands_full );
 				working_dir = f.getParent();
 			}
 			else {	// Else the working directory is the current
 				// directory for the application...
-				working_dir = System.getProperty("user.dir");
+				working_dir = user_dir;
 			}
             
 			IOUtil.setProgramWorkingDir ( working_dir );
@@ -698,7 +700,13 @@ throws Exception
 			Message.printStatus ( 2, routine,
 			"Setting working directory to commands file " +
 			"directory: \"" + working_dir +"\".");
-            
+			
+			if ( !f.exists() ) {
+				Message.printWarning(1, routine, "Commands file \"" + commands +
+						"\" does not exist.  Exiting." );
+				quitProgram ( 1 );
+						
+			}
 		}
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
 			// Set debug information...

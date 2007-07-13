@@ -474,7 +474,9 @@
 	<ant antfile="${ext.dir}/RTiBuild/common-doc.xml"
 	 target="mergePDF" >
 		<property name="filelist" 
-		 value="doc/TSTool/CDSS/UserManual/PDF/fileList.txt" />
+		 value="doc/UserManual/merge_PDF/fileList_CDSS.txt" />
+		<property name="pdf_file" 
+				 value="doc/UserManual/dist_CDSS/TSTool.pdf" />
 	</ant>
 	
 </target>
@@ -649,7 +651,7 @@
 		</copy>
 		
 		<java classname="${classname}" fork="true">
-			<jvmarg value = "-mx256m" />
+			<jvmarg value = "-mx768m" />
 			<jvmarg value = "-Djava.compiler=NONE" />
 			<arg value = "-home" />
 			<arg value = "@{home.dir}" />
@@ -672,7 +674,7 @@
 		</copy>
 		
 		<java classname="${classname}" fork="true">
-			<jvmarg    value = "-mx256m" />
+			<jvmarg    value = "-mx768m" />
 			<jvmarg    value = "-Djava.compiler=NONE" />
 			<arg       value = "-home" />
 			<arg	   value = "@{home.dir}" />

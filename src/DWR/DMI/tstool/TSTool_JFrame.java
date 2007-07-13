@@ -1564,7 +1564,8 @@ JMenuItem
 	__Commands_Set_setConstantBefore_JMenuItem,
 	__Commands_Set_setDataValue_JMenuItem,
 	__Commands_Set_setFromTS_JMenuItem,
-	__Commands_Set_setMax_JMenuItem;
+	__Commands_Set_setMax_JMenuItem,
+	__Commands_Set_setToMin_JMenuItem;
 
 
 // Commands...Manipulate Time Series....
@@ -2036,6 +2037,8 @@ private String
 		"values from another time series>",
 	__Commands_Set_setMax_String = TAB +
 		"setMax()...  <set values to maximum of time series>",
+	__Commands_Set_setToMin_String = TAB +
+		"setToMin()...  <set values to minimum of time series>",
 
 	// Commands...Manipulate Time Series menu...
 
@@ -3816,6 +3819,10 @@ throws Exception
 		editCommand ( __Commands_Set_setMax_String,
 			null, __INSERT_COMMAND );
 	}
+	else if (command.equals( __Commands_Set_setToMin_String)){
+		editCommand ( __Commands_Set_setToMin_String,
+			null, __INSERT_COMMAND );
+	}
 
 	// Commands... Manipulate Time Series...
 
@@ -4866,6 +4873,7 @@ private void checkGUIState ()
 		JGUIUtil.setEnabled(__Commands_Set_setDataValue_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Set_setFromTS_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
 
 		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem, true);
@@ -5009,6 +5017,7 @@ private void checkGUIState ()
 			__Commands_Set_setDataValue_JMenuItem, false);
 		JGUIUtil.setEnabled (__Commands_Set_setFromTS_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
 
 		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem,false);
@@ -6673,6 +6682,16 @@ private void editCommand (	String action, Vector command_Vector,
 			TSEngine.getTSIdentifiersFromCommands(
 			getCommandsAboveSelected ())).getText();
 	}
+	else if ( action.equals( __Commands_Set_setToMin_String)||
+			command.regionMatches(true,0,"setToMin",0,8) ) {
+			if ( Message.isDebugOn ) {
+				Message.printDebug ( dl, routine,
+				"Opening dialog for setToMin()" );
+			}
+			edited_cv = new setToMin_JDialog ( this, cv,
+				TSEngine.getTSIdentifiersFromCommands(
+				getCommandsAboveSelected ())).getText();
+		}
 
 	// Manipulate time series...
 
@@ -9504,6 +9523,10 @@ private void initGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_SetTimeSeries_JMenu.add (
 		__Commands_Set_setMax_JMenuItem = new SimpleJMenuItem(
 		__Commands_Set_setMax_String, this ) );
+	
+	__Commands_SetTimeSeries_JMenu.add (
+			__Commands_Set_setToMin_JMenuItem = new SimpleJMenuItem(
+			__Commands_Set_setToMin_String, this ) );
 
 	// "Commands...Manipulate Time Series"...
 

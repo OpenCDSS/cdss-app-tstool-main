@@ -55,6 +55,8 @@ private JTextField	__command_JTextField=null;// Command as JTextField
 private SimpleJComboBox	__alias_JComboBox = null;// Field for time series alias
 private SimpleJComboBox	__interpolate_type_JComboBox = null;
 						// Field for averaging type
+// TODO SAM 2007-07-11 Enable FillFlag
+//private JTextField	__FillFlag_JTextField =null; // Flag to label filled data.
 private JTextField	__maxint_JTextField =null;// Field for averaging bracket
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
@@ -99,6 +101,7 @@ private void checkInput ()
 {	String maxint = __maxint_JTextField.getText().trim();
 	//TODO SAM
 	//String interpolate_type = __interpolate_type_JComboBox.getSelected();
+	//String FillFlag = __FillFlag_JTextField.getText().trim();	
 	String warning = "";
 
 	if ( !StringUtil.isInteger(maxint) ) {
@@ -115,6 +118,13 @@ private void checkInput ()
 			"Specify a positive integer or Cancel.";
 		__error_wait = true;
 	}
+	/*
+	if ( (FillFlag != null) && (FillFlag.length() > 1) ) {
+		warning +=
+			"\nThe fill flag \"" + FillFlag +
+			"\" should be a single character.";
+	}
+	*/
 
 	if ( warning.length() > 0 ) {
 		__error_wait = true;
@@ -130,6 +140,7 @@ throws Throwable
 {	__alias_JComboBox = null;
 	__interpolate_type_JComboBox = null;
 	__maxint_JTextField = null;
+	//__FillFlag_JTextField = null;
 	__cancel_JButton = null;
 	__command_JTextField = null;
 	__command_Vector = null;
@@ -164,7 +175,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -217,8 +228,20 @@ private void initialize ( JFrame parent, String title, Vector command,
 	__interpolate_type_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __interpolate_type_JComboBox,
 		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+       
+       /*
+    JGUIUtil.addComponent(main_JPanel,new JLabel( "Fill flag:"),
+    	0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    __FillFlag_JTextField = new JTextField ( "", 10 );
+    __FillFlag_JTextField.addKeyListener ( this );
+    JGUIUtil.addComponent(main_JPanel, __FillFlag_JTextField,
+    	1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
+    	"Optional one-character flag to mark filled data."),
+    	3, y, 3, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+*/
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__command_JTextField = new JTextField ( 55 );
 	__command_JTextField.setEditable ( false );
@@ -289,13 +312,14 @@ private void refresh ()
 {	String alias = "";
 	String interpolate_type = "";
 	String maxint = "";
+	//String FillFlag = "";
 	__error_wait = false;
 	if ( __first_time ) {
 		__first_time = false;
 		// Parse the incoming string and fill the fields...
 		Vector v = StringUtil.breakStringList (
 			((String)__command_Vector.elementAt(0)).trim(),"() ,",
-			StringUtil.DELIM_SKIP_BLANKS );
+			StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 		if ( (v != null) && (v.size() == 4) ) {
 			// Second field is identifier...
 			alias = ((String)v.elementAt(1)).trim();
