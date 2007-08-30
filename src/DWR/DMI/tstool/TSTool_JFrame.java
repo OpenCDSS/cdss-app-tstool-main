@@ -864,6 +864,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
@@ -904,8 +905,8 @@ import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
 import RTi.TS.BinaryTS;
 import RTi.TS.DateValueTS;
 import RTi.TS.DayTS;
-import RTi.TS.fillMixedStation_Command;
-import RTi.TS.fillMixedStation_JDialog;
+//import RTi.TS.fillMixedStation_Command;
+//import RTi.TS.fillMixedStation_JDialog;
 import RTi.TS.ModsimTS;
 import RTi.TS.MexicoCsmnTS;
 import RTi.TS.RiverWareTS;
@@ -914,6 +915,12 @@ import RTi.TS.TS;
 import RTi.TS.TSIdent;
 import RTi.TS.TSUtil;
 import RTi.TS.UsgsNwisTS;
+
+import RTi.TSCommandProcessor.TSCommandFactory;
+import RTi.TSCommandProcessor.TSCommandProcessor;
+import RTi.TSCommandProcessor.TSCommandProcessorListModel;
+import RTi.TSCommandProcessor.TSCommandProcessorUtil;
+import RTi.TSCommandProcessor.TSEngine;
 
 import RTi.Util.GUI.FindInJListJDialog;
 import RTi.Util.GUI.JFileChooserFactory;
@@ -936,6 +943,9 @@ import RTi.Util.GUI.TextResponseJDialog;
 //import RTi.Util.Help.URLHelp;
 //import RTi.Util.Help.URLHelpGUI;
 import RTi.Util.IO.Command;
+import RTi.Util.IO.CommandProcessorRequestResultsBean;
+import RTi.Util.IO.CommandProcessorListener;
+import RTi.Util.IO.CommandStatusProvider;
 import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.EndianRandomAccessFile;
@@ -992,18 +1002,22 @@ import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_TS;
 import DWR.StateMod.StateMod_WellRight;
 
-import RTi.TSCommandProcessor.TSCommandFactory;
-import RTi.TSCommandProcessor.TSCommandProcessor;
-import RTi.TSCommandProcessor.TSCommandProcessorUI;
-import RTi.TSCommandProcessor.TSEngine;
-
 public class TSTool_JFrame extends JFrame
 implements ActionListener, GeoViewListener, ItemListener, JWorksheet_Listener,
 KeyListener, ListSelectionListener, MessageLogListener, MouseListener,
-WindowListener, TSCommandProcessorUI
+WindowListener, CommandProcessorListener
 {
 
 //  Data Members
+
+// TODO SAM 2007-08-20 Remove when transitioned to new code.
+// Do the following so that this comment only needs to show up for
+// the following boolean, not every insert.
+/**
+Indicate whether the AnnotatedList (new technology) should be used for the commands, vs.
+a simple JList (old technology).
+*/
+private boolean __use_annotated_list = true;
 
 private LicenseManager	__license_manager = null;
 						// The license manager to verify
@@ -1221,11 +1235,20 @@ private String 		__selected_input_type = null,
 
 // Commands area...
 
-private JList		__commands_JList;	// List to hold commands.
-private DefaultListModel __commands_JListModel;	// JList model for commands
-						// (basically a Vector of
-						// commands associated with
-						// __commands_JList).
+/*
+Annotated list to hold commands and display the command status.
+*/
+private AnnotatedList __commands_AnnotatedList;
+/**
+Commands JList, to support interaction such as selecting and popup menus.
+This is a reference to the JList managed by AnnotatedList.
+*/
+private JList		__commands_JList;
+
+/**
+List model that maps the TSCommandProcessor Command data to the command JList.
+*/
+private TSCommandProcessorListModel __commands_JListModel;
 private SimpleJButton	__Run_SelectedCommands_JButton,
 						// Run the selected commands
 			__Run_AllCommands_JButton,
@@ -1250,19 +1273,25 @@ private String __commands_file_name = null;	// Name of the commands file.
 
 // Results area...
 
-private JList		__ts_JList;		// Final list showing in-memory
-						// time series.
-private DefaultListModel __ts_JListModel;	// JList model for final time
-						// series (basically a Vector of
-						// time series associated with
-						// __ts_JList).
+/**
+Final list showing in-memory time series results.
+*/
+private JList		__ts_JList;
+/**
+JList data model for final time series (basically a Vector of
+time series associated with __ts_JList).
+*/
+private DefaultListModel __ts_JListModel;	
 
-//TODO SAM 2007-02-18 Need to transition TSEngine to TSCommandProcessor
-private TSEngine __final_ts_engine = null;	// TSEngine used to process the
-						// final list.  This TSEngine
-						// maintains the final list of
-						// time series for quick product
-						// generation.
+/**
+The command processor, which maintains a list of command objects, process
+the data, and the time series results.  There is only one command processor
+instance for a TSTool session and it is kept current with the application.
+In the future, if threading is implemented, it may be possible to have, for
+example, tabs for different commands files, each with a TSCommandProcessor.
+*/
+private TSCommandProcessor __ts_processor = new TSCommandProcessor();
+
 private JPopupMenu __results_JPopupMenu = null;
 
 // Status-area related...
@@ -1278,8 +1307,14 @@ private JTextField __message_JTextField;	// Message area text field
 						// (e.g., "Processing
 						// commands...") - long and
 						// left-most.
-//private JProgressBar __processor_JProgressBar;	// Progress bar to show progress
-						// running commands.
+/**
+Progress bar to show progress of running commands in processor.
+*/
+private JProgressBar __processor_JProgressBar;
+/**
+Progress bar to show progress of running a specific commands.
+*/
+private JProgressBar __command_JProgressBar;
 private JTextField __status_JTextField;		// Status area text field (e.g.,
 						// "READY", "WAIT") - small and
 						// right-most
@@ -1305,18 +1340,15 @@ private PropList __props;			// TSTool application
 						// properties are singular but
 						// properties can change during
 						// a run.
-private String __initial_working_dir = "";	// The initial working directory
-						// corresponding to a commands
-						// file read/write or File...
-						// Set Working Dir.  This is
-						// used when processing the list
-						// of setWorkingDir() commands
-						// passed to command editors.
-						// Without the initial working
-						// directory, relative changes
-						// in the working directory will
-						// result in an inaccurate
-						// initial state.
+
+/**
+The initial working directory corresponding to a commands file read/write or
+File... Set Working Dir.  This is used when processing the list
+of setWorkingDir() commands passed to command editors. Without the initial working
+directory, relative changes in the working directory will
+result in an inaccurate initial state.
+*/
+private String __initial_working_dir = "";	
 
 private boolean __gui_initialized = false;	// Lets the checkGUIState()
 						// method avoid checking for
@@ -1395,7 +1427,9 @@ private JMenuItem
 	__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
 
 	__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
-	__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem;
+	__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
+	
+	__CommandsPopup_ShowCommandStatus_JMenuItem;
 
 // File menu...
 
@@ -1761,6 +1795,8 @@ private String
 	// Popup only...
 
 	__CommandsPopup_FindCommands_String = "Find Command(s)...",
+	
+	__CommandsPopup_ShowCommandStatus_String = "Show Command Status",
 
 	// File menu (order in GUI)...
 
@@ -2329,7 +2365,7 @@ public TSTool_JFrame ( boolean show_main )
     
 	__props = new PropList("TSTool_JFrame");
 	__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());	
-	__initial_working_dir = __props.getValue ( "WorkingDir" );
+	setInitialWorkingDir (__props.getValue ( "WorkingDir" ));
  
 	addWindowListener ( this );
 
@@ -2687,6 +2723,7 @@ public TSTool_JFrame ( boolean show_main )
 	String commands_file = IOUtil.getProgramCommandFile();
 	if ( (commands_file != null) && (commands_file.length() > 0) ) {
 
+			/* FIXME SAM 2007-08-20 Need to reenable
 		try {	Message.printStatus ( 2, rtn,
 			"Running commands file \"" + commands_file + 
 			"\" with no main GUI..." );
@@ -2704,6 +2741,7 @@ public TSTool_JFrame ( boolean show_main )
 			//closeClicked();
 			tstool.quitProgram ( 1 );
 		}
+		*/
 
 		// In this mode it is assumed that a graph window was created
 		// which when closed will close the application based on a
@@ -2731,14 +2769,17 @@ private void actionEditCommand ( boolean check_errors )
 		selected_size = selected.length;
 	}
 	if ( selected_size > 0 ) {
-		String command = ((String)
-			__commands_JListModel.get (selected[0])).trim();
+		//String command = (
+			//(String)__commands_JListModel.get(selected[0])).trim();
+		Command command = (Command)__commands_JListModel.get(selected[0]);
 		Vector v = null;
-		if ( command.startsWith("#") ) {
+		//if ( command.startsWith("#") ) {
+		if ( command.toString().startsWith("#") ) {
 			// Allow multiple lines to be edited in a comment...
 			v = new Vector ( selected_size );
 			for ( int i = 0; i < selected_size; i++ ) {
-				v.addElement ( (String)
+				v.addElement (
+					//(String)__commands_JListModel.get(selected[i]));
 					__commands_JListModel.get(selected[i]));
 			}
 		}
@@ -2771,9 +2812,9 @@ public void actionPerformed (ActionEvent event)
 		checkGUIState ();
 	}
 	catch ( Exception e ) {
-		if ( Message.isDebugOn ) {
+		//if ( Message.isDebugOn ) {
 			Message.printWarning ( 2, rtn, e );
-		}
+		//}
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 }
@@ -2829,6 +2870,7 @@ throws Exception
 		catch ( Exception e ) {
 			Message.printWarning ( 1, rtn,
 				"Error reading commands file" );
+			Message.printWarning( 3, "", e);
 		}
 	}
 	else if ( command.equals ( __File_Open_DIADvisor_String )) {
@@ -2906,15 +2948,15 @@ throws Exception
 		saveTimeSeries ();
 	}
 	else if (command.equals(__File_Print_Commands_ActionString) ) {
-		try {	PrintJGUI.print ( this, StringUtil.toVector(
-				__commands_JListModel.elements()), null, 10 );
+		// Get all commands as strings for printing
+		try {	PrintJGUI.print ( this, getCommandStrings(true), null, 10 );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, rtn,
 			"Error printing commands." );
 		}
 	}
-        else if ( command.equals(__File_Properties_CommandsRun_String) ) {
+	else if ( command.equals(__File_Properties_CommandsRun_String) ) {
 		// Simple text display of last commands run data from TSEngine.
 		PropList reportProp = new PropList ("ReportJFrame.props");
 		// Too big (make this big when we have more stuff)...
@@ -2935,67 +2977,63 @@ throws Exception
 		"Properties are set as defaults and change value when" +
 		" a command is processed." );
 		v.addElement ( "" );
-		if ( __final_ts_engine == null ) {
+		if ( __ts_processor == null ) {
 			v.addElement ( "The commands have not been run." );
 		}
-		else {	DateTime date1, date2;
+		else {
 			String s1 = "", s2 = "";
-			// Query period...
-			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
-			date1 = __final_ts_engine.getInputStart();
+			// Input period...
+			DateTime date1 = commandProcessorGetInputStart();
 			if ( date1 == null ) {
-				s1 = "NOT SPECIFIED (use available)";
+				s1 = "NOT SPECIFIED (use all available data)";
 			}
 			else {	s1 = date1.toString();
 			}
-			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
-			date2 = __final_ts_engine.getInputEnd();
+			DateTime date2 = commandProcessorGetInputEnd();
 			if ( date2 == null ) {
-				s2 = "NOT SPECIFIED (use available)";
+				s2 = "NOT SPECIFIED (use all available data)";
 			}
 			else {	s2 = date2.toString();
 			}
-			v.addElement ( "Query period: " + s1 + " to " + s2 );
+			v.addElement ( "Input (query/read) start: " + s1 );
+			v.addElement ( "Input (query/read) end:   " + s2 );
 			// Output period...
-			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
-			date1 = __final_ts_engine.getOutputStart();
+			date1 = commandProcessorGetOutputStart();
 			if ( date1 == null ) {
-				s1 = "NOT SPECIFIED (use available)";
+				s1 = "NOT SPECIFIED (output all available data)";
 			}
 			else {	s1 = date1.toString();
 			}
-			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
-			date2 = __final_ts_engine.getOutputEnd();
+			date2 = commandProcessorGetOutputEnd();
 			if ( date2 == null ) {
-				s2 = "NOT SPECIFIED (use available)";
+				s2 = "NOT SPECIFIED (output all available data)";
 			}
 			else {	s2 = date2.toString();
 			}
-			v.addElement ( "Output period: " + s1 + " to " + s2 );
+			v.addElement ( "Output period start: " + s1 );
+			v.addElement ( "Output period end:   " + s2 );
 			// Auto-extend period...
-			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 			v.addElement ( "Automatically extend period to output "+
 				"period during read: " +
-				__final_ts_engine.autoExtendPeriod () );
+				commandProcessorGetAutoExtendPeriod () );
 			// Include missing TS automatically...
-			// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 			v.addElement ( "Include missing TS automatically: " +
-				__final_ts_engine.includeMissingTS() );
+				commandProcessorGetIncludeMissingTS() );
 			if ( __source_HydroBase_enabled ) {
 				v.addElement ( "" );
-				// TODO SAM 2007-02-18 Need to encapsulate with command processor property
-				if ( __final_ts_engine.getHydroBaseDMI()==null){
-					v.addElement (
-					"Command processor HydroBase " +
-					"connection not defined.");
+				Object dmi_Vector = commandProcessorGetHydroBaseDMIList();
+				if ( (o == null) || (((Vector)o).size() == 0) ) {
+					v.addElement ( "No HydroBase connections are open for the command processor." );
 				}
-				else {	v.addElement ( "Command processor " +
-					"HydroBase connection information:" );
-					// TODO SAM 2007-02-18 Need to encapsulate with command processor property
-					StringUtil.addListToStringList ( v,
-					StringUtil.toVector(
-					__final_ts_engine.getHydroBaseDMI().
-					getVersionComments() ) );
+				else { Vector dmis = (Vector)dmi_Vector;
+					int size = dmis.size();
+					for ( int i = 0; i < size; i++ ) {
+						v.addElement ( "Command processor HydroBase connection information:" );
+						StringUtil.addListToStringList ( v,
+								StringUtil.toVector(
+								((HydroBaseDMI)dmis.elementAt(i)).
+								getVersionComments() ) );
+					}
 				}
 			}
 		}
@@ -3007,7 +3045,7 @@ throws Exception
 		v = null;
 		reportProp = null;
 	}
-        else if ( command.equals(__File_Properties_TSToolSession_String) ) {
+    else if ( command.equals(__File_Properties_TSToolSession_String) ) {
 		// Simple text display of session data, including last
 		// commands file that was read.  Put here where in the past
 		// information was shown in labels.  Now need the label space
@@ -3158,7 +3196,7 @@ throws Exception
 		v = null;
 		reportProp = null;
 	}
-        else if ( command.equals(__File_Properties_ColoradoSMS_String) ) {
+    else if ( command.equals(__File_Properties_ColoradoSMS_String) ) {
 		// Simple text display of HydroBase properties.
 		PropList reportProp = new PropList ("Colorado SMS Properties");
 		reportProp.set ( "TotalWidth", "600" );
@@ -3181,7 +3219,7 @@ throws Exception
 		v = null;
 		reportProp = null;
 	}
-        else if ( command.equals(__File_Properties_DIADvisor_String) ) {
+    else if ( command.equals(__File_Properties_DIADvisor_String) ) {
 		PropList reportProp = new PropList ("DIADvisor.props");
 		// Too big (make this big when we have more stuff)...
 		reportProp.set ( "TotalWidth", "600" );
@@ -3206,7 +3244,7 @@ throws Exception
 		v = null;
 		reportProp = null;
 	}
-        else if ( command.equals(__File_Properties_HydroBase_String) ) {
+    else if ( command.equals(__File_Properties_HydroBase_String) ) {
 		// Simple text display of HydroBase properties.
 		PropList reportProp = new PropList ("HydroBase Properties");
 		reportProp.set ( "TotalWidth", "600" );
@@ -3229,7 +3267,7 @@ throws Exception
 		v = null;
 		reportProp = null;
 	}
-        else if ( command.equals(__File_Properties_NWSRFSFS5Files_String) ) {
+    else if ( command.equals(__File_Properties_NWSRFSFS5Files_String) ) {
 		PropList reportProp = new PropList ("NWSRFSFS5Files.props");
 		// Too big (make this big when we have more stuff)...
 		reportProp.set ( "TotalWidth", "600" );
@@ -3282,7 +3320,7 @@ throws Exception
 			// REVISIT - is this needed with Swing?
 			// Reset to make sure the ending delimiter is removed...
 			__props.set("WorkingDir",IOUtil.getProgramWorkingDir());
-			__initial_working_dir = __props.getValue ("WorkingDir");
+			setInitialWorkingDir (__props.getValue ("WorkingDir"));
 			JGUIUtil.setLastFileDialogDirectory(directory);
 		}
 	}
@@ -3333,9 +3371,9 @@ throws Exception
 		__commands_dirty = true;
 		checkGUIState();
 	}
-        else if ( command.equals(__Edit_SelectAllCommands_String) ) {
-		JGUIUtil.selectAll(__commands_JList);
-		updateStatus ();
+    else if ( command.equals(__Edit_SelectAllCommands_String) ) {
+    	JGUIUtil.selectAll(__commands_JList);
+    	updateStatus ();
 		checkGUIState();
 	}
         else if ( command.equals(__Edit_DeselectAllCommands_String) ) {
@@ -3406,6 +3444,9 @@ throws Exception
 	else if (command.equals(__CommandsPopup_FindCommands_String) ) {
 		new FindInJListJDialog(this,__commands_JList,"Find Command(s)");
 		checkGUIState();
+	}
+	else if (command.equals(__CommandsPopup_ShowCommandStatus_String) ) {
+		showCommandStatus();
 	}
 
 	// Run menu (order in menu)...
@@ -3523,6 +3564,7 @@ throws Exception
 
 	// Convert TS Identifier to read command...
 
+	/* FIXME SAM need to enable
 	else if ( o == __Commands_ConvertTSIDTo_readTimeSeries_JMenuItem ) {
 		editCommand ( __Commands_ConvertTSIDTo_readTimeSeries_String,
 			getCommand(), __UPDATE_COMMAND );
@@ -3559,6 +3601,7 @@ throws Exception
 		editCommand ( __Commands_ConvertTSIDTo_readUsgsNwis_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
+	*/
 
 	// Read Time Series...
 
@@ -3676,12 +3719,14 @@ throws Exception
 			__Commands_Create_TS_newDayTSFromMonthAndDayTS_String,
 			null, __INSERT_COMMAND );
 	}
+	/* FIXME SAM
 	else if (command.equals(
 		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String) ) {
 		editCommand (
 			__Commands_Create_TS_newEndOfMonthTSFromDayTS_String,
 			getCommand(), __INSERT_COMMAND );
 	}
+	*/
 	else if (command.equals(
 		__Commands_Create_TS_newStatisticYearTS_String)){
 		editCommand ( __Commands_Create_TS_newStatisticYearTS_String,
@@ -4045,8 +4090,7 @@ throws Exception
 		int selected_size = JGUIUtil.selectedSize ( __commands_JList );
 		if ( selected_size > 0 ) {
 			// Add after the last selected item...
-			int selected_indices[] =
-				__commands_JList.getSelectedIndices();
+			int selected_indices[] = __commands_JList.getSelectedIndices();
 			if (	selected_indices[selected_size - 1] ==
 				(__commands_JListModel.size() - 1) ) {
 			}
@@ -4084,34 +4128,34 @@ throws Exception
 		if ( response == null ) {
 			return;
 		}
-		graphTS("-oannual_traces_graph " + StringUtil.atoi(response) );
+		graphTimeSeriesResults("-oannual_traces_graph " + StringUtil.atoi(response) );
 	}
         else if ( command.equals(__Results_Graph_BarsLeft_String) ) {
-		graphTS("-obar_graph", "BarsLeftOfDate");
+		graphTimeSeriesResults("-obar_graph", "BarsLeftOfDate");
 	}
         else if ( command.equals(__Results_Graph_BarsCenter_String) ) {
-		graphTS("-obar_graph", "BarsCenteredOnDate");
+		graphTimeSeriesResults("-obar_graph", "BarsCenteredOnDate");
 	}
         else if ( command.equals(__Results_Graph_BarsRight_String) ) {
-		graphTS("-obar_graph", "BarsRightOfDate");
+		graphTimeSeriesResults("-obar_graph", "BarsRightOfDate");
 	}
         else if ( command.equals(__Results_Graph_DoubleMass_String) ) {
 			//Message.printWarning ( 1, rtn, "Two time " +
 			//"series can be graphed for Double Mass graph." );
 		//{}
 		//else {	
-		graphTS("-odoublemassgraph");
+		graphTimeSeriesResults("-odoublemassgraph");
 		//}
 	}
         else if ( command.equals(__Results_Graph_Duration_String) ) {
 		// Only do if data are selected...
-		graphTS("-oduration_graph " );
+		graphTimeSeriesResults("-oduration_graph " );
 	}
         else if ( command.equals(__Results_Graph_Line_String) ) {
-		graphTS("-olinegraph");
+		graphTimeSeriesResults("-olinegraph");
 	}
         else if ( command.equals(__Results_Graph_LineLogY_String) ) {
-		graphTS("-olinelogygraph");
+		graphTimeSeriesResults("-olinelogygraph");
 	}
 /* Not enabled.
         else if ( command.equals("GraphPercentExceed") ) {
@@ -4128,25 +4172,25 @@ throws Exception
 	}
 */
         else if ( command.equals(__Results_Graph_PeriodOfRecord_String) ) {
-		graphTS("-oporgraph");
+		graphTimeSeriesResults("-oporgraph");
 	}
         else if ( command.equals(__Results_Graph_Point_String) ) {
-		graphTS("-opointgraph");
+		graphTimeSeriesResults("-opointgraph");
 	}
         else if ( command.equals(__Results_Graph_PredictedValue_String) ) {
-		graphTS("-oPredictedValue_graph" );
+		graphTimeSeriesResults("-oPredictedValue_graph" );
 	}
         else if (command.equals(__Results_Graph_PredictedValueResidual_String)){
-		graphTS("-oPredictedValueResidual_graph" );
+		graphTimeSeriesResults("-oPredictedValueResidual_graph" );
 	}
         else if ( command.equals(__Results_Graph_XYScatter_String) ) {
-		graphTS("-oxyscatter_graph" );
+		graphTimeSeriesResults("-oxyscatter_graph" );
 	}
 
         else if ( command.equals(__Results_Table_String) ) {
 		// For now handle similar to the summary report, forcing a
 		// preview...
-		export("-otable", "-preview" );
+		exportTimeSeriesResults("-otable", "-preview" );
 	}
 
         else if ( command.equals(__Results_Report_Summary_String) ) {
@@ -4154,7 +4198,7 @@ throws Exception
 		// different from the StateMod output in that when a summary is
 		// exported in the GUI, the user views first and then saves to
 		// disk.
-		export("-osummary", "-preview" );
+		exportTimeSeriesResults("-osummary", "-preview" );
 	}
 
 	// Only on View pop-up...
@@ -4162,10 +4206,9 @@ throws Exception
 	else if (command.equals(__Results_FindTimeSeries_String) ) {
 		new FindInJListJDialog ( this, false, __ts_JList, "Find Time Series" );
 	}
-        else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
+    else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
 		// Get the first time series selected in the view window...
-        // TODO SAM 2007-02-18 Need to encapsulate with command processor property
-		if ( __final_ts_engine != null ) {
+		if ( __ts_processor != null ) {
 			int pos = 0;
 			if ( JGUIUtil.selectedSize(__ts_JList) == 0 ) {
 				pos = 0;
@@ -4174,15 +4217,16 @@ throws Exception
 			}
 			// Now display the properties...
 			if ( pos >= 0 ) {
-				// TODO SAM 2007-02-18 Need to encapsulate with command processor property
 				new TSPropertiesJFrame ( this,
-				__final_ts_engine.getTimeSeries(pos) );
+				commandProcessorGetTimeSeries(pos) );
 			}
 		}
 	}
 
 	else if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
+		/* FIXME SAM 2007-08-09 need to keep main commands processor
+		 separate from this instance.  Determine how TSEngine is used.
 		try {	Command c = new fillMixedStation_Command(false);
 			c.initializeCommand ( command,
 				new TSCommandProcessor(__final_ts_engine),
@@ -4196,22 +4240,23 @@ throws Exception
 			"Error performing mixed station analysis." );
 			Message.printWarning ( 2, routine, e );
 		}
+		*/
 	}
 	else if (command.equals(__Tools_Report_DataCoverageByYear_String) ) {
 		// Use graph TS because it does not take an output file...
-		graphTS ( "-odata_coverage_report " );
+		graphTimeSeriesResults ( "-odata_coverage_report " );
 	}
 	else if (command.equals(__Tools_Report_DataLimitsSummary_String) ) {
 		// Use graph TS because it does not take an output file...
-		graphTS ( "-odata_limits_report " );
+		graphTimeSeriesResults ( "-odata_limits_report " );
 	}
 	else if (command.equals(__Tools_Report_MonthSummaryDailyMeans_String)) {
 		// Use graph TS because it does not take an output file...
-		graphTS ( "-omonth_mean_summary_report " );
+		graphTimeSeriesResults ( "-omonth_mean_summary_report " );
 	}
 	else if (command.equals(__Tools_Report_MonthSummaryDailyTotals_String)){
 		// Use graph TS because it does not take an output file...
-		graphTS ( "-omonth_total_summary_report " );
+		graphTimeSeriesResults ( "-omonth_total_summary_report " );
 	}
 	else if (command.equals(__Tools_Report_YearToDateTotal_String) ) {
 		// Set the averaging end date...
@@ -4236,7 +4281,7 @@ throws Exception
 			"report." );
 		}
 		// Use graph TS because it does not take an output file...
-		graphTS ( "-oyear_to_date_report ",
+		graphTimeSeriesResults ( "-oyear_to_date_report ",
 			to.toString(DateTime.FORMAT_MM_SLASH_DD) );
 	}
 	else if ( o == __Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem ){
@@ -4346,46 +4391,54 @@ throws Exception
 /**
 Add a command at the end of the command list and force the GUI state to be
 updated.
-@param command Command to add at the end of the list.
+@param command_string Command to add at the end of the list.
 */
-public void addCommand ( String command )
-{	addCommand ( command, false );	
+private void addCommand ( String command_string )
+{	addCommand ( command_string, false );	
 }
 
 /**
 Add a command at the end of the command list.
-@param command Command to add at the end of the list.
+@param command_string Command to add at the end of the list.
 @param check_gui_state If true, the GUI state is checked.
 */
-public void addCommand ( String command, boolean check_gui_state )
-{	__commands_JListModel.addElement ( command );
+private void addCommand ( String command_string, boolean check_gui_state )
+{	// Try to use TSCommandFactory to add the command.  If it is not
+	// recognized, then initialize a generic command.
+	Command command = newCommand ( command_string );
+	__commands_JListModel.addElement ( command );
 	setCommandsDirty ( true );
 	updateStatus ( check_gui_state );
 }
 
 /**
-Add a list of commands at the end of the command list, updating the GUI state
+Add a list of command strings at the end of the command list, updating the GUI state
 and status after adding.
 @param commands Vector of commands to add at the end of the list.
 */
-public void addCommands ( Vector commands )
+private void addCommands ( Vector commands )
 {	int size = 0;
 	if ( commands != null ) {
 		size = commands.size();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		__commands_JListModel.addElement (
-		(String)commands.elementAt(i) );
+		// FIXME SAM 2007-08-16 Remove after tests out
+		//__commands_JListModel.addElement (
+		//(String)commands.elementAt(i) );
+		addCommand ( (String)commands.elementAt(i), false );
 	}
-	setCommandsDirty ( true );
+	//setCommandsDirty ( true );
+	// Now update the status.
 	updateStatus ( true );
 }
 
 /**
-Add a time series at the end of the time series list.
+Add a time series description at the end of the time series results list.
+Note that this does not add the actual time series, only a description string.
+The time series are still accessed by the positions in the list.
 @param ts_info Time series information to add at the end of the list.
 */
-private void addTimeSeries ( String ts_info )
+private void addTimeSeriesToResults ( String ts_info )
 {	__ts_JListModel.addElement ( ts_info );
 	//setCommandsDirty ( true );
 	//updateStatus ();
@@ -4648,8 +4701,7 @@ private void checkGUIState ()
 	int selected_commands_size = 0;
 	if ( __commands_JListModel != null ) {
 		command_list_size = __commands_JListModel.size();
-		selected_commands_size = JGUIUtil.selectedSize (
-						__commands_JList );
+		selected_commands_size = JGUIUtil.selectedSize (__commands_JList );
 	}
 
 	int ts_list_size = 0;
@@ -5570,10 +5622,20 @@ Also set the engine to null.
 */
 private void clearTSList()
 {	__ts_JListModel.removeAllElements();
-	// Also set the engine to null.  Any new displays will require a
-	// re-query...
-	//TODO SAM 2007-02-18 Need to encapsulate with command processor
-	__final_ts_engine = null;
+	__ts_processor.clearResults();
+}
+
+/**
+Indicate that a command has changed.
+@param command Command that has been changed (e.g., edited).
+@param index Index of command in processor and displayed list.
+*/
+private void commandChanged ( Command command, int index )
+{
+	// FIXME SAM 2007-08-10 - need to have command check for problems after edit
+	//...
+	// Now let the list model for the GUI know that the command has changed...
+	__commands_JListModel.commandChanged ( index, index );
 }
 
 /**
@@ -5661,6 +5723,8 @@ private void closeClicked ()
 /**
 Determine whether commands are equal.  To allow for multi-line commands, each
 command is stored in a Vector (but typically only the first String is used.
+@param original_command Original command as a Vector of String.
+@param edited_command Edited command as a Vector of String.
 */
 private boolean commandsAreEqual(Vector original_command, Vector edited_command)
 {	if ( (original_command == null) && (edited_command != null) ) {
@@ -5701,6 +5765,433 @@ private boolean commandsAreEqual(Vector original_command, Vector edited_command)
 }
 
 /**
+Indicate that a command has completed.  The success/failure of the command
+is not indicated (see CommandStatusProvider).
+@param icommand The command index (0+).
+@param ncommand The total number of commands to process
+@param command The reference to the command that is starting to run,
+provided to allow future interaction with the command.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a list of commands (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((icommand + 1)/ncommand)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
+*/
+public void commandCompleted ( int icommand, int ncommand, Command command,
+		float percent_complete, String message )
+{
+	// Update the progress bar to indicate progress.
+	__processor_JProgressBar.setValue ( icommand + 1 );
+	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
+}
+
+/**
+Indicate the progress that is occurring within a command.  This may be a chained call
+from a CommandProcessor that implements CommandListener to listen to a command.  This
+level of monitoring is useful if more than one progress indicator is present in an
+application UI.
+@param istep The number of steps being executed in a command (0+).
+@param nstep The total number of steps to process within a command.
+@param command The reference to the command that is starting to run,
+provided to allow future interaction with the command.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a single command (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((istep + 1)/nstep)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
+*/
+public void commandProgress ( int istep, int nstep, Command command,
+		float percent_complete, String message )
+{	if ( istep == 0 ) {
+		// Initialize the limits of the command progress bar.
+		__command_JProgressBar.setMinimum ( 0 );
+		__command_JProgressBar.setMaximum ( nstep );
+	}
+	// Set the current value...
+	__command_JProgressBar.setValue ( istep + 1 );
+}
+
+/**
+Get the command processor AutoExtendPeriod.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global AutoExtendPeriod as a Boolean from the command processor or null if
+not yet determined.
+*/
+private Boolean commandProcessorGetAutoExtendPeriod()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "AutoExtendPeriod" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (Boolean)o;
+	}
+}
+
+/**
+Get the command processor HydroBaseDMIList.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The HydroBaseDMIList as a Vector from the command processor or null if
+not yet determined or no connections.
+*/
+private Boolean commandProcessorGetHydroBaseDMIList()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "HydroBaseDMIList" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (Boolean)o;
+	}
+}
+
+/**
+Get the command processor IncludeMissingTS.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global IncludeMissingTS as a Boolean from the command processor or null if
+not yet determined.
+*/
+private Boolean commandProcessorGetIncludeMissingTS()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "IncludeMissingTS" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (Boolean)o;
+	}
+}
+
+/**
+Get the command processor InputEnd.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global InputEnd as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessorGetInputEnd()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "InputEnd" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor InputStart.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global InputStart as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessorGetInputStart()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "InputStart" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor OutputEnd.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global OutputEnd as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessorGetOutputEnd()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "OutputEnd" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor OutputStart.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global OutputStart as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessorGetOutputStart()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "OutputStart" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor time series results for an index position.
+Typically this corresponds to a user selecting the time series from the
+results list, for further display.
+@param pos Position (0+ for the time series).
+@return The time series at the requested position in the results or null
+if the processor is not available.
+*/
+private TS commandProcessorGetTimeSeries( int pos )
+{	String message, routine = "TSTool_JFrame.commandProcessorGetTimeSeries";
+	if ( __ts_processor == null ) {
+		return null;
+	}
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "Index", new Integer(pos) );
+	CommandProcessorRequestResultsBean bean = null;
+	try { bean =
+		__ts_processor.processRequest( "GetTimeSeries", request_params);
+	}
+	catch ( Exception e ) {
+		message = "Error requesting GetTimeSeries(Index=" + pos + ") from processor.";
+		Message.printWarning(2, routine, message );
+		Message.printWarning ( 3, routine, e );
+	}
+	PropList bean_PropList = bean.getResultsPropList();
+	Object o_TS = bean_PropList.getContents ( "TS" );
+	TS ts = null;
+	if ( o_TS == null ) {
+		message = "Null TS returned from processor for GetTimeSeries(Index=\"" + pos + "\").";
+		Message.printWarning ( 2, routine, message );
+	}
+	else {	ts = (TS)o_TS;
+	}
+	return ts;
+}
+
+/**
+Get the command processor time series results list.
+@return The time series results list or null
+if the processor is not available.
+*/
+private Vector commandProcessorGetTimeSeriesResultsList()
+{	String routine = "TSTool_JFrame.commandProcessorGetTimeSeriesResultsList";
+	Object o = null;
+	try { o = __ts_processor.getPropContents ( "TSResultsList" );
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting TSResultsList from processor.";
+		Message.printWarning(2, routine, message );
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else {
+		return (Vector)o;
+	}
+}
+
+/**
+Get the size of the command processor time series results list.
+@return the size of the command processor time series results list.
+*/
+private int commandProcessorGetTimeSeriesResultsListSize()
+{
+	Vector results = commandProcessorGetTimeSeriesResultsList();
+	if ( results == null ) {
+		return 0;
+	}
+	return results.size();
+}
+
+/**
+Process time series from the results list into a product (graph, etc).
+*/
+private void commandProcessorProcessTimeSeriesResultsList ( int [] indices, PropList props )
+{	String routine = "TSTool_JFrame.commandProcessorProcessTimeSeriesResultsList";
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "Indices", indices );
+	request_params.setUsingObject ( "Properties", props );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "ProcessTimeSeriesResultsList", request_params );
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting ProcessTimeSeriesResultsList(Indices=\"" + indices + "\"," +
+		" Properties=\"" + props + "\" from processor.";
+		Message.printWarning(2, routine, message );
+	}
+}
+
+/**
+Run the commands through the processor.  Curently this supplies the list of
+Command instances to run because the user can select the commands in the
+interface.  In the future the command processor may put together the list without
+being passed from the GUI.
+*/
+private void commandProcessorRunCommands ( Vector commands, boolean create_output )
+{	String routine = "TSTool_JFrame.commandProcessorRunCommands";
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "CommandList", commands );
+	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
+	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "RunCommands", request_params );
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting RunCommands(CommandList=...) from processor.";
+		Message.printWarning(2, routine, message );
+		Message.printWarning (3,routine, e);
+	}
+}
+
+/**
+Run a command processor to get the current working directory.
+This is a limited run meant to determine the working directory for
+command editing, where the working directory may have changed from the
+original command file location.  It is meant to be called from
+updateDynamicProps().
+@param ts_processor The command processor to be run.
+@param props The properties to be set with the current working directory.
+*/
+private void commandProcessorRunSetWorkingDirCommand ( TSCommandProcessor ts_processor, PropList props )
+{	String routine = "TSTool_JFrame.commandProcessorRunSetWorkingDirCommand";
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "CommandList", ts_processor.getCommands() );
+	request_params.set ( "InitialWorkingDir", getInitialWorkingDir() );
+	request_params.setUsingObject ( "CreateOutput", new Boolean(false) );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "RunCommands", request_params );
+		// Now get the working directory and set for the current environment.
+		Object o = __ts_processor.getPropContents("WorkingDir");
+		if ( o != null ) {
+			props.set ( "WorkingDir", (String)o );
+		}
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting RunCommands(CommandList=...) from processor.";
+		Message.printWarning(2, routine, message );
+		Message.printWarning (3,routine, e);
+	}
+}
+
+/**
+Set the command processor HydroBase instance that is opened via the GUI.
+@param hbdmi Open HydroBaseDMI instance.
+The input name is blank since it is the default HydroBaseDMI.
+@return The time series at the requested position in the results or null
+if the processor is not available.
+*/
+private void commandProcessorSetHydroBaseDMI( HydroBaseDMI hbdmi )
+{	String message, routine = "TSTool_JFrame.setCommandProcessorHydroBaseDMI";
+	if ( hbdmi == null ) {
+		return;
+	}
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "HydroBaseDMI", hbdmi );
+	CommandProcessorRequestResultsBean bean = null;
+	try { bean =
+		__ts_processor.processRequest( "SetHydroBaseDMI", request_params );
+	}
+	catch ( Exception e ) {
+		message = "Error requesting SetHydroBaseDMI(HydroBaseDMI=\"" + hbdmi + " from processor.";
+		Message.printWarning(2, routine, message );
+	}
+}
+
+/**
+Determine whether commands are equal, for single-line commands.
+@param original_command Original command as a string.
+@param edited_command Edited command as a string.
+*/
+private boolean commandsAreEqual (String original_command, String edited_command)
+{	Vector original_command_Vector = new Vector(1);
+	original_command_Vector.addElement ( original_command );
+	Vector edited_command_Vector = new Vector(1);
+	edited_command_Vector.addElement ( edited_command );
+	return commandsAreEqual(original_command_Vector,edited_command_Vector);
+}
+
+
+/**
+Indicate that a command has started running.
+@param icommand The command index (0+).
+@param ncommand The total number of commands to process
+@param command The reference to the command that is starting to run,
+provided to allow future interaction with the command.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a list of commands (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((icommand + 1)/ncommand)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
+*/
+public void commandStarted ( int icommand, int ncommand, Command command,
+		float percent_complete, String message )
+{	// commandCompleted updates the progress bar after each command.
+	// For this method, only reset the bounds of the progress bar and
+	// clear if the first command.
+	if ( icommand == 0 ) {
+		__processor_JProgressBar.setMinimum ( 0 );
+		__processor_JProgressBar.setMaximum ( ncommand );
+		__processor_JProgressBar.setValue ( 0 );
+	}
+	// Always set the value for the command progres so that it shows up
+	// as zero.  The commandProgres() method will do a better job of setting
+	// the limits and current status for a specific command.
+	__command_JProgressBar.setMinimum ( 0 );
+	__command_JProgressBar.setMaximum ( 100 );
+	__command_JProgressBar.setValue ( 0 );
+}
+
+/**
 Convert selected commands to comments.
 @param to_comment If true, convert commands to comments, if false, from
 comments.
@@ -5711,6 +6202,7 @@ private void convertCommandsToComments ( boolean to_comment )
 	String s = null;
 	for ( int i = 0; i < selected_size; i++ ) {
 		s = (String)__commands_JListModel.get(selected_indexes[i]);
+		/* FIXME SAM 2007-08-10 Need to fix to use commands.
 		if ( to_comment ) {
 			// Replace with a new string that has the
 			// comment character...
@@ -5725,6 +6217,7 @@ private void convertCommandsToComments ( boolean to_comment )
 			}
 			setCommandsDirty ( true );
 		}
+		*/
 	}
 	updateStatus ();
 }
@@ -6001,6 +6494,7 @@ Delete all commands in the list.
 */
 private void deleteCommands ()
 {	// Do this so that the status only needs to be updated once...
+	Message.printStatus(2,"deleteCommands", "Calling list model removeAllElements.");
 	__commands_JListModel.removeAllElements();
 	setCommandsDirty ( true );
 	updateStatus ();
@@ -6030,22 +6524,27 @@ private void editCommand ( String action, Vector command_Vector, int mode )
 
 /**
 Edit a command in the command list.
-@param action the string containing the event's action value.
-@param command_Vector if an update command, the current values in the 
-command in the list.  If a new command, null.
+@param action the string containing the event's action value.  This is checked
+for new commands.  When editing existing commands, command_Vector will contain
+a list of Command class instances.
+@param command_Vector If an update, this contains the current Command instances
+to edit.  If a new command, this is null and the action string will be consulted
+to construct the appropriate command.
 @param mode the action to take when editing the command (__INSERT_COMMAND for a
 new command or __UPDATE_COMMAND for an existing command).
 @param check_errors whether the command will be checked for errors (i.e.,
-opened in its own dialog) or not.
+opened in its own dialog) or not.  This may go away given that all commands
+will soon have error handling.
 */
 private void editCommand (	String action, Vector command_Vector,
 				int mode, boolean check_errors )
 {	String routine = "TSTool_JFrame.editCommand";
-	String command = null;	// Single string command to edit
-	Vector cv = null;	// Local reference to command_Vector
+	String command = null;	// Single string command to edit, to support legacy editors
+	Vector cv = null;	// Command_Vector, as String instances, to support legacy editors
 	int dl = 1;		// Debug level
 
-	Vector original_cv = null;
+	Vector original_cv = null; // Copy of original commands as string, to detect edits
+	String original_command_string = null;// Original command string (first command), to detect edits
 
 	try {	// Main try to help with troubleshooting, especially during
 		// transition to new command structure.
@@ -6055,29 +6554,44 @@ private void editCommand (	String action, Vector command_Vector,
 
 	checkDialogInput ();
 
+	// FIXME SAM 2007-08-13 Need to handle comments
+	boolean command_is_comment = false;	// To help with multi-line commands
+	Command command_to_edit = null;	// Command being edited.
 	if ( mode == __UPDATE_COMMAND ) {
+		// Get the command from the processor...
+		if ( command_is_comment ) {
+			// Do something special to handle multiple lines...
+		}
+		else { command_to_edit = (Command)command_Vector.elementAt(0);
+		}
 		// Updating the command so pass in the original command...
 		if ( (command_Vector != null) && (command_Vector.size() == 0)) {
 			// Should never happen???
 			return;
 		}
-		cv = command_Vector;
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Command vector is: " + cv );
-		}
-		command = (String)cv.elementAt(0);
-		// Save a copy of the original command vector so that it can be
+		// Get the command string to pass to old-style editors...
+		command = command_to_edit.toString();
+		// Save a copy of the original command vector strings so that it can be
 		// compared at the end of the edit.  If a change occurs, the
-		// commands list will be be marked as dirty...
-		int size = cv.size();
+		// commands list will be be marked as dirty and the user will
+		// be given the option to save before exiting...
+		int size = command_Vector.size();
+		cv = new Vector(size);
 		original_cv = new Vector(size);
 		for ( int i = 0; i < size; i++ ) {
 			// Force new strings to be created so the comparison is
 			// made on the string content, not the reference to the
-			// Vector that is used below...
-			original_cv.addElement ( new String(
-				(String)cv.elementAt(i) ) );
+			// Vector that is used below.  A Vector is used for legacy
+			// support, although non-comment edits will be one String.
+			cv.addElement ( ((Command)command_Vector.elementAt(i)).toString() );
+			original_cv.addElement ( ((Command)command_Vector.elementAt(i)).toString() );
+			if ( i == 0 ) {
+				original_command_string = ((Command)command_Vector.elementAt(i)).toString();
+			}
+		}
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine,
+			"Command vector is: " + cv );
 		}
 	}
 	else {	// New command so pass in a blank Vector...
@@ -6097,16 +6611,23 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Action item is \"" + action +
+		Message.printDebug ( 1, routine, "Edit event action item is \"" + action +
 		"\"" );
 	}
 
-	Vector edited_cv = null;
+	boolean have_oldstyle_editor = true;	// Set to false below
+											// if no old style editing
+	Vector edited_cv = null;	// Vector of String containing edited
+								// command - if different from original_cv,
+								// then the commands are marked dirty
 	if ( !check_errors ) {
+		/* FIXME SAM 2007-08-13 probably need to permanently disable.
 		// Generic command editor...
 		edited_cv = new commandString_JDialog ( this, cv,
 			TSEngine.getTSIdentifiersFromCommands(
 			getCommandsAboveSelected ())).getText();
+		*/
+		Message.printWarning ( 1, routine,"Editing without error checks is disabled - use the specific editor.");
 	}
 
 	// These are listed in the same order as the GUI...
@@ -6126,8 +6647,8 @@ private void editCommand (	String action, Vector command_Vector,
 		// dialog...
 		updateDynamicProps ();
 		edited_cv = new createFromList_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Create_createTraces_String)||
 		(StringUtil.indexOfIgnoreCase(command,"createTraces(",0) >= 0)||
@@ -6137,8 +6658,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for createTraces()" );
 		}
 		edited_cv = new createTraces_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	// REVISIT SAM 2005-05-18 need to enable - the command string checked
 	// below is in conflice with the fillHistMonthAverage() command so that
@@ -6167,8 +6688,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for TS Alias = disaggregate()" );
 		}
 		edited_cv = new disaggregate_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(
 		__Commands_Create_TS_newDayTSFromMonthAndDayTS_String)||
@@ -6182,8 +6703,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"newDayTSFromMonthAndDayTS()");
 		}
 		edited_cv = new newDayTSFromMonthAndDayTS_JDialog (this,cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(
 		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String)||
@@ -6195,8 +6716,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"newEndOfMonthTSFromDayTS()" );
 		}
 		edited_cv = new newEndOfMonthTSFromDayTS_JDialog (this,cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Create_TS_normalize_String)||
 		(StringUtil.indexOfIgnoreCase(command,"normalize(",0) >= 0)||
@@ -6206,8 +6727,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for TS Alias = normalize()" );
 		}
 		edited_cv = new normalize_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Create_TS_relativeDiff_String)||
 		(StringUtil.indexOfIgnoreCase(
@@ -6219,8 +6740,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for TS Alias = relativeDiff()" );
 		}
 		edited_cv = new relativeDiff_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Create_TS_weightTraces_String)||
 		(StringUtil.indexOfIgnoreCase(
@@ -6232,8 +6753,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for TS Alias = weightTraces()" );
 		}
 		edited_cv = new weightTraces_JDialog ( this, cv,
-			TSEngine.getTraceIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 
 	// Convert time series...
@@ -6247,8 +6768,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for TS Alias = readTimeSeries()" );
 		}
 		edited_cv = new readTimeSeries_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 
 	// Read Time Series...
@@ -6390,8 +6911,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setIncludeMissingTS()" );
 		}
 		edited_cv = new setIncludeMissingTS_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 
 	// Fill Time Series Data...
@@ -6403,8 +6924,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for fillCarryForward()" );
 		}
 		edited_cv = new fillCarryForward_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(
 		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String)||
@@ -6415,8 +6936,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for fillDayTSFrom2MonthTSAnd1DayTS()" );
 		}
 		edited_cv = new fillDayTSFrom2MonthTSAnd1DayTS_JDialog ( 
-			this, cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			this, cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Fill_fillFromTS_String)||
 		command.regionMatches( true,0,"fillFromTS",0,10) ) {
@@ -6425,8 +6946,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for fillFromTS()" );
 		}
 		edited_cv = new fillFromTS_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Fill_fillInterpolate_String)||
 		command.regionMatches(true,0,"fillInterpolate",0,15) ) {
@@ -6435,8 +6956,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for fillInterpolate()" );
 		}
 		edited_cv = new fillInterpolate_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_Fill_fillPattern_String) ||
 		command.regionMatches(true,0,"fillPattern",0,11) ) {
@@ -6477,8 +6998,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		edited_cv = new fillPattern_JDialog ( this, __props,
 			__fill_pattern_files, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ()), __fill_pattern_ids
+			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit), __fill_pattern_ids
 			).getText();
 	}
 	else if (action.equals( __Commands_Fill_fillProrate_String)||
@@ -6488,8 +7009,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for fillProrate()" );
 		}
 		edited_cv = new fillProrate_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	/* REVISIT SAM 2005-05-09 Use the factory code at the end of the
 	if statements...
@@ -6521,8 +7042,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for fillRepeat()" );
 		}
 		edited_cv = new fillRepeat_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
     /** KAT - let this get handled by the generic code now
 	else if (action.equals(
@@ -6545,8 +7066,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setAutoExtendPeriod()" );
 		}
 		edited_cv = new setAutoExtendPeriod_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Fill_setAveragePeriod_String) ||
 		command.regionMatches(true,0,"setAveragePeriod",0,16) ) {
@@ -6555,8 +7076,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setAveragePeriod()" );
 		}
 		edited_cv = new setAveragePeriod_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Fill_setIgnoreLEZero_String) ||
 		command.regionMatches(true,0,"setIgnoreLEZero",0,15) ) {
@@ -6565,8 +7086,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setIgnoreLEZero()" );
 		}
 		edited_cv = new setIgnoreLEZero_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 /*
 	else if ( action.equals(__Commands_Fill_setMissingDataValue_String)||
@@ -6588,8 +7109,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		updateDynamicProps ();
 		edited_cv = new setPatternFile_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 		if ( edited_cv != null ) {
 			// Read the pattern file information, at least enough
 			// to get a list of the identifiers that are available
@@ -6629,8 +7150,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for replaceValue()" );
 		}
 		edited_cv = new replaceValue_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Set_setConstant_String) ||
 		command.regionMatches(true,0,"setConstant",0,11) ) {
@@ -6639,8 +7160,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setConstant()" );
 		}
 		edited_cv = new setConstant_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Set_setConstantBefore_String)||
 		command.regionMatches(true,0,"setConstantBefore",0,17) ) {
@@ -6649,8 +7170,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setConstantBefore()" );
 		}
 		edited_cv = new setConstantBefore_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Set_setDataValue_String)||
 		command.regionMatches(true,0,"setDataValue",0,12) ) {
@@ -6659,8 +7180,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setDataValue()" );
 		}
 		edited_cv = new setDataValue_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Set_setFromTS_String ) ||
 		command.regionMatches( true,0,"setFromTS",0,9) ) {
@@ -6669,8 +7190,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setFromTS()" );
 		}
 		edited_cv = new setFromTS_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Set_setMax_String)||
 		command.regionMatches(true,0,"setMax",0,6) ) {
@@ -6679,8 +7200,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setMax()" );
 		}
 		edited_cv = new setMax_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Set_setToMin_String)||
 			command.regionMatches(true,0,"setToMin",0,8) ) {
@@ -6689,8 +7210,8 @@ private void editCommand (	String action, Vector command_Vector,
 				"Opening dialog for setToMin()" );
 			}
 			edited_cv = new setToMin_JDialog ( this, cv,
-				TSEngine.getTSIdentifiersFromCommands(
-				getCommandsAboveSelected ())).getText();
+					TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+							__ts_processor, command_to_edit)).getText();
 		}
 
 	// Manipulate time series...
@@ -6705,8 +7226,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for add()" );
 		}
 		edited_cv = new add_JDialog ( this, cv, true,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Manipulate_addConstant_String)||
 		command.regionMatches(true,0,"addConstant",0,11) ) {
@@ -6715,8 +7236,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for addConstant()" );
 		}
 		edited_cv = new addConstant_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Manipulate_adjustExtremes_String)||
 		command.regionMatches(true,0,"adjustExtremes",0,14) ) {
@@ -6725,8 +7246,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for adjustExtremes()" );
 		}
 		edited_cv = new adjustExtremes_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Manipulate_ARMA_String)||
 		command.regionMatches(true,0,"ARMA",0,4) ) {
@@ -6735,8 +7256,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for ARMA()" );
 		}
 		edited_cv = new ARMA_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Manipulate_blend_String)||
 		command.regionMatches(true,0,"blend(",0,6) ||
@@ -6746,8 +7267,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for blend()" );
 		}
 		edited_cv = new blend_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_Manipulate_convertDataUnits_String)||
 		command.regionMatches(true,0,"convertDataUnits",0,16) ) {
@@ -6756,8 +7277,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for convertDataUnits()" );
 		}
 		edited_cv = new convertDataUnits_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_Manipulate_divide_String) ||
 		command.regionMatches(true,0,"divide",0,6) ) {
@@ -6766,8 +7287,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for divide()" );
 		}
 		edited_cv = new divide_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_Manipulate_free_String) ||
 		command.regionMatches(true,0,"free(",0,5) ||
@@ -6779,8 +7300,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for free()" );
 		}
 		edited_cv = new free_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_Manipulate_multiply_String) ||
 		command.regionMatches(true,0,"multiply",0,8) ) {
@@ -6789,8 +7310,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for multiply()" );
 		}
 		edited_cv = new multiply_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_Manipulate_runningAverage_String) ||
 		command.regionMatches(true,0,"runningAverage",0,14) ) {
@@ -6799,8 +7320,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for runningAverage()" );
 		}
 		edited_cv = new runningAverage_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if(action.equals(
 		__Commands_Manipulate_shiftTimeByInterval_String)||
@@ -6810,8 +7331,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for shiftTimeByInterval()" );
 		}
 		edited_cv = new shiftTimeByInterval_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Manipulate_subtract_String)||
 		command.regionMatches(true,0,"subtract",0,8) ) {
@@ -6821,8 +7342,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for subtract()" );
 		}
 		edited_cv = new add_JDialog ( this, cv, false,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 
 	// Analyze Time Series...
@@ -6840,8 +7361,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for deselectTimeSeries()" );
 		}
 		edited_cv = new selectTimeSeries_JDialog (this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ()), false ).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit), false ).getText();
 	}
 	else if ( action.equals(
 		__Commands_Output_selectTimeSeries_String) ||
@@ -6851,8 +7372,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for selectTimeSeries()" );
 		}
 		edited_cv = new selectTimeSeries_JDialog (this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ()), true ).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit), true ).getText();
 	}
 /* REVISIT - phasing out
 	else if ( action.equals(
@@ -6889,8 +7410,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		updateDynamicProps ();
 		edited_cv = new writeDateValue_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Output_writeNwsCard_String)||
 		command.regionMatches(true,0,"writeNwsCard",0,12) ) {
@@ -6900,8 +7421,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		updateDynamicProps ();
 		edited_cv = new writeNwsCard_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 	/*
 	else if (action.equals(
@@ -6927,8 +7448,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		updateDynamicProps ();
 		edited_cv = new writeStateCU_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Output_writeSummary_String)||
 		command.regionMatches(true,0,"writeSummary",0,12) ) {
@@ -6938,8 +7459,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		updateDynamicProps ();
 		edited_cv = new writeSummary_JDialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+					__ts_processor, command_to_edit)).getText();
 	}
 
 	// General...
@@ -6951,8 +7472,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for runProgram()" );
 		}
 		edited_cv = new runProgram_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 /*
 	else if (action.equals(__Commands_General_setBinaryTSDayCutoff_String)||
@@ -6985,8 +7506,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setDebugLevel()" );
 		}
 		edited_cv = new setDebugLevel_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_General_setWarningLevel_String) ||
 		command.regionMatches(true,0,"setWarningLevel",0,15) ) {
@@ -6995,8 +7516,8 @@ private void editCommand (	String action, Vector command_Vector,
 			"Opening dialog for setWarningLevel()" );
 		}
 		edited_cv = new setWarningLevel_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_General_setWorkingDir_String) ||
 		command.regionMatches(true,0,"setWorkingDir",0,13) ) {
@@ -7006,8 +7527,8 @@ private void editCommand (	String action, Vector command_Vector,
 		}
 		updateDynamicProps ();
 		edited_cv = new setWorkingDir_JDialog ( this, __props, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals(__Commands_General_Comment_String) ||
 		command.startsWith("#") ) {
@@ -7035,14 +7556,40 @@ private void editCommand (	String action, Vector command_Vector,
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
 	}
+	else {	// Unrecognized command - try the factory below...
+		have_oldstyle_editor = false;
+	}
 
-	// Unrecognized command...
+	if ( have_oldstyle_editor ) {
+		String command_to_edit_String = (String)edited_cv.elementAt(0);
+		Message.printStatus ( 2, routine, "Had old-style editor for command " + command_to_edit );
+		if ( mode == __UPDATE_COMMAND ) {
+			// Editing was done on a string so need to replace the
+			// old command with the new edit (if the string command has changed).
 
-	else {	// Try new approach with a factory...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Using new command code to edit command..." );
+			if ( edited_cv != null ) {
+				command_to_edit.setCommandString ( (String)edited_cv.elementAt(0));
+				updateCommand ( original_command_string,
+						command_to_edit, mode );
+			}
 		}
+		else {	// Inserting a new command.  Need to construct a GenericCommand and
+			// add the command as a String.
+			command_to_edit = new GenericCommand();
+			command_to_edit.setCommandString ( (String)edited_cv.elementAt(0));
+			if ( edited_cv != null ) {
+				updateCommand ( original_command_string, command_to_edit, mode );
+			}
+		}
+	}
+	else {
+		// Try new approach with a factory.  Ultimately this will be the
+		// only code in effect.
+		//if ( Message.isDebugOn ) {
+			//Message.printDebug ( dl, routine,
+			Message.printStatus ( 2, routine,
+			"Using new command code to edit command \"" + command + "\"" );
+		//}
 		try {	// Do this to update the working directory based on
 			// previous commands...
 			updateDynamicProps ();
@@ -7055,7 +7602,8 @@ private void editCommand (	String action, Vector command_Vector,
 			TSCommandFactory cf = new TSCommandFactory();
 			Command c = null;
 			if ( mode == __UPDATE_COMMAND ) {
-				// REVISIT SAM 2005-05-09 Need to change this
+				/*
+				// TODO SAM 2005-05-09 Need to change this
 				// when commands are maintained in the command
 				// list data model (in that case just pass the
 				// existing command)...
@@ -7065,12 +7613,19 @@ private void editCommand (	String action, Vector command_Vector,
 					" command for \"" + command + "\"" );
 				}
 				c = cf.newCommand(command);
+				*/
+				// New is command from the processor
+				c = command_to_edit;
+				/* TODO remove if tests out
 				try {	c.initializeCommand ( command,
+					__ts_processor,
+					/ * TODO SAM 2007-08-10 remove when processor enabled
 					new TSCommandProcessor(
 					new TSEngine ( __hbdmi, __rdmi,
 					__DIADvisor_dmi,
 					__DIADvisor_archive_dmi, __nwsrfs_dmi,
 					__smsdmi, this )),
+					* /
 					null,	// Command tag
 					1,	// Warning level
 					true );	// Full initialization
@@ -7094,6 +7649,12 @@ private void editCommand (	String action, Vector command_Vector,
 					"command." );
 					Message.printWarning ( 3, routine, e );
 				}
+				*/
+				// Now reset the command in the processor...
+				// FIXME SAM 2007-08-10
+				// Should just refresh the same command, not do a
+				// new instance.
+				updateCommand ( original_command_string, command_to_edit, mode);
 			}
 			else {	// Else a new blank command is OK but get the
 				// command name from the action (menu)...
@@ -7116,11 +7677,14 @@ private void editCommand (	String action, Vector command_Vector,
 				
                 c = cf.newCommand( command );
                 c.initializeCommand ( command,
+                	__ts_processor,
+                	/* TODO SAM 2007-08-10 Remove when processor enabled
 					new TSCommandProcessor(
 					new TSEngine ( __hbdmi, __rdmi,
 					__DIADvisor_dmi,
 					__DIADvisor_archive_dmi, __nwsrfs_dmi,
 					__smsdmi, this) ),
+					*/
 					null,	// Command tag
 					1,	// Warning level
 					false);	// Minimal initialization
@@ -7145,8 +7709,11 @@ private void editCommand (	String action, Vector command_Vector,
 						routine, "Command edits " +
 						"were committed.");
 					}
+					// Add to the command list...
+					command_to_edit = c;
+					updateCommand ( original_command_string, command_to_edit, mode );
 				}
-				else {	edited_cv = null;
+				else {	// Cancelled so no need to do anything.
 				}
 			}
 			catch ( Exception e2 ) {
@@ -7163,11 +7730,13 @@ private void editCommand (	String action, Vector command_Vector,
 			GenericCommand c = new GenericCommand ();
 			try {
 			c.initializeCommand ( command,
-				new TSCommandProcessor(
+				__ts_processor,
+				// TODO SAM 2007-08-10 Remove when fully enabled
+				/*new TSCommandProcessor(
 				new TSEngine ( __hbdmi, __rdmi,
 				__DIADvisor_dmi,
 				__DIADvisor_archive_dmi, __nwsrfs_dmi, __smsdmi,
-				this )),
+				this )),*/
 				null,	// Command tag
 				1,	// Warning level
 				false);	// Minimal initialization
@@ -7202,13 +7771,6 @@ private void editCommand (	String action, Vector command_Vector,
 			Message.printWarning ( 3, routine, e );
 		}
 	}
-
-	// If the command was actually edited, update it in the commands list...
-
-	if ( edited_cv != null ) {
-		updateCommand ( original_cv, edited_cv, mode );
-	}
-
 	}
 	catch ( Exception e2 ) {
 		// REVISIT SAM 2005-05-18 Unexpected error... 
@@ -7223,7 +7785,7 @@ GUI is such that time series are available from the TSEngine.
 @param filename Name of file to save as, as a tstool command line option (e.g.,
 "-o filename").  If previewing output, this will be "-preview".
 */
-private void export ( String format, String filename )
+private void exportTimeSeriesResults ( String format, String filename )
 {	String routine = "TSTool_JFrame.export";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, "In export" );
@@ -7235,13 +7797,12 @@ private void export ( String format, String filename )
 	props.set ( "OutputFormat=" + format );
 	props.set ( "OutputFile=" + filename );
 	// Final list is selected...
-	// TODO SAM 2007-02-18 Need to convert to use command processor
-	if ( __final_ts_engine != null ) {
+	 if ( __ts_processor != null ) {
 		try {	int selected_ts = JGUIUtil.selectedSize(__ts_JList);
 			if ( selected_ts == 0 ) {
-				__final_ts_engine.processTimeSeries(null,props);
+				commandProcessorProcessTimeSeriesResultsList(null,props);
 			}
-			else {	__final_ts_engine.processTimeSeries (
+			else {	commandProcessorProcessTimeSeriesResultsList (
 				__ts_JList.getSelectedIndices(), props );
 			}
 		}
@@ -7807,6 +8368,7 @@ identifier) is returned.
 @return selected commands in final list or null if none are selected.
 Also return null if more than one command is selected.
 */
+/*
 private Vector getCommand ()
 {	// First get the list...
 	Vector command = getCommands();
@@ -7844,7 +8406,7 @@ private Vector getCommand ()
 			return v;
 		}
 	}
-/*
+/ * FIXME when method reenabled.
 	// Else may have mixed comments.  Want to pull out only the
 	// non-comments after an optional set of commments...
 	for ( int i = 0; i < size; i++ ) {
@@ -7870,9 +8432,11 @@ private Vector getCommand ()
 			--i;
 		}
 	}
-*/
+* /
+
 	return command;
 }
+*/
 
 /**
 Get the list of commands to process.  If any are selected, only they will be
@@ -7884,46 +8448,60 @@ private Vector getCommands ( )
 }
 
 /**
-Get the list of commands to process.
-@return the commands as a Vector of String.
+Get the list of commands to process, as a Vector of Command, guaranteed
+to be non-null but may be zero length.
+@return the commands as a Vector of Command.
 @param get_all If false, return those that are selected
 unless none are selected, in which case all are returned.  If true, all are
 returned, regardless of which are selected.
 */
-private Vector getCommands (boolean get_all)
-{	String rtn="StateDMI_JFrame.getCommands";
-
-	if ( __commands_JListModel.size() == 0 ) {
-		// Nothing in list (probably should never see this if the
-		// GUI state is being managed properly)...
-		Message.printWarning ( 1, rtn, 
-		"No commands are in the list." );
-		return null;
+private Vector getCommands ( boolean get_all )
+{	if ( __commands_JListModel.size() == 0 ) {
+		return new Vector();
 	}
 
 	int [] selected = __commands_JList.getSelectedIndices();
-	int size = 0;
+	int selected_size = 0;
 	if ( selected != null ) {
-		size = selected.length;
+		selected_size = selected.length;
 	}
 
-	if ( (size == 0) || get_all ) {
+	if ( (selected_size == 0) || get_all ) {
 		// Nothing selected or want to get all, get all...
-		size = __commands_JListModel.size();
-		Vector itemVector = new Vector(size);
-		for ( int i = 0; i < size; i++ ) {
+		selected_size = __commands_JListModel.size();
+		Vector itemVector = new Vector(selected_size);
+		for ( int i = 0; i < selected_size; i++ ) {
 			itemVector.addElement ( __commands_JListModel.get(i) );
 		}
 		return itemVector;
 	}
 	else {	// Else something selected so get them...
-		Vector itemVector = new Vector(size);
-		for ( int i = 0; i < size; i++ ) {
+		Vector itemVector = new Vector(selected_size);
+		for ( int i = 0; i < selected_size; i++ ) {
 			itemVector.addElement (
-			(String)__commands_JListModel.get(selected[i]) );
+			__commands_JListModel.get(selected[i]) );
 		}
 		return itemVector;
 	}
+}
+
+/**
+Get the list of commands to process, as a Vector of String.
+@return the commands as a Vector of String.
+@param get_all If false, return those that are selected
+unless none are selected, in which case all are returned.  If true, all are
+returned, regardless of which are selected.
+*/
+private Vector getCommandStrings ( boolean get_all )
+{	// Get the Command list, will not be non-null
+	Vector commands = getCommands ( get_all );
+	// Convert to String instances
+	int size = commands.size();
+	Vector strings = new Vector(size);
+	for ( int i = 0; i < size; i++ ) {
+		strings.addElement ( ((Command)commands.elementAt(i)).toString() );
+	}
+	return strings;
 }
 
 /**
@@ -7932,10 +8510,10 @@ are returned.  Use this, for example, to get the setWorkingDir() commands above
 the insert position for a readXXX() command, so the working directory can be
 defined and used in the readXXX_Dialog.  The returned Vector can be processed
 by the StateDMI_Processor() constructor.
-@return List of commands above the insert point that match the commands in
+@return List of commands (as Command instances) above the insert point that match the commands in
 the needed_commands_Vector.  This will always return a non-null Vector, even if
 no commands are in the Vector.
-@param needed_commands_Vector Vector of commands that need to be processed
+@param needed_commands_Vector Vector of commands (as String) that need to be processed
 (e.g., "setWorkingDir").  Only the main command name should be defined.
 @param get_all if false, only the first found item above the insert point
 is returned.  If true, all matching commands above the point are returned in
@@ -7964,18 +8542,17 @@ public Vector getCommandsAboveInsertPosition (	Vector needed_commands_Vector,
 	if ( needed_commands_Vector != null ) {
 		size = needed_commands_Vector.size();
 	}
-	String command;
+	String needed_command_string;
 	Vector found_commands = new Vector();
 	// Now loop up through the command list...
 	for ( int ic = (insert_pos - 1); ic >= 0; ic-- ) {
 		for ( int i = 0; i < size; i++ ) {
-			command = (String)needed_commands_Vector.elementAt(i);
+			needed_command_string = (String)needed_commands_Vector.elementAt(i);
 			//((String)_command_List.getItem(ic)).trim() );
-			if (	command.regionMatches(true,0,((String)
-				__commands_JListModel.get(ic)).trim(),0,
-				command.length() ) ) {
-				found_commands.addElement ( (String)
-				__commands_JListModel.get(ic) );
+			if (	needed_command_string.regionMatches(true,0,((Command)
+				__commands_JListModel.get(ic)).toString().trim(),0,
+				needed_command_string.length() ) ) {
+				found_commands.addElement ( __commands_JListModel.get(ic) );
 				//Message.printStatus ( 1, "",
 				//"Adding command \"" + 
 				//__commands_JListModel.get(ic) + "\"" );
@@ -8042,8 +8619,23 @@ set when opening/closing a commands file or using File...Set Working Directory.
 This command should be prepended to the list of setWorkingDir() commands that
 are processed when determining the working directory for an edit dialog.
 */
-private String getInitialSetWorkingDirCommand()
-{	return "setWorkingDir(\"" + __initial_working_dir + "\")";
+private Command getInitialSetWorkingDirCommand()
+{	// For now put in a generic command since no specific Command class is available...
+	GenericCommand c = new GenericCommand ();
+	c.setCommandString( "setWorkingDir(\"" + getInitialWorkingDir() + "\")" );
+	return c;
+	// TODO SAM 2007-08-22 Need to implement the command class
+}
+
+/**
+Return the initial working directory, which will be the softare startup
+home, or the location of the commands file read/write (a directory).
+This directory is suitable for initializing a workflow processing run.
+@return the initial working directory, which should always be non-null.
+*/
+private String getInitialWorkingDir ()
+{
+	return __initial_working_dir;
 }
 
 /**
@@ -8304,35 +8896,37 @@ public void goToMessageTag ( String tag )
 
 /**
 Graph time series that are in the final list.
+@param graph_type Type of graph to create.
 */
-private void graphTS ( String type )
-{	graphTS ( type, null );
+private void graphTimeSeriesResults ( String type )
+{	graphTimeSeriesResults ( type, null );
 }
 
 /**
 Graph time series that are in the final list.
 @param graph_type Type of graph (same as tstool command line arguments).
 */
-private void graphTS ( String graph_type, String params ) 
+private void graphTimeSeriesResults ( String graph_type, String params ) 
 {	String routine = "TSTool_JFrame.graphTS";
 
-	try {	JGUIUtil.setWaitCursor ( this, true );
+	try {
+		// Change the wait cursor here in the main GUI to indicate that the
+		// graph is being processed.
+		JGUIUtil.setWaitCursor ( this, true );
 		PropList props = new PropList ( "GraphProps" );
 		props.set ( "OutputFormat=" + graph_type );
 		if ( params != null ) {
 			props.set ( "Parameters=" + params );
 		}
 		// Final list is selected...
-		// TODO SAM 2007-02-18 Need to convert to command processor
-		if ( __final_ts_engine != null ) {
-			try {	int selected_ts=
-					JGUIUtil.selectedSize(__ts_JList);
+		if ( __ts_processor != null ) {
+			try {	int selected_ts=JGUIUtil.selectedSize(__ts_JList);
 				if ( selected_ts == 0 ) {
-					__final_ts_engine.processTimeSeries (
+					commandProcessorProcessTimeSeriesResultsList (
 					null, props );
 				}
-				else {	__final_ts_engine.processTimeSeries (
-					__ts_JList.getSelectedIndices(), props);
+				else {	commandProcessorProcessTimeSeriesResultsList (
+					__ts_JList.getSelectedIndices(), props );
 				}
 			}
 			catch ( Exception e ) {
@@ -8379,10 +8973,10 @@ private void initGUI ( boolean show_main )
 	Insets insetsNLNR = new Insets(0,buffer,0,buffer);
 	Insets insetsNNNR = new Insets(0,0,0,buffer);
 	Insets insetsNLNN = new Insets(0,buffer,0,0);
-        Insets insetsNLBR = new Insets(0,buffer,buffer,buffer);
+    Insets insetsNLBR = new Insets(0,buffer,buffer,buffer);
 	Insets insetsTLNR = new Insets(buffer,buffer,0,buffer);
 	Insets insetsNNNN = new Insets(0,0,0,0);
-       	GridBagLayout gbl = new GridBagLayout();
+    GridBagLayout gbl = new GridBagLayout();
 
 	// Panel to hold the query components, added to the top of the main
 	// content pane...
@@ -8479,9 +9073,8 @@ private void initGUI ( boolean show_main )
 		BorderFactory.createLineBorder(Color.black),
 		"Time Series List"));
     
-    //KAT
-    // set the minimum size for the panel based on the default size
-    // used for HydroBase
+    // Set the minimum size for the panel based on the default size
+    // used for HydroBase, which seems to be an acceptable size.
    __query_results_JPanel.setPreferredSize(new Dimension( 460, 200 ));
     
     query_JPanel.add("Center", __query_results_JPanel);
@@ -8556,8 +9149,19 @@ private void initGUI ( boolean show_main )
 	JGUIUtil.addComponent(center_JPanel, __commands_JPanel,
 		0, 0, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
-	__commands_JListModel = new DefaultListModel();
-	__commands_JList = new JList ( __commands_JListModel );
+	// Initialize the command processor to interact with the GUI.
+	__ts_processor = new TSCommandProcessor();
+	// FIXME SAM 2007-08-28 Need to set a WindowListener for -nomaingui calls?
+	//__ts_processor.setTSCommandProcessorUI ( this );
+	__ts_processor.addCommandProcessorListener ( this );
+	__commands_JListModel = new TSCommandProcessorListModel(__ts_processor);
+	if ( __use_annotated_list ) {
+		__commands_AnnotatedList = new AnnotatedList ( __commands_JListModel );
+		__commands_JList = __commands_AnnotatedList.getJList();
+	}
+	else {
+		__commands_JList = new JList ( __commands_JListModel );
+	}
 	__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
 	// The following prototype value looks like nonsense, but should ensure
 	// that the line height accomodates both very tall characters, and those
@@ -8568,7 +9172,7 @@ private void initGUI ( boolean show_main )
 	__commands_JList.addListSelectionListener ( this );
 	__commands_JList.addKeyListener ( this );
 	__commands_JList.addMouseListener ( this );
-	JScrollPane commands_JScrollPane = new JScrollPane ( __commands_JList );
+	
 
 	// The following line works in tandem with the call to 
 	// setPrototypeCellValue() above.  setPrototypeCellValue() changes the
@@ -8580,9 +9184,18 @@ private void initGUI ( boolean show_main )
 	// the following line should be removed as well.
 	__commands_JList.setFixedCellWidth(-1);
 	
-	JGUIUtil.addComponent(__commands_JPanel, commands_JScrollPane,
+	if ( __use_annotated_list ) {
+		JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedList,
 		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+	}
+	else {
+		JScrollPane commands_JScrollPane = new JScrollPane ( __commands_JList );
+		JGUIUtil.addComponent(__commands_JPanel, commands_JScrollPane,
+				0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+	}
+	
 	// Popup menu for the commands list...
+	
 	initGUIMenus_CommandsPopup ();
 
 	// Popup menu for the input name field...
@@ -8661,19 +9274,17 @@ private void initGUI ( boolean show_main )
 	__message_JTextField = new JTextField();
 	__message_JTextField.setEditable(false);
 	JGUIUtil.addComponent(bottom_JPanel, __message_JTextField,
-		0, 0, 7, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-	/* REVISIT - SAM 2004-02-13 - enable later when commands are a thread
-	  for now replace with a blank text field
+		0, 0, 5, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 	__processor_JProgressBar = new JProgressBar ();
+	__processor_JProgressBar.setToolTipText ( "Indicates progress in processing all commands.");
 	__processor_JProgressBar.setStringPainted ( true );
 	JGUIUtil.addComponent(bottom_JPanel, __processor_JProgressBar,
+		5, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	__command_JProgressBar = new JProgressBar ();
+	__command_JProgressBar.setToolTipText ( "Indicates progress in processing the current command that is running.");
+	__command_JProgressBar.setStringPainted ( true );
+	JGUIUtil.addComponent(bottom_JPanel, __command_JProgressBar,
 		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	*/
-	JTextField temp_JTextField = new JTextField ( 5 );
-	temp_JTextField.setEditable ( false );
-	JGUIUtil.addComponent(bottom_JPanel, temp_JTextField,
-		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	// END REVISIT
 	__status_JTextField = new JTextField ( 5 );
 	__status_JTextField.setEditable(false);
 	JGUIUtil.addComponent(bottom_JPanel, __status_JTextField,
@@ -9855,6 +10466,12 @@ private void initGUIMenus_CommandsPopup ()
 		new SimpleJMenuItem (
 		"Run " + __Run_SelectedCommandsIgnoreOutput_String,
 		__Run_SelectedCommandsIgnoreOutput_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_ShowCommandStatus_JMenuItem =
+		new SimpleJMenuItem (
+		__CommandsPopup_ShowCommandStatus_String,
+		__CommandsPopup_ShowCommandStatus_String, this ) );
 }
 
 /**
@@ -11248,6 +11865,60 @@ public void mouseReleased ( MouseEvent event )
 {
 }
 
+// TODO SAM 2007-08-16 Creating GenericCommand will be removed when all
+// commands are converted to Command classes
+/**
+Create a new Command instance given a command string.  This may be called when
+loading commands from a file or adding new commands while editing.
+@param command_string Command as a string, to parse and create a Command instance.
+*/
+private Command newCommand ( String command_string )
+{	int dl = 1;
+	String routine = "TSTool_JFrame.newCommand";
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( dl, routine,
+		"Using command factory to create a new"+
+		" command for \"" + command_string + "\"" );
+	}
+	Command c = null;
+	try {
+		TSCommandFactory cf = new TSCommandFactory();
+		c = cf.newCommand(command_string);
+		Message.printStatus ( 2, routine, "Added command from factory for \"" + command_string + "\"");
+	}
+	catch ( UnknownCommandException e ) {
+		// Processor does not know the command so create a GenericCommand.
+		c = new GenericCommand();
+		Message.printStatus ( 2, routine, "Added generic command for \"" + command_string + "\"");
+	}
+	// New is command from the processor
+	try {	c.initializeCommand ( command_string,
+		__ts_processor,
+		null,	// Command tag
+		1,	// Warning level
+		true );	// Full initialization
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl,
+			routine,
+			"Initialized command " +
+			"for \"" + command_string + "\"" );
+		}
+	}
+	catch ( Exception e ) {
+		// Absorb the warning and make the user
+		// try to deal with it in the editor
+		// dialog.  They can always cancel out.
+
+		// REVISIT SAM 2005-05-09 Need to handle
+		// parse error.  Should the editor come
+		// up with limited information?
+		Message.printWarning ( 3, routine,
+		"Unexpected error initializing command \"" + command_string + "\"." );
+		Message.printWarning ( 3, routine, e );
+	}
+	return c;
+}
+
 /**
 Open a connection to the ColoradoSMS database.  If running in batch mode, the
 CDSS configuration file is used to determine ColoradoSMS server and database
@@ -11409,11 +12080,6 @@ private void openCommandsFile ()
 	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 					JGUIUtil.getLastFileDialogDirectory() );
 	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
-	if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-		// Ray Bennett favorite...
-		fc.addChoosableFileFilter(
-		new SimpleFileFilter("cmx", "TSTool Commands File") );
-	}
 	SimpleFileFilter sff =
 		new SimpleFileFilter("TSTool", "TSTool Commands File");
 	fc.addChoosableFileFilter(sff);
@@ -11429,7 +12095,7 @@ private void openCommandsFile ()
 		IOUtil.setProgramWorkingDir(directory);
 		JGUIUtil.setLastFileDialogDirectory(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
-		__initial_working_dir = __props.getValue ( "WorkingDir" );
+		setInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
 		BufferedReader br = null;
 		try {	br = new BufferedReader( new FileReader(path) );
 		}
@@ -11609,6 +12275,8 @@ private void openHydroBase ( boolean startup )
 			__hbdmi = null;
 		}
 	}
+	// Set the HydroBaseDMI for the command processor...
+	commandProcessorSetHydroBaseDMI ( __hbdmi );
 	// Enable/disable HydroBase features as necessary...
 	checkHydroBaseFeatures();
 }
@@ -12019,12 +12687,11 @@ throws Exception
 	}
 	TSProcessor p = new TSProcessor ();
 	// Set up the time series supplier...
-	// TODO SAM 2007-02-18 Need to transition to command processor
-	if ( __final_ts_engine != null ) {
-		// Time series should be in memory so add the TSEngine as a
+	if ( __ts_processor != null ) {
+		// Time series should be in memory so add the TSCommandProcessor as a
 		// supplier.  This should result in quick supplying of in-memory
 		// time series...
-		p.addTSSupplier ( __final_ts_engine );
+		p.addTSSupplier ( __ts_processor );
 	}
 	// Always add a new TSEngine that will be able to read time series that
 	// are not currently in memory.  The main trick is to set the working
@@ -12034,6 +12701,8 @@ throws Exception
 	// REVISIT...
 	// If no working directory has been set, we could set from the file
 	// selection, but how to detect when to do this?
+	/* FIXME SAM 2007-08-20 - Need to renable
+	 * Why is this needed?  Won't the above read the time series if necessary?
 	TSEngine supplier_tsengine = new TSEngine ( __hbdmi, __rdmi,
 					__DIADvisor_dmi,
 					__DIADvisor_archive_dmi,
@@ -12041,6 +12710,7 @@ throws Exception
 					null, this );
 	p.addTSSupplier ( supplier_tsengine );
 	p.processProduct ( path, override_props );
+	*/
 }
 
 /**
@@ -13844,10 +14514,9 @@ throws IOException
 	}
 }
 
-//TODO SAM 2007-02-18 Need to transition TSEngine to command processor
 /**
 Run the commands in the command list.  These time series are saved in
-__final_ts_engine and are then available for export, analysis, or viewing.  This
+__ts_processor and are then available for export, analysis, or viewing.  This
 method should only be called if there are commands in the command list.
 @param run_all_commands If false, then only the selected commands are run.  If
 true, then all commands are run.
@@ -13856,25 +14525,23 @@ TSEngine.  If false, only the time series in memory remain at the end and can
 be viewed.  The former is suitable for batch files, both for the GUI.
 */
 private void runCommands ( boolean run_all_commands, boolean create_output )
-{	String rtn = "TSTool_JFrame.runCommands";
-	Message.printStatus ( 1, rtn, "Running commands." );
+{	String routine = "TSTool_JFrame.runCommands";
+	Message.printStatus ( 1, routine, "Running commands." );
 	JGUIUtil.setWaitCursor ( this, true );
 	// Clean up old TSEngine...
 	clearTSList ();	// Sets __final_ts_engine to null.
 	System.gc();
-	// Now get a new TSEngine...
+	// Get commands to run (all or selected)...
 	Vector commands = getCommands ( run_all_commands );
 	// Save the commands in case any output calls
 	// IOUtil.printCreatorHeader...
 	IOUtil.setProgramCommandList ( commands );
-	__final_ts_engine = new TSEngine ( __hbdmi, __rdmi, __DIADvisor_dmi,
-				__DIADvisor_archive_dmi, __nwsrfs_dmi,
-				__smsdmi, commands, this, create_output );
+	commandProcessorRunCommands ( commands, create_output );
 	JGUIUtil.setWaitCursor ( this, false );
 	int size = JGUIUtil.selectedSize ( __commands_JList );
 	// Fill the time series list with the descriptions of the in-memory
 	// time series...
-	size = __final_ts_engine.getTimeSeriesSize();
+	size = commandProcessorGetTimeSeriesResultsListSize();
 	TS ts = null;
 	String desc = null;
 	String alias = null;
@@ -13882,6 +14549,7 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 	boolean [] selected_boolean = new boolean[size];
 	for ( int i = 0; i < size; i++ ) {
 		selected_boolean[i] = false;
+		/* TODO SAM 2007-08-10 Decide whether binary TS should be used
 		if ( __final_ts_engine.isBinaryTSUsed() ) {
 			try {	binary_ts = __final_ts_engine.getBinaryTS();
 				desc = binary_ts.getDescription(i);
@@ -13901,18 +14569,23 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 				continue;
 			}
 		}
-		else {	try {	ts = __final_ts_engine.getTimeSeries(i);
+		else {	*/
+			try {	ts = commandProcessorGetTimeSeries(i);
 			}
 			catch ( Exception e ) {
-				addTimeSeries ( "" + (i + 1) +
-				" Error getting Time Series" );
+				addTimeSeriesToResults ( "" + (i + 1) +
+				" - Error getting time series from processor." );
+				Message.printWarning ( 3, routine, e );
 				continue;
 			}
 			if ( ts == null ) {
-				addTimeSeries("" +(i + 1)+" Null Time Series" );
+				addTimeSeriesToResults ( "" +(i + 1)+
+				" - Null time series from processor." );
 				continue;
 			}
-			else {	desc = ts.getDescription();
+			else {
+				// Have actual data to display...
+				desc = ts.getDescription();
 				alias = ts.getAlias();
 				if ( !alias.equals("") ) {
 					alias = alias + " - ";
@@ -13920,7 +14593,7 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 				if ( (desc == null) || (desc.length() == 0) ) {
 					desc = ts.getIdentifier().getLocation();
 				}
-				addTimeSeries ( "" + (i + 1) + ") " + alias +
+				addTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
 				desc + " - " + ts.getIdentifier() +
 				" (" + ts.getDate1() + " to " +
 				ts.getDate2() + ")" );
@@ -13928,7 +14601,7 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 				// in the commands...
 				selected_boolean[i] = ts.isSelected();
 			}
-		}
+		//}
 	}
 	// If no time series are selected in the data, then visually select all.
 	// If any are selected, then visually select only the ones that are
@@ -13959,7 +14632,8 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 	// Now actually select the time series in the visual output...
 	__ts_JList.setSelectedIndices ( selected );
 	updateStatus ();
-	Message.printStatus ( 1, rtn, "Completed running commands.  Use "+
+	__commands_AnnotatedList.repaint();
+	Message.printStatus ( 1, routine, "Completed running commands.  Use "+
 		"Results and Tools menus." );
 }
 
@@ -13971,6 +14645,7 @@ a true batch run will be made.
 @exception Exception if there is an error processing the file, for example
 no data to graph.
 */
+/* FIXME SAM 2007-08-20 Need to enable.
 private void runNoMainGUI ( String commands_file )
 throws Exception
 {	String routine = "TSTool_JFrame.runNoMainGUI";
@@ -13986,6 +14661,7 @@ throws Exception
 	Message.printStatus ( 1, routine,
 	"Successfully processed commands file \"" + commands_file + "\"" );
 }
+*/
 
 /**
 Run TSTool in server mode.  Currently this is done without the GUI.
@@ -14095,7 +14771,7 @@ private void saveTimeSeries ()
 	// REVISIT - need to do this cleaner and perhaps let users pick some
 	// output options.  Do enforce the file extensions.
 	if ( ff == datevalue_sff ) {
-		export("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
+		exportTimeSeriesResults("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
 	}
 	/*
 	else if ( ff == nwscard_sff ) {
@@ -14104,28 +14780,28 @@ private void saveTimeSeries ()
 	}
 	*/
 	else if ( ff == esp_cs_sff ) {
-		export("-onwsrfsesptraceensemble",
+		exportTimeSeriesResults("-onwsrfsesptraceensemble",
 		IOUtil.enforceFileExtension(path,"CS") );
 	}
 	else if ( ff == riverware_sff ) {
 		// Don't know for sure what extension...
-		export("-oriverware", path );
+		exportTimeSeriesResults("-oriverware", path );
 	}
 	else if ( ff == shef_sff ) {
 		// Don't know for sure what extension...
-		export("-oshefa", path );
+		exportTimeSeriesResults("-oshefa", path );
 	}
 	else if ( ff == statemod_sff ) {
 		// Don't know for sure what extension...
-		export("-ostatemod", path );
+		exportTimeSeriesResults("-ostatemod", path );
 	}
 	else if ( ff == summary_sff ) {
-		export("-osummary", IOUtil.enforceFileExtension(path,"txt") );
+		exportTimeSeriesResults("-osummary", IOUtil.enforceFileExtension(path,"txt") );
 	}
 	else {
 		for (int i = 0; i < nwscardFilters.length; i++) {
 			if (ff == nwscardFilters[i]) {
-				export("-onwscard", path);
+				exportTimeSeriesResults("-onwscard", path);
 				break;
 			}
 		}
@@ -15091,6 +15767,16 @@ private void setCommandsDirty ( boolean dirty )
 }
 
 /**
+Set the initial working directory, which will be the software startup home or
+the location where the commands file has been read/saved.
+@param initial_working_dir The initial working directory (should be non-null).
+*/
+private void setInitialWorkingDir ( String initial_working_dir )
+{
+	__initial_working_dir = initial_working_dir;
+}
+
+/**
 Set the input filters based on the current settings.  This sets the appropriate
 input filter visible since all input filters are created at startup.
 */
@@ -15323,12 +16009,34 @@ public synchronized void setVisible(boolean state)
 	super.setVisible(state);
 }
 
-
-public void setWaitCursor( boolean wait )
+/**
+Display the status of the selected command(s).
+*/
+private void showCommandStatus()
 {
-   JGUIUtil.setWaitCursor( this, wait);
+	Vector commands = getCommands();
+	int size = commands.size();
+	Command command;
+	Vector output = new Vector();
+	for ( int i = 0; i < size; i++ ) {
+		command = (Command)commands.elementAt(i);
+		if ( command instanceof CommandStatusProvider ) {
+			output.addElement ( ((CommandStatusProvider)command).getCommandStatus().toString() );
+		}
+	}
+	PropList reportProp = new PropList ("ReportJFrame.props");
+	// Too big (make this big when we have more stuff)...
+	//reportProp.set ( "TotalWidth", "750" );
+	//reportProp.set ( "TotalHeight", "550" );
+	reportProp.set ( "TotalWidth", "600" );
+	reportProp.set ( "TotalHeight", "300" );
+	reportProp.set ( "DisplayFont", "Courier" );
+	reportProp.set ( "DisplaySize", "11" );
+	reportProp.set ( "PrintFont", "Courier" );
+	reportProp.set ( "PrintSize", "7" );
+	reportProp.set ( "Title", "Command Status" );
+	new ReportJFrame ( output, reportProp );
 }
-
 
 /**
 Show the Help About dialog.
@@ -15827,26 +16535,27 @@ public void transferSelectedTSFromListToCommands ()
 	Message.printStatus ( 1, routine, "Transferred selected time series." );
 }
 
-
 /**
 Update the command list with the result of a command edit.
 The text that is selected is replaced with the command that is passed in.
 This method should only be called from the editCommand() method.
-@param original_command The original command Vector before any editing (null if
+@param original_command_string The original command as a String before any editing (null if
 a new command).
 @param edited_command Vector containing command after editing (currently
 assumed to be in the first String since all commands are one line).
 @param action __UPDATE_COMMAND or __INSERT_COMMAND.
 */
-private void updateCommand (	Vector original_command,
-				Vector edited_command, int action )
-{	if (edited_command == null) {
+private void updateCommand (	String original_command_string,
+				Command edited_command, int action )
+{	String routine = "TSTool_JFrame.updateCommand";
+	if (edited_command == null) {
 		return;
 	}
 
 	int selectedIndices[] = __commands_JList.getSelectedIndices();
 	int selectedSize = selectedIndices.length;	
-	int size = edited_command.size();
+	//int size = edited_command.size();
+	int size = 1;
 	int index_to_view = -1;	// Index that should be visible after updates
 	if ( action == __UPDATE_COMMAND ) {
 		if (selectedSize > 0) {
@@ -15855,12 +16564,17 @@ private void updateCommand (	Vector original_command,
 			for (int i = (selectedSize - 1); i >= 0; i--) {
 				__commands_JListModel.removeElementAt(
 					selectedIndices[i]);
+				Message.printStatus(2, routine, "Update - removing command \"" +
+						edited_command + "\" at [" + i + "]" );
 			}
 			// Now add immediately after the first selected item...
 			for (int i = 0; i < size; i++) {
 				__commands_JListModel.insertElementAt (
-					(String)edited_command.elementAt(i),
+					edited_command,
+					//(String)edited_command.elementAt(i),
 					(selectedIndices[0] + i));
+				Message.printStatus(2, routine, "Update - inserting command \"" +
+						edited_command + "\" at [" + i + "]" );
 			}
 			index_to_view = selectedIndices[0] + size - 1;
 		}
@@ -15870,15 +16584,18 @@ private void updateCommand (	Vector original_command,
 		if (selectedSize > 0) {
 			for (int i = 0; i < size; i++) {
 				__commands_JListModel.insertElementAt (
-					(String)edited_command.elementAt(i),
+					edited_command,
+					//(String)edited_command.elementAt(i),
 					(selectedIndices[0] + i));
+				Message.printStatus(2, routine, "Insert - inserting command \"" +
+						edited_command + "\" at [" + i + "]" );
 			}
 			index_to_view = selectedIndices[0] + size - 1;
 		}
 		else {	// Insert at end of commands list.
 			for (int i = 0; i < size; i++) {
-				__commands_JListModel.addElement (
-				(String)edited_command.elementAt(i));
+				__commands_JListModel.addElement ( edited_command );
+				//(String)edited_command.elementAt(i));
 			}
 			index_to_view = __commands_JListModel.size() - 1;
 		}
@@ -15890,7 +16607,7 @@ private void updateCommand (	Vector original_command,
 	}
 	// Clean up...
 	selectedIndices = null;
-	if ( !commandsAreEqual ( original_command, edited_command ) ) {
+	if ( !commandsAreEqual ( original_command_string, edited_command.toString() ) ) {
 		setCommandsDirty(true);
 	}
 	checkGUIState ();
@@ -15900,7 +16617,7 @@ private void updateCommand (	Vector original_command,
 Update the dynamic properties in __props by processing specific commands.  For
 example, for a command that is about to be edited, determine the working
 directory from previous settings and commands.  If the user has set the
-working directory with a command, it will be recognized for the edit.
+working directory with a command, it will be recognized for the editor.
 */
 private void updateDynamicProps ()
 {	// Update the shared application properties to set the
@@ -15915,20 +16632,13 @@ private void updateDynamicProps ()
 	// make sure an initial condition is set...
 	working_dir_commands_Vector.insertElementAt (
 		getInitialSetWorkingDirCommand(), 0 );
-	TSEngine engine = new TSEngine ( __hbdmi, __rdmi, __DIADvisor_dmi,
-				__DIADvisor_archive_dmi, __nwsrfs_dmi,
-				__smsdmi );
-	// REVISIT SAM 2004-09-07 need to make like StateDMi where only a
-	// boolean is passed...
-	try {	engine.processCommands ( __hbdmi,
-		working_dir_commands_Vector, __props );
-	}
-	catch ( Exception e ) {
-		// Ignore for now.
-	}
-	needed_commands_Vector = null;
-	working_dir_commands_Vector = null;
-	engine = null;
+	// Create a local command processor
+	TSCommandProcessor ts_processor = new TSCommandProcessor();
+	// Run only the commands of interest...
+	commandProcessorRunCommands (
+			working_dir_commands_Vector,	// List of commands to process
+			false );	// Create output - irrelevant
+	commandProcessorRunSetWorkingDirCommand ( ts_processor, __props );
 }
 
 /**
@@ -16204,7 +16914,7 @@ private void writeCommandsFile ( String file, boolean prompt_for_file )
 		int size = __commands_JListModel.size();
 	
 		for (int i = 0; i < size; i++) {
-			out.println((String)__commands_JListModel.get(i));
+			out.println(((Command)__commands_JListModel.get(i)).toString());
 		}
 	
 		out.close();
@@ -16216,9 +16926,8 @@ private void writeCommandsFile ( String file, boolean prompt_for_file )
 			// contain a trailing separator...
 			IOUtil.setProgramWorkingDir(directory);
 			JGUIUtil.setLastFileDialogDirectory(directory);
-			__props.set ("WorkingDir=" +
-				IOUtil.getProgramWorkingDir());
-			__initial_working_dir = __props.getValue("WorkingDir");
+			__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
+			setInitialWorkingDir (__props.getValue("WorkingDir"));
 		}
 	}
 	catch ( Exception e ) {
@@ -16669,12 +17378,12 @@ throws Exception
 		// for the current value.  Add these items to the attribute
 		// table of the layer.
 
-		if ( __final_ts_engine == null ) {
+		if ( __ts_processor == null ) {
 			Message.printWarning ( 1, routine,
 			"No time series available for test." );
 			return;
 		}
-		Vector tslist = __final_ts_engine.getTimeSeriesList ( null );
+		Vector tslist = commandProcessorGetTimeSeriesResultsList();
 		int tslist_size = 0;
 		if ( tslist != null ) {
 			tslist_size = tslist.size();
