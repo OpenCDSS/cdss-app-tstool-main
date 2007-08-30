@@ -839,8 +839,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -851,14 +851,11 @@ import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -867,110 +864,14 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 
-import RTi.GR.GRLimits;
-import RTi.GR.GRPoint;
-import RTi.GR.GRShape;
-
-import RTi.GRTS.TSProcessor;
-import RTi.GRTS.TSPropertiesJFrame;
-import RTi.GRTS.TSViewJFrame;
-
-import RTi.GIS.GeoView.GeoLayer;
-import RTi.GIS.GeoView.GeoLayerView;
-import RTi.GIS.GeoView.GeoRecord;
-import RTi.GIS.GeoView.GeoViewJFrame;
-import RTi.GIS.GeoView.GeoViewListener;
-
-import RTi.DMI.DMIUtil;
-
-import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
-import RTi.DMI.DIADvisorDMI.DIADvisor_SensorDef;
-import RTi.DMI.DIADvisorDMI.DIADvisor_SysConfig;
-import RTi.DMI.DIADvisorDMI.SelectDIADvisorDialog;
-
-import RTi.DMI.NWSRFS_DMI.NWSCardTS;
-import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
-import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
-import RTi.DMI.NWSRFS_DMI.NWSRFS_ConvertJulianHour_JDialog;
-import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
-import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;	// New
-
-import RTi.DMI.RiversideDB_DMI.LoginJDialog;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
-
-import RTi.TS.BinaryTS;
-import RTi.TS.DateValueTS;
-import RTi.TS.DayTS;
-//import RTi.TS.fillMixedStation_Command;
-//import RTi.TS.fillMixedStation_JDialog;
-import RTi.TS.ModsimTS;
-import RTi.TS.MexicoCsmnTS;
-import RTi.TS.RiverWareTS;
-import RTi.TS.ShefATS;
-import RTi.TS.TS;
-import RTi.TS.TSIdent;
-import RTi.TS.TSUtil;
-import RTi.TS.UsgsNwisTS;
-
-import RTi.TSCommandProcessor.TSCommandFactory;
-import RTi.TSCommandProcessor.TSCommandProcessor;
-import RTi.TSCommandProcessor.TSCommandProcessorListModel;
-import RTi.TSCommandProcessor.TSCommandProcessorUtil;
-import RTi.TSCommandProcessor.TSEngine;
-
-import RTi.Util.GUI.FindInJListJDialog;
-import RTi.Util.GUI.JFileChooserFactory;
-import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.GUI.JScrollWorksheet;
-import RTi.Util.GUI.JWorksheet;
-import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.GUI.JWorksheet_Listener;
-import RTi.Util.GUI.HelpAboutJDialog;
-import RTi.Util.GUI.InputFilter;
-import RTi.Util.GUI.InputFilter_JPanel;
-import RTi.Util.GUI.ReportJFrame;
-import RTi.Util.GUI.ResponseJDialog;
-import RTi.Util.GUI.SimpleFileFilter;
-import RTi.Util.GUI.SimpleJButton;
-import RTi.Util.GUI.SimpleJComboBox;
-import RTi.Util.GUI.SimpleJMenuItem;
-import RTi.Util.GUI.TextResponseJDialog;
-// TODO SAM 2007-02-18 Need to evaluate on-line help system
-//import RTi.Util.Help.URLHelp;
-//import RTi.Util.Help.URLHelpGUI;
-import RTi.Util.IO.Command;
-import RTi.Util.IO.CommandProcessorRequestResultsBean;
-import RTi.Util.IO.CommandProcessorListener;
-import RTi.Util.IO.CommandStatusProvider;
-import RTi.Util.IO.DataType;
-import RTi.Util.IO.DataUnits;
-import RTi.Util.IO.EndianRandomAccessFile;
-import RTi.Util.IO.GenericCommand;
-import RTi.Util.IO.InvalidCommandParameterException;
-import RTi.Util.IO.InvalidCommandSyntaxException;
-import RTi.Util.IO.IOUtil;
-import RTi.Util.IO.LicenseManager;
-import RTi.Util.IO.PrintJGUI;
-import RTi.Util.IO.ProcessManager;
-import RTi.Util.IO.Prop;
-import RTi.Util.IO.PropList;
-import RTi.Util.IO.SHEFType;
-import RTi.Util.IO.UnknownCommandException;
-import RTi.Util.Message.Message;
-import RTi.Util.Message.DiagnosticsJFrame;
-import RTi.Util.Message.MessageLogListener;
-import RTi.Util.String.StringUtil;
-import RTi.Util.Table.DataTable;
-import RTi.Util.Table.TableField;
-import RTi.Util.Table.TableRecord;
-import RTi.Util.Time.DateTime;
-import RTi.Util.Time.DateTimeBuilderJDialog;
-import RTi.Util.Time.StopWatch;
-import RTi.Util.Time.TimeInterval;
+import rti.tscommandprocessor.core.TSCommandFactory;
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorListModel;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -985,22 +886,104 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JP
 import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
-
 import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
 import DWR.DMI.SatMonSysDMI.SatMonSys_Util;
-
 import DWR.StateCU.StateCU_CropPatternTS;
 import DWR.StateCU.StateCU_IrrigationPracticeTS;
 import DWR.StateCU.StateCU_TS;
-
 import DWR.StateMod.StateMod_BTS;
 import DWR.StateMod.StateMod_DataSet;
 import DWR.StateMod.StateMod_DiversionRight;
 import DWR.StateMod.StateMod_InstreamFlowRight;
 import DWR.StateMod.StateMod_ReservoirRight;
-import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_TS;
+import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
+import RTi.DMI.DMIUtil;
+import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
+import RTi.DMI.DIADvisorDMI.DIADvisor_SensorDef;
+import RTi.DMI.DIADvisorDMI.DIADvisor_SysConfig;
+import RTi.DMI.DIADvisorDMI.SelectDIADvisorDialog;
+import RTi.DMI.NWSRFS_DMI.NWSCardTS;
+import RTi.DMI.NWSRFS_DMI.NWSRFS_ConvertJulianHour_JDialog;
+import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
+import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
+import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
+import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;
+import RTi.DMI.RiversideDB_DMI.LoginJDialog;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
+import RTi.GIS.GeoView.GeoLayer;
+import RTi.GIS.GeoView.GeoLayerView;
+import RTi.GIS.GeoView.GeoRecord;
+import RTi.GIS.GeoView.GeoViewJFrame;
+import RTi.GIS.GeoView.GeoViewListener;
+import RTi.GR.GRLimits;
+import RTi.GR.GRPoint;
+import RTi.GR.GRShape;
+import RTi.GRTS.TSProcessor;
+import RTi.GRTS.TSPropertiesJFrame;
+import RTi.GRTS.TSViewJFrame;
+import RTi.TS.BinaryTS;
+import RTi.TS.DateValueTS;
+import RTi.TS.DayTS;
+import RTi.TS.MexicoCsmnTS;
+import RTi.TS.ModsimTS;
+import RTi.TS.RiverWareTS;
+import RTi.TS.ShefATS;
+import RTi.TS.TS;
+import RTi.TS.TSIdent;
+import RTi.TS.TSUtil;
+import RTi.TS.UsgsNwisTS;
+import RTi.Util.GUI.FindInJListJDialog;
+import RTi.Util.GUI.HelpAboutJDialog;
+import RTi.Util.GUI.InputFilter;
+import RTi.Util.GUI.InputFilter_JPanel;
+import RTi.Util.GUI.JFileChooserFactory;
+import RTi.Util.GUI.JGUIUtil;
+import RTi.Util.GUI.JScrollWorksheet;
+import RTi.Util.GUI.JWorksheet;
+import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
+import RTi.Util.GUI.JWorksheet_Listener;
+import RTi.Util.GUI.ReportJFrame;
+import RTi.Util.GUI.ResponseJDialog;
+import RTi.Util.GUI.SimpleFileFilter;
+import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.GUI.SimpleJMenuItem;
+import RTi.Util.GUI.TextResponseJDialog;
+import RTi.Util.IO.AnnotatedCommandJList;
+import RTi.Util.IO.Command;
+import RTi.Util.IO.CommandProcessorListener;
+import RTi.Util.IO.CommandProcessorRequestResultsBean;
+import RTi.Util.IO.CommandStatusProvider;
+import RTi.Util.IO.DataType;
+import RTi.Util.IO.DataUnits;
+import RTi.Util.IO.EndianRandomAccessFile;
+import RTi.Util.IO.GenericCommand;
+import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.InvalidCommandParameterException;
+import RTi.Util.IO.InvalidCommandSyntaxException;
+import RTi.Util.IO.LicenseManager;
+import RTi.Util.IO.PrintJGUI;
+import RTi.Util.IO.ProcessManager;
+import RTi.Util.IO.Prop;
+import RTi.Util.IO.PropList;
+import RTi.Util.IO.SHEFType;
+import RTi.Util.IO.UnknownCommandException;
+import RTi.Util.Message.DiagnosticsJFrame;
+import RTi.Util.Message.Message;
+import RTi.Util.Message.MessageLogListener;
+import RTi.Util.String.StringUtil;
+import RTi.Util.Table.DataTable;
+import RTi.Util.Table.TableField;
+import RTi.Util.Table.TableRecord;
+import RTi.Util.Time.DateTime;
+import RTi.Util.Time.DateTimeBuilderJDialog;
+import RTi.Util.Time.StopWatch;
+import RTi.Util.Time.TimeInterval;
 
 public class TSTool_JFrame extends JFrame
 implements ActionListener, GeoViewListener, ItemListener, JWorksheet_Listener,
@@ -1238,7 +1221,7 @@ private String 		__selected_input_type = null,
 /*
 Annotated list to hold commands and display the command status.
 */
-private AnnotatedList __commands_AnnotatedList;
+private AnnotatedCommandJList __commands_AnnotatedCommandJList;
 /**
 Commands JList, to support interaction such as selecting and popup menus.
 This is a reference to the JList managed by AnnotatedList.
@@ -9156,8 +9139,8 @@ private void initGUI ( boolean show_main )
 	__ts_processor.addCommandProcessorListener ( this );
 	__commands_JListModel = new TSCommandProcessorListModel(__ts_processor);
 	if ( __use_annotated_list ) {
-		__commands_AnnotatedList = new AnnotatedList ( __commands_JListModel );
-		__commands_JList = __commands_AnnotatedList.getJList();
+		__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
+		__commands_JList = __commands_AnnotatedCommandJList.getJList();
 	}
 	else {
 		__commands_JList = new JList ( __commands_JListModel );
@@ -9185,7 +9168,7 @@ private void initGUI ( boolean show_main )
 	__commands_JList.setFixedCellWidth(-1);
 	
 	if ( __use_annotated_list ) {
-		JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedList,
+		JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedCommandJList,
 		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 	}
 	else {
@@ -14632,7 +14615,7 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 	// Now actually select the time series in the visual output...
 	__ts_JList.setSelectedIndices ( selected );
 	updateStatus ();
-	__commands_AnnotatedList.repaint();
+	__commands_AnnotatedCommandJList.repaint();
 	Message.printStatus ( 1, routine, "Completed running commands.  Use "+
 		"Results and Tools menus." );
 }
