@@ -1,820 +1,4 @@
-//-----------------------------------------------------------------------------
-// TSTool_JFrame - TSTool main JFrame
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 09/23/97	Daniel Weiler, RTi	Created initial class.
-// 05/12/98	Catherine E.
-//		Nutting-Lane, RTi	Rework layout.
-// 05/16/98	CEN			Added export option set/get routines.
-// 30 Jul 1998	Steven A. Malers, RTi	Add running average and period of record
-//					graph.  Add summary with no statistics.
-//					Finish frost dates time series.
-//					Alphabetize all functions (except
-//					constructor) so it is easier to navigate
-//					this code!
-// 31 Aug 1998	SAM, RTi		Change fillconst to setconst since it
-//					does not actually fill.
-// 29 Sep 1998	SAM, RTi		Clean up the fill pattern GUI code and
-//					make sure that the GUI understands
-//					options in a commands file.
-// 13 Oct 1998	SAM, RTi		Fix some of the outstanding GUI known
-//					issues (add running average to GUI).
-// 20 Oct 1998	SAM, RTi		Start adding Exceedance Probability and
-//					Double Mass plot.
-// 03 Dec 1998	SAM, RTi		Add several features to react to Ross'
-//					input.  This is version 3.07.
-//					Get rid of old sort order code and just
-//					order initial list by station name.
-// 05 Jan 1999	CEN, RTi		Corrected problem in lookupStation when
-//					working with StateMod as the source.
-// 					Need to use station id AND station name.
-//					Using only id can lead to problems 
-//					since same id can be found in any number
-//					of files.
-// 07 Jan 1999	SAM, RTi		Update to 3.08.  Make so the
-//					-fillhistave option applies to frost
-//					dates the same as for other data.
-//					Enable the add() method for frost dates.
-// 27 Jan 1999	SAM, RTi		Update to 3.09.  React to user feedback.
-//					Change imports to only import the
-//					needed classes to try to speed load.
-//					Put the data source at the top since it
-//					controls enable/disables of choices.
-// 23 Feb 1999	SAM, CEN, RTi		Add enhancements for RGDSS, including
-//					exporting daily time series to StateMod
-//					format file.
-// 05 Apr 1999	SAM, RTi		Add HBDMI to queries.
-// 21 Apr 1999	SAM, RTi		Add TSUnits read.
-// 17 May 1999	CEN, RTi		Modified displayResults to continue if
-//					size of list to display is 0 only when
-//					not working with the intermediate list.
-// 17 May 1999	SAM, RTi		Recompile in 1.1.8 and make a few
-//					changes in response to Ray Bennett,
-//					including changing the default for
-//					missing data on StateMod file output to
-//					-999.  Add Cut/Copy/Paste on the final
-//					time series list.  Add -detailedheader
-//					option.  Change so that -datasource in a
-//					commands file is recognized.
-// 09 Jun 1999	SAM, RTi		Enable export and graph from the
-//					intermediate area and allow some edit
-//					menu features (cut/copy/paste are not
-//					yet allowed because have not figured out
-//					how to intercept the multilist event).
-//					Start enabling some advanced features
-//					from RTi internal development.  Add
-//					preview and non-preview menu options for
-//					summary export.
-// 22 Jul 1999	SAM, RTi		Add reservoir measurements (daily).
-//					Enable daily diversions.  Change some
-//					methods (e.g., appendResultsFinal) to be
-//					more readable (e.g.,
-//					appendResultsToFinalList).
-// 04 Aug 1999	SAM, RTi		Continue enhancements.  4.01 was
-//					released to a few users.
-// 06 Sep 1999	SAM, RTi		Use standard HBDatabaseInformationGUI
-//					to show database information.
-// 28 Oct 1999	SAM, RTi		Add feature to ignore <= zero for
-//					averages.
-// 09 Nov 1999	SAM, RTi		Add ability to remember last directory
-//					that was accessed so user does not have
-//					to navigate directories repeatedly.
-// 28 May 2000	SAM, RTi		Add Well Level data type.
-// 19 Jul 2000	SAM, RTi		Add ability to use BinaryTS file for
-//					StateMod processing.  Similar to CWRAT
-//					and StateView, and move select database
-//					to preferences.
-// 04 Oct 2000	SAM, RTi		Enable DateValue time series output.
-//					Fix GUI switches for StateMod, NWSCard,
-//					DateValue time series.  Fix so when
-//					getting the TS list for StateMod that
-//					only the file header is read - much
-//					faster!  Enable delete key to have the
-//					same effect as pressing ClearTS.
-// 11 Oct 2000	SAM, RTi		Add annual traces plot.
-// 26 Oct 2000	SAM, RTi		Add scatter plot.
-// 30 Oct 2000	SAM, RTi		Add duration curve.  Add bar graph.
-//					Add Run menu to run commands file
-//					without loading.  Add to TSManipulations
-//					to support intermediate and final list
-//					edits.
-// 28 Nov 2000	SAM, RTi		Start finalizing the new interpreter
-//					command editing via the GUI.  Add help
-//					to show DateValue, StateMod, and NWSCARD
-//					formats.  Change menu and button
-//					label/commands to static strings to make
-//					it easier to organize and maintain code.
-//					Add dialogs to manipulate expressions
-//					in the final list to support multi-step
-//					processing.  Change so comments are not
-//					selected with expression in final list.
-// 11 Dec 2000	SAM, RTi		Complete transition to new framework
-//					where time series are carried around in
-//					a Vector or BinaryTS and then are
-//					viewed/exported.  Comment out the
-//					intermediate time series list since the
-//					final window can now edit sufficiently.
-// 21 Dec 2000	SAM, RTi		OK, back to two lists on the main GUI!
-//					This time, the middle list is the
-//					expressions and the final one is the
-//					list if in-memory or BinaryTS files.
-//					That way you can select which time
-//					series are to be viewed or saved.
-//					Remove all the old intermediate list
-//					code, change the "final list" code to
-//					"expression list" and add a new final
-//					list for the in-memory time series.
-// 07 Jan 2001	SAM, RTi		Change GUI to GUIUtil and IO to IOUtil.
-//					MANY! other changes.
-// 15 Mar 2001	SAM, RTi		Clean up to be more backward compatible
-//					with old command files.  Add
-//					createTraces_Dialog,
-//					createFromList_Dialog,
-//					setBinaryTS*_Dialog.
-// 11 Apr 2001	SAM, RTi		Add readDateValue() and fully-enable
-//					DateValue format as per the
-//					documentation.  Fix bug where failing
-//					to open log file in GUI caused GUI to
-//					display as white.
-// 08 May 2001	SAM, RTi		Add multiply(), divide() commands.
-// 25 Jun 2001	SAM, RTi		Add initial map frame to phase in some
-//					design concepts.  Change from
-//					processWindowEvent() to WindowListener
-//					methods.
-// 14 Aug 2001	SAM, RTi		Fix bug where selecting a DateValue
-//					file does not correctly transfer the
-//					interval to the identifier in the
-//					commands.
-// 22 Aug 2001	SAM, RTi		Add blend(), copy(), cumulate(),
-//					ouputBreak, relativeDiff(),
-//					runProgram().
-//					Remove the "Select All for Output" and
-//					"Deselect All" buttons since the mouse
-//					can be used to select time series in the
-//					output list.  Move the "Get TS Data" to
-//					"Get Time Series Data" above the final
-//					list.
-// 05 Sep 2001	SAM, RTi		Add TS Commands...Graph Time Series
-//					menus.  Add writeSummary() to support
-//					batch creation of frost dates.  Change
-//					so bar graphs can be drawn with bars to
-//					the left or right of the date or
-//					centered on the date.
-// 2001-11-01	SAM, RTi		Update to version 05.03.00.  Use
-//					RTi.Util.GUI.HelpAboutDialog for help
-//					instead of AboutWindow.  Enable the
-//					period of record graph.  Enable all
-//					common View menus in the right-click in
-//					the final list.  Use
-//					URLHelp.initialize() rather than the
-//					command-line options.
-//					Change startsWith() calls to
-//					regionMatches() to allow users more
-//					flexibility (and less errors) in
-//					commands.  Change some String.indexOf()
-//					calls to StringUtil.indexOfIgnoreCase()
-//					to be more flexible.  Had to make a
-//					kludge to make sure the help system
-//					starts up correctly.
-// 2002-01-10	SAM, RTi		Enable NWSRFS, RiversideDB, and
-//					RiverWare input sources.  Rework so that
-//					the choices and query list results
-//					columns reset appropriately for each
-//					input source.  Get rid of intermediate
-//					HBStationLocationMeasurementType objects
-//					for station list - this is not needed
-//					anymore due to the intermediate list
-//					going away.  Start phasing out NWS
-//					data type abbreviations to avoid
-//					duplicate lookups (for now, to minimize
-//					negative effects on modelers, just add
-//					HydroBase types to main list in addition
-//					to NWS - layer may switch to HydroBase
-//					types).  Change so HydroBase
-//					comments added to the commands files
-//					only include the station/structure name
-//					given that the other information is
-//					redundant and the period will change as
-//					the database gets updated.
-//					Update to use new GRTS that allows
-//					Swing.  Add test menu to process
-//					TSProduct file.
-// 2002-01-30	SAM, RTi		Start using a "Storage" column
-//					associated with time series rather than
-//					using the scenario.  This allows much
-//					more flexibility and consistency when
-//					reading time series from input sources
-//					that allow multiple time series in a
-//					file/database.  Start adding preliminary
-//					support for USGSNWIS format.
-// 2002-02-08	SAM, RTi		Change "storage" to input type and name,
-//					consistent with TSIdent.  Phase in the
-//					new ~ convention throughout (but still
-//					support old conventions).  Change some
-//					menus and dialogs to have "HydroBase"
-//					to allow updates to support additional
-//					databases.  Remove help menus that
-//					provided help with time series
-//					identifiers and input types.  The
-//					documentation now contains detailed
-//					appendices containing this information.
-// 2002-02-25	SAM, RTi		Add fillMOVE2().
-// 2002-03-22	SAM, RTi		Make fillRegression() and the
-//					fillMOVE*() features similar.  For
-//					05-05-05, rework menus to get rid of
-//					Properties and further isolate HydroBase
-//					commands.  Get rid of internal code to
-//					do single or sub-menus for manipulation-
-//					sub-menus seem to work.  Rework code
-//					that has long lists of menus and
-//					commands to have more explicit names to
-//					match the GUI and replace "expression"
-//					with "command" throughout to match
-//					current nomenclature. Add _app_PropList
-//					to define application properties - phase
-//					in over time.  For now concentrate on
-//					the WorkingDir property, which can be
-//					set once and then passed to edit dialogs
-//					for read commands (to remove absolute
-//					paths).  Add support for commands:
-//					fillFromTS(),
-//					fillMOVE1() (disabled),
-//					readUsgsNwis(),
-//					setAutoExtendPeriod(),
-//					setBinaryTSPeriod(),
-//					setFromTS(),
-//					setQueryPeriod().
-// 2002-04-15	SAM, RTi		TSTool version 05.05.03.
-//					Add shiftTimeByInterval().
-//					Set the commands used by TSEngine as
-//					commands in IOUtil so output headers
-//					will include the information.
-//					Keep track of the commands file that is
-//					selected so that it can be reused when
-//					saving the commands.
-// 2002-04-17	SAM, RTi		TSTool version 05.05.04.  Add ARMA().
-//					Add setRegressionPeriod() to be backward
-//					compatible with old TSTool.
-// 2002-04-18	SAM, RTi		Fully enable disaggregate() in 05.05.05.
-// 2002-04-22	SAM, RTi		Update to 05.05.07 to include cosmetic
-//					cleanup on remaining dialogs so that
-//					final release can be made.
-// 2002-04-23	SAM, RTi		Update to 05.05.08 to include more
-//					cosmetic cleanup - show the alias in
-//					the time series list.  Figure out why
-//					free() does not seem to be working.
-// 2002-04-23	SAM, RTi		Update to 05.05.09 - more cosmetic
-//					cleanup to do official release.
-//					Add readDateValue().  Add
-//					processTSProduct().
-// 2002-04-26	SAM, RTi		Update to 05.05.10.  Fix a problem with
-//					readTimeSeries() and spaces in file
-//					names.
-// 2002-04-26	SAM, RTi		Update to 05.05.11.  Fix File...Process
-//					TS Product menu feature.  Remove this
-//					class as a TSSupplier since the TSEngine
-//					now performs this function.
-// 2002-04-29	SAM, RTi		Update to 05.05.12.  Expand ARMA
-//					features.  Add left and right legend
-//					position.
-// 2002-05-08	SAM, RTi		Use "nedit" when editing commands file
-//					on UNIX.  Update to 05.05.14 - minor
-//					cosmetic edits based on a review of the
-//					manual.  Fix bug where selecting a data
-//					type sometimes does not reset subsequent
-//					selections for HydroBase.
-// 2002-05-12	SAM, RTi		Update to 05.06.00.  Add readNwsCard()
-//					and writeNwsCard() commands.  Add
-//					comment to save dialog suggesting that
-//					commands file should end in .tstool.
-//					Open the log file with a name that
-//					includes the user login (from the
-//					system, not the login dialog).
-// 2002-05-27	SAM, RTi		Add adjustExtremes().
-// 2002-05-29	SAM, RTi		Add support for RiverWare data files.
-//					Add support for RiverTrak.
-//					Add -nomaingui command line argument to
-//					hide the main GUI.  This can be used
-//					when calling TSTool from other
-//					applications.  In this mode a commands
-//					file is automatically read and
-//					processed.
-// 2002-06-05	SAM, RTi		Add monthly summary report under
-//					Tools.
-// 2002-06-06	SAM, RTi		Add File...Save as RiverWare if the
-//					RiverWare input type is enabled.
-//					Make so HydroBase login host choice is
-//					set to the current value so user does
-//					not need to select.
-// 2002-06-13	SAM, RTi		Add MODSIM support.
-// 2002-06-26	SAM, RTi		Update to pass RiversideDB_DMI instance
-//					to TSEngine constructor.  Add File...
-//					Open RiversideDB... menu to select a
-//					RiverTrak config file.
-// 2002-07-12	SAM, RTi		Update to version 05.06.05.  Add
-//					File...Set Working Directory.
-// 2002-07-25	SAM, RTi		Update to version 05.06.06.  Fix a
-//					bug in the writeRiverWare() code.
-// 2002-08-23	SAM, RTi		Update to version 05.06.07.  For
-//					DateValue files, change so that the time
-//					series list shows an additional row for
-//					the alias if one is available for the
-//					time series.  Add the addConstant()
-//					command.
-// 2002-08-27	SAM, RTi		Change day_to_month_reservoir() to
-//					TS X = newEndOfMonthTSFromDayTS().  It
-//					is now consistent with the other
-//					commands.
-//					On main interface, change "TS Commands"
-//					to "Commands".  Change
-//					"Get Time Series Data" to
-//					"Run Commands".
-// 2002-10-11	SAM, RTi		Change ProcessManager to ProcessManager1
-//					to allow transition to Java 1.4.x.
-// 2002-10-17	SAM, RTi		Change back to ProcessManager since the
-//					updated version seems to be performing
-//					well.  Use a command array to run the
-//					command.
-// 2002-11-11	SAM, RTi		Add support for the Mexico CSMN data
-//					format.  Ideally in the future a
-//					"TimeSeriesSupplier" will be added for
-//					this input type so that classes can be
-//					dynamically loaded.  For now include
-//					support by default - this is the first
-//					case where a catalog file is used to get
-//					the list of time series - this may be
-//					used for other input types in the
-//					future.
-//					Change the Edit menu to replace
-//					"Time Series Command" with "Command".
-// 2003-01-03	SAM, RTi		Change the RiversideDB support to use
-//					the new DMI constructor and
-//					configuration file properties.
-// 2003-01-09	SAM, RTi		Update to version 05.07.00.  Enable
-//					licensing.  Change "HydroBaseCO" in the
-//					config file to "HydroBase" (support the
-//					old also).  Add Time Series Properties
-//					to the View menu.
-// 2003-03-12	SAM, RTi		Update to version 05.08.00.
-//					* Add "StateModX" as an input type for
-//					  StateMod output files.
-//					* Add setHydroBaseWDIDLength() command
-//					  to control how WDIDs are formed.
-//					  After consideration - change to use
-//					  File...Set HydroBase WDID Length.
-//					  Leave the command code in for now but
-//					  do not enable - it is unclear if it
-//					  will ever be needed.
-//					* Add more detail to the newTimeSeries()
-//					  command editor to make it easier to
-//					  use.
-//					* Add a convertDataUnits() command under
-//					  the Manipulation menu to convert the
-//					  units of a time series.
-//					* Enable the DIADvisor input type, only
-//					  for RTi licenses.
-//					* Change _dataSource_Choice to
-//					  __input_type_Choice to agree with the
-//					  current TSTool interface.
-// 2003-04-17	SAM, RTi		Update to version 05.08.01.
-//					* For DIADvisor, RAIN sensor types
-//					  always have DateValue2 enabled when
-//					  listing - cumulative rain.
-// 2003-04-23	SAM, RTi		Try to fix some potential problems
-//					because of large methods:
-//					* Split up actionPerformed().
-//					* Split up initGUI().
-// 2003-06-12	SAM, RTi		Update to version 06.00.00.
-//					* Use Swing.
-//					* Use new TS (DateTime instead of
-//					  TSDate, etc.).
-//					* Use new HydroBaseDMI.
-//					* Use new Swing GRTS.
-//					* Synchronize commands processing code
-//					  with StateDMI to simplify maintenance.
-//					* Use new menu structure that is more
-//					  like Microsoft applications.
-//					* Move map interface to View and use a
-//					  JCheckBoxMenuItem.
-// 2003-07-28	SAM, RTi		* Add ESPTraceEnsemble input type.
-// 2003-08-19	SAM, RTi		* Change __SOURCE_* to __INPUT_TYPE_*.
-//					* Handle alias in list with DateValue
-//					  input type.
-//					* Change File menus to be more
-//					  compartmentalized.  For example,
-//					  File...Open Commands File becomes
-//					  File...Open...Commands File.  This
-//					  makes the top-level File menu cleaner
-//					  and allows for hiding specific
-//					  functionality.
-// 2003-11-02	SAM, RTi		* Enable SHEF A format.
-// 2003-11-18	SAM, RTi		* Add TS X = average().
-//					* Change StateModX to StateModB.
-//					* Change _app_PropList to __props.
-//					* Enable readESPTraceEnsemble() command.
-//					* Use JFileChooserFactory throughout to
-//					  work around Java bug.
-//					* Add writeESPTraceEnsemble().
-//					* Start removing column definitions -
-//					  put in the table models.
-//					* When picking a StateMod binary file,
-//					  immediately request the file name so
-//					  that data types can be automatically
-//					  shown to the user.
-//					* Enable the HydroBase login.
-//					* Remove the Data Type Modifier choice
-//					  since subdatatypes are being phased
-//					  in.
-//					* Remove the data type definitions
-//					  strings as HydroBase data types are
-//					  determined from software calls now.
-// 2003-12-22	SAM, RTi		* Start phasing in the
-//					  InputFilter_JPanel for the Where/Is
-//					  part of the interface.
-// 2004-01-05	SAM, RTi		* Remove the __last_directory_selected
-//					  data member and use
-//					  JGUIUtil.setLastFileDialogDirectory()
-//					  and corresponding get method instead.
-//					  This ensures that the various GUI
-//					  tools have access to the same
-//					  directory.  If more resolution is
-//					  needed, the JGUIUtil method can be
-//					  updated to track more than one
-//					  directory.
-//					* Remove __where_JComboBox and
-//					  __where_is_JTextField now that the
-//					  filters are in place - phase in
-//					  filters for the remaining input types.
-//					* Enable the remaining input types,
-//					  other than NWSRFS.
-// 2004-01-08	SAM, RTi		* Change "Run Commands" to
-//					  "Run Selected Commands" and
-//					  "Run All Commands".
-// 2004-01-26	SAM, RTi		* Add StateCU as an input type in order
-//					  to read/write the frost dates and
-//					  other data.
-//					* Add File...Properties...Commands Run
-//					  to show the output period, etc.
-//					* Enable a HydroBase.WDIDLength property
-//					  in the config file and pass to the
-//					  HydroBase table model.
-//					* Add Tools...Options dialog and
-//					  initialize with basic information,
-//					  including setting the HydroBase WDID.
-// 2004-02-03	SAM, RTi		Version 06.08.00 Beta.
-//					* Add openHydroBase() command and
-//					  remove setDatabaseEngine(),
-//					  setDatabaseHost(), and
-//					  setDataSource().
-//					* Show the HydroBase connection in the
-//					  session and commands run properties.
-// 2004-02-05	SAM, RTi		Version 06.00.09 Beta.
-//					* Finalize support for reading StateCU
-//					  file formats.
-//					* Add writeStateCU() for StateCU frost
-//					  dates.
-//					* To be able to track selected file
-//					  types better, start having file filter
-//					  instances available throughout the
-//					  class.
-//					* Disable setUseDiversionComments() and
-//					  add fillUsingDiversionComments(), but
-//					  only shown when HydroBase is enabled.
-//					* Enable setConstantBefore() - it may
-//					  later be phased into setConstant() but
-//					  need to release the software now.
-// 2004-02-20	SAM, RTi		Version 06.01.00
-//					* Move HydroBase input filter setup to
-//					  HydroBase_GUI_Util.
-//					* Add input filter for HydroBase SFUT
-//					  structure time series to allow filter
-//					  for water class data types.
-//					* Comment out fillMOVE1() menu - it is
-//					  not planned to be enabled and is just
-//					  taking up menu space.
-//					* Add fillRepeat().
-//					* Add fillProrate().
-//					* Enable setMax().
-//					* Fix bug in comment dialog where cancel
-//					  still inserts comments.
-//					* Start removing code that looks up
-//					  time series for dialogs even when the
-//					  dialogs don't need the data - this
-//					  should increase performance some.
-//					* Remove calls to checkEditMenu()
-//					  and instead call checkGUIState(), in
-//					  order to centralized GUI handling.
-//					* Enable conversion of time series
-//					  identifiers to readTimeSeries()
-//					  commands.  Previously it was thought
-//					  that special menus would be needed
-//					  to convert to input types.  However,
-//					  now that the input types are in the
-//					  identifier, the input type can be
-//					  detected on the fly, simplifying the
-//					  conversion process.  For now, enable
-//					  readTimeSeries() generically as
-//					  before, to allow assigning an alias.
-//					* Make PopupMenu items data members and
-//					  enable/disable in checkGUIState().
-// 2004-02-27	SAM, RTi		* Fix bug where CASS filter was being
-//					  used for the NASS data type.
-// 2004-03-02	SAM, RTi		Updated to 06.02.00.
-// 2004-03-15	SAM, RTi		* Add test code to create annual total
-//					  time series and then a delimited file
-//					  with the mean values.
-//					* Add __ignore_ListSelectionEvent to
-//					  ignore valueChanged() calls in some
-//					  cases - this improves performance.
-//					* Change the disabled select() to the
-//					  enabled selectTimeSeries().
-//					* Only set the working directory at
-//					  startup if running the GUI - it is
-//					  set when parsing command line
-//					  arguments in batch mode.
-//					* Remove disabled outputBreak() - it is
-//					  not needed now that selectTimeSeries()
-//					  and deselectTimeSeries() are in place.
-//					* Order editCommand() code in the same
-//					  order as the GUI.
-//					* Enable the readStateModB() command so
-//					  that summary statistics for map
-//					  displays can be quickly produced.
-// 2004-03-28	SAM, RTi		Updated to 06.03.00.
-//					* Set the icon to RTi or CDSS based on
-//					  the license.
-// 2004-03-28	SAM, RTi		Updated to 06.04.00.
-//					* Fix so the StateCU frost dates files
-//					  can be listed.
-// 2004-04-13	SAM, RTi		Updated to 06.05.00.
-//					* Change ESPTraceEnsemble to
-//					  NWSRFS_ESPTraceEnsemble.
-// 2004-04-11	SAM, RTi		* Change NWSRFS package to NWSRFS_DMI.
-// 2004-05-19	SAM, RTi		* Enable WIS time series.
-//					* Change ESPTraceEnsemble input type
-//					  from "ESPTraceEnsemble" to
-//					  "NWSRFS_ESPTraceEnsemble".
-//					* Change readESPTraceEnsemble() command
-//					  to readNWSRFSESPTraceEnsemble().
-//					* Change writeESPTraceEnsemble() command
-//					  to writeNWSRFSESPTraceEnsemble().
-// 2004-05-27	SAM, RTi		* For the TSTool session properties,
-//					  list whether input types are
-//					  enabled/disabled.
-//					* Fix so that look and feel on Linux is
-//					  the default for the system.
-// 2004-06-01	SAM, RTi		* Group the StateMod binary output
-//					  parameters to simplify use - the data
-//					  type list is now similar to HydroBase
-//					  except that the groups are not by
-//					  location type.
-// 2004-07-20	SAM, RTi		* When opening a HydroBase connection,
-//					  default to the selection given by the
-//					  OdbcDsn configuration property, if
-//					  available.
-// 2004-07-27	SAM, RTi		* StateCU handling was not recognizing
-//					  the DDC file filter.
-//					* Don't include the Graph - Annual
-//					  Traces or Graph - Double Mass Curve.
-//					  There are no current plans to enable.
-// 2004-08-24	SAM, RTi		Update to version 06.09.00.
-//					* Add readHydroBase() command.
-// 2004-08-28	SAM, RTi		* Rework the input filter code in order
-//					  to reuse the HydroBase input filters
-//					  in readHydroBase().
-// 2004-09-01	SAM, RTi		Update to version 06.09.01.
-//					* Add support for NWSRFS FS5Files.
-//					* Add updateDynamicProps() to streamline
-//					  some processing.
-// 2004-11-24	SAM, RTi		* Add support for sequence number in
-//					  ESP Trace Ensemble time series
-//					  identifiers.
-//					* Add support for sequence number in
-//					  DateValue time series identifiers.
-//					* Remove sequence number from other
-//					  displays (only show for ESP and
-//					  DateValue).
-//					* Change labels from "FS5Files" to
-//					  "FS5 Files".
-// 2004-12-21	SAM, RTi		* The initial set working directory
-//					  command was not adding quotes to the
-//					  path - fix.
-// 2005-02-16	SAM, RTi		Update to version 06.10.00.
-//					* Enable the changeInterval() command
-//					  since a generic version is now
-//					  available.
-// 2005-04-05	SAM, RTi		* Add the fillMixedStationModel()
-//					  command and Tools...Analysis...
-//					  Mixed Station Analysis.
-//					* Implement MessageLogListener and
-//					  begin phasing in message tags.
-//					* Add getSelectedTimeSeriesList().
-//					* Add "Analyze Time Series" and
-//					  "Model Time Series" menus as
-//					  placeholders for advanced features.
-//					* Add compare() to help test the new
-//					  HydroBase stored procedures.
-//					* Add addCommands() and make
-//					  addCommand() public.  These methods
-//					  will likely be called by some
-//					  dialogs to transfer commands back to
-//					  the main interface.
-//					* Add analyzePattern().
-//					* Add "Graph - Point" graph type.
-//					* Change command_JDialog to
-//					  commandString_JDialog to support old
-//					  code while phasing in the new
-//					  Command_JDialog.
-//					* Add "Graph - Predicted Value" and
-//					  "Graph - Predicted Value Residual"
-//					  graph types.
-//					* Use a courier font for commands to
-//					  make spacing more consistent.
-//					* Add the sortTimeSeries() command in
-//					  the write section to facilitate
-//					  comparison of output files.
-//					* Add readNwsCard() to read 1+ time
-//					  series.
-//					* Enable compareTimeSeries().
-// 2005-05-13	SAM, RTi		* Add startLog() command and reorder
-//					  the general commands to be more
-//					  consistent with GUI standards.
-// 2005-05-17	SAM, RTi		* Convert fillHistMonthAverage() to use
-//					  command class.
-//					* Add support for reading NwsCard single
-//					  or trace time series files.
-// 2005-05-18	SAM, RTi		* Convert fillHistYearAverage() to use
-//					  command class.
-// 2005-05-19	SAM, RTi		* Transfer command-based classes to the
-//					  TS package to allow for general use.
-//					* Convert changeInterval() to use a
-//					  command class.
-// 2005-05-31	SAM, RTi		* Convert writeRiverWare() to new
-//					  command class.
-// 2005-06-08	SAM, RTi		* Convert openHydroBase() to a command
-//					  class and move to the HydroBaseDMI
-//					  package.
-// 2005-06-21	JTS, RTi	 	Converted
-//					__input_filter_generic_JPanel to 
-//					an InputFilter_JPanel instead of just
-//					a JPanel, in order to avoid class cast
-//					exceptions.
-// 2005-07-25	SAM, RTi		* Put "(under development)" in some
-//					  menu item strings, until final testing
-//					  has been done.
-// 2005-07-11	SAM, RTi		* Add a placeholder for the lagK()
-//					  command under models.
-// 2005-07-18	J. Thomas Sapienza, RTi	* Input filters are now also set when
-//					  the time step combo box is changed.
-//					* WellLevel / Irregular time series 
-//					  now use the station input filters 
-//					  rather than groundwater well filters.
-// 2005-08-23	JTS, RTi		Users are now presented with a login
-//					dialog when choosing to connect to 
-//					RiversideDB.
-// 2005-08-24	SAM, RTi		Update to 06.10.07.
-//					* Include the above item and add those
-//					  below.
-//					* Convert scale() code to class.
-//					* Add Tools menu for the TSProduct
-//					  manager for RiversideDB.
-//					* Change menus from "TS X..." to
-//					  "TS Alias = ...".
-//					* Convert copy() code to class.
-//					* Change so double-click on command
-//					  edits the command.
-// 2005-08-30	SAM, RTi		* Convert writeStateMod() code to class.
-//					* If commands are changed to/from
-//					  comments, mark the commands as dirty.
-//					* Convert readStateMod() code to class.
-// 2005-09-07	SAM, RTi		Update to 06.10.08.
-//					* Convert fillConstant() to a command
-//					  class.
-//					* Add TS Alias =
-//					  createYearlyStatisticTS() command.
-// 2005-09-20	SAM, RTi		* Convert TS Alias = newTimeSeries() to
-//					  a command class.
-// 2005-09-28	SAM, RTi		Update to 6.10.09.
-//					* Convert cumulate() to a command class.
-//					* Convert readStateModB() to a command
-//					  class.
-// 2005-09-10	SAM, RTi		Update to 6.11.00.
-//					* Change so that the HydroBaseDMI
-//					  connection will open using information
-//					  in the CDSS.cfg file, for batch mode
-//					  runs.
-//					* Add connection information for the
-//					  ColoradoSMS database.  This is only
-//					  used for annotations on HydroBase
-//					  time series and full queries of the
-//					  SMS time series are not enabled.
-//					* Do not initialize input filters when
-//					  the GUI is NOT being shown.  This
-//					  increases performance.
-//					* Convert processTSProduct() to a
-//					  command class.
-// 2005-11-07	JTS, RTi		Added properties so that users can copy
-//					data out of the upper-right JWorksheet
-//					in the app.
-// 2005-11-13	SAM, RTi		* Handle normal/extended Jar files for
-//					  binary ESP files.
-// 2005-11-15	JTS, RTi		* WellLevel Day was broken out of the
-//					  regular HydroBase table model and 
-//					  given its own.
-// ...					Update to version 06.14.00.
-// 2005-12-07	JTS, RTi		* The command list now calls 
-//					  setPrototypeCellValue() so that line
-//					  heights will accomodate blank lines
-//					  nicely.
-// 2005-12-14	SAM, RTi		* Change setQueryPeriod() to
-//					  setInputPeriod() and use command
-//					  class.  Allow backward compatibility.
-//					* Rearrange some menus so that "helper"
-//					  commands are before other commands
-//					  that use settings.
-//					* Add 2006 to Help About copyright.
-// 2006-01-15	SAM, RTi		* Update so that for StateMod binary
-//					  file format 11.x+, the data types are
-//					  read from the parameter information in
-//					  the file.
-//					* Fix bug for StateModB and StateCU, the
-//					  user could not cancel a browse for a
-//					  file.
-// 2006-01-16	SAM, RTi		Update to version 06.15.00.
-//					* Add dynamic link to map interface,
-//					  in particular Tools...Select on Map.
-//					* Reorder the general menus to match
-//					  StateDMI, which is an improvement.
-// 2006-01-17	JTS, RTi		* Added code to print an exception if
-//					  Time Steps cannot be retrieved for
-//					  RiversideDB.
-//					* LoginJDialog was moved from the 
-//					  RiverTrakAssistant package to the
-//					  RiversideDB_DMI package.
-// 2006-01-18	JTS, RTi		* NWSCardTS is now in
-//					  RTi.DMI.NWSRFS_DMI.
-// 2006-01-31	SAM, RTi		Update to version 06.16.00.
-//					* Add TS Alias = readNDFD() command.
-//					* Add openNDFD() command.
-// 2006-02-01	JTS, RTi		* NWSCardTS extensions for reading and 
-//					  writing are now retrieved from a 
-//					  dynamic method in the NWSCardTS class.
-// 2006-02-16	SAM, RTi		* Wrapped menu and query results list
-//					  initialization so that it is only done
-//					  when the main GUI is shown,
-//					  in order to increase performance.
-// 2006-03-02	SAM, RTi		* Finalize basic map interaction.
-//					* Change View...Map Interface to
-//					  View...Map.
-// 2006-04-03	SAM, RTi		* Add data test commands to the
-//					  Analyze Time Series commands.
-// 2006-04-16	SAM, RTi		* Convert fillMOVE2 to commands class.
-// 2006-04-17	JTS, RTi		* Corrected command JList cell sizing 
-//					  problem that was causing the JList to 
-//					  never scroll horizontally, but 
-//					  instead to trim long lines.
-// 2006-04-19	SAM, RTi		Update to version 6.17.00.
-//					* Add compareFiles() command.
-//					* Change readHydroBase() to use a
-//					  command class.
-// 2006-05-02	SAM, RTi		Update to version 6.18.00.
-//					* Add runCommands() command, to automate
-//					  regression testing.
-// 2006-06-15	SAM, RTi		Update to version 6.20.00.
-//					* Add test code to process real-time
-//					  streamflow data into shapefile with
-//					  percent of average statistics.
-// 2006-10-31	SAM, RTi		Update to version 7.00.00.
-//					* Add input filters for HydroBase CASS
-//					  livestock and CUPopulation.
-// 2006-11-07   KAT, RTi        Commented out a line in
-//                    TSTool_JFrame that was changing the
-//                    working directory when it shouldn't
-//                    have been.
-// 2007-01-11   KAT, RTi        Set the preferred size for the 
-//                    Time Series Results Panel .  The problem
-//                    was that when the Input Panel shrunk to fit
-//                    its corresponding data, so did the results
-//                    panel.  The change is to set the minimum size
-//                    for that panel so that it can increase but will
-//                    not descrease past a certain threshold.  The new
-//                    dimensions are the same as the default
-//                    dimensions for the Input panel when HydroBase is
-//                    chosen.
-// 2007-01-23	SAM, RTi	Try some changes to get initial paint to draw
-//				completely - still not quite there but better?
-// 2007-01-26   KAT, RTi    Refactored the fillUsingDiversionComments
-//                      command so that the new generic code handles it.
-// 2007-02-11	SAM, RTi	Confirm compatibility with new TSCommandProcessor.
-//					Clean up code based on Eclipse feedback.
-//					Automatically add *.TSTool to the commands file name.
-//-----------------------------------------------------------------------------
-//EndHeader
-
-// REVISIT SAM 2004-08-29 Need to use HydroBase_Util preferredWDIDLength instead
+// TODO SAM 2004-08-29 Need to use HydroBase_Util preferredWDIDLength instead
 // of carrying around a property - isolate all HydroBase properties to that
 // package
 
@@ -864,6 +48,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -985,10 +171,30 @@ import RTi.Util.Time.DateTimeBuilderJDialog;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 
+/**
+JFrame to provide the application interface for TSTool.  This class provides the
+following main functionality:
+<ol>
+<li>	Provide a left-to-right, top-to-bottom control of user interaction.</li>
+<li>	Provide capability to interactively insert/delete/move/edit commands.</li>
+<li>	Provide feedback on command initialization/discovery/run status.</li>
+<li>	Execute a TSCommandProcessor to generate time series output and provide access to results.</li>
+<li>	Interact with TSCommandProcessor via a list model (derived from AbstractListModel).</li>
+</ol>
+*/
 public class TSTool_JFrame extends JFrame
-implements ActionListener, GeoViewListener, ItemListener, JWorksheet_Listener,
-KeyListener, ListSelectionListener, MessageLogListener, MouseListener,
-WindowListener, CommandProcessorListener
+implements
+ActionListener,			// To handle menu selections in GUI
+GeoViewListener,
+ItemListener,			// To handle choice selections in GUI
+JWorksheet_Listener,	// To handle query result interaction
+KeyListener,			// To handle keyboard input in GUI
+ListDataListener,		// To change the GUI state when commands list change
+ListSelectionListener,
+MessageLogListener,		// To handle interaction between log view and command list
+MouseListener,
+WindowListener,			// To handle window/app shutdown
+CommandProcessorListener// To handle command processor progress updates
 {
 
 //  Data Members
@@ -1392,7 +598,6 @@ private JPopupMenu
 
 private JMenuItem
 	__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
-	__CommandsPopup_Edit_CommandNoErrorChecking_JMenuItem,
 
 	__CommandsPopup_Cut_JMenuItem,
 	__CommandsPopup_Copy_JMenuItem,
@@ -1462,7 +667,6 @@ private JMenuItem
 	__Edit_DeselectAllCommands_JMenuItem = null,
 	// --
 	__Edit_CommandsFile_JMenuItem = null,
-	__Edit_CommandNoErrorChecking_JMenuItem = null,
 	__Edit_CommandWithErrorChecking_JMenuItem = null,
 	// --
 	__Edit_ConvertSelectedCommandsToComments_JMenuItem = null,
@@ -1821,10 +1025,8 @@ private String
 		__Edit_SelectAllCommands_String ="Select All Commands",
 		__Edit_DeselectAllCommands_String = "Deselect All Commands",
 		__Edit_CommandsFile_String = "Commands File...",
-		__Edit_CommandNoErrorChecking_String =
-		"Command (no error checking)...",
 		__Edit_CommandWithErrorChecking_String =
-		"Command (with error checking)...",
+		"Command...",
 		__Edit_ConvertSelectedCommandsToComments_String = 
 		"Convert selected commands to # comments",
 		__Edit_ConvertSelectedCommandsFromComments_String =
@@ -2348,7 +1550,7 @@ public TSTool_JFrame ( boolean show_main )
     
 	__props = new PropList("TSTool_JFrame");
 	__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());	
-	setInitialWorkingDir (__props.getValue ( "WorkingDir" ));
+	ui_SetInitialWorkingDir (__props.getValue ( "WorkingDir" ));
  
 	addWindowListener ( this );
 
@@ -2585,8 +1787,8 @@ public TSTool_JFrame ( boolean show_main )
 	// Read the license information and disable/enable input types based on
 	// the license...
 
-	readLicense ();
-	checkInputTypesForLicense ();
+	ui_ReadLicense ();
+	ui_CheckInputTypesForLicense ();
 	// If the license type is CDSS, the icon will be set to the CDSS icon.
 	// Otherwise, the icon will be set to the RTi icon...
 	tstool.setIcon ( __license_manager.getLicenseType() );
@@ -2601,7 +1803,7 @@ public TSTool_JFrame ( boolean show_main )
 	// Check the license.  Do this after GUI is initialized so that a dialog
 	// can be shown...
 
-	checkLicense ();
+	ui_CheckLicense ();
 
         // Get database connection information.  Force a login if the
 	// database connection cannot be made.  The login is interactive and
@@ -2612,7 +1814,7 @@ public TSTool_JFrame ( boolean show_main )
 	if ( __source_ColoradoSMS_enabled ) {
 		// Login to Colorado SMS database using information in the
 		// CDSS.cfg file (pending Doug Stenzel input)...
-		openColoradoSMS ( true );
+		uiAction_OpenColoradoSMS ( true );
 	}
 	sms.stop();
 	Message.printDebug(1, "", "JTS - OpenColoradoSMS: " + sms.getSeconds());
@@ -2622,7 +1824,7 @@ public TSTool_JFrame ( boolean show_main )
 	if ( __source_HydroBase_enabled ) {
 		// Login to HydroBase using information in the TSTool
 		// configuration file...
-		openHydroBase ( true );
+		uiAction_OpenHydroBase ( true );
 		// Force the choices to refresh...
 		if ( __show_main && (__hbdmi != null) ) {
 			__input_type_JComboBox.select ( null );
@@ -2632,7 +1834,7 @@ public TSTool_JFrame ( boolean show_main )
 	if ( __source_NWSRFS_FS5Files_enabled ) {
 		// Open NWSRFS FS5Files using information in the TSTool
 		// configuration file...
-		openNWSRFSFS5Files ( null, true );
+		uiAction_OpenNWSRFSFS5Files ( null, true );
 		// Force the choices to refresh...
 		if ( __nwsrfs_dmi != null ) {
 			/* REVISIT SAM 2004-09-10 DO NOT DO THIS BECAUSE IT
@@ -2646,7 +1848,7 @@ public TSTool_JFrame ( boolean show_main )
 	if ( __source_RiversideDB_enabled ) {
 		// Login to the RiversideDB using information in the TSTool
 		// configuration file...
-		openRiversideDB ( null, true );
+		uiAction_OpenRiversideDB ( null, true );
 	}
 
 	// Connect the Message class to output to the status bar in the main
@@ -2691,7 +1893,7 @@ public TSTool_JFrame ( boolean show_main )
 	// Use the window listener
 
 	if ( show_main ) {
-		checkGUIState ();
+		ui_UpdateStatus ( true );
 	}
 
 	// If running with a commands file from the command line, we don't
@@ -2734,46 +1936,8 @@ public TSTool_JFrame ( boolean show_main )
 			// In a batch run without -nomaingui, the show_main
 			// option is left as true.  In this case, we need to
 			// close down the interface manually...
-			closeClicked();
+			uiAction_FileExitClicked();
 		}
-	}
-}
-
-/**
-Carry out the edit command action, triggered from a popup menu edit of a command
-or pressing enter on the command list.
-@param check_errors Indicates whether a dialog should be used that checks
-errors.  If false, a general editor dialog is used.
-*/
-private void actionEditCommand ( boolean check_errors )
-{	int selected_size = 0;
-	int [] selected = __commands_JList.getSelectedIndices();
-	if ( selected != null ) {
-		selected_size = selected.length;
-	}
-	if ( selected_size > 0 ) {
-		//String command = (
-			//(String)__commands_JListModel.get(selected[0])).trim();
-		Command command = (Command)__commands_JListModel.get(selected[0]);
-		Vector v = null;
-		//if ( command.startsWith("#") ) {
-		if ( command.toString().startsWith("#") ) {
-			// Allow multiple lines to be edited in a comment...
-			v = new Vector ( selected_size );
-			for ( int i = 0; i < selected_size; i++ ) {
-				v.addElement (
-					//(String)__commands_JListModel.get(selected[i]));
-					__commands_JListModel.get(selected[i]));
-			}
-		}
-		else {	// Commands are one line...
-			v = new Vector ( 1 );
-			v.addElement ( command );
-		}
-		editCommand ( "", v, __UPDATE_COMMAND, check_errors );
-		v = null;
-		selected = null;
-		command = null;
 	}
 }
 
@@ -2782,1592 +1946,21 @@ Handle action events (menu and button actions).
 @param event Event to handle.
 */
 public void actionPerformed (ActionEvent event)
-{	String rtn = "TSTool_JFrame.actionPerformed";
-
-	try {	// This will chain, calling several methods, so that each method
+{	try {	// This will chain, calling several methods, so that each method
 		// does not get so large...
 
-		actionPerformed1(event);
+		uiAction_ActionPerformed1_MainActions(event);
 
 		// Check the GUI state and disable buttons, etc., depending on
 		// the selections that are made...
 
-		checkGUIState ();
+		ui_UpdateStatus ( true );
 	}
 	catch ( Exception e ) {
-		//if ( Message.isDebugOn ) {
-			Message.printWarning ( 2, rtn, e );
-		//}
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-}
-
-/**
-Handle a group of actions.
-@param event Event to handle.
-*/
-private void actionPerformed1 (ActionEvent event)
-throws Exception
-{	String command = event.getActionCommand();
-	Object o = event.getSource();
-	String rtn = "TSTool_JFrame.actionPerformed1";
-
-	// Next list menus or commands...
-	if (command.equals(BUTTON_TOP_GET_TIME_SERIES) ) {
-		getTimeSeriesListClicked();
-	}
-	else if ( o == __CopySelectedToCommands_JButton ) {
-		// Transfer from the time series list to the commands...
-		transferSelectedTSFromListToCommands();
-	}
-	else if ( o == __CopyAllToCommands_JButton ) {
-		// Transfer from the time series list to the commands...
-		transferAllTSFromListToCommands();
-	}
-	else if (command.equals(__Button_RunSelectedCommands_String) ) {
-		// Can be a button or a menu?
-		runCommands ( false, true );
-	}
-	else if (command.equals(__Button_RunAllCommands_String) ) {
-		// Can be a button or a menu?
-		runCommands ( true, true );
-	}
-	else if (command.equals(__Button_ClearCommands_String) ) {
-		clearCommands();
-		checkGUIState();
-	}
-	else if (command.equals(BUTTON_TS_SELECT_ALL) ) {
-		JGUIUtil.selectAll ( __ts_JList );
-	}
-	else if (command.equals(BUTTON_TS_DESELECT_ALL) ) {
-		__ts_JList.clearSelection();
-	}
-
-	// Menu actions - listed left to to right and top to bottom.
-
-	// File Menu actions...
-
-	else if ( o == __File_Open_CommandsFile_JMenuItem ) {
-		try {	openCommandsFile();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-				"Error reading commands file" );
-			Message.printWarning( 3, "", e);
-		}
-	}
-	else if ( command.equals ( __File_Open_DIADvisor_String )) {
-		// Open a connections to the DIADvisor operational and archive
-		// databases - currently assumed to be MS Access. 
-		openDIADvisor ();
-		// Force the choices to refresh...
-		if (	(__DIADvisor_dmi != null) &&
-			(__DIADvisor_archive_dmi != null) ) {
-			__input_type_JComboBox.select ( null );
-			__input_type_JComboBox.select ( __INPUT_TYPE_DIADvisor);
-		}
-	}
-	else if ( command.equals ( __File_Open_HydroBase_String )) {
-		openHydroBase ( false );
-		// Force the choices to refresh...
-		if ( __hbdmi != null ) {
-			__input_type_JComboBox.select ( null );
-			__input_type_JComboBox.select (__INPUT_TYPE_HydroBase);
-		}
-	}
-	else if ( command.equals ( __File_Open_RiversideDB_String )) {
-		// Read a RiverTrak config file, get the RiversideDB properties,
-		// and open the database...
-		JFileChooser fc = JFileChooserFactory.createJFileChooser(
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle(
-		"Select a RiverTrak or TSTool Configuration File" );
-		SimpleFileFilter sff =
-			new SimpleFileFilter ( "cfg",
-			"RiverTrak/TSTool Configuration File" );
-		fc.addChoosableFileFilter ( sff );
-		fc.setFileFilter ( sff );
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
-			return;
-		}
-		// Don't save the directory because it is probably a one-off
-		// selection and won't be picked again.
-		String path = fc.getSelectedFile().getPath();
-		// Read into a PropList...
-		PropList rprops = new PropList("");
-		rprops.setPersistentName ( path );
-		rprops.readPersistent ();
-		openRiversideDB ( rprops, false );
-		// Force the choices to refresh...
-		__input_type_JComboBox.select ( null );
-		__input_type_JComboBox.select ( __INPUT_TYPE_RiversideDB );
-	}
-	else if ( o == __File_Save_Commands_JMenuItem ) {
-		try {	if ( __commands_file_name != null ) {
-				// Use the existing name...
-				writeCommandsFile ( __commands_file_name,false);
-			}
-			else {	// Prompt for the name...
-				writeCommandsFile ( __commands_file_name, true);
-			}
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-			"Error writing commands file." );
-		}
-	}
-	else if ( o == __File_Save_CommandsAs_JMenuItem ) {
-		try {	// Prompt for the name...
-			writeCommandsFile ( __commands_file_name, true);
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-			"Error writing commands file." );
-		}
-	}
-        else if ( command.equals(__File_Save_TimeSeriesAs_String) ) {
-		// Can save in a number of formats.  Allow the user to pick
-		// using a file chooser...
-		saveTimeSeries ();
-	}
-	else if (command.equals(__File_Print_Commands_ActionString) ) {
-		// Get all commands as strings for printing
-		try {	PrintJGUI.print ( this, getCommandStrings(true), null, 10 );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-			"Error printing commands." );
-		}
-	}
-	else if ( command.equals(__File_Properties_CommandsRun_String) ) {
-		// Simple text display of last commands run data from TSEngine.
-		PropList reportProp = new PropList ("ReportJFrame.props");
-		// Too big (make this big when we have more stuff)...
-		//reportProp.set ( "TotalWidth", "750" );
-		//reportProp.set ( "TotalHeight", "550" );
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "TSTool Commands Run Properties" );
-		Vector v = new Vector ( 4 );
-		v.addElement ( "Properties from the last commands run." );
-		v.addElement (
-		"Note that property values are as of the end of the run." );
-		v.addElement (
-		"Properties are set as defaults and change value when" +
-		" a command is processed." );
-		v.addElement ( "" );
-		if ( __ts_processor == null ) {
-			v.addElement ( "The commands have not been run." );
-		}
-		else {
-			String s1 = "", s2 = "";
-			// Input period...
-			DateTime date1 = commandProcessorGetInputStart();
-			if ( date1 == null ) {
-				s1 = "NOT SPECIFIED (use all available data)";
-			}
-			else {	s1 = date1.toString();
-			}
-			DateTime date2 = commandProcessorGetInputEnd();
-			if ( date2 == null ) {
-				s2 = "NOT SPECIFIED (use all available data)";
-			}
-			else {	s2 = date2.toString();
-			}
-			v.addElement ( "Input (query/read) start: " + s1 );
-			v.addElement ( "Input (query/read) end:   " + s2 );
-			// Output period...
-			date1 = commandProcessorGetOutputStart();
-			if ( date1 == null ) {
-				s1 = "NOT SPECIFIED (output all available data)";
-			}
-			else {	s1 = date1.toString();
-			}
-			date2 = commandProcessorGetOutputEnd();
-			if ( date2 == null ) {
-				s2 = "NOT SPECIFIED (output all available data)";
-			}
-			else {	s2 = date2.toString();
-			}
-			v.addElement ( "Output period start: " + s1 );
-			v.addElement ( "Output period end:   " + s2 );
-			// Auto-extend period...
-			v.addElement ( "Automatically extend period to output "+
-				"period during read: " +
-				commandProcessorGetAutoExtendPeriod () );
-			// Include missing TS automatically...
-			v.addElement ( "Include missing TS automatically: " +
-				commandProcessorGetIncludeMissingTS() );
-			if ( __source_HydroBase_enabled ) {
-				v.addElement ( "" );
-				Object dmi_Vector = commandProcessorGetHydroBaseDMIList();
-				if ( (o == null) || (((Vector)o).size() == 0) ) {
-					v.addElement ( "No HydroBase connections are open for the command processor." );
-				}
-				else { Vector dmis = (Vector)dmi_Vector;
-					int size = dmis.size();
-					for ( int i = 0; i < size; i++ ) {
-						v.addElement ( "Command processor HydroBase connection information:" );
-						StringUtil.addListToStringList ( v,
-								StringUtil.toVector(
-								((HydroBaseDMI)dmis.elementAt(i)).
-								getVersionComments() ) );
-					}
-				}
-			}
-		}
-		v.addElement ( "" );
-		v.addElement ( "Current working directory: " +
-			IOUtil.getProgramWorkingDir() );
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-    else if ( command.equals(__File_Properties_TSToolSession_String) ) {
-		// Simple text display of session data, including last
-		// commands file that was read.  Put here where in the past
-		// information was shown in labels.  Now need the label space
-		// for other information.
-		PropList reportProp = new PropList ("ReportJFrame.props");
-		// Too big (make this big when we have more stuff)...
-		//reportProp.set ( "TotalWidth", "750" );
-		//reportProp.set ( "TotalHeight", "550" );
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "TSTool Session Properties" );
-		Vector v = new Vector ( 4 );
-		v.addElement ( "TSTool Session Properties" );
-		v.addElement ( "" );
-		if ( __commands_file_name == null ) {
-			v.addElement (
-			"No commands file has been read or saved." );
-		}
-		else {	v.addElement ( "Last commands file read/saved: \"" +
-			__commands_file_name + "\"" );
-		}
-		v.addElement ( "Current working directory = " +
-			IOUtil.getProgramWorkingDir() );
-		// List open database information...
-		if ( __source_ColoradoSMS_enabled ) {
-			v.addElement ( "" );
-			if ( __smsdmi == null ) {
-				v.addElement (
-				"GUI ColoradoSMS connection not defined.");
-			}
-			else {	v.addElement (
-				"GUI ColoradoSMS connection information:" );
-				StringUtil.addListToStringList ( v,
-				StringUtil.toVector(
-				__smsdmi.getVersionComments() ) );
-			}
-		}
-		if ( __source_HydroBase_enabled ) {
-			v.addElement ( "" );
-			if ( __hbdmi == null ) {
-				v.addElement (
-				"GUI HydroBase connection not defined.");
-			}
-			else {	v.addElement (
-				"GUI HydroBase connection information:" );
-				StringUtil.addListToStringList ( v,
-				StringUtil.toVector(
-				__hbdmi.getVersionComments() ) );
-			}
-		}
-		// List enabled data types...
-		v.addElement ( "Input types and whether enabled:" );
-		v.addElement ( "" );
-		if ( __source_HydroBase_enabled ) {
-			v.addElement ( "ColoradoSMS input type is enabled" );
-		}
-		else {	v.addElement ( "ColoradoSMS input type is not enabled");
-		}
-		if ( __source_DateValue_enabled ) {
-			v.addElement ( "DateValue input type is enabled" );
-		}
-		else {	v.addElement ( "DateValue input type is not enabled" );
-		}
-		if ( __source_DIADvisor_enabled ) {
-			v.addElement ( "DIADvisor input type is enabled" );
-		}
-		else {	v.addElement ( "DIADvisor input type is not enabled" );
-		}
-		if ( __source_HydroBase_enabled ) {
-			v.addElement ( "HydroBase input type is enabled" );
-		}
-		else {	v.addElement ( "HydroBase input type is not enabled" );
-		}
-		if ( __source_MexicoCSMN_enabled ) {
-			v.addElement ( "MexicoCSMN input type is enabled" );
-		}
-		else {	v.addElement ( "MexicoCSMN input type is not enabled" );
-		}
-		if ( __source_MODSIM_enabled ) {
-			v.addElement ( "MODSIM input type is enabled" );
-		}
-		else {	v.addElement ( "MODSIM input type is not enabled" );
-		}
-		if ( __source_NDFD_enabled  ) {
-			v.addElement ( "NDFD input type is enabled" );
-		}
-		else {	v.addElement ( "NDFD input type is not enabled" );
-		}
-		if ( __source_NWSCard_enabled  ) {
-			v.addElement ( "NWSCARD input type is enabled" );
-		}
-		else {	v.addElement ( "NWSCARD input type is not enabled" );
-		}
-		if ( __source_NWSRFS_FS5Files_enabled ) {
-			v.addElement ( "NWSRFS FS5Files input type is enabled");
-		}
-		else {	v.addElement (
-			"NWSRFS FS5Files input type is not enabled" );
-		}
-		if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-			v.addElement (
-			"NWSRFS_ESPTraceEnsemble input type is enabled" );
-		}
-		else {	v.addElement (
-			"NWSRFS_ESPTraceEnsemble input type is not enabled" );
-		}
-		if ( __source_RiversideDB_enabled ) {
-			v.addElement ( "RiversideDB input type is enabled" );
-		}
-		else {	v.addElement ( "RiversideDB input type is not enabled");
-		}
-		if ( __source_RiverWare_enabled ) {
-			v.addElement ( "RiverWare input type is enabled" );
-		}
-		else {	v.addElement ( "RiverWare input type is not enabled");
-		}
-		if ( __source_SHEF_enabled ) {
-			v.addElement ( "SHEF input type is enabled" );
-		}
-		else {	v.addElement ( "SHEF input type is not enabled");
-		}
-		if ( __source_StateCU_enabled ) {
-			v.addElement ( "StateCU input type is enabled" );
-		}
-		else {	v.addElement ( "StateCU input type is not enabled");
-		}
-		if ( __source_StateMod_enabled ) {
-			v.addElement ( "StateMod input type is enabled" );
-		}
-		else {	v.addElement ( "StateMod input type is not enabled");
-		}
-		if ( __source_StateModB_enabled ) {
-			v.addElement ( "StateModB input type is enabled" );
-		}
-		else {	v.addElement ( "StateModB input type is not enabled");
-		}
-		if ( __source_USGSNWIS_enabled ) {
-			v.addElement ( "USGSNWIS input type is enabled" );
-		}
-		else {	v.addElement ( "USGSNWIS input type is not enabled");
-		}
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-    else if ( command.equals(__File_Properties_ColoradoSMS_String) ) {
-		// Simple text display of HydroBase properties.
-		PropList reportProp = new PropList ("Colorado SMS Properties");
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "Colorado SMS Properties" );
-		Vector v = null;
-		if ( __hbdmi == null ) {
-			v.addElement ( "Colorado SMS Properties" );
-			v.addElement ( "" );
-			v.addElement("No Colorado SMS database is available." );
-		}
-		else {	v = __smsdmi.getDatabaseProperties();
-		}
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-    else if ( command.equals(__File_Properties_DIADvisor_String) ) {
-		PropList reportProp = new PropList ("DIADvisor.props");
-		// Too big (make this big when we have more stuff)...
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "DIADvisor Properties" );
-		Vector v = new Vector();
-		v.addElement ( "DIADvisor Operational Database:" );
-		v.addElement ( "" );
-		StringUtil.addListToStringList ( v,
-			 __DIADvisor_dmi.getDatabaseProperties ( 3 ) );
-		v.addElement ( "" );
-		v.addElement ( "DIADvisor Archive Database:" );
-		v.addElement ( "" );
-		StringUtil.addListToStringList ( v,
-			 __DIADvisor_archive_dmi.getDatabaseProperties ( 3 ) );
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-    else if ( command.equals(__File_Properties_HydroBase_String) ) {
-		// Simple text display of HydroBase properties.
-		PropList reportProp = new PropList ("HydroBase Properties");
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "HydroBase Properties" );
-		Vector v = null;
-		if ( __hbdmi == null ) {
-			v.addElement ( "HydroBase Properties" );
-			v.addElement ( "" );
-			v.addElement ( "No HydroBase database is available." );
-		}
-		else {	v = __hbdmi.getDatabaseProperties();
-		}
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-    else if ( command.equals(__File_Properties_NWSRFSFS5Files_String) ) {
-		PropList reportProp = new PropList ("NWSRFSFS5Files.props");
-		// Too big (make this big when we have more stuff)...
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "NWSRFS FS5Files Properties" );
-		Vector v = null;
-		if ( __nwsrfs_dmi == null ) {
-			v = new Vector ( 1 );
-			v.addElement (
-			"The NWSRFS FS5Files connection is not open." );
-		}
-		else {	v = __nwsrfs_dmi.getDatabaseProperties ( 3 );
-		}
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-        else if ( command.equals(__File_Properties_RiversideDB_String) ) {
-		PropList reportProp = new PropList ("RiversideDB.props");
-		// Too big (make this big when we have more stuff)...
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "RiversideDB Properties" );
-		Vector v = __rdmi.getDatabaseProperties ( 3 );
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
-	}
-        else if ( o == __File_SetWorkingDirectory_JMenuItem ) {
-		JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle(
-		"Set the Working Directory (normally only use if a commands" +
-		" file was not opened or saved)");
-		fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
-		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-			String directory = fc.getSelectedFile().getPath();
-			IOUtil.setProgramWorkingDir(directory);
-			JGUIUtil.setLastFileDialogDirectory(directory);
-			// REVISIT - is this needed with Swing?
-			// Reset to make sure the ending delimiter is removed...
-			__props.set("WorkingDir",IOUtil.getProgramWorkingDir());
-			setInitialWorkingDir (__props.getValue ("WorkingDir"));
-			JGUIUtil.setLastFileDialogDirectory(directory);
-		}
-	}
-        else if (command.equals(__Run_ProcessTSProductPreview_String) ) {
-		try {	processTSProductFile ( true );
-		}
-		catch ( Exception te ) {
-			Message.printWarning ( 1, "",
-			"Error processing TSProduct file.\n" +
-			"If necessary, make sure the working directory is\n" +
-			"correct by running a setWorkingDir() command." );
-			Message.printWarning ( 2, "", te );
-		}
-	}
-        else if ( command.equals(__File_Exit_String) ) {
-		closeClicked();
-        }
-
-	// Edit menu actions (in order of menu)...
-
-        else if ( command.equals(__Edit_CutCommands_String) ) {
-		// Need to think whether this should work for the time series
-		// list or only the commands.  Copy to the buffer...
-		setCommandListCutBuffer();
-		// Now clear the list...
-		clearCommands();
-		__commands_dirty = true;
-		checkGUIState();
-	}
-        else if ( command.equals(__Edit_CopyCommands_String) ) {
-		// Copy to the buffer...
-		setCommandListCutBuffer();
-		__commands_dirty = true;
-		checkGUIState();
-	}
-        else if ( command.equals(__Edit_PasteCommands_String) ) {
-		// Copy the buffer to the final list...
-		pasteCommandListCutBuffer();
-		updateStatus ();
-		__commands_dirty = true;
-		checkGUIState();
-	}
-        else if ( command.equals(__Edit_DeleteCommands_String) ) {
-		// Essentially the same as CUT
-		setCommandListCutBuffer();
-		// Now clear the list...
-		clearCommands();
-		__commands_dirty = true;
-		checkGUIState();
-	}
-    else if ( command.equals(__Edit_SelectAllCommands_String) ) {
-    	JGUIUtil.selectAll(__commands_JList);
-    	updateStatus ();
-		checkGUIState();
-	}
-        else if ( command.equals(__Edit_DeselectAllCommands_String) ) {
-		deselectAllCommands ();
-	}
-        else if ( command.equals(__Edit_CommandsFile_String) ) {
-		// Get the name of the file to edit and then use notepad...
-		//
-		// Instantiate a file dialog object with no default...
-		//
-		JFileChooser fc = JFileChooserFactory.createJFileChooser (
-				JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select File" );
-		if(__license_manager.getLicenseType().equalsIgnoreCase("CDSS")){
-			// Ray Bennett favorite...
-			fc.addChoosableFileFilter(
-			new SimpleFileFilter("cmx", "TSTool Commands File") );
-		}
-		SimpleFileFilter sff = new SimpleFileFilter ( "TSTool",
-			"TSTool Commands File" );
-		fc.addChoosableFileFilter ( sff );
-		fc.setFileFilter ( sff );
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Return if no file name is selected...
-			return;
-		}
-		String path = fc.getSelectedFile().getPath();
-		JGUIUtil.setLastFileDialogDirectory (
-			fc.getSelectedFile().getParent() );
-		String [] command_array = new String[2];
-		if ( IOUtil.isUNIXMachine() ) {
-			command_array[0] = "nedit";
-		}
-		else {	command_array[0] = "notepad";
-		}
-		if ( path != null ) {
-			try {	command_array[1] = path;
-				ProcessManager p = new ProcessManager(
-				command_array );
-				Thread thread = new Thread ( p );
-				thread.start ();
-			}
-			catch ( Exception e2 ) {
-				Message.printWarning ( 1, rtn,
-				"Unable to edit file \"" + path + "\"" );
-			}
-		}
-	}
-	else if ( command.equals(__Edit_CommandNoErrorChecking_String) ) {
-		// Edit the first selected item, unless a comment, in which
-		// case all are edited...
-		actionEditCommand ( false );
-	}
-	else if ( command.equals(__Edit_CommandWithErrorChecking_String) ) {
-		// Edit the first selected item, unless a comment, in which
-		// case all are edited...
-		actionEditCommand ( true );
-	}
-	else if (command.equals(
-		__Edit_ConvertSelectedCommandsToComments_String) ) {
-		convertCommandsToComments ( true );
-	}
-	else if (command.equals(
-		__Edit_ConvertSelectedCommandsFromComments_String) ) {
-		convertCommandsToComments ( false );
-	}
-	// Popup only...
-	else if (command.equals(__CommandsPopup_FindCommands_String) ) {
-		new FindInJListJDialog(this,__commands_JList,"Find Command(s)");
-		checkGUIState();
-	}
-	else if (command.equals(__CommandsPopup_ShowCommandStatus_String) ) {
-		showCommandStatus();
-	}
-
-	// Run menu (order in menu)...
-
-        else if ( command.equals(__Run_AllCommandsCreateOutput_String) ) {
-		// Process time series and create all output from write*
-		// commands...
-		runCommands ( true, true );
-	}
-        else if ( command.equals(__Run_AllCommandsIgnoreOutput_String) ) {
-		// Process time series but ignore write* commands...
-		runCommands ( true, false );
-	}
-        else if ( command.equals(__Run_SelectedCommandsCreateOutput_String) ) {
-		// Process selected commands and create all output from write*
-		// commands...
-		runCommands ( false, true );
-	}
-        else if ( command.equals(__Run_SelectedCommandsIgnoreOutput_String) ) {
-		// Process selected commands but ignore write* commands...
-		runCommands ( false, false );
-	}
-        else if ( command.equals(__Run_CommandsFromFile_String) ) {
-		// Get the name of the file to run and then execute a TSEngine
-		// as if in batch mode...
-		//
-		// Instantiate a file dialog object with no default...
-		//
-/* REVISIT
-		FileDialog fd = new FileDialog(this, "Run Commands File",
-		FileDialog.LOAD );
-		if ( __last_directory_selected != null ) {
-			fd.setDirectory ( __last_directory_selected );
-		}
-		fd.setVisible(true);
-
-		// Determine the name of the commands file as specified from 
-		// the FileDialog object        
-
-		// Return if no file name is selected
-
-		if ( fd.getFile() == null || fd.getFile().equals("") ) {
-			return;
-		}
-		if ( fd.getDirectory() != null ) {
-			__last_directory_selected = fd.getDirectory();
-		}
-
-		String fileName = fd.getDirectory() + fd.getFile();        
-
-		TSEngine engine = null;
-		try {	// Process as if in batch mode...
-			JGUIUtil.setWaitCursor ( this, true );
-			engine = new TSEngine(__hbdmi, __rdmi, __DIADvisor_dmi,
-					__DIADvisor_archive_dmi,
-					__nwsrfs_dmi, __smsdmi );
-			engine.processCommands(__hbdmi,fileName);
-			engine = null;
-			Message.printStatus ( 1, rtn,
-			"Successfully processed commands file \"" + fileName +
-			"\"" );
-			JGUIUtil.setWaitCursor ( this, false );
-		}
-		catch ( Exception e ) {
-			JGUIUtil.setWaitCursor ( this, false );
-			Message.printWarning ( 1, rtn,
-			"Error running commands file \"" + fileName + "\"" );
-			Message.printWarning ( 2, rtn, e );
-			engine = null;
-		}
-*/
-	}
-        else if (command.equals(__Run_ProcessTSProductOutput_String) ) {
-		// Test code...
-		try {	processTSProductFile ( false );
-		}
-		catch ( Exception te ) {
-			Message.printWarning ( 1, "",
-			"Error processing TSProduct file.\n" +
-			"If necessary, make sure the working directory is\n" +
-			"correct by running a setWorkingDir() command." );
-			Message.printWarning ( 2, "", te );
-		}
-	}
-	else {	// Chain to the next method...
-		actionPerformed2(event);
-	}
-}
-
-/**
-Handle a group of actions.
-@param event Event to handle.
-*/
-private void actionPerformed2 (ActionEvent event)
-throws Exception
-{	String command = event.getActionCommand();
-	Object o = event.getSource();
-
-	// Commands...
-
-	// REVISIT SAM 2006-05-02
-	// Why is all of this needed?  Should rely on the command factory for
-	// commands.  Evaluate this when all commands are in the factory.
-
-	// Create Time Series...
-
-	if (command.equals( __Commands_Create_createFromList_String)){
-		editCommand ( __Commands_Create_createFromList_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_createTraces_String)){
-		editCommand ( __Commands_Create_createTraces_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// Convert TS Identifier to read command...
-
-	/* FIXME SAM need to enable
-	else if ( o == __Commands_ConvertTSIDTo_readTimeSeries_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readTimeSeries_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readDateValue_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readDateValue_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readHydroBase_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readHydroBase_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readMODSIM_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readMODSIM_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readNwsCard_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readNwsCard_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readRiverWare_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readRiverWare_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readStateMod_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readStateMod_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readStateModB_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readStateModB_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	else if ( o == __Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem ) {
-		editCommand ( __Commands_ConvertTSIDTo_readUsgsNwis_String,
-			getCommand(), __UPDATE_COMMAND );
-	}
-	*/
-
-	// Read Time Series...
-
-	else if (command.equals( __Commands_Read_readDateValue_String)){
-		editCommand ( __Commands_Read_readDateValue_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_readHydroBase_String)){
-		editCommand ( __Commands_Read_readHydroBase_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_readMODSIM_String)){
-		editCommand ( __Commands_Read_readMODSIM_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Read_readNwsCard_String)){
-		editCommand ( __Commands_Read_readNwsCard_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Read_readNWSRFSESPTraceEnsemble_String)){
-		editCommand ( __Commands_Read_readNWSRFSESPTraceEnsemble_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_readNWSRFSFS5Files_String)){
-		editCommand ( __Commands_Read_readNWSRFSFS5Files_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_readStateCU_String)){
-		editCommand ( __Commands_Read_readStateCU_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_readStateModB_String)){
-		editCommand ( __Commands_Read_readStateModB_String,
-			null, __INSERT_COMMAND );
-	}
-	// Put after longer versions...
-	else if (command.equals( __Commands_Read_readStateMod_String)){
-		editCommand ( __Commands_Read_readStateMod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_statemodMax_String)){
-		editCommand ( __Commands_Read_statemodMax_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readDateValue_String)){
-		editCommand ( __Commands_Read_TS_readDateValue_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readHydroBase_String)){
-		editCommand ( __Commands_Read_TS_readHydroBase_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readMODSIM_String)){
-		editCommand ( __Commands_Read_TS_readMODSIM_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readNDFD_String)){
-		editCommand ( __Commands_Read_TS_readNDFD_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readNwsCard_String)){
-		editCommand ( __Commands_Read_TS_readNwsCard_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readNWSRFSFS5Files_String)){
-		editCommand ( __Commands_Read_TS_readNWSRFSFS5Files_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readRiverWare_String)){
-		editCommand ( __Commands_Read_TS_readRiverWare_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readStateModB_String)){
-		editCommand ( __Commands_Read_TS_readStateModB_String,
-			null, __INSERT_COMMAND );
-	}
-	// Put after longer versions...
-	else if (command.equals( __Commands_Read_TS_readStateMod_String)){
-		editCommand ( __Commands_Read_TS_readStateMod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_readUsgsNwis_String)){
-		editCommand ( __Commands_Read_TS_readUsgsNwis_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Read_setIncludeMissingTS_String)){
-		editCommand ( __Commands_Read_setIncludeMissingTS_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_setInputPeriod_String) ) {
-		editCommand ( __Commands_Read_setInputPeriod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_average_String)){
-		editCommand ( __Commands_Create_TS_average_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_changeInterval_String)){
-		editCommand ( __Commands_Create_TS_changeInterval_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_copy_String)){
-		editCommand ( __Commands_Create_TS_copy_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_disaggregate_String)){
-		editCommand ( __Commands_Create_TS_disaggregate_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_String)){
-		editCommand (
-			__Commands_Create_TS_newDayTSFromMonthAndDayTS_String,
-			null, __INSERT_COMMAND );
-	}
-	/* FIXME SAM
-	else if (command.equals(
-		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String) ) {
-		editCommand (
-			__Commands_Create_TS_newEndOfMonthTSFromDayTS_String,
-			getCommand(), __INSERT_COMMAND );
-	}
-	*/
-	else if (command.equals(
-		__Commands_Create_TS_newStatisticYearTS_String)){
-		editCommand ( __Commands_Create_TS_newStatisticYearTS_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_newTimeSeries_String)){
-		editCommand ( __Commands_Create_TS_newTimeSeries_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_normalize_String)){
-		editCommand ( __Commands_Create_TS_normalize_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_relativeDiff_String)){
-		editCommand ( __Commands_Create_TS_relativeDiff_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Create_TS_weightTraces_String)){
-		editCommand ( __Commands_Create_TS_weightTraces_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// Commands... Fill Time Series...
-
-	else if (command.equals( __Commands_Fill_fillCarryForward_String)){
-		editCommand ( __Commands_Fill_fillCarryForward_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillConstant_String)){
-		editCommand ( __Commands_Fill_fillConstant_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String)){
-		editCommand (
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillFromTS_String)){
-		editCommand ( __Commands_Fill_fillFromTS_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillHistMonthAverage_String)){
-		editCommand ( __Commands_Fill_fillHistMonthAverage_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillHistYearAverage_String)){
-		editCommand ( __Commands_Fill_fillHistYearAverage_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillInterpolate_String)){
-		editCommand ( __Commands_Fill_fillInterpolate_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillMixedStation_String)){
-		editCommand ( __Commands_Fill_fillMixedStation_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillMOVE1_String)){
-		editCommand ( __Commands_Fill_fillMOVE1_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillMOVE2_String)){
-		editCommand ( __Commands_Fill_fillMOVE2_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillPattern_String) ) {
-		editCommand ( __Commands_Fill_fillPattern_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillProrate_String) ) {
-		editCommand ( __Commands_Fill_fillProrate_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillRegression_String) ) {
-		editCommand ( __Commands_Fill_fillRegression_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_fillRepeat_String) ) {
-		editCommand ( __Commands_Fill_fillRepeat_String,
-			null, __INSERT_COMMAND );
-	}
-	else if(command.equals(
-		__Commands_Fill_fillUsingDiversionComments_String)){
-		editCommand(__Commands_Fill_fillUsingDiversionComments_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Fill_setAutoExtendPeriod_String)){
-		editCommand ( __Commands_Fill_setAutoExtendPeriod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_setAveragePeriod_String) ) {
-		editCommand ( __Commands_Fill_setAveragePeriod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_setIgnoreLEZero_String) ) {
-		editCommand ( __Commands_Fill_setIgnoreLEZero_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Fill_setMissingDataValue_String)){
-		editCommand ( __Commands_Fill_setMissingDataValue_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_setPatternFile_String) ) {
-		editCommand ( __Commands_Fill_setPatternFile_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Fill_setRegressionPeriod_String)){
-		editCommand ( __Commands_Fill_setRegressionPeriod_String,
-			null, __INSERT_COMMAND );
-	}
-
-	else if (command.equals( __Commands_Set_replaceValue_String)){
-		editCommand ( __Commands_Set_replaceValue_String,
-			null, __INSERT_COMMAND );
-	}
-
-	else if (command.equals( __Commands_Set_setConstant_String)){
-		editCommand ( __Commands_Set_setConstant_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Set_setConstantBefore_String)){
-		editCommand ( __Commands_Set_setConstantBefore_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Set_setDataValue_String)){
-		editCommand ( __Commands_Set_setDataValue_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Set_setFromTS_String)){
-		editCommand ( __Commands_Set_setFromTS_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Set_setMax_String)){
-		editCommand ( __Commands_Set_setMax_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Set_setToMin_String)){
-		editCommand ( __Commands_Set_setToMin_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// Commands... Manipulate Time Series...
-
-	else if (command.equals( __Commands_Manipulate_add_String)){
-		editCommand ( __Commands_Manipulate_add_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Manipulate_addConstant_String)){
-		editCommand ( __Commands_Manipulate_addConstant_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Manipulate_adjustExtremes_String)){
-		editCommand ( __Commands_Manipulate_adjustExtremes_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Manipulate_ARMA_String)){
-		editCommand ( __Commands_Manipulate_ARMA_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Manipulate_blend_String)){
-		editCommand ( __Commands_Manipulate_blend_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_convertDataUnits_String)){
-		editCommand ( __Commands_Manipulate_convertDataUnits_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_cumulate_String) ) {
-		editCommand ( __Commands_Manipulate_cumulate_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_divide_String) ) {
-		editCommand ( __Commands_Manipulate_divide_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_free_String) ) {
-		editCommand ( __Commands_Manipulate_free_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_multiply_String) ) {
-		editCommand ( __Commands_Manipulate_multiply_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_runningAverage_String) ) {
-		editCommand ( __Commands_Manipulate_runningAverage_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Manipulate_scale_String) ) {
-		editCommand ( __Commands_Manipulate_scale_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Manipulate_shiftTimeByInterval_String) ) {
-		editCommand ( __Commands_Manipulate_shiftTimeByInterval_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Manipulate_subtract_String)){
-		editCommand ( __Commands_Manipulate_subtract_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// Commands... Analyze Time Series...
-
-	else if (command.equals( __Commands_Analyze_analyzePattern_String)){
-		editCommand ( __Commands_Analyze_analyzePattern_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Analyze_compareTimeSeries_String)){
-		editCommand ( __Commands_Analyze_compareTimeSeries_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Analyze_newDataTest_String)){
-		editCommand ( __Commands_Analyze_newDataTest_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Analyze_readDataTestFromRiversideDB_String)){
-		editCommand (
-			__Commands_Analyze_readDataTestFromRiversideDB_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Analyze_runDataTests_String)){
-		editCommand ( __Commands_Analyze_runDataTests_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Analyze_processDataTestResults_String)){
-		editCommand ( __Commands_Analyze_processDataTestResults_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// Commands... Models...
-
-	else if (command.equals( __Commands_Models_lagK_String)){
-		editCommand ( __Commands_Models_lagK_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// Commands... Output Time Series...
-
-	else if (command.equals( __Commands_Output_deselectTimeSeries_String)){
-		editCommand ( __Commands_Output_deselectTimeSeries_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_selectTimeSeries_String)){
-		editCommand ( __Commands_Output_selectTimeSeries_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(
-		__Commands_Output_setOutputDetailedHeaders_String) ) {
-		editCommand (__Commands_Output_setOutputDetailedHeaders_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_setOutputPeriod_String) ) {
-		editCommand ( __Commands_Output_setOutputPeriod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_setOutputYearType_String) ){
-		editCommand ( __Commands_Output_setOutputYearType_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_sortTimeSeries_String)){
-		editCommand ( __Commands_Output_sortTimeSeries_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_writeDateValue_String)){
-		editCommand ( __Commands_Output_writeDateValue_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_writeNwsCard_String)){
-		editCommand ( __Commands_Output_writeNwsCard_String,
-			null, __INSERT_COMMAND );
-	}
-	else if(command.equals(
-		__Commands_Output_writeNWSRFSESPTraceEnsemble_String)){
-		editCommand (
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_writeRiverWare_String)){
-		editCommand ( __Commands_Output_writeRiverWare_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_writeStateCU_String)){
-		editCommand ( __Commands_Output_writeStateCU_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_writeStateMod_String)){
-		editCommand ( __Commands_Output_writeStateMod_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_writeSummary_String)){
-		editCommand ( __Commands_Output_writeSummary_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Output_processTSProduct_String)){
-		editCommand ( __Commands_Output_processTSProduct_String,
-			null, __INSERT_COMMAND );
-	}
-	else {	// Chain to next list of commands...
-		actionPerformed3 ( event );
-	}
-}
-
-/**
-Handle a group of actions.
-@param event Event to handle.
-*/
-private void actionPerformed3 (ActionEvent event)
-throws Exception
-{	String command = event.getActionCommand();
-	String routine = "TSTool_JFrame.actionPerformed3";
-	Object o = event.getSource();
-
-	// HydroBase commands...
-
-	if (command.equals(__Commands_HydroBase_openHydroBase_String)){
-		editCommand ( __Commands_HydroBase_openHydroBase_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// NDFD commands...
-
-	if (command.equals(__Commands_NDFD_openNDFD_String)){
-		editCommand ( __Commands_NDFD_openNDFD_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// General commands...
-
-	else if (command.equals( __Commands_General_startLog_String) ) {
-		editCommand ( __Commands_General_startLog_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_General_setDebugLevel_String) ) {
-		editCommand ( __Commands_General_setDebugLevel_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_General_setWarningLevel_String) ) {
-		editCommand ( __Commands_General_setWarningLevel_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_General_setWorkingDir_String) ) {
-		editCommand ( __Commands_General_setWorkingDir_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_General_Comment_String) ) {
-		editCommand ( __Commands_General_Comment_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_General_startComment_String) ) {
-		editCommand ( __Commands_General_startComment_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_General_endComment_String) ) {
-		editCommand ( __Commands_General_endComment_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_General_exit_String) ) {
-		int selected_size = JGUIUtil.selectedSize ( __commands_JList );
-		if ( selected_size > 0 ) {
-			// Add after the last selected item...
-			int selected_indices[] = __commands_JList.getSelectedIndices();
-			if (	selected_indices[selected_size - 1] ==
-				(__commands_JListModel.size() - 1) ) {
-			}
-			else {	__commands_JListModel.insertElementAt (
-				"exit",
-				(selected_indices[selected_size - 1] + 1 ) );
-			}
-			selected_indices = null;
-		}
-		else {	// Add at end...
-			addCommand ( "exit" );
-		}
-	}
-	else if (command.equals( __Commands_General_compareFiles_String)){
-		editCommand ( __Commands_General_compareFiles_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_General_runCommands_String) ) {
-		editCommand ( __Commands_General_runCommands_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_General_runProgram_String) ) {
-		editCommand ( __Commands_General_runProgram_String,
-			null, __INSERT_COMMAND );
-	}
-
-	// View menu (order of GUI)...
-
-        else if ( command.equals(__Results_Graph_AnnualTraces_String) ) {
-		// Only do if data are selected...
-		String response = new TextResponseJDialog ( 
-			this, "Graph Annual Traces", 
-			"Enter the 4-digit year to use as a reference.",
-			ResponseJDialog.OK|ResponseJDialog.CANCEL ).response();
-		if ( response == null ) {
-			return;
-		}
-		graphTimeSeriesResults("-oannual_traces_graph " + StringUtil.atoi(response) );
-	}
-        else if ( command.equals(__Results_Graph_BarsLeft_String) ) {
-		graphTimeSeriesResults("-obar_graph", "BarsLeftOfDate");
-	}
-        else if ( command.equals(__Results_Graph_BarsCenter_String) ) {
-		graphTimeSeriesResults("-obar_graph", "BarsCenteredOnDate");
-	}
-        else if ( command.equals(__Results_Graph_BarsRight_String) ) {
-		graphTimeSeriesResults("-obar_graph", "BarsRightOfDate");
-	}
-        else if ( command.equals(__Results_Graph_DoubleMass_String) ) {
-			//Message.printWarning ( 1, rtn, "Two time " +
-			//"series can be graphed for Double Mass graph." );
-		//{}
-		//else {	
-		graphTimeSeriesResults("-odoublemassgraph");
-		//}
-	}
-        else if ( command.equals(__Results_Graph_Duration_String) ) {
-		// Only do if data are selected...
-		graphTimeSeriesResults("-oduration_graph " );
-	}
-        else if ( command.equals(__Results_Graph_Line_String) ) {
-		graphTimeSeriesResults("-olinegraph");
-	}
-        else if ( command.equals(__Results_Graph_LineLogY_String) ) {
-		graphTimeSeriesResults("-olinelogygraph");
-	}
-/* Not enabled.
-        else if ( command.equals("GraphPercentExceed") ) {
-		// Because Visualize can only handle grid-based data, only allow
-		// one time series to be graphed to ensure that the data set is
-		// nice...
-		if ( _final__commands_JList != 1 ) {
-			Message.printWarning ( 1, rtn, "Only one time " +
-			"series can be graphed for Percent Exceedance Curve." );
-		}
-		else {	// OK to do the graph...
-			graphTS("-opercentexceedgraph");
-		}
-	}
-*/
-        else if ( command.equals(__Results_Graph_PeriodOfRecord_String) ) {
-		graphTimeSeriesResults("-oporgraph");
-	}
-        else if ( command.equals(__Results_Graph_Point_String) ) {
-		graphTimeSeriesResults("-opointgraph");
-	}
-        else if ( command.equals(__Results_Graph_PredictedValue_String) ) {
-		graphTimeSeriesResults("-oPredictedValue_graph" );
-	}
-        else if (command.equals(__Results_Graph_PredictedValueResidual_String)){
-		graphTimeSeriesResults("-oPredictedValueResidual_graph" );
-	}
-        else if ( command.equals(__Results_Graph_XYScatter_String) ) {
-		graphTimeSeriesResults("-oxyscatter_graph" );
-	}
-
-        else if ( command.equals(__Results_Table_String) ) {
-		// For now handle similar to the summary report, forcing a
-		// preview...
-		exportTimeSeriesResults("-otable", "-preview" );
-	}
-
-        else if ( command.equals(__Results_Report_Summary_String) ) {
-		// SAM.  Let the ReportJFrame prompt for this.  This is
-		// different from the StateMod output in that when a summary is
-		// exported in the GUI, the user views first and then saves to
-		// disk.
-		exportTimeSeriesResults("-osummary", "-preview" );
-	}
-
-	// Only on View pop-up...
-
-	else if (command.equals(__Results_FindTimeSeries_String) ) {
-		new FindInJListJDialog ( this, false, __ts_JList, "Find Time Series" );
-	}
-    else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
-		// Get the first time series selected in the view window...
-		if ( __ts_processor != null ) {
-			int pos = 0;
-			if ( JGUIUtil.selectedSize(__ts_JList) == 0 ) {
-				pos = 0;
-			}
-			else {	pos = JGUIUtil.selectedIndex(__ts_JList,0);
-			}
-			// Now display the properties...
-			if ( pos >= 0 ) {
-				new TSPropertiesJFrame ( this,
-				commandProcessorGetTimeSeries(pos) );
-			}
-		}
-	}
-
-	else if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
-		// Create the dialog using the available time series...
-		/* FIXME SAM 2007-08-09 need to keep main commands processor
-		 separate from this instance.  Determine how TSEngine is used.
-		try {	Command c = new fillMixedStation_Command(false);
-			c.initializeCommand ( command,
-				new TSCommandProcessor(__final_ts_engine),
-				null,	// Command tag
-				1,	// Warning level
-				false );// Minimal initialization
-			new fillMixedStation_JDialog ( this, c, 0 );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error performing mixed station analysis." );
+		// Unexpected exception - user will likely see no result from their action.
+		String routine = getClass().getName() + ".actionPerformed";
 			Message.printWarning ( 2, routine, e );
-		}
-		*/
-	}
-	else if (command.equals(__Tools_Report_DataCoverageByYear_String) ) {
-		// Use graph TS because it does not take an output file...
-		graphTimeSeriesResults ( "-odata_coverage_report " );
-	}
-	else if (command.equals(__Tools_Report_DataLimitsSummary_String) ) {
-		// Use graph TS because it does not take an output file...
-		graphTimeSeriesResults ( "-odata_limits_report " );
-	}
-	else if (command.equals(__Tools_Report_MonthSummaryDailyMeans_String)) {
-		// Use graph TS because it does not take an output file...
-		graphTimeSeriesResults ( "-omonth_mean_summary_report " );
-	}
-	else if (command.equals(__Tools_Report_MonthSummaryDailyTotals_String)){
-		// Use graph TS because it does not take an output file...
-		graphTimeSeriesResults ( "-omonth_total_summary_report " );
-	}
-	else if (command.equals(__Tools_Report_YearToDateTotal_String) ) {
-		// Set the averaging end date...
-		PropList props = new PropList( "DateBuilder properties" );
-		props.set ( "DatePrecision", "Day" );
-		props.set ( "DateFormat", "US" );
-		props.set ( "EnableYear", "false" );
-		props.set ( "DateLabel",
-			"Enter Ending Date for Annual Total:" );
-		props.set ( "Title",
-			"Enter Ending Date for Annual Total" );
-		DateTime to = new DateTime ( DateTime.DATE_CURRENT |
-					DateTime.PRECISION_DAY );
-		try {	JTextField tmpJTextField = new JTextField();
-			new DateTimeBuilderJDialog ( this, tmpJTextField, to,
-					props );
-			to = DateTime.parse ( tmpJTextField.getText() ); 
-		}
-		catch ( Exception ex ) {
-			Message.printWarning ( 1, "TSTool_JFrame",
-			"There was an error processing the date for the " +
-			"report." );
-		}
-		// Use graph TS because it does not take an output file...
-		graphTimeSeriesResults ( "-oyear_to_date_report ",
-			to.toString(DateTime.FORMAT_MM_SLASH_DD) );
-	}
-	else if ( o == __Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem ){
-		// Prompt for the ESP file...
-		JFileChooser fc = JFileChooserFactory.createJFileChooser (
-				JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select NWSRFS ESP Trace Ensemble File" );
-		SimpleFileFilter sff = new SimpleFileFilter ( "CS",
-			"Conditional Simulation Ensemble File" );
-		fc.addChoosableFileFilter ( sff );
-		fc.setFileFilter ( sff );
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Return if no file name is selected...
-			return;
-		}
-		String esp_file = fc.getSelectedFile().getPath();
-		String directory = fc.getSelectedFile().getParent();
-		// Prompt for the output file...
-		fc = JFileChooserFactory.createJFileChooser ( directory );
-		fc.setDialogTitle ( "Select Text Output File" );
-		sff = new SimpleFileFilter (
-			"txt","NWSRFS ESP Ensemble File as Text" );
-		fc.addChoosableFileFilter ( sff );
-		fc.setSelectedFile ( new File(esp_file + ".txt") );
-		fc.setFileFilter ( sff );
-		if ( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Return if no file name is selected...
-			return;
-		}
-		directory = fc.getSelectedFile().getParent();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
-		String out_file = fc.getSelectedFile().getPath();
-		String units = new TextResponseJDialog ( 
-			this, "Specify Output Units",
-			"Specify the output units for the file (blank to " +
-			"default).",
-			ResponseJDialog.OK| ResponseJDialog.CANCEL ).response();
-		if ( units == null ) {
-			return;
-		}
-		units = units.trim();
-		// Convert...
-		try {	NWSRFS_ESPTraceEnsemble.convertESPTraceEnsembleToText (
-			esp_file, IOUtil.enforceFileExtension(out_file,"txt"),
-			units );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, "TSTool_JFrame",
-			"There was an error converting the ESP trace " +
-			"ensemble file to text.  " +
-			"Partial results may be available." );
-		}
-	}
-	else if ( o == __Tools_NWSRFS_ConvertJulianHour_JMenuItem ) {
-		// Display the NWSRFS dialog...
-		new NWSRFS_ConvertJulianHour_JDialog(this);
-	}
-	else if ( o == __Tools_RiversideDB_TSProductManager_JMenuItem ) {
-		Vector rdmi_Vector = new Vector();
-		if ( __rdmi != null ) {
-			rdmi_Vector.addElement ( __rdmi );
-		}
-		new RiversideDB_TSProductManager_JFrame ( rdmi_Vector, null );
-	}
-	else if ( o == __Tools_SelectOnMap_JMenuItem ) {
-		try {	selectOnMap ();
-		}
-		catch ( Exception e ) {
-			JGUIUtil.setWaitCursor ( this, false );
-			Message.printWarning ( 1, routine,
-			"Unable to select locations on map." );
-			Message.printWarning ( 3, routine, e );
-		}
-	}
-	else if ( o == __Tools_Options_JMenuItem ) {
-		new TSTool_Options_JDialog ( this, __props );
-		// Reset as necessary...
-		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
-			((TSTool_HydroBase_TableModel)__query_TableModel).
-			setWDIDLength(StringUtil.atoi(
-			__props.getValue("HydroBase.WDIDLength")));
-		}
-		else if ( __query_TableModel instanceof 
-			TSTool_HydroBase_WellLevel_Day_TableModel){
-			((TSTool_HydroBase_WellLevel_Day_TableModel)
-			__query_TableModel).setWDIDLength(StringUtil.atoi(
-			__props.getValue("HydroBase.WDIDLength")));
-		}		
-	}
-
-	// Help menu (order of GUI)...
-
-	else if ( command.equals ( __Help_AboutTSTool_String )) {
-		showHelpAbout ();
-	}
-	else if (command.equals("Test") ) {
-		// Test code...
-		try {	test();
-		}
-		catch ( Exception te ) {
-			Message.printWarning ( 1, "", "Error running test" );
-			Message.printWarning ( 2, "", te );
-		}
+		JGUIUtil.setWaitCursor ( this, false );
 	}
 }
 
@@ -4376,29 +1969,34 @@ Add a command at the end of the command list and force the GUI state to be
 updated.
 @param command_string Command to add at the end of the list.
 */
+/* TODO SAM 2007-09-02 Evaluate whether needed after commands file load code is updated.
 private void addCommand ( String command_string )
 {	addCommand ( command_string, false );	
 }
+*/
 
 /**
 Add a command at the end of the command list.
 @param command_string Command to add at the end of the list.
 @param check_gui_state If true, the GUI state is checked.
 */
+/* TODO SAM 2007-09-02 Evaluate whether needed after commands file load code is updated.
 private void addCommand ( String command_string, boolean check_gui_state )
 {	// Try to use TSCommandFactory to add the command.  If it is not
 	// recognized, then initialize a generic command.
-	Command command = newCommand ( command_string );
+	Command command = newCommand ( command_string, true );
 	__commands_JListModel.addElement ( command );
-	setCommandsDirty ( true );
-	updateStatus ( check_gui_state );
+	commandList_SetDirty ( true );
+	ui_UpdateStatus ( check_gui_state );
 }
+*/
 
 /**
 Add a list of command strings at the end of the command list, updating the GUI state
 and status after adding.
 @param commands Vector of commands to add at the end of the list.
 */
+/* TODO SAM 2007-09-02 Evaluate whether needed after commands file load code is updated.
 private void addCommands ( Vector commands )
 {	int size = 0;
 	if ( commands != null ) {
@@ -4412,1295 +2010,42 @@ private void addCommands ( Vector commands )
 	}
 	//setCommandsDirty ( true );
 	// Now update the status.
-	updateStatus ( true );
+	ui_UpdateStatus ( true );
 }
+*/
 
 /**
-Add a time series description at the end of the time series results list.
-Note that this does not add the actual time series, only a description string.
-The time series are still accessed by the positions in the list.
-@param ts_info Time series information to add at the end of the list.
+Indicate that a command has completed.  The success/failure of the command
+is not indicated (see CommandStatusProvider).
+@param icommand The command index (0+).
+@param ncommand The total number of commands to process
+@param command The reference to the command that is starting to run,
+provided to allow future interaction with the command.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a list of commands (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((icommand + 1)/ncommand)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
 */
-private void addTimeSeriesToResults ( String ts_info )
-{	__ts_JListModel.addElement ( ts_info );
-	//setCommandsDirty ( true );
-	//updateStatus ();
-}
-
-/**
-Display the results in a string format.  These results are APPENDED to the list
-of strings already found in the __commands_JList.  
-@param location Location part of TSIdent.
-@param source Source part of TSIdent.
-@param type Data type part of TSIdent.
-@param interval Interval part of TSIdent.
-@param scenario Scenario part of TSIdent (null or empty for no scenario).
-@param sequence_number Sequence number part of TSIdent (null or empty for no
-sequence number).
-@param input_type The type of input (e.g., DateValue, NWSCard, USGSNWIS).
-@param input_name The input location for the data (a database connection or
-file name).
-@param comment Comment for time series (null or empty for no comment).
-@param use_alias If true, then the location contains the alias and the other
-TSID fields are ignored when putting together the TSID command.
-*/
-private void appendResultsToCommands (	String location,
-					String source,
-					String type,
-					String interval,
-					String scenario,
-					String sequence_number,
-					String input_type,
-					String input_name,
-					String comment,
-					boolean use_alias )
-{	// Add after the last selected item or at the end if nothing
-	// is selected.
-	int selected_indices[] = __commands_JList.getSelectedIndices();
-	int selected_size = 0;
-	if ( selected_indices != null ) {
-		selected_size = selected_indices.length;
-	}
-	int insert_pos = 0;
-	String scenario2 = "";
-	if ( (scenario != null) && !scenario.equals("") ) {
-		scenario2 = "." + scenario;
-	}
-	String sequence_number2 = "";
-	if ( (sequence_number != null) && !sequence_number.equals("") ) {
-		sequence_number2 = "[" + sequence_number + "]";
-	}
-	// If there is an input_name, always use an input_type.
-	String input = "";
-	if ( (input_name != null) && (input_name.length() != 0) ) {
-		input = "~" + input_type + "~" + input_name;
-	}
-	else if ( (input_type != null) && (input_type.length() != 0) ) {
-		// Only have the input type...
-		input = "~" + input_type;
-	}
-	if ( selected_size > 0 ) {
-		// Insert after the last item.
-		insert_pos = selected_indices[selected_size - 1] + 1;
-	}
-	else {	// Insert at the end...
-		insert_pos = __commands_JListModel.size();
-	}
-	
-	int i = 0;	// Leave this in case we add looping.
-	int offset = 0;	// Handles cases where a comment is inserted.
-	if ( (comment != null) && !comment.equals("") ) {
-		__commands_JListModel.insertElementAt ( "# " + comment,
-			(insert_pos + i*2));
-		offset = 1;
-	}
-	String tsident_string = null;
-	if ( use_alias ) {
-		// Just use the short alias...
-		tsident_string = location + input;
-	}
-	else {	// Use a full time series identifier...
-		tsident_string = location + "." + source + "." + type + "." +
-			interval + scenario2 + sequence_number2 + input;
-	}
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "", "Inserting \"" + tsident_string +
-		"\" at " + (insert_pos + i*2 + offset) );
-	}
-	__commands_JListModel.insertElementAt ( tsident_string,
-		(insert_pos + i*2 + offset));
-	setCommandsDirty ( true );
-	updateStatus();
-}
-
-/**
-Enable/disable the ColoradoSMS input type features depending on whether a
-ColoradoSMS connection has been made.
-*/
-private void checkColoradoSMSFeatures ()
-{	if ( (__smsdmi != null) && __smsdmi.isOpen() ) {
-		/* REVISIT SAM 2005-10-18 Currently time series features are not
-		available...
-		if ( __input_type_JComboBox != null ) {
-			// Make sure HydroBase is in the input type list...
-			int count = __input_type_JComboBox.getItemCount();
-			boolean hbfound = false;
-			for ( int i = 0; i < count; i++ ) {
-				if ( __input_type_JComboBox.getItem(i).equals(
-					__INPUT_TYPE_ColoradoSMS) ) {
-					hbfound = true;
-					break;
-				}
-			}
-			if ( !hbfound ) {
-				// Repopulate the input types...
-				setInputTypeChoices();
-			}
-		}
-		*/
-		JGUIUtil.setEnabled (
-			__File_Properties_ColoradoSMS_JMenuItem, true );
-	}
-	else {	// Remove ColoradoSMS from the data source list if necessary...
-		/* REVISIT SAM 2005-10-18 Currently time series cannot be
-		queried
-		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		*/
-		JGUIUtil.setEnabled (
-			__File_Properties_ColoradoSMS_JMenuItem, false );
-	}
-}
-
-/**
-Enable/disable DIADvisor menus and choices based on whether a connection was
-successful.
-*/
-private void checkDIADvisorFeatures()
-{	if (	(__DIADvisor_dmi != null) &&
-		(__DIADvisor_archive_dmi != null) &&
-		(__input_type_JComboBox != null) ) {
-		// Make sure DIADvisor is in the data source list...
-		int count = __input_type_JComboBox.getItemCount();
-		boolean rfound = false;
-		for ( int i = 0; i < count; i++ ) {
-			if ( __input_type_JComboBox.getItem(i).equals(
-				__INPUT_TYPE_DIADvisor) ) {
-				rfound = true;
-				break;
-			}
-		}
-		if ( !rfound ) {
-			// Repopulate the data sources...
-			setInputTypeChoices();
-		}
-		JGUIUtil.setEnabled(__File_Properties_DIADvisor_JMenuItem,true);
-	}
-	else {	// Remove DIADvisor from the data source list if necessary...
-		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_DIADvisor);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
-			false );
-	}
-}
-
-/**
-Check to make sure necessary input is available for dialogs, including lists
-of available static data.
-*/
-private void checkDialogInput ()
-{	/* REVISIT for TSTool
-	if ( __region1_Vector == null ) {
-		// Get the counties from HydroBase...
-		__region1_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			Vector v = __hbdmi.getCountyRef();
-			int size = 0;
-			if ( v != null ) {
-				size = v.size();
-			}
-			HydroBase_CountyRef county = null;
-			for ( int i = 0; i < size; i++ ) {
-				county = (HydroBase_CountyRef)v.elementAt(i);
-				__region1_Vector.addElement (
-					county.getCounty() );
-			}
-		}
-	}
-	if ( __region2_Vector == null ) {
-		// Get the HUC from HydroBase...
-		__region2_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			__region2_Vector = __hbdmi.getHUC();
-		}
-	}
-	if ( __cropchar_cumethod_Vector == null ) {
-		// Get the Cropchar CU methods from HydroBase...
-		__cropchar_cumethod_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			Vector v = __hbdmi.getCropcharCUMethod();
-			int size = 0;
-			if ( v != null ) {
-				size = v.size();
-			}
-			HydroBase_Cropchar cropchar = null;
-			for ( int i = 0; i < size; i++ ) {
-				cropchar = (HydroBase_Cropchar)v.elementAt(i);
-				__cropchar_cumethod_Vector.addElement (
-					cropchar.getMethod_desc() );
-			}
-		}
-	}
-	if ( __blaney_criddle_cumethod_Vector == null ) {
-		// Get the CU methods from HydroBase...
-		__blaney_criddle_cumethod_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			Vector v = __hbdmi.getBlaneyCriddleCUMethod();
-			int size = 0;
-			if ( v != null ) {
-				size = v.size();
-			}
-			HydroBase_CUBlaneyCriddle cubc = null;
-			for ( int i = 0; i < size; i++ ) {
-				cubc = (HydroBase_CUBlaneyCriddle)
-				v.elementAt(i);
-				__blaney_criddle_cumethod_Vector.addElement (
-					cubc.getMethod_desc() );
-			}
-		}
-	}
-	*/
-}
-
-/**
-Check the state of the GUI and enable/disable features as necessary.  For
-example, if no time series are selected, disable output options.
-*/
-private void checkGUIState ()
-{	// Early on the GUI may not be initialized and some of the components
-	// seem to still be null...
-
-	if ( !__gui_initialized ) {
-		return;
-	}
-
-	boolean enabled = true;		// Used to enable/disable main menus
-					// based on submenus.
-
-	// Get the needed list sizes...
-
-	int query_list_size = 0;
-	if ( __query_TableModel != null ) {
-		query_list_size = __query_TableModel.getRowCount();
-	}
-
-	int command_list_size = 0;
-	int selected_commands_size = 0;
-	if ( __commands_JListModel != null ) {
-		command_list_size = __commands_JListModel.size();
-		selected_commands_size = JGUIUtil.selectedSize (__commands_JList );
-	}
-
-	int ts_list_size = 0;
-	if ( __ts_JListModel != null ) {
-		ts_list_size = __ts_JListModel.size();
-	}
-
-	// List in the order of the GUI.  Popup menu items are checked as
-	// needed mixed in below...
-
-	// File menu...
-
-	enabled = false;	// Use for File...Save menu.
-	if ( command_list_size > 0 ) {
-		// Have commands shown...
-		if ( __commands_dirty  ) {
-			JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,
-			true );
-		}
-		else {	JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,
-			false );
-		}
-		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
-		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
-		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
-		enabled = true;
-	}
-	else {	// No commands are shown.
-		JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
-		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
-	}
-	if ( ts_list_size > 0 ) {
-		JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem, true);
-		enabled = true;
-	}
-	else {	JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem,false);
-	}
-	JGUIUtil.setEnabled ( __File_Save_JMenu, enabled );
-
-	if ( __smsdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,
-			true );
-	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,
-			false );
-	}
-	if ( __DIADvisor_dmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
-			true );
-	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
-			false );
-	}
-	if ( __hbdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,
-			true );
-	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,
-			false );
-	}
-	if ( __nwsrfs_dmi != null ) {
-		JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,
-			true );
-	}
-	else {	JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,
-			false );
-	}
-	if ( __rdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,
-			true );
-	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,
-			false );
-	}
-
-	// Edit menu...
-
-	if ( command_list_size > 0 ) {
-		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem, true);
-		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,true);
-		JGUIUtil.setEnabled (__Edit_DeselectAllCommands_JMenuItem,true);
-		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,true);
-	}
-	else {	// No commands are shown.
-		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled (__CommandsPopup_SelectAll_JMenuItem,false);
-		JGUIUtil.setEnabled(__Edit_DeselectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,
-			false);
-	}
-	if ( selected_commands_size > 0 ) {
-		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Edit_CommandNoErrorChecking_JMenuItem, true );
-		JGUIUtil.setEnabled(
-			__Edit_CommandWithErrorChecking_JMenuItem, true );
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Edit_CommandNoErrorChecking_JMenuItem,
-			true );
-		JGUIUtil.setEnabled(
-			__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
-			true );
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsToComments_JMenuItem,true);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
-		true);
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsFromComments_JMenuItem,true);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
-		true);
-	}
-	else {	JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem, false );
-		JGUIUtil.setEnabled (
-			__Edit_CommandNoErrorChecking_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Edit_CommandWithErrorChecking_JMenuItem, false );
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Edit_CommandNoErrorChecking_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
-			false );
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsToComments_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
-		false);
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsFromComments_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
-		false);
-	}
-	if ( __commands_cut_buffer.size() > 0 ) {
-		// Paste button should be enabled...
-		JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, true );
-		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, true );
-	}
-	else {	JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, false );
-	}
-
-	// View menu...
-
-	// Commands menu...
-
-	if ( command_list_size > 0 ) {
-		JGUIUtil.setEnabled (
-			__Commands_Create_createTraces_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_average_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_changeInterval_JMenuItem, true);
-		JGUIUtil.setEnabled (__Commands_Create_TS_copy_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_disaggregate_JMenuItem, true);
-		JGUIUtil.setEnabled (
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,
-			true );
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
-			true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newStatisticYearTS_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_normalize_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_relativeDiff_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_weightTraces_JMenuItem, true);
-
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillCarryForward_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillConstant_JMenuItem, true);
-		JGUIUtil.setEnabled (
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistMonthAverage_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistYearAverage_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillInterpolate_JMenuItem, true);
-		// REVISIT SAM 2005-04-26 This fill method is not enabled.
-		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillMixedStation_JMenuItem,true );
-		JGUIUtil.setEnabled(__Commands_Fill_fillPattern_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillProrate_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRegression_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRepeat_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillUsingDiversionComments_JMenuItem,
-			true);
-		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, true );
-
-		JGUIUtil.setEnabled(__Commands_Set_replaceValue_JMenuItem,true);
-		JGUIUtil.setEnabled(__Commands_Set_setConstant_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Set_setConstantBefore_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Set_setDataValue_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Set_setFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
-
-		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_addConstant_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_adjustExtremes_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Manipulate_ARMA_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Manipulate_blend_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_convertDataUnits_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_cumulate_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_divide_JMenuItem,true);
-		JGUIUtil.setEnabled (__Commands_Manipulate_free_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_multiply_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_runningAverage_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Manipulate_scale_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_shiftTimeByInterval_JMenuItem,
-			true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_subtract_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_ManipulateTimeSeries_JMenu,true);
-
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_analyzePattern_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_compareTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
-
-		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
-
-		JGUIUtil.setEnabled (
-			__Commands_Output_sortTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeDateValue_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeNwsCard_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
-			true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeRiverWare_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateCU_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateMod_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeSummary_JMenuItem, true);
-		JGUIUtil.setEnabled(
-			__Commands_Output_deselectTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_selectTimeSeries_JMenuItem, true);
-
-		/* REVISIT - it is irritating to not be able to run commands
-		  when external input changes (or during debugging)...
-		if (	__commands_dirty ||
-			(!__commands_dirty && (ts_list_size == 0)) ) {
-			JGUIUtil.setEnabled (
-				__run_commands_JButton, true );
-		}
-		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
-		}
-		*/
-		if ( selected_commands_size > 0 ) {
-			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,
-				true );
-		}
-		else {	JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,
-				false );
-		}
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
-	}
-	else {	// No commands are shown.
-		JGUIUtil.setEnabled (
-			__Commands_Create_createTraces_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_average_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_changeInterval_JMenuItem,false);
-		JGUIUtil.setEnabled(__Commands_Create_TS_copy_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_disaggregate_JMenuItem, false);
-		JGUIUtil.setEnabled (
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newStatisticYearTS_JMenuItem,
-			false );
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_normalize_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_relativeDiff_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_weightTraces_JMenuItem, false);
-
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillCarryForward_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillConstant_JMenuItem, false);
-		JGUIUtil.setEnabled (
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,
-			false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillFromTS_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistMonthAverage_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistYearAverage_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillInterpolate_JMenuItem, false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMixedStation_JMenuItem,
-			false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem, false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillPattern_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillProrate_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRegression_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRepeat_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillUsingDiversionComments_JMenuItem,
-			false);
-		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
-
-		JGUIUtil.setEnabled (
-			__Commands_Set_replaceValue_JMenuItem, false);
-		JGUIUtil.setEnabled(__Commands_Set_setConstant_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Set_setConstantBefore_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Set_setDataValue_JMenuItem, false);
-		JGUIUtil.setEnabled (__Commands_Set_setFromTS_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
-
-		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_addConstant_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_adjustExtremes_JMenuItem,false);
-		JGUIUtil.setEnabled(__Commands_Manipulate_ARMA_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_blend_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_convertDataUnits_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_cumulate_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_divide_JMenuItem,false);
-		JGUIUtil.setEnabled(__Commands_Manipulate_free_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_multiply_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_runningAverage_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_scale_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_shiftTimeByInterval_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_subtract_JMenuItem, false);
-		JGUIUtil.setEnabled(
-			__Commands_ManipulateTimeSeries_JMenu,false);
-
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_analyzePattern_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_compareTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled (__Commands_AnalyzeTimeSeries_JMenu, false);
-
-		// REVISIT SAM 2005-07-11 For now enable because models can
-		// create time series...
-		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
-
-		JGUIUtil.setEnabled(
-			__Commands_Output_sortTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled(
-			__Commands_Output_writeDateValue_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeNwsCard_JMenuItem,false);
-		JGUIUtil.setEnabled(
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeRiverWare_JMenuItem, false );
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateCU_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateMod_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeSummary_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_deselectTimeSeries_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_selectTimeSeries_JMenuItem,false);
-
-		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
-	}
-	if ( selected_commands_size > 0 ) {
-		JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDTo_readTimeSeries_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDToReadCommand_JMenu,true);
-	}
-	else {	JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDToReadCommand_JMenu,false);
-	}
-
-	// Run menu...
-
-	if ( command_list_size > 0 ) {
-		/* Revisit
-		if (	__commands_dirty ||
-			(!__commands_dirty && (ts_list_size == 0)) ) {
-			JGUIUtil.setEnabled (
-				__run_commands_JButton, true );
-		}
-		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
-		}
-		*/
-		JGUIUtil.setEnabled(
-			__Run_AllCommandsCreateOutput_JMenuItem, true);
-		JGUIUtil.setEnabled(
-			__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,
-			true);
-		JGUIUtil.setEnabled(
-			__Run_AllCommandsIgnoreOutput_JMenuItem, true);
-		JGUIUtil.setEnabled(
-			__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
-			true);
-		if ( selected_commands_size > 0 ) {
-			JGUIUtil.setEnabled(
-			__Run_SelectedCommandsCreateOutput_JMenuItem, true);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
-			true);
-			JGUIUtil.setEnabled(
-			__Run_SelectedCommandsIgnoreOutput_JMenuItem, true);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-			true);
-			JGUIUtil.setEnabled (
-				__Run_SelectedCommands_JButton, true );
-		}
-		else {	JGUIUtil.setEnabled(
-			__Run_SelectedCommandsCreateOutput_JMenuItem, false);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
-			false);
-			JGUIUtil.setEnabled(
-			__Run_SelectedCommandsIgnoreOutput_JMenuItem, false);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-			false);
-			JGUIUtil.setEnabled (
-				__Run_SelectedCommands_JButton, false );
-		}
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
-	}
-	else {	// No commands in list...
-		JGUIUtil.setEnabled (
-			__Run_AllCommandsCreateOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Run_AllCommandsIgnoreOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Run_SelectedCommandsCreateOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
-	}
-
-	// Results menu...
-
-	if ( ts_list_size > 0 ) {
-		JGUIUtil.setEnabled ( __Results_JMenu, true );
-	}
-	else {	// DISABLE file and view options...
-		JGUIUtil.setEnabled ( __Results_JMenu, false );
-	}
-
-	// Tools menu...
-
-	if ( ts_list_size > 0 ) {
-		JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, true );
-		JGUIUtil.setEnabled ( __Tools_Report_JMenu, true );
-	}
-	else {	JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, false );
-		JGUIUtil.setEnabled ( __Tools_Report_JMenu, false );
-	}
-	if ( (query_list_size > 0) && (__geoview_JFrame != null) ) {
-		JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, true );
-	}
-	else {	JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, false );
-	}
-
-	// Enable/disable features related to the query list...
-
-	if ( query_list_size > 0 ) {
-		JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, true );
-	}
-	else {	JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
-	}
-	if (	(query_list_size > 0) && (__query_JWorksheet != null) &&
-		(__query_JWorksheet.getSelectedRowCount() > 0) ) {
-		JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, true );
-	}
-	else {	JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
-	}
-
-	// There should be no reason that the help system does not start up
-	// other than some synchronization issue.  For now put this in to try
-	// to catch problems...
-/* REVISIT
-	if ( _help_index_gui == null ) {
-		try {	_help_index_gui = new URLHelpGUI ( 0, "TSTool Help");
-			_help_index_gui.attachMainMenu ( _help_JMenu );
-		}
-		catch ( Exception e ) {
-		}
-	}
-*/
-	// Disable all of the following menus until the dialogs can be enabled.
-	// If not enabled below, the command may be phased out or merged with
-	// another command...
-
-	// REVISIT - need to create a dialog for the following...
-	JGUIUtil.setEnabled(__Commands_Create_TS_average_JMenuItem,false);
-
-	// REVISIT - all of these are new features.  The intent is to convert
-	// a TSID to a specific read command, as available in other menus,
-	// simplifying the conversion from time series browsing, to command
-	// language.
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readHydroBase_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readMODSIM_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readRiverWare_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readStateMod_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readStateModB_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem,false);
-
-	// REVISIT SAM 2005-09-02
-	// Proposed new commands
-	JGUIUtil.setEnabled(__Commands_Read_TS_readStateModB_JMenuItem,false);
-	JGUIUtil.setEnabled(__Commands_Read_TS_readStateMod_JMenuItem,false);
-
-	// REVISIT
-	// Not available as a command yet - logic not coded...
-	JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,false);
-
-	// REVISIT - make sure this is doing what it should
-	JGUIUtil.setEnabled(
-		__Commands_Fill_setMissingDataValue_JMenuItem,false);
-
-	// REVISIT - should not need this since fillRegression() does this
-	JGUIUtil.setEnabled(__Commands_Fill_setRegressionPeriod_JMenuItem,
-		false);
-
-	// REVISIT - can this be phased out?
-	JGUIUtil.setEnabled(
-		__Commands_Output_setOutputDetailedHeaders_JMenuItem,false);
-}
-
-/**
-Enable/disable the HydroBase input type features depending on whether a
-HydroBaseDMI connection has been made.
-*/
-private void checkHydroBaseFeatures ()
-{	if ( (__hbdmi != null) && __hbdmi.isOpen() ) {
-		if ( __input_type_JComboBox != null ) {
-			// Make sure HydroBase is in the input type list...
-			int count = __input_type_JComboBox.getItemCount();
-			boolean hbfound = false;
-			for ( int i = 0; i < count; i++ ) {
-				if ( __input_type_JComboBox.getItem(i).equals(
-					__INPUT_TYPE_HydroBase) ) {
-					hbfound = true;
-					break;
-				}
-			}
-			if ( !hbfound ) {
-				// Repopulate the input types...
-				setInputTypeChoices();
-			}
-		}
-		JGUIUtil.setEnabled (
-			__File_Properties_HydroBase_JMenuItem, true );
-	}
-	else {	// Remove HydroBase from the input type list if necessary...
-		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		JGUIUtil.setEnabled (
-			__File_Properties_HydroBase_JMenuItem, false );
-	}
-}
-
-/**
-Disable input types depending on the license.  For example, if the license type
-is "CDSS", then RTi-developed input types like RiversideDB and DIADvisor are
-disabled.  For the most part, the RTi license should be the default and only
-CDSS turns input types off in this method.
-*/
-private void checkInputTypesForLicense ()
-{	if ( __license_manager == null ) {
-		return;
-	}
-	String routine = "TSTool_JFrame.checkInputTypesForLicense";
-	if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-		if ( !__source_StateCU_enabled ) {
-			// Might not be in older config files...
-			Message.printStatus ( 1, routine,
-			"StateCU input type being enabled for CDSS." );
-			__source_StateCU_enabled = true;
-		}
-		if ( !__source_StateMod_enabled ) {
-			// Might not be in older config files...
-			Message.printStatus ( 1, routine,
-			"StateMod input type being enabled for CDSS." );
-			__source_StateMod_enabled = true;
-		}
-		Message.printStatus ( 2, routine,
-		"DIADvisor input type being disabled for CDSS." );
-		__source_DIADvisor_enabled = false;
-		Message.printStatus ( 2, routine,
-		"Mexico CSMN input type being disabled for CDSS." );
-		__source_MexicoCSMN_enabled = false;
-		Message.printStatus ( 2, routine,
-		"MODSIM input type being disabled for CDSS." );
-		__source_MODSIM_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NDFD input type being disabled for CDSS." );
-		__source_NDFD_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NWSCard input type being disabled for CDSS." );
-		__source_NWSCard_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NWSRFS FS5Files input type being disabled for CDSS." );
-		__source_NWSRFS_FS5Files_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NWSRFS ESPTraceEnsemble input type being disabled for CDSS." );
-		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
-		Message.printStatus ( 2, routine,
-		"RiversideDB input type being disabled for CDSS." );
-		__source_RiversideDB_enabled = false;
-		Message.printStatus ( 2, routine,
-		"SHEF input type being disabled for CDSS." );
-		__source_SHEF_enabled = false;
-	}
-}
-
-/**
-Check the license information to make sure that TSTool has a valid license.
-If not print a warning and exit.  The data member __license_manager is created
-for use elsewhere (e.g., in Help About).
-*/
-private void checkLicense ()
-{	try {	if (	(__license_manager == null) ||
-			!__license_manager.isLicenseValid() ) {
-			Message.printWarning ( 1, "TSTool.checkLicense",
-			"The license is invalid.  TSTool will exit." );
-			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-			setVisible(false);
-			dispose();
-			Message.closeLogFile();
-			System.exit(0);
-		}
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, "TSTool.checkLicense",
-		"Error checking the license.  TSTool will exit." );
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setVisible(false);
-		dispose();
-		Message.closeLogFile();
-		System.exit(0);
-	}
-	if ( __license_manager.getLicenseType().equalsIgnoreCase("Demo") ) {
-		if ( __license_manager.isLicenseExpired() ) {
-			Message.printWarning ( 1, "TSTool.checkLicense",
-			"The demonstration license has expired." +
-			"  TSTool will exit." );
-			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-			setVisible(false);
-			dispose();
-			Message.closeLogFile();
-			System.exit(0);
-		}
-		else {	Message.printWarning ( 1, "TSTool.checkLicense",
-			"This is a demonstration version of TSTool and will " +
-			"expire on " + __license_manager.getLicenseExpires() );
-		}
-	}
-}
-
-/**
-Check the GUI for NWSRFS FS5Files features.
-*/
-private void checkNWSRFSFS5FilesFeatures ()
-{	if ( (__nwsrfs_dmi != null) && (__input_type_JComboBox != null) ) {
-		// Make sure NWSRFS FS5Files is in the data source list...
-		int count = __input_type_JComboBox.getItemCount();
-		boolean rfound = false;
-		for ( int i = 0; i < count; i++ ) {
-			if ( __input_type_JComboBox.getItem(i).equals(
-				__INPUT_TYPE_NWSRFS_FS5Files) ) {
-				rfound = true;
-				break;
-			}
-		}
-		if ( !rfound ) {
-			// Repopulate the data sources...
-			setInputTypeChoices();
-		}
-		if (__File_Properties_NWSRFSFS5Files_JMenuItem != null ) {
-			__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled(
-				true);
-		}
-	}
-	else {	// NWSRFS FS5Files connection failed, but do not remove from
-		// input types because a new connection currently can be
-		// established from the interactive.
-		/*
-		try {	__input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		*/
-		if (__File_Properties_NWSRFSFS5Files_JMenuItem != null ) {
-			__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled (
-				false );
-		}
-	}
-}
-
-/**
-Check the GUI for RiversideDB features.
-*/
-private void checkRiversideDBFeatures ()
-{	if ( (__rdmi != null) && (__input_type_JComboBox != null) ) {
-		// Make sure RiversideDB is in the data source list...
-		int count = __input_type_JComboBox.getItemCount();
-		boolean rfound = false;
-		for ( int i = 0; i < count; i++ ) {
-			if ( __input_type_JComboBox.getItem(i).equals(
-				__INPUT_TYPE_RiversideDB) ) {
-				rfound = true;
-				break;
-			}
-		}
-		if ( !rfound ) {
-			// Repopulate the data sources...
-			setInputTypeChoices();
-		}
-		if (__File_Properties_RiversideDB_JMenuItem != null ) {
-			__File_Properties_RiversideDB_JMenuItem.setEnabled(
-				true);
-		}
-	}
-	else {	// RiversideDB connection failed so remove RiversideDB from the
-		// data source list if necessary...
-		try {	__input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		if (__File_Properties_RiversideDB_JMenuItem != null ) {
-			__File_Properties_RiversideDB_JMenuItem.setEnabled (
-				false );
-		}
-	}
-}
-
-/*
-Clear selected items from the command list (or all if none are selected).  Save
-what was cleared in the __command_cut_buffer Vector so that it can be used
-with Paste.
-*/
-private void clearCommands ()
-{	int size = 0;
-	int [] selected_indices = __commands_JList.getSelectedIndices();
-	if ( selected_indices != null ) {
-		size = selected_indices.length;
-	}
-	if ( (size == __commands_JListModel.size()) || (size == 0) ) {
-		int x = new ResponseJDialog ( this, "Delete Commands?",
-			"Are you sure you want to delete ALL the commands?",
-			ResponseJDialog.YES|ResponseJDialog.NO).response();
-		if ( x == ResponseJDialog.NO ) {
-			return;
-		}
-	}
-	if ( size == 0 ) {
-		// nothing selected
-		// Remove all...
-		__commands_JListModel.removeAllElements();
-	}
-	else {	// Need to remove from back of selected_indices so that removing
-		// elements will not affect the index of items before that
-		// index.  At some point need to add an undo feature.
-		JGUIUtil.setWaitCursor ( this, true );
-		__ignore_ItemEvent = true;
-		__ignore_ListSelectionEvent = true;
-		for ( int i = (size - 1); i >= 0; i-- ) {
-			__commands_JListModel.removeElementAt (
-				selected_indices[i] );
-		}
-		__ignore_ItemEvent = false;
-		__ignore_ListSelectionEvent = false;
-		selected_indices = null;
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	setCommandsDirty ( true );
-	clearTSList();
-	updateStatus();
-}
-
-/**
-Clear the query list (e.g., when a choice changes).
-*/
-private void clearQueryList ()
-{	if ( (__query_JWorksheet == null) || (__query_TableModel == null) ) {
-		// Not initialized...
-		return;
-	}
-	if ( __query_TableModel.getRowCount() > 0 ) {
-        	try {	__query_JWorksheet.clear();       
-		}
-		catch ( Exception e ) {
-			// Absorb the exception in most cases - print if
-			// developing to see if this issue can be resolved.
-			if ( Message.isDebugOn && IOUtil.testing()  ) {
-				String routine = "TSTool_JFrame.clearQueryList";
-				Message.printWarning ( 3, routine,
-				"For developers:  caught exception in " +
-				"clearQueryList JWorksheet at setup." );
-				Message.printWarning ( 3, routine, e );
-			}
-		}
-	}
-
-	// Set the data lists to empty and redraw the label (check for null
-	// because it seems to be an issue at startup)...
-
-	updateStatus ();
-}
-
-/**
-Clear the final time series List.  Updates to the label are also done.
-Also set the engine to null.
-*/
-private void clearTSList()
-{	__ts_JListModel.removeAllElements();
-	__ts_processor.clearResults();
-}
-
-/**
-Indicate that a command has changed.
-@param command Command that has been changed (e.g., edited).
-@param index Index of command in processor and displayed list.
-*/
-private void commandChanged ( Command command, int index )
+public void commandCompleted ( int icommand, int ncommand, Command command,
+		float percent_complete, String message )
 {
-	// FIXME SAM 2007-08-10 - need to have command check for problems after edit
-	//...
-	// Now let the list model for the GUI know that the command has changed...
-	__commands_JListModel.commandChanged ( index, index );
+	// Update the progress bar to indicate progress.
+	__processor_JProgressBar.setValue ( icommand + 1 );
+	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
 }
 
 /**
-Handle "File...Exit" and X actions.
+Determine whether commands are equal, for single-line commands.
+@param original_command Original command as a string.
+@param edited_command Edited command as a string.
 */
-private void closeClicked ()
-{	// If the commands are dirty, see if they want to save them...
-	// This code is also in openCommandsFile - might be able to remove
-	// copy once all actions are implemented...
-	int x = ResponseJDialog.YES;	// Default for batch mode
-	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
-		if ( __show_main && __commands_dirty ) {
-			if ( __commands_file_name == null ) {
-				// Have not been saved before...
-				x = ResponseJDialog.NO;
-				if ( __commands_JListModel.size() > 0 ) {
-					x = new ResponseJDialog ( this,
-					IOUtil.getProgramName(),
-					"Do you want to save the changes you " +
-					"made?",
-					ResponseJDialog.YES| ResponseJDialog.NO|
-					ResponseJDialog.CANCEL).response();
-				}
-				if ( x == ResponseJDialog.CANCEL ) {
-					setDefaultCloseOperation(
-						DO_NOTHING_ON_CLOSE);
-					return;
-				}
-				else if ( x == ResponseJDialog.YES ) {
-					// Prompt for the name and then save...
-					writeCommandsFile (
-					__commands_file_name, true);
-				}
-			}
-			else {	// A commands file exists...  Warn the user.
-				// They can save to the existing file name or
-				// can cancel and File...Save As... to a
-				// different name.  Have not been saved
-				// before...
-				x = ResponseJDialog.NO;
-				if ( __commands_JListModel.size() > 0 ) {
-					x = new ResponseJDialog ( this,
-					IOUtil.getProgramName(), "Do you want "+
-					"to save the changes you made to\n\""
-					+ __commands_file_name + "\"?",
-					ResponseJDialog.YES| ResponseJDialog.NO|
-					ResponseJDialog.CANCEL).response();
-				}
-				if ( x == ResponseJDialog.CANCEL ) {
-					setDefaultCloseOperation(
-						DO_NOTHING_ON_CLOSE);
-					return;
-				}
-				else if ( x == ResponseJDialog.YES ) {
-					writeCommandsFile (
-					__commands_file_name, false );
-				}
-				// Else if No will just exit below...
-			}
-		}
-		// Now make sure the user wants to exit - they might have a lot
-		// of data processed...
-		if ( __show_main ) {
-			x = new ResponseJDialog (this,
-			"Exit TSTool", "Are you sure you want to exit TSTool?",
-			ResponseJDialog.YES| ResponseJDialog.NO).response();
-		}
-	}
-	if ( x == ResponseJDialog.YES ) {
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setVisible(false);
-		try {	dispose();
-		}
-		catch ( Exception e ) {
-			// Why is this a problem?
-		}
-		Message.closeLogFile();
-		System.exit(0);
-	}
-	else {	// Cancel...
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-	}
+private boolean commandList_CommandsAreEqual (String original_command, String edited_command)
+{	Vector original_command_Vector = new Vector(1);
+	original_command_Vector.addElement ( original_command );
+	Vector edited_command_Vector = new Vector(1);
+	edited_command_Vector.addElement ( edited_command );
+	return commandList_CommandsAreEqual(original_command_Vector,edited_command_Vector);
 }
 
 /**
@@ -5709,7 +2054,7 @@ command is stored in a Vector (but typically only the first String is used.
 @param original_command Original command as a Vector of String.
 @param edited_command Edited command as a Vector of String.
 */
-private boolean commandsAreEqual(Vector original_command, Vector edited_command)
+private boolean commandList_CommandsAreEqual(Vector original_command, Vector edited_command)
 {	if ( (original_command == null) && (edited_command != null) ) {
 		return false;
 	}
@@ -5748,876 +2093,280 @@ private boolean commandsAreEqual(Vector original_command, Vector edited_command)
 }
 
 /**
-Indicate that a command has completed.  The success/failure of the command
-is not indicated (see CommandStatusProvider).
-@param icommand The command index (0+).
-@param ncommand The total number of commands to process
-@param command The reference to the command that is starting to run,
-provided to allow future interaction with the command.
-@param percent_complete If >= 0, the value can be used to indicate progress
-running a list of commands (not the single command).  If less than zero, then
-no estimate is given for the percent complete and calling code can make its
-own determination (e.g., ((icommand + 1)/ncommand)*100).
-@param message A short message describing the status (e.g., "Running command ..." ).
+Return the command(s) that are currently selected in the final list.
+If the command contains only comments, they are all returned.  If it contains
+commands and time series identifiers, only the first command (or time series
+identifier) is returned.
+@return selected commands in final list or null if none are selected.
+Also return null if more than one command is selected.
 */
-public void commandCompleted ( int icommand, int ncommand, Command command,
-		float percent_complete, String message )
-{
-	// Update the progress bar to indicate progress.
-	__processor_JProgressBar.setValue ( icommand + 1 );
-	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
-}
+/*
+private Vector commandList_GetCommand ()
+{	// First get the list...
+	Vector command = getCommands();
+	// Now make sure there is only one command, allowing comments in
+	// front...
+	if ( command == null ) {
+		return null;
+	}
+	int size = command.size();
+	boolean comment_found = false;
+	String string = null;
 
-/**
-Indicate the progress that is occurring within a command.  This may be a chained call
-from a CommandProcessor that implements CommandListener to listen to a command.  This
-level of monitoring is useful if more than one progress indicator is present in an
-application UI.
-@param istep The number of steps being executed in a command (0+).
-@param nstep The total number of steps to process within a command.
-@param command The reference to the command that is starting to run,
-provided to allow future interaction with the command.
-@param percent_complete If >= 0, the value can be used to indicate progress
-running a single command (not the single command).  If less than zero, then
-no estimate is given for the percent complete and calling code can make its
-own determination (e.g., ((istep + 1)/nstep)*100).
-@param message A short message describing the status (e.g., "Running command ..." ).
-*/
-public void commandProgress ( int istep, int nstep, Command command,
-		float percent_complete, String message )
-{	if ( istep == 0 ) {
-		// Initialize the limits of the command progress bar.
-		__command_JProgressBar.setMinimum ( 0 );
-		__command_JProgressBar.setMaximum ( nstep );
-	}
-	// Set the current value...
-	__command_JProgressBar.setValue ( istep + 1 );
-}
-
-/**
-Get the command processor AutoExtendPeriod.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global AutoExtendPeriod as a Boolean from the command processor or null if
-not yet determined.
-*/
-private Boolean commandProcessorGetAutoExtendPeriod()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "AutoExtendPeriod" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (Boolean)o;
-	}
-}
-
-/**
-Get the command processor HydroBaseDMIList.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The HydroBaseDMIList as a Vector from the command processor or null if
-not yet determined or no connections.
-*/
-private Boolean commandProcessorGetHydroBaseDMIList()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "HydroBaseDMIList" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (Boolean)o;
-	}
-}
-
-/**
-Get the command processor IncludeMissingTS.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global IncludeMissingTS as a Boolean from the command processor or null if
-not yet determined.
-*/
-private Boolean commandProcessorGetIncludeMissingTS()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "IncludeMissingTS" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (Boolean)o;
-	}
-}
-
-/**
-Get the command processor InputEnd.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global InputEnd as a DateTime from the command processor or null if
-not yet determined.
-*/
-private DateTime commandProcessorGetInputEnd()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "InputEnd" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (DateTime)o;
-	}
-}
-
-/**
-Get the command processor InputStart.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global InputStart as a DateTime from the command processor or null if
-not yet determined.
-*/
-private DateTime commandProcessorGetInputStart()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "InputStart" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (DateTime)o;
-	}
-}
-
-/**
-Get the command processor OutputEnd.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global OutputEnd as a DateTime from the command processor or null if
-not yet determined.
-*/
-private DateTime commandProcessorGetOutputEnd()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "OutputEnd" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (DateTime)o;
-	}
-}
-
-/**
-Get the command processor OutputStart.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global OutputStart as a DateTime from the command processor or null if
-not yet determined.
-*/
-private DateTime commandProcessorGetOutputStart()
-{	if ( __ts_processor == null ) {
-		return null;
-	}
-	Object o = null;
-	try {	o = __ts_processor.getPropContents ( "OutputStart" );
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else { return (DateTime)o;
-	}
-}
-
-/**
-Get the command processor time series results for an index position.
-Typically this corresponds to a user selecting the time series from the
-results list, for further display.
-@param pos Position (0+ for the time series).
-@return The time series at the requested position in the results or null
-if the processor is not available.
-*/
-private TS commandProcessorGetTimeSeries( int pos )
-{	String message, routine = "TSTool_JFrame.commandProcessorGetTimeSeries";
-	if ( __ts_processor == null ) {
-		return null;
-	}
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "Index", new Integer(pos) );
-	CommandProcessorRequestResultsBean bean = null;
-	try { bean =
-		__ts_processor.processRequest( "GetTimeSeries", request_params);
-	}
-	catch ( Exception e ) {
-		message = "Error requesting GetTimeSeries(Index=" + pos + ") from processor.";
-		Message.printWarning(2, routine, message );
-		Message.printWarning ( 3, routine, e );
-	}
-	PropList bean_PropList = bean.getResultsPropList();
-	Object o_TS = bean_PropList.getContents ( "TS" );
-	TS ts = null;
-	if ( o_TS == null ) {
-		message = "Null TS returned from processor for GetTimeSeries(Index=\"" + pos + "\").";
-		Message.printWarning ( 2, routine, message );
-	}
-	else {	ts = (TS)o_TS;
-	}
-	return ts;
-}
-
-/**
-Get the command processor time series results list.
-@return The time series results list or null
-if the processor is not available.
-*/
-private Vector commandProcessorGetTimeSeriesResultsList()
-{	String routine = "TSTool_JFrame.commandProcessorGetTimeSeriesResultsList";
-	Object o = null;
-	try { o = __ts_processor.getPropContents ( "TSResultsList" );
-	}
-	catch ( Exception e ) {
-		String message = "Error requesting TSResultsList from processor.";
-		Message.printWarning(2, routine, message );
-	}
-	if ( o == null ) {
-		return null;
-	}
-	else {
-		return (Vector)o;
-	}
-}
-
-/**
-Get the size of the command processor time series results list.
-@return the size of the command processor time series results list.
-*/
-private int commandProcessorGetTimeSeriesResultsListSize()
-{
-	Vector results = commandProcessorGetTimeSeriesResultsList();
-	if ( results == null ) {
-		return 0;
-	}
-	return results.size();
-}
-
-/**
-Process time series from the results list into a product (graph, etc).
-*/
-private void commandProcessorProcessTimeSeriesResultsList ( int [] indices, PropList props )
-{	String routine = "TSTool_JFrame.commandProcessorProcessTimeSeriesResultsList";
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "Indices", indices );
-	request_params.setUsingObject ( "Properties", props );
-	//CommandProcessorRequestResultsBean bean = null;
-	try { //bean =
-		__ts_processor.processRequest( "ProcessTimeSeriesResultsList", request_params );
-	}
-	catch ( Exception e ) {
-		String message = "Error requesting ProcessTimeSeriesResultsList(Indices=\"" + indices + "\"," +
-		" Properties=\"" + props + "\" from processor.";
-		Message.printWarning(2, routine, message );
-	}
-}
-
-/**
-Run the commands through the processor.  Curently this supplies the list of
-Command instances to run because the user can select the commands in the
-interface.  In the future the command processor may put together the list without
-being passed from the GUI.
-*/
-private void commandProcessorRunCommands ( Vector commands, boolean create_output )
-{	String routine = "TSTool_JFrame.commandProcessorRunCommands";
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "CommandList", commands );
-	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
-	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
-	//CommandProcessorRequestResultsBean bean = null;
-	try { //bean =
-		__ts_processor.processRequest( "RunCommands", request_params );
-	}
-	catch ( Exception e ) {
-		String message = "Error requesting RunCommands(CommandList=...) from processor.";
-		Message.printWarning(2, routine, message );
-		Message.printWarning (3,routine, e);
-	}
-}
-
-/**
-Run a command processor to get the current working directory.
-This is a limited run meant to determine the working directory for
-command editing, where the working directory may have changed from the
-original command file location.  It is meant to be called from
-updateDynamicProps().
-@param ts_processor The command processor to be run.
-@param props The properties to be set with the current working directory.
-*/
-private void commandProcessorRunSetWorkingDirCommand ( TSCommandProcessor ts_processor, PropList props )
-{	String routine = "TSTool_JFrame.commandProcessorRunSetWorkingDirCommand";
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "CommandList", ts_processor.getCommands() );
-	request_params.set ( "InitialWorkingDir", getInitialWorkingDir() );
-	request_params.setUsingObject ( "CreateOutput", new Boolean(false) );
-	//CommandProcessorRequestResultsBean bean = null;
-	try { //bean =
-		__ts_processor.processRequest( "RunCommands", request_params );
-		// Now get the working directory and set for the current environment.
-		Object o = __ts_processor.getPropContents("WorkingDir");
-		if ( o != null ) {
-			props.set ( "WorkingDir", (String)o );
+	// First check to see if all comments.  If so, then return all of them
+	// (an editor only for the comments will be used)...
+	// Initialize
+	comment_found = true;
+	for ( int i = 0; i < size; i++ ) {
+		string = (String)command.elementAt(i);
+		if ( !isCommentLine(string) ) {
+			comment_found = false;
 		}
 	}
-	catch ( Exception e ) {
-		String message = "Error requesting RunCommands(CommandList=...) from processor.";
-		Message.printWarning(2, routine, message );
-		Message.printWarning (3,routine, e);
+	if ( comment_found ) {
+		// All we had was comments so return...
+		return command;
 	}
-}
-
-/**
-Set the command processor HydroBase instance that is opened via the GUI.
-@param hbdmi Open HydroBaseDMI instance.
-The input name is blank since it is the default HydroBaseDMI.
-@return The time series at the requested position in the results or null
-if the processor is not available.
-*/
-private void commandProcessorSetHydroBaseDMI( HydroBaseDMI hbdmi )
-{	String message, routine = "TSTool_JFrame.setCommandProcessorHydroBaseDMI";
-	if ( hbdmi == null ) {
-		return;
-	}
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "HydroBaseDMI", hbdmi );
-	CommandProcessorRequestResultsBean bean = null;
-	try { bean =
-		__ts_processor.processRequest( "SetHydroBaseDMI", request_params );
-	}
-	catch ( Exception e ) {
-		message = "Error requesting SetHydroBaseDMI(HydroBaseDMI=\"" + hbdmi + " from processor.";
-		Message.printWarning(2, routine, message );
-	}
-}
-
-/**
-Determine whether commands are equal, for single-line commands.
-@param original_command Original command as a string.
-@param edited_command Edited command as a string.
-*/
-private boolean commandsAreEqual (String original_command, String edited_command)
-{	Vector original_command_Vector = new Vector(1);
-	original_command_Vector.addElement ( original_command );
-	Vector edited_command_Vector = new Vector(1);
-	edited_command_Vector.addElement ( edited_command );
-	return commandsAreEqual(original_command_Vector,edited_command_Vector);
-}
-
-
-/**
-Indicate that a command has started running.
-@param icommand The command index (0+).
-@param ncommand The total number of commands to process
-@param command The reference to the command that is starting to run,
-provided to allow future interaction with the command.
-@param percent_complete If >= 0, the value can be used to indicate progress
-running a list of commands (not the single command).  If less than zero, then
-no estimate is given for the percent complete and calling code can make its
-own determination (e.g., ((icommand + 1)/ncommand)*100).
-@param message A short message describing the status (e.g., "Running command ..." ).
-*/
-public void commandStarted ( int icommand, int ncommand, Command command,
-		float percent_complete, String message )
-{	// commandCompleted updates the progress bar after each command.
-	// For this method, only reset the bounds of the progress bar and
-	// clear if the first command.
-	if ( icommand == 0 ) {
-		__processor_JProgressBar.setMinimum ( 0 );
-		__processor_JProgressBar.setMaximum ( ncommand );
-		__processor_JProgressBar.setValue ( 0 );
-	}
-	// Always set the value for the command progres so that it shows up
-	// as zero.  The commandProgres() method will do a better job of setting
-	// the limits and current status for a specific command.
-	__command_JProgressBar.setMinimum ( 0 );
-	__command_JProgressBar.setMaximum ( 100 );
-	__command_JProgressBar.setValue ( 0 );
-}
-
-/**
-Convert selected commands to comments.
-@param to_comment If true, convert commands to comments, if false, from
-comments.
-*/
-private void convertCommandsToComments ( boolean to_comment )
-{	int selected_indexes[] = __commands_JList.getSelectedIndices();
-	int selected_size = JGUIUtil.selectedSize ( __commands_JList );
-	String s = null;
-	for ( int i = 0; i < selected_size; i++ ) {
-		s = (String)__commands_JListModel.get(selected_indexes[i]);
-		/* FIXME SAM 2007-08-10 Need to fix to use commands.
-		if ( to_comment ) {
-			// Replace with a new string that has the
-			// comment character...
-			__commands_JListModel.setElementAt (
-			("# " + s), selected_indexes[i]);
-			setCommandsDirty ( true );
+	// Else may have mixed comments.  Want to pull out only the
+	// first non-comments and assume it is an command.
+	for ( int i = 0; i < size; i++ ) {
+		string = (String)command.elementAt(i);
+		if ( !isCommentLine(string) ) {
+			Vector v = new Vector ( 1 );
+			v.addElement ( string );
+			command = null;
+			return v;
 		}
-		else {	// Remove comment...
-			if ( s.startsWith("#") ) {
-				__commands_JListModel.setElementAt (
-				s.substring(1).trim(), selected_indexes[i]);
+	}
+/ * FIXME when method reenabled.
+	// Else may have mixed comments.  Want to pull out only the
+	// non-comments after an optional set of commments...
+	for ( int i = 0; i < size; i++ ) {
+		string = (String)command.elementAt(i);
+		if (	(i == 0) && !isCommentLine(string) ) {
+			// First line is not a comment so set like it is
+			// so we know to quit when the next comment is found...
+			comment_found = true;
+		}
+		else if ( comment_found && isCommentLine(string) ) {
+			// Found a new comment so delete the remaining
+			// strings and return what we have so far...
+			for ( int j = (size - 1); j <= i; j-- ) {
+				command.removeElementAt(j);
 			}
-			setCommandsDirty ( true );
+			return command;
 		}
-		*/
+		else if ( isCommentLine(string) ) {
+			// Found a comment so ignore it and indicate that we
+			// have found comments.
+			comment_found = true;
+			command.removeElementAt(i);
+			--i;
+		}
 	}
-	updateStatus ();
-}
+* /
 
-/**
-This function fills in appropriate selections for the time step and choices.
-This also calls timestepChoiceClicked() to set the data type modifier.
+	return command;
+}
 */
-private void dataTypeChoiceClicked()
-{	String rtn = "TSTool_JFrame.dataTypeChoiceClicked";
-	if (	(__input_type_JComboBox == null) ||
-		(__data_type_JComboBox == null) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Data type has been " +
-			"selected but GUI is not initialized." );
-		}
-		return;	// Not done initializing.
-	}
-	__selected_data_type_full = __data_type_JComboBox.getSelected();
-	if ( __selected_data_type_full == null ) {
-		// Apparently this happens when setData() or similar is called
-		// on the JComboBox, and before select() is called.
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Data type has been " +
-			"selected:  null (select is ignored)" );
-		}
-		return;
-	}
-	// For some input types, data types have additional label-only
-	// information...
-	if ( __selected_data_type_full.indexOf('-') >= 0 ) {
-		if (	__selected_input_type.equals(__INPUT_TYPE_HydroBase) ||
-			__selected_input_type.equals(__INPUT_TYPE_StateModB)) {
-			// Data type group is first and data type second...
-			__selected_data_type = StringUtil.getToken(
-				__selected_data_type_full, "-", 0, 1).trim();
-		}
-		else {	// Data type is first and explanation second...
-			__selected_data_type = StringUtil.getToken(
-				__selected_data_type_full, "-", 0, 0).trim();
-		}
-	}
-	else {	__selected_data_type = __selected_data_type_full;
-	}
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, rtn, "Data type has been selected:  \""
-		+ __selected_data_type + "\"" );
-	}
-
-	// Set the appropriate settings for the current data input type and
-	// data type...
-
-	if ( __selected_input_type.equals(__INPUT_TYPE_DateValue) ) {
-		// DateValue file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_DIADvisor) ) {
-		// The time steps are always available in both the operational
-		// and archive database.  However, "DataValue2" is only
-		// available in the operational database.  Also, regular
-		// interval data seem to only be available for Rain group.
-		String group =StringUtil.getToken(__selected_data_type,"-",0,0);
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.setEnabled ( true );
-		if (	__selected_data_type.endsWith("DataValue") &&
-			group.equalsIgnoreCase("Rain") ) {
-			__time_step_JComboBox.add ( __TIMESTEP_DAY );
-			__time_step_JComboBox.add ( __TIMESTEP_HOUR );
-		}
-		__time_step_JComboBox.add ( __TIMESTEP_IRREGULAR );
-		if (	__selected_data_type.endsWith("DataValue") &&
-			group.equalsIgnoreCase("Rain") ) {
-			try {	DIADvisor_SysConfig config =
-				__DIADvisor_dmi.readSysConfig();
-				__time_step_JComboBox.add ( "" +
-					config.getInterval() +
-					__TIMESTEP_MINUTE );
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 2, rtn,
-				"Could not determine"
-				+ " DIADvisor interval for time step choice." );
-				Message.printWarning ( 2, rtn, e );
-			}
-		}
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( 0 );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ) {
-		Vector time_steps =
-			HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
-			__selected_data_type,
-			HydroBase_Util.DATA_TYPE_AGRICULTURE |
-			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
-			HydroBase_Util.DATA_TYPE_HARDWARE |
-			HydroBase_Util.DATA_TYPE_STATION_ALL |
-			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
-			HydroBase_Util.DATA_TYPE_WIS );
-		__time_step_JComboBox.setData ( time_steps );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.setEnabled ( true );
-		// Select monthly as the default if available...
-		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,
-			"Month", JGUIUtil.NONE, null, null ) ) {
-			__time_step_JComboBox.select ( "Month" );
-		}
-		else {	// Select the first item...
-			try {	__time_step_JComboBox.select ( 0 );
-			}
-			catch ( Exception e ) {
-				// For cases when for some reason no choice
-				// is available.
-				__time_step_JComboBox.setEnabled ( false );
-			}
-		}
-		// If the data type is for a diversion or reservoir data type,
-		// hide the abbreviation column in the table model.  Else show
-		// the column.
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ) {
-		// Mexico CSMN file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_DAY );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_DAY );
-		__time_step_JComboBox.setEnabled ( true );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_MODSIM) ) {
-		// MODSIM file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_NWSCARD) ) {
-		// NWSCard file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_HOUR );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_HOUR );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
-		// Time steps are determined from the system...
-		Vector time_steps = NWSRFS_Util.getDataTypeIntervals (
-			__nwsrfs_dmi, __selected_data_type );
-		__time_step_JComboBox.setData ( time_steps );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.setEnabled ( true );
-		// Select 6Hour as the default if available...
-		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,
-			"6Hour", JGUIUtil.NONE, null, null ) ) {
-			__time_step_JComboBox.select ( "6Hour" );
-		}
-		else {	// Select the first item...
-			try {	__time_step_JComboBox.select ( 0 );
-			}
-			catch ( Exception e ) {
-				// For cases when for some reason no choice
-				// is available.
-				__time_step_JComboBox.setEnabled ( false );
-			}
-		}
-	}
-	else if ( __selected_input_type.equals(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble) ){
-		// ESP Trace Ensemble file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
-		// Time steps are determined from the database based on the
-		// data type that is selected...
-		String data_type = StringUtil.getToken(
-			__data_type_JComboBox.getSelected()," ",0,0).trim();
-		Vector v = null;
-		try {	v = __rdmi.readMeasTypeListForTSIdent (
-					".." + data_type + ".." );
-		}
-		catch ( Exception e ) {
-			Message.printWarning(2, rtn, "Error getting time "
-				+ "steps from RiversideDB.");
-			Message.printWarning(2, rtn, e);
-			v = null;
-		}
-		int size = 0;
-		if ( v != null ) {
-			size = v.size();
-		}
-		RiversideDB_MeasType mt = null;
-		String timestep;
-		String time_step_base;
-		long time_step_mult;
-		__time_step_JComboBox.removeAll ();
-		if ( size > 0 ) {
-			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)v.elementAt(i);
-				// Only add if not already listed.
-				// Alternatively - add a "distinct" query
-				time_step_base = mt.getTime_step_base();
-				time_step_mult = mt.getTime_step_mult();
-				if (	time_step_base.equalsIgnoreCase(
-					"IRREGULAR") ||
-					DMIUtil.isMissing(time_step_mult) ) {
-					timestep = mt.getTime_step_base();
-				}
-				else {	timestep = "" + mt.getTime_step_mult() +
-						mt.getTime_step_base();
-				}
-				if (	!JGUIUtil.isSimpleJComboBoxItem(
-					__time_step_JComboBox,
-					timestep, JGUIUtil.NONE, null, null)){
-					__time_step_JComboBox.add(timestep);
-				}
-			}
-			__time_step_JComboBox.select ( null );
-			__time_step_JComboBox.select ( 0 );
-			__time_step_JComboBox.setEnabled ( true );
-		}
-		else {	__time_step_JComboBox.setEnabled ( false );
-		}
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_RiverWare) ) {
-		// RiverWare file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU) ) {
-		// StateCU files...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_StateMod) ) {
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_DAY );
-		__time_step_JComboBox.add ( __TIMESTEP_MONTH );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_MONTH );
-		__time_step_JComboBox.setEnabled ( true );
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
-		// StateMod binary output file - the time step is set when the
-		// input name is selected so do nothing here.
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_USGSNWIS) ) {
-		// USGS NWIS file...
-		__time_step_JComboBox.removeAll ();
-		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.select ( null );
-		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
-		__time_step_JComboBox.setEnabled ( false );
-	}
-
-	// Set the filter where clauses based on the data type changing...
-
-	setInputFilters();
-}
-
-/**
-Delete all commands in the list.
-@param index Index in the list at which item should be removed.
-*/
-private void deleteCommands ()
-{	// Do this so that the status only needs to be updated once...
-	Message.printStatus(2,"deleteCommands", "Calling list model removeAllElements.");
-	__commands_JListModel.removeAllElements();
-	setCommandsDirty ( true );
-	updateStatus ();
-}
-
-/**
-Deselect all commands in the commands list.
-*/
-private void deselectAllCommands()
-{	__commands_JList.clearSelection();
-	updateStatus ();
-	checkGUIState();
-}
-
-/**
-Edit or update a time series command, check for errors in the appropriate
-dialogs.
-@param action Menu action to carry out.  Pass as an empty string if the edit
-is not initiated from a conversion or insert.
-@param command_Vector Command to update, when mode is __UPDATE_COMMAND.
-@param mode __UPDATE_COMMAND if editing or __INSERT_COMMAND if adding a new
-command.
-*/
-private void editCommand ( String action, Vector command_Vector, int mode )
-{	editCommand ( action, command_Vector, mode, true );
-}
 
 /**
 Edit a command in the command list.
 @param action the string containing the event's action value.  This is checked
 for new commands.  When editing existing commands, command_Vector will contain
-a list of Command class instances.
+a list of Command class instances.  Normally only the first command will be edited as
+a single-line command.  However, multiple # comment lines can be selected and edited
+at once.
 @param command_Vector If an update, this contains the current Command instances
 to edit.  If a new command, this is null and the action string will be consulted
-to construct the appropriate command.
+to construct the appropriate command.  The only time that multiple commands will
+be edited are when they are in a {# delimited comment block).
 @param mode the action to take when editing the command (__INSERT_COMMAND for a
 new command or __UPDATE_COMMAND for an existing command).
-@param check_errors whether the command will be checked for errors (i.e.,
-opened in its own dialog) or not.  This may go away given that all commands
-will soon have error handling.
 */
-private void editCommand (	String action, Vector command_Vector,
-				int mode, boolean check_errors )
-{	String routine = "TSTool_JFrame.editCommand";
-	String command = null;	// Single string command to edit, to support legacy editors
-	Vector cv = null;	// Command_Vector, as String instances, to support legacy editors
+private void commandList_EditCommand (	String action, Vector command_Vector, int mode )
+{	String routine = getClass().getName() + ".editCommand";
 	int dl = 1;		// Debug level
-
-	Vector original_cv = null; // Copy of original commands as string, to detect edits
-	String original_command_string = null;// Original command string (first command), to detect edits
+	
+	// Indicate whether the commands are a block of # comments.
+	// If so then need to use a special editor rather than typical
+	// one-line editors.
+	boolean is_comment_block = false;
+	if ( mode == __UPDATE_COMMAND ) {
+		is_comment_block = commandList_IsCommentBlock ( __ts_processor,
+			command_Vector,
+			true,	// All must be comments
+			true );	// Comments must be contiguous
+	}
+	else {
+		// New command, so look for comment actions.
+		if ( action.equals(__Commands_General_Comment_String) ) {
+			is_comment_block = true;
+		}
+	}
 
 	try {	// Main try to help with troubleshooting, especially during
 		// transition to new command structure.
 
-	// Set the Vectors used in dialogs (this setup will not be used when
-	// running in batch mode)...
+	// Set the Vectors used in dialogs, for example global data choices that need to only
+	// be generated once (this setup will not be used when running in batch mode)...
 
-	checkDialogInput ();
+	ui_CheckDialogInput ();
 
-	// FIXME SAM 2007-08-13 Need to handle comments
-	boolean command_is_comment = false;	// To help with multi-line commands
-	Command command_to_edit = null;	// Command being edited.
+	// First make sure we have a Command object to edit.  If an old-style command
+	// then it will be stored in a GenericCommand.
+	// The Command object is inserted in the processor in any case, to take advantage
+	// of processor information (such as being able to get the time series identifiers
+	// from previous commands.
+	// If a new command is being inserted and a cancel occurs, the command will simply
+	// be removed from the list.
+	// If an existing command is being updated and a cancel occurs, the changes need to
+	// be ignored.
+	// FIXME SAM 2007-08-31 Need to do a copy of a command before it is updated so a
+	// cancel can restore to the original.
+	
+	Command command_to_edit_original = null;	// Command being edited (original).
+	Command command_to_edit = null;	// Command being edited (clone).
 	if ( mode == __UPDATE_COMMAND ) {
 		// Get the command from the processor...
-		if ( command_is_comment ) {
+		if ( is_comment_block ) {
 			// Do something special to handle multiple lines...
+			// FIXME SAM 2007-08-31 need to enable
 		}
-		else { command_to_edit = (Command)command_Vector.elementAt(0);
-		}
-		// Updating the command so pass in the original command...
-		if ( (command_Vector != null) && (command_Vector.size() == 0)) {
-			// Should never happen???
-			return;
-		}
-		// Get the command string to pass to old-style editors...
-		command = command_to_edit.toString();
-		// Save a copy of the original command vector strings so that it can be
-		// compared at the end of the edit.  If a change occurs, the
-		// commands list will be be marked as dirty and the user will
-		// be given the option to save before exiting...
-		int size = command_Vector.size();
-		cv = new Vector(size);
-		original_cv = new Vector(size);
-		for ( int i = 0; i < size; i++ ) {
-			// Force new strings to be created so the comparison is
-			// made on the string content, not the reference to the
-			// Vector that is used below.  A Vector is used for legacy
-			// support, although non-comment edits will be one String.
-			cv.addElement ( ((Command)command_Vector.elementAt(i)).toString() );
-			original_cv.addElement ( ((Command)command_Vector.elementAt(i)).toString() );
-			if ( i == 0 ) {
-				original_command_string = ((Command)command_Vector.elementAt(i)).toString();
-			}
-		}
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Command vector is: " + cv );
+		else {
+			// Get the original command...
+			command_to_edit_original = (Command)command_Vector.elementAt(0);
+			// Clone it so that the edit occurs on the copy...
+			command_to_edit = (Command)command_to_edit_original.clone();
+			Message.printStatus(2, routine, "Cloned command to edit: \"" +
+					command_to_edit + "\"" );
+			// Remove the original command...
+			int pos = commandList_IndexOf ( command_to_edit_original );
+			commandList_RemoveCommand ( command_to_edit_original );
+			// Insert the copy during the edit...
+			commandList_InsertCommandAt ( command_to_edit, pos );
+			Message.printStatus(2, routine,
+				"Will edit the copy and restore to the original if the edit is cancelled.");
 		}
 	}
-	else {	// New command so pass in a blank Vector...
-		cv = new Vector ( 1 );
-		original_cv = null;	// No original because it's new
-		command = "";
+	else {
+		// New command so create a command as a placeholder for
+		// editing (filled out during the editing).
+		// Get everything before the ) in the command and then re-add the ").
+		// REVISIT SAM 2007-08-31 Why is this done
+		// Need to handle:
+		//	1) Traditional commands foo()
+		//	2) Comments # blocks
+		//  3) TS alias = foo()
+		//  4) Time series identifiers.
+		//  5) Don't allow edit of /* */ comments - just insert/delete
+		String command_string = StringUtil.getToken(action,")",0,0)+ ")";
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine,
+			"Using command factory to create new " +
+			"command for \"" + command_string + "\"" );
+		}
+		
+        command_to_edit = commandList_NewCommand( command_string, true );
+        Message.printStatus(2, routine, "Created new command to insert:  \"" +
+        		command_to_edit + "\"" );
+        
+        // Add it to the processor at the insert point of the edit (before the
+        // first selected command...
+        
+        commandList_InsertCommandBasedOnUI ( command_to_edit );
+        Message.printStatus(2, routine, "Inserted command.");
+	}
+
+	// Second, edit the command, whether an update or an insert...
+
+	boolean edit_completed = false;
+	if ( is_comment_block ) {
+		Message.printStatus ( 2, routine, "Editing comments is not yet enabled.");
+	}
+	else {	// Editing a single one-line command...
+		if ( command_to_edit instanceof GenericCommand ) {
+			// Edit with the old style editors.
+			Message.printStatus(2, routine, "Editing GenericCommand with old-style editor.");
+			edit_completed = commandList_EditCommandOldStyle ( mode, action, command_Vector, (GenericCommand)command_to_edit );
+		}
+		else {
+			// Edit with the new style editors...
+			Message.printStatus(2, routine, "Editing Command with new-style editor.");
+			edit_completed = commandList_EditCommandNewStyle ( command_to_edit );
+		}
+	}
+	
+	// Third, make sure that the edits are to be saved.  If not, restore the original
+	// copy (if an update) or discard the command (if a new insert).
+
+	if ( edit_completed ) {
+		if ( mode == __INSERT_COMMAND ) {
+			// Only need to handle comments because a one-line command will already
+			// be inserted in the list
+		}
+	}
+	else {	// The edit was cancelled.  If it was a new command being inserted,
+		// remove the command from the processor...
+		if ( mode == __INSERT_COMMAND ) {
+			commandList_RemoveCommand(command_to_edit);
+		}
+		else {
+			// Else was an update so restore the original command...
+			int pos = commandList_IndexOf(command_to_edit);
+			commandList_RemoveCommand(command_to_edit);
+			commandList_InsertCommandAt(command_to_edit_original, pos);
+		}
+	}
+
+	}
+	catch ( Exception e2 ) {
+		// TODO SAM 2005-05-18 Evaluate handling of unexpected error... 
+		Message.printWarning(2, routine, "Unexpected error editing command." );
+		Message.printWarning ( 3, routine, e2 );
+	}
+}
+
+/**
+Edit a new-style command, which has a custom editor.
+@param Command command_to_edit The command to edit.
+*/
+private boolean commandList_EditCommandNewStyle ( Command command_to_edit )
+{
+	return command_to_edit.editCommand(this);
+}
+
+/**
+Edit the command using old-style editors.  This is used for commands that have not
+been migrated to the new design and hence they are only represented as GenericCommand
+with the command string set.  This method ONLY edits the command.  It does nothing to
+commit the edit back to the command list (the calling code will do that).
+@param mode Mode of editing, whether updating or inserting.
+@param action If not null, then the command is new and the action needs to be checked
+to determine the command.
+@param command_Vector Commands being edited as a Vector of Command, as passed from
+the legacy code.
+@param command_to_edit The Command instance to edit.
+*/
+private boolean commandList_EditCommandOldStyle (
+		int mode, String action, Vector command_Vector, GenericCommand command_to_edit )
+{	String routine = getClass().getName() + ".editCommandOldStyle";
+	int dl = 1;	// Debug level
+	// String version of the command...
+	String command = command_to_edit.getCommandString();
+	String command_trimmed = command.trim();
+	Vector cv = null;
+	if ( mode == __UPDATE_COMMAND ) {
+		cv = new Vector();
+		command = (String)cv.elementAt(0);
 		cv.addElement ( command );
 	}
-	String command_trimmed = command.trim();	// Use for some checks.
-	if ( command.length() > 0 ) {
-		if ( check_errors ) {
-			Message.printStatus ( 1, routine, "Editing \"" +
-			command + "\"..." );
-		}
-		else {	Message.printStatus ( 1, routine, "Editing \"" +
-			command + "\" (no error checks)..." );
-		}
+	else {	// Insert.
+		cv = new Vector(1);
+		cv.addElement ( "" );
 	}
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Edit event action item is \"" + action +
-		"\"" );
-	}
-
-	boolean have_oldstyle_editor = true;	// Set to false below
-											// if no old style editing
-	Vector edited_cv = null;	// Vector of String containing edited
-								// command - if different from original_cv,
-								// then the commands are marked dirty
-	if ( !check_errors ) {
-		/* FIXME SAM 2007-08-13 probably need to permanently disable.
-		// Generic command editor...
-		edited_cv = new commandString_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-		*/
-		Message.printWarning ( 1, routine,"Editing without error checks is disabled - use the specific editor.");
-	}
-
-	// These are listed in the same order as the GUI...
-
-	// Create time series...
-
-	else if ( action.equals( __Commands_Create_createFromList_String)||
+	Vector edited_cv = null;
+	if ( action.equals( __Commands_Create_createFromList_String)||
 		(StringUtil.indexOfIgnoreCase(command,"createFromList(",0)>=0)||
 		(StringUtil.indexOfIgnoreCase(
 		command,"createFromList (",0) >= 0) ) {
@@ -6953,7 +2702,7 @@ private void editCommand (	String action, Vector command_Vector,
 		Vector needed_commands_Vector = new Vector();
 		needed_commands_Vector.addElement ( "setPatternFile" );
 		Vector found_commands_Vector =
-			getCommandsAboveInsertPosition( needed_commands_Vector,
+			commandList_GetCommandsAboveInsertPosition( needed_commands_Vector,
 			true );
 		// Transfer the file names to the data vector...
 		__fill_pattern_files.removeAllElements();
@@ -7539,261 +3288,1023 @@ private void editCommand (	String action, Vector command_Vector,
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
 	}
-	else {	// Unrecognized command - try the factory below...
-		have_oldstyle_editor = false;
-	}
-
-	if ( have_oldstyle_editor ) {
-		String command_to_edit_String = (String)edited_cv.elementAt(0);
-		Message.printStatus ( 2, routine, "Had old-style editor for command " + command_to_edit );
-		if ( mode == __UPDATE_COMMAND ) {
-			// Editing was done on a string so need to replace the
-			// old command with the new edit (if the string command has changed).
-
-			if ( edited_cv != null ) {
-				command_to_edit.setCommandString ( (String)edited_cv.elementAt(0));
-				updateCommand ( original_command_string,
-						command_to_edit, mode );
-			}
-		}
-		else {	// Inserting a new command.  Need to construct a GenericCommand and
-			// add the command as a String.
-			command_to_edit = new GenericCommand();
-			command_to_edit.setCommandString ( (String)edited_cv.elementAt(0));
-			if ( edited_cv != null ) {
-				updateCommand ( original_command_string, command_to_edit, mode );
-			}
-		}
+	
+	if ( edited_cv == null ) {
+		// The edit was cancelled...
+		return false;
 	}
 	else {
-		// Try new approach with a factory.  Ultimately this will be the
-		// only code in effect.
-		//if ( Message.isDebugOn ) {
-			//Message.printDebug ( dl, routine,
-			Message.printStatus ( 2, routine,
-			"Using new command code to edit command \"" + command + "\"" );
-		//}
-		try {	// Do this to update the working directory based on
-			// previous commands...
-			updateDynamicProps ();
-            
-			// Now try to process the command...
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Trying command factory for \""+ command + "\"");
-			}
-			TSCommandFactory cf = new TSCommandFactory();
-			Command c = null;
-			if ( mode == __UPDATE_COMMAND ) {
-				/*
-				// TODO SAM 2005-05-09 Need to change this
-				// when commands are maintained in the command
-				// list data model (in that case just pass the
-				// existing command)...
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Using command factory to create a new"+
-					" command for \"" + command + "\"" );
-				}
-				c = cf.newCommand(command);
-				*/
-				// New is command from the processor
-				c = command_to_edit;
-				/* TODO remove if tests out
-				try {	c.initializeCommand ( command,
-					__ts_processor,
-					/ * TODO SAM 2007-08-10 remove when processor enabled
-					new TSCommandProcessor(
-					new TSEngine ( __hbdmi, __rdmi,
-					__DIADvisor_dmi,
-					__DIADvisor_archive_dmi, __nwsrfs_dmi,
-					__smsdmi, this )),
-					* /
-					null,	// Command tag
-					1,	// Warning level
-					true );	// Full initialization
-					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Initialized command " +
-						"for \"" + command + "\"" );
-					}
-				}
-				catch ( Exception e ) {
-					// Absorb the warning and make the user
-					// try to deal with it in the editor
-					// dialog.  They can always cancel out.
-
-					// REVISIT SAM 2005-05-09 Need to handle
-					// parse error.  Should the editor come
-					// up with limited information?
-					Message.printWarning ( 3, routine,
-					"Unexpected error initializing " +
-					"command." );
-					Message.printWarning ( 3, routine, e );
-				}
-				*/
-				// Now reset the command in the processor...
-				// FIXME SAM 2007-08-10
-				// Should just refresh the same command, not do a
-				// new instance.
-				updateCommand ( original_command_string, command_to_edit, mode);
-			}
-			else {	// Else a new blank command is OK but get the
-				// command name from the action (menu)...
-				// REVISIT SAM 2005-05-09 how to handle TS
-				// Alias = commands?  Perhaps the factory needs
-				// to search for the leading TS and the command
-				// name?  should work!
-				// Get the string before the ")" to ignore the
-				// extra information in menus.
-				// REVISIT SAM 2005-05-10 This should work with
-				// everything but special commands like comments
-				// and time series identifiers.
-				command = StringUtil.getToken(action,")",0,0)+
-						")";
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Using command factory to create new " +
-					"command for \"" + command + "\"" );
-				}
-				
-                c = cf.newCommand( command );
-                c.initializeCommand ( command,
-                	__ts_processor,
-                	/* TODO SAM 2007-08-10 Remove when processor enabled
-					new TSCommandProcessor(
-					new TSEngine ( __hbdmi, __rdmi,
-					__DIADvisor_dmi,
-					__DIADvisor_archive_dmi, __nwsrfs_dmi,
-					__smsdmi, this) ),
-					*/
-					null,	// Command tag
-					1,	// Warning level
-					false);	// Minimal initialization
-               
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Initialized blank command for \"" +
-					command + "\"" );
-				}
-			}
-			try {	if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Editing command..." );
-				}
-				if ( c.editCommand ( this ) ) {
-    
-					// Command edits were committed...
-					edited_cv = new Vector(1);
-					edited_cv.addElement ( c.toString() );
-					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Command edits " +
-						"were committed.");
-					}
-					// Add to the command list...
-					command_to_edit = c;
-					updateCommand ( original_command_string, command_to_edit, mode );
-				}
-				else {	// Cancelled so no need to do anything.
-				}
-			}
-			catch ( Exception e2 ) {
-				// Unexpected error...
-				Message.printWarning ( 1, routine,
-				"Unexpected error editing command." );
-				Message.printWarning ( 3, routine, e2 );
-			}
-		}
-		catch ( UnknownCommandException e ) {
-			Message.printStatus ( 2, routine,
-			"Unknown command \"" + command +
-			"\".  Using generic editor." );
-			GenericCommand c = new GenericCommand ();
-			try {
-			c.initializeCommand ( command,
-				__ts_processor,
-				// TODO SAM 2007-08-10 Remove when fully enabled
-				/*new TSCommandProcessor(
-				new TSEngine ( __hbdmi, __rdmi,
-				__DIADvisor_dmi,
-				__DIADvisor_archive_dmi, __nwsrfs_dmi, __smsdmi,
-				this )),*/
-				null,	// Command tag
-				1,	// Warning level
-				false);	// Minimal initialization
-			if ( c.editCommand ( this ) ) {
-				// Command edits were committed...
-				edited_cv = new Vector(1);
-				edited_cv.addElement ( c.toString() );
-			}
-			}
-			catch ( Exception e2 ) {
-				// Should not happen with the generic editor
-				// since it is just editing strings.
-				Message.printWarning ( 1, routine,
-				"Unexpected error editing command." );
-				Message.printWarning ( 3, routine, e2 );
-			}
-		}
-		catch ( InvalidCommandParameterException e ) {
-			// REVISIT SAM 2005-05-09 How to edit a command that
-			// has bad syntax when errors are checked outside the
-			// JDialog?
-			Message.printWarning ( 3, routine, e );
-		}
-		catch ( InvalidCommandSyntaxException e ) {
-			// REVISIT SAM 2005-05-09 How to edit a command that
-			// has bad syntax when errors are checked outside the
-			// JDialog?
-			Message.printWarning ( 3, routine, e );
-		}
-		catch ( Exception e ) {
-			// REVISIT SAM 2005-05-09 Unexpected error... 
-			Message.printWarning ( 3, routine, e );
-		}
-	}
-	}
-	catch ( Exception e2 ) {
-		// REVISIT SAM 2005-05-18 Unexpected error... 
-		Message.printWarning ( 3, routine, e2 );
+		// The edit occurred so commit by resetting the command string in the
+		// GenericCommand to the result of the edit.
+		Message.printStatus ( 2, routine, "Had old-style editor for command " + command_to_edit );
+		command_to_edit.setCommandString( command_to_edit.toString() );
+		return true;
 	}
 }
 
 /**
-Export time series to a file.   Assume that if this is called, the state of the
-GUI is such that time series are available from the TSEngine.
-@param format Format to export, as a tstool command line option.
-@param filename Name of file to save as, as a tstool command line option (e.g.,
-"-o filename").  If previewing output, this will be "-preview".
+Get the list of commands to process.  If any are selected, only they will be
+returned.  If none are selected, all will be returned.
+@return the commands as a Vector of String.
 */
-private void exportTimeSeriesResults ( String format, String filename )
-{	String routine = "TSTool_JFrame.export";
+private Vector commandList_GetCommands ( )
+{	return commandList_GetCommands ( false );
+}
+
+/**
+Get the list of commands to process, as a Vector of Command, guaranteed
+to be non-null but may be zero length.
+@return the commands as a Vector of Command.
+@param get_all If false, return those that are selected
+unless none are selected, in which case all are returned.  If true, all are
+returned, regardless of which are selected.
+*/
+private Vector commandList_GetCommands ( boolean get_all )
+{	if ( __commands_JListModel.size() == 0 ) {
+		return new Vector();
+	}
+
+	int [] selected = __commands_JList.getSelectedIndices();
+	int selected_size = 0;
+	if ( selected != null ) {
+		selected_size = selected.length;
+	}
+
+	if ( (selected_size == 0) || get_all ) {
+		// Nothing selected or want to get all, get all...
+		selected_size = __commands_JListModel.size();
+		Vector itemVector = new Vector(selected_size);
+		for ( int i = 0; i < selected_size; i++ ) {
+			itemVector.addElement ( __commands_JListModel.get(i) );
+		}
+		return itemVector;
+	}
+	else {	// Else something selected so get them...
+		Vector itemVector = new Vector(selected_size);
+		for ( int i = 0; i < selected_size; i++ ) {
+			itemVector.addElement (
+			__commands_JListModel.get(selected[i]) );
+		}
+		return itemVector;
+	}
+}
+
+/**
+Get the list of commands to process, as a Vector of String.
+@return the commands as a Vector of String.
+@param get_all If false, return those that are selected
+unless none are selected, in which case all are returned.  If true, all are
+returned, regardless of which are selected.
+*/
+private Vector commandList_GetCommandStrings ( boolean get_all )
+{	// Get the Command list, will not be non-null
+	Vector commands = commandList_GetCommands ( get_all );
+	// Convert to String instances
+	int size = commands.size();
+	Vector strings = new Vector(size);
+	for ( int i = 0; i < size; i++ ) {
+		strings.addElement ( ((Command)commands.elementAt(i)).toString() );
+	}
+	return strings;
+}
+
+/**
+Get the commands above a command insert position.  Only the requested commands
+are returned.  Use this, for example, to get the setWorkingDir() commands above
+the insert position for a readXXX() command, so the working directory can be
+defined and used in the readXXX_Dialog.  The returned Vector can be processed
+by the StateDMI_Processor() constructor.
+@return List of commands (as Command instances) above the insert point that match the commands in
+the needed_commands_Vector.  This will always return a non-null Vector, even if
+no commands are in the Vector.
+@param needed_commands_Vector Vector of commands (as String) that need to be processed
+(e.g., "setWorkingDir").  Only the main command name should be defined.
+@param get_all if false, only the first found item above the insert point
+is returned.  If true, all matching commands above the point are returned in
+the order from top to bottom.
+*/
+private Vector commandList_GetCommandsAboveInsertPosition (	Vector needed_commands_Vector,
+						boolean get_all )
+{	// Determine the insert position, which will be the first selected
+	// command (or the end of the list if none are selected)...
+	int selectedsize = 0;
+	int [] selected_indices = __commands_JList.getSelectedIndices();
+	if ( selected_indices != null ) {
+		selectedsize = selected_indices.length;
+	}
+	int insert_pos = 0;
+	if ( selectedsize == 0 ) {
+		// The insert position is the end of the list (same as size)...
+		insert_pos = __commands_JListModel.size();
+	}
+	else {	// The insert position is the first selected item...
+		insert_pos = selected_indices[0];
+	}
+	// Now search backwards matching commands for each of the requested
+	// commands...
+	int size = 0;
+	if ( needed_commands_Vector != null ) {
+		size = needed_commands_Vector.size();
+	}
+	String needed_command_string;
+	Vector found_commands = new Vector();
+	// Now loop up through the command list...
+	for ( int ic = (insert_pos - 1); ic >= 0; ic-- ) {
+		for ( int i = 0; i < size; i++ ) {
+			needed_command_string = (String)needed_commands_Vector.elementAt(i);
+			//((String)_command_List.getItem(ic)).trim() );
+			if (	needed_command_string.regionMatches(true,0,((Command)
+				__commands_JListModel.get(ic)).toString().trim(),0,
+				needed_command_string.length() ) ) {
+				found_commands.addElement ( __commands_JListModel.get(ic) );
+				//Message.printStatus ( 1, "",
+				//"Adding command \"" + 
+				//__commands_JListModel.get(ic) + "\"" );
+				if ( !get_all ) {
+					// Don't need to search any more...
+					break;
+				}
+			}
+		}
+	}
+	// Reverse the commands so they are listed in the order of the list...
+	size = found_commands.size();
+	if ( size <= 1 ) {
+		return found_commands;
+	}
+	Vector found_commands_sorted = new Vector(size);
+	for ( int i = size - 1; i >= 0; i-- ) {
+		found_commands_sorted.addElement ( found_commands.elementAt(i));
+	}
+	return found_commands_sorted;
+}
+
+/**
+Get the commands above the first selected row in the final list.
+If nothing is selected, return all the items.
+@return final list items above first selected item or all if 
+nothing selected.  Return empty non-null Vector if first item is selected.
+*/
+private Vector commandList_GetCommandsAboveSelected ()
+{	if ( __commands_JListModel.size() == 0) {
+		return new Vector();
+	}
+
+	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedSize = selectedIndices.length;	
+	
+	if ( selectedSize == 0 ) {
+		// Return all...
+		Vector v = new Vector();
+		int size = __commands_JListModel.size(); 
+		for (int i = 0; i < size; i++) {
+			v.addElement (__commands_JListModel.get(i));
+		}
+		return v;
+	}
+	if ( selectedIndices[0] == 0 ) {
+		// Nothing above.
+		selectedIndices = null;
+		return new Vector();
+	}
+	else {	// Return above first selected...
+		Vector v = new Vector(selectedIndices[0] + 1);
+		for (int i = 0; i < selectedIndices[0]; i++) {
+			v.addElement (__commands_JListModel.get(i));
+		}
+		selectedIndices = null;
+		return v;
+	}
+}
+
+/**
+Insert a command in the list.  If any commands are selected, insert before the
+first selected command.
+SAMX - may want to change to insert in front of the LAST command selected (in
+time, not position).
+@param command Command to insert.
+*/
+/* TODO SAM 2007-02-11 Evaluate if needed.
+private void commandList_InsertCommand ( String command )
+{	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedSize = selectedIndices.length;	
+	if ( selectedSize > 0 ) {
+		// Insert before the first selected command...
+		__commands_JListModel.insertElementAt(command,
+			selectedIndices[0]);
+	}
+	else {	// Insert at the end...
+		__commands_JListModel.addElement(command);
+	}
+	setCommandsDirty ( true );
+	updateStatus ();
+}
+*/
+
+/**
+Return the index position of the command from the command list.
+Currently this assumes that there is a one to one correspondence between
+items in the list and commands in the processor.
+@param command The Command instance to determine the position in the command list.
+*/
+private int commandList_IndexOf ( Command command )
+{	return __ts_processor.indexOf(command);
+}
+
+/**
+Insert a command at the indicated position.
+@param command The Command to insert.
+@param pos The index in the command list at which to insert.
+*/
+private void commandList_InsertCommandAt ( Command command, int pos )
+{
+	__ts_processor.insertCommandAt( command, pos );
+	__commands_JList.ensureIndexIsVisible ( pos );
+		// Since an insert, mark the commands list as dirty...
+	commandList_SetDirty(true);
+	ui_UpdateStatus ( false );
+}
+
+/**
+Insert a new command into the command list, utilizing the selected commands in the displayed
+list to determine the insert position.  For example this can occur in the
+following cases:
+<ol>
+<li>	The user is interacting with the command list via command menus.</li>
+<li>	Time series identifiers are being transferred to the commands area from
+		the query results list.</li>
+</ol>
+The GUI should call this method WHENEVER a command is being inserted and
+is coded to respond to changes in the data model.
+@param inserted_command The command to insert.
+*/
+private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
+{	String routine = getClass().getName() + ".insertCommand";
+
+	// Get the selected indices from the commands...
+	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedSize = selectedIndices.length;
+	int index_to_view = -1;	// Index that should be visible after updates
+
+	int insert_pos = 0;
+	if (selectedSize > 0) {
+		// Insert before the first selected item...
+		insert_pos = (selectedIndices[0] + 1);
+		__commands_JListModel.insertElementAt (	inserted_command, insert_pos );
+		Message.printStatus(2, routine, "Inserting command \"" +
+				inserted_command + "\" at [" + insert_pos + "]" );
+	}
+	else {	// Insert at end of commands list.
+		__commands_JListModel.addElement ( inserted_command );
+		insert_pos = __commands_JListModel.size() - 1;
+	}
+	// Make sure that the list scrolls to the position that has been
+	// updated...
+	if ( insert_pos >= 0 ) {
+		__commands_JList.ensureIndexIsVisible ( insert_pos );
+	}
+	// Since an insert, mark the commands list as dirty...
+	commandList_SetDirty(true);
+}
+
+/**
+Determine whether a list of commands is a comment block.
+@param processor The TSCommandProcessor that is processing the results,
+used to check for positions of commands.
+@param commands Vector of Command instances to check.
+@param all_must_be_comments If true then all must be comment lines
+for true to be returned.  If false, then only one must be a comment.
+This allows a warning to be printed that
+only a block of ALL comments can be edited at once.
+@param must_be_contigous If true, then the comments must be contiguous
+for true to be returned.  The GUI code should check this and disallow
+comment edits if not contiguous.
+*/
+private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
+		Vector commands,
+		boolean all_must_be_comments,
+		boolean must_be_contiguous )
+{
+	int size_commands = commands.size();
+	boolean is_comment_block = true;
+	boolean is_contiguous = true;
+	// Loop through the commands to check...
+	Command command = null;
+	int comment_count = 0;
+	int pos_prev = -1;
+	for ( int i = 0; i < size_commands; i++ ) {
+		command = (Command)commands.elementAt(i);
+		if ( commandList_IsCommentLine(command.toString()) ) {
+			++comment_count;
+		}
+		// Get the index position in the commands processor and
+		// check for contiguousness.
+		int pos = __ts_processor.indexOf(command);
+		if ( (i > 0) && (pos != (pos_prev + 1)) ) {
+			is_contiguous = false;
+		}
+		// Save the position for the next check for contiguity...
+		pos_prev = pos;
+	}
+	if ( must_be_contiguous && !is_contiguous ) {
+		is_comment_block = false;
+	}
+	if ( all_must_be_comments && (comment_count != size_commands) ) {
+		is_comment_block = false;
+	}
+	return is_comment_block;
+}
+
+/**
+Determine whether an command line is a comment that starts with #.
+@param line String command line.
+@return true if a comment line, false if not.
+*/
+private boolean commandList_IsCommentLine ( String line )
+{	if ( line == null ) {
+		// Blank line...
+		return true;
+	}
+	if ( line.length() == 0 ) {
+		return true;
+	}
+	if ( line.charAt(0) == '#' ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+Create a new Command instance given a command string.  This may be called when
+loading commands from a file or adding new commands while editing.
+@param command_string Command as a string, to parse and create a Command instance.
+@param create_generic_command_if_not_recognized Indicate if a generic command should
+be created if not recognized.  For now this should generally be true, until all
+commands are recognized by the TSCommandFactory.
+*/
+private Command commandList_NewCommand ( String command_string,
+		boolean create_generic_command_if_not_recognized )
+{	int dl = 1;
+	String routine = getClass().getName() + ".newCommand";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "In export" );
+		Message.printDebug ( dl, routine,
+		"Using command factory to create a new"+
+		" command for \"" + command_string + "\"" );
+	}
+	Command c = null;
+	try {
+		TSCommandFactory cf = new TSCommandFactory();
+		c = cf.newCommand(command_string);
+		Message.printStatus ( 2, routine, "Added command from factory for \"" + command_string + "\"");
+	}
+	catch ( UnknownCommandException e ) {
+		// Processor does not know the command so create a GenericCommand.
+		c = new GenericCommand();
+		Message.printStatus ( 2, routine, "Added generic command for \"" + command_string + "\"");
+	}
+	// TODO SAM 2007-08-31 This is essentially validation.
+	// Need to evaluate for old-style commands, impacts on error-handling.
+	// New is command from the processor
+	try {	c.initializeCommand ( command_string,
+		__ts_processor,
+		null,	// Command tag
+		1,	// Warning level
+		true );	// Full initialization
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl,
+			routine,
+			"Initialized command " +
+			"for \"" + command_string + "\"" );
+		}
+	}
+	catch ( Exception e ) {
+		// Absorb the warning and make the user
+		// try to deal with it in the editor
+		// dialog.  They can always cancel out.
+
+		// REVISIT SAM 2005-05-09 Need to handle
+		// parse error.  Should the editor come
+		// up with limited information?
+		Message.printWarning ( 3, routine,
+		"Unexpected error initializing command \"" + command_string + "\"." );
+		Message.printWarning ( 3, routine, e );
+	}
+	return c;
+}
+
+/**
+Remove all commands in the list.  The delete is done independent of what is
+selected in the UI.  If UI selects are relevant, use
+commandList_ClearBasedOnUI.
+*/
+private void commandList_RemoveAllCommands ()
+{	// Do this so that the status only needs to be updated once...
+	Message.printStatus(2,"deleteCommands", "Calling list model removeAllElements.");
+	__commands_JListModel.removeAllElements();
+	commandList_SetDirty ( true );
+	ui_UpdateStatus ( false );
+}
+
+/**
+Remove the indicated command from the command list.
+@param command The Command instance to remove from the command list.
+*/
+private void commandList_RemoveCommand ( Command command )
+{	int pos = commandList_IndexOf ( command );
+	__commands_JListModel.removeElementAt(pos);
+	commandList_SetDirty(true);
+	ui_UpdateStatus ( false );
+}
+
+/*
+Remove selected command list, using the data model.  If any items are selected,
+then only those are selected.  If none are selected, then all are cleared, asking
+the user to confirm.  Items from the command list (or all if none are selected).
+Save what was cleared in the __command_cut_buffer Vector so that it can be used
+with Paste.
+*/
+private void commandList_RemoveCommandsBasedOnUI ()
+{	int size = 0;
+	int [] selected_indices = __commands_JList.getSelectedIndices();
+	if ( selected_indices != null ) {
+		size = selected_indices.length;
+	}
+	if ( (size == __commands_JListModel.size()) || (size == 0) ) {
+		int x = new ResponseJDialog ( this, "Delete Commands?",
+			"Are you sure you want to delete ALL the commands?",
+			ResponseJDialog.YES|ResponseJDialog.NO).response();
+		if ( x == ResponseJDialog.NO ) {
+			return;
+		}
+	}
+	if ( size == 0 ) {
+		// nothing selected
+		// Remove all...
+		__commands_JListModel.removeAllElements();
+	}
+	else {	// Need to remove from back of selected_indices so that removing
+		// elements will not affect the index of items before that
+		// index.  At some point need to add an undo feature.
+		JGUIUtil.setWaitCursor ( this, true );
+		__ignore_ItemEvent = true;
+		__ignore_ListSelectionEvent = true;
+		for ( int i = (size - 1); i >= 0; i-- ) {
+			__commands_JListModel.removeElementAt (
+				selected_indices[i] );
+		}
+		__ignore_ItemEvent = false;
+		__ignore_ListSelectionEvent = false;
+		selected_indices = null;
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	commandList_SetDirty ( true );
+	tsResultsList_Clear();
+	ui_UpdateStatus ( true );
+}
+
+/**
+Select the command and optionally position the view at the command.
+@param iline Command position (0+).
+@param ensure_visible If true, the list will be scrolled to the selected item.
+This may be undesirable if selecting many items.
+*/
+private void commandList_SelectCommand ( int iline, boolean ensure_visible )
+{	__commands_JList.setSelectedIndex ( iline );
+	if ( ensure_visible ) {
+		// Position the list to make the selected item visible...
+		__commands_JList.ensureIndexIsVisible(iline);
+	}
+	ui_UpdateStatus ( false);
+}
+
+/**
+Set the commands file name.  This also will refresh any interface components
+that display the commands file name.  It DOES NOT cause the commands to be
+reloaded - it is a simple setter.
+@param commands_file_name Name of current commands file (can be null).
+*/
+private void commandList_SetCommandsFileName ( String commands_file_name )
+{	__commands_file_name = commands_file_name;
+	// Update the title bar...
+	ui_UpdateStatus ( false );
+}
+
+/**
+Indicate whether the commands have been modified.  The application title is
+also updated to indicate this.
+@param dirty Specify as true if the commands have been modified in some way.
+*/
+private void commandList_SetDirty ( boolean dirty )
+{	__commands_dirty = dirty;
+	ui_UpdateStatus ( false );
+	// TODO SAM 2007-08-31 Evaluate whether processor should have "dirty" property.
+}
+
+/**
+Update the command list with the result of a command edit.
+The text that is selected is replaced with the command that is passed in.
+This method should only be called from the editCommand() method.
+@param original_command_string The original command as a String before any editing (null if
+a new command).
+@param edited_command Vector containing command after editing (currently
+assumed to be in the first String since all commands are one line).
+@param action __UPDATE_COMMAND or __INSERT_COMMAND.
+*/
+private void commandList_UpdateCommand (	String original_command_string,
+				Command edited_command, int action )
+{	String routine = "TSTool_JFrame.updateCommand";
+	if (edited_command == null) {
+		return;
 	}
 
-	// Get the time series list
-
-	PropList props = new PropList ( "SaveAsProps" );
-	props.set ( "OutputFormat=" + format );
-	props.set ( "OutputFile=" + filename );
-	// Final list is selected...
-	 if ( __ts_processor != null ) {
-		try {	int selected_ts = JGUIUtil.selectedSize(__ts_JList);
-			if ( selected_ts == 0 ) {
-				commandProcessorProcessTimeSeriesResultsList(null,props);
+	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedSize = selectedIndices.length;	
+	//int size = edited_command.size();
+	int size = 1;
+	int index_to_view = -1;	// Index that should be visible after updates
+	if ( action == __UPDATE_COMMAND ) {
+		if (selectedSize > 0) {
+			// Remove the selected items (going backwards so that
+			// things don't get stepped on)...
+			for (int i = (selectedSize - 1); i >= 0; i--) {
+				__commands_JListModel.removeElementAt(
+					selectedIndices[i]);
+				Message.printStatus(2, routine, "Update - removing command \"" +
+						edited_command + "\" at [" + i + "]" );
 			}
-			else {	commandProcessorProcessTimeSeriesResultsList (
-				__ts_JList.getSelectedIndices(), props );
+			// Now add immediately after the first selected item...
+			for (int i = 0; i < size; i++) {
+				__commands_JListModel.insertElementAt (
+					edited_command,
+					//(String)edited_command.elementAt(i),
+					(selectedIndices[0] + i));
+				Message.printStatus(2, routine, "Update - inserting command \"" +
+						edited_command + "\" at [" + i + "]" );
 			}
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Unable to save time series." );
+			index_to_view = selectedIndices[0] + size - 1;
 		}
 	}
+	else if ( action == __INSERT_COMMAND ) {
+		// Insert before the first selected item...
+		if (selectedSize > 0) {
+			for (int i = 0; i < size; i++) {
+				__commands_JListModel.insertElementAt (
+					edited_command,
+					//(String)edited_command.elementAt(i),
+					(selectedIndices[0] + i));
+				Message.printStatus(2, routine, "Insert - inserting command \"" +
+						edited_command + "\" at [" + i + "]" );
+			}
+			index_to_view = selectedIndices[0] + size - 1;
+		}
+		else {	// Insert at end of commands list.
+			for (int i = 0; i < size; i++) {
+				__commands_JListModel.addElement ( edited_command );
+				//(String)edited_command.elementAt(i));
+			}
+			index_to_view = __commands_JListModel.size() - 1;
+		}
+	}
+	// Make sure that the list scrolls to the position that has been
+	// updated...
+	if ( index_to_view >= 0 ) {
+		__commands_JList.ensureIndexIsVisible ( index_to_view );
+	}
+	// Clean up...
+	selectedIndices = null;
+	if ( !commandList_CommandsAreEqual ( original_command_string, edited_command.toString() ) ) {
+		commandList_SetDirty(true);
+	}
+	ui_UpdateStatus ( true );
+}
+
+/**
+Indicate the progress that is occurring within a command.  This may be a chained call
+from a CommandProcessor that implements CommandListener to listen to a command.  This
+level of monitoring is useful if more than one progress indicator is present in an
+application UI.
+@param istep The number of steps being executed in a command (0+).
+@param nstep The total number of steps to process within a command.
+@param command The reference to the command that is starting to run,
+provided to allow future interaction with the command.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a single command (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((istep + 1)/nstep)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
+*/
+public void commandProgress ( int istep, int nstep, Command command,
+		float percent_complete, String message )
+{	if ( istep == 0 ) {
+		// Initialize the limits of the command progress bar.
+		__command_JProgressBar.setMinimum ( 0 );
+		__command_JProgressBar.setMaximum ( nstep );
+	}
+	// Set the current value...
+	__command_JProgressBar.setValue ( istep + 1 );
+}
+
+// All of the following methods perform and interaction with the command processor,
+// beyond basic command list insert/delete/update.
+
+/**
+Get the command processor AutoExtendPeriod.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global AutoExtendPeriod as a Boolean from the command processor or null if
+not yet determined.
+*/
+private Boolean commandProcessor_GetAutoExtendPeriod()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "AutoExtendPeriod" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (Boolean)o;
+	}
+}
+
+/**
+Get the command processor HydroBaseDMIList.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The HydroBaseDMIList as a Vector from the command processor or null if
+not yet determined or no connections.
+*/
+private Boolean commandProcessor_GetHydroBaseDMIList()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "HydroBaseDMIList" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (Boolean)o;
+	}
+}
+
+/**
+Get the command processor IncludeMissingTS.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global IncludeMissingTS as a Boolean from the command processor or null if
+not yet determined.
+*/
+private Boolean commandProcessor_GetIncludeMissingTS()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "IncludeMissingTS" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (Boolean)o;
+	}
+}
+
+/**
+Get the command processor InputEnd.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global InputEnd as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessor_GetInputEnd()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "InputEnd" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor InputStart.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global InputStart as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessor_GetInputStart()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "InputStart" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor OutputEnd.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global OutputEnd as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessor_GetOutputEnd()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "OutputEnd" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor OutputStart.  This method is meant for simple
+reporting.  Any errors in the processor should be detected during command
+initialization and processing.
+@return The global OutputStart as a DateTime from the command processor or null if
+not yet determined.
+*/
+private DateTime commandProcessor_GetOutputStart()
+{	if ( __ts_processor == null ) {
+		return null;
+	}
+	Object o = null;
+	try {	o = __ts_processor.getPropContents ( "OutputStart" );
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else { return (DateTime)o;
+	}
+}
+
+/**
+Get the command processor time series results for an index position.
+Typically this corresponds to a user selecting the time series from the
+results list, for further display.
+@param pos Position (0+ for the time series).
+@return The time series at the requested position in the results or null
+if the processor is not available.
+*/
+private TS commandProcessor_GetTimeSeries( int pos )
+{	String message, routine = "TSTool_JFrame.commandProcessorGetTimeSeries";
+	if ( __ts_processor == null ) {
+		return null;
+	}
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "Index", new Integer(pos) );
+	CommandProcessorRequestResultsBean bean = null;
+	try { bean =
+		__ts_processor.processRequest( "GetTimeSeries", request_params);
+	}
+	catch ( Exception e ) {
+		message = "Error requesting GetTimeSeries(Index=" + pos + ") from processor.";
+		Message.printWarning(2, routine, message );
+		Message.printWarning ( 3, routine, e );
+	}
+	PropList bean_PropList = bean.getResultsPropList();
+	Object o_TS = bean_PropList.getContents ( "TS" );
+	TS ts = null;
+	if ( o_TS == null ) {
+		message = "Null TS returned from processor for GetTimeSeries(Index=\"" + pos + "\").";
+		Message.printWarning ( 2, routine, message );
+	}
+	else {	ts = (TS)o_TS;
+	}
+	return ts;
+}
+
+/**
+Get the command processor time series results list.
+@return The time series results list or null
+if the processor is not available.
+*/
+private Vector commandProcessor_GetTimeSeriesResultsList()
+{	String routine = "TSTool_JFrame.commandProcessorGetTimeSeriesResultsList";
+	Object o = null;
+	try { o = __ts_processor.getPropContents ( "TSResultsList" );
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting TSResultsList from processor.";
+		Message.printWarning(2, routine, message );
+	}
+	if ( o == null ) {
+		return null;
+	}
+	else {
+		return (Vector)o;
+	}
+}
+
+/**
+Get the size of the command processor time series results list.
+@return the size of the command processor time series results list.
+*/
+private int commandProcessor_GetTimeSeriesResultsListSize()
+{
+	Vector results = commandProcessor_GetTimeSeriesResultsList();
+	if ( results == null ) {
+		return 0;
+	}
+	return results.size();
+}
+
+/**
+Process time series from the results list into a product (graph, etc).
+*/
+private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, PropList props )
+{	String routine = "TSTool_JFrame.commandProcessorProcessTimeSeriesResultsList";
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "Indices", indices );
+	request_params.setUsingObject ( "Properties", props );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "ProcessTimeSeriesResultsList", request_params );
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting ProcessTimeSeriesResultsList(Indices=\"" + indices + "\"," +
+		" Properties=\"" + props + "\" from processor.";
+		Message.printWarning(2, routine, message );
+	}
+}
+
+/**
+Run the commands through the processor.  Curently this supplies the list of
+Command instances to run because the user can select the commands in the
+interface.  In the future the command processor may put together the list without
+being passed from the GUI.
+*/
+private void commandProcessor_RunCommands ( Vector commands, boolean create_output )
+{	String routine = "TSTool_JFrame.commandProcessorRunCommands";
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "CommandList", commands );
+	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
+	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "RunCommands", request_params );
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting RunCommands(CommandList=...) from processor.";
+		Message.printWarning(2, routine, message );
+		Message.printWarning (3,routine, e);
+	}
+}
+
+/**
+Run a command processor to get the current working directory.
+This is a limited run meant to determine the working directory for
+command editing, where the working directory may have changed from the
+original command file location.  It is meant to be called from
+updateDynamicProps().
+@param ts_processor The command processor to be run.
+@param props The properties to be set with the current working directory.
+*/
+private void commandProcessor_RunSetWorkingDirCommand ( TSCommandProcessor ts_processor, PropList props )
+{	String routine = "TSTool_JFrame.commandProcessorRunSetWorkingDirCommand";
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "CommandList", ts_processor.getCommands() );
+	request_params.set ( "InitialWorkingDir", getInitialWorkingDir() );
+	request_params.setUsingObject ( "CreateOutput", new Boolean(false) );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "RunCommands", request_params );
+		// Now get the working directory and set for the current environment.
+		Object o = __ts_processor.getPropContents("WorkingDir");
+		if ( o != null ) {
+			props.set ( "WorkingDir", (String)o );
+		}
+	}
+	catch ( Exception e ) {
+		String message = "Error requesting RunCommands(CommandList=...) from processor.";
+		Message.printWarning(2, routine, message );
+		Message.printWarning (3,routine, e);
+	}
+}
+
+/**
+Set the command processor HydroBase instance that is opened via the GUI.
+@param hbdmi Open HydroBaseDMI instance.
+The input name is blank since it is the default HydroBaseDMI.
+@return The time series at the requested position in the results or null
+if the processor is not available.
+*/
+private void commandProcessor_SetHydroBaseDMI( HydroBaseDMI hbdmi )
+{	String message, routine = "TSTool_JFrame.setCommandProcessorHydroBaseDMI";
+	if ( hbdmi == null ) {
+		return;
+	}
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "HydroBaseDMI", hbdmi );
+	CommandProcessorRequestResultsBean bean = null;
+	try { bean =
+		__ts_processor.processRequest( "SetHydroBaseDMI", request_params );
+	}
+	catch ( Exception e ) {
+		message = "Error requesting SetHydroBaseDMI(HydroBaseDMI=\"" + hbdmi + " from processor.";
+		Message.printWarning(2, routine, message );
+	}
+}
+
+/**
+Set the command processor NWSRFS FS5Files DMI instance that is opened via the GUI.
+@param nwsrfs_dmi Open NWSRFS FS5Files instance.
+The input name is blank since it is the default HydroBaseDMI.
+@return The time series at the requested position in the results or null
+if the processor is not available.
+*/
+private void commandProcessor_SetNWSRFSFS5FilesDMI( NWSRFS_DMI nwsrfs_dmi )
+{	String message, routine = "TSTool_JFrame.setCommandProcessorNWSRFSFS5FilesDMI";
+	if ( nwsrfs_dmi == null ) {
+		return;
+	}
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "NWSRFSFS5FilesDMI", nwsrfs_dmi );
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
+		__ts_processor.processRequest( "SetNWSRFSFS5FilesDMI", request_params );
+	}
+	catch ( Exception e ) {
+		message = "Error requesting SetNWSRFSFS5FilesDMI(HydroBaseDMI=\"" + nwsrfs_dmi + " from processor.";
+		Message.printWarning(2, routine, message );
+	}
+}
+
+/**
+Indicate that a command has started running.
+@param icommand The command index (0+).
+@param ncommand The total number of commands to process
+@param command The reference to the command that is starting to run,
+provided to allow future interaction with the command.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a list of commands (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((icommand + 1)/ncommand)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
+*/
+public void commandStarted ( int icommand, int ncommand, Command command,
+		float percent_complete, String message )
+{	// commandCompleted updates the progress bar after each command.
+	// For this method, only reset the bounds of the progress bar and
+	// clear if the first command.
+	if ( icommand == 0 ) {
+		__processor_JProgressBar.setMinimum ( 0 );
+		__processor_JProgressBar.setMaximum ( ncommand );
+		__processor_JProgressBar.setValue ( 0 );
+	}
+	// Always set the value for the command progres so that it shows up
+	// as zero.  The commandProgres() method will do a better job of setting
+	// the limits and current status for a specific command.
+	__command_JProgressBar.setMinimum ( 0 );
+	__command_JProgressBar.setMaximum ( 100 );
+	__command_JProgressBar.setValue ( 0 );
+}
+
+/**
+Required by ListDataListener - receive notification when the contents of the
+commands list have changed.
+*/
+public void contentsChanged ( ListDataEvent e )
+{
+	// The contents of the command list chagned so check the GUI state...
+	ui_UpdateStatus ( true );	// true = also call checkGUIState();
 }
 
 /**
@@ -8307,7 +4818,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	}
 	__ignore_ListSelectionEvent = false;
 	__ignore_ItemEvent = false;
-	updateStatus ( true );
+	ui_UpdateStatus ( true );
 	JGUIUtil.setWaitCursor ( this, false );
 	Message.printStatus ( 1, routine, "Selected all time series." );
 	}
@@ -8342,259 +4853,6 @@ null) and redraws the GeoView.  In this class it does nothing.
 public void geoViewZoom(GRShape devlimits, GRShape datalimits) {}
 
 public void geoViewZoom (GRLimits devlim, GRLimits datalim ) {}
-
-/**
-Return the command(s) that are currently selected in the final list.
-If the command contains only comments, they are all returned.  If it contains
-commands and time series identifiers, only the first command (or time series
-identifier) is returned.
-@return selected commands in final list or null if none are selected.
-Also return null if more than one command is selected.
-*/
-/*
-private Vector getCommand ()
-{	// First get the list...
-	Vector command = getCommands();
-	// Now make sure there is only one command, allowing comments in
-	// front...
-	if ( command == null ) {
-		return null;
-	}
-	int size = command.size();
-	boolean comment_found = false;
-	String string = null;
-
-	// First check to see if all comments.  If so, then return all of them
-	// (an editor only for the comments will be used)...
-	// Initialize
-	comment_found = true;
-	for ( int i = 0; i < size; i++ ) {
-		string = (String)command.elementAt(i);
-		if ( !isCommentLine(string) ) {
-			comment_found = false;
-		}
-	}
-	if ( comment_found ) {
-		// All we had was comments so return...
-		return command;
-	}
-	// Else may have mixed comments.  Want to pull out only the
-	// first non-comments and assume it is an command.
-	for ( int i = 0; i < size; i++ ) {
-		string = (String)command.elementAt(i);
-		if ( !isCommentLine(string) ) {
-			Vector v = new Vector ( 1 );
-			v.addElement ( string );
-			command = null;
-			return v;
-		}
-	}
-/ * FIXME when method reenabled.
-	// Else may have mixed comments.  Want to pull out only the
-	// non-comments after an optional set of commments...
-	for ( int i = 0; i < size; i++ ) {
-		string = (String)command.elementAt(i);
-		if (	(i == 0) && !isCommentLine(string) ) {
-			// First line is not a comment so set like it is
-			// so we know to quit when the next comment is found...
-			comment_found = true;
-		}
-		else if ( comment_found && isCommentLine(string) ) {
-			// Found a new comment so delete the remaining
-			// strings and return what we have so far...
-			for ( int j = (size - 1); j <= i; j-- ) {
-				command.removeElementAt(j);
-			}
-			return command;
-		}
-		else if ( isCommentLine(string) ) {
-			// Found a comment so ignore it and indicate that we
-			// have found comments.
-			comment_found = true;
-			command.removeElementAt(i);
-			--i;
-		}
-	}
-* /
-
-	return command;
-}
-*/
-
-/**
-Get the list of commands to process.  If any are selected, only they will be
-returned.  If none are selected, all will be returned.
-@return the commands as a Vector of String.
-*/
-private Vector getCommands ( )
-{	return getCommands ( false );
-}
-
-/**
-Get the list of commands to process, as a Vector of Command, guaranteed
-to be non-null but may be zero length.
-@return the commands as a Vector of Command.
-@param get_all If false, return those that are selected
-unless none are selected, in which case all are returned.  If true, all are
-returned, regardless of which are selected.
-*/
-private Vector getCommands ( boolean get_all )
-{	if ( __commands_JListModel.size() == 0 ) {
-		return new Vector();
-	}
-
-	int [] selected = __commands_JList.getSelectedIndices();
-	int selected_size = 0;
-	if ( selected != null ) {
-		selected_size = selected.length;
-	}
-
-	if ( (selected_size == 0) || get_all ) {
-		// Nothing selected or want to get all, get all...
-		selected_size = __commands_JListModel.size();
-		Vector itemVector = new Vector(selected_size);
-		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.addElement ( __commands_JListModel.get(i) );
-		}
-		return itemVector;
-	}
-	else {	// Else something selected so get them...
-		Vector itemVector = new Vector(selected_size);
-		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.addElement (
-			__commands_JListModel.get(selected[i]) );
-		}
-		return itemVector;
-	}
-}
-
-/**
-Get the list of commands to process, as a Vector of String.
-@return the commands as a Vector of String.
-@param get_all If false, return those that are selected
-unless none are selected, in which case all are returned.  If true, all are
-returned, regardless of which are selected.
-*/
-private Vector getCommandStrings ( boolean get_all )
-{	// Get the Command list, will not be non-null
-	Vector commands = getCommands ( get_all );
-	// Convert to String instances
-	int size = commands.size();
-	Vector strings = new Vector(size);
-	for ( int i = 0; i < size; i++ ) {
-		strings.addElement ( ((Command)commands.elementAt(i)).toString() );
-	}
-	return strings;
-}
-
-/**
-Get the commands above a command insert position.  Only the requested commands
-are returned.  Use this, for example, to get the setWorkingDir() commands above
-the insert position for a readXXX() command, so the working directory can be
-defined and used in the readXXX_Dialog.  The returned Vector can be processed
-by the StateDMI_Processor() constructor.
-@return List of commands (as Command instances) above the insert point that match the commands in
-the needed_commands_Vector.  This will always return a non-null Vector, even if
-no commands are in the Vector.
-@param needed_commands_Vector Vector of commands (as String) that need to be processed
-(e.g., "setWorkingDir").  Only the main command name should be defined.
-@param get_all if false, only the first found item above the insert point
-is returned.  If true, all matching commands above the point are returned in
-the order from top to bottom.
-*/
-public Vector getCommandsAboveInsertPosition (	Vector needed_commands_Vector,
-						boolean get_all )
-{	// Determine the insert position, which will be the first selected
-	// command (or the end of the list if none are selected)...
-	int selectedsize = 0;
-	int [] selected_indices = __commands_JList.getSelectedIndices();
-	if ( selected_indices != null ) {
-		selectedsize = selected_indices.length;
-	}
-	int insert_pos = 0;
-	if ( selectedsize == 0 ) {
-		// The insert position is the end of the list (same as size)...
-		insert_pos = __commands_JListModel.size();
-	}
-	else {	// The insert position is the first selected item...
-		insert_pos = selected_indices[0];
-	}
-	// Now search backwards matching commands for each of the requested
-	// commands...
-	int size = 0;
-	if ( needed_commands_Vector != null ) {
-		size = needed_commands_Vector.size();
-	}
-	String needed_command_string;
-	Vector found_commands = new Vector();
-	// Now loop up through the command list...
-	for ( int ic = (insert_pos - 1); ic >= 0; ic-- ) {
-		for ( int i = 0; i < size; i++ ) {
-			needed_command_string = (String)needed_commands_Vector.elementAt(i);
-			//((String)_command_List.getItem(ic)).trim() );
-			if (	needed_command_string.regionMatches(true,0,((Command)
-				__commands_JListModel.get(ic)).toString().trim(),0,
-				needed_command_string.length() ) ) {
-				found_commands.addElement ( __commands_JListModel.get(ic) );
-				//Message.printStatus ( 1, "",
-				//"Adding command \"" + 
-				//__commands_JListModel.get(ic) + "\"" );
-				if ( !get_all ) {
-					// Don't need to search any more...
-					break;
-				}
-			}
-		}
-	}
-	// Reverse the commands so they are listed in the order of the list...
-	size = found_commands.size();
-	if ( size <= 1 ) {
-		return found_commands;
-	}
-	Vector found_commands_sorted = new Vector(size);
-	for ( int i = size - 1; i >= 0; i-- ) {
-		found_commands_sorted.addElement ( found_commands.elementAt(i));
-	}
-	return found_commands_sorted;
-}
-
-/**
-Get the commands above the first selected row in the final list.
-If nothing is selected, return all the items.
-@return final list items above first selected item or all if 
-nothing selected.  Return empty non-null Vector if first item is selected.
-*/
-public Vector getCommandsAboveSelected ()
-{	if ( __commands_JListModel.size() == 0) {
-		return new Vector();
-	}
-
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
-	int selectedSize = selectedIndices.length;	
-	
-	if ( selectedSize == 0 ) {
-		// Return all...
-		Vector v = new Vector();
-		int size = __commands_JListModel.size(); 
-		for (int i = 0; i < size; i++) {
-			v.addElement (__commands_JListModel.get(i));
-		}
-		return v;
-	}
-	if ( selectedIndices[0] == 0 ) {
-		// Nothing above.
-		selectedIndices = null;
-		return new Vector();
-	}
-	else {	// Return above first selected...
-		Vector v = new Vector(selectedIndices[0] + 1);
-		for (int i = 0; i < selectedIndices[0]; i++) {
-			v.addElement (__commands_JListModel.get(i));
-		}
-		selectedIndices = null;
-		return v;
-	}
-}
 
 /**
 Return a setWorkingDir(xxx) command where xxx is the initial working directory
@@ -8649,195 +4907,6 @@ private Vector getSelectedTimeSeriesList ( boolean return_all_if_none_selected )
 */
 
 /**
-Respond to "Get Time Series List" being clicked.
-*/
-private void getTimeSeriesListClicked()
-{	String message, routine = "TSTool_JFrame.getTimeSeriesListClicked";
-	Message.printStatus ( 1, routine,
-	"Getting time series list from " + __selected_input_type +
-	" input type..." );
-
-	// Verify that the input filters have valid data...
-
-	if ( __selected_input_filter_JPanel != __input_filter_generic_JPanel ) {
-		if (	!((InputFilter_JPanel)__selected_input_filter_JPanel).
-			checkInput(true) ) {
-			// An input error was detected so don't get the time
-			// series...
-			return;
-		}
-	}
-
-	// Read the time series list and display in the Time Series List
-	// area.  Return if an error occurs because the message at the bottom
-	// should only be printed if successful.
-
-	if ( __selected_input_type.equals (__INPUT_TYPE_DateValue)) {
-		try {	readDateValueHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading DateValue file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_DIADvisor)) {
-		try {	readDIADvisorHeaders(); 
-		}
-		catch ( Exception e ) {
-			message = "Error reading DIADvisor.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_HydroBase)) {
-		try {	readHydroBaseHeaders ( null ); 
-		}
-		catch ( Exception e ) {
-			message = "Error reading HydroBase.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_MEXICO_CSMN)) {
-		try {	readMexicoCSMNHeaders ();
-		}
-		catch ( Exception e ) {
-			message =
-			"Error reading Mexico CSMN catalog file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_MODSIM)) {
-		try {	readMODSIMHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading MODSIM file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_NWSCARD)) {
-		try {	readNWSCARDHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading NWS CARD file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
-		try {	readNWSRFSESPTraceEnsembleHeaders ();
-		}
-		catch ( Exception e ) {
-			message =
-			"Error reading NWSRFS_ESPTraceEnsemble file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
-		try {	// This reads the time series headers and displays the
-			// results in the list...
-			readNWSRFSFS5FilesHeaders ();
-		}
-		catch ( Exception e ) {
-			message =
-			"Error reading NWSRFS FS5Files time series list. " +
-			"Cannot display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_RiversideDB)) {
-		try {	readRiversideDBHeaders(); 
-		}
-		catch ( Exception e ) {
-			message = "Error reading RiversideDB.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_RiverWare)) {
-		try {	readRiverWareHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading RiverWare file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_StateCU)) {
-		try {	readStateCUHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading StateCU file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_StateMod)) {
-		try {	readStateModHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading StateMod file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_StateModB)) {
-		try {	readStateModBHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading StateMod binary file.  Cannot "
-			+ "display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	else if ( __selected_input_type.equals (__INPUT_TYPE_USGSNWIS)) {
-		try {	readUsgsNwisHeaders ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading USGS NWIS file.  Cannot " +
-			"display time series list.";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-	}
-	Message.printStatus ( 1, routine,
-	"Time series list from " + __selected_input_type +
-	" input type are listed in Time Series List area." );
-}
-
-/**
 Handle actions from the message log viewer.  In particular, when a command is
 selected and the user wants to go to the command in the interface.
 @param tag Tag that identifies the command.  This is of the format:
@@ -8870,57 +4939,8 @@ public void goToMessageTag ( String tag )
 			// Clear previous selections...
 			__commands_JList.clearSelection();
 			// Select the current tag...
-			selectCommand ( iline );
-			// Position the list...
-			__commands_JList.ensureIndexIsVisible(iline);
+			commandList_SelectCommand ( iline, true );
 		}
-	}
-}
-
-/**
-Graph time series that are in the final list.
-@param graph_type Type of graph to create.
-*/
-private void graphTimeSeriesResults ( String type )
-{	graphTimeSeriesResults ( type, null );
-}
-
-/**
-Graph time series that are in the final list.
-@param graph_type Type of graph (same as tstool command line arguments).
-*/
-private void graphTimeSeriesResults ( String graph_type, String params ) 
-{	String routine = "TSTool_JFrame.graphTS";
-
-	try {
-		// Change the wait cursor here in the main GUI to indicate that the
-		// graph is being processed.
-		JGUIUtil.setWaitCursor ( this, true );
-		PropList props = new PropList ( "GraphProps" );
-		props.set ( "OutputFormat=" + graph_type );
-		if ( params != null ) {
-			props.set ( "Parameters=" + params );
-		}
-		// Final list is selected...
-		if ( __ts_processor != null ) {
-			try {	int selected_ts=JGUIUtil.selectedSize(__ts_JList);
-				if ( selected_ts == 0 ) {
-					commandProcessorProcessTimeSeriesResultsList (
-					null, props );
-				}
-				else {	commandProcessorProcessTimeSeriesResultsList (
-					__ts_JList.getSelectedIndices(), props );
-				}
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Unable to graph time series." );
-			}
-		}
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		JGUIUtil.setWaitCursor ( this, false );
 	}
 }
 
@@ -9034,7 +5054,7 @@ private void initGUI ( boolean show_main )
 
 	// Force the choices to assume some reasonable values...
 
-	setInputTypeChoices();
+	ui_SetInputTypeChoices();
 
         __get_ts_list_JButton = new SimpleJButton(
 		BUTTON_TOP_GET_TIME_SERIES,this);
@@ -9138,6 +5158,7 @@ private void initGUI ( boolean show_main )
 	//__ts_processor.setTSCommandProcessorUI ( this );
 	__ts_processor.addCommandProcessorListener ( this );
 	__commands_JListModel = new TSCommandProcessorListModel(__ts_processor);
+	__commands_JListModel.addListDataListener ( this );
 	if ( __use_annotated_list ) {
 		__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
 		__commands_JList = __commands_AnnotatedCommandJList.getJList();
@@ -9156,7 +5177,6 @@ private void initGUI ( boolean show_main )
 	__commands_JList.addKeyListener ( this );
 	__commands_JList.addMouseListener ( this );
 	
-
 	// The following line works in tandem with the call to 
 	// setPrototypeCellValue() above.  setPrototypeCellValue() changes the
 	// fixedCellWidth and fixedCellHeight on the JList so that the given
@@ -9216,13 +5236,13 @@ private void initGUI ( boolean show_main )
 		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	// --------------------------------------------------------------------
-	// Time series output components...
+	// Time series output (results) components...
 	// --------------------------------------------------------------------
 
 	// Final time series list...
 
-        __ts_JPanel = new JPanel();
-        __ts_JPanel.setLayout(gbl);
+    __ts_JPanel = new JPanel();
+    __ts_JPanel.setLayout(gbl);
 	__ts_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
@@ -9275,11 +5295,11 @@ private void initGUI ( boolean show_main )
 
 	getContentPane().add ("South", bottom_JPanel);
 
-	updateTextFields ( -1, "TSTool_JFrame.initGUI",
+	ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.initGUI",
 			"Open a commands file or add new commands.",
 			__STATUS_READY );
-	updateStatus ();
-        pack();
+	ui_UpdateStatus ( false );
+    pack();
 	setSize ( 800, 600 );
 	JGUIUtil.center ( this );
 	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
@@ -9638,10 +5658,9 @@ private void initGUIInputFilters ( int y )
 	// Because a component is added to the original GUI, need to refresh
 	// the GUI layout...
 
-	setInputFilters();
+	ui_SetInputFilters();
 	validate();
 	repaint();
-
 }
 
 /**
@@ -10394,10 +6413,6 @@ private void initGUIMenus_CommandsPopup ()
 		__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(
 		"Edit", __Edit_CommandWithErrorChecking_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Edit_CommandNoErrorChecking_JMenuItem =
-		new SimpleJMenuItem ( "Edit (no error checks)",
-		__Edit_CommandNoErrorChecking_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Cut_JMenuItem =
 		new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
@@ -10495,9 +6510,6 @@ private void initGUIMenus_Edit ( JMenuBar menu_bar )
 
 	__Edit_JMenu.add( __Edit_CommandsFile_JMenuItem = new SimpleJMenuItem (
 		__Edit_CommandsFile_String, this ) );
-	__Edit_JMenu.add(
-		__Edit_CommandNoErrorChecking_JMenuItem = new SimpleJMenuItem (
-		__Edit_CommandNoErrorChecking_String, this ) );
 	__Edit_JMenu.add(
 		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(
 		__Edit_CommandWithErrorChecking_String, this ) );
@@ -10977,11 +6989,6387 @@ private void initGUIMenus_View ( JMenuBar menuBar )
 }
 
 /**
+Required by ListDataListener - receive notification when the contents of the
+commands list have changed due to commands being added.
+*/
+public void intervalAdded ( ListDataEvent e )
+{
+	// The contents of the command list chagned so check the GUI state...
+	ui_UpdateStatus ( true );	// true = also call checkGUIState();
+}
+
+/**
+Required by ListDataListener - receive notification when the contents of the
+commands list have changed due to commands being removed.
+*/
+public void intervalRemoved ( ListDataEvent e )
+{
+	// The contents of the command list chagned so check the GUI state...
+	ui_UpdateStatus ( true );	// true = also call checkGUIState();
+}
+
+/**
+Respond to ItemEvents.  If in the final list, the behavior is similar to
+Microsoft tools:
+<ol>
+<li>	Click selects on item.</li>
+<li>	Shift-click selects forward or backward to nearest selection.</li>
+<li>	Control-click toggles one item.</li>
+</ol>
+*/
+public void itemStateChanged ( ItemEvent evt )
+{	String	routine="TSTool_JFrame.itemStateChanged";
+
+	if ( !__gui_initialized ) {
+		// Some objects are probably still null so ignore the event...
+		return;
+	}
+
+	if ( __ignore_ItemEvent ) {
+		// A programatic change to a list is occurring and we want to
+		// ignore the event that will result...
+		return;
+	}
+
+	Object	o = evt.getItemSelectable();
+
+	// If any of the choices are changed, clear the main list so that the
+	// choices and list are in agreement...
+
+	try {
+	// List in the order of the GUI...
+
+	if (	(o == __input_type_JComboBox) &&
+		(evt.getStateChange() == ItemEvent.SELECTED) ) {
+		// New input type selected...
+		queryResultsList_Clear();
+		uiAction_InputTypeChoiceClicked();
+	}
+	else if((o == __input_name_JComboBox) &&
+		(evt.getStateChange() == ItemEvent.SELECTED) ) {
+		// New input name selected...
+		if (	__selected_input_type.equals(
+			__INPUT_TYPE_NWSRFS_FS5Files) &&
+			!__input_name_JComboBox.getSelected().equals(
+			__PLEASE_SELECT) ) {
+			// If the default "Please Select" is shown, the it is
+			// initialization - don't force a selection...
+			try {	uiAction_SelectInputName_NWSRFS_FS5Files ( false );
+			}
+			catch ( Exception e ) {
+				Message.printWarning ( 1, routine,
+				"Error opening NWSRFS FS5Files connection." );
+				Message.printWarning ( 2, routine, e );
+			}
+		}
+		else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU ) ){
+			uiAction_SelectInputName_StateCU ( false );
+		}
+		else if(__selected_input_type.equals(__INPUT_TYPE_StateModB )) {
+			uiAction_SelectInputName_StateModB ( false );
+		}
+	}
+	else if ( o == __data_type_JComboBox &&
+		(evt.getStateChange() == ItemEvent.SELECTED) ) {
+		queryResultsList_Clear();
+		uiAction_DataTypeChoiceClicked();
+	}
+	else if ( o == __time_step_JComboBox &&
+		(evt.getStateChange() == ItemEvent.SELECTED) ) {
+		queryResultsList_Clear();
+		uiAction_TimeStepChoiceClicked();
+	}
+        else if ( o == __View_MapInterface_JCheckBoxMenuItem ) {
+		if ( __View_MapInterface_JCheckBoxMenuItem.isSelected() ) {
+			// User wants the map to be displayed...
+			try {	if ( __geoview_JFrame != null ) {
+					// Just set the map visible...
+					__geoview_JFrame.setVisible ( true );
+				}
+				else {	// No existing GeoView so create one...
+					__geoview_JFrame = new GeoViewJFrame (
+						this, null );
+					// Add a GeoViewListener so TSTool can
+					// handle selects from the map...
+					__geoview_JFrame.getGeoViewJPanel().
+					getGeoView().addGeoViewListener(this);
+					// Add a window listener so TSTool can
+					// listen for when the GeoView closes...
+					__geoview_JFrame.addWindowListener (
+						this );
+					JGUIUtil.center ( __geoview_JFrame );
+				}
+			}
+			catch ( Exception e ) {
+				Message.printWarning ( 1, "TSTool",
+				"Error displaying map interface." );
+				__geoview_JFrame = null;
+			}
+		}
+		else {	// Map is deselected.  Just set the map frame to not
+			// visible...
+			__geoview_JFrame.setVisible ( false );
+		}
+	}
+	ui_UpdateStatus ( true );
+	}
+	catch ( Exception e ) {
+		// Unexpected exception...
+		Message.printWarning ( 2, getClass().getName() + ".itemStateChanged", e );
+	}
+}
+
+/**
+Respond to KeyEvents.  Most single-key events are handled in keyReleased to
+prevent multiple events.  Do track when the shift is pressed here.
+*/
+public void keyPressed ( KeyEvent event )
+{	int code = event.getKeyCode();
+
+	if ( code == KeyEvent.VK_SHIFT ) {
+		JGUIUtil.setShiftDown ( true );
+	}
+	else if ( code == KeyEvent.VK_CONTROL ) {
+		JGUIUtil.setControlDown ( true );
+	}
+}
+
+/**
+Respond to KeyEvents.
+*/
+public void keyReleased ( KeyEvent event )
+{	int code = event.getKeyCode();
+
+	if ( code == KeyEvent.VK_ENTER ) {
+		if ( event.getSource() == __commands_JList ) {
+			// Same as the Edit...Command event...
+			uiAction_EditCommand ();
+		}
+	}
+	else if ( code == KeyEvent.VK_DELETE ) {
+		// Clear a command...
+		if ( event.getSource() == __commands_JList ) {
+			commandList_RemoveCommandsBasedOnUI();
+		}
+	}
+	ui_UpdateStatus ( true );
+}
+
+public void keyTyped ( KeyEvent event )
+{
+}
+
+/**
+Handle mouse clicked event.
+*/
+public void mouseClicked ( MouseEvent event )
+{	Object source = event.getSource();
+	if ( source == __commands_JList ) {
+		if ( event.getClickCount() == 2 ) {
+			// Edit the first selected item, unless a comment, in
+			// which case all are edited...
+			uiAction_EditCommand ();
+		}
+	}
+}
+
+/**
+Handle mouse entered event.  Nothing is done.
+*/
+public void mouseEntered ( MouseEvent event )
+{
+}
+
+/**
+Handle mouse exited event.  Nothing is done.
+*/
+public void mouseExited ( MouseEvent event )
+{
+}
+
+/**
+Handle mouse pressed event.
+*/
+public void mousePressed ( MouseEvent event )
+{	int mods = event.getModifiers();
+	Component c = event.getComponent();
+	// Popup for time series list...
+	if (	(c == __commands_JList) && (__commands_JListModel.size() > 0) &&
+		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
+		//event.isPopupTrigger() ) {}
+		Point pt = JGUIUtil.computeOptimalPosition (
+			event.getPoint(), c, __Commands_JPopupMenu );
+		__Commands_JPopupMenu.show ( c, pt.x, pt.y );
+	}
+	// Popup for commands...
+	else if ( (c == __ts_JList) && (__ts_JListModel.size() > 0) &&
+		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
+		//event.isPopupTrigger() ) {}
+		Point pt = JGUIUtil.computeOptimalPosition (
+			event.getPoint(), c, __Commands_JPopupMenu );
+		__results_JPopupMenu.show ( c, pt.x, pt.y );
+	}
+	// Popup for input name...
+	else if ( (c == __input_name_JComboBox) &&
+		((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+		__selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
+		Point pt = JGUIUtil.computeOptimalPosition (
+			event.getPoint(), c, __input_name_JPopupMenu );
+		__input_name_JPopupMenu.removeAll();
+		__input_name_JPopupMenu.add( new SimpleJMenuItem (
+			__InputName_BrowseStateModB_String, this ) );
+		__input_name_JPopupMenu.show ( c, pt.x, pt.y );
+	}
+	// Check the state of the "Copy Selected to Commands" button...
+	else if ( c == __query_JWorksheet ) {
+		if (	(__query_JWorksheet != null) &&
+			(__query_JWorksheet.getSelectedRowCount() > 0) ) {
+			JGUIUtil.setEnabled (
+				__CopySelectedToCommands_JButton, true );
+		}
+		else {	JGUIUtil.setEnabled (
+			__CopySelectedToCommands_JButton, false );
+		}
+		// Update the border to reflect selections...
+		ui_UpdateStatus ( false );
+	}
+}
+
+/**
+Handle mouse released event.  Nothing is done.
+*/
+public void mouseReleased ( MouseEvent event )
+{
+}
+
+/**
+Print a status message to the status bar, etc.  This method is called by the
+Message class for status messages.
+@param level Status message level.
+@param rtn Routine name.
+@param message Message to print.
+*/
+/*
+public void printStatusMessages ( int level, String rtn, String message )
+{	if ( level <= 1 ) {
+		__message_JTextField.setText ( message );
+		// REVISIT
+		// This does not seem to be redrawing, not matter what is done!
+		//__message_JTextField.validate ();
+		//__message_JTextField.repaint ();
+		//validate ();
+		//invalidate ();
+		//repaint ();
+	}
+}*/
+
+/**
+Display the time series list query results in a string format.  These results are APPENDED to the list
+of strings already found in the __commands_JList.  
+@param location Location part of TSIdent.
+@param source Source part of TSIdent.
+@param type Data type part of TSIdent.
+@param interval Interval part of TSIdent.
+@param scenario Scenario part of TSIdent (null or empty for no scenario).
+@param sequence_number Sequence number part of TSIdent (null or empty for no
+sequence number).
+@param input_type The type of input (e.g., DateValue, NWSCard, USGSNWIS).
+@param input_name The input location for the data (a database connection or
+file name).
+@param comment Comment for time series (null or empty for no comment).
+@param use_alias If true, then the location contains the alias and the other
+TSID fields are ignored when putting together the TSID command.
+*/
+private void queryResultsList_AppendTSIDToCommandList (	String location,
+					String source,
+					String type,
+					String interval,
+					String scenario,
+					String sequence_number,
+					String input_type,
+					String input_name,
+					String comment,
+					boolean use_alias )
+{	// Add after the last selected item or at the end if nothing
+	// is selected.
+	int selected_indices[] = __commands_JList.getSelectedIndices();
+	int selected_size = 0;
+	if ( selected_indices != null ) {
+		selected_size = selected_indices.length;
+	}
+	int insert_pos = 0;
+	String scenario2 = "";
+	if ( (scenario != null) && !scenario.equals("") ) {
+		scenario2 = "." + scenario;
+	}
+	String sequence_number2 = "";
+	if ( (sequence_number != null) && !sequence_number.equals("") ) {
+		sequence_number2 = "[" + sequence_number + "]";
+	}
+	// If there is an input_name, always use an input_type.
+	String input = "";
+	if ( (input_name != null) && (input_name.length() != 0) ) {
+		input = "~" + input_type + "~" + input_name;
+	}
+	else if ( (input_type != null) && (input_type.length() != 0) ) {
+		// Only have the input type...
+		input = "~" + input_type;
+	}
+	if ( selected_size > 0 ) {
+		// Insert after the last item.
+		insert_pos = selected_indices[selected_size - 1] + 1;
+	}
+	else {	// Insert at the end...
+		insert_pos = __commands_JListModel.size();
+	}
+	
+	int i = 0;	// Leave this in case we add looping.
+	int offset = 0;	// Handles cases where a comment is inserted.
+	if ( (comment != null) && !comment.equals("") ) {
+		__commands_JListModel.insertElementAt ( "# " + comment,
+			(insert_pos + i*2));
+		offset = 1;
+	}
+	String tsident_string = null;
+	if ( use_alias ) {
+		// Just use the short alias...
+		tsident_string = location + input;
+	}
+	else {	// Use a full time series identifier...
+		tsident_string = location + "." + source + "." + type + "." +
+			interval + scenario2 + sequence_number2 + input;
+	}
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 1, "", "Inserting \"" + tsident_string +
+		"\" at " + (insert_pos + i*2 + offset) );
+	}
+	__commands_JListModel.insertElementAt ( tsident_string,
+		(insert_pos + i*2 + offset));
+	commandList_SetDirty ( true );
+	ui_UpdateStatus ( false );
+}
+
+/**
+Clear the query list (e.g., when a choice changes).
+*/
+private void queryResultsList_Clear ()
+{	if ( (__query_JWorksheet == null) || (__query_TableModel == null) ) {
+		// Not initialized...
+		return;
+	}
+	if ( __query_TableModel.getRowCount() > 0 ) {
+        	try {	__query_JWorksheet.clear();       
+		}
+		catch ( Exception e ) {
+			// Absorb the exception in most cases - print if
+			// developing to see if this issue can be resolved.
+			if ( Message.isDebugOn && IOUtil.testing()  ) {
+				String routine = "TSTool_JFrame.clearQueryList";
+				Message.printWarning ( 3, routine,
+				"For developers:  caught exception in " +
+				"clearQueryList JWorksheet at setup." );
+				Message.printWarning ( 3, routine, e );
+			}
+		}
+	}
+
+	// Set the data lists to empty and redraw the label (check for null
+	// because it seems to be an issue at startup)...
+
+	ui_UpdateStatus ( false );
+}
+
+/**
+Select a station from the query list and create a time series indentifier in the
+command list.
+@param row Row that is selected in the query list.  This method can be
+called once for a single event or multiple times from transferAll().
+@param update_status If true, then the GUI state is checked after the
+transfer.  This should only be set to true when transferring one command.  If
+many are transferred, this slows down the GUI.
+*/
+private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( int row, boolean update_status ) 
+{	boolean use_alias = false;
+	if ( __selected_input_type.equals(__INPUT_TYPE_DateValue) ) {
+		// The location (id), type, and time step uniquely identify the
+		// time series, but the input_name is needed to find the data.
+		// If an alias is specified, assume that it should be used
+		// instead of the normal TSID.
+		TSTool_TS_TableModel model =
+			(TSTool_TS_TableModel)__query_TableModel;
+		String alias = ((String)model.getValueAt (
+			row, model.COL_ALIAS )).trim();
+		if ( !alias.equals("") ) {
+			// Alias is available so use it...
+			use_alias = true;
+		}
+		// REVISIT SAM 2004-01-06 - for now don't use the alias to put
+		// together the ID - there are issues to resolve in how
+		// DateValueTS.readTimeSeries() handles the ID.
+		use_alias = false;
+		if ( use_alias ) {
+			// Use the alias instead of the identifier...
+			try {
+			queryResultsList_AppendTSIDToCommandList ( alias,
+			null,
+			null,
+			null,
+			null,
+			null,	// No sequence number
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_INPUT_TYPE),
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_INPUT_NAME), "",
+			use_alias );
+			}
+			catch ( Exception e ) {
+				Message.printWarning ( 2, "", e );
+			}
+		}
+		else {	// Use full ID and all other fields...
+			Message.printStatus ( 1, "",
+			"Calling append (no alias)..." );
+			queryResultsList_AppendTSIDToCommandList ( 
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_ID ),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_DATA_SOURCE),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_DATA_TYPE),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_TIME_STEP),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_SCENARIO),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_SEQUENCE),
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_INPUT_TYPE),
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_INPUT_NAME), "",
+			use_alias );
+		}
+	}
+	else if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
+		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
+			TSTool_HydroBase_TableModel model =
+				(TSTool_HydroBase_TableModel)__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID) + " - " +
+					(String)__query_TableModel.getValueAt (
+					row, model.COL_NAME),
+				false );
+		}
+		else if (__query_TableModel instanceof
+			TSTool_HydroBase_WellLevel_Day_TableModel) {
+			TSTool_HydroBase_WellLevel_Day_TableModel model =
+				(TSTool_HydroBase_WellLevel_Day_TableModel)
+				__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList(
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID) + " - " +
+					(String)__query_TableModel.getValueAt (
+					row, model.COL_NAME),
+				false );			
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_Ag_TableModel){
+			TSTool_HydroBase_Ag_TableModel model =
+				(TSTool_HydroBase_Ag_TableModel)
+				__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_AgGIS_TableModel){
+			TSTool_HydroBase_AgGIS_TableModel model =
+				(TSTool_HydroBase_AgGIS_TableModel)
+				__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_CASSLivestockStats_TableModel){
+			TSTool_HydroBase_CASSLivestockStats_TableModel model =
+				(TSTool_HydroBase_CASSLivestockStats_TableModel)
+				__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_CUPopulation_TableModel){
+			TSTool_HydroBase_CUPopulation_TableModel model =
+				(TSTool_HydroBase_CUPopulation_TableModel)
+				__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				"",	// No scenario
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+		else if ( __query_TableModel instanceof
+			TSTool_HydroBase_WIS_TableModel){
+			TSTool_HydroBase_WIS_TableModel model =
+				(TSTool_HydroBase_WIS_TableModel)
+				__query_TableModel;
+			queryResultsList_AppendTSIDToCommandList ( 
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt (
+					row, model.COL_SHEET_NAME),
+				null,	// No sequence number
+				(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+				"", // No input name
+				"", // No comment
+				false );
+		}
+	}
+	else if ( __selected_input_type.equals(
+		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+		// The location (id), type, and time step uniquely identify the
+		// time series, but the input_name is needed to find the data.
+		// If an alias is specified, assume that it should be used
+		// instead of the normal TSID.
+		TSTool_ESPTraceEnsemble_TableModel model =
+			(TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
+		//String alias = ((String)__query_TableModel.getValueAt ( row,
+			//model.COL_ALIAS )).trim();
+		boolean use_alias_in_id = false;
+		if ( use_alias_in_id ) {
+			// Need to figure out what to do here...
+		}
+		else {	// Use full ID and all other fields...
+			queryResultsList_AppendTSIDToCommandList ( 
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_ID ),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_DATA_SOURCE),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_DATA_TYPE),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_TIME_STEP),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_SCENARIO),
+			(String)__query_TableModel.getValueAt (
+				row, model.COL_SEQUENCE),
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_INPUT_TYPE),
+			(String)__query_TableModel.getValueAt(
+				row, model.COL_INPUT_NAME), "",
+			false );
+		}
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
+		// The location (id), type, and time step uniquely
+		// identify the time series, but the input_name is needed
+		// to indicate the database.
+		TSTool_RiversideDB_TableModel model =
+			(TSTool_RiversideDB_TableModel)__query_TableModel;
+		queryResultsList_AppendTSIDToCommandList ( 
+		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
+		(String)__query_TableModel.getValueAt(row,
+						model.COL_DATA_SOURCE),
+		(String)__query_TableModel.getValueAt( row,model.COL_DATA_TYPE),
+		(String)__query_TableModel.getValueAt( row,model.COL_TIME_STEP),
+		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
+		null,	// No sequence number
+		(String)__query_TableModel.getValueAt(row,model.COL_INPUT_TYPE),
+		"",
+		"", false );
+	}
+	// The following input types use the generic TSTool_TS_TableModel with
+	// no special considerations.  If the sequence number is non-blank in
+	// the worksheet, it will be transferred.
+	else if ( __selected_input_type.equals(__INPUT_TYPE_DIADvisor) ||
+		__selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ||
+		__selected_input_type.equals(__INPUT_TYPE_MODSIM) ||
+		__selected_input_type.equals ( __INPUT_TYPE_NWSCARD ) ||
+		__selected_input_type.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ||
+		__selected_input_type.equals ( __INPUT_TYPE_RiverWare ) ||
+		__selected_input_type.equals ( __INPUT_TYPE_StateCU ) ||
+		__selected_input_type.equals ( __INPUT_TYPE_StateMod ) ||
+		__selected_input_type.equals ( __INPUT_TYPE_StateModB ) ||
+		__selected_input_type.equals(__INPUT_TYPE_USGSNWIS) ) {
+		// The location (id), type, and time step uniquely
+		// identify the time series...
+		TSTool_TS_TableModel model =
+			(TSTool_TS_TableModel)__query_TableModel;
+		String seqnum = (String)__query_TableModel.getValueAt(
+					row, model.COL_SEQUENCE );
+		if ( seqnum.length() == 0 ) {
+			seqnum = null;
+		}
+		queryResultsList_AppendTSIDToCommandList (
+		(String)__query_TableModel.getValueAt (
+					row, model.COL_ID ),
+		(String)__query_TableModel.getValueAt(
+					row, model.COL_DATA_SOURCE),
+		(String)__query_TableModel.getValueAt(
+					row, model.COL_DATA_TYPE),
+		(String)__query_TableModel.getValueAt(
+					row, model.COL_TIME_STEP ),
+		(String)__query_TableModel.getValueAt(
+					row, model.COL_SCENARIO ),
+		seqnum,	// Optional sequence number
+		(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_TYPE),
+		(String)__query_TableModel.getValueAt(
+					row, model.COL_INPUT_NAME),
+		"", false );
+	}
+	// Check the GUI...
+	if ( update_status ) {
+		ui_UpdateStatus ( true );
+	}
+}
+
+/**
+Quits the program with the correct exit status
+@param status
+ */
+/*
+private void quitProgram( int status )
+{	// Call the application startup to quit...
+   tstool.quitProgram(status);
+}
+*/
+
+/**
+Run with a hidden main gui but process the specified commands file.
+If also in batch mode because commands were specified on the command line, the
+a true batch run will be made.
+@param commands_file Commands file to process.
+@exception Exception if there is an error processing the file, for example
+no data to graph.
+*/
+/* FIXME SAM 2007-08-20 Need to enable.
+private void runNoMainGUI ( String commands_file )
+throws Exception
+{	String routine = "TSTool_JFrame.runNoMainGUI";
+	// Run similar to the Run...Commands menu
+	TSEngine engine = null;
+	// Process as if in batch mode...
+	engine = new TSEngine ( __hbdmi, __rdmi, __DIADvisor_dmi,
+				__DIADvisor_archive_dmi, __nwsrfs_dmi,
+				__smsdmi );
+	engine.addTSViewWindowListener ( this );
+	engine.processCommands ( __hbdmi, commands_file, IOUtil.isBatch() );
+	engine = null;
+	Message.printStatus ( 1, routine,
+	"Successfully processed commands file \"" + commands_file + "\"" );
+}
+*/
+
+//TODO SAM 2007-09-02 Need to isolate this code outside the GUI.
+/**
+Read the pattern time series corresponding to the pattern file names.
+Only read the headers.  Then the identifiers are saved for use in the
+fillPattern_Dialog.
+*/
+public void readPatternTS ()
+{	// Empty the list...
+	__fill_pattern_ids.removeAllElements();
+	Vector fill_pattern_ts = null;
+	TS ts = null;
+	for (	int ifile = 0; ifile < __fill_pattern_files.size();
+		ifile++ ) {
+		// REVISIT - need this to be more generic.  If a statemod
+		// pattern file is specified, read it, else, allow for other
+		// formats.  For now always read a StateMod file.
+		//
+		// Read the header but not the actual data since only a list of
+		// identifiers is needed.
+		fill_pattern_ts = StateMod_TS.readPatternTimeSeriesList (
+			IOUtil.getPathUsingWorkingDir(
+			(String)__fill_pattern_files.elementAt(ifile)), false );
+		if ( fill_pattern_ts != null ) {
+			int listsize = fill_pattern_ts.size();
+			for ( int j = 0; j < listsize; j++ ) {
+				ts = (TS)fill_pattern_ts.elementAt(j);
+				if ( ts == null ) {
+					continue;
+				}
+				__fill_pattern_ids.addElement (
+					ts.getLocation() );
+			}
+		}
+	}
+	ts = null;
+	fill_pattern_ts = null;
+}
+
+/**
+Run TSTool in server mode.  Currently this is done without the GUI.
+Need to update this to use TSEngine for processing.
+*/
+public void runServer ()
+{	// Loop until an "end" or "exit" command is encountered.  Read input
+	// from standard input and execute commands.  Do not yet support full
+	// TSEngine features but focus on TS Product processing...
+	BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
+	PrintStream out = System.out;
+	String string;
+	while ( true ) {
+		try {	string = in.readLine();
+		}
+		catch ( Exception e ) {
+			break;
+		}
+		if ( string == null ) {
+			// Should this ever happen?  Or will it happen because
+			// of the buffering, etc.?
+			continue;
+		}
+		string = string.trim();
+		if ( string.length() == 0 ) {
+			continue;
+		}
+		if (	string.equalsIgnoreCase("exit") ||
+			string.equalsIgnoreCase("end") ) {
+			out.println ( "stop 0" );
+			uiAction_FileExitClicked();
+		}
+		else {	out.println("error");
+		}
+	}
+}
+
+/**
+Show and hide the main frame.
+@param state true if showing the frame, false if hiding it.
+*/
+public synchronized void setVisible(boolean state)
+{	if (state) {
+		setLocation(50, 50);
+	}
+	super.setVisible(state);
+}
+
+/**
+Add a time series description at the end of the time series results list.
+Note that this does not add the actual time series, only a description string.
+The time series are still accessed by the positions in the list.
+@param ts_info Time series information to add at the end of the list.
+*/
+private void tsResultsList_AddTimeSeriesToResults ( String ts_info )
+{	__ts_JListModel.addElement ( ts_info );
+	// TODO SAM 2007-09-02 Evaluate whether needed.
+	//setCommandsDirty ( true );
+	//updateStatus ( false );
+}
+
+/**
+Clear the final time series List.  Updates to the label are also done.
+Also set the engine to null.
+*/
+private void tsResultsList_Clear()
+{	__ts_JListModel.removeAllElements();
+	__ts_processor.clearResults();
+	ui_UpdateStatus ( false );
+}
+
+/**
+Enable/disable the ColoradoSMS input type features depending on whether a
+ColoradoSMS connection has been made.
+*/
+private void ui_CheckColoradoSMSFeatures ()
+{	if ( (__smsdmi != null) && __smsdmi.isOpen() ) {
+		/* REVISIT SAM 2005-10-18 Currently time series features are not
+		available...
+		if ( __input_type_JComboBox != null ) {
+			// Make sure HydroBase is in the input type list...
+			int count = __input_type_JComboBox.getItemCount();
+			boolean hbfound = false;
+			for ( int i = 0; i < count; i++ ) {
+				if ( __input_type_JComboBox.getItem(i).equals(
+					__INPUT_TYPE_ColoradoSMS) ) {
+					hbfound = true;
+					break;
+				}
+			}
+			if ( !hbfound ) {
+				// Repopulate the input types...
+				setInputTypeChoices();
+			}
+		}
+		*/
+		JGUIUtil.setEnabled (
+			__File_Properties_ColoradoSMS_JMenuItem, true );
+	}
+	else {	// Remove ColoradoSMS from the data source list if necessary...
+		/* REVISIT SAM 2005-10-18 Currently time series cannot be
+		queried
+		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
+		}
+		catch ( Exception e ) {
+			// Ignore - probably already removed...
+		}
+		*/
+		JGUIUtil.setEnabled (
+			__File_Properties_ColoradoSMS_JMenuItem, false );
+	}
+}
+
+/**
+Enable/disable DIADvisor menus and choices based on whether a connection was
+successful.  This method is called after a DIADvisor connection has been opened.
+For example, it turns on DIADvisor commands.
+*/
+private void ui_CheckDIADvisorFeatures()
+{	if (	(__DIADvisor_dmi != null) &&
+		(__DIADvisor_archive_dmi != null) &&
+		(__input_type_JComboBox != null) ) {
+		// Make sure DIADvisor is in the data source list...
+		int count = __input_type_JComboBox.getItemCount();
+		boolean rfound = false;
+		for ( int i = 0; i < count; i++ ) {
+			if ( __input_type_JComboBox.getItem(i).equals(
+				__INPUT_TYPE_DIADvisor) ) {
+				rfound = true;
+				break;
+			}
+		}
+		if ( !rfound ) {
+			// Repopulate the data sources...
+			ui_SetInputTypeChoices();
+		}
+		JGUIUtil.setEnabled(__File_Properties_DIADvisor_JMenuItem,true);
+	}
+	else {	// Remove DIADvisor from the data source list if necessary...
+		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_DIADvisor);
+		}
+		catch ( Exception e ) {
+			// Ignore - probably already removed...
+		}
+		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
+			false );
+	}
+}
+
+/**
+Check to make sure necessary input is available for dialogs, including lists
+of available static data.
+*/
+private void ui_CheckDialogInput ()
+{	/* TODO SAM 2007-08-31 May not be needed for TSTool - global data
+	to be determined once to improve performance
+	if ( __region1_Vector == null ) {
+		// Get the counties from HydroBase...
+		__region1_Vector = new Vector();
+		if ( __hbdmi != null ) {
+			Vector v = __hbdmi.getCountyRef();
+			int size = 0;
+			if ( v != null ) {
+				size = v.size();
+			}
+			HydroBase_CountyRef county = null;
+			for ( int i = 0; i < size; i++ ) {
+				county = (HydroBase_CountyRef)v.elementAt(i);
+				__region1_Vector.addElement (
+					county.getCounty() );
+			}
+		}
+	}
+	if ( __region2_Vector == null ) {
+		// Get the HUC from HydroBase...
+		__region2_Vector = new Vector();
+		if ( __hbdmi != null ) {
+			__region2_Vector = __hbdmi.getHUC();
+		}
+	}
+	if ( __cropchar_cumethod_Vector == null ) {
+		// Get the Cropchar CU methods from HydroBase...
+		__cropchar_cumethod_Vector = new Vector();
+		if ( __hbdmi != null ) {
+			Vector v = __hbdmi.getCropcharCUMethod();
+			int size = 0;
+			if ( v != null ) {
+				size = v.size();
+			}
+			HydroBase_Cropchar cropchar = null;
+			for ( int i = 0; i < size; i++ ) {
+				cropchar = (HydroBase_Cropchar)v.elementAt(i);
+				__cropchar_cumethod_Vector.addElement (
+					cropchar.getMethod_desc() );
+			}
+		}
+	}
+	if ( __blaney_criddle_cumethod_Vector == null ) {
+		// Get the CU methods from HydroBase...
+		__blaney_criddle_cumethod_Vector = new Vector();
+		if ( __hbdmi != null ) {
+			Vector v = __hbdmi.getBlaneyCriddleCUMethod();
+			int size = 0;
+			if ( v != null ) {
+				size = v.size();
+			}
+			HydroBase_CUBlaneyCriddle cubc = null;
+			for ( int i = 0; i < size; i++ ) {
+				cubc = (HydroBase_CUBlaneyCriddle)
+				v.elementAt(i);
+				__blaney_criddle_cumethod_Vector.addElement (
+					cubc.getMethod_desc() );
+			}
+		}
+	}
+	*/
+}
+
+/**
+Check the state of the GUI and enable/disable features as necessary.  For
+example, if no time series are selected, disable output options.
+This is a more primitive call than ui_UpdateStatus(), which should
+generally be used rather than directly calling this method.
+*/
+private void ui_CheckGUIState ()
+{	// Early on the GUI may not be initialized and some of the components
+	// seem to still be null...
+
+	if ( !__gui_initialized ) {
+		return;
+	}
+
+	boolean enabled = true;		// Used to enable/disable main menus
+					// based on submenus.
+
+	// Get the needed list sizes...
+
+	int query_list_size = 0;
+	if ( __query_TableModel != null ) {
+		query_list_size = __query_TableModel.getRowCount();
+	}
+
+	int command_list_size = 0;
+	int selected_commands_size = 0;
+	if ( __commands_JListModel != null ) {
+		command_list_size = __commands_JListModel.size();
+		selected_commands_size = JGUIUtil.selectedSize (__commands_JList );
+	}
+
+	int ts_list_size = 0;
+	if ( __ts_JListModel != null ) {
+		ts_list_size = __ts_JListModel.size();
+	}
+
+	// List in the order of the GUI.  Popup menu items are checked as
+	// needed mixed in below...
+
+	// File menu...
+
+	enabled = false;	// Use for File...Save menu.
+	if ( command_list_size > 0 ) {
+		// Have commands shown...
+		if ( __commands_dirty  ) {
+			JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,
+			true );
+		}
+		else {	JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,
+			false );
+		}
+		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
+		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
+		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
+		enabled = true;
+	}
+	else {	// No commands are shown.
+		JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
+	}
+	if ( ts_list_size > 0 ) {
+		JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem, true);
+		enabled = true;
+	}
+	else {	JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem,false);
+	}
+	JGUIUtil.setEnabled ( __File_Save_JMenu, enabled );
+
+	if ( __smsdmi != null ) {
+		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,
+			true );
+	}
+	else {	JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,
+			false );
+	}
+	if ( __DIADvisor_dmi != null ) {
+		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
+			true );
+	}
+	else {	JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
+			false );
+	}
+	if ( __hbdmi != null ) {
+		JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,
+			true );
+	}
+	else {	JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,
+			false );
+	}
+	if ( __nwsrfs_dmi != null ) {
+		JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,
+			true );
+	}
+	else {	JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,
+			false );
+	}
+	if ( __rdmi != null ) {
+		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,
+			true );
+	}
+	else {	JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,
+			false );
+	}
+
+	// Edit menu...
+
+	if ( command_list_size > 0 ) {
+		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem, true);
+		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,true);
+		JGUIUtil.setEnabled (__Edit_DeselectAllCommands_JMenuItem,true);
+		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,true);
+	}
+	else {	// No commands are shown.
+		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem,false);
+		JGUIUtil.setEnabled (__CommandsPopup_SelectAll_JMenuItem,false);
+		JGUIUtil.setEnabled(__Edit_DeselectAllCommands_JMenuItem,false);
+		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,
+			false);
+	}
+	if ( selected_commands_size > 0 ) {
+		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem,true);
+		JGUIUtil.setEnabled(
+			__Edit_CommandWithErrorChecking_JMenuItem, true );
+		JGUIUtil.setEnabled(
+			__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
+			true );
+		JGUIUtil.setEnabled (
+		__Edit_ConvertSelectedCommandsToComments_JMenuItem,true);
+		JGUIUtil.setEnabled (
+		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
+		true);
+		JGUIUtil.setEnabled (
+		__Edit_ConvertSelectedCommandsFromComments_JMenuItem,true);
+		JGUIUtil.setEnabled (
+		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
+		true);
+	}
+	else {	JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem, false );
+		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem, false );
+		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem, false );
+		JGUIUtil.setEnabled (
+			__Edit_CommandWithErrorChecking_JMenuItem, false );
+		JGUIUtil.setEnabled (
+			__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
+			false );
+		JGUIUtil.setEnabled (
+		__Edit_ConvertSelectedCommandsToComments_JMenuItem,false);
+		JGUIUtil.setEnabled (
+		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
+		false);
+		JGUIUtil.setEnabled (
+		__Edit_ConvertSelectedCommandsFromComments_JMenuItem,false);
+		JGUIUtil.setEnabled (
+		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
+		false);
+	}
+	if ( __commands_cut_buffer.size() > 0 ) {
+		// Paste button should be enabled...
+		JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, true );
+		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, true );
+	}
+	else {	JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, false );
+	}
+
+	// View menu...
+
+	// Commands menu...
+
+	if ( command_list_size > 0 ) {
+		JGUIUtil.setEnabled (
+			__Commands_Create_createTraces_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_average_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_changeInterval_JMenuItem, true);
+		JGUIUtil.setEnabled (__Commands_Create_TS_copy_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_disaggregate_JMenuItem, true);
+		JGUIUtil.setEnabled (
+		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,
+			true );
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
+			true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_newStatisticYearTS_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_normalize_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_relativeDiff_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_weightTraces_JMenuItem, true);
+
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillCarryForward_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillConstant_JMenuItem, true);
+		JGUIUtil.setEnabled (
+		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillFromTS_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillHistMonthAverage_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillHistYearAverage_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillInterpolate_JMenuItem, true);
+		// REVISIT SAM 2005-04-26 This fill method is not enabled.
+		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
+		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillMixedStation_JMenuItem,true );
+		JGUIUtil.setEnabled(__Commands_Fill_fillPattern_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillProrate_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillRegression_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillRepeat_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillUsingDiversionComments_JMenuItem,
+			true);
+		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, true );
+
+		JGUIUtil.setEnabled(__Commands_Set_replaceValue_JMenuItem,true);
+		JGUIUtil.setEnabled(__Commands_Set_setConstant_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Set_setConstantBefore_JMenuItem, true);
+		JGUIUtil.setEnabled(__Commands_Set_setDataValue_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Set_setFromTS_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
+
+		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_addConstant_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_adjustExtremes_JMenuItem, true);
+		JGUIUtil.setEnabled(__Commands_Manipulate_ARMA_JMenuItem, true);
+		JGUIUtil.setEnabled(__Commands_Manipulate_blend_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_convertDataUnits_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_cumulate_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_divide_JMenuItem,true);
+		JGUIUtil.setEnabled (__Commands_Manipulate_free_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_multiply_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_runningAverage_JMenuItem, true);
+		JGUIUtil.setEnabled(__Commands_Manipulate_scale_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_shiftTimeByInterval_JMenuItem,
+			true);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_subtract_JMenuItem, true);
+		JGUIUtil.setEnabled(__Commands_ManipulateTimeSeries_JMenu,true);
+
+		JGUIUtil.setEnabled (
+			__Commands_Analyze_analyzePattern_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Analyze_compareTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
+
+		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
+
+		JGUIUtil.setEnabled (
+			__Commands_Output_sortTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeDateValue_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeNwsCard_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
+			true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeRiverWare_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeStateCU_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeStateMod_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeSummary_JMenuItem, true);
+		JGUIUtil.setEnabled(
+			__Commands_Output_deselectTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled (
+			__Commands_Output_selectTimeSeries_JMenuItem, true);
+
+		/* REVISIT - it is irritating to not be able to run commands
+		  when external input changes (or during debugging)...
+		if (	__commands_dirty ||
+			(!__commands_dirty && (ts_list_size == 0)) ) {
+			JGUIUtil.setEnabled (
+				__run_commands_JButton, true );
+		}
+		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
+		}
+		*/
+		if ( selected_commands_size > 0 ) {
+			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,
+				true );
+		}
+		else {	JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,
+				false );
+		}
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
+	}
+	else {	// No commands are shown.
+		JGUIUtil.setEnabled (
+			__Commands_Create_createTraces_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_average_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_changeInterval_JMenuItem,false);
+		JGUIUtil.setEnabled(__Commands_Create_TS_copy_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_disaggregate_JMenuItem, false);
+		JGUIUtil.setEnabled (
+		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
+			false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_newStatisticYearTS_JMenuItem,
+			false );
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_normalize_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_relativeDiff_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Create_TS_weightTraces_JMenuItem, false);
+
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillCarryForward_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillConstant_JMenuItem, false);
+		JGUIUtil.setEnabled (
+		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,
+			false);
+		JGUIUtil.setEnabled(__Commands_Fill_fillFromTS_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillHistMonthAverage_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillHistYearAverage_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillInterpolate_JMenuItem, false);
+		JGUIUtil.setEnabled(__Commands_Fill_fillMixedStation_JMenuItem,
+			false);
+		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem, false);
+		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillPattern_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillProrate_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillRegression_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillRepeat_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Fill_fillUsingDiversionComments_JMenuItem,
+			false);
+		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
+
+		JGUIUtil.setEnabled (
+			__Commands_Set_replaceValue_JMenuItem, false);
+		JGUIUtil.setEnabled(__Commands_Set_setConstant_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Set_setConstantBefore_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Set_setDataValue_JMenuItem, false);
+		JGUIUtil.setEnabled (__Commands_Set_setFromTS_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
+
+		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_addConstant_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_adjustExtremes_JMenuItem,false);
+		JGUIUtil.setEnabled(__Commands_Manipulate_ARMA_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_blend_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_convertDataUnits_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_cumulate_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_divide_JMenuItem,false);
+		JGUIUtil.setEnabled(__Commands_Manipulate_free_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_multiply_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_runningAverage_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_scale_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_shiftTimeByInterval_JMenuItem,
+			false);
+		JGUIUtil.setEnabled (
+			__Commands_Manipulate_subtract_JMenuItem, false);
+		JGUIUtil.setEnabled(
+			__Commands_ManipulateTimeSeries_JMenu,false);
+
+		JGUIUtil.setEnabled (
+			__Commands_Analyze_analyzePattern_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Analyze_compareTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled (__Commands_AnalyzeTimeSeries_JMenu, false);
+
+		// REVISIT SAM 2005-07-11 For now enable because models can
+		// create time series...
+		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
+
+		JGUIUtil.setEnabled(
+			__Commands_Output_sortTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled(
+			__Commands_Output_writeDateValue_JMenuItem, false);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeNwsCard_JMenuItem,false);
+		JGUIUtil.setEnabled(
+			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
+			false);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeRiverWare_JMenuItem, false );
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeStateCU_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeStateMod_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Output_writeSummary_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Output_deselectTimeSeries_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_Output_selectTimeSeries_JMenuItem,false);
+
+		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
+	}
+	if ( selected_commands_size > 0 ) {
+		JGUIUtil.setEnabled (
+			__Commands_ConvertTSIDTo_readTimeSeries_JMenuItem,true);
+		JGUIUtil.setEnabled (
+			__Commands_ConvertTSIDToReadCommand_JMenu,true);
+	}
+	else {	JGUIUtil.setEnabled (
+			__Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__Commands_ConvertTSIDToReadCommand_JMenu,false);
+	}
+
+	// Run menu...
+
+	if ( command_list_size > 0 ) {
+		/* Revisit
+		if (	__commands_dirty ||
+			(!__commands_dirty && (ts_list_size == 0)) ) {
+			JGUIUtil.setEnabled (
+				__run_commands_JButton, true );
+		}
+		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
+		}
+		*/
+		JGUIUtil.setEnabled(
+			__Run_AllCommandsCreateOutput_JMenuItem, true);
+		JGUIUtil.setEnabled(
+			__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,
+			true);
+		JGUIUtil.setEnabled(
+			__Run_AllCommandsIgnoreOutput_JMenuItem, true);
+		JGUIUtil.setEnabled(
+			__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
+			true);
+		if ( selected_commands_size > 0 ) {
+			JGUIUtil.setEnabled(
+			__Run_SelectedCommandsCreateOutput_JMenuItem, true);
+			JGUIUtil.setEnabled(
+			__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
+			true);
+			JGUIUtil.setEnabled(
+			__Run_SelectedCommandsIgnoreOutput_JMenuItem, true);
+			JGUIUtil.setEnabled(
+			__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
+			true);
+			JGUIUtil.setEnabled (
+				__Run_SelectedCommands_JButton, true );
+		}
+		else {	JGUIUtil.setEnabled(
+			__Run_SelectedCommandsCreateOutput_JMenuItem, false);
+			JGUIUtil.setEnabled(
+			__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
+			false);
+			JGUIUtil.setEnabled(
+			__Run_SelectedCommandsIgnoreOutput_JMenuItem, false);
+			JGUIUtil.setEnabled(
+			__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
+			false);
+			JGUIUtil.setEnabled (
+				__Run_SelectedCommands_JButton, false );
+		}
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
+	}
+	else {	// No commands in list...
+		JGUIUtil.setEnabled (
+			__Run_AllCommandsCreateOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,
+			false);
+		JGUIUtil.setEnabled (
+			__Run_AllCommandsIgnoreOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (
+			__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
+			false);
+		JGUIUtil.setEnabled (
+			__Run_SelectedCommandsCreateOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (
+		__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
+			false);
+		JGUIUtil.setEnabled (
+			__Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (
+		__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
+			false);
+		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
+	}
+
+	// Results menu...
+
+	if ( ts_list_size > 0 ) {
+		JGUIUtil.setEnabled ( __Results_JMenu, true );
+	}
+	else {	// DISABLE file and view options...
+		JGUIUtil.setEnabled ( __Results_JMenu, false );
+	}
+
+	// Tools menu...
+
+	if ( ts_list_size > 0 ) {
+		JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, true );
+		JGUIUtil.setEnabled ( __Tools_Report_JMenu, true );
+	}
+	else {	JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, false );
+		JGUIUtil.setEnabled ( __Tools_Report_JMenu, false );
+	}
+	if ( (query_list_size > 0) && (__geoview_JFrame != null) ) {
+		JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, true );
+	}
+	else {	JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, false );
+	}
+
+	// Enable/disable features related to the query list...
+
+	if ( query_list_size > 0 ) {
+		JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, true );
+	}
+	else {	JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
+	}
+	if (	(query_list_size > 0) && (__query_JWorksheet != null) &&
+		(__query_JWorksheet.getSelectedRowCount() > 0) ) {
+		JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, true );
+	}
+	else {	JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
+	}
+
+	// There should be no reason that the help system does not start up
+	// other than some synchronization issue.  For now put this in to try
+	// to catch problems...
+/* REVISIT
+	if ( _help_index_gui == null ) {
+		try {	_help_index_gui = new URLHelpGUI ( 0, "TSTool Help");
+			_help_index_gui.attachMainMenu ( _help_JMenu );
+		}
+		catch ( Exception e ) {
+		}
+	}
+*/
+	// Disable all of the following menus until the dialogs can be enabled.
+	// If not enabled below, the command may be phased out or merged with
+	// another command...
+
+	// REVISIT - need to create a dialog for the following...
+	JGUIUtil.setEnabled(__Commands_Create_TS_average_JMenuItem,false);
+
+	// REVISIT - all of these are new features.  The intent is to convert
+	// a TSID to a specific read command, as available in other menus,
+	// simplifying the conversion from time series browsing, to command
+	// language.
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readHydroBase_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readMODSIM_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readRiverWare_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readStateMod_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readStateModB_JMenuItem,false);
+	JGUIUtil.setEnabled (
+		__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem,false);
+
+	// REVISIT SAM 2005-09-02
+	// Proposed new commands
+	JGUIUtil.setEnabled(__Commands_Read_TS_readStateModB_JMenuItem,false);
+	JGUIUtil.setEnabled(__Commands_Read_TS_readStateMod_JMenuItem,false);
+
+	// REVISIT
+	// Not available as a command yet - logic not coded...
+	JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,false);
+
+	// REVISIT - make sure this is doing what it should
+	JGUIUtil.setEnabled(
+		__Commands_Fill_setMissingDataValue_JMenuItem,false);
+
+	// REVISIT - should not need this since fillRegression() does this
+	JGUIUtil.setEnabled(__Commands_Fill_setRegressionPeriod_JMenuItem,
+		false);
+
+	// REVISIT - can this be phased out?
+	JGUIUtil.setEnabled(
+		__Commands_Output_setOutputDetailedHeaders_JMenuItem,false);
+}
+
+/**
+Enable/disable the HydroBase input type features depending on whether a
+HydroBaseDMI connection has been made.
+*/
+private void ui_CheckHydroBaseFeatures ()
+{	if ( (__hbdmi != null) && __hbdmi.isOpen() ) {
+		if ( __input_type_JComboBox != null ) {
+			// Make sure HydroBase is in the input type list...
+			int count = __input_type_JComboBox.getItemCount();
+			boolean hbfound = false;
+			for ( int i = 0; i < count; i++ ) {
+				if ( __input_type_JComboBox.getItem(i).equals(
+					__INPUT_TYPE_HydroBase) ) {
+					hbfound = true;
+					break;
+				}
+			}
+			if ( !hbfound ) {
+				// Repopulate the input types...
+				ui_SetInputTypeChoices();
+			}
+		}
+		JGUIUtil.setEnabled (
+			__File_Properties_HydroBase_JMenuItem, true );
+	}
+	else {	// Remove HydroBase from the input type list if necessary...
+		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
+		}
+		catch ( Exception e ) {
+			// Ignore - probably already removed...
+		}
+		JGUIUtil.setEnabled (
+			__File_Properties_HydroBase_JMenuItem, false );
+	}
+}
+
+/**
+Disable input types depending on the license.  For example, if the license type
+is "CDSS", then RTi-developed input types like RiversideDB and DIADvisor are
+disabled.  For the most part, the RTi license should be the default and only
+CDSS turns input types off in this method.
+*/
+private void ui_CheckInputTypesForLicense ()
+{	if ( __license_manager == null ) {
+		return;
+	}
+	String routine = "TSTool_JFrame.checkInputTypesForLicense";
+	if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
+		if ( !__source_StateCU_enabled ) {
+			// Might not be in older config files...
+			Message.printStatus ( 1, routine,
+			"StateCU input type being enabled for CDSS." );
+			__source_StateCU_enabled = true;
+		}
+		if ( !__source_StateMod_enabled ) {
+			// Might not be in older config files...
+			Message.printStatus ( 1, routine,
+			"StateMod input type being enabled for CDSS." );
+			__source_StateMod_enabled = true;
+		}
+		Message.printStatus ( 2, routine,
+		"DIADvisor input type being disabled for CDSS." );
+		__source_DIADvisor_enabled = false;
+		Message.printStatus ( 2, routine,
+		"Mexico CSMN input type being disabled for CDSS." );
+		__source_MexicoCSMN_enabled = false;
+		Message.printStatus ( 2, routine,
+		"MODSIM input type being disabled for CDSS." );
+		__source_MODSIM_enabled = false;
+		Message.printStatus ( 2, routine,
+		"NDFD input type being disabled for CDSS." );
+		__source_NDFD_enabled = false;
+		Message.printStatus ( 2, routine,
+		"NWSCard input type being disabled for CDSS." );
+		__source_NWSCard_enabled = false;
+		Message.printStatus ( 2, routine,
+		"NWSRFS FS5Files input type being disabled for CDSS." );
+		__source_NWSRFS_FS5Files_enabled = false;
+		Message.printStatus ( 2, routine,
+		"NWSRFS ESPTraceEnsemble input type being disabled for CDSS." );
+		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
+		Message.printStatus ( 2, routine,
+		"RiversideDB input type being disabled for CDSS." );
+		__source_RiversideDB_enabled = false;
+		Message.printStatus ( 2, routine,
+		"SHEF input type being disabled for CDSS." );
+		__source_SHEF_enabled = false;
+	}
+}
+
+/**
+Check the license information to make sure that TSTool has a valid license.
+If not print a warning and exit.  The data member __license_manager is created
+for use elsewhere (e.g., in Help About).
+*/
+private void ui_CheckLicense ()
+{	try {	if (	(__license_manager == null) ||
+			!__license_manager.isLicenseValid() ) {
+			Message.printWarning ( 1, "TSTool.checkLicense",
+			"The license is invalid.  TSTool will exit." );
+			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+			setVisible(false);
+			dispose();
+			Message.closeLogFile();
+			System.exit(0);
+		}
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 1, "TSTool.checkLicense",
+		"Error checking the license.  TSTool will exit." );
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setVisible(false);
+		dispose();
+		Message.closeLogFile();
+		System.exit(0);
+	}
+	if ( __license_manager.getLicenseType().equalsIgnoreCase("Demo") ) {
+		if ( __license_manager.isLicenseExpired() ) {
+			Message.printWarning ( 1, "TSTool.checkLicense",
+			"The demonstration license has expired." +
+			"  TSTool will exit." );
+			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+			setVisible(false);
+			dispose();
+			Message.closeLogFile();
+			System.exit(0);
+		}
+		else {	Message.printWarning ( 1, "TSTool.checkLicense",
+			"This is a demonstration version of TSTool and will " +
+			"expire on " + __license_manager.getLicenseExpires() );
+		}
+	}
+}
+
+/**
+Check the GUI for NWSRFS FS5Files features.
+*/
+private void ui_CheckNWSRFSFS5FilesFeatures ()
+{	if ( (__nwsrfs_dmi != null) && (__input_type_JComboBox != null) ) {
+		// Make sure NWSRFS FS5Files is in the data source list...
+		int count = __input_type_JComboBox.getItemCount();
+		boolean rfound = false;
+		for ( int i = 0; i < count; i++ ) {
+			if ( __input_type_JComboBox.getItem(i).equals(
+				__INPUT_TYPE_NWSRFS_FS5Files) ) {
+				rfound = true;
+				break;
+			}
+		}
+		if ( !rfound ) {
+			// Repopulate the data sources...
+			ui_SetInputTypeChoices();
+		}
+		if (__File_Properties_NWSRFSFS5Files_JMenuItem != null ) {
+			__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled(
+				true);
+		}
+	}
+	else {	// NWSRFS FS5Files connection failed, but do not remove from
+		// input types because a new connection currently can be
+		// established from the interactive.
+		/*
+		try {	__input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
+		}
+		catch ( Exception e ) {
+			// Ignore - probably already removed...
+		}
+		*/
+		if (__File_Properties_NWSRFSFS5Files_JMenuItem != null ) {
+			__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled (
+				false );
+		}
+	}
+}
+
+/**
+Check the GUI for RiversideDB features.
+*/
+private void ui_CheckRiversideDBFeatures ()
+{	if ( (__rdmi != null) && (__input_type_JComboBox != null) ) {
+		// Make sure RiversideDB is in the data source list...
+		int count = __input_type_JComboBox.getItemCount();
+		boolean rfound = false;
+		for ( int i = 0; i < count; i++ ) {
+			if ( __input_type_JComboBox.getItem(i).equals(
+				__INPUT_TYPE_RiversideDB) ) {
+				rfound = true;
+				break;
+			}
+		}
+		if ( !rfound ) {
+			// Repopulate the data sources...
+			ui_SetInputTypeChoices();
+		}
+		if (__File_Properties_RiversideDB_JMenuItem != null ) {
+			__File_Properties_RiversideDB_JMenuItem.setEnabled(
+				true);
+		}
+	}
+	else {	// RiversideDB connection failed so remove RiversideDB from the
+		// data source list if necessary...
+		try {	__input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
+		}
+		catch ( Exception e ) {
+			// Ignore - probably already removed...
+		}
+		if (__File_Properties_RiversideDB_JMenuItem != null ) {
+			__File_Properties_RiversideDB_JMenuItem.setEnabled (
+				false );
+		}
+	}
+}
+
+/**
+Read the license file.  If not found, the license manager will be null and
+result in an invalid license error.  The license is read before the GUI is
+initialized to allow the GUI to be configured according to the license type.
+For example, the on-line help will be searched for differently if an RTi
+general license or a CDSS license.
+*/
+private void ui_ReadLicense ()
+{	String	license_owner, license_type, license_count, license_expires,
+		license_key;
+	String	routine = "TSTool_JFrame.readLicense";
+	String	warning = "";
+
+	Message.printStatus ( 1, "TSTool.checkLicense", "Checking license" );
+	license_owner = tstool.getPropValue ( "TSTool.LicenseOwner" );
+	if ( license_owner == null ) {
+		warning += "\nLicenseOwner is not specified in the TSTool " +
+			"license information.";
+	}
+	license_type = tstool.getPropValue ( "TSTool.LicenseType" );
+	if ( license_type == null ) {
+		warning += "\nLicenseType is not specified in the TSTool " +
+			"license information.";
+	}
+	license_count = tstool.getPropValue ( "TSTool.LicenseCount" );
+	if ( license_count == null ) {
+		warning += "\nLicenseCount is not specified in the TSTool " +
+			"license information.";
+	}
+	license_expires = tstool.getPropValue ( "TSTool.LicenseExpires" );
+	if ( license_expires == null ) {
+		warning += "\nLicenseExpires is not specified in the TSTool " +
+			"license information.";
+	}
+	license_key = tstool.getPropValue ( "TSTool.LicenseKey" );
+	if ( license_key == null ) {
+		warning += "\nLicenseKey is not specified in the TSTool " +
+			"license information.";
+	}
+	if ( warning.length() > 0 ) {
+		warning += "\nTSTool will not run.";
+		Message.printWarning ( 1, routine, warning );
+		__license_manager = null;
+		return;
+	}
+
+	try {	// The following allows null fields so check above...
+		__license_manager = new LicenseManager ( "TSTool",
+						license_owner,
+						license_type, license_count,
+						license_expires, license_key );
+	}
+	catch ( Exception e ) {
+		__license_manager = null;
+	}
+}
+
+/**
+Set the initial working directory, which will be the software startup home or
+the location where the commands file has been read/saved.
+@param initial_working_dir The initial working directory (should be non-null).
+*/
+private void ui_SetInitialWorkingDir ( String initial_working_dir )
+{
+	__initial_working_dir = initial_working_dir;
+}
+
+/**
+Set the input filters based on the current settings.  This sets the appropriate
+input filter visible since all input filters are created at startup.
+*/
+private void ui_SetInputFilters()
+{	if (	__selected_input_type.equals(__INPUT_TYPE_HydroBase) &&
+		(__input_filter_HydroBase_station_JPanel != null) &&
+		(__input_filter_HydroBase_structure_JPanel != null) &&
+		(__input_filter_HydroBase_structure_sfut_JPanel != null) ) {
+		// Can only use the HydroBase filters if they were originally
+		// set up (if HydroBase was originally available)...
+		String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType(
+				__selected_data_type, __selected_time_step );
+
+		String meas_type = hb_mt[0];
+		//String vax_field = hb_mt[1];
+		//String time_step = hb_mt[2];
+		Message.printStatus(2, "", "isStationTimeSeriesDataType("+ __selected_data_type
+				+ "," + __selected_time_step + "," + meas_type +
+				")=" + HydroBase_Util.isStationTimeSeriesDataType (
+				__hbdmi, meas_type));
+		if ( HydroBase_Util.isStationTimeSeriesDataType (
+			__hbdmi, meas_type) ) {
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_station_JPanel;
+		}
+		// Call this before the more general
+		// isStructureTimeSeriesDataType() method...
+		else if ( HydroBase_Util.isStructureSFUTTimeSeriesDataType (
+			__hbdmi, meas_type) ) {
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_structure_sfut_JPanel;
+		}
+		else if ( HydroBase_Util.isStructureTimeSeriesDataType (
+			__hbdmi, meas_type) ) {
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_structure_JPanel;
+		}
+		else if ((__input_filter_HydroBase_CASSCropStats_JPanel != null)
+			&& HydroBase_Util.
+			isAgriculturalCASSCropStatsTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "",
+			//"Displaying CASS crop stats panel");
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_CASSCropStats_JPanel;
+		}
+		else if ((__input_filter_HydroBase_CASSLivestockStats_JPanel
+			!= null) && HydroBase_Util.
+			isAgriculturalCASSLivestockStatsTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "",
+			//"Displaying CASS livestock stats panel");
+			__selected_input_filter_JPanel =
+			__input_filter_HydroBase_CASSLivestockStats_JPanel;
+		}
+		else if ((__input_filter_HydroBase_CUPopulation_JPanel
+			!= null) && HydroBase_Util.
+			isCUPopulationTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "",
+			//"Displaying CU population panel");
+			__selected_input_filter_JPanel =
+			__input_filter_HydroBase_CUPopulation_JPanel;
+		}
+		else if ( (__input_filter_HydroBase_NASS_JPanel != null) &&
+			HydroBase_Util.
+			isAgriculturalNASSCropStatsTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "",
+			//"Displaying NASS agstats panel");
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_NASS_JPanel;
+		}
+		else if ( (__input_filter_HydroBase_irrigts_JPanel != null) &&
+			HydroBase_Util.isIrrigSummaryTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_irrigts_JPanel;
+		}
+		else if ((__input_filter_HydroBase_wells_JPanel != null) 
+		    && HydroBase_Util.isGroundWaterWellTimeSeriesDataType(
+		    __hbdmi, __selected_data_type)) {
+			if (__selected_time_step.equals(__TIMESTEP_IRREGULAR)) {
+				__selected_input_filter_JPanel =
+					__input_filter_HydroBase_station_JPanel;
+			}
+			else {
+				__selected_input_filter_JPanel =
+					__input_filter_HydroBase_wells_JPanel;
+			}
+		}		
+		else if ( (__input_filter_HydroBase_WIS_JPanel != null) &&
+			HydroBase_Util.isWISTimeSeriesDataType (
+			__hbdmi, __selected_data_type) ) {
+			__selected_input_filter_JPanel =
+				__input_filter_HydroBase_WIS_JPanel;
+		}
+		
+		else {	// Generic input filter does not have anything...
+			__selected_input_filter_JPanel =
+				__input_filter_generic_JPanel;
+		}
+	}
+	else if(__selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) &&
+		(__input_filter_MexicoCSMN_JPanel != null) ) {
+		// Can only use the Mexico CSMN filters if they were originally
+		// set up...
+		__selected_input_filter_JPanel=__input_filter_MexicoCSMN_JPanel;
+	}
+	else if(__selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) &&
+		(__input_filter_NWSRFS_FS5Files_JPanel != null) ) {
+		__selected_input_filter_JPanel =
+		__input_filter_NWSRFS_FS5Files_JPanel;
+	}
+	else {	// Currently no other input types support filtering - this may
+		// also be used if HydroBase input filters were not set up due
+		// to a missing database connection...
+		__selected_input_filter_JPanel = __input_filter_generic_JPanel;
+	}
+	// Now loop through the available input filter panels and set visible
+	// the selected one...
+	int size = __input_filter_JPanel_Vector.size();
+	JPanel input_filter_JPanel;
+	for ( int i = 0; i < size; i++ ) {
+		input_filter_JPanel =
+			(JPanel)__input_filter_JPanel_Vector.elementAt(i);
+		if ( input_filter_JPanel == __selected_input_filter_JPanel ) {
+			input_filter_JPanel.setVisible ( true );
+		}
+		else {	input_filter_JPanel.setVisible ( false );
+		}
+	}
+}
+
+/**
+Set the __input_type_JComboBox contents based on the configuration information.
+If an input type is a database, only add if a non-null connection is available.
+Later, database connections may also be named, in which case more checks will
+need to be done.
+*/
+private void ui_SetInputTypeChoices ()
+{	//Message.printStatus ( 1, "", "SAMX - setting input type choices..." );
+	// Ignore item events while manipulating.  This should prevent
+	// unnecessary error-handling at startup.
+	__ignore_ItemEvent = true;
+	if ( __input_type_JComboBox.getItemCount() > 0 ) {
+		__input_type_JComboBox.removeAll ();
+	}
+	if ( __source_DateValue_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_DateValue );
+	}
+	if (	__source_DIADvisor_enabled &&
+		(__DIADvisor_dmi != null) &&
+		(__DIADvisor_archive_dmi != null) ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_DIADvisor );
+	}
+	if ( __source_HydroBase_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_HydroBase );
+	}
+	if ( __source_MexicoCSMN_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_MEXICO_CSMN );
+	}
+	if ( __source_MODSIM_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_MODSIM );
+	}
+	if ( __source_NWSCard_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_NWSCARD );
+	}
+	if ( __source_NWSRFS_FS5Files_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_NWSRFS_FS5Files );
+	}
+	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+		__input_type_JComboBox.add(
+		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble );
+	}
+	if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_RiversideDB );
+	}
+	if ( __source_RiverWare_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_RiverWare );
+	}
+	// REVISIT - don't know how to parse SHEF yet...
+	//if ( __source_SHEF_enabled ) {
+		//__input_type_JComboBox.add( __INPUT_TYPE_SHEF );
+	//}
+	if ( __source_StateCU_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_StateCU );
+	}
+	if ( __source_StateMod_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_StateMod );
+	}
+	if ( __source_StateModB_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_StateModB );
+	}
+	if ( __source_USGSNWIS_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_USGSNWIS );
+	}
+
+	// Enable item events again so the events will cascade...
+
+	__ignore_ItemEvent = false;
+
+	if ( __source_HydroBase_enabled ) {
+		// If enabled, select it because the users probably want it
+		// as the choice...
+		__input_type_JComboBox.select( null );
+		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
+	}
+	else {	// Select the first item in the list...
+		__input_type_JComboBox.select ( null );
+		__input_type_JComboBox.select ( 0 );
+	}
+}
+
+/**
+Update the main status information when the list contents have changed.  This
+method should be called after any change to the query, command, or time series
+results list.
+Interface tasks include:
+<ol>
+<li>	Set the title bar.
+	If no commands file has been read, the title will be:
+	"TSTool - no commands saved".
+	If a commands file has been read but not modified, the title will be:
+	"TSTool - "filename"".
+	If a commands file has been read and modified, the title will be:
+	"TSTool - "filename" (modified)".
+	</li>
+<li>	Call updateTextFields() to indicate the number of selected and total
+	commands and set the general status to "Ready".
+	</li>
+<li>	Call checkGUIState() to reset menus, etc.  Note this should be called
+	independently when the list appearance changes (selections, etc.).
+	</li>
+</ol>
+@param check_gui_state If true, then the checkGUIState() method is also called,
+which checks many interface settings.
+*/
+private void ui_UpdateStatus ( boolean check_gui_state )
+{	if ( __commands_file_name == null ) {
+		setTitle ( "TSTool - no commands saved");
+	}
+	else {	if ( __commands_dirty ) {
+			setTitle ( "TSTool - \"" + __commands_file_name +
+			"\" (modified)");
+		}
+		else {	setTitle ( "TSTool - \"" + __commands_file_name + "\"");
+		}
+	}
+	int selected_size = 0;
+	if ( __query_results_JPanel != null ) {
+		int size = 0;
+		if ( __query_JWorksheet != null ) {
+			try {	size=__query_JWorksheet.getRowCount();
+				selected_size=__query_JWorksheet.
+				getSelectedRowCount();
+			}
+			catch ( Exception e ) {
+				// Absorb the exception in most cases - print if
+				// developing to see if this issue can be
+				// resolved.
+				if ( Message.isDebugOn && IOUtil.testing()  ) {
+					String routine =
+						"TSTool_JFrame.updateStatus";
+					Message.printWarning ( 3, routine,
+					"For developers:  caught exception in "+
+					"clearQueryList JWorksheet at setup." );
+					Message.printWarning ( 3, routine, e );
+				}
+			}
+		}
+        	__query_results_JPanel.setBorder(
+			BorderFactory.createTitledBorder (
+			BorderFactory.createLineBorder(Color.black),
+			"Time Series List (" + size +
+			" time series, " + selected_size + " selected)") );
+	}
+	int selected_indices[] = __commands_JList.getSelectedIndices();
+	selected_size = 0;
+	if ( selected_indices != null ) {
+		selected_size = selected_indices.length;
+	}
+	if ( __commands_JPanel != null ) {
+        	__commands_JPanel.setBorder(
+			BorderFactory.createTitledBorder (
+			BorderFactory.createLineBorder(Color.black),
+			"Commands (" + __commands_JListModel.size() +
+			" commands, " + selected_size + " selected)") );
+	}
+	selected_indices = __ts_JList.getSelectedIndices();
+	selected_size = 0;
+	if ( selected_indices != null ) {
+		selected_size = selected_indices.length;
+	}
+	if ( __ts_JPanel != null ) {
+        	__ts_JPanel.setBorder(
+			BorderFactory.createTitledBorder (
+			BorderFactory.createLineBorder(Color.black),
+			"Time Series Results (" +
+			__ts_JListModel.size() + " time series, " +
+			selected_size + " selected)") );
+	}
+	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
+	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null,
+	//			__STATUS_READY );
+	ui_CheckGUIState ();
+}
+
+/**
+Update the text fields at the bottom of the main interface.  This does NOT update
+all text fields like the number of commands, etc.
+@param level Message level.  If > 0 and the message is not null, call
+Message.printStatus() to record a message.
+@param routine Routine name used if Message.printStatus() is called.
+@param message If not null, update the __message_JTextField to contain this
+text.  If null, leave the contents as previously shown.  Specify "" to clear the
+text.
+@param status If not null, update the __status_JTextField to contain
+this text.  If null, leave the contents as previously shown.  Specify "" to
+clear the text.
+*/
+private void ui_UpdateStatusTextFields (	int level, String routine, String message,
+				String status )
+{	if ( (level > 0) && (message != null) ) {
+		// Print a status message to the messaging system...
+		Message.printStatus ( 1, routine, message );
+	}
+	if ( message != null ) {
+		__message_JTextField.setText (message);
+	}
+	if ( status != null ) {
+		__status_JTextField.setText (status);
+	}
+}
+
+/**
+Handle a group of action, for the 
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed1_MainActions (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+	Object o = event.getSource();
+	String rtn = "TSTool_JFrame.actionPerformed1_MainActions";
+
+	// Next list menus or commands...
+	if (command.equals(BUTTON_TOP_GET_TIME_SERIES) ) {
+		uiAction_GetTimeSeriesListClicked();
+	}
+	else if ( o == __CopySelectedToCommands_JButton ) {
+		// Transfer from the time series list to the commands...
+		uiAction_TransferSelectedQueryResultsToCommandList();
+	}
+	else if ( o == __CopyAllToCommands_JButton ) {
+		// Transfer from the time series list to the commands...
+		uiAction_TransferAllQueryResultsToCommandList();
+	}
+	else if (command.equals(__Button_RunSelectedCommands_String) ) {
+		// Can be a button or a menu?
+		uiAction_RunCommands ( false, true );
+	}
+	else if (command.equals(__Button_RunAllCommands_String) ) {
+		// Can be a button or a menu?
+		uiAction_RunCommands ( true, true );
+	}
+	else if (command.equals(__Button_ClearCommands_String) ) {
+		commandList_RemoveCommandsBasedOnUI();
+	}
+	else if (command.equals(BUTTON_TS_SELECT_ALL) ) {
+		JGUIUtil.selectAll ( __ts_JList );
+	}
+	else if (command.equals(BUTTON_TS_DESELECT_ALL) ) {
+		__ts_JList.clearSelection();
+	}
+	else {	// Chain to the next method...
+		uiAction_ActionPerformed2_FileMenu(event);
+	}
+}
+
+/**
+Handle a group of actions for the File menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed2_FileMenu (ActionEvent event)
+throws Exception
+{	Object o = event.getSource();
+	String command = event.getActionCommand();
+	String rtn = "FileMenu";
+
+	// File Menu actions...
+
+	if ( o == __File_Open_CommandsFile_JMenuItem ) {
+		try {	uiAction_OpenCommandsFile();
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, rtn,
+				"Error reading commands file" );
+			Message.printWarning( 3, "", e);
+		}
+	}
+	else if ( command.equals ( __File_Open_DIADvisor_String )) {
+		// Open a connections to the DIADvisor operational and archive
+		// databases - currently assumed to be MS Access. 
+		uiAction_OpenDIADvisor ();
+		// Force the choices to refresh...
+		if (	(__DIADvisor_dmi != null) &&
+			(__DIADvisor_archive_dmi != null) ) {
+			__input_type_JComboBox.select ( null );
+			__input_type_JComboBox.select ( __INPUT_TYPE_DIADvisor);
+		}
+	}
+	else if ( command.equals ( __File_Open_HydroBase_String )) {
+		uiAction_OpenHydroBase ( false );
+		// Force the choices to refresh...
+		if ( __hbdmi != null ) {
+			__input_type_JComboBox.select ( null );
+			__input_type_JComboBox.select (__INPUT_TYPE_HydroBase);
+		}
+	}
+	else if ( command.equals ( __File_Open_RiversideDB_String )) {
+		// Read a RiverTrak config file, get the RiversideDB properties,
+		// and open the database...
+		JFileChooser fc = JFileChooserFactory.createJFileChooser(
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle(
+		"Select a RiverTrak or TSTool Configuration File" );
+		SimpleFileFilter sff =
+			new SimpleFileFilter ( "cfg",
+			"RiverTrak/TSTool Configuration File" );
+		fc.addChoosableFileFilter ( sff );
+		fc.setFileFilter ( sff );
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
+			return;
+		}
+		// Don't save the directory because it is probably a one-off
+		// selection and won't be picked again.
+		String path = fc.getSelectedFile().getPath();
+		// Read into a PropList...
+		PropList rprops = new PropList("");
+		rprops.setPersistentName ( path );
+		rprops.readPersistent ();
+		uiAction_OpenRiversideDB ( rprops, false );
+		// Force the choices to refresh...
+		__input_type_JComboBox.select ( null );
+		__input_type_JComboBox.select ( __INPUT_TYPE_RiversideDB );
+	}
+	else if ( o == __File_Save_Commands_JMenuItem ) {
+		try {	if ( __commands_file_name != null ) {
+				// Use the existing name...
+				uiAction_WriteCommandsFile ( __commands_file_name,false);
+			}
+			else {	// Prompt for the name...
+				uiAction_WriteCommandsFile ( __commands_file_name, true);
+			}
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, rtn,
+			"Error writing commands file." );
+		}
+	}
+	else if ( o == __File_Save_CommandsAs_JMenuItem ) {
+		try {	// Prompt for the name...
+			uiAction_WriteCommandsFile ( __commands_file_name, true);
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, rtn,
+			"Error writing commands file." );
+		}
+	}
+    else if ( command.equals(__File_Save_TimeSeriesAs_String) ) {
+		// Can save in a number of formats.  Allow the user to pick
+		// using a file chooser...
+		uiAction_SaveTimeSeries ();
+	}
+	else if (command.equals(__File_Print_Commands_ActionString) ) {
+		// Get all commands as strings for printing
+		try {	PrintJGUI.print ( this, commandList_GetCommandStrings(true), null, 10 );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, rtn,
+			"Error printing commands." );
+		}
+	}
+	else if ( command.equals(__File_Properties_CommandsRun_String) ) {
+		// Simple text display of last commands run data from TSEngine.
+		PropList reportProp = new PropList ("ReportJFrame.props");
+		// Too big (make this big when we have more stuff)...
+		//reportProp.set ( "TotalWidth", "750" );
+		//reportProp.set ( "TotalHeight", "550" );
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "TSTool Commands Run Properties" );
+		Vector v = new Vector ( 4 );
+		v.addElement ( "Properties from the last commands run." );
+		v.addElement (
+		"Note that property values are as of the end of the run." );
+		v.addElement (
+		"Properties are set as defaults and change value when" +
+		" a command is processed." );
+		v.addElement ( "" );
+		if ( __ts_processor == null ) {
+			v.addElement ( "The commands have not been run." );
+		}
+		else {
+			String s1 = "", s2 = "";
+			// Input period...
+			DateTime date1 = commandProcessor_GetInputStart();
+			if ( date1 == null ) {
+				s1 = "NOT SPECIFIED (use all available data)";
+			}
+			else {	s1 = date1.toString();
+			}
+			DateTime date2 = commandProcessor_GetInputEnd();
+			if ( date2 == null ) {
+				s2 = "NOT SPECIFIED (use all available data)";
+			}
+			else {	s2 = date2.toString();
+			}
+			v.addElement ( "Input (query/read) start: " + s1 );
+			v.addElement ( "Input (query/read) end:   " + s2 );
+			// Output period...
+			date1 = commandProcessor_GetOutputStart();
+			if ( date1 == null ) {
+				s1 = "NOT SPECIFIED (output all available data)";
+			}
+			else {	s1 = date1.toString();
+			}
+			date2 = commandProcessor_GetOutputEnd();
+			if ( date2 == null ) {
+				s2 = "NOT SPECIFIED (output all available data)";
+			}
+			else {	s2 = date2.toString();
+			}
+			v.addElement ( "Output period start: " + s1 );
+			v.addElement ( "Output period end:   " + s2 );
+			// Auto-extend period...
+			v.addElement ( "Automatically extend period to output "+
+				"period during read: " +
+				commandProcessor_GetAutoExtendPeriod () );
+			// Include missing TS automatically...
+			v.addElement ( "Include missing TS automatically: " +
+				commandProcessor_GetIncludeMissingTS() );
+			if ( __source_HydroBase_enabled ) {
+				v.addElement ( "" );
+				Object dmi_Vector = commandProcessor_GetHydroBaseDMIList();
+				if ( (o == null) || (((Vector)o).size() == 0) ) {
+					v.addElement ( "No HydroBase connections are open for the command processor." );
+				}
+				else { Vector dmis = (Vector)dmi_Vector;
+					int size = dmis.size();
+					for ( int i = 0; i < size; i++ ) {
+						v.addElement ( "Command processor HydroBase connection information:" );
+						StringUtil.addListToStringList ( v,
+								StringUtil.toVector(
+								((HydroBaseDMI)dmis.elementAt(i)).
+								getVersionComments() ) );
+					}
+				}
+			}
+		}
+		v.addElement ( "" );
+		v.addElement ( "Current working directory: " +
+			IOUtil.getProgramWorkingDir() );
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( command.equals(__File_Properties_TSToolSession_String) ) {
+		// Simple text display of session data, including last
+		// commands file that was read.  Put here where in the past
+		// information was shown in labels.  Now need the label space
+		// for other information.
+		PropList reportProp = new PropList ("ReportJFrame.props");
+		// Too big (make this big when we have more stuff)...
+		//reportProp.set ( "TotalWidth", "750" );
+		//reportProp.set ( "TotalHeight", "550" );
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "TSTool Session Properties" );
+		Vector v = new Vector ( 4 );
+		v.addElement ( "TSTool Session Properties" );
+		v.addElement ( "" );
+		if ( __commands_file_name == null ) {
+			v.addElement (
+			"No commands file has been read or saved." );
+		}
+		else {	v.addElement ( "Last commands file read/saved: \"" +
+			__commands_file_name + "\"" );
+		}
+		v.addElement ( "Current working directory = " +
+			IOUtil.getProgramWorkingDir() );
+		// List open database information...
+		if ( __source_ColoradoSMS_enabled ) {
+			v.addElement ( "" );
+			if ( __smsdmi == null ) {
+				v.addElement (
+				"GUI ColoradoSMS connection not defined.");
+			}
+			else {	v.addElement (
+				"GUI ColoradoSMS connection information:" );
+				StringUtil.addListToStringList ( v,
+				StringUtil.toVector(
+				__smsdmi.getVersionComments() ) );
+			}
+		}
+		if ( __source_HydroBase_enabled ) {
+			v.addElement ( "" );
+			if ( __hbdmi == null ) {
+				v.addElement (
+				"GUI HydroBase connection not defined.");
+			}
+			else {	v.addElement (
+				"GUI HydroBase connection information:" );
+				StringUtil.addListToStringList ( v,
+				StringUtil.toVector(
+				__hbdmi.getVersionComments() ) );
+			}
+		}
+		// List enabled data types...
+		v.addElement ( "Input types and whether enabled:" );
+		v.addElement ( "" );
+		if ( __source_HydroBase_enabled ) {
+			v.addElement ( "ColoradoSMS input type is enabled" );
+		}
+		else {	v.addElement ( "ColoradoSMS input type is not enabled");
+		}
+		if ( __source_DateValue_enabled ) {
+			v.addElement ( "DateValue input type is enabled" );
+		}
+		else {	v.addElement ( "DateValue input type is not enabled" );
+		}
+		if ( __source_DIADvisor_enabled ) {
+			v.addElement ( "DIADvisor input type is enabled" );
+		}
+		else {	v.addElement ( "DIADvisor input type is not enabled" );
+		}
+		if ( __source_HydroBase_enabled ) {
+			v.addElement ( "HydroBase input type is enabled" );
+		}
+		else {	v.addElement ( "HydroBase input type is not enabled" );
+		}
+		if ( __source_MexicoCSMN_enabled ) {
+			v.addElement ( "MexicoCSMN input type is enabled" );
+		}
+		else {	v.addElement ( "MexicoCSMN input type is not enabled" );
+		}
+		if ( __source_MODSIM_enabled ) {
+			v.addElement ( "MODSIM input type is enabled" );
+		}
+		else {	v.addElement ( "MODSIM input type is not enabled" );
+		}
+		if ( __source_NDFD_enabled  ) {
+			v.addElement ( "NDFD input type is enabled" );
+		}
+		else {	v.addElement ( "NDFD input type is not enabled" );
+		}
+		if ( __source_NWSCard_enabled  ) {
+			v.addElement ( "NWSCARD input type is enabled" );
+		}
+		else {	v.addElement ( "NWSCARD input type is not enabled" );
+		}
+		if ( __source_NWSRFS_FS5Files_enabled ) {
+			v.addElement ( "NWSRFS FS5Files input type is enabled");
+		}
+		else {	v.addElement (
+			"NWSRFS FS5Files input type is not enabled" );
+		}
+		if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+			v.addElement (
+			"NWSRFS_ESPTraceEnsemble input type is enabled" );
+		}
+		else {	v.addElement (
+			"NWSRFS_ESPTraceEnsemble input type is not enabled" );
+		}
+		if ( __source_RiversideDB_enabled ) {
+			v.addElement ( "RiversideDB input type is enabled" );
+		}
+		else {	v.addElement ( "RiversideDB input type is not enabled");
+		}
+		if ( __source_RiverWare_enabled ) {
+			v.addElement ( "RiverWare input type is enabled" );
+		}
+		else {	v.addElement ( "RiverWare input type is not enabled");
+		}
+		if ( __source_SHEF_enabled ) {
+			v.addElement ( "SHEF input type is enabled" );
+		}
+		else {	v.addElement ( "SHEF input type is not enabled");
+		}
+		if ( __source_StateCU_enabled ) {
+			v.addElement ( "StateCU input type is enabled" );
+		}
+		else {	v.addElement ( "StateCU input type is not enabled");
+		}
+		if ( __source_StateMod_enabled ) {
+			v.addElement ( "StateMod input type is enabled" );
+		}
+		else {	v.addElement ( "StateMod input type is not enabled");
+		}
+		if ( __source_StateModB_enabled ) {
+			v.addElement ( "StateModB input type is enabled" );
+		}
+		else {	v.addElement ( "StateModB input type is not enabled");
+		}
+		if ( __source_USGSNWIS_enabled ) {
+			v.addElement ( "USGSNWIS input type is enabled" );
+		}
+		else {	v.addElement ( "USGSNWIS input type is not enabled");
+		}
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( command.equals(__File_Properties_ColoradoSMS_String) ) {
+		// Simple text display of HydroBase properties.
+		PropList reportProp = new PropList ("Colorado SMS Properties");
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "Colorado SMS Properties" );
+		Vector v = null;
+		if ( __hbdmi == null ) {
+			v.addElement ( "Colorado SMS Properties" );
+			v.addElement ( "" );
+			v.addElement("No Colorado SMS database is available." );
+		}
+		else {	v = __smsdmi.getDatabaseProperties();
+		}
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( command.equals(__File_Properties_DIADvisor_String) ) {
+		PropList reportProp = new PropList ("DIADvisor.props");
+		// Too big (make this big when we have more stuff)...
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "DIADvisor Properties" );
+		Vector v = new Vector();
+		v.addElement ( "DIADvisor Operational Database:" );
+		v.addElement ( "" );
+		StringUtil.addListToStringList ( v,
+			 __DIADvisor_dmi.getDatabaseProperties ( 3 ) );
+		v.addElement ( "" );
+		v.addElement ( "DIADvisor Archive Database:" );
+		v.addElement ( "" );
+		StringUtil.addListToStringList ( v,
+			 __DIADvisor_archive_dmi.getDatabaseProperties ( 3 ) );
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( command.equals(__File_Properties_HydroBase_String) ) {
+		// Simple text display of HydroBase properties.
+		PropList reportProp = new PropList ("HydroBase Properties");
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "HydroBase Properties" );
+		Vector v = null;
+		if ( __hbdmi == null ) {
+			v.addElement ( "HydroBase Properties" );
+			v.addElement ( "" );
+			v.addElement ( "No HydroBase database is available." );
+		}
+		else {	v = __hbdmi.getDatabaseProperties();
+		}
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( command.equals(__File_Properties_NWSRFSFS5Files_String) ) {
+		PropList reportProp = new PropList ("NWSRFSFS5Files.props");
+		// Too big (make this big when we have more stuff)...
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "NWSRFS FS5Files Properties" );
+		Vector v = null;
+		if ( __nwsrfs_dmi == null ) {
+			v = new Vector ( 1 );
+			v.addElement (
+			"The NWSRFS FS5Files connection is not open." );
+		}
+		else {	v = __nwsrfs_dmi.getDatabaseProperties ( 3 );
+		}
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( command.equals(__File_Properties_RiversideDB_String) ) {
+		PropList reportProp = new PropList ("RiversideDB.props");
+		// Too big (make this big when we have more stuff)...
+		reportProp.set ( "TotalWidth", "600" );
+		reportProp.set ( "TotalHeight", "300" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "RiversideDB Properties" );
+		Vector v = __rdmi.getDatabaseProperties ( 3 );
+		new ReportJFrame ( v, reportProp );
+		// Clean up...
+		v = null;
+		reportProp = null;
+	}
+    else if ( o == __File_SetWorkingDirectory_JMenuItem ) {
+		JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle(
+		"Set the Working Directory (normally only use if a commands" +
+		" file was not opened or saved)");
+		fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
+		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			String directory = fc.getSelectedFile().getPath();
+			IOUtil.setProgramWorkingDir(directory);
+			JGUIUtil.setLastFileDialogDirectory(directory);
+			// REVISIT - is this needed with Swing?
+			// Reset to make sure the ending delimiter is removed...
+			__props.set("WorkingDir",IOUtil.getProgramWorkingDir());
+			ui_SetInitialWorkingDir (__props.getValue ("WorkingDir"));
+			JGUIUtil.setLastFileDialogDirectory(directory);
+		}
+	}
+    else if (command.equals(__Run_ProcessTSProductPreview_String) ) {
+		try {	uiAction_ProcessTSProductFile ( true );
+		}
+		catch ( Exception te ) {
+			Message.printWarning ( 1, "",
+			"Error processing TSProduct file.\n" +
+			"If necessary, make sure the working directory is\n" +
+			"correct by running a setWorkingDir() command." );
+			Message.printWarning ( 2, "", te );
+		}
+	}
+    else if ( command.equals(__File_Exit_String) ) {
+		uiAction_FileExitClicked();
+    }
+	else if (command.equals("Test") ) {
+		// Test code...
+		try {	uiAction_Test();
+		}
+		catch ( Exception te ) {
+			Message.printWarning ( 1, "", "Error running test" );
+			Message.printWarning ( 2, "", te );
+		}
+	}
+    else {
+    	// Chain to the next action handler...
+    	uiAction_ActionPerformed3_EditMenu ( event );
+    }
+}
+
+/**
+Handle a group of actions for the Edit menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed3_EditMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	// Edit menu actions (in order of menu)...
+
+    if ( command.equals(__Edit_CutCommands_String) ) {
+		// Need to think whether this should work for the time series
+		// list or only the commands.  Copy to the buffer...
+		uiAction_SetCommandListCutBuffer();
+		// Now clear the list...
+		commandList_RemoveCommandsBasedOnUI();
+	}
+    else if ( command.equals(__Edit_CopyCommands_String) ) {
+		// Copy to the buffer...
+		uiAction_SetCommandListCutBuffer();
+	}
+    else if ( command.equals(__Edit_PasteCommands_String) ) {
+		// Copy the buffer to the final list...
+		uiAction_PasteCommandListCutBuffer();
+	}
+    else if ( command.equals(__Edit_DeleteCommands_String) ) {
+		// Essentially the same as CUT
+		uiAction_SetCommandListCutBuffer();
+		// Now clear the list...
+		commandList_RemoveCommandsBasedOnUI();
+	}
+    else if ( command.equals(__Edit_SelectAllCommands_String) ) {
+    	uiAction_SelectAllCommands();
+	}
+    else if ( command.equals(__Edit_DeselectAllCommands_String) ) {
+		uiAction_DeselectAllCommands();
+	}
+    else if ( command.equals(__Edit_CommandsFile_String) ) {
+    	uiAction_EditCommandsFile();
+	}
+	else if ( command.equals(__Edit_CommandWithErrorChecking_String) ) {
+		// Edit the first selected item, unless a comment, in which
+		// case all are edited...
+		uiAction_EditCommand ();
+	}
+	else if (command.equals(
+		__Edit_ConvertSelectedCommandsToComments_String) ) {
+		uiAction_ConvertCommandsToComments ( true );
+	}
+	else if (command.equals(
+		__Edit_ConvertSelectedCommandsFromComments_String) ) {
+		uiAction_ConvertCommandsToComments ( false );
+	}
+	// Popup only...
+	else if (command.equals(__CommandsPopup_FindCommands_String) ) {
+		new FindInJListJDialog(this,__commands_JList,"Find Command(s)");
+		ui_UpdateStatus ( true );
+	}
+	else if (command.equals(__CommandsPopup_ShowCommandStatus_String) ) {
+		uiAction_ShowCommandStatus();
+	}
+	else {
+		// Chain to next set of actions...
+		uiAction_ActionPerformed4_RunMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Run menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed4_RunMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	// Run menu (order in menu)...
+
+    if ( command.equals(__Run_AllCommandsCreateOutput_String) ) {
+		// Process time series and create all output from write*
+		// commands...
+        uiAction_RunCommands ( true, true );
+	}
+    else if ( command.equals(__Run_AllCommandsIgnoreOutput_String) ) {
+		// Process time series but ignore write* commands...
+        uiAction_RunCommands ( true, false );
+	}
+    else if ( command.equals(__Run_SelectedCommandsCreateOutput_String) ) {
+		// Process selected commands and create all output from write*
+		// commands...
+        uiAction_RunCommands ( false, true );
+	}
+    else if ( command.equals(__Run_SelectedCommandsIgnoreOutput_String) ) {
+		// Process selected commands but ignore write* commands...
+    	uiAction_RunCommands ( false, false );
+	}
+    else if ( command.equals(__Run_CommandsFromFile_String) ) {
+		// Get the name of the file to run and then execute a TSEngine
+		// as if in batch mode...
+		//
+		// Instantiate a file dialog object with no default...
+		//
+/* REVISIT
+		FileDialog fd = new FileDialog(this, "Run Commands File",
+		FileDialog.LOAD );
+		if ( __last_directory_selected != null ) {
+			fd.setDirectory ( __last_directory_selected );
+		}
+		fd.setVisible(true);
+
+		// Determine the name of the commands file as specified from 
+		// the FileDialog object        
+
+		// Return if no file name is selected
+
+		if ( fd.getFile() == null || fd.getFile().equals("") ) {
+			return;
+		}
+		if ( fd.getDirectory() != null ) {
+			__last_directory_selected = fd.getDirectory();
+		}
+
+		String fileName = fd.getDirectory() + fd.getFile();        
+
+		TSEngine engine = null;
+		try {	// Process as if in batch mode...
+			JGUIUtil.setWaitCursor ( this, true );
+			engine = new TSEngine(__hbdmi, __rdmi, __DIADvisor_dmi,
+					__DIADvisor_archive_dmi,
+					__nwsrfs_dmi, __smsdmi );
+			engine.processCommands(__hbdmi,fileName);
+			engine = null;
+			Message.printStatus ( 1, rtn,
+			"Successfully processed commands file \"" + fileName +
+			"\"" );
+			JGUIUtil.setWaitCursor ( this, false );
+		}
+		catch ( Exception e ) {
+			JGUIUtil.setWaitCursor ( this, false );
+			Message.printWarning ( 1, rtn,
+			"Error running commands file \"" + fileName + "\"" );
+			Message.printWarning ( 2, rtn, e );
+			engine = null;
+		}
+*/
+	}
+    else if (command.equals(__Run_ProcessTSProductOutput_String) ) {
+		// Test code...
+		try {	uiAction_ProcessTSProductFile ( false );
+		}
+		catch ( Exception te ) {
+			Message.printWarning ( 1, "",
+			"Error processing TSProduct file.\n" +
+			"If necessary, make sure the working directory is\n" +
+			"correct by running a setWorkingDir() command." );
+			Message.printWarning ( 2, "", te );
+		}
+	}
+	else {	// Chain to the next method...
+		uiAction_ActionPerformed5_CommandsCreateMenu(event);
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Create... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed5_CommandsCreateMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	// REVISIT SAM 2006-05-02
+	// Why is all of this needed?  Should rely on the command factory for
+	// commands.  Evaluate this when all commands are in the factory.
+
+	if (command.equals( __Commands_Create_createFromList_String)){
+		commandList_EditCommand ( __Commands_Create_createFromList_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_createTraces_String)){
+		commandList_EditCommand ( __Commands_Create_createTraces_String,
+			null, __INSERT_COMMAND );
+	}
+
+	// Convert TS Identifier to read command...
+
+	/* FIXME SAM need to enable
+	else if ( o == __Commands_ConvertTSIDTo_readTimeSeries_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readTimeSeries_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readDateValue_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readDateValue_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readHydroBase_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readHydroBase_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readMODSIM_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readMODSIM_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readNwsCard_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readNwsCard_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readRiverWare_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readRiverWare_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readStateMod_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readStateMod_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readStateModB_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readStateModB_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	else if ( o == __Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readUsgsNwis_String,
+			getCommand(), __UPDATE_COMMAND );
+	}
+	*/
+	else if (command.equals( __Commands_Create_TS_average_String)){
+		commandList_EditCommand ( __Commands_Create_TS_average_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_changeInterval_String)){
+		commandList_EditCommand ( __Commands_Create_TS_changeInterval_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_copy_String)){
+		commandList_EditCommand ( __Commands_Create_TS_copy_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_disaggregate_String)){
+		commandList_EditCommand ( __Commands_Create_TS_disaggregate_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Create_TS_newDayTSFromMonthAndDayTS_String)){
+		commandList_EditCommand (
+			__Commands_Create_TS_newDayTSFromMonthAndDayTS_String,
+			null, __INSERT_COMMAND );
+	}
+	/* FIXME SAM
+	else if (command.equals(
+		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String) ) {
+		commandList_EditCommand (
+			__Commands_Create_TS_newEndOfMonthTSFromDayTS_String,
+			getCommand(), __INSERT_COMMAND );
+	}
+	*/
+	else if (command.equals(
+		__Commands_Create_TS_newStatisticYearTS_String)){
+		commandList_EditCommand ( __Commands_Create_TS_newStatisticYearTS_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_newTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Create_TS_newTimeSeries_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_normalize_String)){
+		commandList_EditCommand ( __Commands_Create_TS_normalize_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_relativeDiff_String)){
+		commandList_EditCommand ( __Commands_Create_TS_relativeDiff_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Create_TS_weightTraces_String)){
+		commandList_EditCommand ( __Commands_Create_TS_weightTraces_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to next actions...
+		uiAction_ActionPerformed6_CommandsReadMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Read... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed6_CommandsReadMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	// Read Time Series...
+
+	if (command.equals( __Commands_Read_readDateValue_String)){
+		commandList_EditCommand ( __Commands_Read_readDateValue_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_readHydroBase_String)){
+		commandList_EditCommand ( __Commands_Read_readHydroBase_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_readMODSIM_String)){
+		commandList_EditCommand ( __Commands_Read_readMODSIM_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Read_readNwsCard_String)){
+		commandList_EditCommand ( __Commands_Read_readNwsCard_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Read_readNWSRFSESPTraceEnsemble_String)){
+		commandList_EditCommand ( __Commands_Read_readNWSRFSESPTraceEnsemble_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_readNWSRFSFS5Files_String)){
+		commandList_EditCommand ( __Commands_Read_readNWSRFSFS5Files_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_readStateCU_String)){
+		commandList_EditCommand ( __Commands_Read_readStateCU_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_readStateModB_String)){
+		commandList_EditCommand ( __Commands_Read_readStateModB_String,
+			null, __INSERT_COMMAND );
+	}
+	// Put after longer versions...
+	else if (command.equals( __Commands_Read_readStateMod_String)){
+		commandList_EditCommand ( __Commands_Read_readStateMod_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_statemodMax_String)){
+		commandList_EditCommand ( __Commands_Read_statemodMax_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readDateValue_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readDateValue_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readHydroBase_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readHydroBase_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readMODSIM_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readMODSIM_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readNDFD_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readNDFD_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readNwsCard_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readNwsCard_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readNWSRFSFS5Files_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readNWSRFSFS5Files_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readRiverWare_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readRiverWare_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readStateModB_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readStateModB_String,
+			null, __INSERT_COMMAND );
+	}
+	// Put after longer versions...
+	else if (command.equals( __Commands_Read_TS_readStateMod_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readStateMod_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_TS_readUsgsNwis_String)){
+		commandList_EditCommand ( __Commands_Read_TS_readUsgsNwis_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Read_setIncludeMissingTS_String)){
+		commandList_EditCommand ( __Commands_Read_setIncludeMissingTS_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Read_setInputPeriod_String) ) {
+		commandList_EditCommand ( __Commands_Read_setInputPeriod_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to next menus
+		uiAction_ActionPerformed7_CommandsFillMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Fill... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed7_CommandsFillMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	if (command.equals( __Commands_Fill_fillCarryForward_String)){
+		commandList_EditCommand ( __Commands_Fill_fillCarryForward_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillConstant_String)){
+		commandList_EditCommand ( __Commands_Fill_fillConstant_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String)){
+		commandList_EditCommand (
+		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillFromTS_String)){
+		commandList_EditCommand ( __Commands_Fill_fillFromTS_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillHistMonthAverage_String)){
+		commandList_EditCommand ( __Commands_Fill_fillHistMonthAverage_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillHistYearAverage_String)){
+		commandList_EditCommand ( __Commands_Fill_fillHistYearAverage_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillInterpolate_String)){
+		commandList_EditCommand ( __Commands_Fill_fillInterpolate_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillMixedStation_String)){
+		commandList_EditCommand ( __Commands_Fill_fillMixedStation_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillMOVE1_String)){
+		commandList_EditCommand ( __Commands_Fill_fillMOVE1_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillMOVE2_String)){
+		commandList_EditCommand ( __Commands_Fill_fillMOVE2_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillPattern_String) ) {
+		commandList_EditCommand ( __Commands_Fill_fillPattern_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillProrate_String) ) {
+		commandList_EditCommand ( __Commands_Fill_fillProrate_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillRegression_String) ) {
+		commandList_EditCommand ( __Commands_Fill_fillRegression_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_fillRepeat_String) ) {
+		commandList_EditCommand ( __Commands_Fill_fillRepeat_String,
+			null, __INSERT_COMMAND );
+	}
+	else if(command.equals(
+		__Commands_Fill_fillUsingDiversionComments_String)){
+		commandList_EditCommand (__Commands_Fill_fillUsingDiversionComments_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Fill_setAutoExtendPeriod_String)){
+		commandList_EditCommand ( __Commands_Fill_setAutoExtendPeriod_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_setAveragePeriod_String) ) {
+		commandList_EditCommand ( __Commands_Fill_setAveragePeriod_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_setIgnoreLEZero_String) ) {
+		commandList_EditCommand ( __Commands_Fill_setIgnoreLEZero_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Fill_setMissingDataValue_String)){
+		commandList_EditCommand ( __Commands_Fill_setMissingDataValue_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Fill_setPatternFile_String) ) {
+		commandList_EditCommand ( __Commands_Fill_setPatternFile_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Fill_setRegressionPeriod_String)){
+		commandList_EditCommand ( __Commands_Fill_setRegressionPeriod_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to other menus
+		uiAction_ActionPerformed8_CommandsSetMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Set... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed8_CommandsSetMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	if (command.equals( __Commands_Set_replaceValue_String)){
+		commandList_EditCommand ( __Commands_Set_replaceValue_String,
+			null, __INSERT_COMMAND );
+	}
+
+	else if (command.equals( __Commands_Set_setConstant_String)){
+		commandList_EditCommand ( __Commands_Set_setConstant_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Set_setConstantBefore_String)){
+		commandList_EditCommand ( __Commands_Set_setConstantBefore_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Set_setDataValue_String)){
+		commandList_EditCommand ( __Commands_Set_setDataValue_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Set_setFromTS_String)){
+		commandList_EditCommand ( __Commands_Set_setFromTS_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Set_setMax_String)){
+		commandList_EditCommand ( __Commands_Set_setMax_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Set_setToMin_String)){
+		commandList_EditCommand ( __Commands_Set_setToMin_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		uiAction_ActionPerformed9_CommandsManipulateMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Manipulate... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed9_CommandsManipulateMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	if (command.equals( __Commands_Manipulate_add_String)){
+		commandList_EditCommand ( __Commands_Manipulate_add_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Manipulate_addConstant_String)){
+		commandList_EditCommand ( __Commands_Manipulate_addConstant_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Manipulate_adjustExtremes_String)){
+		commandList_EditCommand ( __Commands_Manipulate_adjustExtremes_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Manipulate_ARMA_String)){
+		commandList_EditCommand ( __Commands_Manipulate_ARMA_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Manipulate_blend_String)){
+		commandList_EditCommand ( __Commands_Manipulate_blend_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_convertDataUnits_String)){
+		commandList_EditCommand ( __Commands_Manipulate_convertDataUnits_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_cumulate_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_cumulate_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_divide_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_divide_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_free_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_free_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_multiply_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_multiply_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_runningAverage_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_runningAverage_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_Manipulate_scale_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_scale_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Manipulate_shiftTimeByInterval_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_shiftTimeByInterval_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Manipulate_subtract_String)){
+		commandList_EditCommand ( __Commands_Manipulate_subtract_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to next actions
+		uiAction_ActionPerformed10_CommandsAnalyzeMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Analyze... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed10_CommandsAnalyzeMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	if (command.equals( __Commands_Analyze_analyzePattern_String)){
+		commandList_EditCommand ( __Commands_Analyze_analyzePattern_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Analyze_compareTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Analyze_compareTimeSeries_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Analyze_newDataTest_String)){
+		commandList_EditCommand ( __Commands_Analyze_newDataTest_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Analyze_readDataTestFromRiversideDB_String)){
+		commandList_EditCommand (
+			__Commands_Analyze_readDataTestFromRiversideDB_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Analyze_runDataTests_String)){
+		commandList_EditCommand ( __Commands_Analyze_runDataTests_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Analyze_processDataTestResults_String)){
+		commandList_EditCommand ( __Commands_Analyze_processDataTestResults_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to other actions
+		uiAction_ActionPerformed11_CommandsModelsMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Models... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed11_CommandsModelsMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	if (command.equals( __Commands_Models_lagK_String)){
+		commandList_EditCommand ( __Commands_Models_lagK_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to other actions
+		uiAction_ActionPerformed12_CommandsOutputMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Output... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed12_CommandsOutputMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	if (command.equals( __Commands_Output_deselectTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Output_deselectTimeSeries_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_selectTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Output_selectTimeSeries_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(
+		__Commands_Output_setOutputDetailedHeaders_String) ) {
+		commandList_EditCommand (__Commands_Output_setOutputDetailedHeaders_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_setOutputPeriod_String) ) {
+		commandList_EditCommand ( __Commands_Output_setOutputPeriod_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_setOutputYearType_String) ){
+		commandList_EditCommand ( __Commands_Output_setOutputYearType_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_sortTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Output_sortTimeSeries_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_writeDateValue_String)){
+		commandList_EditCommand ( __Commands_Output_writeDateValue_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_writeNwsCard_String)){
+		commandList_EditCommand ( __Commands_Output_writeNwsCard_String,
+			null, __INSERT_COMMAND );
+	}
+	else if(command.equals(
+		__Commands_Output_writeNWSRFSESPTraceEnsemble_String)){
+		commandList_EditCommand (
+			__Commands_Output_writeNWSRFSESPTraceEnsemble_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_writeRiverWare_String)){
+		commandList_EditCommand ( __Commands_Output_writeRiverWare_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_writeStateCU_String)){
+		commandList_EditCommand ( __Commands_Output_writeStateCU_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_writeStateMod_String)){
+		commandList_EditCommand ( __Commands_Output_writeStateMod_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_writeSummary_String)){
+		commandList_EditCommand ( __Commands_Output_writeSummary_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_Output_processTSProduct_String)){
+		commandList_EditCommand ( __Commands_Output_processTSProduct_String,
+			null, __INSERT_COMMAND );
+	}
+	else {	// Chain to next list of commands...
+		uiAction_ActionPerformed13_CommandsGeneralMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Commands...General... menu.
+Also include a couple of special open commands for input types.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed13_CommandsGeneralMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+	// HydroBase commands...
+
+	if (command.equals(__Commands_HydroBase_openHydroBase_String)){
+		commandList_EditCommand ( __Commands_HydroBase_openHydroBase_String,
+			null, __INSERT_COMMAND );
+	}
+
+	// NDFD commands...
+
+	else if (command.equals(__Commands_NDFD_openNDFD_String)){
+		commandList_EditCommand ( __Commands_NDFD_openNDFD_String,
+			null, __INSERT_COMMAND );
+	}
+
+	// General commands...
+
+	else if (command.equals( __Commands_General_startLog_String) ) {
+		commandList_EditCommand ( __Commands_General_startLog_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_setDebugLevel_String) ) {
+		commandList_EditCommand ( __Commands_General_setDebugLevel_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_setWarningLevel_String) ) {
+		commandList_EditCommand ( __Commands_General_setWarningLevel_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_setWorkingDir_String) ) {
+		commandList_EditCommand ( __Commands_General_setWorkingDir_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_General_Comment_String) ) {
+		commandList_EditCommand ( __Commands_General_Comment_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_General_startComment_String) ) {
+		commandList_EditCommand ( __Commands_General_startComment_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_General_endComment_String) ) {
+		commandList_EditCommand ( __Commands_General_endComment_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals(__Commands_General_exit_String) ) {
+		// FIXME SAM 2007-08-31 Need to use Command
+		int selected_size = JGUIUtil.selectedSize ( __commands_JList );
+		if ( selected_size > 0 ) {
+			// Add after the last selected item...
+			int selected_indices[] = __commands_JList.getSelectedIndices();
+			if (	selected_indices[selected_size - 1] ==
+				(__commands_JListModel.size() - 1) ) {
+			}
+			else {	__commands_JListModel.insertElementAt (
+				"exit",
+				(selected_indices[selected_size - 1] + 1 ) );
+			}
+			selected_indices = null;
+		}
+		else {	// Add at end (or before selected command)...
+			/* FIXME SAM 2007-09-02 Need to enable
+			commandList_InsertCommand (
+					commandList_NewCommand ( "exit" ) );
+					*/
+		}
+	}
+	else if (command.equals( __Commands_General_compareFiles_String)){
+		commandList_EditCommand ( __Commands_General_compareFiles_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_runCommands_String) ) {
+		commandList_EditCommand ( __Commands_General_runCommands_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_runProgram_String) ) {
+		commandList_EditCommand ( __Commands_General_runProgram_String,
+			null, __INSERT_COMMAND );
+	}
+	else {
+		// Chain to other actions...
+		uiAction_ActionPerformed14_ViewMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the View menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed14_ViewMenu (ActionEvent event)
+throws Exception
+{	String command = event.getActionCommand();
+
+    if ( command.equals(__Results_Graph_AnnualTraces_String) ) {
+		// Only do if data are selected...
+		String response = new TextResponseJDialog ( 
+			this, "Graph Annual Traces", 
+			"Enter the 4-digit year to use as a reference.",
+			ResponseJDialog.OK|ResponseJDialog.CANCEL ).response();
+		if ( response == null ) {
+			return;
+		}
+		uiAction_GraphTimeSeriesResults("-oannual_traces_graph " + StringUtil.atoi(response) );
+	}
+    else if ( command.equals(__Results_Graph_BarsLeft_String) ) {
+    	uiAction_GraphTimeSeriesResults("-obar_graph", "BarsLeftOfDate");
+	}
+    else if ( command.equals(__Results_Graph_BarsCenter_String) ) {
+    	uiAction_GraphTimeSeriesResults("-obar_graph", "BarsCenteredOnDate");
+	}
+    else if ( command.equals(__Results_Graph_BarsRight_String) ) {
+    	uiAction_GraphTimeSeriesResults("-obar_graph", "BarsRightOfDate");
+	}
+    else if ( command.equals(__Results_Graph_DoubleMass_String) ) {
+			//Message.printWarning ( 1, rtn, "Two time " +
+			//"series can be graphed for Double Mass graph." );
+		//{}
+		//else {	
+    	uiAction_GraphTimeSeriesResults("-odoublemassgraph");
+		//}
+	}
+    else if ( command.equals(__Results_Graph_Duration_String) ) {
+		// Only do if data are selected...
+    	uiAction_GraphTimeSeriesResults("-oduration_graph " );
+	}
+    else if ( command.equals(__Results_Graph_Line_String) ) {
+    	uiAction_GraphTimeSeriesResults("-olinegraph");
+	}
+    else if ( command.equals(__Results_Graph_LineLogY_String) ) {
+        uiAction_GraphTimeSeriesResults("-olinelogygraph");
+	}
+/* Not enabled.
+        else if ( command.equals("GraphPercentExceed") ) {
+		// Because Visualize can only handle grid-based data, only allow
+		// one time series to be graphed to ensure that the data set is
+		// nice...
+		if ( _final__commands_JList != 1 ) {
+			Message.printWarning ( 1, rtn, "Only one time " +
+			"series can be graphed for Percent Exceedance Curve." );
+		}
+		else {	// OK to do the graph...
+			graphTS("-opercentexceedgraph");
+		}
+	}
+*/
+    else if ( command.equals(__Results_Graph_PeriodOfRecord_String) ) {
+		uiAction_GraphTimeSeriesResults("-oporgraph");
+	}
+    else if ( command.equals(__Results_Graph_Point_String) ) {
+    	uiAction_GraphTimeSeriesResults("-opointgraph");
+	}
+    else if ( command.equals(__Results_Graph_PredictedValue_String) ) {
+    	uiAction_GraphTimeSeriesResults("-oPredictedValue_graph" );
+	}
+    else if (command.equals(__Results_Graph_PredictedValueResidual_String)){
+    	uiAction_GraphTimeSeriesResults("-oPredictedValueResidual_graph" );
+	}
+    else if ( command.equals(__Results_Graph_XYScatter_String) ) {
+    	uiAction_GraphTimeSeriesResults("-oxyscatter_graph" );
+	}
+    else if ( command.equals(__Results_Table_String) ) {
+		// For now handle similar to the summary report, forcing a
+		// preview...
+    	uiAction_ExportTimeSeriesResults("-otable", "-preview" );
+	}
+    else if ( command.equals(__Results_Report_Summary_String) ) {
+		// SAM.  Let the ReportJFrame prompt for this.  This is
+		// different from the StateMod output in that when a summary is
+		// exported in the GUI, the user views first and then saves to
+		// disk.
+		uiAction_ExportTimeSeriesResults("-osummary", "-preview" );
+	}
+
+	// Only on View pop-up...
+
+	else if (command.equals(__Results_FindTimeSeries_String) ) {
+		new FindInJListJDialog ( this, false, __ts_JList, "Find Time Series" );
+	}
+    else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
+		// Get the first time series selected in the view window...
+		if ( __ts_processor != null ) {
+			int pos = 0;
+			if ( JGUIUtil.selectedSize(__ts_JList) == 0 ) {
+				pos = 0;
+			}
+			else {	pos = JGUIUtil.selectedIndex(__ts_JList,0);
+			}
+			// Now display the properties...
+			if ( pos >= 0 ) {
+				new TSPropertiesJFrame ( this,
+				commandProcessor_GetTimeSeries(pos) );
+			}
+		}
+	}
+    else {
+    	// Chain to next actions...
+    	uiAction_ActionPerformed15_ToolsMenu ( event );
+    }
+}
+
+/**
+Handle a group of actions for the Tools menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed15_ToolsMenu (ActionEvent event)
+throws Exception
+{	Object o = event.getSource();
+	String command = event.getActionCommand();
+	String routine = "ToolsMenu";
+
+	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
+		// Create the dialog using the available time series...
+		/* FIXME SAM 2007-08-09 need to keep main commands processor
+		 separate from this instance.  Determine how TSEngine is used.
+		try {	Command c = new fillMixedStation_Command(false);
+			c.initializeCommand ( command,
+				new TSCommandProcessor(__final_ts_engine),
+				null,	// Command tag
+				1,	// Warning level
+				false );// Minimal initialization
+			new fillMixedStation_JDialog ( this, c, 0 );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine,
+			"Error performing mixed station analysis." );
+			Message.printWarning ( 2, routine, e );
+		}
+		*/
+	}
+	else if (command.equals(__Tools_Report_DataCoverageByYear_String) ) {
+		// Use graph TS because it does not take an output file...
+		uiAction_GraphTimeSeriesResults ( "-odata_coverage_report " );
+	}
+	else if (command.equals(__Tools_Report_DataLimitsSummary_String) ) {
+		// Use graph TS because it does not take an output file...
+		uiAction_GraphTimeSeriesResults ( "-odata_limits_report " );
+	}
+	else if (command.equals(__Tools_Report_MonthSummaryDailyMeans_String)) {
+		// Use graph TS because it does not take an output file...
+		uiAction_GraphTimeSeriesResults ( "-omonth_mean_summary_report " );
+	}
+	else if (command.equals(__Tools_Report_MonthSummaryDailyTotals_String)){
+		// Use graph TS because it does not take an output file...
+		uiAction_GraphTimeSeriesResults ( "-omonth_total_summary_report " );
+	}
+	else if (command.equals(__Tools_Report_YearToDateTotal_String) ) {
+		// Set the averaging end date...
+		PropList props = new PropList( "DateBuilder properties" );
+		props.set ( "DatePrecision", "Day" );
+		props.set ( "DateFormat", "US" );
+		props.set ( "EnableYear", "false" );
+		props.set ( "DateLabel",
+			"Enter Ending Date for Annual Total:" );
+		props.set ( "Title",
+			"Enter Ending Date for Annual Total" );
+		DateTime to = new DateTime ( DateTime.DATE_CURRENT |
+					DateTime.PRECISION_DAY );
+		try {	JTextField tmpJTextField = new JTextField();
+			new DateTimeBuilderJDialog ( this, tmpJTextField, to,
+					props );
+			to = DateTime.parse ( tmpJTextField.getText() ); 
+		}
+		catch ( Exception ex ) {
+			Message.printWarning ( 1, "TSTool_JFrame",
+			"There was an error processing the date for the " +
+			"report." );
+		}
+		// Use graph TS because it does not take an output file...
+		uiAction_GraphTimeSeriesResults ( "-oyear_to_date_report ",
+			to.toString(DateTime.FORMAT_MM_SLASH_DD) );
+	}
+	else if ( o == __Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem ){
+		// Prompt for the ESP file...
+		JFileChooser fc = JFileChooserFactory.createJFileChooser (
+				JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select NWSRFS ESP Trace Ensemble File" );
+		SimpleFileFilter sff = new SimpleFileFilter ( "CS",
+			"Conditional Simulation Ensemble File" );
+		fc.addChoosableFileFilter ( sff );
+		fc.setFileFilter ( sff );
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Return if no file name is selected...
+			return;
+		}
+		String esp_file = fc.getSelectedFile().getPath();
+		String directory = fc.getSelectedFile().getParent();
+		// Prompt for the output file...
+		fc = JFileChooserFactory.createJFileChooser ( directory );
+		fc.setDialogTitle ( "Select Text Output File" );
+		sff = new SimpleFileFilter (
+			"txt","NWSRFS ESP Ensemble File as Text" );
+		fc.addChoosableFileFilter ( sff );
+		fc.setSelectedFile ( new File(esp_file + ".txt") );
+		fc.setFileFilter ( sff );
+		if ( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Return if no file name is selected...
+			return;
+		}
+		directory = fc.getSelectedFile().getParent();
+		JGUIUtil.setLastFileDialogDirectory ( directory );
+		String out_file = fc.getSelectedFile().getPath();
+		String units = new TextResponseJDialog ( 
+			this, "Specify Output Units",
+			"Specify the output units for the file (blank to " +
+			"default).",
+			ResponseJDialog.OK| ResponseJDialog.CANCEL ).response();
+		if ( units == null ) {
+			return;
+		}
+		units = units.trim();
+		// Convert...
+		try {	NWSRFS_ESPTraceEnsemble.convertESPTraceEnsembleToText (
+			esp_file, IOUtil.enforceFileExtension(out_file,"txt"),
+			units );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, "TSTool_JFrame",
+			"There was an error converting the ESP trace " +
+			"ensemble file to text.  " +
+			"Partial results may be available." );
+		}
+	}
+	else if ( o == __Tools_NWSRFS_ConvertJulianHour_JMenuItem ) {
+		// Display the NWSRFS dialog...
+		new NWSRFS_ConvertJulianHour_JDialog(this);
+	}
+	else if ( o == __Tools_RiversideDB_TSProductManager_JMenuItem ) {
+		Vector rdmi_Vector = new Vector();
+		if ( __rdmi != null ) {
+			rdmi_Vector.addElement ( __rdmi );
+		}
+		new RiversideDB_TSProductManager_JFrame ( rdmi_Vector, null );
+	}
+	else if ( o == __Tools_SelectOnMap_JMenuItem ) {
+		try {	uiAction_SelectOnMap ();
+		}
+		catch ( Exception e ) {
+			JGUIUtil.setWaitCursor ( this, false );
+			Message.printWarning ( 1, routine,
+			"Unable to select locations on map." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
+	else if ( o == __Tools_Options_JMenuItem ) {
+		new TSTool_Options_JDialog ( this, __props );
+		// Reset as necessary...
+		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
+			((TSTool_HydroBase_TableModel)__query_TableModel).
+			setWDIDLength(StringUtil.atoi(
+			__props.getValue("HydroBase.WDIDLength")));
+		}
+		else if ( __query_TableModel instanceof 
+			TSTool_HydroBase_WellLevel_Day_TableModel){
+			((TSTool_HydroBase_WellLevel_Day_TableModel)
+			__query_TableModel).setWDIDLength(StringUtil.atoi(
+			__props.getValue("HydroBase.WDIDLength")));
+		}		
+	}
+	else {
+		// Chain to remaining actions...
+		uiAction_ActionPerformed16_HelpMenu ( event );
+	}
+}
+
+/**
+Handle a group of actions for the Tools menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed16_HelpMenu (ActionEvent event)
+throws Exception
+{	Object o = event.getSource();
+	String command = event.getActionCommand();
+	String rtn = "HelpMenu";
+
+	// Help menu (order of GUI)...
+
+	if ( command.equals ( __Help_AboutTSTool_String )) {
+		uiAction_ShowHelpAbout ();
+	}
+}
+
+/**
+Convert selected commands to comments.
+@param to_comment If true, convert commands to comments, if false, from
+comments.
+*/
+private void uiAction_ConvertCommandsToComments ( boolean to_comment )
+{	int selected_indexes[] = __commands_JList.getSelectedIndices();
+	int selected_size = JGUIUtil.selectedSize ( __commands_JList );
+	String s = null;
+	for ( int i = 0; i < selected_size; i++ ) {
+		s = (String)__commands_JListModel.get(selected_indexes[i]);
+		/* FIXME SAM 2007-08-10 Need to fix to use commands.
+		if ( to_comment ) {
+			// Replace with a new string that has the
+			// comment character...
+			__commands_JListModel.setElementAt (
+			("# " + s), selected_indexes[i]);
+			setCommandsDirty ( true );
+		}
+		else {	// Remove comment...
+			if ( s.startsWith("#") ) {
+				__commands_JListModel.setElementAt (
+				s.substring(1).trim(), selected_indexes[i]);
+			}
+			setCommandsDirty ( true );
+		}
+		*/
+	}
+	ui_UpdateStatus ( false );
+}
+
+/**
+This function fills in appropriate selections for the time step and choices.
+This also calls timestepChoiceClicked() to set the data type modifier.
+*/
+private void uiAction_DataTypeChoiceClicked()
+{	String rtn = "TSTool_JFrame.dataTypeChoiceClicked";
+	if (	(__input_type_JComboBox == null) ||
+		(__data_type_JComboBox == null) ) {
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, rtn, "Data type has been " +
+			"selected but GUI is not initialized." );
+		}
+		return;	// Not done initializing.
+	}
+	__selected_data_type_full = __data_type_JComboBox.getSelected();
+	if ( __selected_data_type_full == null ) {
+		// Apparently this happens when setData() or similar is called
+		// on the JComboBox, and before select() is called.
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, rtn, "Data type has been " +
+			"selected:  null (select is ignored)" );
+		}
+		return;
+	}
+	// For some input types, data types have additional label-only
+	// information...
+	if ( __selected_data_type_full.indexOf('-') >= 0 ) {
+		if (	__selected_input_type.equals(__INPUT_TYPE_HydroBase) ||
+			__selected_input_type.equals(__INPUT_TYPE_StateModB)) {
+			// Data type group is first and data type second...
+			__selected_data_type = StringUtil.getToken(
+				__selected_data_type_full, "-", 0, 1).trim();
+		}
+		else {	// Data type is first and explanation second...
+			__selected_data_type = StringUtil.getToken(
+				__selected_data_type_full, "-", 0, 0).trim();
+		}
+	}
+	else {	__selected_data_type = __selected_data_type_full;
+	}
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 1, rtn, "Data type has been selected:  \""
+		+ __selected_data_type + "\"" );
+	}
+
+	// Set the appropriate settings for the current data input type and
+	// data type...
+
+	if ( __selected_input_type.equals(__INPUT_TYPE_DateValue) ) {
+		// DateValue file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_DIADvisor) ) {
+		// The time steps are always available in both the operational
+		// and archive database.  However, "DataValue2" is only
+		// available in the operational database.  Also, regular
+		// interval data seem to only be available for Rain group.
+		String group =StringUtil.getToken(__selected_data_type,"-",0,0);
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.setEnabled ( true );
+		if (	__selected_data_type.endsWith("DataValue") &&
+			group.equalsIgnoreCase("Rain") ) {
+			__time_step_JComboBox.add ( __TIMESTEP_DAY );
+			__time_step_JComboBox.add ( __TIMESTEP_HOUR );
+		}
+		__time_step_JComboBox.add ( __TIMESTEP_IRREGULAR );
+		if (	__selected_data_type.endsWith("DataValue") &&
+			group.equalsIgnoreCase("Rain") ) {
+			try {	DIADvisor_SysConfig config =
+				__DIADvisor_dmi.readSysConfig();
+				__time_step_JComboBox.add ( "" +
+					config.getInterval() +
+					__TIMESTEP_MINUTE );
+			}
+			catch ( Exception e ) {
+				Message.printWarning ( 2, rtn,
+				"Could not determine"
+				+ " DIADvisor interval for time step choice." );
+				Message.printWarning ( 2, rtn, e );
+			}
+		}
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( 0 );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ) {
+		Vector time_steps =
+			HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
+			__selected_data_type,
+			HydroBase_Util.DATA_TYPE_AGRICULTURE |
+			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
+			HydroBase_Util.DATA_TYPE_HARDWARE |
+			HydroBase_Util.DATA_TYPE_STATION_ALL |
+			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
+			HydroBase_Util.DATA_TYPE_WIS );
+		__time_step_JComboBox.setData ( time_steps );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.setEnabled ( true );
+		// Select monthly as the default if available...
+		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,
+			"Month", JGUIUtil.NONE, null, null ) ) {
+			__time_step_JComboBox.select ( "Month" );
+		}
+		else {	// Select the first item...
+			try {	__time_step_JComboBox.select ( 0 );
+			}
+			catch ( Exception e ) {
+				// For cases when for some reason no choice
+				// is available.
+				__time_step_JComboBox.setEnabled ( false );
+			}
+		}
+		// If the data type is for a diversion or reservoir data type,
+		// hide the abbreviation column in the table model.  Else show
+		// the column.
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ) {
+		// Mexico CSMN file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_DAY );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_DAY );
+		__time_step_JComboBox.setEnabled ( true );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_MODSIM) ) {
+		// MODSIM file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_NWSCARD) ) {
+		// NWSCard file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_HOUR );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_HOUR );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
+		// Time steps are determined from the system...
+		Vector time_steps = NWSRFS_Util.getDataTypeIntervals (
+			__nwsrfs_dmi, __selected_data_type );
+		__time_step_JComboBox.setData ( time_steps );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.setEnabled ( true );
+		// Select 6Hour as the default if available...
+		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,
+			"6Hour", JGUIUtil.NONE, null, null ) ) {
+			__time_step_JComboBox.select ( "6Hour" );
+		}
+		else {	// Select the first item...
+			try {	__time_step_JComboBox.select ( 0 );
+			}
+			catch ( Exception e ) {
+				// For cases when for some reason no choice
+				// is available.
+				__time_step_JComboBox.setEnabled ( false );
+			}
+		}
+	}
+	else if ( __selected_input_type.equals(
+		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble) ){
+		// ESP Trace Ensemble file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
+		// Time steps are determined from the database based on the
+		// data type that is selected...
+		String data_type = StringUtil.getToken(
+			__data_type_JComboBox.getSelected()," ",0,0).trim();
+		Vector v = null;
+		try {	v = __rdmi.readMeasTypeListForTSIdent (
+					".." + data_type + ".." );
+		}
+		catch ( Exception e ) {
+			Message.printWarning(2, rtn, "Error getting time "
+				+ "steps from RiversideDB.");
+			Message.printWarning(2, rtn, e);
+			v = null;
+		}
+		int size = 0;
+		if ( v != null ) {
+			size = v.size();
+		}
+		RiversideDB_MeasType mt = null;
+		String timestep;
+		String time_step_base;
+		long time_step_mult;
+		__time_step_JComboBox.removeAll ();
+		if ( size > 0 ) {
+			for ( int i = 0; i < size; i++ ) {
+				mt = (RiversideDB_MeasType)v.elementAt(i);
+				// Only add if not already listed.
+				// Alternatively - add a "distinct" query
+				time_step_base = mt.getTime_step_base();
+				time_step_mult = mt.getTime_step_mult();
+				if (	time_step_base.equalsIgnoreCase(
+					"IRREGULAR") ||
+					DMIUtil.isMissing(time_step_mult) ) {
+					timestep = mt.getTime_step_base();
+				}
+				else {	timestep = "" + mt.getTime_step_mult() +
+						mt.getTime_step_base();
+				}
+				if (	!JGUIUtil.isSimpleJComboBoxItem(
+					__time_step_JComboBox,
+					timestep, JGUIUtil.NONE, null, null)){
+					__time_step_JComboBox.add(timestep);
+				}
+			}
+			__time_step_JComboBox.select ( null );
+			__time_step_JComboBox.select ( 0 );
+			__time_step_JComboBox.setEnabled ( true );
+		}
+		else {	__time_step_JComboBox.setEnabled ( false );
+		}
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_RiverWare) ) {
+		// RiverWare file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU) ) {
+		// StateCU files...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_StateMod) ) {
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_DAY );
+		__time_step_JComboBox.add ( __TIMESTEP_MONTH );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_MONTH );
+		__time_step_JComboBox.setEnabled ( true );
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
+		// StateMod binary output file - the time step is set when the
+		// input name is selected so do nothing here.
+	}
+	else if ( __selected_input_type.equals(__INPUT_TYPE_USGSNWIS) ) {
+		// USGS NWIS file...
+		__time_step_JComboBox.removeAll ();
+		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.select ( null );
+		__time_step_JComboBox.select ( __TIMESTEP_AUTO );
+		__time_step_JComboBox.setEnabled ( false );
+	}
+
+	// Set the filter where clauses based on the data type changing...
+
+	ui_SetInputFilters();
+}
+
+/**
+Deselect all commands in the commands list.  This occurs in response to a user
+selecting a menu choice.
+*/
+private void uiAction_DeselectAllCommands()
+{	__commands_JList.clearSelection();
+	// TODO SAM 2007-08-31 Should add list seletion listener to handle updateStatus call.
+	ui_UpdateStatus ( false );
+}
+
+/**
+Carry out the edit command action, triggered by:
+<ol>
+<li>	Popup menu edit of a command on the command list.</li>
+<li>	Pressing the enter key on the command list.</li>
+<li>	Double-clicking on a command in the command list.</li>
+</ol>
+This method will call the uiAction_EditCommand() method with a list of
+commands that were selected to be edited.  Multiple commands may be edited if
+a block of # delimited comments.
+*/
+private void uiAction_EditCommand ()
+{	int selected_size = 0;
+	int [] selected = __commands_JList.getSelectedIndices();
+	if ( selected != null ) {
+		selected_size = selected.length;
+	}
+	if ( selected_size > 0 ) {
+		Command command = (Command)__commands_JListModel.get(selected[0]);
+		Vector v = null;
+		if ( command.toString().startsWith("#") ) {
+			// Allow multiple lines to be edited in a comment...
+			// This is handled in the called method, which brings up a multi-line
+			// editor for comments.
+			v = new Vector ( selected_size );
+			for ( int i = 0; i < selected_size; i++ ) {
+				v.addElement (
+					__commands_JListModel.get(selected[i]));
+			}
+		}
+		else {	// Commands are one line...
+			v = new Vector ( 1 );
+			v.addElement ( command );
+		}
+		commandList_EditCommand ( "", // No action event from menus
+				v, __UPDATE_COMMAND );
+	}
+}
+
+/**
+Handle Edit...Commands File, which uses an external editor to edit the file.
+*/
+private void uiAction_EditCommandsFile ()
+{	String routine = getClass().getName() + ".uiAction_EditCommandsFile";
+	// Get the name of the file to edit and then use notepad...
+	//
+	// Instantiate a file dialog object with no default...
+	//
+	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+	fc.setDialogTitle ( "Select File" );
+	SimpleFileFilter sff = new SimpleFileFilter ( "TSTool",
+		"TSTool Commands File" );
+	fc.addChoosableFileFilter ( sff );
+	fc.setFileFilter ( sff );
+	if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+		// Return if no file name is selected...
+		return;
+	}
+	String path = fc.getSelectedFile().getPath();
+	JGUIUtil.setLastFileDialogDirectory (
+		fc.getSelectedFile().getParent() );
+	String [] command_array = new String[2];
+	if ( IOUtil.isUNIXMachine() ) {
+		command_array[0] = "nedit";
+	}
+	else {	command_array[0] = "notepad";
+	}
+	if ( path != null ) {
+		try {	command_array[1] = path;
+			ProcessManager p = new ProcessManager( command_array );
+			Thread thread = new Thread ( p );
+			thread.start ();
+		}
+		catch ( Exception e2 ) {
+			Message.printWarning ( 1, routine,
+			"Unable to edit file \"" + path + "\"" );
+		}
+	}
+}
+
+/**
+Export time series to a file.   Assume that if this is called, the state of the
+GUI is such that time series are available from the TSEngine.
+@param format Format to export, as a tstool command line option.
+@param filename Name of file to save as, as a tstool command line option (e.g.,
+"-o filename").  If previewing output, this will be "-preview".
+*/
+private void uiAction_ExportTimeSeriesResults ( String format, String filename )
+{	String routine = getClass().getName() + ".uiAction_ExportTimeSeriesResults";
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 1, routine, "In export" );
+	}
+
+	// Get the time series list
+
+	PropList props = new PropList ( "SaveAsProps" );
+	props.set ( "OutputFormat=" + format );
+	props.set ( "OutputFile=" + filename );
+	// Final list is selected...
+	 if ( __ts_processor != null ) {
+		try {	int selected_ts = JGUIUtil.selectedSize(__ts_JList);
+			if ( selected_ts == 0 ) {
+				commandProcessor_ProcessTimeSeriesResultsList(null,props);
+			}
+			else {	commandProcessor_ProcessTimeSeriesResultsList (
+				__ts_JList.getSelectedIndices(), props );
+			}
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine,
+			"Unable to save time series." );
+		}
+	}
+}
+
+/**
+Handle "File...Exit" and X actions.
+*/
+private void uiAction_FileExitClicked ()
+{	// If the commands are dirty, see if they want to save them...
+	// This code is also in openCommandsFile - might be able to remove
+	// copy once all actions are implemented...
+	int x = ResponseJDialog.YES;	// Default for batch mode
+	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
+		if ( __show_main && __commands_dirty ) {
+			if ( __commands_file_name == null ) {
+				// Have not been saved before...
+				x = ResponseJDialog.NO;
+				if ( __commands_JListModel.size() > 0 ) {
+					x = new ResponseJDialog ( this,
+					IOUtil.getProgramName(),
+					"Do you want to save the changes you " +
+					"made?",
+					ResponseJDialog.YES| ResponseJDialog.NO|
+					ResponseJDialog.CANCEL).response();
+				}
+				if ( x == ResponseJDialog.CANCEL ) {
+					setDefaultCloseOperation(
+						DO_NOTHING_ON_CLOSE);
+					return;
+				}
+				else if ( x == ResponseJDialog.YES ) {
+					// Prompt for the name and then save...
+					uiAction_WriteCommandsFile (
+					__commands_file_name, true);
+				}
+			}
+			else {	// A commands file exists...  Warn the user.
+				// They can save to the existing file name or
+				// can cancel and File...Save As... to a
+				// different name.  Have not been saved
+				// before...
+				x = ResponseJDialog.NO;
+				if ( __commands_JListModel.size() > 0 ) {
+					x = new ResponseJDialog ( this,
+					IOUtil.getProgramName(), "Do you want "+
+					"to save the changes you made to\n\""
+					+ __commands_file_name + "\"?",
+					ResponseJDialog.YES| ResponseJDialog.NO|
+					ResponseJDialog.CANCEL).response();
+				}
+				if ( x == ResponseJDialog.CANCEL ) {
+					setDefaultCloseOperation(
+						DO_NOTHING_ON_CLOSE);
+					return;
+				}
+				else if ( x == ResponseJDialog.YES ) {
+					uiAction_WriteCommandsFile (
+					__commands_file_name, false );
+				}
+				// Else if No will just exit below...
+			}
+		}
+		// Now make sure the user wants to exit - they might have a lot
+		// of data processed...
+		if ( __show_main ) {
+			x = new ResponseJDialog (this,
+			"Exit TSTool", "Are you sure you want to exit TSTool?",
+			ResponseJDialog.YES| ResponseJDialog.NO).response();
+		}
+	}
+	if ( x == ResponseJDialog.YES ) {
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setVisible(false);
+		try {	dispose();
+		}
+		catch ( Exception e ) {
+			// Why is this a problem?
+		}
+		Message.closeLogFile();
+		System.exit(0);
+	}
+	else {	// Cancel...
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+	}
+}
+
+/**
+Respond to "Get Time Series List" being clicked.
+*/
+private void uiAction_GetTimeSeriesListClicked()
+{	String message, routine = getClass().getName() + ".getTimeSeriesListClicked";
+	Message.printStatus ( 1, routine,
+	"Getting time series list from " + __selected_input_type +
+	" input type..." );
+
+	// Verify that the input filters have valid data...
+
+	if ( __selected_input_filter_JPanel != __input_filter_generic_JPanel ) {
+		if (	!((InputFilter_JPanel)__selected_input_filter_JPanel).
+			checkInput(true) ) {
+			// An input error was detected so don't get the time
+			// series...
+			return;
+		}
+	}
+
+	// Read the time series list and display in the Time Series List
+	// area.  Return if an error occurs because the message at the bottom
+	// should only be printed if successful.
+
+	if ( __selected_input_type.equals (__INPUT_TYPE_DateValue)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading DateValue file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_DIADvisor)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
+		}
+		catch ( Exception e ) {
+			message = "Error reading DIADvisor.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_HydroBase)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( null ); 
+		}
+		catch ( Exception e ) {
+			message = "Error reading HydroBase.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_MEXICO_CSMN)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ();
+		}
+		catch ( Exception e ) {
+			message =
+			"Error reading Mexico CSMN catalog file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_MODSIM)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading MODSIM file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_NWSCARD)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading NWS CARD file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals(
+		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadNWSRFSESPTraceEnsembleHeaders ();
+		}
+		catch ( Exception e ) {
+			message =
+			"Error reading NWSRFS_ESPTraceEnsemble file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
+		try {	// This reads the time series headers and displays the
+			// results in the list...
+			uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ();
+		}
+		catch ( Exception e ) {
+			message =
+			"Error reading NWSRFS FS5Files time series list. " +
+			"Cannot display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_RiversideDB)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
+		}
+		catch ( Exception e ) {
+			message = "Error reading RiversideDB.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_RiverWare)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading RiverWare file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_StateCU)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading StateCU file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_StateMod)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading StateMod file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_StateModB)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading StateMod binary file.  Cannot "
+			+ "display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	else if ( __selected_input_type.equals (__INPUT_TYPE_USGSNWIS)) {
+		try {	uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading USGS NWIS file.  Cannot " +
+			"display time series list.";
+			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+	}
+	Message.printStatus ( 1, routine,
+	"Time series list from " + __selected_input_type +
+	" input type are listed in Time Series List area." );
+}
+
+/**
+Read the list of time series from a DateValue file and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ()
+throws IOException
+{	String message, routine = "TSTool_JFrame.readDateValueHeaders";
+
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select DateValue Time Series File" );
+		SimpleFileFilter dv_sff = new SimpleFileFilter( "dv",
+			"DateValue Time Series");
+		fc.addChoosableFileFilter(dv_sff);
+		SimpleFileFilter sff = new SimpleFileFilter( "txt",
+			"DateValue Time Series");
+		fc.addChoosableFileFilter(sff);
+		fc.setFileFilter(dv_sff);
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		String directory = fc.getSelectedFile().getParent();
+		String path = fc.getSelectedFile().getPath();
+		JGUIUtil.setLastFileDialogDirectory ( directory );
+
+		Message.printStatus ( 1, routine,
+		"Reading DateValue file \"" + path + "\"" );
+		JGUIUtil.setWaitCursor ( this, true );
+		Vector tslist = null;
+		try {	tslist = DateValueTS.readTimeSeriesList (
+			path, null, null, null, false );
+		}
+		catch ( Exception e ) {
+			message = "Error reading DateValue file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		if ( tslist == null ) {
+			message = "Error reading DateValue file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		// There should not be any non-null time series so use the
+		// Vector size...
+		int size = tslist.size();
+        	if ( size == 0 ) {
+			Message.printStatus ( 1, routine, "No DateValue TS read." );
+			queryResultsList_Clear ();
+        	}
+        	else {	Message.printStatus ( 1, routine, ""
+			+ size + " DateValue TS read." );
+			// Include the alias in the display...
+			__query_TableModel = new TSTool_TS_TableModel (
+				tslist, true );
+			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+				(TSTool_TS_TableModel)__query_TableModel);
+	
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+
+			JGUIUtil.setWaitCursor ( this, false );
+        	ui_UpdateStatus ( false );
+		}
+		tslist = null;
+	}
+	catch ( Exception e ) {
+		message = "Error reading DateValue file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read DIADvisor time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
+{	String rtn = "TSTool_JFrame.readDIADvisorHeaders";
+        JGUIUtil.setWaitCursor ( this, true );
+        Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+	try {	queryResultsList_Clear ();
+
+		//String location = "";
+		//String data_type = StringUtil.getToken(
+			//__data_type_JComboBox.getSelected()," ",0,0).trim();
+		String timestep = __time_step_JComboBox.getSelected().trim();
+
+/* SAMX - need to figure out how to do where - or do we just have choices?
+        	// add where clause(s)   
+		if ( getWhereClauses() == false ) {
+        		JGUIUtil.setWaitCursor ( this, false );
+        		Message.printStatus ( 1, rtn, 
+			"Query aborted - null where string");
+			return;
+		}
+*/
+
+		Vector results = null;
+		
+		try {	results = __DIADvisor_dmi.readSensorDefList();
+		}
+		catch ( Exception e ) {
+			results = null;
+			Message.printWarning ( 1, rtn, e );
+		}
+
+		int size = 0;
+		if ( results != null ) {
+			size = results.size();
+		}
+        	if ( (results == null) || (size == 0) ) {
+			Message.printStatus ( 1, rtn,
+			"Query complete.  No records returned." );
+        	}
+        	else {	Message.printStatus ( 1, rtn, "Query complete. "
+			+ size + " records returned." );
+        	}
+
+		Vector tslist_data_Vector = new Vector(size*2);
+		DIADvisor_SensorDef data;
+		String start_date_time = "";
+		String end_date_time = "";
+		String interval = __time_step_JComboBox.getSelected();
+		String description = "";
+		// This is either "DataValue" or "DataValue2"...
+		String selected_group = StringUtil.getToken(
+			__data_type_JComboBox.getSelected(), "-", 0, 0);
+		String datatype = StringUtil.getToken (
+			__data_type_JComboBox.getSelected(), "-", 0, 1);
+		String sensor_type = "";	// Used to check for Rain
+		String units = "";
+		String rating_type = "";
+		boolean is_datavalue1 = true;
+		if ( datatype.endsWith("DataValue2") ) {
+			is_datavalue1 = false;
+		}
+		for ( int i = 0; i < size; i++ ) {
+			data = (DIADvisor_SensorDef)results.elementAt(i);  
+			if ( !data.getGroup().equalsIgnoreCase(selected_group)){
+				// Sensor is not in the requested group...
+				continue;
+			}
+			rating_type = data.getRatingType();
+			sensor_type = data.getType();
+
+			// Process some fields that need special formatting...
+
+			description = data.getDescription();
+
+			// If DataValue1 - add all records + archive
+			// if DateValue2, only have in operational/archive
+			// database when rating != "NONE" and interval is
+			// irregular (only in DataChron)
+			if (	is_datavalue1 ||
+				(!is_datavalue1 &&
+				sensor_type.equalsIgnoreCase("RAIN") ||
+				!rating_type.equalsIgnoreCase("NONE")) ) {
+				if ( is_datavalue1 ) {
+					units = data.getDisplayUnits();
+				}
+				else {	units = data.getDisplayUnits2();
+				}
+				tslist_data_Vector.addElement(
+						data.getSensorID() + ";"
+            					+ description + ";"
+            					+ ";"
+            					+selected_group+"-"+datatype+";"
+            					+ timestep + ";"
+            					+ ";"
+            					+ units + ";"
+                				+ start_date_time + ";" 
+                				+ end_date_time + ";" 
+						+ __INPUT_TYPE_DIADvisor );
+			}
+			// Add for archive database only if for DataValue or
+			// DateValue2 and the interval is irregular...
+			if (	(__DIADvisor_archive_dmi != null) &&
+				(is_datavalue1 ||
+				(!is_datavalue1 && 
+				sensor_type.equalsIgnoreCase("RAIN") ||
+				!rating_type.equalsIgnoreCase("NONE") &&
+				interval.equals(__TIMESTEP_IRREGULAR))) ) {
+				// Also add an archive time series...
+				tslist_data_Vector.addElement(	
+						data.getSensorID() + ";"
+            					+ description + ";"
+            					+ ";"
+            					+selected_group+"-"+datatype+";"
+            					+ timestep + ";"
+            					+ "archive;"
+            					+ units + ";"
+                				+ start_date_time + ";" 
+                				+ end_date_time + ";" 
+						+ __INPUT_TYPE_DIADvisor );
+			}
+		}
+
+		ui_UpdateStatus ( false );
+		results = null;
+        JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		// Messages elsewhere but catch so we can get the cursor
+		// back...
+		Message.printWarning ( 2, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+	}
+}
+
+/**
+Query HydroBase time series and list in the GUI, using the current selections.
+@param grlimits If a query is being executed from the map interface, then the
+limits will be non-null.
+@throws Exception if there is an error.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( GRLimits grlimits )
+throws Exception
+{	String message, routine = "TSTool_JFrame.readHydroBaseHeaders";
+
+        JGUIUtil.setWaitCursor ( this, true );
+        Message.printStatus ( 1, routine, "Please wait... retrieving data");
+
+	Vector tslist = null;
+	int size = 0;
+	try {	
+		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( __hbdmi,
+				__selected_data_type, __selected_time_step,
+				(InputFilter_JPanel)
+				__selected_input_filter_JPanel, grlimits );
+		// Make sure that size is set...
+		if ( tslist != null ) {
+			size = tslist.size();
+		}
+		// Now display the data in the worksheet...
+		if ( (tslist != null) && (size > 0) ) {
+       			Message.printStatus ( 1, routine, "" + size +
+			" HydroBase time series read.  Displaying data..." );
+			if (	HydroBase_Util.
+				isAgriculturalCASSCropStatsTimeSeriesDataType (
+				__hbdmi, __selected_data_type) ||
+				HydroBase_Util.
+				isAgriculturalNASSCropStatsTimeSeriesDataType (
+				__hbdmi, __selected_data_type ) ) {
+				// Data from
+				// agricultural_CASS_crop_statistics or
+				// agricultural_NASS_crop_statistics...
+				__query_TableModel = new
+					TSTool_HydroBase_Ag_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type );
+				TSTool_HydroBase_Ag_CellRenderer cr = new
+					TSTool_HydroBase_Ag_CellRenderer(
+					(TSTool_HydroBase_Ag_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			else if(HydroBase_Util.
+				isAgriculturalCASSLivestockStatsTimeSeriesDataType (
+				__hbdmi, __selected_data_type) ) {
+				// Data from CASS livestock stats...
+				__query_TableModel = new
+					TSTool_HydroBase_CASSLivestockStats_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type );
+				TSTool_HydroBase_CASSLivestockStats_CellRenderer cr = new
+					TSTool_HydroBase_CASSLivestockStats_CellRenderer(
+					(TSTool_HydroBase_CASSLivestockStats_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			else if(HydroBase_Util.isCUPopulationTimeSeriesDataType(
+				__hbdmi, __selected_data_type) ) {
+				// Data from CUPopulation...
+				__query_TableModel = new
+					TSTool_HydroBase_CUPopulation_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type );
+				TSTool_HydroBase_CUPopulation_CellRenderer cr =
+					new
+					TSTool_HydroBase_CUPopulation_CellRenderer(
+					(TSTool_HydroBase_CUPopulation_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			else if(HydroBase_Util.isIrrigSummaryTimeSeriesDataType(
+				__hbdmi, __selected_data_type ) ) {
+				// Irrig summary TS...
+				__query_TableModel = new
+					TSTool_HydroBase_AgGIS_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type,
+					StringUtil.atoi(__props.getValue(
+					"HydroBase.WDIDLength")) );
+				TSTool_HydroBase_AgGIS_CellRenderer cr = new
+					TSTool_HydroBase_AgGIS_CellRenderer(
+					(TSTool_HydroBase_AgGIS_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			else if( HydroBase_Util.isWISTimeSeriesDataType (
+				__hbdmi, __selected_data_type ) ) {
+				// WIS TS...
+				__query_TableModel = new
+					TSTool_HydroBase_WIS_TableModel (
+					__query_JWorksheet, tslist,
+					__selected_data_type );
+				TSTool_HydroBase_WIS_CellRenderer cr = new
+					TSTool_HydroBase_WIS_CellRenderer(
+					(TSTool_HydroBase_WIS_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			// XJTSX
+			else if (__selected_data_type.equalsIgnoreCase(
+				"WellLevel")) {
+			if (__selected_time_step.equalsIgnoreCase("Day")) {
+				__query_TableModel = new
+				TSTool_HydroBase_WellLevel_Day_TableModel (
+					__query_JWorksheet, StringUtil.atoi(
+					__props.getValue(
+					"HydroBase.WDIDLength")), tslist );
+				TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
+				new TSTool_HydroBase_WellLevel_Day_CellRenderer(
+				(TSTool_HydroBase_WellLevel_Day_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+
+			}
+			else {
+				// original table model
+				__query_TableModel = new
+					TSTool_HydroBase_TableModel (
+					__query_JWorksheet, StringUtil.atoi(
+					__props.getValue(
+					"HydroBase.WDIDLength")), tslist );
+				TSTool_HydroBase_CellRenderer cr =
+					new TSTool_HydroBase_CellRenderer(
+					(TSTool_HydroBase_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				__query_JWorksheet.removeColumn (
+					((TSTool_HydroBase_TableModel)
+					__query_TableModel).COL_ABBREV );
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+			}
+			else {	// Stations and structures...
+				__query_TableModel = new
+					TSTool_HydroBase_TableModel (
+					__query_JWorksheet, StringUtil.atoi(
+					__props.getValue(
+					"HydroBase.WDIDLength")), tslist );
+				TSTool_HydroBase_CellRenderer cr =
+					new TSTool_HydroBase_CellRenderer(
+					(TSTool_HydroBase_TableModel)
+					__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				if (	!(tslist.elementAt(0) instanceof
+					HydroBase_StationGeolocMeasType) ) {
+					__query_JWorksheet.removeColumn (
+					((TSTool_HydroBase_TableModel)
+					__query_TableModel).COL_ABBREV );
+				}
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+		}
+		else {	Message.printStatus ( 1, routine,
+			"No HydroBase time series read." );
+			queryResultsList_Clear ();
+       		}
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading time series list from HydroBase.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new Exception ( message );
+	}
+}
+
+/**
+Read the list of time series from a Mexico CSMN CATALOGO.TXT file and list in
+the GUI.  Because the catalog file is rather long (e.g., 5000 lines) and does
+not change, it is only read once.  If necessary, later change to prompt each
+time.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ()
+throws IOException
+{	String message, routine = "TSTool_JFrame.readMexicoCSMNHeaders";
+
+	try {	Vector allts = MexicoCsmnTS.getCatalogTSList();
+		if ( allts == null ) {
+			// Have not read the catalog yet so read it...
+			JFileChooser fc =
+				JFileChooserFactory.createJFileChooser (
+				JGUIUtil.getLastFileDialogDirectory() );
+			fc.setDialogTitle (
+				"Select a Mexico CSMN CATALOGO.TXT File" );
+			SimpleFileFilter sff = new SimpleFileFilter( "txt",
+				"Mexico CSMN Catalogo.txt File");
+			fc.addChoosableFileFilter(sff);
+			fc.setFileFilter(sff);
+			if (	fc.showOpenDialog(this) !=
+				JFileChooser.APPROVE_OPTION ) {
+				// Cancelled...
+				return;
+			}
+			String directory = fc.getSelectedFile().getParent();
+			String path = fc.getSelectedFile().getPath();
+			JGUIUtil.setLastFileDialogDirectory ( directory );
+
+			Message.printStatus ( 1, routine,
+			"Reading Mexico CSMN catalog file \"" + path + "\"" );
+			JGUIUtil.setWaitCursor ( this, true );
+			try {	allts = MexicoCsmnTS.readCatalogFile ( path );
+			}
+			catch ( Exception e ) {
+				message = "Error reading Mexico CSMN catalog " +
+					"file \"" + path + "\"";
+				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 2, routine, e );
+				JGUIUtil.setWaitCursor ( this, false );
+				throw new IOException ( message );
+			}
+		}
+		if ( allts == null ) {
+			message = "Error reading Mexico CSMN catalog " +
+					"file - no time series.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		// Now limit the list of time series according to the where
+		// criteria...
+		// There should not be any non-null time series so use the
+		// Vector size...
+		int nallts = allts.size();
+		Message.printStatus ( 1, routine,
+		"Read " + nallts + " time series listings from catalog file." );
+		TS ts;
+		Vector tslist = null;
+		// Limit the output to the matching information - there are 2
+		// filter groups...
+		InputFilter filter =
+			__input_filter_MexicoCSMN_JPanel.getInputFilter(0);
+		InputFilter station_filter = null;
+		String where1 = filter.getWhereLabel();
+		String input1 = filter.getInput(false).trim();
+		filter = __input_filter_MexicoCSMN_JPanel.getInputFilter(1);
+		String where2 = filter.getWhereLabel();
+		String input2 = filter.getInput(false).trim();
+		String station_operator = null, station = null, state = null;
+		if ( where1.equals("Station Name") ) {
+			station = input1;
+			station_filter =
+			__input_filter_MexicoCSMN_JPanel.getInputFilter(0);
+			station_operator = 
+			__input_filter_MexicoCSMN_JPanel.getOperator(0);
+		}
+		else if ( where2.equals("Station Name") ) {
+			station = input2;
+			station_filter =
+			__input_filter_MexicoCSMN_JPanel.getInputFilter(1);
+			station_operator = 
+			__input_filter_MexicoCSMN_JPanel.getOperator(1);
+		}
+		if ( where1.equals("State Number") ) {
+			state = input1;
+		}
+		else if ( where2.equals("State Number") ) {
+			state = input2;
+		}
+		String prefix = null;	// State padded with zeroes
+		if ( state != null ) {
+			prefix = StringUtil.formatString(
+			StringUtil.atoi( state),"%05d");
+		}
+		// Limit time series based on the station name...
+		tslist = new Vector(100);
+		int state_num;	// State number for specific time series.
+		File f;		// Used to update file name for time series file
+		for ( int i = 0; i < nallts; i++ ) {
+			ts = (TS)allts.elementAt(i);
+			if ( Message.isDebugOn ) {
+			Message.printStatus ( 1, "",
+				"station=" + station +
+				" station_operator=" + station_operator +
+				" state=" + state +
+				" location=" + ts.getLocation() +
+				" prefix=" + prefix  +
+				" matchresult=" +
+				station_filter.matches ( station,
+				station_operator, true ) );
+			}
+			if (	((station == null) ||
+				station_filter.matches ( ts.getDescription(),
+				station_operator, true )) &&
+				((state == null) ||
+				ts.getLocation().startsWith(prefix)) ) {
+				// OK to add the time series to the output
+				// list (reset some information first)...
+				ts.setDataType ( __selected_data_type );
+				state_num = StringUtil.atoi(
+					ts.getLocation().substring(0,5) );
+				f = new File(ts.getIdentifier().getInputName());
+				ts.getIdentifier().setInputName (
+					f.getParent() + File.separator +
+					MexicoCsmnTS.getStateAbbreviation(
+					state_num) + "_" +
+					__selected_data_type + ".CSV" );
+				tslist.addElement ( ts );
+			}
+		}
+		// There should not be any non-null time series so use the
+		// Vector size...
+		int size = tslist.size();
+        	if ( size == 0 ) {
+			Message.printStatus ( 1, routine,
+			"No Mexico CSMN TS read." );
+			queryResultsList_Clear ();
+        	}
+        	else {	Message.printStatus ( 1, routine, ""
+			+ size + " Mexico CSMN TS read." );
+			__query_TableModel = new TSTool_TS_TableModel (tslist );
+			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+				(TSTool_TS_TableModel)__query_TableModel);
+	
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			// Do not include the alias in the display...
+			__query_JWorksheet.removeColumn (
+			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+			__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+
+        	ui_UpdateStatus ( false );
+		}
+		JGUIUtil.setWaitCursor ( this, false );
+		allts = null;
+		tslist = null;
+		ts = null;
+	}
+	catch ( Exception e ) {
+		message = "Error reading Mexico CSMN catalog file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read the list of time series from a MODSIM file and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ()
+throws IOException
+{	String message, routine = getClass().getName() + ".readMODSIMHeaders";
+
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select MODSIM Output File" );
+		SimpleFileFilter sff = new SimpleFileFilter( "DEM",
+			"Demand Time Series");
+		fc.addChoosableFileFilter(sff);
+		sff = new SimpleFileFilter( "FLO", "Flow Time Series");
+		fc.addChoosableFileFilter(sff);
+		sff = new SimpleFileFilter( "GW", "Groundwater Series");
+		fc.addChoosableFileFilter(sff);
+		sff = new SimpleFileFilter( "RES", "Reservoir Time Series");
+		fc.addChoosableFileFilter(sff);
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		String directory = fc.getSelectedFile().getParent();
+		String path = fc.getSelectedFile().getPath();
+		JGUIUtil.setLastFileDialogDirectory ( directory );
+
+		Message.printStatus ( 1, routine,
+		"Reading MODSIM file \"" + path + "\"" );
+		JGUIUtil.setWaitCursor ( this, true );
+		Vector tslist = null;
+		try {	tslist = ModsimTS.readTimeSeriesList (
+			path, null, null, null, false );
+		}
+		catch ( Exception e ) {
+			message = "Error reading MODSIM file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		if ( tslist == null ) {
+			message = "Error reading MODSIM file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		// There should not be any non-null time series so use the
+		// Vector size...
+		int size = tslist.size();
+        	if ( size == 0 ) {
+			Message.printStatus ( 1, routine, "No MODSIM TS read." );
+			queryResultsList_Clear ();
+        	}
+        	else {	Message.printStatus ( 1, routine, ""
+			+ size + " MODSIM TS read." );
+			__query_TableModel = new TSTool_TS_TableModel (
+				tslist, true );
+			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+				(TSTool_TS_TableModel)__query_TableModel);
+	
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			// Do not include the alias in the display...
+			__query_JWorksheet.removeColumn (
+			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+			__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+
+			JGUIUtil.setWaitCursor ( this, false );
+        	ui_UpdateStatus ( false );
+		}
+		tslist = null;
+	}
+	catch ( Exception e ) {
+		message = "Error reading MODSIM file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read the list of time series from NWS CARD files and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ()
+throws IOException
+{	String message, routine = "TSTool_JFrame.readNWSCARDHeaders";
+
+	// REVISIT - allow multiple file selections...
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select NWS Card Time Series File" );
+
+		/*
+		SimpleFileFilter card_sff = new SimpleFileFilter( "card",
+			"NWS Card Time Series");
+		fc.addChoosableFileFilter(card_sff);
+		SimpleFileFilter sff = new SimpleFileFilter( "txt",
+			"NWS Card Time Series");
+		fc.addChoosableFileFilter(sff);
+		fc.setFileFilter(card_sff);
+		*/
+
+		FileFilter[] filters = NWSCardTS.getFileFilters();
+		for (int i = 0; i < filters.length - 1; i++) {
+			fc.addChoosableFileFilter(filters[i]);
+		}
+		fc.setFileFilter(filters[filters.length - 1]);
+		
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		String directory = fc.getSelectedFile().getParent();
+		String path = fc.getSelectedFile().getPath();
+		JGUIUtil.setLastFileDialogDirectory ( directory );
+
+		Message.printStatus ( 1, routine,
+		"Reading NWS CARD file \"" + path + "\"" );
+		JGUIUtil.setWaitCursor ( this, true );
+		Vector tslist = null;
+		try {	tslist = NWSCardTS.readTimeSeriesList (
+				(TS)null,	// No requested time series
+				path,
+				(DateTime)null,	// Start
+				(DateTime)null,	// End
+				(String)null,	// Units
+				false );	// No data, header only
+		}
+		catch ( Exception e ) {
+			message = "Error reading NWS Card file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			queryResultsList_Clear ();
+			throw new IOException ( message );
+		}
+		if ( tslist == null ) {
+			message = "Error reading NWS CARD file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		__query_TableModel = new TSTool_TS_TableModel ( tslist );
+		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+			(TSTool_TS_TableModel)__query_TableModel);
+
+		__query_JWorksheet.setCellRenderer ( cr );
+		__query_JWorksheet.setModel ( __query_TableModel );
+		__query_JWorksheet.removeColumn (
+			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+		__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+
+        ui_UpdateStatus ( false );
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading NWS CARD file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read the list of time series from an NWSRFS ESPTraceEnsemble file and list in
+the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadNWSRFSESPTraceEnsembleHeaders ()
+throws IOException
+{	String message, routine =
+		"TSTool_JFrame.readNWSRFSESPTraceEnsembleHeaders";
+
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select ESP Trace Ensemble File" );
+		SimpleFileFilter csff = new SimpleFileFilter( "CS",
+		"Conditional Simulation Trace File");
+		fc.addChoosableFileFilter(csff);
+		/* REVISIT - add later
+		SimpleFileFilter sff = new SimpleFileFilter( "HS",
+		"Historical Simulation Trace File");
+		fc.addChoosableFileFilter(sff);
+		*/
+		fc.setFileFilter(csff);
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		String directory = fc.getSelectedFile().getParent();
+		JGUIUtil.setLastFileDialogDirectory ( directory );
+		String path = fc.getSelectedFile().getPath();
+		Message.printStatus ( 1, routine,
+		"Reading NWSRFS ESPTraceEnsemble file \"" + path + "\"" );
+		JGUIUtil.setWaitCursor ( this, true );
+		Vector tslist = null;
+		NWSRFS_ESPTraceEnsemble ensemble = null;
+		try {	ensemble = new NWSRFS_ESPTraceEnsemble ( path, false );
+			// Get the array of time series...
+			tslist = ensemble.getTimeSeriesVector ();
+		}
+		catch ( Exception e ) {
+			message = "Error reading NWSRFS ESPTraceEnsemble file.";
+			Message.printWarning ( 2, routine, message );
+			Message.printWarning ( 2, routine, e );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		int size = 0;
+		if ( tslist != null ) {
+			size = tslist.size();
+			__query_TableModel = new
+				TSTool_ESPTraceEnsemble_TableModel ( ensemble );
+			TSTool_ESPTraceEnsemble_CellRenderer cr =
+				new TSTool_ESPTraceEnsemble_CellRenderer(
+				(TSTool_ESPTraceEnsemble_TableModel)
+				__query_TableModel);
+
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			__query_JWorksheet.setColumnWidths (
+				cr.getColumnWidths(), getGraphics() );
+		}
+       		if ( (tslist == null) || (size == 0) ) {
+			Message.printStatus ( 1, routine,
+			"No NWSRFS ESPTraceEnsemble TS read." );
+			queryResultsList_Clear ();
+       		}
+       		else {	Message.printStatus ( 1, routine, ""
+			+ size + " NWSRFS ESPTraceEnsemble TS traces read." );
+       		}
+
+		JGUIUtil.setWaitCursor ( this, false );
+       	ui_UpdateStatus ( false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading NWSRFS ESPTraceEnsemble file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read the list of time series from NWSRFS FS5Files and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ()
+throws IOException
+{	String message, routine = "TSTool_JFrame.readNWSRFSFS5FilesHeaders";
+
+	try {	JGUIUtil.setWaitCursor ( this, true );
+		Vector tslist = null;
+		// Default is to return all IDs...
+		String id_input = "*";
+		// Get the ID from the input filter...
+		Vector input_Vector = __input_filter_NWSRFS_FS5Files_JPanel.
+			getInput ( "ID", true, null );
+		int isize = input_Vector.size();
+		if ( isize > 1 ) {
+			Message.printWarning ( 1, routine,
+			"Only one input filter for ID can be specified." );
+			return;
+		}
+		if ( isize > 0 ) {
+			// Use the first matching filter...
+			id_input = (String)input_Vector.elementAt(0);
+		}
+		String datatype = StringUtil.getToken ( 
+			__data_type_JComboBox.getSelected().trim(), " ",0, 0);
+		// Parse the interval into the integer hour...
+		String selected_input_name=__input_name_JComboBox.getSelected();
+		try {	String tsident_string = id_input + ".NWSRFS." +
+				datatype + "." +
+				__selected_time_step + "~NWSRFS_FS5Files~" +
+				selected_input_name;
+			Message.printStatus ( 2, routine,
+			"Reading NWSRFS FS5Files time series for \"" +
+			tsident_string + "\"..." );
+			tslist = __nwsrfs_dmi.readTimeSeriesList (
+				tsident_string, (DateTime)null,
+				(DateTime)null, (String)null, false );
+		}
+		catch ( Exception e ) {
+			message = "Error reading NWSRFS time series list.";
+			Message.printWarning ( 2, routine, message );
+			Message.printWarning ( 2, routine, e );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		
+		int size = 0;
+		if ( tslist != null ) {
+			size = tslist.size();
+
+			// Now display in the table...
+
+			__query_TableModel = new TSTool_TS_TableModel (
+				tslist, true );
+			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+				(TSTool_TS_TableModel)__query_TableModel);
+	
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			// Do not include the alias in the display...
+			__query_JWorksheet.removeColumn (
+			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+			__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+		}
+       		if ( (tslist == null) || (size == 0) ) {
+			Message.printStatus ( 1, routine,
+			"No NWSRFS FS5Files time series read." );
+			queryResultsList_Clear ();
+       		}
+       		else {	Message.printStatus ( 1, routine, ""
+			+ size + " NWSRFS FS5Files time series read." );
+       		}
+
+		JGUIUtil.setWaitCursor ( this, false );
+       	ui_UpdateStatus ( false );
+	}
+	catch ( Exception e ) {
+		JGUIUtil.setWaitCursor ( this, false );
+		message = "Error reading NWSRFS FS5Files time series list.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read RiversideDB time series (MeasType) and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
+{	String rtn = "TSTool_JFrame.readRiversideDBHeaders";
+        JGUIUtil.setWaitCursor ( this, true );
+        Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+	// The headers are a Vector of HydroBase_
+	try {	queryResultsList_Clear ();
+
+		String location = "";
+		String data_type = StringUtil.getToken(
+			__data_type_JComboBox.getSelected()," ",0,0).trim();
+		String timestep = __time_step_JComboBox.getSelected();
+		if ( timestep == null ) {
+			Message.printWarning ( 1, rtn,
+			"No time series are available for timestep." );
+			JGUIUtil.setWaitCursor ( this, false );
+			return;
+		}
+		else {	timestep = timestep.trim();
+		}
+		String data_type_mod = "";
+		if ( data_type.indexOf ( "-" ) >= 0 ) {
+			data_type_mod = StringUtil.getToken ( data_type,
+				"-", 0, 1 );
+		}
+		if ( !data_type_mod.equals("") ) {
+			data_type_mod = "-" + data_type_mod;
+		}
+
+/* SAMX - need to figure out how to do where - or do we just have choices?
+        	// add where clause(s)   
+		if ( getWhereClauses() == false ) {
+        		JGUIUtil.setWaitCursor ( this, false );
+        		Message.printStatus ( 1, rtn, 
+			"Query aborted - null where string");
+			return;
+		}
+*/
+
+		TSIdent ident = new TSIdent ( location + ".." + data_type +
+					data_type_mod + "." + timestep + "." );
+		Message.printStatus ( 1, "",
+		"Datatype = \"" + ident.getType() + "\" main = \"" +
+		ident.getMainType() + "\" sub = \"" + ident.getSubType() +"\"");
+
+		Vector results = null;
+
+		try {	results = __rdmi.readMeasTypeListForTSIdent (
+				location + ".." + data_type + data_type_mod +
+				"." + timestep + "." );
+		}
+		catch ( Exception e ) {
+			results = null;
+		}
+
+		int size = 0;
+		if ( results != null ) {
+			size = results.size();
+			// Does not work??
+			//__query_TableModel.setNewData ( results );
+			// Try brute force...
+			__query_TableModel = new
+				TSTool_RiversideDB_TableModel ( results );
+			TSTool_RiversideDB_CellRenderer cr =
+				new TSTool_RiversideDB_CellRenderer(
+				(TSTool_RiversideDB_TableModel)
+				__query_TableModel);
+
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			__query_JWorksheet.setColumnWidths (
+				cr.getColumnWidths(), getGraphics() );
+		}
+        	if ( (results == null) || (size == 0) ) {
+			Message.printStatus ( 1, rtn,
+			"Query complete.  No records returned." );
+        	}
+        	else {	Message.printStatus ( 1, rtn, "Query complete. "
+			+ size + " records returned." );
+        	}
+
+        	ui_UpdateStatus ( false );
+
+        	JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		// Messages elsewhere but catch so we can get the cursor
+		// back...
+		Message.printWarning ( 3, rtn, e );
+        	JGUIUtil.setWaitCursor ( this, false );
+	}
+}
+
+/**
+Read the list of time series from RiverWare files and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ()
+throws IOException
+{	String message, routine = "TSTool_JFrame.readRiverWareHeaders";
+
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select RiverWare Time Series File" );
+		SimpleFileFilter sff = new SimpleFileFilter( "dat",
+			"RiverWare Time Series");
+		fc.addChoosableFileFilter(sff);
+		sff = new SimpleFileFilter( "rwts", "RiverWare Time Series");
+		fc.addChoosableFileFilter(sff);
+		sff = new SimpleFileFilter( "ts", "RiverWare Time Series");
+		fc.addChoosableFileFilter(sff);
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		JGUIUtil.setLastFileDialogDirectory (
+			fc.getSelectedFile().getParent() );
+		String path = fc.getSelectedFile().getPath();
+
+		Message.printStatus ( 1, routine,
+		"Reading RiverWare file \"" + path + "\"" );
+		JGUIUtil.setWaitCursor ( this, true );
+		TS ts = RiverWareTS.readTimeSeries (
+			path, null, null, null, false );
+		if ( ts == null ) {
+			message = "Error reading RiverWare file.";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		Vector tslist = new Vector ( 1 );
+		tslist.addElement ( ts );
+		__query_TableModel = new TSTool_TS_TableModel ( tslist );
+		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+			(TSTool_TS_TableModel)__query_TableModel);
+
+		__query_JWorksheet.setCellRenderer ( cr );
+		__query_JWorksheet.setModel ( __query_TableModel );
+		__query_JWorksheet.removeColumn (
+			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+		__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+
+        ui_UpdateStatus ( false );
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading RiverWare file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read the list of time series from a StateCU file and display the list in the
+GUI.
+@exception Exception if there is an error reading the file.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ()
+throws Exception
+{	String message, routine = "TSTool_JFrame.readStateCUHeaders";
+
+	try {	Vector tslist = null;			// Time series to
+							// display.
+		TS ts = null;				// Single time series.
+		int size = 0;				// Number of time
+							// series.
+		String path = __input_name_JComboBox.getSelected();
+		Message.printStatus ( 1, routine,
+		"Reading StateCU file \"" + path + "\"" );
+		if (	(__input_name_FileFilter ==
+			__input_name_StateCU_iwrrep_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_wsl_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_frost_FileFilter) ) {
+			JGUIUtil.setWaitCursor ( this, true );
+			tslist = StateCU_TS.readTimeSeriesList (
+					path, null, null, null, false );
+			if ( tslist != null ) {
+				size = tslist.size();
+				__query_TableModel = new
+					TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =
+					new TSTool_TS_CellRenderer(
+					(TSTool_TS_TableModel)
+					__query_TableModel);
+	
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+		}
+		else if ( __input_name_FileFilter ==
+			__input_name_StateCU_cds_FileFilter ) {
+			// Yearly crop patterns...
+			JGUIUtil.setWaitCursor ( this, true );
+			tslist = StateCU_CropPatternTS.readTimeSeriesList (
+					path, null, null, null, false );
+			if ( tslist != null ) {
+				size = tslist.size();
+				__query_TableModel = new
+					TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =
+					new TSTool_TS_CellRenderer(
+					(TSTool_TS_TableModel)
+					__query_TableModel);
+	
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+		}
+		else if ((__input_name_FileFilter ==
+			__input_name_StateCU_ipy_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_tsp_FileFilter) ) {
+			// Yearly irrigation practice...
+			JGUIUtil.setWaitCursor ( this, true );
+			tslist = StateCU_IrrigationPracticeTS.
+					readTimeSeriesList (
+					path, null, null, null, false );
+			if ( tslist != null ) {
+				size = tslist.size();
+				__query_TableModel = new
+					TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =
+					new TSTool_TS_CellRenderer(
+					(TSTool_TS_TableModel)
+					__query_TableModel);
+	
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+		}
+		else if ((__input_name_FileFilter ==
+			__input_name_StateCU_ddc_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_ddy_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_ddh_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_precip_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_temp_FileFilter) ||
+			(__input_name_FileFilter ==
+			__input_name_StateCU_frost_FileFilter) ) {
+			// Normal daily or monthly StateMod file...
+			JGUIUtil.setWaitCursor ( this, true );
+			if (	 __input_name_FileFilter ==
+				__input_name_StateCU_frost_FileFilter ) {
+				tslist = StateCU_TS.
+					readTimeSeriesList (
+					path, null, null, null, false );
+			}
+			else {	// Normal StateMod file...
+				tslist = StateMod_TS.readTimeSeriesList (
+					path, null, null, null, false );
+			}
+			// Change time series data source to StateCU since the
+			// file is part of a StateCU data set...
+			if ( tslist != null ) {
+				size = tslist.size();
+				for ( int i = 0; i < size; i++ ) {
+					ts = (TS)tslist.elementAt(i);
+					if ( ts == null ) {
+						continue;
+					}
+					ts.getIdentifier().setSource("StateCU");
+				}
+				__query_TableModel = new
+					TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =
+					new TSTool_TS_CellRenderer(
+					(TSTool_TS_TableModel)
+					__query_TableModel);
+	
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				// Turn off columns in the table model that do
+				// not apply...
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_DATA_TYPE );
+				__query_JWorksheet.removeColumn (
+					((TSTool_TS_TableModel)
+					__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (
+					cr.getColumnWidths(), getGraphics() );
+			}
+		}
+		else {	Message.printWarning ( 1, routine,
+			"File format not recognized for \"" + path + "\"" );
+		}
+       		if ( (tslist == null) || (size == 0) ) {
+			Message.printStatus (1, routine,"No StateCU TS read.");
+			queryResultsList_Clear ();
+       		}
+       		else {	Message.printStatus ( 1, routine, ""
+			+ size + " StateCU TS read." );
+       		}
+
+		JGUIUtil.setWaitCursor ( this, false );
+       	ui_UpdateStatus ( false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading StateCU file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new Exception ( message );
+	}
+}
+
+/**
+Read the list of time series from a StateMod file and display the list in the
+GUI.
+@exception Exception if there is an error reading the file.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ()
+throws Exception
+{	String message, routine = "TSTool_JFrame.readStateModHeaders";
+
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+				JGUIUtil.getLastFileDialogDirectory() );
+		// TODO SAM 2007-05-14 Need to better handle picking files.
+		// Need to pick the file first and detect the time
+		// step from the file, similar to the binary file.  For now,
+		// key off the selected time step.
+		SimpleFileFilter ddr_filter = null;
+		SimpleFileFilter ifr_filter = null;
+		SimpleFileFilter rer_filter = null;
+		SimpleFileFilter wer_filter = null;
+		if ( __selected_time_step.equals( __TIMESTEP_DAY)) {
+			fc.setDialogTitle (
+				"Select StateMod Daily Time Series File" );
+			SimpleFileFilter sff = new SimpleFileFilter( "ddd",
+				"StateMod Direct Diversion Demands (Daily)");
+			fc.addChoosableFileFilter(sff);
+			ddr_filter = new SimpleFileFilter( "ddr",
+			"StateMod Diversion Rights (Daily)");
+			fc.addChoosableFileFilter(ddr_filter);
+			sff = new SimpleFileFilter( "ddy",
+				"StateMod Historicial Diversions (Daily)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "eoy",
+				"StateMod Reservoir Storage (End of Day)");
+			fc.addChoosableFileFilter(sff);
+			ifr_filter = new SimpleFileFilter( "ifd",
+				"StateMod Instream Flow Demands (Daily)");
+			fc.addChoosableFileFilter(ifr_filter);
+			sff = new SimpleFileFilter( "ifr",
+			"StateMod Instream Flow Rights (Daily)");
+			fc.addChoosableFileFilter(ifr_filter);
+			rer_filter = new SimpleFileFilter( "rer",
+			"StateMod Reservoir Rights (Daily)");
+			fc.addChoosableFileFilter(rer_filter);
+			sff = new SimpleFileFilter( "riy",
+				"StateMod Base Streamflow (Daily)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "riy",
+				"StateMod Historicial Streamflow (Daily)");
+			fc.addChoosableFileFilter(sff);
+			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm",
+				"StateMod Time Series (Daily)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "tad",
+				"StateMod Reservoir Min/Max Targets (Daily)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "wed",
+				"StateMod Well Demands (Daily)");
+			fc.addChoosableFileFilter(sff);
+			wer_filter = new SimpleFileFilter( "wer",
+			"StateMod Well Rights (Daily)");
+			fc.addChoosableFileFilter(wer_filter);
+			sff = new SimpleFileFilter( "wey",
+				"StateMod Historicial Well Pumping (Daily)");
+			fc.addChoosableFileFilter(sff);
+			fc.setFileFilter(stm_sff);
+		}
+		else if ( __selected_time_step.equals( __TIMESTEP_MONTH)) {
+			fc.setDialogTitle (
+				"Select StateMod Monthly Time Series File" );
+			SimpleFileFilter sff = new SimpleFileFilter( "ddh",
+				"StateMod Historicial Diversions (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "dda",
+			"StateMod Direct Diversion Demands (Average Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "ddm",
+				"StateMod Direct Diversion Demands (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "ddo",
+			"StateMod Direct Diversion Demands Override (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			ddr_filter = new SimpleFileFilter( "ddr",
+			"StateMod Diversion Rights (Monthly)");
+			fc.addChoosableFileFilter(ddr_filter);
+			sff = new SimpleFileFilter( "eom",
+				"StateMod Reservoir Storage (End of Month)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "eva",
+				"StateMod Evaporation (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "ifa",
+			"StateMod Instream Flow Demands (Average Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "ifm",
+				"StateMod Instream Flow Demands (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "ifr",
+			"StateMod Instream Flow Rights (Monthly)");
+			fc.addChoosableFileFilter(ifr_filter);
+			sff = new SimpleFileFilter( "ddc",
+				"StateMod/StateCU Irrigation Water" +
+				" Requirement (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "iwr",
+				"StateMod/StateCU Irrigation Water" +
+				" Requirement (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "pre",
+				"StateMod Precipitation (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "rih",
+				"StateMod Historicial Streamflow (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "riy",
+				"StateMod Base Streamflow (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			sff = new SimpleFileFilter( "tar",
+				"StateMod Reservoir Min/Max Targets (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			rer_filter = new SimpleFileFilter( "rer",
+			"StateMod Reservoir Rights (Monthly)");
+			fc.addChoosableFileFilter(rer_filter);
+			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm",
+				"StateMod Time Series (Monthly)");
+			fc.addChoosableFileFilter(stm_sff);
+			sff = new SimpleFileFilter( "wem",
+				"StateMod Well Demands (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			wer_filter = new SimpleFileFilter( "wer",
+			"StateMod Well Rights (Monthly)");
+			fc.addChoosableFileFilter(wer_filter);
+			sff = new SimpleFileFilter( "weh",
+				"StateMod Historicial Well Pumping (Monthly)");
+			fc.addChoosableFileFilter(sff);
+			fc.setFileFilter(stm_sff);
+		}
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		String directory = fc.getSelectedFile().getParent();
+		JGUIUtil.setLastFileDialogDirectory ( directory );
+		JGUIUtil.setLastFileDialogDirectory(directory);
+		String path = fc.getSelectedFile().getPath();
+		Message.printStatus ( 1, routine,
+		"Reading StateMod file \"" + path + "\"" );
+		// Normal daily or monthly format file...
+		Vector tslist = null;
+		JGUIUtil.setWaitCursor ( this, true );
+		FileFilter ff = fc.getFileFilter();
+		int interval_base = TimeInterval.MONTH;
+		if ( __selected_time_step.equals(__TIMESTEP_DAY)) {
+			interval_base = TimeInterval.DAY;
+		}
+		else if ( __selected_time_step.equals(__TIMESTEP_MONTH)) {
+			interval_base = TimeInterval.MONTH;
+		}
+		/* TODO SAM 2007-05-16 Resolve later.  Use readStateMod() in the meantime.
+		else if ( __selected_time_step.equals(__TIMESTEP_YEAR)) {
+			interval_base = TimeInterval.YEAR;
+		}
+		*/
+		if ( ff == ddr_filter ) {
+			// First read the diversion rights...
+			Vector ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					ddr_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,             // time series start
+					null,             // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );          // don't read data - only header
+		}
+		else if ( ff == ifr_filter ) {
+			// First read the instream flow rights...
+			Vector ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					ifr_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,              // time series start
+					null,              // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );           // don't read data - only header
+		}
+		else if ( ff == rer_filter ) {
+			// First read the reservoir rights...
+			Vector rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					rer_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,              // time series start
+					null,              // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );           // don't read data - only header
+		}
+		else if ( ff == wer_filter ) {
+			// First read the well rights...
+			Vector wer_Vector = StateMod_WellRight.readStateModFile ( path );
+			// Convert the rights to time series (one per location)...
+			tslist = StateMod_Util.createWaterRightTimeSeriesList (
+					wer_Vector,        // raw water rights
+					interval_base,  // time series interval
+					0,              // summarize time series at location
+					-1,				// Don't consider parcel year
+					true,			// Create data set total
+					null,              // time series start
+					null,              // time series end
+					999999.0,	// No special treatment of junior rights
+					null,
+					null,
+					false );           // don't read data - only header
+		}
+		else if ( __selected_time_step.equals(__TIMESTEP_DAY) ) {
+			// Only read the headers...
+			tslist = StateMod_TS.readTimeSeriesList (
+					path, null, null, null, false );
+		}
+		else {	// Only read the headers...
+			tslist = StateMod_TS.readTimeSeriesList (
+				path, null, null, null, false );
+		}
+		int size = 0;
+		if ( tslist != null ) {
+			size = tslist.size();
+			__query_TableModel = new TSTool_TS_TableModel ( tslist);
+			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+				(TSTool_TS_TableModel)__query_TableModel);
+	
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel(__query_TableModel);
+			// Turn off columns in the table model that do not
+			// apply...
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_ALIAS );
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_DATA_SOURCE );
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_DATA_TYPE );
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_SCENARIO);
+			__query_JWorksheet.setColumnWidths (
+				cr.getColumnWidths(), getGraphics() );
+		}
+        	if ( (tslist == null) || (size == 0) ) {
+			Message.printStatus ( 1, routine,
+			"No StateMod TS read." );
+			queryResultsList_Clear ();
+        	}
+        	else {	Message.printStatus ( 1, routine, ""
+			+ size + " StateMod TS read." );
+        	}
+
+		JGUIUtil.setWaitCursor ( this, false );
+        ui_UpdateStatus ( false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading StateMod file.";
+		Message.printWarning ( 2, routine, message );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new Exception ( message );
+	}
+}
+
+/**
+Read the list of time series from a StateMod binary file and list in the GUI.
+The binary file is taken from the selected item in the __input_name_JComboBox.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ()
+throws IOException
+{	String routine = "TSTool_JFrame.readStateModBHeaders";
+
+	try {	String path = __input_name_JComboBox.getSelected();
+		Message.printStatus ( 1, routine,
+		"Reading StateMod binary output file \"" + path + "\"" );
+		Vector tslist = null;
+		JGUIUtil.setWaitCursor ( this, true );
+		StateMod_BTS bin = new StateMod_BTS ( path );
+		tslist = bin.readTimeSeriesList (
+			"*.*." + __selected_data_type + ".*.*",
+			null, null, null, false );
+		bin.close();
+		int size = 0;
+		if ( tslist != null ) {
+			size = tslist.size();
+			__query_TableModel = new
+				TSTool_TS_TableModel ( tslist );
+			TSTool_TS_CellRenderer cr =
+				new TSTool_TS_CellRenderer(
+				(TSTool_TS_TableModel)
+				__query_TableModel);
+
+			__query_JWorksheet.setCellRenderer ( cr );
+			__query_JWorksheet.setModel ( __query_TableModel );
+			// Turn off columns in the table model that do not
+			// apply...
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_ALIAS );
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_ALIAS );
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_SCENARIO);
+			__query_JWorksheet.removeColumn (
+				((TSTool_TS_TableModel)
+				__query_TableModel).COL_DATA_SOURCE );
+			//__query_JWorksheet.removeColumn (
+				//((TSTool_TS_TableModel)
+				//__query_TableModel).COL_DATA_TYPE );
+			__query_JWorksheet.setColumnWidths (
+				cr.getColumnWidths(), getGraphics() );
+		}
+       		if ( (tslist == null) || (size == 0) ) {
+			Message.printStatus ( 1, routine,
+			"No StateMod binary TS were read." );
+			queryResultsList_Clear ();
+       		}
+       		else {	Message.printStatus ( 1, routine, ""
+			+ size + " StateMod binary TS were read." );
+       		}
+
+       	ui_UpdateStatus ( false );
+		tslist = null;
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		String message = "Error reading StateMod binary file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Read the list of time series from a USGS NWIS file and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ()
+throws IOException
+{	String message, routine = "TSTool_JFrame.readUsgsNwisHeaders";
+
+	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle ( "Select USGS NWIS Daily Surface Flow File");
+		SimpleFileFilter sff = new SimpleFileFilter( "txt",
+			"USGS NWIS Daily Surface Flow File");
+		fc.addChoosableFileFilter(sff);
+		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+			// Cancelled...
+			return;
+		}
+		JGUIUtil.setLastFileDialogDirectory (
+			fc.getSelectedFile().getParent() );
+		String path = fc.getSelectedFile().getPath();
+
+		Message.printStatus ( 1, routine,
+		"Reading USGS NWIS file \"" + path + "\"" );
+		JGUIUtil.setWaitCursor ( this, true );
+		TS ts = UsgsNwisTS.readTimeSeries(path, null, null, null,false);
+		if ( ts == null ) {
+			message = "Error reading USGS NWIS file \""+path + "\"";
+			Message.printWarning ( 2, routine, message );
+			JGUIUtil.setWaitCursor ( this, false );
+			throw new IOException ( message );
+		}
+		Vector tslist = new Vector ( 1 );
+		tslist.addElement ( ts );
+		__query_TableModel = new TSTool_TS_TableModel ( tslist );
+		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
+			(TSTool_TS_TableModel)__query_TableModel);
+
+		__query_JWorksheet.setCellRenderer ( cr );
+		__query_JWorksheet.setModel ( __query_TableModel );
+		__query_JWorksheet.removeColumn (
+			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+		__query_JWorksheet.setColumnWidths (
+			cr.getColumnWidths(), getGraphics() );
+
+        ui_UpdateStatus ( false );
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		message = "Error reading USGS NWIS file.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
+		JGUIUtil.setWaitCursor ( this, false );
+		throw new IOException ( message );
+	}
+}
+
+/**
+Graph time series that are in the final list.
+@param graph_type Type of graph to create.
+*/
+private void uiAction_GraphTimeSeriesResults ( String type )
+{	uiAction_GraphTimeSeriesResults ( type, null );
+}
+
+/**
+Graph time series that are in the final list.
+@param graph_type Type of graph (same as tstool command line arguments).
+*/
+private void uiAction_GraphTimeSeriesResults ( String graph_type, String params ) 
+{	String routine = getClass().getName() + ".uiAction_GraphTimeSeriesResults";
+
+	try {
+		// Change the wait cursor here in the main GUI to indicate that the
+		// graph is being processed.
+		JGUIUtil.setWaitCursor ( this, true );
+		PropList props = new PropList ( "GraphProps" );
+		props.set ( "OutputFormat=" + graph_type );
+		if ( params != null ) {
+			props.set ( "Parameters=" + params );
+		}
+		// Final list is selected...
+		if ( __ts_processor != null ) {
+			try {	int selected_ts=JGUIUtil.selectedSize(__ts_JList);
+				if ( selected_ts == 0 ) {
+					commandProcessor_ProcessTimeSeriesResultsList (
+					null, props );
+				}
+				else {	commandProcessor_ProcessTimeSeriesResultsList (
+					__ts_JList.getSelectedIndices(), props );
+				}
+			}
+			catch ( Exception e ) {
+				Message.printWarning ( 1, routine,
+				"Unable to graph time series." );
+			}
+		}
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+	catch ( Exception e ) {
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+}
+
+/**
 Reset the query options choices based on the selected input name.  Other
 method calls are cascaded to fully reset the choices.
 */
-private void inputNameChoiceClicked()
-{	String routine = "TSTool_JFrame.inputNameChoiceClicked";
+private void uiAction_InputNameChoiceClicked()
+{	String routine = getClass().getName() + ".inputNameChoiceClicked";
 	if ( __input_name_JComboBox == null ) {
 		return;
 	}
@@ -11021,7 +13409,7 @@ method calls are cascaded to fully reset the choices.  This method also
 shows/hides columns in the query results multilist to be appropriate for the
 data input source.
 */
-private void inputTypeChoiceClicked()
+private void uiAction_InputTypeChoiceClicked()
 {	String routine = "TSTool_JFrame.inputTypeChoiceClicked";
 	if ( __input_type_JComboBox == null ) {
 		if ( Message.isDebugOn ) {
@@ -11339,7 +13727,7 @@ private void inputTypeChoiceClicked()
 			// Only Browse is in the list so if the user picks, the
 			// component does not generate an event because the
 			// choice has not changed.
-			try {	selectInputName_NWSRFS_FS5Files ( false );
+			try {	uiAction_SelectInputName_NWSRFS_FS5Files ( false );
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 1, routine,
@@ -11350,11 +13738,11 @@ private void inputTypeChoiceClicked()
 		else if ( choice_ok ) {
 			// The current open DMI was able to be selected above.
 			// Need to force the data types to cascade...
-			inputNameChoiceClicked();
+			uiAction_InputNameChoiceClicked();
 		}
 
 		// Display the NWSRFS input filters...
-		setInputFilters();
+		ui_SetInputFilters();
 
 		// Initialize with blank data vector...
 
@@ -11484,7 +13872,7 @@ private void inputTypeChoiceClicked()
 	}
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_StateCU ) ) {
 		// Prompt for a StateCU file and update choices...
-		selectInputName_StateCU ( true );
+		uiAction_SelectInputName_StateCU ( true );
 	}
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_StateMod ) ) {
 		// We disable all but the time step so the user can pick from
@@ -11523,7 +13911,7 @@ private void inputTypeChoiceClicked()
 	}
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_StateModB ) ) {
 		// Prompt for a StateMod binary file and update choices...
-		selectInputName_StateModB ( true );
+		uiAction_SelectInputName_StateModB ( true );
 	}
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_USGSNWIS ) ) {
 		// Most information is determined from the file...
@@ -11573,333 +13961,173 @@ private void inputTypeChoiceClicked()
 }
 
 /**
-Insert a command in the list.  If any commands are selected, insert before the
-first selected command.
-SAMX - may want to change to insert in front of the LAST command selected (in
-time, not position).
-@param command Command to insert.
+Open a commands file and read into the list of commands.  A check is made to
+see if the list contains anything and if it does the user is prompted as to
+whether need to save the previous commands.
 */
-/* TODO SAM 2007-02-11 Evaluate if needed.
-private void insertCommand ( String command )
-{	int selectedIndices[] = __commands_JList.getSelectedIndices();
-	int selectedSize = selectedIndices.length;	
-	if ( selectedSize > 0 ) {
-		// Insert before the first selected command...
-		__commands_JListModel.insertElementAt(command,
-			selectedIndices[0]);
-	}
-	else {	// Insert at the end...
-		__commands_JListModel.addElement(command);
-	}
-	setCommandsDirty ( true );
-	updateStatus ();
-}
-*/
-
-/**
-Determine whether an command line is a comment.
-@return true if a comment line, false if not.
-*/
-public boolean isCommentLine ( String line )
-{	if ( line == null ) {
-		// Blank line...
-		return true;
-	}
-	if ( line.length() == 0 ) {
-		return true;
-	}
-	if ( line.charAt(0) == '#' ) {
-		return true;
-	}
-	return false;
-}
-
-/**
-Respond to ItemEvents.  If in the final list, the behavior is similar to
-Microsoft tools:
-<ol>
-<li>	Click selects on item.</li>
-<li>	Shift-click selects forward or backward to nearest selection.</li>
-<li>	Control-click toggles one item.</li>
-</ol>
-*/
-public void itemStateChanged ( ItemEvent evt )
-{	String	routine="TSTool_JFrame.itemStateChanged";
-
-	if ( !__gui_initialized ) {
-		// Some objects are probably still null so ignore the event...
-		return;
-	}
-
-	if ( __ignore_ItemEvent ) {
-		// A programatic change to a list is occurring and we want to
-		// ignore the event that will result...
-		return;
-	}
-
-	Object	o = evt.getItemSelectable();
-
-	// If any of the choices are changed, clear the main list so that the
-	// choices and list are in agreement...
-
-	try {
-	// List in the order of the GUI...
-
-	if (	(o == __input_type_JComboBox) &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		// New input type selected...
-		clearQueryList();
-		inputTypeChoiceClicked();
-	}
-	else if((o == __input_name_JComboBox) &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		// New input name selected...
-		if (	__selected_input_type.equals(
-			__INPUT_TYPE_NWSRFS_FS5Files) &&
-			!__input_name_JComboBox.getSelected().equals(
-			__PLEASE_SELECT) ) {
-			// If the default "Please Select" is shown, the it is
-			// initialization - don't force a selection...
-			try {	selectInputName_NWSRFS_FS5Files ( false );
+private void uiAction_OpenCommandsFile ()
+{	String routine = getClass().getName() + ".openCommandsFile";
+	// See whether the old commands need to be cleared...
+/* FIXME SAM 2007-09-02 Need to enable opening commands file
+	if ( __commands_dirty ) {
+		if ( __commands_file_name == null ) {
+			// Have not been saved before...
+			int x = ResponseJDialog.NO;
+			if ( __commands_JListModel.size() > 0 ) {
+				x = new ResponseJDialog ( this,
+				IOUtil.getProgramName(),
+				"Do you want to save the changes you made?",
+				ResponseJDialog.YES| ResponseJDialog.NO|
+				ResponseJDialog.CANCEL).response();
 			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Error opening NWSRFS FS5Files connection." );
-				Message.printWarning ( 2, routine, e );
+			if ( x == ResponseJDialog.CANCEL ) {
+				return;
+			}
+			else if ( x == ResponseJDialog.YES ) {
+				// Prompt for the name and then save...
+				uiAction_WriteCommandsFile ( __commands_file_name, true);
 			}
 		}
-		else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU ) ){
-			selectInputName_StateCU ( false );
+		else {	// A commands file exists...  Warn the user.  They can
+			// save to the existing file name or can cancel and
+			// File...Save As... to a different name.
+			// Have not been saved before...
+			int x = ResponseJDialog.NO;
+			if ( __commands_JListModel.size() > 0 ) {
+				x = new ResponseJDialog ( this,
+				IOUtil.getProgramName(),
+				"Do you want to save the changes you made to:\n"
+				+ "\"" + __commands_file_name + "\"?",
+				ResponseJDialog.YES| ResponseJDialog.NO|
+				ResponseJDialog.CANCEL).response();
+			}
+			if ( x == ResponseJDialog.CANCEL ) {
+				return;
+			}
+			else if ( x == ResponseJDialog.YES ) {
+				uiAction_WriteCommandsFile ( __commands_file_name,false);
+			}
+			// Else if No will clear below before opening the other
+			// file...
 		}
-		else if(__selected_input_type.equals(__INPUT_TYPE_StateModB )) {
-			selectInputName_StateModB ( false );
+	}
+
+	// Get the file.  Do not clear the list until the file has been chosen
+	// and is readable...
+
+	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+					JGUIUtil.getLastFileDialogDirectory() );
+	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
+	SimpleFileFilter sff =
+		new SimpleFileFilter("TSTool", "TSTool Commands File");
+	fc.addChoosableFileFilter(sff);
+	fc.setFileFilter(sff);
+	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+		// If the user approves a selection do the following...
+		String directory = fc.getSelectedFile().getParent();
+		String path = fc.getSelectedFile().getPath();
+
+		// REVISIT - is this necessary in Swing?
+		// Set the "WorkingDir" property, which will NOT contain a
+		// trailing separator...
+		IOUtil.setProgramWorkingDir(directory);
+		JGUIUtil.setLastFileDialogDirectory(directory);
+		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
+		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
+		BufferedReader br = null;
+		try {	br = new BufferedReader( new FileReader(path) );
 		}
-	}
-	else if ( o == __data_type_JComboBox &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		clearQueryList();
-		dataTypeChoiceClicked();
-	}
-	else if ( o == __time_step_JComboBox &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		clearQueryList();
-		timeStepChoiceClicked();
-	}
-        else if ( o == __View_MapInterface_JCheckBoxMenuItem ) {
-		if ( __View_MapInterface_JCheckBoxMenuItem.isSelected() ) {
-			// User wants the map to be displayed...
-			try {	if ( __geoview_JFrame != null ) {
-					// Just set the map visible...
-					__geoview_JFrame.setVisible ( true );
+		catch ( Exception e ) {
+			// Error opening the file (should not happen but maybe
+			// a read permissions problem)...
+			Message.printWarning ( 1, routine,
+			"Error opening file \"" + path + "\"" );
+			Message.printWarning ( 2, routine, e );
+			return;
+		}
+		// Successfully have a file so now go ahead and remove
+		// the list contents and update the list...
+		commandList_DeleteCommands ();
+		commandList_SetCommandsFileName(path);
+		String line;
+		try {	__ignore_ItemEvent = true;
+			__ignore_ListSelectionEvent = true;
+			while ( true ) {
+				line = br.readLine();
+				if ( line == null ) {
+					break;
 				}
-				else {	// No existing GeoView so create one...
-					__geoview_JFrame = new GeoViewJFrame (
-						this, null );
-					// Add a GeoViewListener so TSTool can
-					// handle selects from the map...
-					__geoview_JFrame.getGeoViewJPanel().
-					getGeoView().addGeoViewListener(this);
-					// Add a window listener so TSTool can
-					// listen for when the GeoView closes...
-					__geoview_JFrame.addWindowListener (
-						this );
-					JGUIUtil.center ( __geoview_JFrame );
-				}
+				// Add the command but do not check the GUI
+				// state...
+				addCommand ( line, false );
 			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, "TSTool",
-				"Error displaying map interface." );
-				__geoview_JFrame = null;
-			}
+			commandList_SetDirty(false);			
+			br.close();
 		}
-		else {	// Map is deselected.  Just set the map frame to not
-			// visible...
-			__geoview_JFrame.setVisible ( false );
+		catch ( Exception e ) {
+			Message.printWarning (1, routine,
+			"Error reading from file \"" + path + "\"");
+			Message.printWarning (2, routine, e );
 		}
+		__ignore_ItemEvent = false;
+		__ignore_ListSelectionEvent = false;
 	}
-	checkGUIState();
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 2, "itemStateChanged", e );
-	}
+	*/
+	// New file has been opened or there was a cancel/error and the old
+	// list remains.
+	ui_UpdateStatus ( true );
 }
 
 /**
-Respond to KeyEvents.  Most single-key events are handled in keyReleased to
-prevent multiple events.  Do track when the shift is pressed here.
+Create new DIADvisorDMI instances with connections to the DIADvisor operational
+and archive databases.  This is done in response to a user request.
 */
-public void keyPressed ( KeyEvent event )
-{	int code = event.getKeyCode();
+private void uiAction_OpenDIADvisor ()
+{	String routine = "TSTool_JFrame.openDIADvisor";
 
-	if ( code == KeyEvent.VK_SHIFT ) {
-		JGUIUtil.setShiftDown ( true );
-	}
-	else if ( code == KeyEvent.VK_CONTROL ) {
-		JGUIUtil.setControlDown ( true );
-	}
-}
+	// Display the dialog to select the database.  This is a modal dialog
+	// that will not allow anything else to occur until the information is
+	// entered.  Use a PropList to pass information because there are a
+	// lot of parameters and the list may change in the future.
 
-/**
-Respond to KeyEvents.
-*/
-public void keyReleased ( KeyEvent event )
-{	int code = event.getKeyCode();
+	PropList props = new PropList ( "SelectDIADvisor" );
+	props.set ( "ValidateLogin", "false" );
 
-	if ( code == KeyEvent.VK_ENTER ) {
-		if ( event.getSource() == __commands_JList ) {
-			// Same as the Edit...Command event...
-			actionEditCommand ( true );
+	// Pass in the previous DIADvisorDMI so that the information can be
+	// displayed as the initial values...
+
+	SelectDIADvisorDialog selectDIADvisorDialog = null;
+	try {	selectDIADvisorDialog =
+		new SelectDIADvisorDialog ( this, __DIADvisor_dmi,
+					__DIADvisor_archive_dmi, props );
+
+		// After getting to here, the dialog has been closed.  The
+		// HydroBaseDMI from the dialog can be retrieved and used...
+
+		__DIADvisor_dmi = selectDIADvisorDialog.getDIADvisorDMI();
+		__DIADvisor_archive_dmi =
+			selectDIADvisorDialog.getArchiveDIADvisorDMI();
+		if ( __DIADvisor_dmi == null ) {
+			Message.printWarning ( 1, routine,
+			"Cannot open DIADvisor operational database.\n" +
+			"DIADvisor features will be disabled." );
+			__DIADvisor_archive_dmi = null;
 		}
-	}
-	else if ( code == KeyEvent.VK_DELETE ) {
-		// Clear a command...
-		if ( event.getSource() == __commands_JList ) {
-			clearCommands();
-		}
-	}
-	checkGUIState();
-}
-
-public void keyTyped ( KeyEvent event )
-{
-}
-
-/**
-Handle mouse clicked event.
-*/
-public void mouseClicked ( MouseEvent event )
-{	Object source = event.getSource();
-	if ( source == __commands_JList ) {
-		if ( event.getClickCount() == 2 ) {
-			// Same as editing with error checks...
-			// Edit the first selected item, unless a comment, in
-			// which case all are edited...
-			actionEditCommand ( true );
-		}
-	}
-}
-
-/**
-Handle mouse entered event.
-*/
-public void mouseEntered ( MouseEvent event )
-{
-}
-
-/**
-Handle mouse exited event.
-*/
-public void mouseExited ( MouseEvent event )
-{
-}
-
-/**
-Handle mouse pressed event.
-*/
-public void mousePressed ( MouseEvent event )
-{	int mods = event.getModifiers();
-	Component c = event.getComponent();
-	// Popup for time series list...
-	if (	(c == __commands_JList) && (__commands_JListModel.size() > 0) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
-		//event.isPopupTrigger() ) {}
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), c, __Commands_JPopupMenu );
-		__Commands_JPopupMenu.show ( c, pt.x, pt.y );
-	}
-	// Popup for commands...
-	else if ( (c == __ts_JList) && (__ts_JListModel.size() > 0) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
-		//event.isPopupTrigger() ) {}
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), c, __Commands_JPopupMenu );
-		__results_JPopupMenu.show ( c, pt.x, pt.y );
-	}
-	// Popup for input name...
-	else if ( (c == __input_name_JComboBox) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) &&
-		__selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), c, __input_name_JPopupMenu );
-		__input_name_JPopupMenu.removeAll();
-		__input_name_JPopupMenu.add( new SimpleJMenuItem (
-			__InputName_BrowseStateModB_String, this ) );
-		__input_name_JPopupMenu.show ( c, pt.x, pt.y );
-	}
-	// Check the state of the "Copy Selected to Commands" button...
-	else if ( c == __query_JWorksheet ) {
-		if (	(__query_JWorksheet != null) &&
-			(__query_JWorksheet.getSelectedRowCount() > 0) ) {
-			JGUIUtil.setEnabled (
-				__CopySelectedToCommands_JButton, true );
-		}
-		else {	JGUIUtil.setEnabled (
-			__CopySelectedToCommands_JButton, false );
-		}
-		// Update the border to reflect selections...
-		updateStatus();
-	}
-}
-
-/**
-Handle mouse released event.
-*/
-public void mouseReleased ( MouseEvent event )
-{
-}
-
-// TODO SAM 2007-08-16 Creating GenericCommand will be removed when all
-// commands are converted to Command classes
-/**
-Create a new Command instance given a command string.  This may be called when
-loading commands from a file or adding new commands while editing.
-@param command_string Command as a string, to parse and create a Command instance.
-*/
-private Command newCommand ( String command_string )
-{	int dl = 1;
-	String routine = "TSTool_JFrame.newCommand";
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Using command factory to create a new"+
-		" command for \"" + command_string + "\"" );
-	}
-	Command c = null;
-	try {
-		TSCommandFactory cf = new TSCommandFactory();
-		c = cf.newCommand(command_string);
-		Message.printStatus ( 2, routine, "Added command from factory for \"" + command_string + "\"");
-	}
-	catch ( UnknownCommandException e ) {
-		// Processor does not know the command so create a GenericCommand.
-		c = new GenericCommand();
-		Message.printStatus ( 2, routine, "Added generic command for \"" + command_string + "\"");
-	}
-	// New is command from the processor
-	try {	c.initializeCommand ( command_string,
-		__ts_processor,
-		null,	// Command tag
-		1,	// Warning level
-		true );	// Full initialization
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl,
-			routine,
-			"Initialized command " +
-			"for \"" + command_string + "\"" );
+		else if ( __DIADvisor_archive_dmi == null ) {
+			Message.printWarning ( 1, routine,
+			"Cannot open DIADvisor archive database.\n" +
+			"Archive data will not be available." );
 		}
 	}
 	catch ( Exception e ) {
-		// Absorb the warning and make the user
-		// try to deal with it in the editor
-		// dialog.  They can always cancel out.
-
-		// REVISIT SAM 2005-05-09 Need to handle
-		// parse error.  Should the editor come
-		// up with limited information?
-		Message.printWarning ( 3, routine,
-		"Unexpected error initializing command \"" + command_string + "\"." );
-		Message.printWarning ( 3, routine, e );
+		Message.printWarning ( 1, routine,
+		"DIADvisor features will be disabled." );
+		Message.printWarning ( 2, routine, e );
+		__DIADvisor_dmi = null;
+		__DIADvisor_archive_dmi = null;
 	}
-	return c;
+
+	ui_CheckDIADvisorFeatures ();
 }
 
 /**
@@ -11912,7 +14140,7 @@ at startup.  This is the case, for example, when multiple HydroBase databases
 may be available and there is no reason to automatically connect to one of them
 for all users.
 */
-private void openColoradoSMS ( boolean startup )
+private void uiAction_OpenColoradoSMS ( boolean startup )
 {	String routine = "TSTool_JFrame.openColoradoSMS";
 	Message.printStatus ( 1, routine, "Opening ColoradoSMS connection..." );
 	// REVISIT SAM 2005-10-18
@@ -12003,175 +14231,7 @@ private void openColoradoSMS ( boolean startup )
 	}
 	*/
 	// Enable/disable ColoradoSMS features as necessary...
-	checkColoradoSMSFeatures();
-}
-
-/**
-Open a commands file and read into the list of commands.  A check is made to
-see if the list contains anything and if it does the user is prompted as to
-whether need to save the previous commands.
-*/
-private void openCommandsFile ()
-{	String routine = "TSTool_JFrame.openCommandsFile";
-	// See whether the old commands need to be cleared...
-	if ( __commands_dirty ) {
-		if ( __commands_file_name == null ) {
-			// Have not been saved before...
-			int x = ResponseJDialog.NO;
-			if ( __commands_JListModel.size() > 0 ) {
-				x = new ResponseJDialog ( this,
-				IOUtil.getProgramName(),
-				"Do you want to save the changes you made?",
-				ResponseJDialog.YES| ResponseJDialog.NO|
-				ResponseJDialog.CANCEL).response();
-			}
-			if ( x == ResponseJDialog.CANCEL ) {
-				return;
-			}
-			else if ( x == ResponseJDialog.YES ) {
-				// Prompt for the name and then save...
-				writeCommandsFile ( __commands_file_name, true);
-			}
-		}
-		else {	// A commands file exists...  Warn the user.  They can
-			// save to the existing file name or can cancel and
-			// File...Save As... to a different name.
-			// Have not been saved before...
-			int x = ResponseJDialog.NO;
-			if ( __commands_JListModel.size() > 0 ) {
-				x = new ResponseJDialog ( this,
-				IOUtil.getProgramName(),
-				"Do you want to save the changes you made to:\n"
-				+ "\"" + __commands_file_name + "\"?",
-				ResponseJDialog.YES| ResponseJDialog.NO|
-				ResponseJDialog.CANCEL).response();
-			}
-			if ( x == ResponseJDialog.CANCEL ) {
-				return;
-			}
-			else if ( x == ResponseJDialog.YES ) {
-				writeCommandsFile ( __commands_file_name,false);
-			}
-			// Else if No will clear below before opening the other
-			// file...
-		}
-	}
-
-	// Get the file.  Do not clear the list until the file has been chosen
-	// and is readable...
-
-	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-					JGUIUtil.getLastFileDialogDirectory() );
-	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
-	SimpleFileFilter sff =
-		new SimpleFileFilter("TSTool", "TSTool Commands File");
-	fc.addChoosableFileFilter(sff);
-	fc.setFileFilter(sff);
-	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-		// If the user approves a selection do the following...
-		String directory = fc.getSelectedFile().getParent();
-		String path = fc.getSelectedFile().getPath();
-
-		// REVISIT - is this necessary in Swing?
-		// Set the "WorkingDir" property, which will NOT contain a
-		// trailing separator...
-		IOUtil.setProgramWorkingDir(directory);
-		JGUIUtil.setLastFileDialogDirectory(directory);
-		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
-		setInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		BufferedReader br = null;
-		try {	br = new BufferedReader( new FileReader(path) );
-		}
-		catch ( Exception e ) {
-			// Error opening the file (should not happen but maybe
-			// a read permissions problem)...
-			Message.printWarning ( 1, routine,
-			"Error opening file \"" + path + "\"" );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-		// Successfully have a file so now go ahead and remove
-		// the list contents and update the list...
-		deleteCommands ();
-		setCommandsFileName(path);
-		String line;
-		try {	__ignore_ItemEvent = true;
-			__ignore_ListSelectionEvent = true;
-			while ( true ) {
-				line = br.readLine();
-				if ( line == null ) {
-					break;
-				}
-				// Add the command but do not check the GUI
-				// state...
-				addCommand ( line, false );
-			}
-			setCommandsDirty(false);			
-			br.close();
-		}
-		catch ( Exception e ) {
-			Message.printWarning (1, routine,
-			"Error reading from file \"" + path + "\"");
-			Message.printWarning (2, routine, e );
-		}
-		__ignore_ItemEvent = false;
-		__ignore_ListSelectionEvent = false;
-	}
-	// New file has been opened or there was a cancel/error and the old
-	// list remains.
-	updateStatus ( true );
-}
-
-/**
-Create new DIADvisorDMI instances with connections to the DIADvisor operational
-and archive databases.
-*/
-private void openDIADvisor ()
-{	String routine = "TSTool_JFrame.openDIADvisor";
-
-	// Display the dialog to select the database.  This is a modal dialog
-	// that will not allow anything else to occur until the information is
-	// entered.  Use a PropList to pass information because there are a
-	// lot of parameters and the list may change in the future.
-
-	PropList props = new PropList ( "SelectDIADvisor" );
-	props.set ( "ValidateLogin", "false" );
-
-	// Pass in the previous DIADvisorDMI so that the information can be
-	// displayed as the initial values...
-
-	SelectDIADvisorDialog selectDIADvisorDialog = null;
-	try {	selectDIADvisorDialog =
-		new SelectDIADvisorDialog ( this, __DIADvisor_dmi,
-					__DIADvisor_archive_dmi, props );
-
-		// After getting to here, the dialog has been closed.  The
-		// HydroBaseDMI from the dialog can be retrieved and used...
-
-		__DIADvisor_dmi = selectDIADvisorDialog.getDIADvisorDMI();
-		__DIADvisor_archive_dmi =
-			selectDIADvisorDialog.getArchiveDIADvisorDMI();
-		if ( __DIADvisor_dmi == null ) {
-			Message.printWarning ( 1, routine,
-			"Cannot open DIADvisor operational database.\n" +
-			"DIADvisor features will be disabled." );
-			__DIADvisor_archive_dmi = null;
-		}
-		else if ( __DIADvisor_archive_dmi == null ) {
-			Message.printWarning ( 1, routine,
-			"Cannot open DIADvisor archive database.\n" +
-			"Archive data will not be available." );
-		}
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, routine,
-		"DIADvisor features will be disabled." );
-		Message.printWarning ( 2, routine, e );
-		__DIADvisor_dmi = null;
-		__DIADvisor_archive_dmi = null;
-	}
-
-	checkDIADvisorFeatures ();
+	ui_CheckColoradoSMSFeatures();
 }
 
 /**
@@ -12184,7 +14244,7 @@ at startup.  This is the case, for example, when multiple HydroBase databases
 may be available and there is no reason to automatically connect to one of them
 for all users.
 */
-private void openHydroBase ( boolean startup )
+private void uiAction_OpenHydroBase ( boolean startup )
 {	String routine = "TSTool_JFrame.openHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
 	if ( IOUtil.isBatch() || !__show_main ) {
@@ -12259,9 +14319,9 @@ private void openHydroBase ( boolean startup )
 		}
 	}
 	// Set the HydroBaseDMI for the command processor...
-	commandProcessorSetHydroBaseDMI ( __hbdmi );
+	commandProcessor_SetHydroBaseDMI ( __hbdmi );
 	// Enable/disable HydroBase features as necessary...
-	checkHydroBaseFeatures();
+	ui_CheckHydroBaseFeatures();
 }
 
 /**
@@ -12277,7 +14337,7 @@ may not actually be information in the TSTool.cfg file.  This is the case, for
 example, when multiple NWSRFS FS5Files databases may be available and there is
 no reason to automatically connect to one of them for all users.
 */
-private void openNWSRFSFS5Files ( PropList props, boolean startup )
+private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 {	String routine = "TSTool_JFrame.openNWSRFSFS5Files";
 	// First close the existing connection...
 	if ( __nwsrfs_dmi != null ) {
@@ -12334,9 +14394,14 @@ private void openNWSRFSFS5Files ( PropList props, boolean startup )
 			// in the GUI later without reopening...
 			String path = __nwsrfs_dmi.getFS5FilesLocation();
 			__input_name_NWSRFS_FS5Files.addElement ( path );
+			// For now there is no way for the user to set a separate
+			// input name so set the same as the FS5 Files location...
+			__nwsrfs_dmi.setInputName ( path );
+			// Set the NWSRFSDMI for the command processor...
+			commandProcessor_SetNWSRFSFS5FilesDMI ( __nwsrfs_dmi );
 			// Check the GUI state to enable/disable NWSRFS
 			// FS5Files properties...
-			checkNWSRFSFS5FilesFeatures ();
+			ui_CheckNWSRFSFS5FilesFeatures ();
 			JGUIUtil.setWaitCursor ( this, false );
 		}
 
@@ -12366,7 +14431,7 @@ not actually be information in the TSTool.cfg file.  This is the case, for
 example, when multiple RiversideDB databases may be available and there is no
 reason to automatically connect to one of them for all users.
 */
-private void openRiversideDB ( PropList props, boolean startup )
+private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 {	String routine = "TSTool_JFrame.openRiversideDB";
 	// First close the existing connection...
 	if ( __rdmi != null ) {
@@ -12548,7 +14613,7 @@ private void openRiversideDB ( PropList props, boolean startup )
 
 	// Check the GUI state to enable/disable RiversideDB properties...
 
-	checkRiversideDBFeatures ();
+	ui_CheckRiversideDBFeatures ();
 
 	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
 	try {
@@ -12576,10 +14641,11 @@ private void openRiversideDB ( PropList props, boolean startup )
 }
 
 /**
-Paste the cut buffer after the selected item.  Maybe there is a better way to
+Paste the cut buffer containing Commands that were previously cut, inserting
+after the selected item.  Maybe there is a better way to
 do this using JList features.
 */
-private void pasteCommandListCutBuffer ()
+private void uiAction_PasteCommandListCutBuffer ()
 {	// Default selected to zero (empty list)...
 	int last_selected = -1;
 	int list_size = __commands_JListModel.size();
@@ -12614,28 +14680,8 @@ private void pasteCommandListCutBuffer ()
 
 	selected_indices = null;
 	string = null;
-	setCommandsDirty ( true );
-	updateStatus();
-}
-
-/**
-Print a status message to the status bar, etc.  This method is called by the
-Message class for status messages.
-@param level Status message level.
-@param rtn Routine name.
-@param message Message to print.
-*/
-public void printStatusMessages ( int level, String rtn, String message )
-{	if ( level <= 1 ) {
-		__message_JTextField.setText ( message );
-		// REVISIT
-		// This does not seem to be redrawing, not matter what is done!
-		//__message_JTextField.validate ();
-		//__message_JTextField.repaint ();
-		//validate ();
-		//invalidate ();
-		//repaint ();
-	}
+	commandList_SetDirty ( true );
+	ui_UpdateStatus ( true );
 }
 
 /**
@@ -12643,7 +14689,7 @@ Method to read a TSProduct file and process the product.
 @param show_view If true, the graph will be displayed on the screen.  If false,
 an output file will be prompted for.
 */
-private void processTSProductFile ( boolean view_gui )
+private void uiAction_ProcessTSProductFile ( boolean view_gui )
 throws Exception
 {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 				JGUIUtil.getLastFileDialogDirectory() );
@@ -12697,1807 +14743,6 @@ throws Exception
 }
 
 /**
-Quits the program with the correct exit status
-@param status
- */
-public void quitProgram( int status)
-{
-   tstool.quitProgram(status);
-}
-
-
-/**
-Read the list of time series from a DateValue file and list in the GUI.
-*/
-public void readDateValueHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readDateValueHeaders";
-
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select DateValue Time Series File" );
-		SimpleFileFilter dv_sff = new SimpleFileFilter( "dv",
-			"DateValue Time Series");
-		fc.addChoosableFileFilter(dv_sff);
-		SimpleFileFilter sff = new SimpleFileFilter( "txt",
-			"DateValue Time Series");
-		fc.addChoosableFileFilter(sff);
-		fc.setFileFilter(dv_sff);
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		String directory = fc.getSelectedFile().getParent();
-		String path = fc.getSelectedFile().getPath();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
-
-		Message.printStatus ( 1, routine,
-		"Reading DateValue file \"" + path + "\"" );
-		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
-		try {	tslist = DateValueTS.readTimeSeriesList (
-			path, null, null, null, false );
-		}
-		catch ( Exception e ) {
-			message = "Error reading DateValue file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		if ( tslist == null ) {
-			message = "Error reading DateValue file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		// There should not be any non-null time series so use the
-		// Vector size...
-		int size = tslist.size();
-        	if ( size == 0 ) {
-			Message.printStatus ( 1, routine,
-			"No DateValue TS read." );
-			clearQueryList ();
-        	}
-        	else {	Message.printStatus ( 1, routine, ""
-			+ size + " DateValue TS read." );
-			// Include the alias in the display...
-			__query_TableModel = new TSTool_TS_TableModel (
-				tslist, true );
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-				(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-
-			JGUIUtil.setWaitCursor ( this, false );
-        		updateStatus ();
-		}
-		tslist = null;
-	}
-	catch ( Exception e ) {
-		message = "Error reading DateValue file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read DIADvisor time series and list in the GUI.
-*/
-private void readDIADvisorHeaders()
-{	String rtn = "TSTool_JFrame.readDIADvisorHeaders";
-        JGUIUtil.setWaitCursor ( this, true );
-        Message.printStatus ( 1, rtn, "Please wait... retrieving data");
-
-	try {	clearQueryList ();
-
-		//String location = "";
-		//String data_type = StringUtil.getToken(
-			//__data_type_JComboBox.getSelected()," ",0,0).trim();
-		String timestep = __time_step_JComboBox.getSelected().trim();
-
-/* SAMX - need to figure out how to do where - or do we just have choices?
-        	// add where clause(s)   
-		if ( getWhereClauses() == false ) {
-        		JGUIUtil.setWaitCursor ( this, false );
-        		Message.printStatus ( 1, rtn, 
-			"Query aborted - null where string");
-			return;
-		}
-*/
-
-		Vector results = null;
-		
-		try {	results = __DIADvisor_dmi.readSensorDefList();
-		}
-		catch ( Exception e ) {
-			results = null;
-			Message.printWarning ( 1, rtn, e );
-		}
-
-		int size = 0;
-		if ( results != null ) {
-			size = results.size();
-		}
-        	if ( (results == null) || (size == 0) ) {
-			Message.printStatus ( 1, rtn,
-			"Query complete.  No records returned." );
-        	}
-        	else {	Message.printStatus ( 1, rtn, "Query complete. "
-			+ size + " records returned." );
-        	}
-
-		Vector tslist_data_Vector = new Vector(size*2);
-		DIADvisor_SensorDef data;
-		String start_date_time = "";
-		String end_date_time = "";
-		String interval = __time_step_JComboBox.getSelected();
-		String description = "";
-		// This is either "DataValue" or "DataValue2"...
-		String selected_group = StringUtil.getToken(
-			__data_type_JComboBox.getSelected(), "-", 0, 0);
-		String datatype = StringUtil.getToken (
-			__data_type_JComboBox.getSelected(), "-", 0, 1);
-		String sensor_type = "";	// Used to check for Rain
-		String units = "";
-		String rating_type = "";
-		boolean is_datavalue1 = true;
-		if ( datatype.endsWith("DataValue2") ) {
-			is_datavalue1 = false;
-		}
-		for ( int i = 0; i < size; i++ ) {
-			data = (DIADvisor_SensorDef)results.elementAt(i);  
-			if ( !data.getGroup().equalsIgnoreCase(selected_group)){
-				// Sensor is not in the requested group...
-				continue;
-			}
-			rating_type = data.getRatingType();
-			sensor_type = data.getType();
-
-			// Process some fields that need special formatting...
-
-			description = data.getDescription();
-
-			// If DataValue1 - add all records + archive
-			// if DateValue2, only have in operational/archive
-			// database when rating != "NONE" and interval is
-			// irregular (only in DataChron)
-			if (	is_datavalue1 ||
-				(!is_datavalue1 &&
-				sensor_type.equalsIgnoreCase("RAIN") ||
-				!rating_type.equalsIgnoreCase("NONE")) ) {
-				if ( is_datavalue1 ) {
-					units = data.getDisplayUnits();
-				}
-				else {	units = data.getDisplayUnits2();
-				}
-				tslist_data_Vector.addElement(
-						data.getSensorID() + ";"
-            					+ description + ";"
-            					+ ";"
-            					+selected_group+"-"+datatype+";"
-            					+ timestep + ";"
-            					+ ";"
-            					+ units + ";"
-                				+ start_date_time + ";" 
-                				+ end_date_time + ";" 
-						+ __INPUT_TYPE_DIADvisor );
-			}
-			// Add for archive database only if for DataValue or
-			// DateValue2 and the interval is irregular...
-			if (	(__DIADvisor_archive_dmi != null) &&
-				(is_datavalue1 ||
-				(!is_datavalue1 && 
-				sensor_type.equalsIgnoreCase("RAIN") ||
-				!rating_type.equalsIgnoreCase("NONE") &&
-				interval.equals(__TIMESTEP_IRREGULAR))) ) {
-				// Also add an archive time series...
-				tslist_data_Vector.addElement(	
-						data.getSensorID() + ";"
-            					+ description + ";"
-            					+ ";"
-            					+selected_group+"-"+datatype+";"
-            					+ timestep + ";"
-            					+ "archive;"
-            					+ units + ";"
-                				+ start_date_time + ";" 
-                				+ end_date_time + ";" 
-						+ __INPUT_TYPE_DIADvisor );
-			}
-		}
-
-		updateStatus();
-		results = null;
-        	JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		// Messages elsewhere but catch so we can get the cursor
-		// back...
-		Message.printWarning ( 2, rtn, e );
-        	JGUIUtil.setWaitCursor ( this, false );
-	}
-}
-
-/**
-Query HydroBase time series and list in the GUI, using the current selections.
-@param grlimits If a query is being executed from the map interface, then the
-limits will be non-null.
-@throws Exception if there is an error.
-*/
-private void readHydroBaseHeaders ( GRLimits grlimits )
-throws Exception
-{	String message, routine = "TSTool_JFrame.readHydroBaseHeaders";
-
-        JGUIUtil.setWaitCursor ( this, true );
-        Message.printStatus ( 1, routine, "Please wait... retrieving data");
-
-	Vector tslist = null;
-	int size = 0;
-	try {	
-		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( __hbdmi,
-				__selected_data_type, __selected_time_step,
-				(InputFilter_JPanel)
-				__selected_input_filter_JPanel, grlimits );
-		// Make sure that size is set...
-		if ( tslist != null ) {
-			size = tslist.size();
-		}
-		// Now display the data in the worksheet...
-		if ( (tslist != null) && (size > 0) ) {
-       			Message.printStatus ( 1, routine, "" + size +
-			" HydroBase time series read.  Displaying data..." );
-			if (	HydroBase_Util.
-				isAgriculturalCASSCropStatsTimeSeriesDataType (
-				__hbdmi, __selected_data_type) ||
-				HydroBase_Util.
-				isAgriculturalNASSCropStatsTimeSeriesDataType (
-				__hbdmi, __selected_data_type ) ) {
-				// Data from
-				// agricultural_CASS_crop_statistics or
-				// agricultural_NASS_crop_statistics...
-				__query_TableModel = new
-					TSTool_HydroBase_Ag_TableModel (
-					__query_JWorksheet, tslist,
-					__selected_data_type );
-				TSTool_HydroBase_Ag_CellRenderer cr = new
-					TSTool_HydroBase_Ag_CellRenderer(
-					(TSTool_HydroBase_Ag_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-			else if(HydroBase_Util.
-				isAgriculturalCASSLivestockStatsTimeSeriesDataType (
-				__hbdmi, __selected_data_type) ) {
-				// Data from CASS livestock stats...
-				__query_TableModel = new
-					TSTool_HydroBase_CASSLivestockStats_TableModel (
-					__query_JWorksheet, tslist,
-					__selected_data_type );
-				TSTool_HydroBase_CASSLivestockStats_CellRenderer cr = new
-					TSTool_HydroBase_CASSLivestockStats_CellRenderer(
-					(TSTool_HydroBase_CASSLivestockStats_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-			else if(HydroBase_Util.isCUPopulationTimeSeriesDataType(
-				__hbdmi, __selected_data_type) ) {
-				// Data from CUPopulation...
-				__query_TableModel = new
-					TSTool_HydroBase_CUPopulation_TableModel (
-					__query_JWorksheet, tslist,
-					__selected_data_type );
-				TSTool_HydroBase_CUPopulation_CellRenderer cr =
-					new
-					TSTool_HydroBase_CUPopulation_CellRenderer(
-					(TSTool_HydroBase_CUPopulation_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-			else if(HydroBase_Util.isIrrigSummaryTimeSeriesDataType(
-				__hbdmi, __selected_data_type ) ) {
-				// Irrig summary TS...
-				__query_TableModel = new
-					TSTool_HydroBase_AgGIS_TableModel (
-					__query_JWorksheet, tslist,
-					__selected_data_type,
-					StringUtil.atoi(__props.getValue(
-					"HydroBase.WDIDLength")) );
-				TSTool_HydroBase_AgGIS_CellRenderer cr = new
-					TSTool_HydroBase_AgGIS_CellRenderer(
-					(TSTool_HydroBase_AgGIS_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-			else if( HydroBase_Util.isWISTimeSeriesDataType (
-				__hbdmi, __selected_data_type ) ) {
-				// WIS TS...
-				__query_TableModel = new
-					TSTool_HydroBase_WIS_TableModel (
-					__query_JWorksheet, tslist,
-					__selected_data_type );
-				TSTool_HydroBase_WIS_CellRenderer cr = new
-					TSTool_HydroBase_WIS_CellRenderer(
-					(TSTool_HydroBase_WIS_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-			// XJTSX
-			else if (__selected_data_type.equalsIgnoreCase(
-				"WellLevel")) {
-			if (__selected_time_step.equalsIgnoreCase("Day")) {
-				__query_TableModel = new
-				TSTool_HydroBase_WellLevel_Day_TableModel (
-					__query_JWorksheet, StringUtil.atoi(
-					__props.getValue(
-					"HydroBase.WDIDLength")), tslist );
-				TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
-				new TSTool_HydroBase_WellLevel_Day_CellRenderer(
-				(TSTool_HydroBase_WellLevel_Day_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-
-			}
-			else {
-				// original table model
-				__query_TableModel = new
-					TSTool_HydroBase_TableModel (
-					__query_JWorksheet, StringUtil.atoi(
-					__props.getValue(
-					"HydroBase.WDIDLength")), tslist );
-				TSTool_HydroBase_CellRenderer cr =
-					new TSTool_HydroBase_CellRenderer(
-					(TSTool_HydroBase_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_HydroBase_TableModel)
-					__query_TableModel).COL_ABBREV );
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-			}
-			else {	// Stations and structures...
-				__query_TableModel = new
-					TSTool_HydroBase_TableModel (
-					__query_JWorksheet, StringUtil.atoi(
-					__props.getValue(
-					"HydroBase.WDIDLength")), tslist );
-				TSTool_HydroBase_CellRenderer cr =
-					new TSTool_HydroBase_CellRenderer(
-					(TSTool_HydroBase_TableModel)
-					__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				if (	!(tslist.elementAt(0) instanceof
-					HydroBase_StationGeolocMeasType) ) {
-					__query_JWorksheet.removeColumn (
-					((TSTool_HydroBase_TableModel)
-					__query_TableModel).COL_ABBREV );
-				}
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-		}
-		else {	Message.printStatus ( 1, routine,
-			"No HydroBase time series read." );
-			clearQueryList ();
-       		}
-
-       		updateStatus ();
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		message = "Error reading time series list from HydroBase.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new Exception ( message );
-	}
-}
-
-/**
-Read the license file.  If not found, the license manager will be null and
-result in an invalid license error.  The license is read before the GUI is
-initialized to allow the GUI to be configured according to the license type.
-For example, the on-line help will be searched for differently if an RTi
-general license or a CDSS license.
-*/
-private void readLicense ()
-{	String	license_owner, license_type, license_count, license_expires,
-		license_key;
-	String	routine = "TSTool_JFrame.readLicense";
-	String	warning = "";
-
-	Message.printStatus ( 1, "TSTool.checkLicense", "Checking license" );
-	license_owner = tstool.getPropValue ( "TSTool.LicenseOwner" );
-	if ( license_owner == null ) {
-		warning += "\nLicenseOwner is not specified in the TSTool " +
-			"license information.";
-	}
-	license_type = tstool.getPropValue ( "TSTool.LicenseType" );
-	if ( license_type == null ) {
-		warning += "\nLicenseType is not specified in the TSTool " +
-			"license information.";
-	}
-	license_count = tstool.getPropValue ( "TSTool.LicenseCount" );
-	if ( license_count == null ) {
-		warning += "\nLicenseCount is not specified in the TSTool " +
-			"license information.";
-	}
-	license_expires = tstool.getPropValue ( "TSTool.LicenseExpires" );
-	if ( license_expires == null ) {
-		warning += "\nLicenseExpires is not specified in the TSTool " +
-			"license information.";
-	}
-	license_key = tstool.getPropValue ( "TSTool.LicenseKey" );
-	if ( license_key == null ) {
-		warning += "\nLicenseKey is not specified in the TSTool " +
-			"license information.";
-	}
-	if ( warning.length() > 0 ) {
-		warning += "\nTSTool will not run.";
-		Message.printWarning ( 1, routine, warning );
-		__license_manager = null;
-		return;
-	}
-
-	try {	// The following allows null fields so check above...
-		__license_manager = new LicenseManager ( "TSTool",
-						license_owner,
-						license_type, license_count,
-						license_expires, license_key );
-	}
-	catch ( Exception e ) {
-		__license_manager = null;
-	}
-}
-
-/**
-Read the list of time series from a Mexico CSMN CATALOGO.TXT file and list in
-the GUI.  Because the catalog file is rather long (e.g., 5000 lines) and does
-not change, it is only read once.  If necessary, later change to prompt each
-time.
-*/
-public void readMexicoCSMNHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readMexicoCSMNHeaders";
-
-	try {	Vector allts = MexicoCsmnTS.getCatalogTSList();
-		if ( allts == null ) {
-			// Have not read the catalog yet so read it...
-			JFileChooser fc =
-				JFileChooserFactory.createJFileChooser (
-				JGUIUtil.getLastFileDialogDirectory() );
-			fc.setDialogTitle (
-				"Select a Mexico CSMN CATALOGO.TXT File" );
-			SimpleFileFilter sff = new SimpleFileFilter( "txt",
-				"Mexico CSMN Catalogo.txt File");
-			fc.addChoosableFileFilter(sff);
-			fc.setFileFilter(sff);
-			if (	fc.showOpenDialog(this) !=
-				JFileChooser.APPROVE_OPTION ) {
-				// Cancelled...
-				return;
-			}
-			String directory = fc.getSelectedFile().getParent();
-			String path = fc.getSelectedFile().getPath();
-			JGUIUtil.setLastFileDialogDirectory ( directory );
-
-			Message.printStatus ( 1, routine,
-			"Reading Mexico CSMN catalog file \"" + path + "\"" );
-			JGUIUtil.setWaitCursor ( this, true );
-			try {	allts = MexicoCsmnTS.readCatalogFile ( path );
-			}
-			catch ( Exception e ) {
-				message = "Error reading Mexico CSMN catalog " +
-					"file \"" + path + "\"";
-				Message.printWarning ( 2, routine, message );
-				Message.printWarning ( 2, routine, e );
-				JGUIUtil.setWaitCursor ( this, false );
-				throw new IOException ( message );
-			}
-		}
-		if ( allts == null ) {
-			message = "Error reading Mexico CSMN catalog " +
-					"file - no time series.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		// Now limit the list of time series according to the where
-		// criteria...
-		// There should not be any non-null time series so use the
-		// Vector size...
-		int nallts = allts.size();
-		Message.printStatus ( 1, routine,
-		"Read " + nallts + " time series listings from catalog file." );
-		TS ts;
-		Vector tslist = null;
-		// Limit the output to the matching information - there are 2
-		// filter groups...
-		InputFilter filter =
-			__input_filter_MexicoCSMN_JPanel.getInputFilter(0);
-		InputFilter station_filter = null;
-		String where1 = filter.getWhereLabel();
-		String input1 = filter.getInput(false).trim();
-		filter = __input_filter_MexicoCSMN_JPanel.getInputFilter(1);
-		String where2 = filter.getWhereLabel();
-		String input2 = filter.getInput(false).trim();
-		String station_operator = null, station = null, state = null;
-		if ( where1.equals("Station Name") ) {
-			station = input1;
-			station_filter =
-			__input_filter_MexicoCSMN_JPanel.getInputFilter(0);
-			station_operator = 
-			__input_filter_MexicoCSMN_JPanel.getOperator(0);
-		}
-		else if ( where2.equals("Station Name") ) {
-			station = input2;
-			station_filter =
-			__input_filter_MexicoCSMN_JPanel.getInputFilter(1);
-			station_operator = 
-			__input_filter_MexicoCSMN_JPanel.getOperator(1);
-		}
-		if ( where1.equals("State Number") ) {
-			state = input1;
-		}
-		else if ( where2.equals("State Number") ) {
-			state = input2;
-		}
-		String prefix = null;	// State padded with zeroes
-		if ( state != null ) {
-			prefix = StringUtil.formatString(
-			StringUtil.atoi( state),"%05d");
-		}
-		// Limit time series based on the station name...
-		tslist = new Vector(100);
-		int state_num;	// State number for specific time series.
-		File f;		// Used to update file name for time series file
-		for ( int i = 0; i < nallts; i++ ) {
-			ts = (TS)allts.elementAt(i);
-			if ( Message.isDebugOn ) {
-			Message.printStatus ( 1, "",
-				"station=" + station +
-				" station_operator=" + station_operator +
-				" state=" + state +
-				" location=" + ts.getLocation() +
-				" prefix=" + prefix  +
-				" matchresult=" +
-				station_filter.matches ( station,
-				station_operator, true ) );
-			}
-			if (	((station == null) ||
-				station_filter.matches ( ts.getDescription(),
-				station_operator, true )) &&
-				((state == null) ||
-				ts.getLocation().startsWith(prefix)) ) {
-				// OK to add the time series to the output
-				// list (reset some information first)...
-				ts.setDataType ( __selected_data_type );
-				state_num = StringUtil.atoi(
-					ts.getLocation().substring(0,5) );
-				f = new File(ts.getIdentifier().getInputName());
-				ts.getIdentifier().setInputName (
-					f.getParent() + File.separator +
-					MexicoCsmnTS.getStateAbbreviation(
-					state_num) + "_" +
-					__selected_data_type + ".CSV" );
-				tslist.addElement ( ts );
-			}
-		}
-		// There should not be any non-null time series so use the
-		// Vector size...
-		int size = tslist.size();
-        	if ( size == 0 ) {
-			Message.printStatus ( 1, routine,
-			"No Mexico CSMN TS read." );
-			clearQueryList ();
-        	}
-        	else {	Message.printStatus ( 1, routine, ""
-			+ size + " Mexico CSMN TS read." );
-			__query_TableModel = new TSTool_TS_TableModel (tslist );
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-				(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			// Do not include the alias in the display...
-			__query_JWorksheet.removeColumn (
-			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-
-        		updateStatus ();
-		}
-		JGUIUtil.setWaitCursor ( this, false );
-		allts = null;
-		tslist = null;
-		ts = null;
-	}
-	catch ( Exception e ) {
-		message = "Error reading Mexico CSMN catalog file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the list of time series from a MODSIM file and list in the GUI.
-*/
-public void readMODSIMHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readMODSIMHeaders";
-
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select MODSIM Output File" );
-		SimpleFileFilter sff = new SimpleFileFilter( "DEM",
-			"Demand Time Series");
-		fc.addChoosableFileFilter(sff);
-		sff = new SimpleFileFilter( "FLO", "Flow Time Series");
-		fc.addChoosableFileFilter(sff);
-		sff = new SimpleFileFilter( "GW", "Groundwater Series");
-		fc.addChoosableFileFilter(sff);
-		sff = new SimpleFileFilter( "RES", "Reservoir Time Series");
-		fc.addChoosableFileFilter(sff);
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		String directory = fc.getSelectedFile().getParent();
-		String path = fc.getSelectedFile().getPath();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
-
-		Message.printStatus ( 1, routine,
-		"Reading MODSIM file \"" + path + "\"" );
-		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
-		try {	tslist = ModsimTS.readTimeSeriesList (
-			path, null, null, null, false );
-		}
-		catch ( Exception e ) {
-			message = "Error reading MODSIM file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		if ( tslist == null ) {
-			message = "Error reading MODSIM file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		// There should not be any non-null time series so use the
-		// Vector size...
-		int size = tslist.size();
-        	if ( size == 0 ) {
-			Message.printStatus ( 1, routine,
-			"No MODSIM TS read." );
-			clearQueryList ();
-        	}
-        	else {	Message.printStatus ( 1, routine, ""
-			+ size + " MODSIM TS read." );
-			__query_TableModel = new TSTool_TS_TableModel (
-				tslist, true );
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-				(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			// Do not include the alias in the display...
-			__query_JWorksheet.removeColumn (
-			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-
-			JGUIUtil.setWaitCursor ( this, false );
-        		updateStatus ();
-		}
-		tslist = null;
-	}
-	catch ( Exception e ) {
-		message = "Error reading MODSIM file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the list of time series from NWS CARD files and list in the GUI.
-*/
-public void readNWSCARDHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readNWSCARDHeaders";
-
-	// REVISIT - allow multiple file selections...
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select NWS Card Time Series File" );
-
-		/*
-		SimpleFileFilter card_sff = new SimpleFileFilter( "card",
-			"NWS Card Time Series");
-		fc.addChoosableFileFilter(card_sff);
-		SimpleFileFilter sff = new SimpleFileFilter( "txt",
-			"NWS Card Time Series");
-		fc.addChoosableFileFilter(sff);
-		fc.setFileFilter(card_sff);
-		*/
-
-		FileFilter[] filters = NWSCardTS.getFileFilters();
-		for (int i = 0; i < filters.length - 1; i++) {
-			fc.addChoosableFileFilter(filters[i]);
-		}
-		fc.setFileFilter(filters[filters.length - 1]);
-		
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		String directory = fc.getSelectedFile().getParent();
-		String path = fc.getSelectedFile().getPath();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
-
-		Message.printStatus ( 1, routine,
-		"Reading NWS CARD file \"" + path + "\"" );
-		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
-		try {	tslist = NWSCardTS.readTimeSeriesList (
-				(TS)null,	// No requested time series
-				path,
-				(DateTime)null,	// Start
-				(DateTime)null,	// End
-				(String)null,	// Units
-				false );	// No data, header only
-		}
-		catch ( Exception e ) {
-			message = "Error reading NWS Card file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			clearQueryList ();
-			throw new IOException ( message );
-		}
-		if ( tslist == null ) {
-			message = "Error reading NWS CARD file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		__query_TableModel = new TSTool_TS_TableModel ( tslist );
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-			(TSTool_TS_TableModel)__query_TableModel);
-
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		__query_JWorksheet.removeColumn (
-			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-		__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-
-        	updateStatus ();
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		message = "Error reading NWS CARD file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the list of time series from an NWSRFS ESPTraceEnsemble file and list in
-the GUI.
-*/
-public void readNWSRFSESPTraceEnsembleHeaders ()
-throws IOException
-{	String message, routine =
-		"TSTool_JFrame.readNWSRFSESPTraceEnsembleHeaders";
-
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select ESP Trace Ensemble File" );
-		SimpleFileFilter csff = new SimpleFileFilter( "CS",
-		"Conditional Simulation Trace File");
-		fc.addChoosableFileFilter(csff);
-		/* REVISIT - add later
-		SimpleFileFilter sff = new SimpleFileFilter( "HS",
-		"Historical Simulation Trace File");
-		fc.addChoosableFileFilter(sff);
-		*/
-		fc.setFileFilter(csff);
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		String directory = fc.getSelectedFile().getParent();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
-		String path = fc.getSelectedFile().getPath();
-		Message.printStatus ( 1, routine,
-		"Reading NWSRFS ESPTraceEnsemble file \"" + path + "\"" );
-		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
-		NWSRFS_ESPTraceEnsemble ensemble = null;
-		try {	ensemble = new NWSRFS_ESPTraceEnsemble ( path, false );
-			// Get the array of time series...
-			tslist = ensemble.getTimeSeriesVector ();
-		}
-		catch ( Exception e ) {
-			message = "Error reading NWSRFS ESPTraceEnsemble file.";
-			Message.printWarning ( 2, routine, message );
-			Message.printWarning ( 2, routine, e );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		int size = 0;
-		if ( tslist != null ) {
-			size = tslist.size();
-			__query_TableModel = new
-				TSTool_ESPTraceEnsemble_TableModel ( ensemble );
-			TSTool_ESPTraceEnsemble_CellRenderer cr =
-				new TSTool_ESPTraceEnsemble_CellRenderer(
-				(TSTool_ESPTraceEnsemble_TableModel)
-				__query_TableModel);
-
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			__query_JWorksheet.setColumnWidths (
-				cr.getColumnWidths(), getGraphics() );
-		}
-       		if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus ( 1, routine,
-			"No NWSRFS ESPTraceEnsemble TS read." );
-			clearQueryList ();
-       		}
-       		else {	Message.printStatus ( 1, routine, ""
-			+ size + " NWSRFS ESPTraceEnsemble TS traces read." );
-       		}
-
-		JGUIUtil.setWaitCursor ( this, false );
-       		updateStatus ();
-	}
-	catch ( Exception e ) {
-		message = "Error reading NWSRFS ESPTraceEnsemble file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the list of time series from NWSRFS FS5Files and list in the GUI.
-*/
-public void readNWSRFSFS5FilesHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readNWSRFSFS5FilesHeaders";
-
-	try {	JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
-		// Default is to return all IDs...
-		String id_input = "*";
-		// Get the ID from the input filter...
-		Vector input_Vector = __input_filter_NWSRFS_FS5Files_JPanel.
-			getInput ( "ID", true, null );
-		int isize = input_Vector.size();
-		if ( isize > 1 ) {
-			Message.printWarning ( 1, routine,
-			"Only one input filter for ID can be specified." );
-			return;
-		}
-		if ( isize > 0 ) {
-			// Use the first matching filter...
-			id_input = (String)input_Vector.elementAt(0);
-		}
-		String datatype = StringUtil.getToken ( 
-			__data_type_JComboBox.getSelected().trim(), " ",0, 0);
-		// Parse the interval into the integer hour...
-		String selected_input_name=__input_name_JComboBox.getSelected();
-		try {	String tsident_string = id_input + ".NWSRFS." +
-				datatype + "." +
-				__selected_time_step + "~NWSRFS_FS5Files~" +
-				selected_input_name;
-			Message.printStatus ( 2, routine,
-			"Reading NWSRFS FS5Files time series for \"" +
-			tsident_string + "\"..." );
-			tslist = __nwsrfs_dmi.readTimeSeriesList (
-				tsident_string, (DateTime)null,
-				(DateTime)null, (String)null, false );
-		}
-		catch ( Exception e ) {
-			message = "Error reading NWSRFS time series list.";
-			Message.printWarning ( 2, routine, message );
-			Message.printWarning ( 2, routine, e );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		
-		int size = 0;
-		if ( tslist != null ) {
-			size = tslist.size();
-
-			// Now display in the table...
-
-			__query_TableModel = new TSTool_TS_TableModel (
-				tslist, true );
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-				(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			// Do not include the alias in the display...
-			__query_JWorksheet.removeColumn (
-			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-		}
-       		if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus ( 1, routine,
-			"No NWSRFS FS5Files time series read." );
-			clearQueryList ();
-       		}
-       		else {	Message.printStatus ( 1, routine, ""
-			+ size + " NWSRFS FS5Files time series read." );
-       		}
-
-		JGUIUtil.setWaitCursor ( this, false );
-       		updateStatus ();
-	}
-	catch ( Exception e ) {
-		JGUIUtil.setWaitCursor ( this, false );
-		message = "Error reading NWSRFS FS5Files time series list.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the pattern time series corresponding to the pattern file names.
-Only read the headers.  Then the identifiers are saved for use in the
-fillPattern_Dialog.
-*/
-public void readPatternTS ()
-{	// Empty the list...
-	__fill_pattern_ids.removeAllElements();
-	Vector fill_pattern_ts = null;
-	TS ts = null;
-	for (	int ifile = 0; ifile < __fill_pattern_files.size();
-		ifile++ ) {
-		// REVISIT - need this to be more generic.  If a statemod
-		// pattern file is specified, read it, else, allow for other
-		// formats.  For now always read a StateMod file.
-		//
-		// Read the header but not the actual data since only a list of
-		// identifiers is needed.
-		fill_pattern_ts = StateMod_TS.readPatternTimeSeriesList (
-			IOUtil.getPathUsingWorkingDir(
-			(String)__fill_pattern_files.elementAt(ifile)), false );
-		if ( fill_pattern_ts != null ) {
-			int listsize = fill_pattern_ts.size();
-			for ( int j = 0; j < listsize; j++ ) {
-				ts = (TS)fill_pattern_ts.elementAt(j);
-				if ( ts == null ) {
-					continue;
-				}
-				__fill_pattern_ids.addElement (
-					ts.getLocation() );
-			}
-		}
-	}
-	ts = null;
-	fill_pattern_ts = null;
-}
-
-/**
-Read RiversideDB time series (MeasType) and list in the GUI.
-*/
-private void readRiversideDBHeaders()
-{	String rtn = "TSTool_JFrame.readRiversideDBHeaders";
-        JGUIUtil.setWaitCursor ( this, true );
-        Message.printStatus ( 1, rtn, "Please wait... retrieving data");
-
-	// The headers are a Vector of HydroBase_
-	try {	clearQueryList ();
-
-		String location = "";
-		String data_type = StringUtil.getToken(
-			__data_type_JComboBox.getSelected()," ",0,0).trim();
-		String timestep = __time_step_JComboBox.getSelected();
-		if ( timestep == null ) {
-			Message.printWarning ( 1, rtn,
-			"No time series are available for timestep." );
-			JGUIUtil.setWaitCursor ( this, false );
-			return;
-		}
-		else {	timestep = timestep.trim();
-		}
-		String data_type_mod = "";
-		if ( data_type.indexOf ( "-" ) >= 0 ) {
-			data_type_mod = StringUtil.getToken ( data_type,
-				"-", 0, 1 );
-		}
-		if ( !data_type_mod.equals("") ) {
-			data_type_mod = "-" + data_type_mod;
-		}
-
-/* SAMX - need to figure out how to do where - or do we just have choices?
-        	// add where clause(s)   
-		if ( getWhereClauses() == false ) {
-        		JGUIUtil.setWaitCursor ( this, false );
-        		Message.printStatus ( 1, rtn, 
-			"Query aborted - null where string");
-			return;
-		}
-*/
-
-		TSIdent ident = new TSIdent ( location + ".." + data_type +
-					data_type_mod + "." + timestep + "." );
-		Message.printStatus ( 1, "",
-		"Datatype = \"" + ident.getType() + "\" main = \"" +
-		ident.getMainType() + "\" sub = \"" + ident.getSubType() +"\"");
-
-		Vector results = null;
-
-		try {	results = __rdmi.readMeasTypeListForTSIdent (
-				location + ".." + data_type + data_type_mod +
-				"." + timestep + "." );
-		}
-		catch ( Exception e ) {
-			results = null;
-		}
-
-		int size = 0;
-		if ( results != null ) {
-			size = results.size();
-			// Does not work??
-			//__query_TableModel.setNewData ( results );
-			// Try brute force...
-			__query_TableModel = new
-				TSTool_RiversideDB_TableModel ( results );
-			TSTool_RiversideDB_CellRenderer cr =
-				new TSTool_RiversideDB_CellRenderer(
-				(TSTool_RiversideDB_TableModel)
-				__query_TableModel);
-
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			__query_JWorksheet.setColumnWidths (
-				cr.getColumnWidths(), getGraphics() );
-		}
-        	if ( (results == null) || (size == 0) ) {
-			Message.printStatus ( 1, rtn,
-			"Query complete.  No records returned." );
-        	}
-        	else {	Message.printStatus ( 1, rtn, "Query complete. "
-			+ size + " records returned." );
-        	}
-
-        	updateStatus ();
-
-        	JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		// Messages elsewhere but catch so we can get the cursor
-		// back...
-		Message.printWarning ( 3, rtn, e );
-        	JGUIUtil.setWaitCursor ( this, false );
-	}
-}
-
-/**
-Read the list of time series from RiverWare files and list in the GUI.
-*/
-public void readRiverWareHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readRiverWareHeaders";
-
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select RiverWare Time Series File" );
-		SimpleFileFilter sff = new SimpleFileFilter( "dat",
-			"RiverWare Time Series");
-		fc.addChoosableFileFilter(sff);
-		sff = new SimpleFileFilter( "rwts", "RiverWare Time Series");
-		fc.addChoosableFileFilter(sff);
-		sff = new SimpleFileFilter( "ts", "RiverWare Time Series");
-		fc.addChoosableFileFilter(sff);
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		JGUIUtil.setLastFileDialogDirectory (
-			fc.getSelectedFile().getParent() );
-		String path = fc.getSelectedFile().getPath();
-
-		Message.printStatus ( 1, routine,
-		"Reading RiverWare file \"" + path + "\"" );
-		JGUIUtil.setWaitCursor ( this, true );
-		TS ts = RiverWareTS.readTimeSeries (
-			path, null, null, null, false );
-		if ( ts == null ) {
-			message = "Error reading RiverWare file.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		Vector tslist = new Vector ( 1 );
-		tslist.addElement ( ts );
-		__query_TableModel = new TSTool_TS_TableModel ( tslist );
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-			(TSTool_TS_TableModel)__query_TableModel);
-
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		__query_JWorksheet.removeColumn (
-			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-		__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-
-        	updateStatus ();
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		message = "Error reading RiverWare file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the list of time series from a StateCU file and display the list in the
-GUI.
-@exception Exception if there is an error reading the file.
-*/
-public void readStateCUHeaders ()
-throws Exception
-{	String message, routine = "TSTool_JFrame.readStateCUHeaders";
-
-	try {	Vector tslist = null;			// Time series to
-							// display.
-		TS ts = null;				// Single time series.
-		int size = 0;				// Number of time
-							// series.
-		String path = __input_name_JComboBox.getSelected();
-		Message.printStatus ( 1, routine,
-		"Reading StateCU file \"" + path + "\"" );
-		if (	(__input_name_FileFilter ==
-			__input_name_StateCU_iwrrep_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_wsl_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_frost_FileFilter) ) {
-			JGUIUtil.setWaitCursor ( this, true );
-			tslist = StateCU_TS.readTimeSeriesList (
-					path, null, null, null, false );
-			if ( tslist != null ) {
-				size = tslist.size();
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
-	
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-		}
-		else if ( __input_name_FileFilter ==
-			__input_name_StateCU_cds_FileFilter ) {
-			// Yearly crop patterns...
-			JGUIUtil.setWaitCursor ( this, true );
-			tslist = StateCU_CropPatternTS.readTimeSeriesList (
-					path, null, null, null, false );
-			if ( tslist != null ) {
-				size = tslist.size();
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
-	
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-		}
-		else if ((__input_name_FileFilter ==
-			__input_name_StateCU_ipy_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_tsp_FileFilter) ) {
-			// Yearly irrigation practice...
-			JGUIUtil.setWaitCursor ( this, true );
-			tslist = StateCU_IrrigationPracticeTS.
-					readTimeSeriesList (
-					path, null, null, null, false );
-			if ( tslist != null ) {
-				size = tslist.size();
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
-	
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-		}
-		else if ((__input_name_FileFilter ==
-			__input_name_StateCU_ddc_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_ddy_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_ddh_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_precip_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_temp_FileFilter) ||
-			(__input_name_FileFilter ==
-			__input_name_StateCU_frost_FileFilter) ) {
-			// Normal daily or monthly StateMod file...
-			JGUIUtil.setWaitCursor ( this, true );
-			if (	 __input_name_FileFilter ==
-				__input_name_StateCU_frost_FileFilter ) {
-				tslist = StateCU_TS.
-					readTimeSeriesList (
-					path, null, null, null, false );
-			}
-			else {	// Normal StateMod file...
-				tslist = StateMod_TS.readTimeSeriesList (
-					path, null, null, null, false );
-			}
-			// Change time series data source to StateCU since the
-			// file is part of a StateCU data set...
-			if ( tslist != null ) {
-				size = tslist.size();
-				for ( int i = 0; i < size; i++ ) {
-					ts = (TS)tslist.elementAt(i);
-					if ( ts == null ) {
-						continue;
-					}
-					ts.getIdentifier().setSource("StateCU");
-				}
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
-	
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_TYPE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
-			}
-		}
-		else {	Message.printWarning ( 1, routine,
-			"File format not recognized for \"" + path + "\"" );
-		}
-       		if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus (1, routine,"No StateCU TS read.");
-			clearQueryList ();
-       		}
-       		else {	Message.printStatus ( 1, routine, ""
-			+ size + " StateCU TS read." );
-       		}
-
-		JGUIUtil.setWaitCursor ( this, false );
-       		updateStatus ();
-	}
-	catch ( Exception e ) {
-		message = "Error reading StateCU file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new Exception ( message );
-	}
-}
-
-/**
-Read the list of time series from a StateMod file and display the list in the
-GUI.
-@exception Exception if there is an error reading the file.
-*/
-public void readStateModHeaders ()
-throws Exception
-{	String message, routine = "TSTool_JFrame.readStateModHeaders";
-
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-				JGUIUtil.getLastFileDialogDirectory() );
-		// TODO SAM 2007-05-14 Need to better handle picking files.
-		// Need to pick the file first and detect the time
-		// step from the file, similar to the binary file.  For now,
-		// key off the selected time step.
-		SimpleFileFilter ddr_filter = null;
-		SimpleFileFilter ifr_filter = null;
-		SimpleFileFilter rer_filter = null;
-		SimpleFileFilter wer_filter = null;
-		if ( __selected_time_step.equals( __TIMESTEP_DAY)) {
-			fc.setDialogTitle (
-				"Select StateMod Daily Time Series File" );
-			SimpleFileFilter sff = new SimpleFileFilter( "ddd",
-				"StateMod Direct Diversion Demands (Daily)");
-			fc.addChoosableFileFilter(sff);
-			ddr_filter = new SimpleFileFilter( "ddr",
-			"StateMod Diversion Rights (Daily)");
-			fc.addChoosableFileFilter(ddr_filter);
-			sff = new SimpleFileFilter( "ddy",
-				"StateMod Historicial Diversions (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "eoy",
-				"StateMod Reservoir Storage (End of Day)");
-			fc.addChoosableFileFilter(sff);
-			ifr_filter = new SimpleFileFilter( "ifd",
-				"StateMod Instream Flow Demands (Daily)");
-			fc.addChoosableFileFilter(ifr_filter);
-			sff = new SimpleFileFilter( "ifr",
-			"StateMod Instream Flow Rights (Daily)");
-			fc.addChoosableFileFilter(ifr_filter);
-			rer_filter = new SimpleFileFilter( "rer",
-			"StateMod Reservoir Rights (Daily)");
-			fc.addChoosableFileFilter(rer_filter);
-			sff = new SimpleFileFilter( "riy",
-				"StateMod Base Streamflow (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "riy",
-				"StateMod Historicial Streamflow (Daily)");
-			fc.addChoosableFileFilter(sff);
-			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm",
-				"StateMod Time Series (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "tad",
-				"StateMod Reservoir Min/Max Targets (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "wed",
-				"StateMod Well Demands (Daily)");
-			fc.addChoosableFileFilter(sff);
-			wer_filter = new SimpleFileFilter( "wer",
-			"StateMod Well Rights (Daily)");
-			fc.addChoosableFileFilter(wer_filter);
-			sff = new SimpleFileFilter( "wey",
-				"StateMod Historicial Well Pumping (Daily)");
-			fc.addChoosableFileFilter(sff);
-			fc.setFileFilter(stm_sff);
-		}
-		else if ( __selected_time_step.equals( __TIMESTEP_MONTH)) {
-			fc.setDialogTitle (
-				"Select StateMod Monthly Time Series File" );
-			SimpleFileFilter sff = new SimpleFileFilter( "ddh",
-				"StateMod Historicial Diversions (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "dda",
-			"StateMod Direct Diversion Demands (Average Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ddm",
-				"StateMod Direct Diversion Demands (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ddo",
-			"StateMod Direct Diversion Demands Override (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			ddr_filter = new SimpleFileFilter( "ddr",
-			"StateMod Diversion Rights (Monthly)");
-			fc.addChoosableFileFilter(ddr_filter);
-			sff = new SimpleFileFilter( "eom",
-				"StateMod Reservoir Storage (End of Month)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "eva",
-				"StateMod Evaporation (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifa",
-			"StateMod Instream Flow Demands (Average Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifm",
-				"StateMod Instream Flow Demands (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifr",
-			"StateMod Instream Flow Rights (Monthly)");
-			fc.addChoosableFileFilter(ifr_filter);
-			sff = new SimpleFileFilter( "ddc",
-				"StateMod/StateCU Irrigation Water" +
-				" Requirement (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "iwr",
-				"StateMod/StateCU Irrigation Water" +
-				" Requirement (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "pre",
-				"StateMod Precipitation (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "rih",
-				"StateMod Historicial Streamflow (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "riy",
-				"StateMod Base Streamflow (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "tar",
-				"StateMod Reservoir Min/Max Targets (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			rer_filter = new SimpleFileFilter( "rer",
-			"StateMod Reservoir Rights (Monthly)");
-			fc.addChoosableFileFilter(rer_filter);
-			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm",
-				"StateMod Time Series (Monthly)");
-			fc.addChoosableFileFilter(stm_sff);
-			sff = new SimpleFileFilter( "wem",
-				"StateMod Well Demands (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			wer_filter = new SimpleFileFilter( "wer",
-			"StateMod Well Rights (Monthly)");
-			fc.addChoosableFileFilter(wer_filter);
-			sff = new SimpleFileFilter( "weh",
-				"StateMod Historicial Well Pumping (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			fc.setFileFilter(stm_sff);
-		}
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		String directory = fc.getSelectedFile().getParent();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
-		JGUIUtil.setLastFileDialogDirectory(directory);
-		String path = fc.getSelectedFile().getPath();
-		Message.printStatus ( 1, routine,
-		"Reading StateMod file \"" + path + "\"" );
-		// Normal daily or monthly format file...
-		Vector tslist = null;
-		JGUIUtil.setWaitCursor ( this, true );
-		FileFilter ff = fc.getFileFilter();
-		int interval_base = TimeInterval.MONTH;
-		if ( __selected_time_step.equals(__TIMESTEP_DAY)) {
-			interval_base = TimeInterval.DAY;
-		}
-		else if ( __selected_time_step.equals(__TIMESTEP_MONTH)) {
-			interval_base = TimeInterval.MONTH;
-		}
-		/* TODO SAM 2007-05-16 Resolve later.  Use readStateMod() in the meantime.
-		else if ( __selected_time_step.equals(__TIMESTEP_YEAR)) {
-			interval_base = TimeInterval.YEAR;
-		}
-		*/
-		if ( ff == ddr_filter ) {
-			// First read the diversion rights...
-			Vector ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
-			// Convert the rights to time series (one per location)...
-			tslist = StateMod_Util.createWaterRightTimeSeriesList (
-					ddr_Vector,        // raw water rights
-					interval_base,  // time series interval
-					0,              // summarize time series at location
-					-1,				// Don't consider parcel year
-					true,			// Create data set total
-					null,             // time series start
-					null,             // time series end
-					999999.0,	// No special treatment of junior rights
-					null,
-					null,
-					false );          // don't read data - only header
-		}
-		else if ( ff == ifr_filter ) {
-			// First read the instream flow rights...
-			Vector ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
-			// Convert the rights to time series (one per location)...
-			tslist = StateMod_Util.createWaterRightTimeSeriesList (
-					ifr_Vector,        // raw water rights
-					interval_base,  // time series interval
-					0,              // summarize time series at location
-					-1,				// Don't consider parcel year
-					true,			// Create data set total
-					null,              // time series start
-					null,              // time series end
-					999999.0,	// No special treatment of junior rights
-					null,
-					null,
-					false );           // don't read data - only header
-		}
-		else if ( ff == rer_filter ) {
-			// First read the reservoir rights...
-			Vector rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
-			// Convert the rights to time series (one per location)...
-			tslist = StateMod_Util.createWaterRightTimeSeriesList (
-					rer_Vector,        // raw water rights
-					interval_base,  // time series interval
-					0,              // summarize time series at location
-					-1,				// Don't consider parcel year
-					true,			// Create data set total
-					null,              // time series start
-					null,              // time series end
-					999999.0,	// No special treatment of junior rights
-					null,
-					null,
-					false );           // don't read data - only header
-		}
-		else if ( ff == wer_filter ) {
-			// First read the well rights...
-			Vector wer_Vector = StateMod_WellRight.readStateModFile ( path );
-			// Convert the rights to time series (one per location)...
-			tslist = StateMod_Util.createWaterRightTimeSeriesList (
-					wer_Vector,        // raw water rights
-					interval_base,  // time series interval
-					0,              // summarize time series at location
-					-1,				// Don't consider parcel year
-					true,			// Create data set total
-					null,              // time series start
-					null,              // time series end
-					999999.0,	// No special treatment of junior rights
-					null,
-					null,
-					false );           // don't read data - only header
-		}
-		else if ( __selected_time_step.equals(__TIMESTEP_DAY) ) {
-			// Only read the headers...
-			tslist = StateMod_TS.readTimeSeriesList (
-					path, null, null, null, false );
-		}
-		else {	// Only read the headers...
-			tslist = StateMod_TS.readTimeSeriesList (
-				path, null, null, null, false );
-		}
-		int size = 0;
-		if ( tslist != null ) {
-			size = tslist.size();
-			__query_TableModel = new TSTool_TS_TableModel ( tslist);
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-				(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel(__query_TableModel);
-			// Turn off columns in the table model that do not
-			// apply...
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_DATA_SOURCE );
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_DATA_TYPE );
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_SCENARIO);
-			__query_JWorksheet.setColumnWidths (
-				cr.getColumnWidths(), getGraphics() );
-		}
-        	if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus ( 1, routine,
-			"No StateMod TS read." );
-			clearQueryList ();
-        	}
-        	else {	Message.printStatus ( 1, routine, ""
-			+ size + " StateMod TS read." );
-        	}
-
-		JGUIUtil.setWaitCursor ( this, false );
-        	updateStatus ();
-	}
-	catch ( Exception e ) {
-		message = "Error reading StateMod file.";
-		Message.printWarning ( 2, routine, message );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new Exception ( message );
-	}
-}
-
-/**
-Read the list of time series from a StateMod binary file and list in the GUI.
-The binary file is taken from the selected item in the __input_name_JComboBox.
-*/
-public void readStateModBHeaders ()
-throws IOException
-{	String routine = "TSTool_JFrame.readStateModBHeaders";
-
-	try {	String path = __input_name_JComboBox.getSelected();
-		Message.printStatus ( 1, routine,
-		"Reading StateMod binary output file \"" + path + "\"" );
-		Vector tslist = null;
-		JGUIUtil.setWaitCursor ( this, true );
-		StateMod_BTS bin = new StateMod_BTS ( path );
-		tslist = bin.readTimeSeriesList (
-			"*.*." + __selected_data_type + ".*.*",
-			null, null, null, false );
-		bin.close();
-		int size = 0;
-		if ( tslist != null ) {
-			size = tslist.size();
-			__query_TableModel = new
-				TSTool_TS_TableModel ( tslist );
-			TSTool_TS_CellRenderer cr =
-				new TSTool_TS_CellRenderer(
-				(TSTool_TS_TableModel)
-				__query_TableModel);
-
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			// Turn off columns in the table model that do not
-			// apply...
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_SCENARIO);
-			__query_JWorksheet.removeColumn (
-				((TSTool_TS_TableModel)
-				__query_TableModel).COL_DATA_SOURCE );
-			//__query_JWorksheet.removeColumn (
-				//((TSTool_TS_TableModel)
-				//__query_TableModel).COL_DATA_TYPE );
-			__query_JWorksheet.setColumnWidths (
-				cr.getColumnWidths(), getGraphics() );
-		}
-       		if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus ( 1, routine,
-			"No StateMod binary TS were read." );
-			clearQueryList ();
-       		}
-       		else {	Message.printStatus ( 1, routine, ""
-			+ size + " StateMod binary TS were read." );
-       		}
-
-       		updateStatus ();
-		tslist = null;
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		String message = "Error reading StateMod binary file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
-Read the list of time series from a USGS NWIS file and list in the GUI.
-*/
-public void readUsgsNwisHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readUsgsNwisHeaders";
-
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select USGS NWIS Daily Surface Flow File");
-		SimpleFileFilter sff = new SimpleFileFilter( "txt",
-			"USGS NWIS Daily Surface Flow File");
-		fc.addChoosableFileFilter(sff);
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
-			return;
-		}
-		JGUIUtil.setLastFileDialogDirectory (
-			fc.getSelectedFile().getParent() );
-		String path = fc.getSelectedFile().getPath();
-
-		Message.printStatus ( 1, routine,
-		"Reading USGS NWIS file \"" + path + "\"" );
-		JGUIUtil.setWaitCursor ( this, true );
-		TS ts = UsgsNwisTS.readTimeSeries(path, null, null, null,false);
-		if ( ts == null ) {
-			message = "Error reading USGS NWIS file \""+path + "\"";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		Vector tslist = new Vector ( 1 );
-		tslist.addElement ( ts );
-		__query_TableModel = new TSTool_TS_TableModel ( tslist );
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-			(TSTool_TS_TableModel)__query_TableModel);
-
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		__query_JWorksheet.removeColumn (
-			((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-		__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
-
-        	updateStatus ();
-		JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		message = "Error reading USGS NWIS file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
-	}
-}
-
-/**
 Run the commands in the command list.  These time series are saved in
 __ts_processor and are then available for export, analysis, or viewing.  This
 method should only be called if there are commands in the command list.
@@ -14507,24 +14752,23 @@ true, then all commands are run.
 TSEngine.  If false, only the time series in memory remain at the end and can
 be viewed.  The former is suitable for batch files, both for the GUI.
 */
-private void runCommands ( boolean run_all_commands, boolean create_output )
+private void uiAction_RunCommands ( boolean run_all_commands, boolean create_output )
 {	String routine = "TSTool_JFrame.runCommands";
 	Message.printStatus ( 1, routine, "Running commands." );
 	JGUIUtil.setWaitCursor ( this, true );
-	// Clean up old TSEngine...
-	clearTSList ();	// Sets __final_ts_engine to null.
+	tsResultsList_Clear ();
 	System.gc();
 	// Get commands to run (all or selected)...
-	Vector commands = getCommands ( run_all_commands );
+	Vector commands = commandList_GetCommands ( run_all_commands );
 	// Save the commands in case any output calls
 	// IOUtil.printCreatorHeader...
 	IOUtil.setProgramCommandList ( commands );
-	commandProcessorRunCommands ( commands, create_output );
+	commandProcessor_RunCommands ( commands, create_output );
 	JGUIUtil.setWaitCursor ( this, false );
 	int size = JGUIUtil.selectedSize ( __commands_JList );
 	// Fill the time series list with the descriptions of the in-memory
 	// time series...
-	size = commandProcessorGetTimeSeriesResultsListSize();
+	size = commandProcessor_GetTimeSeriesResultsListSize();
 	TS ts = null;
 	String desc = null;
 	String alias = null;
@@ -14553,16 +14797,16 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 			}
 		}
 		else {	*/
-			try {	ts = commandProcessorGetTimeSeries(i);
+			try {	ts = commandProcessor_GetTimeSeries(i);
 			}
 			catch ( Exception e ) {
-				addTimeSeriesToResults ( "" + (i + 1) +
+				tsResultsList_AddTimeSeriesToResults ( "" + (i + 1) +
 				" - Error getting time series from processor." );
 				Message.printWarning ( 3, routine, e );
 				continue;
 			}
 			if ( ts == null ) {
-				addTimeSeriesToResults ( "" +(i + 1)+
+				tsResultsList_AddTimeSeriesToResults ( "" +(i + 1)+
 				" - Null time series from processor." );
 				continue;
 			}
@@ -14576,7 +14820,7 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 				if ( (desc == null) || (desc.length() == 0) ) {
 					desc = ts.getIdentifier().getLocation();
 				}
-				addTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
+				tsResultsList_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
 				desc + " - " + ts.getIdentifier() +
 				" (" + ts.getDate1() + " to " +
 				ts.getDate2() + ")" );
@@ -14614,81 +14858,19 @@ private void runCommands ( boolean run_all_commands, boolean create_output )
 	}
 	// Now actually select the time series in the visual output...
 	__ts_JList.setSelectedIndices ( selected );
-	updateStatus ();
+	ui_UpdateStatus ( false );
 	__commands_AnnotatedCommandJList.repaint();
 	Message.printStatus ( 1, routine, "Completed running commands.  Use "+
 		"Results and Tools menus." );
 }
 
-/**
-Run with a hidden main gui but process the specified commands file.
-If also in batch mode because commands were specified on the command line, the
-a true batch run will be made.
-@param commands_file Commands file to process.
-@exception Exception if there is an error processing the file, for example
-no data to graph.
-*/
-/* FIXME SAM 2007-08-20 Need to enable.
-private void runNoMainGUI ( String commands_file )
-throws Exception
-{	String routine = "TSTool_JFrame.runNoMainGUI";
-	// Run similar to the Run...Commands menu
-	TSEngine engine = null;
-	// Process as if in batch mode...
-	engine = new TSEngine ( __hbdmi, __rdmi, __DIADvisor_dmi,
-				__DIADvisor_archive_dmi, __nwsrfs_dmi,
-				__smsdmi );
-	engine.addTSViewWindowListener ( this );
-	engine.processCommands ( __hbdmi, commands_file, IOUtil.isBatch() );
-	engine = null;
-	Message.printStatus ( 1, routine,
-	"Successfully processed commands file \"" + commands_file + "\"" );
-}
-*/
-
-/**
-Run TSTool in server mode.  Currently this is done without the GUI.
-Need to update this to use TSEngine for processing.
-*/
-public void runServer ()
-{	// Loop until an "end" or "exit" command is encountered.  Read input
-	// from standard input and execute commands.  Do not yet support full
-	// TSEngine features but focus on TS Product processing...
-	BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
-	PrintStream out = System.out;
-	String string;
-	while ( true ) {
-		try {	string = in.readLine();
-		}
-		catch ( Exception e ) {
-			break;
-		}
-		if ( string == null ) {
-			// Should this ever happen?  Or will it happen because
-			// of the buffering, etc.?
-			continue;
-		}
-		string = string.trim();
-		if ( string.length() == 0 ) {
-			continue;
-		}
-		if (	string.equalsIgnoreCase("exit") ||
-			string.equalsIgnoreCase("end") ) {
-			out.println ( "stop 0" );
-			closeClicked();
-		}
-		else {	out.println("error");
-		}
-	}
-}
-
-// REVISIT - need to enable/disable filters based on the list of time series
-// that are selected.
+//TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series
+//that are selected.
 /**
 Save the current time series to the selected format.  The user picks the file
 and the format, via the chooser filter.
 */
-private void saveTimeSeries ()
+private void uiAction_SaveTimeSeries ()
 {	JFileChooser fc = JFileChooserFactory.createJFileChooser(
 		JGUIUtil.getLastFileDialogDirectory() );
 	fc.setDialogTitle("Save Time Series (full period)");
@@ -14754,7 +14936,7 @@ private void saveTimeSeries ()
 	// REVISIT - need to do this cleaner and perhaps let users pick some
 	// output options.  Do enforce the file extensions.
 	if ( ff == datevalue_sff ) {
-		exportTimeSeriesResults("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
+		uiAction_ExportTimeSeriesResults("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
 	}
 	/*
 	else if ( ff == nwscard_sff ) {
@@ -14763,28 +14945,28 @@ private void saveTimeSeries ()
 	}
 	*/
 	else if ( ff == esp_cs_sff ) {
-		exportTimeSeriesResults("-onwsrfsesptraceensemble",
+		uiAction_ExportTimeSeriesResults("-onwsrfsesptraceensemble",
 		IOUtil.enforceFileExtension(path,"CS") );
 	}
 	else if ( ff == riverware_sff ) {
 		// Don't know for sure what extension...
-		exportTimeSeriesResults("-oriverware", path );
+		uiAction_ExportTimeSeriesResults("-oriverware", path );
 	}
 	else if ( ff == shef_sff ) {
 		// Don't know for sure what extension...
-		exportTimeSeriesResults("-oshefa", path );
+		uiAction_ExportTimeSeriesResults("-oshefa", path );
 	}
 	else if ( ff == statemod_sff ) {
 		// Don't know for sure what extension...
-		exportTimeSeriesResults("-ostatemod", path );
+		uiAction_ExportTimeSeriesResults("-ostatemod", path );
 	}
 	else if ( ff == summary_sff ) {
-		exportTimeSeriesResults("-osummary", IOUtil.enforceFileExtension(path,"txt") );
+		uiAction_ExportTimeSeriesResults("-osummary", IOUtil.enforceFileExtension(path,"txt") );
 	}
 	else {
 		for (int i = 0; i < nwscardFilters.length; i++) {
 			if (ff == nwscardFilters[i]) {
-				exportTimeSeriesResults("-onwscard", path);
+				uiAction_ExportTimeSeriesResults("-onwscard", path);
 				break;
 			}
 		}
@@ -14792,12 +14974,12 @@ private void saveTimeSeries ()
 }
 
 /**
-Select the command and position the display at the command.
-@param iline Command position (0+).
+Select all commands in the commands list.  This occurs in response to a user
+selecting a menu choice.
 */
-private void selectCommand ( int iline )
-{	__commands_JList.setSelectedIndex ( iline );
-	updateStatus();
+private void uiAction_SelectAllCommands()
+{	JGUIUtil.selectAll(__commands_JList);
+	ui_UpdateStatus ( true );
 }
 
 /**
@@ -14807,7 +14989,7 @@ update the choices.
 values from __input_name_NWSRFS_FS5Files.
 @exception Exception if there is an error.
 */
-private void selectInputName_NWSRFS_FS5Files ( boolean reset_input_names )
+private void uiAction_SelectInputName_NWSRFS_FS5Files ( boolean reset_input_names )
 throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_NWSRFS_FS5Files";
 	// REVISIT SAM 2004-09-10 it does not seem like the following case ever
@@ -14913,7 +15095,7 @@ throws Exception
 	
 	// Set the data types and time step based on what is available...
 
-	inputNameChoiceClicked ();
+	uiAction_InputNameChoiceClicked ();
 
 	// Initialize with blank data vector...
 
@@ -14938,7 +15120,7 @@ the choices.
 values from __input_name_StateCU.
 @exception Exception if there is an error.
 */
-private void selectInputName_StateCU ( boolean reset_input_names )
+private void uiAction_SelectInputName_StateCU ( boolean reset_input_names )
 throws Exception
 {	if ( reset_input_names ) {
 		// The StateCU input type has been selected as a change from
@@ -15119,7 +15301,7 @@ the choices.
 values from __input_name_StateModB.
 @exception Exception if there is an error.
 */
-private void selectInputName_StateModB ( boolean reset_input_names )
+private void uiAction_SelectInputName_StateModB ( boolean reset_input_names )
 throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_StateModB";
 	if ( reset_input_names ) {
@@ -15312,7 +15494,7 @@ upper right of the main TSTool interface and zoom to the selected features.
 @exception Exception if there is an error showing the related time series
 features on the map.
 */
-private void selectOnMap ()
+private void uiAction_SelectOnMap ()
 throws Exception
 {	String routine = "TSTool_JFrame.selectOnMap";
 	int size = __query_JWorksheet.getRowCount();	// To size Vector
@@ -15706,20 +15888,10 @@ throws Exception
 */
 
 /**
-Set the commands file name.  This also will refresh any interface components
-that display the commands file name.
-@param commands_file_name Name of current commands file (can be null).
+Get the selected commands from the commands list and save in the cut buffer.
+This is generally used before deleting the time series.
 */
-private void setCommandsFileName ( String commands_file_name )
-{	__commands_file_name = commands_file_name;
-	// Update the title bar...
-	updateStatus ();
-}
-
-/**
-Get the selected time series from the commands list and save in the cut buffer.
-*/
-private void setCommandListCutBuffer ()
+private void uiAction_SetCommandListCutBuffer ()
 {	int size = 0;
 	int [] selected_indices = __commands_JList.getSelectedIndices();
 	if ( selected_indices != null ) {
@@ -15740,264 +15912,11 @@ private void setCommandListCutBuffer ()
 }
 
 /**
-Indicate whether the commands have been modified.  The application title is
-also updated to indicate this.
-@param dirty Specify as true if the commands have been modified in some way.
-*/
-private void setCommandsDirty ( boolean dirty )
-{	__commands_dirty = dirty;
-	updateStatus ();
-}
-
-/**
-Set the initial working directory, which will be the software startup home or
-the location where the commands file has been read/saved.
-@param initial_working_dir The initial working directory (should be non-null).
-*/
-private void setInitialWorkingDir ( String initial_working_dir )
-{
-	__initial_working_dir = initial_working_dir;
-}
-
-/**
-Set the input filters based on the current settings.  This sets the appropriate
-input filter visible since all input filters are created at startup.
-*/
-private void setInputFilters()
-{	if (	__selected_input_type.equals(__INPUT_TYPE_HydroBase) &&
-		(__input_filter_HydroBase_station_JPanel != null) &&
-		(__input_filter_HydroBase_structure_JPanel != null) &&
-		(__input_filter_HydroBase_structure_sfut_JPanel != null) ) {
-		// Can only use the HydroBase filters if they were originally
-		// set up (if HydroBase was originally available)...
-		String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType(
-				__selected_data_type, __selected_time_step );
-
-		String meas_type = hb_mt[0];
-		//String vax_field = hb_mt[1];
-		//String time_step = hb_mt[2];
-		Message.printStatus(2, "", "isStationTimeSeriesDataType("+ __selected_data_type
-				+ "," + __selected_time_step + "," + meas_type +
-				")=" + HydroBase_Util.isStationTimeSeriesDataType (
-				__hbdmi, meas_type));
-		if ( HydroBase_Util.isStationTimeSeriesDataType (
-			__hbdmi, meas_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_station_JPanel;
-		}
-		// Call this before the more general
-		// isStructureTimeSeriesDataType() method...
-		else if ( HydroBase_Util.isStructureSFUTTimeSeriesDataType (
-			__hbdmi, meas_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_structure_sfut_JPanel;
-		}
-		else if ( HydroBase_Util.isStructureTimeSeriesDataType (
-			__hbdmi, meas_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_structure_JPanel;
-		}
-		else if ((__input_filter_HydroBase_CASSCropStats_JPanel != null)
-			&& HydroBase_Util.
-			isAgriculturalCASSCropStatsTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying CASS crop stats panel");
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_CASSCropStats_JPanel;
-		}
-		else if ((__input_filter_HydroBase_CASSLivestockStats_JPanel
-			!= null) && HydroBase_Util.
-			isAgriculturalCASSLivestockStatsTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying CASS livestock stats panel");
-			__selected_input_filter_JPanel =
-			__input_filter_HydroBase_CASSLivestockStats_JPanel;
-		}
-		else if ((__input_filter_HydroBase_CUPopulation_JPanel
-			!= null) && HydroBase_Util.
-			isCUPopulationTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying CU population panel");
-			__selected_input_filter_JPanel =
-			__input_filter_HydroBase_CUPopulation_JPanel;
-		}
-		else if ( (__input_filter_HydroBase_NASS_JPanel != null) &&
-			HydroBase_Util.
-			isAgriculturalNASSCropStatsTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying NASS agstats panel");
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_NASS_JPanel;
-		}
-		else if ( (__input_filter_HydroBase_irrigts_JPanel != null) &&
-			HydroBase_Util.isIrrigSummaryTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_irrigts_JPanel;
-		}
-		else if ((__input_filter_HydroBase_wells_JPanel != null) 
-		    && HydroBase_Util.isGroundWaterWellTimeSeriesDataType(
-		    __hbdmi, __selected_data_type)) {
-			if (__selected_time_step.equals(__TIMESTEP_IRREGULAR)) {
-				__selected_input_filter_JPanel =
-					__input_filter_HydroBase_station_JPanel;
-			}
-			else {
-				__selected_input_filter_JPanel =
-					__input_filter_HydroBase_wells_JPanel;
-			}
-		}		
-		else if ( (__input_filter_HydroBase_WIS_JPanel != null) &&
-			HydroBase_Util.isWISTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_WIS_JPanel;
-		}
-		
-		else {	// Generic input filter does not have anything...
-			__selected_input_filter_JPanel =
-				__input_filter_generic_JPanel;
-		}
-	}
-	else if(__selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) &&
-		(__input_filter_MexicoCSMN_JPanel != null) ) {
-		// Can only use the Mexico CSMN filters if they were originally
-		// set up...
-		__selected_input_filter_JPanel=__input_filter_MexicoCSMN_JPanel;
-	}
-	else if(__selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) &&
-		(__input_filter_NWSRFS_FS5Files_JPanel != null) ) {
-		__selected_input_filter_JPanel =
-		__input_filter_NWSRFS_FS5Files_JPanel;
-	}
-	else {	// Currently no other input types support filtering - this may
-		// also be used if HydroBase input filters were not set up due
-		// to a missing database connection...
-		__selected_input_filter_JPanel = __input_filter_generic_JPanel;
-	}
-	// Now loop through the available input filter panels and set visible
-	// the selected one...
-	int size = __input_filter_JPanel_Vector.size();
-	JPanel input_filter_JPanel;
-	for ( int i = 0; i < size; i++ ) {
-		input_filter_JPanel =
-			(JPanel)__input_filter_JPanel_Vector.elementAt(i);
-		if ( input_filter_JPanel == __selected_input_filter_JPanel ) {
-			input_filter_JPanel.setVisible ( true );
-		}
-		else {	input_filter_JPanel.setVisible ( false );
-		}
-	}
-}
-
-/**
-Set the __input_type_JComboBox contents based on the configuration information.
-If an input type is a database, only add if a non-null connection is available.
-Later, database connections may also be named, in which case more checks will
-need to be done.
-*/
-private void setInputTypeChoices ()
-{	//Message.printStatus ( 1, "", "SAMX - setting input type choices..." );
-	// Ignore item events while manipulating.  This should prevent
-	// unnecessary error-handling at startup.
-	__ignore_ItemEvent = true;
-	if ( __input_type_JComboBox.getItemCount() > 0 ) {
-		__input_type_JComboBox.removeAll ();
-	}
-	if ( __source_DateValue_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_DateValue );
-	}
-	if (	__source_DIADvisor_enabled &&
-		(__DIADvisor_dmi != null) &&
-		(__DIADvisor_archive_dmi != null) ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_DIADvisor );
-	}
-	if ( __source_HydroBase_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_HydroBase );
-	}
-	if ( __source_MexicoCSMN_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_MEXICO_CSMN );
-	}
-	if ( __source_MODSIM_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_MODSIM );
-	}
-	if ( __source_NWSCard_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_NWSCARD );
-	}
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_NWSRFS_FS5Files );
-	}
-	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		__input_type_JComboBox.add(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble );
-	}
-	if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_RiversideDB );
-	}
-	if ( __source_RiverWare_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_RiverWare );
-	}
-	// REVISIT - don't know how to parse SHEF yet...
-	//if ( __source_SHEF_enabled ) {
-		//__input_type_JComboBox.add( __INPUT_TYPE_SHEF );
-	//}
-	if ( __source_StateCU_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_StateCU );
-	}
-	if ( __source_StateMod_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_StateMod );
-	}
-	if ( __source_StateModB_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_StateModB );
-	}
-	if ( __source_USGSNWIS_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_USGSNWIS );
-	}
-
-	// Enable item events again so the events will cascade...
-
-	__ignore_ItemEvent = false;
-
-	if ( __source_HydroBase_enabled ) {
-		// If enabled, select it because the users probably want it
-		// as the choice...
-		__input_type_JComboBox.select( null );
-		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
-	}
-	else {	// Select the first item in the list...
-		__input_type_JComboBox.select ( null );
-		__input_type_JComboBox.select ( 0 );
-	}
-}
-
-/**
-In the HBGUIApp base class - not sure why this is needed.
-*/
-public void setMenuItemState ( boolean state )
-{
-}
-
-/**
-Show and hide the main frame.
-@param state true if showing the frame, false if hiding it.
-*/
-public synchronized void setVisible(boolean state)
-{	if (state) {
-		setLocation(50, 50);
-	}
-	super.setVisible(state);
-}
-
-/**
 Display the status of the selected command(s).
 */
-private void showCommandStatus()
+private void uiAction_ShowCommandStatus()
 {
-	Vector commands = getCommands();
+	Vector commands = commandList_GetCommands();
 	int size = commands.size();
 	Command command;
 	Vector output = new Vector();
@@ -16022,9 +15941,9 @@ private void showCommandStatus()
 }
 
 /**
-Show the Help About dialog.
+Show the Help About dialog in response to a user selecting a menu.
 */
-private void showHelpAbout ()
+private void uiAction_ShowHelpAbout ()
 {	String license_type = __license_manager.getLicenseType();
 	if ( license_type.equalsIgnoreCase("CDSS") ) {
 		// CDSS installation...
@@ -16054,881 +15973,11 @@ private void showHelpAbout ()
 }
 
 /**
-Fill in appropriate selections for the data type modifier choices based on
-the currently selected input data source, data type and time step.
-*/
-private void timeStepChoiceClicked()
-{	String rtn = "TSTool_JFrame.timeStepChoiceClicked";
-	if (	(__input_type_JComboBox == null) ||
-		(__data_type_JComboBox == null) ||
-		(__time_step_JComboBox == null)  ) {
-		// GUI still initializing...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Time step has been " +
-			"selected but the GUI is not initialized." );
-		}
-		return;
-	}
-	__selected_time_step = __time_step_JComboBox.getSelected();
-	if ( __selected_time_step == null ) {
-		// Apparently this happens when setData() or similar is called
-		// on the JComboBox, and before select() is called.
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Time step has been " +
-			"selected:  null (select is ignored)" );
-		}
-		return;
-	}
-	if ( Message.isDebugOn ) {
-		Message.printStatus ( 2, rtn, "Time step has been " +
-		"selected:  \"" + __selected_time_step + "\"" );
-	}
-
-	setInputFilters();
-/*
-	else if ( dsource.equals(__INPUT_TYPE_RiversideDB) ) {
-		// Get the selected MeasType that match the choices so far
-		// and add to the data type modifiers (sub-data type)...
-		Vector v = null;
-		String data_type = StringUtil.getToken(
-			__data_type_JComboBox.getSelected(),
-			" ",0,0).trim();
-		try {	v = __rdmi.readMeasTypeListForTSIdent (
-				".." + data_type + "." +
-				__time_step_JComboBox.getSelected() + "." );
-		}
-		catch ( Exception e ) {
-			v = null;
-		}
-		int size = 0;
-		if ( v != null ) {
-			size = v.size();
-		}
-		String subtype = "";
-		RiversideDB_MeasType mt;
-		if ( size > 0 ) {
-			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)v.elementAt(i);
-				// Only add if not already listed.
-				// Alternatively - add a "distinct" query
-				subtype = mt.getSub_type();
-				if ( subtype.equals("") ) {
-					continue;
-				}
-				if (	!JGUIUtil.isSimpleJComboBoxItem(
-					__data_type_mod_JComboBox,
-					subtype, JGUIUtil.NONE, null, null)){
-					__data_type_mod_JComboBox.add (
-					subtype );
-				}
-			}
-			if ( __data_type_mod_JComboBox.getItemCount() == 0 ) {
-				__data_type_mod_JComboBox.add ( _MOD_NONE );
-			}
-			__data_type_mod_JComboBox.setEnabled ( true );
-		}
-		else {	__data_type_mod_JComboBox.setEnabled ( false );
-			__data_type_mod_JComboBox.add ( _MOD_NONE );
-		}
-	}
-*/
-}
-
-/**
-Transfer all the time series from the query results to the command List.
-*/
-public void transferAllTSFromListToCommands ()
-{	String routine = "TSTool_JFrame.transferAllTSFromListToCommands";
-
-	int nrows = __query_TableModel.getRowCount();
-	Message.printStatus ( 1, routine,
-	"Transferring all time series to commands (" + nrows + " in list)..." );
-	JGUIUtil.setWaitCursor ( this, true );
-	int iend = nrows - 1;
-	__ignore_ListSelectionEvent = true;	// To increase performance
-						// during transfer...
-	__ignore_ItemEvent = true;	// To increase performance
-	for ( int i = 0; i < nrows; i++ ) {
-		// Only force the GUI state to be updated if the last item.
-		if ( i == iend ) {
-			__ignore_ListSelectionEvent = false;
-			__ignore_ItemEvent = false;
-			transferOneTSFromListToCommand ( i, true );
-		}
-		else {	transferOneTSFromListToCommand ( i, false );
-		}
-	}
-	__ignore_ListSelectionEvent = false;
-	__ignore_ItemEvent = false;
-	JGUIUtil.setWaitCursor ( this, false );
-
-	Message.printStatus ( 1, routine, "Selected all time series." );
-}
-
-/**
-Select a station from the query list and create a time series indentifier in the
-command list.
-@param row Row that is selected in the query list.  This method can be
-called once for a single event or multiple times from transferAll().
-@param check_gui_state If true, then the GUI state is checked after the
-transfer.  This should only be set to true when transferring one command.  If
-many are transferred, this slows down the GUI.
-*/
-private void transferOneTSFromListToCommand ( int row, boolean check_gui_state) 
-{	boolean use_alias = false;
-	if ( __selected_input_type.equals(__INPUT_TYPE_DateValue) ) {
-		// The location (id), type, and time step uniquely identify the
-		// time series, but the input_name is needed to find the data.
-		// If an alias is specified, assume that it should be used
-		// instead of the normal TSID.
-		TSTool_TS_TableModel model =
-			(TSTool_TS_TableModel)__query_TableModel;
-		String alias = ((String)model.getValueAt (
-			row, model.COL_ALIAS )).trim();
-		if ( !alias.equals("") ) {
-			// Alias is available so use it...
-			use_alias = true;
-		}
-		// REVISIT SAM 2004-01-06 - for now don't use the alias to put
-		// together the ID - there are issues to resolve in how
-		// DateValueTS.readTimeSeries() handles the ID.
-		use_alias = false;
-		if ( use_alias ) {
-			// Use the alias instead of the identifier...
-			try {
-			appendResultsToCommands ( alias,
-			null,
-			null,
-			null,
-			null,
-			null,	// No sequence number
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_TYPE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_NAME), "",
-			use_alias );
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 2, "", e );
-			}
-		}
-		else {	// Use full ID and all other fields...
-			Message.printStatus ( 1, "",
-			"Calling append (no alias)..." );
-			appendResultsToCommands ( 
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_ID ),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_SOURCE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_TYPE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_TIME_STEP),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SCENARIO),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SEQUENCE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_TYPE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_NAME), "",
-			use_alias );
-		}
-	}
-	else if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
-		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
-			TSTool_HydroBase_TableModel model =
-				(TSTool_HydroBase_TableModel)__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID) + " - " +
-					(String)__query_TableModel.getValueAt (
-					row, model.COL_NAME),
-				false );
-		}
-		else if (__query_TableModel instanceof
-			TSTool_HydroBase_WellLevel_Day_TableModel) {
-			TSTool_HydroBase_WellLevel_Day_TableModel model =
-				(TSTool_HydroBase_WellLevel_Day_TableModel)
-				__query_TableModel;
-			appendResultsToCommands(
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID) + " - " +
-					(String)__query_TableModel.getValueAt (
-					row, model.COL_NAME),
-				false );			
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_Ag_TableModel){
-			TSTool_HydroBase_Ag_TableModel model =
-				(TSTool_HydroBase_Ag_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_AgGIS_TableModel){
-			TSTool_HydroBase_AgGIS_TableModel model =
-				(TSTool_HydroBase_AgGIS_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_CASSLivestockStats_TableModel){
-			TSTool_HydroBase_CASSLivestockStats_TableModel model =
-				(TSTool_HydroBase_CASSLivestockStats_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_CUPopulation_TableModel){
-			TSTool_HydroBase_CUPopulation_TableModel model =
-				(TSTool_HydroBase_CUPopulation_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_WIS_TableModel){
-			TSTool_HydroBase_WIS_TableModel model =
-				(TSTool_HydroBase_WIS_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_SHEET_NAME),
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-	}
-	else if ( __selected_input_type.equals(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
-		// The location (id), type, and time step uniquely identify the
-		// time series, but the input_name is needed to find the data.
-		// If an alias is specified, assume that it should be used
-		// instead of the normal TSID.
-		TSTool_ESPTraceEnsemble_TableModel model =
-			(TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
-		//String alias = ((String)__query_TableModel.getValueAt ( row,
-			//model.COL_ALIAS )).trim();
-		boolean use_alias_in_id = false;
-		if ( use_alias_in_id ) {
-			// Need to figure out what to do here...
-		}
-		else {	// Use full ID and all other fields...
-			appendResultsToCommands ( 
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_ID ),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_SOURCE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_TYPE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_TIME_STEP),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SCENARIO),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SEQUENCE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_TYPE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_NAME), "",
-			false );
-		}
-	}
-	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
-		// The location (id), type, and time step uniquely
-		// identify the time series, but the input_name is needed
-		// to indicate the database.
-		TSTool_RiversideDB_TableModel model =
-			(TSTool_RiversideDB_TableModel)__query_TableModel;
-		appendResultsToCommands ( 
-		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
-		(String)__query_TableModel.getValueAt(row,
-						model.COL_DATA_SOURCE),
-		(String)__query_TableModel.getValueAt( row,model.COL_DATA_TYPE),
-		(String)__query_TableModel.getValueAt( row,model.COL_TIME_STEP),
-		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
-		null,	// No sequence number
-		(String)__query_TableModel.getValueAt(row,model.COL_INPUT_TYPE),
-		"",
-		"", false );
-	}
-	// The following input types use the generic TSTool_TS_TableModel with
-	// no special considerations.  If the sequence number is non-blank in
-	// the worksheet, it will be transferred.
-	else if ( __selected_input_type.equals(__INPUT_TYPE_DIADvisor) ||
-		__selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ||
-		__selected_input_type.equals(__INPUT_TYPE_MODSIM) ||
-		__selected_input_type.equals ( __INPUT_TYPE_NWSCARD ) ||
-		__selected_input_type.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ||
-		__selected_input_type.equals ( __INPUT_TYPE_RiverWare ) ||
-		__selected_input_type.equals ( __INPUT_TYPE_StateCU ) ||
-		__selected_input_type.equals ( __INPUT_TYPE_StateMod ) ||
-		__selected_input_type.equals ( __INPUT_TYPE_StateModB ) ||
-		__selected_input_type.equals(__INPUT_TYPE_USGSNWIS) ) {
-		// The location (id), type, and time step uniquely
-		// identify the time series...
-		TSTool_TS_TableModel model =
-			(TSTool_TS_TableModel)__query_TableModel;
-		String seqnum = (String)__query_TableModel.getValueAt(
-					row, model.COL_SEQUENCE );
-		if ( seqnum.length() == 0 ) {
-			seqnum = null;
-		}
-		appendResultsToCommands (
-		(String)__query_TableModel.getValueAt (
-					row, model.COL_ID ),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_DATA_SOURCE),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_DATA_TYPE),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_TIME_STEP ),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_SCENARIO ),
-		seqnum,	// Optional sequence number
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_NAME),
-		"", false );
-	}
-	// Check the GUI...
-	if ( check_gui_state ) {
-		checkGUIState();
-	}
-}
-
-/**
-Transfer selected time series from the query results to the command List.
-*/
-public void transferSelectedTSFromListToCommands ()
-{	String routine = "TSTool_JFrame.transferSelectedTSFromListToCommands";
-
-	int nrows = __query_JWorksheet.getSelectedRowCount();
-	Message.printStatus ( 1, routine,
-	"Transferring selected time series to commands (" + nrows +
-	" in list)..." );
-	int [] selected = __query_JWorksheet.getSelectedRows();
-	int iend = nrows - 1;
-	for ( int i = 0; i < nrows; i++ ) {
-		// Only update the GUI state if transferring the last command...
-		if ( i == iend ) {
-			transferOneTSFromListToCommand ( selected[i], true ); 
-		}
-		else {	transferOneTSFromListToCommand ( selected[i], false ); 
-		}
-	}
-	Message.printStatus ( 1, routine, "Transferred selected time series." );
-}
-
-/**
-Update the command list with the result of a command edit.
-The text that is selected is replaced with the command that is passed in.
-This method should only be called from the editCommand() method.
-@param original_command_string The original command as a String before any editing (null if
-a new command).
-@param edited_command Vector containing command after editing (currently
-assumed to be in the first String since all commands are one line).
-@param action __UPDATE_COMMAND or __INSERT_COMMAND.
-*/
-private void updateCommand (	String original_command_string,
-				Command edited_command, int action )
-{	String routine = "TSTool_JFrame.updateCommand";
-	if (edited_command == null) {
-		return;
-	}
-
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
-	int selectedSize = selectedIndices.length;	
-	//int size = edited_command.size();
-	int size = 1;
-	int index_to_view = -1;	// Index that should be visible after updates
-	if ( action == __UPDATE_COMMAND ) {
-		if (selectedSize > 0) {
-			// Remove the selected items (going backwards so that
-			// things don't get stepped on)...
-			for (int i = (selectedSize - 1); i >= 0; i--) {
-				__commands_JListModel.removeElementAt(
-					selectedIndices[i]);
-				Message.printStatus(2, routine, "Update - removing command \"" +
-						edited_command + "\" at [" + i + "]" );
-			}
-			// Now add immediately after the first selected item...
-			for (int i = 0; i < size; i++) {
-				__commands_JListModel.insertElementAt (
-					edited_command,
-					//(String)edited_command.elementAt(i),
-					(selectedIndices[0] + i));
-				Message.printStatus(2, routine, "Update - inserting command \"" +
-						edited_command + "\" at [" + i + "]" );
-			}
-			index_to_view = selectedIndices[0] + size - 1;
-		}
-	}
-	else if ( action == __INSERT_COMMAND ) {
-		// Insert before the first selected item...
-		if (selectedSize > 0) {
-			for (int i = 0; i < size; i++) {
-				__commands_JListModel.insertElementAt (
-					edited_command,
-					//(String)edited_command.elementAt(i),
-					(selectedIndices[0] + i));
-				Message.printStatus(2, routine, "Insert - inserting command \"" +
-						edited_command + "\" at [" + i + "]" );
-			}
-			index_to_view = selectedIndices[0] + size - 1;
-		}
-		else {	// Insert at end of commands list.
-			for (int i = 0; i < size; i++) {
-				__commands_JListModel.addElement ( edited_command );
-				//(String)edited_command.elementAt(i));
-			}
-			index_to_view = __commands_JListModel.size() - 1;
-		}
-	}
-	// Make sure that the list scrolls to the position that has been
-	// updated...
-	if ( index_to_view >= 0 ) {
-		__commands_JList.ensureIndexIsVisible ( index_to_view );
-	}
-	// Clean up...
-	selectedIndices = null;
-	if ( !commandsAreEqual ( original_command_string, edited_command.toString() ) ) {
-		setCommandsDirty(true);
-	}
-	checkGUIState ();
-}
-
-/**
-Update the dynamic properties in __props by processing specific commands.  For
-example, for a command that is about to be edited, determine the working
-directory from previous settings and commands.  If the user has set the
-working directory with a command, it will be recognized for the editor.
-*/
-private void updateDynamicProps ()
-{	// Update the shared application properties to set the
-	// "WorkingDir" property, which is used in the following
-	// dialog...
-	Vector needed_commands_Vector = new Vector();
-	needed_commands_Vector.addElement ( "setWorkingDir" );
-	Vector working_dir_commands_Vector =
-		getCommandsAboveInsertPosition (
-		needed_commands_Vector, true );
-	// Always add the starting working directory to the top to
-	// make sure an initial condition is set...
-	working_dir_commands_Vector.insertElementAt (
-		getInitialSetWorkingDirCommand(), 0 );
-	// Create a local command processor
-	TSCommandProcessor ts_processor = new TSCommandProcessor();
-	// Run only the commands of interest...
-	commandProcessorRunCommands (
-			working_dir_commands_Vector,	// List of commands to process
-			false );	// Create output - irrelevant
-	commandProcessorRunSetWorkingDirCommand ( ts_processor, __props );
-}
-
-/**
-Update the text fields at the bottom of the main interface.
-@param level Message level.  If > 0 and the message is not null, call
-Message.printStatus() to record a message.
-@param routine Routine name used if Message.printStatus() is called.
-@param message If not null, update the __message_JTextField to contain this
-text.  If null, leave the contents as previously shown.  Specify "" to clear the
-text.
-@param status If not null, update the __status_JTextField to contain
-this text.  If null, leave the contents as previously shown.  Specify "" to
-clear the text.
-*/
-private void updateTextFields (	int level, String routine, String message,
-				String status )
-{	if ( (level > 0) && (message != null) ) {
-		// Print a status message to the messaging system...
-		Message.printStatus ( 1, routine, message );
-	}
-	if ( message != null ) {
-		__message_JTextField.setText (message);
-	}
-	if ( status != null ) {
-		__status_JTextField.setText (status);
-	}
-}
-
-/**
-Update the main status information when the list contents have changed.  This
-method should be called after any change to the query, command, or time series
-results list.
-Interface tasks include:
-<ol>
-<li>	Set the title bar.
-	If no commands file has been read, the title will be:
-	"TSTool - no commands saved".
-	If a commands file has been read but not modified, the title will be:
-	"TSTool - "filename"".
-	If a commands file has been read and modified, the title will be:
-	"TSTool - "filename" (modified)".
-	</li>
-<li>	Call updateTextFields() to indicate the number of selected and total
-	commands and set the general status to "Ready".
-	</li>
-<li>	Call checkGUIState() to reset menus, etc.  Note this should be called
-	independently when the list appearance changes (selections, etc.).
-	</li>
-</ol>
-@param check_gui_state If true, then the checkGUIState() method is also called,
-which checks many interface settings.
-*/
-private void updateStatus ( boolean check_gui_state )
-{	if ( __commands_file_name == null ) {
-		setTitle ( "TSTool - no commands saved");
-	}
-	else {	if ( __commands_dirty ) {
-			setTitle ( "TSTool - \"" + __commands_file_name +
-			"\" (modified)");
-		}
-		else {	setTitle ( "TSTool - \"" + __commands_file_name + "\"");
-		}
-	}
-	int selected_size = 0;
-	if ( __query_results_JPanel != null ) {
-		int size = 0;
-		if ( __query_JWorksheet != null ) {
-			try {	size=__query_JWorksheet.getRowCount();
-				selected_size=__query_JWorksheet.
-				getSelectedRowCount();
-			}
-			catch ( Exception e ) {
-				// Absorb the exception in most cases - print if
-				// developing to see if this issue can be
-				// resolved.
-				if ( Message.isDebugOn && IOUtil.testing()  ) {
-					String routine =
-						"TSTool_JFrame.updateStatus";
-					Message.printWarning ( 3, routine,
-					"For developers:  caught exception in "+
-					"clearQueryList JWorksheet at setup." );
-					Message.printWarning ( 3, routine, e );
-				}
-			}
-		}
-        	__query_results_JPanel.setBorder(
-			BorderFactory.createTitledBorder (
-			BorderFactory.createLineBorder(Color.black),
-			"Time Series List (" + size +
-			" time series, " + selected_size + " selected)") );
-	}
-	int selected_indices[] = __commands_JList.getSelectedIndices();
-	selected_size = 0;
-	if ( selected_indices != null ) {
-		selected_size = selected_indices.length;
-	}
-	if ( __commands_JPanel != null ) {
-        	__commands_JPanel.setBorder(
-			BorderFactory.createTitledBorder (
-			BorderFactory.createLineBorder(Color.black),
-			"Commands (" + __commands_JListModel.size() +
-			" commands, " + selected_size + " selected)") );
-	}
-	selected_indices = __ts_JList.getSelectedIndices();
-	selected_size = 0;
-	if ( selected_indices != null ) {
-		selected_size = selected_indices.length;
-	}
-	if ( __ts_JPanel != null ) {
-        	__ts_JPanel.setBorder(
-			BorderFactory.createTitledBorder (
-			BorderFactory.createLineBorder(Color.black),
-			"Time Series Results (" +
-			__ts_JListModel.size() + " time series, " +
-			selected_size + " selected)") );
-	}
-	updateTextFields ( -1, "TSTool_JFrame.updateStatus", null,
-				__STATUS_READY );
-	checkGUIState ();
-}
-
-/**
-Call updateStatus(true), which also checks the GUI state.
-*/
-private void updateStatus ()
-{	updateStatus ( false );
-}
-
-/**
-Handle ListSelectionListener events.
-*/
-public void valueChanged ( ListSelectionEvent e )
-{	// For now just want to know when something changes so the GUI state
-	// can be checked...
-	// e.getSource() apparently does not return __commands_JList - it must
-	// return a different component so don't check the object address...
-	if ( __ignore_ListSelectionEvent ) {
-		return;
-	}
-	updateStatus ();
-}
-
-public void windowActivated ( WindowEvent e )
-{
-}
-
-/**
-This class is listening for GeoViewFrame closing so it can gracefully handle.
-*/
-public void windowClosed ( WindowEvent e )
-{	// Get the window that is being closed.  If it is the __geoview_JFrame,
-	// then set the __geoview_JFrame instance to null.
-	Component c = e.getComponent();
-	if ( (__geoview_JFrame != null) && (c == __geoview_JFrame) ) {
-		// GeoView...
-		__geoview_JFrame = null;
-		__View_MapInterface_JCheckBoxMenuItem.setSelected ( false );
-	}
-	else if ( !__show_main ) {
-		// Running in hidden mode and the TSViewJFrame has closed so
-		// close the application...
-		closeClicked();
-	}
-}
-
-/**
-We care if the TSTool GUI is closing because we need to shut it down
-gracefully.
-*/
-public void windowClosing ( WindowEvent e )
-{	Component c = e.getComponent();
-	if ( c.equals(this) ) {
-		// This may cancel the close...
-            	closeClicked();
-	}
-}
-
-public void windowDeactivated ( WindowEvent e )
-{
-}
-
-public void windowDeiconified ( WindowEvent e )
-{
-}
-
-public void windowIconified ( WindowEvent e )
-{
-}
-
-public void windowOpened ( WindowEvent e )
-{
-}
-
-// REVISIT SAM 2006-03-02
-// The JWorksheet_Listener may be deprecated or reworked in the future.  It is
-// used in a limited capacity here to detect row select/deselect from the popup
-// menu, so tha the status labels can be updated properly.
-
-/**
-Required by JWorksheet_Listener.
-*/
-public void worksheetDeselectAllRows(int timeframe)
-{	if (timeframe == JWorksheet.POST_SELECTION_CHANGE) {
-		updateStatus ( true );
-	}
-}
-
-/**
-Required by JWorksheet_Listener.
-*/
-public void worksheetRowAdded ( int row )
-{
-}
-
-/**
-Required by JWorksheet_Listener.
-*/
-public void worksheetRowDeleted ( int row )
-{
-}
-
-/**
-Required by JWorksheet_Listener.
-*/
-public void worksheetSelectAllRows(int timeframe)
-{	if (timeframe == JWorksheet.POST_SELECTION_CHANGE) {
-		updateStatus ( true );
-	}
-}
-
-/**
-Required by JWorksheet_Listener.
-*/
-public void worksheetSetRowCount ( int count )
-{
-}
-
-/**
-Write the current commands file list (all lines, whether selected or not) to
-the specified file.  Do not prompt for header comments (and do not add).
-@param prompt_for_file If true, prompt for the file name rather than using the
-value that is passed.  An extension of .TSTool is enforced.
-@param file Commands file to write.
-*/
-private void writeCommandsFile ( String file, boolean prompt_for_file )
-{	String directory = null;
-	if ( prompt_for_file ) {
-		JFileChooser fc = JFileChooserFactory.createJFileChooser(
-			JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle("Save Commands File");
-		// Default name...
-		File default_file = new File("commands.TSTool");
-		fc.setSelectedFile ( default_file );
-		fc.addChoosableFileFilter(
-			new SimpleFileFilter("cmx", "TSTool Commands File") );
-		SimpleFileFilter sff = 
-			new SimpleFileFilter(
-			"TSTool","TSTool Commands File");
-		fc.setFileFilter(sff);
-		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-			directory = fc.getSelectedFile().getParent();
-			file = fc.getSelectedFile().getPath();
-			IOUtil.enforceFileExtension ( file, "TSTool" );
-			JGUIUtil.setLastFileDialogDirectory ( directory );
-		}		
-		else {	// Did not approve...
-			return;
-		}
-	}
-	// Now write the file...
-	try {	PrintWriter out = new PrintWriter(new FileOutputStream(file));
-		
-		int size = __commands_JListModel.size();
-	
-		for (int i = 0; i < size; i++) {
-			out.println(((Command)__commands_JListModel.get(i)).toString());
-		}
-	
-		out.close();
-		setCommandsDirty(false);
-		setCommandsFileName ( file );
-
-		if ( directory != null ) {
-			// Set the "WorkingDir" property, which will NOT
-			// contain a trailing separator...
-			IOUtil.setProgramWorkingDir(directory);
-			JGUIUtil.setLastFileDialogDirectory(directory);
-			__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
-			setInitialWorkingDir (__props.getValue("WorkingDir"));
-		}
-	}
-	catch ( Exception e ) {
-		Message.printWarning (1, "writeCommandsFile",
-			"Error writing file:\n\"" + file + "\"");
-		// Leave the dirty flag the previous value.
-	}
-	// Update the status information...
-	updateStatus();
-}
-
-// Put all test code below here....
-
-/**
-Method to run test code.
+Method to run test code.  This is usually accessible only when running with the
+-test command line option.
 @exception Exception if there is an error.
 */
-private void test ()
+private void uiAction_Test ()
 throws Exception
 {	String routine = "TSTool_JFrame.test";
 	int test_num = 9;
@@ -17366,7 +16415,7 @@ throws Exception
 			"No time series available for test." );
 			return;
 		}
-		Vector tslist = commandProcessorGetTimeSeriesResultsList();
+		Vector tslist = commandProcessor_GetTimeSeriesResultsList();
 		int tslist_size = 0;
 		if ( tslist != null ) {
 			tslist_size = tslist.size();
@@ -17532,4 +16581,353 @@ throws Exception
 	}
 }
 
-} // end TSTool_JFrame class
+/**
+Fill in appropriate selections for the data type modifier choices based on
+the currently selected input data source, data type and time step.
+*/
+private void uiAction_TimeStepChoiceClicked()
+{	String rtn = "TSTool_JFrame.timeStepChoiceClicked";
+	if (	(__input_type_JComboBox == null) ||
+		(__data_type_JComboBox == null) ||
+		(__time_step_JComboBox == null)  ) {
+		// GUI still initializing...
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, rtn, "Time step has been " +
+			"selected but the GUI is not initialized." );
+		}
+		return;
+	}
+	__selected_time_step = __time_step_JComboBox.getSelected();
+	if ( __selected_time_step == null ) {
+		// Apparently this happens when setData() or similar is called
+		// on the JComboBox, and before select() is called.
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, rtn, "Time step has been " +
+			"selected:  null (select is ignored)" );
+		}
+		return;
+	}
+	if ( Message.isDebugOn ) {
+		Message.printStatus ( 2, rtn, "Time step has been " +
+		"selected:  \"" + __selected_time_step + "\"" );
+	}
+
+	ui_SetInputFilters();
+/*
+	else if ( dsource.equals(__INPUT_TYPE_RiversideDB) ) {
+		// Get the selected MeasType that match the choices so far
+		// and add to the data type modifiers (sub-data type)...
+		Vector v = null;
+		String data_type = StringUtil.getToken(
+			__data_type_JComboBox.getSelected(),
+			" ",0,0).trim();
+		try {	v = __rdmi.readMeasTypeListForTSIdent (
+				".." + data_type + "." +
+				__time_step_JComboBox.getSelected() + "." );
+		}
+		catch ( Exception e ) {
+			v = null;
+		}
+		int size = 0;
+		if ( v != null ) {
+			size = v.size();
+		}
+		String subtype = "";
+		RiversideDB_MeasType mt;
+		if ( size > 0 ) {
+			for ( int i = 0; i < size; i++ ) {
+				mt = (RiversideDB_MeasType)v.elementAt(i);
+				// Only add if not already listed.
+				// Alternatively - add a "distinct" query
+				subtype = mt.getSub_type();
+				if ( subtype.equals("") ) {
+					continue;
+				}
+				if (	!JGUIUtil.isSimpleJComboBoxItem(
+					__data_type_mod_JComboBox,
+					subtype, JGUIUtil.NONE, null, null)){
+					__data_type_mod_JComboBox.add (
+					subtype );
+				}
+			}
+			if ( __data_type_mod_JComboBox.getItemCount() == 0 ) {
+				__data_type_mod_JComboBox.add ( _MOD_NONE );
+			}
+			__data_type_mod_JComboBox.setEnabled ( true );
+		}
+		else {	__data_type_mod_JComboBox.setEnabled ( false );
+			__data_type_mod_JComboBox.add ( _MOD_NONE );
+		}
+	}
+*/
+}
+
+/**
+Transfer all the time series from the query results to the command List.
+*/
+private void uiAction_TransferAllQueryResultsToCommandList()
+{	String routine = "TSTool_JFrame.transferAllTSFromListToCommands";
+
+	int nrows = __query_TableModel.getRowCount();
+	Message.printStatus ( 1, routine,
+	"Transferring all time series to commands (" + nrows + " in list)..." );
+	JGUIUtil.setWaitCursor ( this, true );
+	int iend = nrows - 1;
+	__ignore_ListSelectionEvent = true;	// To increase performance
+						// during transfer...
+	__ignore_ItemEvent = true;	// To increase performance
+	for ( int i = 0; i < nrows; i++ ) {
+		// Only force the GUI state to be updated if the last item.
+		if ( i == iend ) {
+			__ignore_ListSelectionEvent = false;
+			__ignore_ItemEvent = false;
+			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, true );
+		}
+		else {	queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, false );
+		}
+	}
+	__ignore_ListSelectionEvent = false;
+	__ignore_ItemEvent = false;
+	JGUIUtil.setWaitCursor ( this, false );
+
+	Message.printStatus ( 1, routine, "Selected all time series." );
+}
+
+/**
+Transfer selected time series from the query results to the command List.
+*/
+private void uiAction_TransferSelectedQueryResultsToCommandList ()
+{	String routine = "TSTool_JFrame.transferSelectedTSFromListToCommands";
+
+	int nrows = __query_JWorksheet.getSelectedRowCount();
+	Message.printStatus ( 1, routine,
+	"Transferring selected time series to commands (" + nrows +
+	" in list)..." );
+	int [] selected = __query_JWorksheet.getSelectedRows();
+	int iend = nrows - 1;
+	for ( int i = 0; i < nrows; i++ ) {
+		// Only update the GUI state if transferring the last command...
+		if ( i == iend ) {
+			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], true ); 
+		}
+		else {	queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], false ); 
+		}
+	}
+	Message.printStatus ( 1, routine, "Transferred selected time series." );
+}
+
+/**
+Write the current commands file list (all lines, whether selected or not) to
+the specified file.  Do not prompt for header comments (and do not add).
+@param prompt_for_file If true, prompt for the file name rather than using the
+value that is passed.  An extension of .TSTool is enforced.
+@param file Commands file to write.
+*/
+private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
+{	String directory = null;
+	if ( prompt_for_file ) {
+		JFileChooser fc = JFileChooserFactory.createJFileChooser(
+			JGUIUtil.getLastFileDialogDirectory() );
+		fc.setDialogTitle("Save Commands File");
+		// Default name...
+		File default_file = new File("commands.TSTool");
+		fc.setSelectedFile ( default_file );
+		fc.addChoosableFileFilter(
+			new SimpleFileFilter("cmx", "TSTool Commands File") );
+		SimpleFileFilter sff = 
+			new SimpleFileFilter(
+			"TSTool","TSTool Commands File");
+		fc.setFileFilter(sff);
+		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+			directory = fc.getSelectedFile().getParent();
+			file = fc.getSelectedFile().getPath();
+			IOUtil.enforceFileExtension ( file, "TSTool" );
+			JGUIUtil.setLastFileDialogDirectory ( directory );
+		}		
+		else {	// Did not approve...
+			return;
+		}
+	}
+	// Now write the file...
+	try {	PrintWriter out = new PrintWriter(new FileOutputStream(file));
+		
+		int size = __commands_JListModel.size();
+	
+		for (int i = 0; i < size; i++) {
+			out.println(((Command)__commands_JListModel.get(i)).toString());
+		}
+	
+		out.close();
+		commandList_SetDirty(false);
+		commandList_SetCommandsFileName ( file );
+
+		if ( directory != null ) {
+			// Set the "WorkingDir" property, which will NOT
+			// contain a trailing separator...
+			IOUtil.setProgramWorkingDir(directory);
+			JGUIUtil.setLastFileDialogDirectory(directory);
+			__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
+			ui_SetInitialWorkingDir (__props.getValue("WorkingDir"));
+		}
+	}
+	catch ( Exception e ) {
+		Message.printWarning (1, "writeCommandsFile",
+			"Error writing file:\n\"" + file + "\"");
+		// Leave the dirty flag the previous value.
+	}
+	// Update the status information...
+	ui_UpdateStatus ( false );
+}
+
+/**
+Update the dynamic properties in __props by processing specific commands.  For
+example, for a command that is about to be edited, determine the working
+directory from previous settings and commands.  If the user has set the
+working directory with a command, it will be recognized for the editor.
+*/
+private void updateDynamicProps ()
+{	// Update the shared application properties to set the
+	// "WorkingDir" property, which is used in the following
+	// dialog...
+	Vector needed_commands_Vector = new Vector();
+	needed_commands_Vector.addElement ( "setWorkingDir" );
+	Vector working_dir_commands_Vector =
+		commandList_GetCommandsAboveInsertPosition (
+		needed_commands_Vector, true );
+	// Always add the starting working directory to the top to
+	// make sure an initial condition is set...
+	working_dir_commands_Vector.insertElementAt (
+		getInitialSetWorkingDirCommand(), 0 );
+	// Create a local command processor
+	TSCommandProcessor ts_processor = new TSCommandProcessor();
+	// Run only the commands of interest...
+	commandProcessor_RunCommands (
+			working_dir_commands_Vector,	// List of commands to process
+			false );	// Create output - irrelevant
+	commandProcessor_RunSetWorkingDirCommand ( ts_processor, __props );
+}
+
+/**
+Handle ListSelectionListener events.
+*/
+public void valueChanged ( ListSelectionEvent e )
+{	// For now just want to know when something changes so the GUI state
+	// can be checked...
+	// e.getSource() apparently does not return __commands_JList - it must
+	// return a different component so don't check the object address...
+	if ( __ignore_ListSelectionEvent ) {
+		return;
+	}
+	ui_UpdateStatus ( false );
+}
+
+/**
+Needed for WindowListener interface.  Currently does nothing.
+*/
+public void windowActivated ( WindowEvent e )
+{
+}
+
+/**
+This class is listening for GeoViewFrame closing so it can gracefully handle.
+*/
+public void windowClosed ( WindowEvent e )
+{	// Get the window that is being closed.  If it is the __geoview_JFrame,
+	// then set the __geoview_JFrame instance to null.
+	Component c = e.getComponent();
+	if ( (__geoview_JFrame != null) && (c == __geoview_JFrame) ) {
+		// GeoView...
+		__geoview_JFrame = null;
+		__View_MapInterface_JCheckBoxMenuItem.setSelected ( false );
+	}
+	else if ( !__show_main ) {
+		// Running in hidden mode and the TSViewJFrame has closed so
+		// close the application...
+		uiAction_FileExitClicked ();
+	}
+}
+
+/**
+Need to monitor TSTool GUI is closing to shut it down gracefully.
+*/
+public void windowClosing ( WindowEvent e )
+{	Component c = e.getComponent();
+	if ( c.equals(this) ) {
+		// This may cancel the close if the user decides not to exit...
+        uiAction_FileExitClicked();
+	}
+}
+
+/**
+Needed for WindowListener interface.  Currently does nothing.
+*/
+public void windowDeactivated ( WindowEvent e )
+{
+}
+
+/**
+Needed for WindowListener interface.  Currently does nothing.
+*/
+public void windowDeiconified ( WindowEvent e )
+{
+}
+
+/**
+Needed for WindowListener interface.  Currently does nothing.
+*/
+public void windowIconified ( WindowEvent e )
+{
+}
+
+/**
+Needed for WindowListener interface.  Currently does nothing.
+*/
+public void windowOpened ( WindowEvent e )
+{
+}
+
+// REVISIT SAM 2006-03-02
+// The JWorksheet_Listener may be deprecated or reworked in the future.  It is
+// used in a limited capacity here to detect row select/deselect from the popup
+// menu, so tha the status labels can be updated properly.
+
+/**
+Required by JWorksheet_Listener.
+*/
+public void worksheetDeselectAllRows(int timeframe)
+{	if (timeframe == JWorksheet.POST_SELECTION_CHANGE) {
+		ui_UpdateStatus ( true );
+	}
+}
+
+/**
+Required by JWorksheet_Listener.
+*/
+public void worksheetRowAdded ( int row )
+{
+}
+
+/**
+Required by JWorksheet_Listener.
+*/
+public void worksheetRowDeleted ( int row )
+{
+}
+
+/**
+Required by JWorksheet_Listener.
+*/
+public void worksheetSelectAllRows(int timeframe)
+{	if (timeframe == JWorksheet.POST_SELECTION_CHANGE) {
+		ui_UpdateStatus ( true );
+	}
+}
+
+/**
+Required by JWorksheet_Listener.
+*/
+public void worksheetSetRowCount ( int count )
+{
+}
+
+}
