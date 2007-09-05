@@ -142,7 +142,7 @@ Return the text for the command.
 @return the text for the command or null if there is a problem with the command.
 */
 public Vector getText ()
-{	if (	(__command_Vector.size() == 0) ||
+{	if (	(__command_Vector == null) ||(__command_Vector.size() == 0) ||
 		((String)__command_Vector.elementAt(0)).equals("") ) {
 		return null;
 	}

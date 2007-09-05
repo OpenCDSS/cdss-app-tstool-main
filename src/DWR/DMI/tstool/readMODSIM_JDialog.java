@@ -55,7 +55,7 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 			__ok_JButton = null,	// Ok Button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths
-private Vector		__command_JVector = null; // Command as Vector of String
+private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
 private JTextField	__file_JTextField = null;	// File name field
 private String		__working_dir = null;	// Working directory.
@@ -203,7 +203,7 @@ throws Throwable
 	__cancel_JButton = null;
 	__command_JTextField = null;
 	__file_JTextField = null;
-	__command_JVector = null;
+	__command_Vector = null;
 	__ok_JButton = null;
 	__path_JButton = null;
 	__working_dir = null;
@@ -215,11 +215,11 @@ Return the text for the command.
 @return the text for the command or null if there is a problem with the command.
 */
 public Vector getText ()
-{	if (	(__command_JVector.size() == 0) ||
-		((String)__command_JVector.elementAt(0)).equals("") ) {
+{	if (	(__command_Vector == null) ||(__command_Vector.size() == 0) ||
+		((String)__command_Vector.elementAt(0)).equals("") ) {
 		return null;
 	}
-	return __command_JVector;
+	return __command_Vector;
 }
 
 /**
@@ -232,7 +232,7 @@ Instantiates the GUI components.
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
 			Vector command, Vector tsids )
-{	__command_JVector = command;
+{	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 
 	addWindowListener( this );
@@ -338,7 +338,7 @@ private void refresh ()
 		__first_time = false;
 		// Parse the incoming string and fill the fields...
 		Vector v = StringUtil.breakStringList (
-			((String)__command_JVector.elementAt(0)).trim(),"() ,",
+			((String)__command_Vector.elementAt(0)).trim(),"() ,",
 			StringUtil.DELIM_SKIP_BLANKS |
 			StringUtil.DELIM_ALLOW_STRINGS );
 		if ( (v != null) && (v.size() == 2) ) {
@@ -356,8 +356,8 @@ private void refresh ()
 		return;
 	}
 	__command_JTextField.setText("readMODSIM(\"" + file + "\")" );
-	__command_JVector.removeAllElements();
-	__command_JVector.addElement ( __command_JTextField.getText() );
+	__command_Vector.removeAllElements();
+	__command_Vector.addElement ( __command_JTextField.getText() );
 	// Check the path and determine what the label on the path button should
 	// be...
 	if ( __path_JButton != null ) {
@@ -380,15 +380,15 @@ public Vector response ( int status )
 	dispose();
 	if ( status == 0 ) {
 		// Cancel...
-		__command_JVector = null;
+		__command_Vector = null;
 		return null;
 	}
 	else {	refresh();
-		if (	(__command_JVector.size() == 0) ||
-			((String)__command_JVector.elementAt(0)).equals("") ) {
+		if (	(__command_Vector.size() == 0) ||
+			((String)__command_Vector.elementAt(0)).equals("") ) {
 			return null;
 		}
-		return __command_JVector;
+		return __command_Vector;
 	}
 }
 

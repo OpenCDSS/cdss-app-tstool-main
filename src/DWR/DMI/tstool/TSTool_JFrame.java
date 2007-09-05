@@ -865,7 +865,8 @@ JMenuItem
 
 	__Commands_General_compareFiles_JMenuItem = null,
 	__Commands_General_runCommands_JMenuItem = null,
-	__Commands_General_runProgram_JMenuItem = null;
+	__Commands_General_runProgram_JMenuItem = null,
+	__Commands_General_testCommand_JMenuItem = null;
 
 
 // Commands (HydroBase)...
@@ -1394,6 +1395,8 @@ private String
 		"runCommands()... <run a commands file> (under development)",
 	__Commands_General_runProgram_String = TAB+
 		"runProgram()... <run external program>",
+	__Commands_General_testCommand_String = TAB+
+		"testCommand()... <for development testing>",
 
 	// Results menu choices (order in GUI)...
 
@@ -2204,6 +2207,9 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			is_comment_block = true;
 		}
 	}
+	if ( is_comment_block ) {
+		Message.printStatus(2, routine, "Command is a comment block.");
+	}
 
 	try {	// Main try to help with troubleshooting, especially during
 		// transition to new command structure.
@@ -2353,18 +2359,20 @@ private boolean commandList_EditCommandOldStyle (
 {	String routine = getClass().getName() + ".editCommandOldStyle";
 	int dl = 1;	// Debug level
 	// String version of the command...
-	String command = command_to_edit.getCommandString();
-	String command_trimmed = command.trim();
+	String command = "";	// Will be reset below
 	Vector cv = null;
 	if ( mode == __UPDATE_COMMAND ) {
 		cv = new Vector();
-		command = (String)cv.elementAt(0);
+		command = ((GenericCommand)command_Vector.elementAt(0)).getCommandString();
 		cv.addElement ( command );
 	}
-	else {	// Insert.
+	else {	// Inserting a new command.  Just pass empty data to be
+		// edited (will be checked for in editors).
 		cv = new Vector(1);
-		cv.addElement ( "" );
+		command = "";
+		cv.addElement ( command );
 	}
+	String command_trimmed = command.trim();
 	Vector edited_cv = null;
 	if ( action.equals( __Commands_Create_createFromList_String)||
 		(StringUtil.indexOfIgnoreCase(command,"createFromList(",0)>=0)||
@@ -3131,8 +3139,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for setOutputYearType()" );
 		}
-		edited_cv = new setOutputYearType_JDialog ( this, cv, null).
-							getText();
+		edited_cv = new setOutputYearType_JDialog ( this, cv, null).getText();
 	}
 	else if ( action.equals( __Commands_Output_writeDateValue_String)||
 		command.regionMatches(true,0,"writeDateValue",0,14) ) {
@@ -3291,13 +3298,14 @@ private boolean commandList_EditCommandOldStyle (
 	
 	if ( edited_cv == null ) {
 		// The edit was cancelled...
+		Message.printStatus(2, routine, "Edit was cancelled.");
 		return false;
 	}
 	else {
 		// The edit occurred so commit by resetting the command string in the
 		// GenericCommand to the result of the edit.
-		Message.printStatus ( 2, routine, "Had old-style editor for command " + command_to_edit );
-		command_to_edit.setCommandString( command_to_edit.toString() );
+		Message.printStatus ( 2, routine, "Old-style editor, command after edit = \"" + (String)edited_cv.elementAt(0) + "\"" );
+		command_to_edit.setCommandString( (String)edited_cv.elementAt(0) );
 		return true;
 	}
 }
@@ -6399,6 +6407,11 @@ private void initGUIMenus_CommandsGeneral ()
 		__Commands_General_runCommands_String,this));
 	__Commands_General_JMenu.add ( __Commands_General_runProgram_JMenuItem =
 		new SimpleJMenuItem(__Commands_General_runProgram_String,this));
+	
+	__Commands_General_JMenu.addSeparator();
+	__Commands_General_JMenu.add (
+		__Commands_General_testCommand_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_testCommand_String, this ) );
 }
 
 /**
@@ -10626,6 +10639,10 @@ throws Exception
 	}
 	else if (command.equals( __Commands_General_runProgram_String) ) {
 		commandList_EditCommand ( __Commands_General_runProgram_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_testCommand_String) ) {
+		commandList_EditCommand ( __Commands_General_testCommand_String,
 			null, __INSERT_COMMAND );
 	}
 	else {
