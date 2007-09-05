@@ -29,5 +29,6 @@
 	<classpathentry kind="lib" path="externals/TSCommandProcessor/TSCommandProcessor_142.jar"/>
 	<classpathentry kind="lib" path="externals/HydroBaseDMI/HydroBaseDMI_142.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/NWSRFS_DMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/TSCommandProcessor"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
