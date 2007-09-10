@@ -424,7 +424,7 @@ private String 		__selected_input_type = null,
 
 // Commands area...
 
-/*
+/**
 Annotated list to hold commands and display the command status.
 */
 private AnnotatedCommandJList __commands_AnnotatedCommandJList;
@@ -432,7 +432,7 @@ private AnnotatedCommandJList __commands_AnnotatedCommandJList;
 Commands JList, to support interaction such as selecting and popup menus.
 This is a reference to the JList managed by AnnotatedList.
 */
-private JList		__commands_JList;
+private JList __commands_JList;
 
 /**
 List model that maps the TSCommandProcessor Command data to the command JList.
@@ -444,9 +444,12 @@ private SimpleJButton	__Run_SelectedCommands_JButton,
 						// Run all the commands
 			__ClearCommands_JButton;
 						// Clear commands(s)
-private Vector		__commands_cut_buffer = new Vector(100,100);
-						// Commands list buffer for
-						// cut/paste.
+
+/**
+The Vector of Command that is used with cut/copy/paste user actions.
+*/
+private Vector __commands_cut_buffer = new Vector(100,100);
+
 private Vector __fill_pattern_files = 	new Vector (10,10);
 						// paths to pattern files
 private Vector __fill_pattern_ids = new Vector ( 10, 10 );
@@ -1968,56 +1971,6 @@ public void actionPerformed (ActionEvent event)
 }
 
 /**
-Add a command at the end of the command list and force the GUI state to be
-updated.
-@param command_string Command to add at the end of the list.
-*/
-/* TODO SAM 2007-09-02 Evaluate whether needed after commands file load code is updated.
-private void addCommand ( String command_string )
-{	addCommand ( command_string, false );	
-}
-*/
-
-/**
-Add a command at the end of the command list.
-@param command_string Command to add at the end of the list.
-@param check_gui_state If true, the GUI state is checked.
-*/
-/* TODO SAM 2007-09-02 Evaluate whether needed after commands file load code is updated.
-private void addCommand ( String command_string, boolean check_gui_state )
-{	// Try to use TSCommandFactory to add the command.  If it is not
-	// recognized, then initialize a generic command.
-	Command command = newCommand ( command_string, true );
-	__commands_JListModel.addElement ( command );
-	commandList_SetDirty ( true );
-	ui_UpdateStatus ( check_gui_state );
-}
-*/
-
-/**
-Add a list of command strings at the end of the command list, updating the GUI state
-and status after adding.
-@param commands Vector of commands to add at the end of the list.
-*/
-/* TODO SAM 2007-09-02 Evaluate whether needed after commands file load code is updated.
-private void addCommands ( Vector commands )
-{	int size = 0;
-	if ( commands != null ) {
-		size = commands.size();
-	}
-	for ( int i = 0; i < size; i++ ) {
-		// FIXME SAM 2007-08-16 Remove after tests out
-		//__commands_JListModel.addElement (
-		//(String)commands.elementAt(i) );
-		addCommand ( (String)commands.elementAt(i), false );
-	}
-	//setCommandsDirty ( true );
-	// Now update the status.
-	ui_UpdateStatus ( true );
-}
-*/
-
-/**
 Indicate that a command has completed.  The success/failure of the command
 is not indicated (see CommandStatusProvider).
 @param icommand The command index (0+).
@@ -2228,8 +2181,6 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	// be removed from the list.
 	// If an existing command is being updated and a cancel occurs, the changes need to
 	// be ignored.
-	// FIXME SAM 2007-08-31 Need to do a copy of a command before it is updated so a
-	// cancel can restore to the original.
 	
 	Command command_to_edit_original = null;	// Command being edited (original).
 	Command command_to_edit = null;	// Command being edited (clone).
@@ -2309,7 +2260,15 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	if ( edit_completed ) {
 		if ( mode == __INSERT_COMMAND ) {
 			// Only need to handle comments because a one-line command will already
-			// be inserted in the list
+			// be inserted in the list.
+			Message.printStatus(2, routine, "After insert, command is:  \"" +
+					"" + command_to_edit );
+		}
+		else {
+			// The command was updated.  The contents of the command will
+			// have been modified so there is no need to do anything more.
+			Message.printStatus(2, routine, "After edit, command is:  \"" +
+					"" + command_to_edit );
 		}
 	}
 	else {	// The edit was cancelled.  If it was a new command being inserted,
@@ -2328,7 +2287,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	}
 	catch ( Exception e2 ) {
 		// TODO SAM 2005-05-18 Evaluate handling of unexpected error... 
-		Message.printWarning(2, routine, "Unexpected error editing command." );
+		Message.printWarning(1, routine, "Unexpected error editing command." );
 		Message.printWarning ( 3, routine, e2 );
 	}
 }
@@ -3675,8 +3634,6 @@ private Command commandList_NewCommand ( String command_string,
 	// New is command from the processor
 	try {	c.initializeCommand ( command_string,
 		__ts_processor,
-		null,	// Command tag
-		1,	// Warning level
 		true );	// Full initialization
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl,
@@ -3737,6 +3694,10 @@ private void commandList_RemoveCommandsBasedOnUI ()
 	if ( selected_indices != null ) {
 		size = selected_indices.length;
 	}
+	// Uncomment for troubleshooting...
+	//String routine = getClass().getName() + ".commandList_RemoveCommandsBasedOnUI";
+	//Message.printStatus ( 2, routine, "There are " + size +
+	//		" commands selected for remove.  If zero all will be removed." );
 	if ( (size == __commands_JListModel.size()) || (size == 0) ) {
 		int x = new ResponseJDialog ( this, "Delete Commands?",
 			"Are you sure you want to delete ALL the commands?",
@@ -3809,84 +3770,6 @@ private void commandList_SetDirty ( boolean dirty )
 }
 
 /**
-Update the command list with the result of a command edit.
-The text that is selected is replaced with the command that is passed in.
-This method should only be called from the editCommand() method.
-@param original_command_string The original command as a String before any editing (null if
-a new command).
-@param edited_command Vector containing command after editing (currently
-assumed to be in the first String since all commands are one line).
-@param action __UPDATE_COMMAND or __INSERT_COMMAND.
-*/
-private void commandList_UpdateCommand (	String original_command_string,
-				Command edited_command, int action )
-{	String routine = "TSTool_JFrame.updateCommand";
-	if (edited_command == null) {
-		return;
-	}
-
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
-	int selectedSize = selectedIndices.length;	
-	//int size = edited_command.size();
-	int size = 1;
-	int index_to_view = -1;	// Index that should be visible after updates
-	if ( action == __UPDATE_COMMAND ) {
-		if (selectedSize > 0) {
-			// Remove the selected items (going backwards so that
-			// things don't get stepped on)...
-			for (int i = (selectedSize - 1); i >= 0; i--) {
-				__commands_JListModel.removeElementAt(
-					selectedIndices[i]);
-				Message.printStatus(2, routine, "Update - removing command \"" +
-						edited_command + "\" at [" + i + "]" );
-			}
-			// Now add immediately after the first selected item...
-			for (int i = 0; i < size; i++) {
-				__commands_JListModel.insertElementAt (
-					edited_command,
-					//(String)edited_command.elementAt(i),
-					(selectedIndices[0] + i));
-				Message.printStatus(2, routine, "Update - inserting command \"" +
-						edited_command + "\" at [" + i + "]" );
-			}
-			index_to_view = selectedIndices[0] + size - 1;
-		}
-	}
-	else if ( action == __INSERT_COMMAND ) {
-		// Insert before the first selected item...
-		if (selectedSize > 0) {
-			for (int i = 0; i < size; i++) {
-				__commands_JListModel.insertElementAt (
-					edited_command,
-					//(String)edited_command.elementAt(i),
-					(selectedIndices[0] + i));
-				Message.printStatus(2, routine, "Insert - inserting command \"" +
-						edited_command + "\" at [" + i + "]" );
-			}
-			index_to_view = selectedIndices[0] + size - 1;
-		}
-		else {	// Insert at end of commands list.
-			for (int i = 0; i < size; i++) {
-				__commands_JListModel.addElement ( edited_command );
-				//(String)edited_command.elementAt(i));
-			}
-			index_to_view = __commands_JListModel.size() - 1;
-		}
-	}
-	// Make sure that the list scrolls to the position that has been
-	// updated...
-	if ( index_to_view >= 0 ) {
-		__commands_JList.ensureIndexIsVisible ( index_to_view );
-	}
-	// Clean up...
-	selectedIndices = null;
-	if ( !commandList_CommandsAreEqual ( original_command_string, edited_command.toString() ) ) {
-		commandList_SetDirty(true);
-	}
-	ui_UpdateStatus ( true );
-}
-
-/**
 Indicate the progress that is occurring within a command.  This may be a chained call
 from a CommandProcessor that implements CommandListener to listen to a command.  This
 level of monitoring is useful if more than one progress indicator is present in an
@@ -3946,7 +3829,7 @@ initialization and processing.
 @return The HydroBaseDMIList as a Vector from the command processor or null if
 not yet determined or no connections.
 */
-private Boolean commandProcessor_GetHydroBaseDMIList()
+private Vector commandProcessor_GetHydroBaseDMIList()
 {	if ( __ts_processor == null ) {
 		return null;
 	}
@@ -3959,7 +3842,7 @@ private Boolean commandProcessor_GetHydroBaseDMIList()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (Boolean)o;
+	else { return (Vector)o;
 	}
 }
 
@@ -4171,6 +4054,19 @@ private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, Pro
 		" Properties=\"" + props + "\" from processor.";
 		Message.printWarning(2, routine, message );
 	}
+}
+
+/**
+Read and load a commands file into the processor.
+@param path Absolute path to the commands file to read.
+@exception IOException if there is an error reading the commands file.
+*/
+private void commandProcessor_ReadCommandsFile ( String path )
+throws IOException
+{
+	__ts_processor.readCommandsFile ( path,
+			true,	// Create GenericCommand instances for unrecognized commands
+			false );// Do not append to the current processor contents
 }
 
 /**
@@ -9212,11 +9108,11 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 				}
 			}
 		}
-        	__query_results_JPanel.setBorder(
-			BorderFactory.createTitledBorder (
-			BorderFactory.createLineBorder(Color.black),
-			"Time Series List (" + size +
-			" time series, " + selected_size + " selected)") );
+        __query_results_JPanel.setBorder(
+		BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),
+		"Time Series List (" + size +
+		" time series, " + selected_size + " selected)") );
 	}
 	int selected_indices[] = __commands_JList.getSelectedIndices();
 	selected_size = 0;
@@ -9284,7 +9180,6 @@ private void uiAction_ActionPerformed1_MainActions (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 	Object o = event.getSource();
-	String rtn = "TSTool_JFrame.actionPerformed1_MainActions";
 
 	// Next list menus or commands...
 	if (command.equals(BUTTON_TOP_GET_TIME_SERIES) ) {
@@ -9489,11 +9384,11 @@ throws Exception
 				commandProcessor_GetIncludeMissingTS() );
 			if ( __source_HydroBase_enabled ) {
 				v.addElement ( "" );
-				Object dmi_Vector = commandProcessor_GetHydroBaseDMIList();
-				if ( (o == null) || (((Vector)o).size() == 0) ) {
+				Object o2 = commandProcessor_GetHydroBaseDMIList();
+				if ( (o2 == null) || (((Vector)o2).size() == 0) ) {
 					v.addElement ( "No HydroBase connections are open for the command processor." );
 				}
-				else { Vector dmis = (Vector)dmi_Vector;
+				else { Vector dmis = (Vector)o2;
 					int size = dmis.size();
 					for ( int i = 0; i < size; i++ ) {
 						v.addElement ( "Command processor HydroBase connection information:" );
@@ -9834,22 +9729,19 @@ throws Exception
     if ( command.equals(__Edit_CutCommands_String) ) {
 		// Need to think whether this should work for the time series
 		// list or only the commands.  Copy to the buffer...
-		uiAction_SetCommandListCutBuffer();
-		// Now clear the list...
-		commandList_RemoveCommandsBasedOnUI();
+		uiAction_CopyFromCommandListToCutBuffer( true );
 	}
     else if ( command.equals(__Edit_CopyCommands_String) ) {
 		// Copy to the buffer...
-		uiAction_SetCommandListCutBuffer();
+		uiAction_CopyFromCommandListToCutBuffer( false );
 	}
     else if ( command.equals(__Edit_PasteCommands_String) ) {
 		// Copy the buffer to the final list...
-		uiAction_PasteCommandListCutBuffer();
+		uiAction_PasteFromCutBufferToCommandList();
 	}
     else if ( command.equals(__Edit_DeleteCommands_String) ) {
-		// Essentially the same as CUT
-		uiAction_SetCommandListCutBuffer();
-		// Now clear the list...
+		// The commands WILL NOT remain in the cut buffer.
+		// Now clear the list of selected commands...
 		commandList_RemoveCommandsBasedOnUI();
 	}
     else if ( command.equals(__Edit_SelectAllCommands_String) ) {
@@ -10976,6 +10868,40 @@ private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 		*/
 	}
 	ui_UpdateStatus ( false );
+}
+
+/**
+Get the selected commands from the commands list, clone a copy, and save in the cut buffer.
+The commands can then be pasted into the command list with
+uiAction_PasteFromCutBufferToCommandList.
+@param remove_original If true, then this is a Cut operation and the original
+commands should be removed from the list.  If false, a copy is made but the original
+commands will remain in the list.
+*/
+private void uiAction_CopyFromCommandListToCutBuffer ( boolean remove_original )
+{	int size = 0;
+	int [] selected_indices = __commands_JList.getSelectedIndices();
+	if ( selected_indices != null ) {
+		size = selected_indices.length;
+	}
+	if ( size == 0 ) {
+		return;
+	}
+
+	// Clear what may previously have been in the cut buffer...
+	__commands_cut_buffer.removeAllElements();
+
+	// Transfer Command instances to the cut buffer...
+	Command command = null;	// Command instance to process
+	for ( int i = 0; i < size; i++ ) {
+		command = (Command)__commands_JListModel.get(selected_indices[i]);
+		__commands_cut_buffer.addElement ( (Command)command.clone() );
+	}
+	
+	if ( remove_original ) {
+		// If removing, delete the selected commands from the list...
+		commandList_RemoveCommandsBasedOnUI();
+	}
 }
 
 /**
@@ -13985,7 +13911,6 @@ whether need to save the previous commands.
 private void uiAction_OpenCommandsFile ()
 {	String routine = getClass().getName() + ".openCommandsFile";
 	// See whether the old commands need to be cleared...
-/* FIXME SAM 2007-09-02 Need to enable opening commands file
 	if ( __commands_dirty ) {
 		if ( __commands_file_name == null ) {
 			// Have not been saved before...
@@ -14051,8 +13976,7 @@ private void uiAction_OpenCommandsFile ()
 		JGUIUtil.setLastFileDialogDirectory(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		BufferedReader br = null;
-		try {	br = new BufferedReader( new FileReader(path) );
+		try { commandProcessor_ReadCommandsFile ( path );
 		}
 		catch ( Exception e ) {
 			// Error opening the file (should not happen but maybe
@@ -14062,34 +13986,11 @@ private void uiAction_OpenCommandsFile ()
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
-		// Successfully have a file so now go ahead and remove
-		// the list contents and update the list...
-		commandList_DeleteCommands ();
+		// If successful the TSCommandProcessor, as the data model, will
+		// have fired actions to make the JList update.
 		commandList_SetCommandsFileName(path);
-		String line;
-		try {	__ignore_ItemEvent = true;
-			__ignore_ListSelectionEvent = true;
-			while ( true ) {
-				line = br.readLine();
-				if ( line == null ) {
-					break;
-				}
-				// Add the command but do not check the GUI
-				// state...
-				addCommand ( line, false );
-			}
-			commandList_SetDirty(false);			
-			br.close();
-		}
-		catch ( Exception e ) {
-			Message.printWarning (1, routine,
-			"Error reading from file \"" + path + "\"");
-			Message.printWarning (2, routine, e );
-		}
-		__ignore_ItemEvent = false;
-		__ignore_ListSelectionEvent = false;
+		commandList_SetDirty(false);			
 	}
-	*/
 	// New file has been opened or there was a cancel/error and the old
 	// list remains.
 	ui_UpdateStatus ( true );
@@ -14658,11 +14559,10 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 }
 
 /**
-Paste the cut buffer containing Commands that were previously cut, inserting
-after the selected item.  Maybe there is a better way to
-do this using JList features.
+Paste the cut buffer containing Command instances that were previously cut or
+copied, inserting after the selected item.
 */
-private void uiAction_PasteCommandListCutBuffer ()
+private void uiAction_PasteFromCutBufferToCommandList ()
 {	// Default selected to zero (empty list)...
 	int last_selected = -1;
 	int list_size = __commands_JListModel.size();
@@ -14686,17 +14586,14 @@ private void uiAction_PasteCommandListCutBuffer ()
 
 	int buffersize = __commands_cut_buffer.size();
 
-	String string = null;
+	Command command = null;
 	for ( int i = 0; i < buffersize; i++ ) {
-		string = (String)__commands_cut_buffer.elementAt(i);
-		__commands_JListModel.insertElementAt ( string,
-			(last_selected + 1 + i) );
+		command = (Command)__commands_cut_buffer.elementAt(i);
+		commandList_InsertCommandAt ( command, (last_selected + 1 + i) );
 	}
 
 	// Leave in the buffer so it can be pasted again.
 
-	selected_indices = null;
-	string = null;
 	commandList_SetDirty ( true );
 	ui_UpdateStatus ( true );
 }
@@ -14711,8 +14608,7 @@ throws Exception
 {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 				JGUIUtil.getLastFileDialogDirectory() );
 	fc.setDialogTitle ( "Select TS Product File" );
-	SimpleFileFilter sff =
-		new SimpleFileFilter ( "tsp", "Time Series Product File" );
+	SimpleFileFilter sff = new SimpleFileFilter ( "tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( sff );
 	fc.setFileFilter ( sff );
 	if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
@@ -15905,30 +15801,6 @@ throws Exception
 */
 
 /**
-Get the selected commands from the commands list and save in the cut buffer.
-This is generally used before deleting the time series.
-*/
-private void uiAction_SetCommandListCutBuffer ()
-{	int size = 0;
-	int [] selected_indices = __commands_JList.getSelectedIndices();
-	if ( selected_indices != null ) {
-		size = selected_indices.length;
-	}
-	if ( size == 0 ) {
-		return;
-	}
-
-	// Allocate the cut_buffer...
-	__commands_cut_buffer.removeAllElements();
-
-	// Transfer to the cut buffer...
-	for ( int i = 0; i < size; i++ ) {
-		__commands_cut_buffer.addElement (
-		__commands_JListModel.get(selected_indices[i]));
-	}
-}
-
-/**
 Display the status of the selected command(s).
 */
 private void uiAction_ShowCommandStatus()
@@ -16749,11 +16621,7 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 		// Default name...
 		File default_file = new File("commands.TSTool");
 		fc.setSelectedFile ( default_file );
-		fc.addChoosableFileFilter(
-			new SimpleFileFilter("cmx", "TSTool Commands File") );
-		SimpleFileFilter sff = 
-			new SimpleFileFilter(
-			"TSTool","TSTool Commands File");
+		SimpleFileFilter sff = new SimpleFileFilter("TSTool","TSTool Commands File");
 		fc.setFileFilter(sff);
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			directory = fc.getSelectedFile().getParent();
@@ -16769,7 +16637,6 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 	try {	PrintWriter out = new PrintWriter(new FileOutputStream(file));
 		
 		int size = __commands_JListModel.size();
-	
 		for (int i = 0; i < size; i++) {
 			out.println(((Command)__commands_JListModel.get(i)).toString());
 		}

@@ -425,6 +425,8 @@ import java.io.File;
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 
+import rti.tscommandprocessor.core.TSCommandFileRunner;
+
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -448,6 +450,20 @@ private static boolean		__is_server = false;	// Indicates whether
 							// development.
 private static boolean		__show_main_gui = true;	// Indicates whether the
 							// main GUI is shown.
+/**
+Commands file being processed when run in batch mode with -commands File.
+*/
+private static String __commands_file = null;
+
+/**
+Return the commands file that is being processed, or null if not being run
+in batch mode.
+@return the path to the commands file to run.
+*/
+private static String getCommandsFile ()
+{
+	return __commands_file;
+}
 
 /**
 Return the JFrame for the main TSTool GUI.
@@ -586,22 +602,54 @@ public static void main ( String args[] )
 
 	initialize2 ();
 
-	// Run the GUI...
-
 	Message.printStatus ( 1, routine,
-	"Starting GUI, showmain = " + __show_main_gui + " isbatch=" +
-	IOUtil.isBatch() );
-	__tstool_JFrame = new TSTool_JFrame ( __show_main_gui );
-	if ( __is_server ) {
+			"Starting GUI, showmain = " + __show_main_gui + " isbatch=" +
+			IOUtil.isBatch() );
+	
+	if ( IOUtil.isBatch() ) {
+		// Running like "tstool -commands file"
+		TSCommandFileRunner runner = new TSCommandFileRunner();
+		try {
+			runner.readCommandFile ( getCommandsFile() );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error reading commands file \"" +
+					getCommandsFile() + "\".  Unable to run commands." );
+			Message.printWarning ( 1, routine, e );
+			quitProgram ( 1 );
+		}
+		try {	runner.runCommands();
+			quitProgram ( 0 );
+		}
+		catch ( Exception e ) {
+			// Some type of error
+			Message.printWarning ( 1, routine, "Error running commands file \"" +
+					getCommandsFile() + "\"." );
+			Message.printWarning ( 1, routine, e );
+			quitProgram ( 1 );
+		}
+	}
+	else if ( __is_server ) {
 		// Run in server mode via the GUI object.  This goes into a
 		// loop...
 		__tstool_JFrame.runServer();
 	}
+	else {
+		// Run the GUI...
+		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
+		try {	__tstool_JFrame = new TSTool_JFrame ( __show_main_gui );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error starting TSTool." );
+			Message.printWarning ( 1, routine, e );
+			quitProgram ( 1 );
+		}
 	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, routine,
-		"Error starting TSTool." );
-		Message.printWarning ( 1, routine, e );
+	}
+	catch ( Exception e2 ) {
+		// Main catch.
+		Message.printWarning ( 1, routine, "Error starting TSTool." );
+		Message.printWarning ( 1, routine, e2 );
 		quitProgram ( 1 );
 	}
 }
@@ -670,7 +718,9 @@ throws Exception
 			"Commands file is \"" + commands + "\"" );
 			// Save this so it can be processed when the GUI
 			// initializes.
+            // TODO SAM 2007-09-09 Evaluate phasing global commands file out.
 			IOUtil.setProgramCommandFile ( commands );
+			setCommandsFile ( commands );
 			IOUtil.isBatch ( true );
                    
             File f = new File ( commands );
@@ -910,6 +960,17 @@ private static void readConfiguration ()
 			config_file + "\".  TSTool may not start." );
 		}
 	}
+}
+
+/**
+Set the commands file that is being used with TSTool.
+@param commands_file Commands file being processed, when started with
+-commands File parameter.  This indicates that a batch run should be done, with
+no main TSTool GUI, although windows may display for graphical products.
+*/
+private static void setCommandsFile ( String commands_file )
+{
+	__commands_file = commands_file;
 }
 
 /**
