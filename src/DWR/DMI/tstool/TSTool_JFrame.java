@@ -26,7 +26,6 @@ import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -3407,68 +3406,6 @@ private Vector commandList_GetCommandsAboveInsertPosition (	Vector needed_comman
 }
 
 /**
-Get the commands above the first selected row in the final list.
-If nothing is selected, return all the items.
-@return final list items above first selected item or all if 
-nothing selected.  Return empty non-null Vector if first item is selected.
-*/
-private Vector commandList_GetCommandsAboveSelected ()
-{	if ( __commands_JListModel.size() == 0) {
-		return new Vector();
-	}
-
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
-	int selectedSize = selectedIndices.length;	
-	
-	if ( selectedSize == 0 ) {
-		// Return all...
-		Vector v = new Vector();
-		int size = __commands_JListModel.size(); 
-		for (int i = 0; i < size; i++) {
-			v.addElement (__commands_JListModel.get(i));
-		}
-		return v;
-	}
-	if ( selectedIndices[0] == 0 ) {
-		// Nothing above.
-		selectedIndices = null;
-		return new Vector();
-	}
-	else {	// Return above first selected...
-		Vector v = new Vector(selectedIndices[0] + 1);
-		for (int i = 0; i < selectedIndices[0]; i++) {
-			v.addElement (__commands_JListModel.get(i));
-		}
-		selectedIndices = null;
-		return v;
-	}
-}
-
-/**
-Insert a command in the list.  If any commands are selected, insert before the
-first selected command.
-SAMX - may want to change to insert in front of the LAST command selected (in
-time, not position).
-@param command Command to insert.
-*/
-/* TODO SAM 2007-02-11 Evaluate if needed.
-private void commandList_InsertCommand ( String command )
-{	int selectedIndices[] = __commands_JList.getSelectedIndices();
-	int selectedSize = selectedIndices.length;	
-	if ( selectedSize > 0 ) {
-		// Insert before the first selected command...
-		__commands_JListModel.insertElementAt(command,
-			selectedIndices[0]);
-	}
-	else {	// Insert at the end...
-		__commands_JListModel.addElement(command);
-	}
-	setCommandsDirty ( true );
-	updateStatus ();
-}
-*/
-
-/**
 Return the index position of the command from the command list.
 Currently this assumes that there is a one to one correspondence between
 items in the list and commands in the processor.
@@ -3511,7 +3448,6 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 	// Get the selected indices from the commands...
 	int selectedIndices[] = __commands_JList.getSelectedIndices();
 	int selectedSize = selectedIndices.length;
-	int index_to_view = -1;	// Index that should be visible after updates
 
 	int insert_pos = 0;
 	if (selectedSize > 0) {
@@ -3622,12 +3558,12 @@ private Command commandList_NewCommand ( String command_string,
 	try {
 		TSCommandFactory cf = new TSCommandFactory();
 		c = cf.newCommand(command_string);
-		Message.printStatus ( 2, routine, "Added command from factory for \"" + command_string + "\"");
+		Message.printStatus ( 2, routine, "Created command from factory for \"" + command_string + "\"");
 	}
 	catch ( UnknownCommandException e ) {
 		// Processor does not know the command so create a GenericCommand.
 		c = new GenericCommand();
-		Message.printStatus ( 2, routine, "Added generic command for \"" + command_string + "\"");
+		Message.printStatus ( 2, routine, "Created generic command for \"" + command_string + "\"");
 	}
 	// TODO SAM 2007-08-31 This is essentially validation.
 	// Need to evaluate for old-style commands, impacts on error-handling.
@@ -3729,6 +3665,37 @@ private void commandList_RemoveCommandsBasedOnUI ()
 	commandList_SetDirty ( true );
 	tsResultsList_Clear();
 	ui_UpdateStatus ( true );
+}
+
+/**
+Replace a command with another.  This is used, for example, when converting commands
+to/from comments.
+@param old_command Old command to remove.
+@param new_command New command to insert in its place.
+*/
+private void commandList_ReplaceCommand ( Command old_command, Command new_command )
+{
+	// Probably could get the index passed in from list operations but
+	// do the lookup through the data model to be more independent.
+	int pos_old = __ts_processor.indexOf(old_command);
+	if ( pos_old < 0 ) {
+		// Can't find the old command so return.
+	}
+	// Remove the old command...
+	__ts_processor.removeCommandAt ( pos_old );
+	// Insert the new command at the same position.  Handle the case that
+	// it is now at the end of the list.
+	if ( pos_old < __ts_processor.size() ) {
+		// Have enough elements to add at the requested position...
+		__ts_processor.insertCommandAt( new_command, pos_old );
+	}
+	else {
+		// Add at the end...
+		__ts_processor.addCommand ( new_command );
+	}
+	// Refresh the GUI...
+	commandList_SetDirty ( true );
+	ui_UpdateStatus ( false );
 }
 
 /**
@@ -4137,8 +4104,8 @@ private void commandProcessor_SetHydroBaseDMI( HydroBaseDMI hbdmi )
 	}
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "HydroBaseDMI", hbdmi );
-	CommandProcessorRequestResultsBean bean = null;
-	try { bean =
+	//CommandProcessorRequestResultsBean bean = null;
+	try { //bean =
 		__ts_processor.processRequest( "SetHydroBaseDMI", request_params );
 	}
 	catch ( Exception e ) {
@@ -4782,33 +4749,6 @@ private String getInitialWorkingDir ()
 {
 	return __initial_working_dir;
 }
-
-/**
-Return the list of time series objects corresponding to those selected in the
-interface (this does not check the isSelected() method in each time series).
-The list of selected indices is used to request the corresponding time series
-from the TSEngine object.
-@return a Vector of the selected time series.
-@param return_all_if_none_selected If true return all if no time series happen
-to be selected.
-*/
-/*
-TODO SAM 2007-02-11 Determine if needed.
-private Vector getSelectedTimeSeriesList ( boolean return_all_if_none_selected )
-{	if ( __final_ts_engine == null ) {
-		return new Vector(1);
-	}
-	int selected_ts = JGUIUtil.selectedSize(__ts_JList);
-	if ( (selected_ts == 0) && return_all_if_none_selected ) {
-		// Return all...
-		return __final_ts_engine.getTimeSeriesList ( null );
-	}
-	else {	// Return the selected...
-		return __final_ts_engine.getTimeSeriesList (
-				__ts_JList.getSelectedIndices() );
-	}
-}
-*/
 
 /**
 Handle actions from the message log viewer.  In particular, when a command is
@@ -5591,7 +5531,7 @@ Initialize the GUI "Commands" menu.
 private void initGUIMenus_Commands ( JMenuBar menu_bar )
 {	// "Commands...TS Create/Convert/Read Time Series"...
 
-	menu_bar.add( __Commands_JMenu = new JMenu( "Commands", true ) );	
+	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );	
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=
 		new JMenu(__Commands_CreateTimeSeries_String) );
@@ -6321,7 +6261,7 @@ private void initGUIMenus_CommandsPopup ()
 	__Commands_JPopupMenu.add(
 		__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(
-		"Edit", __Edit_CommandWithErrorChecking_String, this ) );
+		__Edit_String, __Edit_CommandWithErrorChecking_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Cut_JMenuItem =
 		new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
@@ -6332,18 +6272,18 @@ private void initGUIMenus_CommandsPopup ()
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add(__CommandsPopup_Delete_JMenuItem=
 		new SimpleJMenuItem(
-		"Delete", __Edit_DeleteCommands_String, this ) );
+		__Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_FindCommands_JMenuItem =
 		new SimpleJMenuItem(__CommandsPopup_FindCommands_String, this));
 	__Commands_JPopupMenu.add(
 		__CommandsPopup_SelectAll_JMenuItem =
 		new SimpleJMenuItem (
-		"Select All", __Edit_SelectAllCommands_String, this ) );
+		__Edit_SelectAllCommands_String, __Edit_SelectAllCommands_String, this ) );
 	__Commands_JPopupMenu.add(
 		__CommandsPopup_DeselectAll_JMenuItem =
 		new SimpleJMenuItem(
-		"Deselect All", __Edit_DeselectAllCommands_String, this ) );
+		__Edit_DeselectAllCommands_String, __Edit_DeselectAllCommands_String, this ) );
 	__Commands_JPopupMenu.add(
 		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem =
 		new SimpleJMenuItem (
@@ -7748,9 +7688,7 @@ The time series are still accessed by the positions in the list.
 */
 private void tsResultsList_AddTimeSeriesToResults ( String ts_info )
 {	__ts_JListModel.addElement ( ts_info );
-	// TODO SAM 2007-09-02 Evaluate whether needed.
-	//setCommandsDirty ( true );
-	//updateStatus ( false );
+	ui_UpdateStatus ( false );
 }
 
 /**
@@ -10828,9 +10766,8 @@ Handle a group of actions for the Tools menu.
 */
 private void uiAction_ActionPerformed16_HelpMenu (ActionEvent event)
 throws Exception
-{	Object o = event.getSource();
+{	//Object o = event.getSource();
 	String command = event.getActionCommand();
-	String rtn = "HelpMenu";
 
 	// Help menu (order of GUI)...
 
@@ -10840,34 +10777,43 @@ throws Exception
 }
 
 /**
-Convert selected commands to comments.
+Convert selected commands to/from comments.  When converting to commands:
+Each Command instance is retrieved, its command string is taken from the Command, and
+a new GenericCommand is create, and the original Command is replaced in the list.
+When converting from commands, the GenericCommand is retrieved, a new Command instance
+is created, the original Command is replaced.
 @param to_comment If true, convert commands to comments, if false, from
 comments.
 */
 private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 {	int selected_indexes[] = __commands_JList.getSelectedIndices();
 	int selected_size = JGUIUtil.selectedSize ( __commands_JList );
-	String s = null;
+	String old_command_string = null;
+	Command old_command = null;
+	Command new_command = null;
+	// It is OK to loop through each item below.  Even though the items in
+	// the data model will change, if a command is replaced each time, the
+	// indices will still be relevant.
 	for ( int i = 0; i < selected_size; i++ ) {
-		s = (String)__commands_JListModel.get(selected_indexes[i]);
-		/* FIXME SAM 2007-08-10 Need to fix to use commands.
+		old_command = (Command)__commands_JListModel.get(selected_indexes[i]);
+		old_command_string = (String)old_command.toString();
 		if ( to_comment ) {
-			// Replace with a new string that has the
+			// Replace the current command with a new string that has the
 			// comment character...
-			__commands_JListModel.setElementAt (
-			("# " + s), selected_indexes[i]);
-			setCommandsDirty ( true );
+			new_command = commandList_NewCommand(
+					"# " + old_command_string,	// New command as comment
+					true );	// Create the command even if not recognized.
+			commandList_ReplaceCommand ( old_command, new_command );
 		}
 		else {	// Remove comment...
-			if ( s.startsWith("#") ) {
-				__commands_JListModel.setElementAt (
-				s.substring(1).trim(), selected_indexes[i]);
+			if ( old_command_string.startsWith("#") ) {
+				new_command = commandList_NewCommand(
+					old_command_string.substring(1).trim(),	// New command as comment
+					true );	// Create the command even if not recognized.
+				commandList_ReplaceCommand ( old_command, new_command );
 			}
-			setCommandsDirty ( true );
 		}
-		*/
 	}
-	ui_UpdateStatus ( false );
 }
 
 /**
@@ -14640,19 +14586,22 @@ throws Exception
 	// directory.  However the working directory will be set in memory in
 	// IOUtil so just declare a TSEngine.  Don't pass any commands.
 	//
-	// REVISIT...
 	// If no working directory has been set, we could set from the file
 	// selection, but how to detect when to do this?
-	/* FIXME SAM 2007-08-20 - Need to renable
-	 * Why is this needed?  Won't the above read the time series if necessary?
+	/* TODO SAM 2007-08-20 Evaluate whether needed
+	 * Won't the above read the time series if necessary?
 	TSEngine supplier_tsengine = new TSEngine ( __hbdmi, __rdmi,
 					__DIADvisor_dmi,
 					__DIADvisor_archive_dmi,
 					__nwsrfs_dmi, __smsdmi,
 					null, this );
+
 	p.addTSSupplier ( supplier_tsengine );
+		*/
+	
+	// Now process the product...
+	
 	p.processProduct ( path, override_props );
-	*/
 }
 
 /**
