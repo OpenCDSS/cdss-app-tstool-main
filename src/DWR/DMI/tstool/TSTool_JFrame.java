@@ -5014,9 +5014,14 @@ private void initGUI ( boolean show_main )
 	// The following prototype value looks like nonsense, but should ensure
 	// that the line height accomodates both very tall characters, and those
 	// that swoop below the line.
-	__commands_JList.setPrototypeCellValue("gjqqyAZ");
-	//Dimension minimum_Dimension = new Dimension ( 300, 100 );
-	//__commands_JList.setMinimumSize ( minimum_Dimension );
+	//__commands_JList.setPrototypeCellValue("gjqqyAZ");
+	
+	// The following block is necessary for horizontal scrolling
+	// to work - I am still trying to figure out why - dre
+	{
+	Dimension minimum_Dimension = new Dimension ( 10, 100 );
+	__commands_JList.setMinimumSize ( minimum_Dimension );
+	}
 	__commands_JList.addListSelectionListener ( this );
 	__commands_JList.addKeyListener ( this );
 	__commands_JList.addMouseListener ( this );
@@ -5029,7 +5034,7 @@ private void initGUI ( boolean show_main )
 	// horizontally, but instead trims long strings with an ellipsis.  
 	// If the call to setPrototypeCellValue() is removed for some reason,
 	// the following line should be removed as well.
-	__commands_JList.setFixedCellWidth(-1);
+	// __commands_JList.setFixedCellWidth(-1);
 	
 	if ( __use_annotated_list ) {
 		JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedCommandJList,
