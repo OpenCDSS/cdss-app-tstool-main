@@ -241,10 +241,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 		size = tsids.size();
 	}
 	if ( size == 0 ) {
-		Message.printWarning ( 1, "adjustExtremes_JDialog.initialize",
-		"You must define time series before inserting an " +
-		"adjustExtremes() command." );
-		response ( 0 );
+		tsids = new Vector();
 	}
 	__alias_JComboBox.setData ( tsids );
 	// Always allow a "*" to let all time series be filled...

@@ -267,16 +267,9 @@ private void initialize (	JFrame parent, String title,
 	if ( tsids != null ) {
 		size = tsids.size();
 	}
-	/* REVISIT SAM 2005-04-21 Disable for now since there are multiple ways
-	to indicate the time series.
 	if ( size == 0 ) {
-		Message.printWarning ( 1, "fillPattern_JDialog.initialize",
-		"No individual time series identifiers have been found\n" +
-		"(OK if bulk time series commands are being used)\n" +
-		"Only the wildcard choice is listed for time series " +
-		"identifiers." );
+		tsids = new Vector();
 	}
-	*/
 	__TSID_JComboBox.setData ( tsids );
 	// Always allow a "*" to let all time series be filled...
 	__TSID_JComboBox.addItem ( "*" );

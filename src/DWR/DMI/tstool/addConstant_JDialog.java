@@ -180,7 +180,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -203,13 +203,14 @@ private void initialize ( JFrame parent, String title, Vector command,
 		size = tsids.size();
 	}
 	if ( size == 0 ) {
-		Message.printWarning ( 1, "addConstant_JDialog.initialize",
-		"You must define time series before inserting a addConstant() "+
-		"command." );
-		response ( 0 );
+		//Message.printWarning ( 1, "addConstant_JDialog.initialize",
+		//"No specific time series identifiers are available for addConstant() "+
+		//"command." );
+		//response ( 0 );
+		tsids = new Vector();
 	}
 	__alias_JComboBox.setData ( tsids );
-	// Always allow a "*" to let all time series be filled...
+	// Always allow a "*" to let all time series be manipulated...
 	__alias_JComboBox.add ( "*" );
 	__alias_JComboBox.addItemListener ( this );
         JGUIUtil.addComponent(main_JPanel, __alias_JComboBox,
@@ -321,6 +322,7 @@ private void refresh ()
 	if ( __first_time ) {
 		__first_time = false;
 		// Parse the incoming string and fill the fields...
+		Message.printStatus( 2, "refresh", "__command_Vector=" + __command_Vector );
 		Vector v = StringUtil.breakStringList (
 			((String)__command_Vector.elementAt(0)).trim(),"(),",
 			StringUtil.DELIM_SKIP_BLANKS );
