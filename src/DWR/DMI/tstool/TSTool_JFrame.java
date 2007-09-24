@@ -1859,10 +1859,12 @@ public TSTool_JFrame ( boolean show_main )
 	// Connect the Message class to output to the status bar in the main
 	// GUI...
 
+	/* TODO SAM 2007-09-12 Has never been that useful
 	if ( show_main ) {
 		Message.setOutputFunction ( Message.STATUS_BAR_OUTPUT, this,
 		"printStatusMessages" );
 	}
+	*/
 
 	// Add GUI features that depend on the databases...
 	// The appropriate panel will be set visible as input types and data
@@ -2186,8 +2188,9 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	if ( mode == __UPDATE_COMMAND ) {
 		// Get the command from the processor...
 		if ( is_comment_block ) {
-			// Do something special to handle multiple lines...
-			// FIXME SAM 2007-08-31 need to enable
+			// Use the string-based editor dialog and then convert each
+			// comment line into a command.  Don't do anything to the command
+			// list yet
 		}
 		else {
 			// Get the original command...
@@ -2206,39 +2209,46 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		}
 	}
 	else {
-		// New command so create a command as a placeholder for
-		// editing (filled out during the editing).
-		// Get everything before the ) in the command and then re-add the ").
-		// REVISIT SAM 2007-08-31 Why is this done
-		// Need to handle:
-		//	1) Traditional commands foo()
-		//	2) Comments # blocks
-		//  3) TS alias = foo()
-		//  4) Time series identifiers.
-		//  5) Don't allow edit of /* */ comments - just insert/delete
-		String command_string = StringUtil.getToken(action,")",0,0)+ ")";
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Using command factory to create new " +
-			"command for \"" + command_string + "\"" );
+		if ( is_comment_block ) {
+			// Don't do anything here.  New comments will be inserted below.
 		}
+		else {
+			// New command so create a command as a placeholder for
+			// editing (filled out during the editing).
+			// Get everything before the ) in the command and then re-add the ").
+			// REVISIT SAM 2007-08-31 Why is this done
+			// Need to handle:
+			//	1) Traditional commands foo()
+			//	2) Comments # blocks
+			//  3) TS alias = foo()
+			//  4) Time series identifiers.
+			//  5) Don't allow edit of /* */ comments - just insert/delete
+			String command_string = StringUtil.getToken(action,")",0,0)+ ")";
+			if ( Message.isDebugOn ) {
+				Message.printDebug ( dl, routine,
+						"Using command factory to create new " +
+						"command for \"" + command_string + "\"" );
+			}
 		
-        command_to_edit = commandList_NewCommand( command_string, true );
-        Message.printStatus(2, routine, "Created new command to insert:  \"" +
+			command_to_edit = commandList_NewCommand( command_string, true );
+			Message.printStatus(2, routine, "Created new command to insert:  \"" +
         		command_to_edit + "\"" );
         
-        // Add it to the processor at the insert point of the edit (before the
-        // first selected command...
+			// Add it to the processor at the insert point of the edit (before the
+			// first selected command...
         
-        commandList_InsertCommandBasedOnUI ( command_to_edit );
-        Message.printStatus(2, routine, "Inserted command.");
+			commandList_InsertCommandBasedOnUI ( command_to_edit );
+			Message.printStatus(2, routine, "Inserted command.");
+		}
 	}
 
 	// Second, edit the command, whether an update or an insert...
 
 	boolean edit_completed = false;
+	Vector new_comments = new Vector();	// Used if comments are edited.
 	if ( is_comment_block ) {
-		Message.printStatus ( 2, routine, "Editing comments is not yet enabled.");
+		// Edit using the old-style editor...
+		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, command_Vector, new_comments );
 	}
 	else {	// Editing a single one-line command...
 		if ( command_to_edit instanceof GenericCommand ) {
@@ -2258,28 +2268,52 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 
 	if ( edit_completed ) {
 		if ( mode == __INSERT_COMMAND ) {
-			// Only need to handle comments because a one-line command will already
-			// be inserted in the list.
-			Message.printStatus(2, routine, "After insert, command is:  \"" +
+			if ( is_comment_block ) {
+				// Insert the comments at the insert point...
+				commandList_InsertCommentsBasedOnUI ( new_comments );
+			}
+			else {
+				// The command has already been inserted in the list.
+				Message.printStatus(2, routine, "After insert, command is:  \"" +
 					"" + command_to_edit );
+			}
 		}
 		else {
-			// The command was updated.  The contents of the command will
-			// have been modified so there is no need to do anything more.
-			Message.printStatus(2, routine, "After edit, command is:  \"" +
+			// The command was updated.
+			if ( is_comment_block ) {
+				// Remove the commands that were selected and insert the
+				// new ones.
+				commandList_ReplaceComments ( command_Vector, new_comments );
+			}
+			else {
+				// The contents of the command will
+				// have been modified so there is no need to do anything more.
+				Message.printStatus(2, routine, "After edit, command is:  \"" +
 					"" + command_to_edit );
+			}
 		}
 	}
 	else {	// The edit was cancelled.  If it was a new command being inserted,
 		// remove the command from the processor...
 		if ( mode == __INSERT_COMMAND ) {
-			commandList_RemoveCommand(command_to_edit);
+			if ( is_comment_block ) {
+				// No comments were inserted at start of edit.  No need to do anything.
+			}
+			else {
+				// A temporary new command was inserted so remove it.
+				commandList_RemoveCommand(command_to_edit);
+			}
 		}
 		else {
-			// Else was an update so restore the original command...
-			int pos = commandList_IndexOf(command_to_edit);
-			commandList_RemoveCommand(command_to_edit);
-			commandList_InsertCommandAt(command_to_edit_original, pos);
+			if ( is_comment_block ) {
+				// The original comments will remain.  No need to do anything.
+			}
+			else {
+				// Else was an update so restore the original command...
+				int pos = commandList_IndexOf(command_to_edit);
+				commandList_RemoveCommand(command_to_edit);
+				commandList_InsertCommandAt(command_to_edit_original, pos);
+			}
 		}
 	}
 
@@ -2297,6 +2331,10 @@ Edit a new-style command, which has a custom editor.
 */
 private boolean commandList_EditCommandNewStyle ( Command command_to_edit )
 {
+	// Update the shared application properties to set the
+	// "WorkingDir" property, which is used in the following
+	// dialog...
+	updateDynamicProps ();
 	return command_to_edit.editCommand(this);
 }
 
@@ -2311,6 +2349,7 @@ to determine the command.
 @param command_Vector Commands being edited as a Vector of Command, as passed from
 the legacy code.
 @param command_to_edit The Command instance to edit.
+@return true if the command edits were committed, false if cancelled.
 */
 private boolean commandList_EditCommandOldStyle (
 		int mode, String action, Vector command_Vector, GenericCommand command_to_edit )
@@ -2320,7 +2359,7 @@ private boolean commandList_EditCommandOldStyle (
 	String command = "";	// Will be reset below
 	Vector cv = null;
 	if ( mode == __UPDATE_COMMAND ) {
-		cv = new Vector();
+		cv = new Vector(1);
 		command = ((GenericCommand)command_Vector.elementAt(0)).getCommandString();
 		cv.addElement ( command );
 	}
@@ -3227,14 +3266,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals(__Commands_General_Comment_String) ||
-		command.startsWith("#") ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for comments" );
-		}
-		edited_cv = new comment_JDialog ( this, cv, null ).getText();
-	}
 	else if ( action.equals(__Commands_General_startComment_String) ) {
 		// edited_cv is just a new comment...
 		if ( Message.isDebugOn ) {
@@ -3264,6 +3295,45 @@ private boolean commandList_EditCommandOldStyle (
 		// GenericCommand to the result of the edit.
 		Message.printStatus ( 2, routine, "Old-style editor, command after edit = \"" + (String)edited_cv.elementAt(0) + "\"" );
 		command_to_edit.setCommandString( (String)edited_cv.elementAt(0) );
+		return true;
+	}
+}
+
+/**
+Edit comments using an old-style editor.
+@param mode Mode of editing, whether updating or inserting.
+@param action If not null, then the comments are new (insert).
+@param command_Vector Comments being edited as a Vector of GenericCommand, as passed from
+the legacy code.
+@param new_comments The new comments as a Vector of String, to be inserted
+into the command list.
+@return true if the command edits were committed, false if cancelled.
+*/
+private boolean commandList_EditCommandOldStyleComments (
+		int mode, String action,
+		Vector command_Vector, Vector new_comments )
+{	//else if ( action.equals(__Commands_General_Comment_String) ||
+	//	command.startsWith("#") ) {
+	Vector cv = new Vector();
+	int size = 0;
+	if ( command_Vector != null ) {
+		size = command_Vector.size();
+	}
+	Command command = null;
+	for ( int i = 0; i < size; i++ ) {
+		command = (Command)command_Vector.elementAt(i);
+		cv.addElement( command.toString() );
+	}
+	Vector edited_cv = new comment_JDialog ( this, cv, null ).getText();
+	if ( edited_cv == null ) {
+		return false;
+	}
+	else {
+		// Transfer to the Vector that was passed in...
+		int size2 = edited_cv.size();
+		for ( int i = 0; i < size2; i++ ) {
+			new_comments.addElement ( edited_cv.elementAt(i) );
+		}
 		return true;
 	}
 }
@@ -3308,8 +3378,7 @@ private Vector commandList_GetCommands ( boolean get_all )
 	else {	// Else something selected so get them...
 		Vector itemVector = new Vector(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.addElement (
-			__commands_JListModel.get(selected[i]) );
+			itemVector.addElement ( __commands_JListModel.get(selected[i]) );
 		}
 		return itemVector;
 	}
@@ -3431,8 +3500,9 @@ private void commandList_InsertCommandAt ( Command command, int pos )
 
 /**
 Insert a new command into the command list, utilizing the selected commands in the displayed
-list to determine the insert position.  For example this can occur in the
-following cases:
+list to determine the insert position.  If any commands are selected in the GUI, the insert will
+occur before the selection. If none are selected, the insert will occur at the end of the
+list.  For example this can occur in the following cases:
 <ol>
 <li>	The user is interacting with the command list via command menus.</li>
 <li>	Time series identifiers are being transferred to the commands area from
@@ -3452,7 +3522,7 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 	int insert_pos = 0;
 	if (selectedSize > 0) {
 		// Insert before the first selected item...
-		insert_pos = (selectedIndices[0] + 1);
+		insert_pos = selectedIndices[0];
 		__commands_JListModel.insertElementAt (	inserted_command, insert_pos );
 		Message.printStatus(2, routine, "Inserting command \"" +
 				inserted_command + "\" at [" + insert_pos + "]" );
@@ -3460,6 +3530,47 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 	else {	// Insert at end of commands list.
 		__commands_JListModel.addElement ( inserted_command );
 		insert_pos = __commands_JListModel.size() - 1;
+	}
+	// Make sure that the list scrolls to the position that has been
+	// updated...
+	if ( insert_pos >= 0 ) {
+		__commands_JList.ensureIndexIsVisible ( insert_pos );
+	}
+	// Since an insert, mark the commands list as dirty...
+	commandList_SetDirty(true);
+}
+
+/**
+Insert comments into the command list, utilizing the selected commands in the displayed
+list to determine the insert position.
+@param new_comments The comments to insert, as a Vector of String.
+*/
+private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
+{	String routine = getClass().getName() + ".commandList_InsertCommentsBasedOnUI";
+
+	// Get the selected indices from the commands...
+	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedSize = selectedIndices.length;
+	
+	int size = new_comments.size();
+
+	int insert_pos = 0;
+	Command inserted_command = null;	// New comment line as Command
+	for ( int i = 0; i < size; i++ ) {
+		inserted_command = commandList_NewCommand (
+				(String)new_comments.elementAt(i), true );
+		if (selectedSize > 0) {
+			// Insert before the first selected item...
+			int insert_pos0 = (selectedIndices[0] + 1);
+			insert_pos = insert_pos0 + i;
+			__commands_JListModel.insertElementAt (	inserted_command, insert_pos );
+			Message.printStatus(2, routine, "Inserting comment \"" +
+				inserted_command + "\" at [" + insert_pos + "]" );
+		}
+		else {	// Insert at end of commands list.
+			__commands_JListModel.addElement ( inserted_command );
+			insert_pos = __commands_JListModel.size() - 1;
+		}
 	}
 	// Make sure that the list scrolls to the position that has been
 	// updated...
@@ -3680,6 +3791,7 @@ private void commandList_ReplaceCommand ( Command old_command, Command new_comma
 	int pos_old = __ts_processor.indexOf(old_command);
 	if ( pos_old < 0 ) {
 		// Can't find the old command so return.
+		return;
 	}
 	// Remove the old command...
 	__ts_processor.removeCommandAt ( pos_old );
@@ -3692,6 +3804,54 @@ private void commandList_ReplaceCommand ( Command old_command, Command new_comma
 	else {
 		// Add at the end...
 		__ts_processor.addCommand ( new_command );
+	}
+	// Refresh the GUI...
+	commandList_SetDirty ( true );
+	ui_UpdateStatus ( false );
+}
+
+/**
+Replace a contiguous block of # comments with another block.
+@param old_comments Vector of old comments (as Command) to remove.
+@param new_comments Vector of new comments (as String) to insert in its place.
+*/
+private void commandList_ReplaceComments ( Vector old_comments, Vector new_comments )
+{	String routine = getClass().getName() + ".commandList_ReplaceComments";
+	// Probably could get the index passed in from list operations but
+	// do the lookup through the data model to be more independent.
+	int pos_old = __ts_processor.indexOf((Command)old_comments.elementAt(0));
+	if ( pos_old < 0 ) {
+		// Can't find the old command so return.
+		return;
+	}
+	// Remove the old commands.  They will shift so OK to keep removing at
+	// the single index.
+	int size = old_comments.size();
+	for ( int i = 0; i < size; i++ ) {
+		__ts_processor.removeCommandAt ( pos_old );
+	}
+	// Insert the new commands at the same position.  Handle the case that
+	// it is now at the end of the list.
+	int size_new = new_comments.size();
+	if ( pos_old < __ts_processor.size() ) {
+		// Have enough elements to add at the requested position...
+		for ( int i = 0; i < size_new; i++ ) {
+			Command new_command = commandList_NewCommand (
+					(String)new_comments.elementAt(i), true );
+			//Message.printStatus ( 2, routine, "Inserting " + new_command +
+			//		" at " + (pos_old + 1));
+			__ts_processor.insertCommandAt( new_command, (pos_old + i) );
+		}
+	}
+	else {
+		// Add at the end...
+		for ( int i = 0; i < size_new; i++ ) {
+			Command new_command = commandList_NewCommand (
+					(String)new_comments.elementAt(i), true );
+			//Message.printStatus ( 2, routine, "Adding " + new_command +
+			//		" at end" );
+			__ts_processor.addCommand ( new_command );
+		}
 	}
 	// Refresh the GUI...
 	commandList_SetDirty ( true );
@@ -3734,6 +3894,20 @@ private void commandList_SetDirty ( boolean dirty )
 {	__commands_dirty = dirty;
 	ui_UpdateStatus ( false );
 	// TODO SAM 2007-08-31 Evaluate whether processor should have "dirty" property.
+}
+
+/**
+Convert the specified commands to a Vector of String.  This may not be
+the best place for this method but ok for now.
+@param commands Vector of Command.
+*/
+private Vector commandList_ToStringVector ( Vector commands )
+{	Vector strings = new Vector();
+	int size = commands.size();
+	for ( int i = 0; i < size; i++ ) {
+		strings.addElement ( "" + commands.elementAt(i) );
+	}
+	return strings;
 }
 
 /**
@@ -4063,7 +4237,7 @@ private void commandProcessor_RunCommands ( Vector commands, boolean create_outp
 Run a command processor to get the current working directory.
 This is a limited run meant to determine the working directory for
 command editing, where the working directory may have changed from the
-original command file location.  It is meant to be called from
+original command file location and setWorkingDir() commands.  It is meant to be called from
 updateDynamicProps().
 @param ts_processor The command processor to be run.
 @param props The properties to be set with the current working directory.
@@ -4080,7 +4254,11 @@ private void commandProcessor_RunSetWorkingDirCommand ( TSCommandProcessor ts_pr
 		// Now get the working directory and set for the current environment.
 		Object o = __ts_processor.getPropContents("WorkingDir");
 		if ( o != null ) {
+			String dir = (String)o;
 			props.set ( "WorkingDir", (String)o );
+			Message.printStatus ( 2, routine,
+				"The working directory from the initial conditions and commands is \"" +
+				dir + "\"" );
 		}
 	}
 	catch ( Exception e ) {
@@ -11154,11 +11332,17 @@ private void uiAction_EditCommand ()
 		if ( command.toString().startsWith("#") ) {
 			// Allow multiple lines to be edited in a comment...
 			// This is handled in the called method, which brings up a multi-line
-			// editor for comments.
+			// editor for comments.  Only edit the contiguous # block.
+			// The first one is a # but stop adding when lines no longer
+			// start with #
 			v = new Vector ( selected_size );
 			for ( int i = 0; i < selected_size; i++ ) {
-				v.addElement (
-					__commands_JListModel.get(selected[i]));
+				command = (Command)__commands_JListModel.get(selected[i]);
+				if ( !command.toString().startsWith("#")) {
+					break;
+				}
+				// Else add command to the list.
+				v.addElement ( command );
 			}
 		}
 		else {	// Commands are one line...
@@ -12416,14 +12600,14 @@ throws IOException
 			__query_JWorksheet.setColumnWidths (
 			cr.getColumnWidths(), getGraphics() );
 		}
-       		if ( (tslist == null) || (size == 0) ) {
+       	if ( (tslist == null) || (size == 0) ) {
 			Message.printStatus ( 1, routine,
 			"No NWSRFS FS5Files time series read." );
 			queryResultsList_Clear ();
-       		}
-       		else {	Message.printStatus ( 1, routine, ""
+       	}
+       	else {	Message.printStatus ( 1, routine, ""
 			+ size + " NWSRFS FS5Files time series read." );
-       		}
+       	}
 
 		JGUIUtil.setWaitCursor ( this, false );
        	ui_UpdateStatus ( false );
@@ -13927,6 +14111,8 @@ private void uiAction_OpenCommandsFile ()
 		JGUIUtil.setLastFileDialogDirectory(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
+		Message.printStatus(2, routine, "Working directory from commands file is \"" +
+			IOUtil.getProgramWorkingDir() );
 		try { commandProcessor_ReadCommandsFile ( path );
 		}
 		catch ( Exception e ) {
@@ -14265,7 +14451,8 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 			__input_name_NWSRFS_FS5Files.addElement ( path );
 			// For now there is no way for the user to set a separate
 			// input name so set the same as the FS5 Files location...
-			__nwsrfs_dmi.setInputName ( path );
+			// Is automatically set.
+			//__nwsrfs_dmi.setInputName ( path );
 			// Set the NWSRFSDMI for the command processor...
 			commandProcessor_SetNWSRFSFS5FilesDMI ( __nwsrfs_dmi );
 			// Check the GUI state to enable/disable NWSRFS
@@ -14629,7 +14816,7 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 	Vector commands = commandList_GetCommands ( run_all_commands );
 	// Save the commands in case any output calls
 	// IOUtil.printCreatorHeader...
-	IOUtil.setProgramCommandList ( commands );
+	IOUtil.setProgramCommandList ( commandList_ToStringVector(commands) );
 	commandProcessor_RunCommands ( commands, create_output );
 	JGUIUtil.setWaitCursor ( this, false );
 	int size = JGUIUtil.selectedSize ( __commands_JList );
@@ -14717,7 +14904,7 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 	}
 	else {	// Select the time series of interest.
 		selected = new int[num_selected];	// Whether visually selected
-		for ( int i = 0; i < size; i++ ) {
+		for ( int i = 0; i < num_selected; i++ ) {
 			if ( selected_boolean[i] ) {
 				selected[i] = i;
 			}
