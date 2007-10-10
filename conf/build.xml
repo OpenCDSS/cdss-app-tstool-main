@@ -469,7 +469,7 @@
 </target>
 	
 <target name="createUserManual_CDSS"
- description="Merges PDF documentation into dist folder" >
+ description="Merges PDF documentation into doc/dist_CDSS folder" >
 	
 	<ant antfile="${ext.dir}/RTiBuild/common-doc.xml"
 	 target="mergePDF" >
@@ -481,13 +481,15 @@
 	
 </target>
 	
-<target name="createUserManual_Rivertrak"
- description="Merges PDF documentation into dist folder" >
+<target name="createUserManual_RTi"
+ description="Merges PDF documentation into doc/dist_RTi folder" >
 	
 	<ant antfile="${ext.dir}/RTiBuild/common-doc.xml"
 	 target="mergePDF" >
 		<property name="filelist" 
-		 value="doc/TSTool/Rivertrak/UserManual/PDF/filelist.txt" />
+		 value="doc/UserManual/merge_PDF/filelist_RTi.txt" />
+		<property name="pdf_file" 
+						 value="doc/UserManual/dist_RTi/TSTool.pdf" />
 	</ant>
 	
 </target>

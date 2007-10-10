@@ -438,7 +438,7 @@ import RTi.Util.String.StringUtil;
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.00.00 (2007-07-22)";
+public static final String PROGRAM_VERSION = "8.01.00 (2007-09-24)";
 
 private static TSTool_JFrame	__tstool_JFrame;	// Main GUI
 private static String		__home = null;		// Home directory for

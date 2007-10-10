@@ -25,6 +25,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -3284,6 +3285,13 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
 	}
+	else {
+		// A time series identifier or other command that for whatever reason
+		// does not have a custom dialog...
+		edited_cv = new commandString_JDialog ( this, cv,
+				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
+						__ts_processor, command_to_edit)).getText();
+	}
 	
 	if ( edited_cv == null ) {
 		// The edit was cancelled...
@@ -5184,35 +5192,34 @@ private void initGUI ( boolean show_main )
 	if ( __use_annotated_list ) {
 		__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
 		__commands_JList = __commands_AnnotatedCommandJList.getJList();
+		// Set the font to fixed font so that similar command text lines up...
+		__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
+		// Handling the ellipsis is dealt with in the annotated list...
 	}
 	else {
 		__commands_JList = new JList ( __commands_JListModel );
+		// Set the font to fixed font so that similar command text lines up...
+		__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
+		// The following prototype value looks like nonsense, but should ensure
+		// that the line height accomodates both very tall characters, and those
+		// that swoop below the line.
+		__commands_JList.setPrototypeCellValue("gjqqyAZ");
+		// The following line works in tandem with the call to 
+		// setPrototypeCellValue() above.  setPrototypeCellValue() changes the
+		// fixedCellWidth and fixedCellHeight on the JList so that the given
+		// string above can fit, which is good.  The downside is that setting
+		// the fixedCellWidth makes it so that the JList never scrolls 
+		// horizontally, but instead trims long strings with an ellipsis.  
+		// If the call to setPrototypeCellValue() is removed for some reason,
+		// the following line should be removed as well.
+		__commands_JList.setFixedCellWidth(-1);
 	}
-	__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
-	// The following prototype value looks like nonsense, but should ensure
-	// that the line height accomodates both very tall characters, and those
-	// that swoop below the line.
-	//__commands_JList.setPrototypeCellValue("gjqqyAZ");
 	
-	// The following block is necessary for horizontal scrolling
-	// to work - I am still trying to figure out why - dre
-	{
-	Dimension minimum_Dimension = new Dimension ( 10, 100 );
-	__commands_JList.setMinimumSize ( minimum_Dimension );
-	}
+	// Listen for events on the list so the GUI can respond to selections.
+	
 	__commands_JList.addListSelectionListener ( this );
 	__commands_JList.addKeyListener ( this );
 	__commands_JList.addMouseListener ( this );
-	
-	// The following line works in tandem with the call to 
-	// setPrototypeCellValue() above.  setPrototypeCellValue() changes the
-	// fixedCellWidth and fixedCellHeight on the JList so that the given
-	// string above can fit, which is good.  The downside is that setting
-	// the fixedCellWidth makes it so that the JList never scrolls 
-	// horizontally, but instead trims long strings with an ellipsis.  
-	// If the call to setPrototypeCellValue() is removed for some reason,
-	// the following line should be removed as well.
-	// __commands_JList.setFixedCellWidth(-1);
 	
 	if ( __use_annotated_list ) {
 		JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedCommandJList,
@@ -5279,8 +5286,6 @@ private void initGUI ( boolean show_main )
 
 	__ts_JListModel = new DefaultListModel();
 	__ts_JList = new JList ( __ts_JListModel );
-	//minimum_Dimension = new Dimension ( 300, 100 );
-	//__ts_JList.setMinimumSize ( minimum_Dimension );
 	__ts_JList.addKeyListener ( this );
 	__ts_JList.addListSelectionListener ( this );
 	__ts_JList.addMouseListener ( this );
@@ -9197,7 +9202,8 @@ Interface tasks include:
 which checks many interface settings.
 */
 private void ui_UpdateStatus ( boolean check_gui_state )
-{	if ( __commands_file_name == null ) {
+{	Message.printStatus ( 2, "", "Start of ui_UpdateStatus." );
+	if ( __commands_file_name == null ) {
 		setTitle ( "TSTool - no commands saved");
 	}
 	else {	if ( __commands_dirty ) {
@@ -14039,153 +14045,6 @@ private void uiAction_InputTypeChoiceClicked()
 }
 
 /**
-Open a commands file and read into the list of commands.  A check is made to
-see if the list contains anything and if it does the user is prompted as to
-whether need to save the previous commands.
-*/
-private void uiAction_OpenCommandsFile ()
-{	String routine = getClass().getName() + ".openCommandsFile";
-	// See whether the old commands need to be cleared...
-	if ( __commands_dirty ) {
-		if ( __commands_file_name == null ) {
-			// Have not been saved before...
-			int x = ResponseJDialog.NO;
-			if ( __commands_JListModel.size() > 0 ) {
-				x = new ResponseJDialog ( this,
-				IOUtil.getProgramName(),
-				"Do you want to save the changes you made?",
-				ResponseJDialog.YES| ResponseJDialog.NO|
-				ResponseJDialog.CANCEL).response();
-			}
-			if ( x == ResponseJDialog.CANCEL ) {
-				return;
-			}
-			else if ( x == ResponseJDialog.YES ) {
-				// Prompt for the name and then save...
-				uiAction_WriteCommandsFile ( __commands_file_name, true);
-			}
-		}
-		else {	// A commands file exists...  Warn the user.  They can
-			// save to the existing file name or can cancel and
-			// File...Save As... to a different name.
-			// Have not been saved before...
-			int x = ResponseJDialog.NO;
-			if ( __commands_JListModel.size() > 0 ) {
-				x = new ResponseJDialog ( this,
-				IOUtil.getProgramName(),
-				"Do you want to save the changes you made to:\n"
-				+ "\"" + __commands_file_name + "\"?",
-				ResponseJDialog.YES| ResponseJDialog.NO|
-				ResponseJDialog.CANCEL).response();
-			}
-			if ( x == ResponseJDialog.CANCEL ) {
-				return;
-			}
-			else if ( x == ResponseJDialog.YES ) {
-				uiAction_WriteCommandsFile ( __commands_file_name,false);
-			}
-			// Else if No will clear below before opening the other
-			// file...
-		}
-	}
-
-	// Get the file.  Do not clear the list until the file has been chosen
-	// and is readable...
-
-	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-					JGUIUtil.getLastFileDialogDirectory() );
-	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
-	SimpleFileFilter sff =
-		new SimpleFileFilter("TSTool", "TSTool Commands File");
-	fc.addChoosableFileFilter(sff);
-	fc.setFileFilter(sff);
-	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-		// If the user approves a selection do the following...
-		String directory = fc.getSelectedFile().getParent();
-		String path = fc.getSelectedFile().getPath();
-
-		// REVISIT - is this necessary in Swing?
-		// Set the "WorkingDir" property, which will NOT contain a
-		// trailing separator...
-		IOUtil.setProgramWorkingDir(directory);
-		JGUIUtil.setLastFileDialogDirectory(directory);
-		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
-		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		Message.printStatus(2, routine, "Working directory from commands file is \"" +
-			IOUtil.getProgramWorkingDir() );
-		try { commandProcessor_ReadCommandsFile ( path );
-		}
-		catch ( Exception e ) {
-			// Error opening the file (should not happen but maybe
-			// a read permissions problem)...
-			Message.printWarning ( 1, routine,
-			"Error opening file \"" + path + "\"" );
-			Message.printWarning ( 2, routine, e );
-			return;
-		}
-		// If successful the TSCommandProcessor, as the data model, will
-		// have fired actions to make the JList update.
-		commandList_SetCommandsFileName(path);
-		commandList_SetDirty(false);			
-	}
-	// New file has been opened or there was a cancel/error and the old
-	// list remains.
-	ui_UpdateStatus ( true );
-}
-
-/**
-Create new DIADvisorDMI instances with connections to the DIADvisor operational
-and archive databases.  This is done in response to a user request.
-*/
-private void uiAction_OpenDIADvisor ()
-{	String routine = "TSTool_JFrame.openDIADvisor";
-
-	// Display the dialog to select the database.  This is a modal dialog
-	// that will not allow anything else to occur until the information is
-	// entered.  Use a PropList to pass information because there are a
-	// lot of parameters and the list may change in the future.
-
-	PropList props = new PropList ( "SelectDIADvisor" );
-	props.set ( "ValidateLogin", "false" );
-
-	// Pass in the previous DIADvisorDMI so that the information can be
-	// displayed as the initial values...
-
-	SelectDIADvisorDialog selectDIADvisorDialog = null;
-	try {	selectDIADvisorDialog =
-		new SelectDIADvisorDialog ( this, __DIADvisor_dmi,
-					__DIADvisor_archive_dmi, props );
-
-		// After getting to here, the dialog has been closed.  The
-		// HydroBaseDMI from the dialog can be retrieved and used...
-
-		__DIADvisor_dmi = selectDIADvisorDialog.getDIADvisorDMI();
-		__DIADvisor_archive_dmi =
-			selectDIADvisorDialog.getArchiveDIADvisorDMI();
-		if ( __DIADvisor_dmi == null ) {
-			Message.printWarning ( 1, routine,
-			"Cannot open DIADvisor operational database.\n" +
-			"DIADvisor features will be disabled." );
-			__DIADvisor_archive_dmi = null;
-		}
-		else if ( __DIADvisor_archive_dmi == null ) {
-			Message.printWarning ( 1, routine,
-			"Cannot open DIADvisor archive database.\n" +
-			"Archive data will not be available." );
-		}
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, routine,
-		"DIADvisor features will be disabled." );
-		Message.printWarning ( 2, routine, e );
-		__DIADvisor_dmi = null;
-		__DIADvisor_archive_dmi = null;
-	}
-
-	ui_CheckDIADvisorFeatures ();
-}
-
-/**
 Open a connection to the ColoradoSMS database.  If running in batch mode, the
 CDSS configuration file is used to determine ColoradoSMS server and database
 name properties to use for the initial connection.  If no configuration file
@@ -14287,6 +14146,165 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 	*/
 	// Enable/disable ColoradoSMS features as necessary...
 	ui_CheckColoradoSMSFeatures();
+}
+
+/**
+Open a commands file and read into the list of commands.  A check is made to
+see if the list contains anything and if it does the user is prompted as to
+whether need to save the previous commands.
+*/
+private void uiAction_OpenCommandsFile ()
+{	String routine = getClass().getName() + ".openCommandsFile";
+	// See whether the old commands need to be cleared...
+	if ( __commands_dirty ) {
+		if ( __commands_file_name == null ) {
+			// Have not been saved before...
+			int x = ResponseJDialog.NO;
+			if ( __commands_JListModel.size() > 0 ) {
+				x = new ResponseJDialog ( this,
+				IOUtil.getProgramName(),
+				"Do you want to save the changes you made?",
+				ResponseJDialog.YES| ResponseJDialog.NO|
+				ResponseJDialog.CANCEL).response();
+			}
+			if ( x == ResponseJDialog.CANCEL ) {
+				return;
+			}
+			else if ( x == ResponseJDialog.YES ) {
+				// Prompt for the name and then save...
+				uiAction_WriteCommandsFile ( __commands_file_name, true);
+			}
+		}
+		else {	// A commands file exists...  Warn the user.  They can
+			// save to the existing file name or can cancel and
+			// File...Save As... to a different name.
+			// Have not been saved before...
+			int x = ResponseJDialog.NO;
+			if ( __commands_JListModel.size() > 0 ) {
+				x = new ResponseJDialog ( this,
+				IOUtil.getProgramName(),
+				"Do you want to save the changes you made to:\n"
+				+ "\"" + __commands_file_name + "\"?",
+				ResponseJDialog.YES| ResponseJDialog.NO|
+				ResponseJDialog.CANCEL).response();
+			}
+			if ( x == ResponseJDialog.CANCEL ) {
+				return;
+			}
+			else if ( x == ResponseJDialog.YES ) {
+				uiAction_WriteCommandsFile ( __commands_file_name,false);
+			}
+			// Else if No will clear below before opening the other
+			// file...
+		}
+	}
+
+	// Get the file.  Do not clear the list until the file has been chosen
+	// and is readable...
+
+	JFileChooser fc = JFileChooserFactory.createJFileChooser (
+					JGUIUtil.getLastFileDialogDirectory() );
+	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
+	SimpleFileFilter sff =
+		new SimpleFileFilter("TSTool", "TSTool Commands File");
+	fc.addChoosableFileFilter(sff);
+	fc.setFileFilter(sff);
+	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+		// If the user approves a selection do the following...
+		String directory = fc.getSelectedFile().getParent();
+		String path = fc.getSelectedFile().getPath();
+
+		// REVISIT - is this necessary in Swing?
+		// Set the "WorkingDir" property, which will NOT contain a
+		// trailing separator...
+		IOUtil.setProgramWorkingDir(directory);
+		JGUIUtil.setLastFileDialogDirectory(directory);
+		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
+		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
+		Message.printStatus(2, routine, "Working directory from commands file is \"" +
+			IOUtil.getProgramWorkingDir() );
+		try { commandProcessor_ReadCommandsFile ( path );
+		}
+		catch ( FileNotFoundException e ) {
+			Message.printWarning ( 1, routine,
+					"Commands file \"" + path + "\" does not exist." );
+					Message.printWarning ( 2, routine, e );
+					// Previous contents will remain.
+					return;
+		}
+		catch ( Exception e ) {
+			// FIXME SAM 2007-10-09 Perhaps should revert to previous
+			// data model contents?  For now allow partical contents to be
+			// displayed.
+			//
+			// Error opening the file (should not happen but maybe
+			// a read permissions problem)...
+			Message.printWarning ( 1, routine,
+			"Error reading commands file \"" + path + "\".  Displaying commands that could be read." );
+			Message.printWarning ( 2, routine, e );
+		}
+		// If successful the TSCommandProcessor, as the data model, will
+		// have fired actions to make the JList update.
+		commandList_SetCommandsFileName(path);
+		commandList_SetDirty(false);			
+	}
+	// New file has been opened or there was a cancel/error and the old
+	// list remains.
+	Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
+	ui_UpdateStatus ( true );
+	Message.printStatus ( 2, routine, "Back from update status." );
+}
+
+/**
+Create new DIADvisorDMI instances with connections to the DIADvisor operational
+and archive databases.  This is done in response to a user request.
+*/
+private void uiAction_OpenDIADvisor ()
+{	String routine = "TSTool_JFrame.openDIADvisor";
+
+	// Display the dialog to select the database.  This is a modal dialog
+	// that will not allow anything else to occur until the information is
+	// entered.  Use a PropList to pass information because there are a
+	// lot of parameters and the list may change in the future.
+
+	PropList props = new PropList ( "SelectDIADvisor" );
+	props.set ( "ValidateLogin", "false" );
+
+	// Pass in the previous DIADvisorDMI so that the information can be
+	// displayed as the initial values...
+
+	SelectDIADvisorDialog selectDIADvisorDialog = null;
+	try {	selectDIADvisorDialog =
+		new SelectDIADvisorDialog ( this, __DIADvisor_dmi,
+					__DIADvisor_archive_dmi, props );
+
+		// After getting to here, the dialog has been closed.  The
+		// HydroBaseDMI from the dialog can be retrieved and used...
+
+		__DIADvisor_dmi = selectDIADvisorDialog.getDIADvisorDMI();
+		__DIADvisor_archive_dmi =
+			selectDIADvisorDialog.getArchiveDIADvisorDMI();
+		if ( __DIADvisor_dmi == null ) {
+			Message.printWarning ( 1, routine,
+			"Cannot open DIADvisor operational database.\n" +
+			"DIADvisor features will be disabled." );
+			__DIADvisor_archive_dmi = null;
+		}
+		else if ( __DIADvisor_archive_dmi == null ) {
+			Message.printWarning ( 1, routine,
+			"Cannot open DIADvisor archive database.\n" +
+			"Archive data will not be available." );
+		}
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 1, routine,
+		"DIADvisor features will be disabled." );
+		Message.printWarning ( 2, routine, e );
+		__DIADvisor_dmi = null;
+		__DIADvisor_archive_dmi = null;
+	}
+
+	ui_CheckDIADvisorFeatures ();
 }
 
 /**
@@ -14913,9 +14931,10 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 	// Now actually select the time series in the visual output...
 	__ts_JList.setSelectedIndices ( selected );
 	ui_UpdateStatus ( false );
+	// Repaint the list to reflect the status of the commands...
 	__commands_AnnotatedCommandJList.repaint();
-	Message.printStatus ( 1, routine, "Completed running commands.  Use "+
-		"Results and Tools menus." );
+	ui_UpdateStatusTextFields ( -1, routine, "Completed running commands.  Use Results and Tools menus.",
+			__STATUS_READY );
 }
 
 //TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series

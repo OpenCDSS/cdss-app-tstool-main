@@ -171,7 +171,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -212,7 +212,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	if ( size == 0 ) {
 		Message.printWarning ( 1,
 		"newEndOfMonthTSFromDayTS_JDialog.initialize",
-		"You must define time series before inserting a " +
+		"You must define time series in previous commands before inserting a " +
 		"newEndOfMonthTSFromDayTS() command." );
 		response ( 0 );
 	}
