@@ -4,13 +4,9 @@
 	<classpathentry kind="src" path="test/unit/src"/>
 	<classpathentry kind="src" path="test/regression/src/Abbot"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/HydroBaseDMI"/>
 	<classpathentry kind="lib" path="externals/junit.jar"/>
-	<classpathentry kind="lib" path="externals/StateCU/StateCU_142.jar"/>
-	<classpathentry kind="lib" path="externals/StateMod/StateMod_142.jar"/>
-	<classpathentry kind="lib" path="externals/TS_Services/TS_Services.jar"/>
-	<classpathentry kind="lib" path="externals/RiversideDB_DMI/RiversideDB_DMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/Blowfish_142.jar"/>
-	<classpathentry kind="lib" path="externals/SatmonSysDMI/SatmonSysDMI_142.jar"/>
 	<classpathentry kind="lib" path="externals/Abbot/abbot.jar"/>
 	<classpathentry kind="lib" path="externals/Abbot/ant4eclipse.jar"/>
 	<classpathentry kind="lib" path="externals/Abbot/bsh.jar"/>
@@ -25,10 +21,16 @@
 	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/mssqlserver.jar"/>
 	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msutil.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Util"/>
-	<classpathentry kind="lib" path="externals/RTi_Common/RTi_Common_142.jar"/>
-	<classpathentry kind="lib" path="externals/TSCommandProcessor/TSCommandProcessor_142.jar"/>
-	<classpathentry kind="lib" path="externals/HydroBaseDMI/HydroBaseDMI_142.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/NWSRFS_DMI"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/TSCommandProcessor"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/GRTS"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/TS"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/GR"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/GeoView"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/RiversideDB_DMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SatmonSysDMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/StateCU"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/StateMod"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
