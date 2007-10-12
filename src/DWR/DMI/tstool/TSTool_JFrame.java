@@ -57,6 +57,7 @@ import javax.swing.filechooser.FileFilter;
 import rti.tscommandprocessor.core.TSCommandFactory;
 import rti.tscommandprocessor.core.TSCommandProcessor;
 import rti.tscommandprocessor.core.TSCommandProcessorListModel;
+import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
@@ -483,6 +484,13 @@ In the future, if threading is implemented, it may be possible to have, for
 example, tabs for different commands files, each with a TSCommandProcessor.
 */
 private TSCommandProcessor __ts_processor = new TSCommandProcessor();
+
+/**
+Indicates whether the command processor is running.  It will be true if the
+processor is being run in the GUI thread (until control returns) or if a thread is
+used and the last command has not yet been processed.
+*/
+private boolean __ts_processor_is_running = false;
 
 private JPopupMenu __results_JPopupMenu = null;
 
@@ -1991,6 +1999,16 @@ public void commandCompleted ( int icommand, int ncommand, Command command,
 	// Update the progress bar to indicate progress.
 	__processor_JProgressBar.setValue ( icommand + 1 );
 	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
+	
+	if ( icommand == ncommand ) {
+		// Last command has completed so refresh the time series results.
+		// Only need to do if threaded because otherwise will handle synchronously
+		// in the uiAction_RunCommands() method...
+		ui_SetRunningCommands ( false );
+		if ( ui_Property_RunCommandProcessorInThread() ) {
+			uiAction_RunCommands_ShowTSResults ();
+		}
+	}
 }
 
 /**
@@ -4223,21 +4241,64 @@ Run the commands through the processor.  Curently this supplies the list of
 Command instances to run because the user can select the commands in the
 interface.  In the future the command processor may put together the list without
 being passed from the GUI.
+@param ts_processor The TSCommandProcessor to run.  Typically this will be the
+main processor but it will be a temporary instance when processing the
+working directory for edit dialogs.
+@param commands The list of commands to process.
+@param create_output Indicate whether output files should be created.  Doing so results
+in some performance degredation.
 */
-private void commandProcessor_RunCommands ( Vector commands, boolean create_output )
+private void commandProcessor_RunCommands (
+		TSCommandProcessor ts_processor,
+		Vector commands,
+		boolean create_output )
 {	String routine = "TSTool_JFrame.commandProcessorRunCommands";
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "CommandList", commands );
 	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
 	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
-	//CommandProcessorRequestResultsBean bean = null;
-	try { //bean =
-		__ts_processor.processRequest( "RunCommands", request_params );
+	Message.printStatus ( 2, routine, "Running commands in GUI thread.");
+	try { 
+		ui_SetRunningCommands ( true );
+		ts_processor.processRequest( "RunCommands", request_params );
+		ui_SetRunningCommands ( false );
 	}
 	catch ( Exception e ) {
 		String message = "Error requesting RunCommands(CommandList=...) from processor.";
+		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 3,routine, e );
+		ui_SetRunningCommands ( false );
+	}
+}
+
+/**
+Run the commands through the processor.  Curently this supplies the list of
+Command instances to run because the user can select the commands in the
+interface.  In the future the command processor may put together the list without
+being passed from the GUI.
+*/
+private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean create_output )
+{	String routine = "TSTool_JFrame.commandProcessorRunCommandsThreaded";
+
+	PropList request_params = new PropList ( "" );
+	request_params.setUsingObject ( "CommandList", commands );
+	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
+	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
+	try {
+		ui_SetRunningCommands ( true );
+		TSCommandProcessorThreadRunner runner =
+		new TSCommandProcessorThreadRunner ( __ts_processor, request_params );
+		Message.printStatus ( 2, routine, "Running commands in separate thread.");
+		Thread thread = new Thread ( runner );
+		thread.start();
+		// At this point the GUI will get updated if any notification fires from the
+		// processor.
+	}
+	catch ( Exception e ) {
+		String message = "Error running command processor in thread.";
 		Message.printWarning(2, routine, message );
 		Message.printWarning (3,routine, e);
+		ui_SetRunningCommands ( false );
 	}
 }
 
@@ -8896,6 +8957,21 @@ private void ui_CheckRiversideDBFeatures ()
 }
 
 /**
+Indicate whether running commands should occur in a thread.
+*/
+private boolean ui_Property_RunCommandProcessorInThread()
+{
+	String RunCommandProcessorInThread_String = __props.getValue ( TSTool_Options_JDialog.TSTool_RunCommandProcessorInThread );
+	if ( (RunCommandProcessorInThread_String != null) &&
+			RunCommandProcessorInThread_String.equalsIgnoreCase("True") ) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
 Read the license file.  If not found, the license manager will be null and
 result in an invalid license error.  The license is read before the GUI is
 initialized to allow the GUI to be configured according to the license type.
@@ -9178,6 +9254,16 @@ private void ui_SetInputTypeChoices ()
 }
 
 /**
+Set whether the commands are currently running.  This is most important when
+running the command processor in a thread.
+@param is_running Indicates whether the commands are currently being processed.
+*/
+private void ui_SetRunningCommands ( boolean is_running )
+{
+	__ts_processor_is_running = is_running;
+}
+
+/**
 Update the main status information when the list contents have changed.  This
 method should be called after any change to the query, command, or time series
 results list.
@@ -9202,8 +9288,7 @@ Interface tasks include:
 which checks many interface settings.
 */
 private void ui_UpdateStatus ( boolean check_gui_state )
-{	Message.printStatus ( 2, "", "Start of ui_UpdateStatus." );
-	if ( __commands_file_name == null ) {
+{	if ( __commands_file_name == null ) {
 		setTitle ( "TSTool - no commands saved");
 	}
 	else {	if ( __commands_dirty ) {
@@ -9563,6 +9648,7 @@ throws Exception
 		}
 		v.addElement ( "Current working directory = " +
 			IOUtil.getProgramWorkingDir() );
+		v.addElement ( "Run commands in thread = " + ui_Property_RunCommandProcessorInThread() );
 		// List open database information...
 		if ( __source_ColoradoSMS_enabled ) {
 			v.addElement ( "" );
@@ -14835,12 +14921,31 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 	// Save the commands in case any output calls
 	// IOUtil.printCreatorHeader...
 	IOUtil.setProgramCommandList ( commandList_ToStringVector(commands) );
-	commandProcessor_RunCommands ( commands, create_output );
-	JGUIUtil.setWaitCursor ( this, false );
-	int size = JGUIUtil.selectedSize ( __commands_JList );
-	// Fill the time series list with the descriptions of the in-memory
+	// Run the commands in the processor instance.
+	if ( ui_Property_RunCommandProcessorInThread() ) {
+		// Run the commands in a thread.
+		commandProcessor_RunCommandsThreaded ( commands, create_output );
+		// List of time series is displayed when CommandProcessorListener
+		// detects that the last command is complete.
+	}
+	else {
+		// Run the commands in the current thread (the GUI will be
+		// unresponsive during this time).
+		commandProcessor_RunCommands ( __ts_processor, commands, create_output );
+		// Display the list of time series...
+		uiAction_RunCommands_ShowTSResults ();
+		JGUIUtil.setWaitCursor ( this, false );
+	}
+}
+
+/**
+Display the time series from the command processor in the results list.
+*/
+private void uiAction_RunCommands_ShowTSResults ()
+{	String routine = "TSTool_JFrame.uiAction_RunCommands_ShowTSResults";
+	//	 Fill the time series list with the descriptions of the in-memory
 	// time series...
-	size = commandProcessor_GetTimeSeriesResultsListSize();
+	int size = commandProcessor_GetTimeSeriesResultsListSize();
 	TS ts = null;
 	String desc = null;
 	String alias = null;
@@ -16831,24 +16936,44 @@ working directory with a command, it will be recognized for the editor.
 */
 private void updateDynamicProps ()
 {	// Update the shared application properties to set the
-	// "WorkingDir" property, which is used in the following
-	// dialog...
+	// "WorkingDir" property, which is used in dialogs when editing commands.
+	// The working directory in effect for the command is context sensitive
+	// and may have changed based on previous commands.
 	Vector needed_commands_Vector = new Vector();
 	needed_commands_Vector.addElement ( "setWorkingDir" );
+	// Get the commands related to changing the working directory, prior to
+	// the current command to be edited.
 	Vector working_dir_commands_Vector =
 		commandList_GetCommandsAboveInsertPosition (
 		needed_commands_Vector, true );
 	// Always add the starting working directory to the top to
 	// make sure an initial condition is set...
-	working_dir_commands_Vector.insertElementAt (
-		getInitialSetWorkingDirCommand(), 0 );
+	working_dir_commands_Vector.insertElementAt ( getInitialSetWorkingDirCommand(), 0 );
 	// Create a local command processor
 	TSCommandProcessor ts_processor = new TSCommandProcessor();
-	// Run only the commands of interest...
-	commandProcessor_RunCommands (
-			working_dir_commands_Vector,	// List of commands to process
-			false );	// Create output - irrelevant
-	commandProcessor_RunSetWorkingDirCommand ( ts_processor, __props );
+	int size = working_dir_commands_Vector.size();
+	// Add all the commands (currently no method to add all because this is normally
+	// not done).
+	for ( int i = 0; i < size; i++ ) {
+		ts_processor.addCommand ( (Command)working_dir_commands_Vector.elementAt(i));
+	}
+	// Run the commands to set the working directory in the temporary processor...
+	try {	ts_processor.runCommands(
+			null,	// Process all commands in this processor
+			null );	// No need for controlling properties since controlled by commands
+	}
+	catch ( Exception e ) {
+		// This is a software problem.
+		String routine = getClass().getName() + ".updateDynamicProps";
+		Message.printWarning(2, routine, "Error setting working directory for edit." );
+		Message.printWarning(2, routine, e);
+	}
+	// Set the working directory in the current command processor based on what
+	// was set in the run.  The editor will then think this is the property in the
+	// command processor, when it is requested.
+	commandProcessor_RunSetWorkingDirCommand (
+			ts_processor,
+			__props );
 }
 
 /**

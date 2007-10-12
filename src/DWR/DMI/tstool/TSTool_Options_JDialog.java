@@ -24,6 +24,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,10 +41,17 @@ import RTi.Util.String.StringUtil;
 public class TSTool_Options_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {
+	
+public static final String TSTool_RunCommandProcessorInThread = "TSTool.RunCommandProcessorInThread";
+
+private final String __False = "False";
+private final String __True = "True";
+	
 private SimpleJButton	__cancel_JButton = null,// Cancel JButton
 			__ok_JButton = null;	// Ok JButton
 private JTextField	__HydroBase_wdid_length_JTextField = null;
 						// WDID length
+private JCheckBox __General_RunThreaded_JCheckBox = null;
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
@@ -142,9 +150,18 @@ private void initialize ()
 	// General tab...
 	JPanel general_JPanel = new JPanel();
 	general_JPanel.setLayout ( gbl );
-        JGUIUtil.addComponent(general_JPanel, new JLabel (
-		"General properties are being enabled."),
-		0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    __General_RunThreaded_JCheckBox = new JCheckBox ();
+    boolean RunCommandProcessorInThread_boolean = false;
+	String RunCommandProcessorInThread_String = __app_PropList.getValue ( TSTool_RunCommandProcessorInThread );
+    if ( (RunCommandProcessorInThread_String != null) &&
+    		RunCommandProcessorInThread_String.equalsIgnoreCase(__True) ) {
+    	RunCommandProcessorInThread_boolean = true;
+    }
+    __General_RunThreaded_JCheckBox.setText("Run commands in thread (allows cancel) (under development).");
+	__General_RunThreaded_JCheckBox.setSelected(RunCommandProcessorInThread_boolean);
+	JGUIUtil.addComponent(general_JPanel,
+			__General_RunThreaded_JCheckBox,
+			0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	main_JTabbedPane.addTab ( "General", general_JPanel );
 
 	// HydroBase tab...
@@ -154,7 +171,7 @@ private void initialize ()
 		HydroBase_JPanel.setLayout ( gbl );
 		y = 0;
         	JGUIUtil.addComponent(HydroBase_JPanel,
-			new JLabel ( "WDID Length:"),
+		new JLabel ( "WDID Length:"),
 			0, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		String wdid_length = __app_PropList.getValue (
 			"HydroBase.WDIDLength" );
@@ -162,7 +179,7 @@ private void initialize ()
 			wdid_length = "7";
 		}
 		__HydroBase_wdid_length_JTextField =
-			new JTextField ( wdid_length, 5 );
+		new JTextField ( wdid_length, 5 );
 		JGUIUtil.addComponent(HydroBase_JPanel,
 			__HydroBase_wdid_length_JTextField,
 			1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -221,6 +238,12 @@ public PropList response ( int status )
 		return null;
 	}
 	else {	// Update the properties in the PropList...
+		if ( __General_RunThreaded_JCheckBox.isSelected() ) {
+			__app_PropList.set ( TSTool_RunCommandProcessorInThread, __True);
+		}
+		else {
+			__app_PropList.set ( TSTool_RunCommandProcessorInThread, __False);
+		}
 		if ( __HydroBase_enabled ) {
 			__app_PropList.set ( "HydroBase.WDIDLength",
 			__HydroBase_wdid_length_JTextField.getText().trim() );
