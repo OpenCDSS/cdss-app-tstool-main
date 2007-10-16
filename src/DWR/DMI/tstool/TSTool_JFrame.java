@@ -48,6 +48,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -496,17 +497,21 @@ private JPopupMenu __results_JPopupMenu = null;
 
 // Status-area related...
 
-private final String __STATUS_READY = "Ready";	// General status string to
-						// indicate that the GUI is
-						// ready for user input.
-//private final String __STATUS_BUSY = "Wait";	// General status string to
-						// indicate that the user should
-						// wait for the GUI to finish a
-						// task.
-private JTextField __message_JTextField;	// Message area text field
-						// (e.g., "Processing
-						// commands...") - long and
-						// left-most.
+/**
+General status string to indicate that the GUI is ready for user input.
+*/
+private final String __STATUS_READY = "Ready";
+
+/**
+General status string to indicate that the user should wait for the GUI to finish a task.
+*/
+private final String __STATUS_BUSY = "Wait";
+
+/**
+Message area text field (e.g., "Processing commands...") - long and left-most.
+*/
+private JTextField __message_JTextField;
+
 /**
 Progress bar to show progress of running commands in processor.
 */
@@ -877,7 +882,8 @@ JMenuItem
 	__Commands_General_compareFiles_JMenuItem = null,
 	__Commands_General_runCommands_JMenuItem = null,
 	__Commands_General_runProgram_JMenuItem = null,
-	__Commands_General_testCommand_JMenuItem = null;
+	__Commands_General_testCommand_JMenuItem = null,
+	__Commands_General_CreateRegressionTestCommandFile_JMenuItem = null;
 
 
 // Commands (HydroBase)...
@@ -1408,6 +1414,8 @@ private String
 		"runProgram()... <run external program>",
 	__Commands_General_testCommand_String = TAB+
 		"testCommand()... <for development testing>",
+	__Commands_General_CreateRegressionTestCommandFile_String = TAB+
+		"CreateRegressionTestCommandFile()... <to verify software>",
 
 	// Results menu choices (order in GUI)...
 
@@ -1561,6 +1569,9 @@ public TSTool_JFrame ( boolean show_main )
 		//IOUtil.setProgramWorkingDir(last_directory_selected);
 		JGUIUtil.setLastFileDialogDirectory(last_directory_selected);
 	}
+	
+	// Set the initial working directory up front because it is used in the
+	// command processor and edit dialogs.
     
 	__props = new PropList("TSTool_JFrame");
 	__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());	
@@ -1996,11 +2007,13 @@ own determination (e.g., ((icommand + 1)/ncommand)*100).
 public void commandCompleted ( int icommand, int ncommand, Command command,
 		float percent_complete, String message )
 {
-	// Update the progress bar to indicate progress.
+	// Update the progress bar to indicate progress (1 to number of commands... completed).
 	__processor_JProgressBar.setValue ( icommand + 1 );
+	// For debugging...
+	//Message.printStatus(2,getClass().getName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
 	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
 	
-	if ( icommand == ncommand ) {
+	if ( (icommand + 1) == ncommand ) {
 		// Last command has completed so refresh the time series results.
 		// Only need to do if threaded because otherwise will handle synchronously
 		// in the uiAction_RunCommands() method...
@@ -2350,10 +2363,6 @@ Edit a new-style command, which has a custom editor.
 */
 private boolean commandList_EditCommandNewStyle ( Command command_to_edit )
 {
-	// Update the shared application properties to set the
-	// "WorkingDir" property, which is used in the following
-	// dialog...
-	updateDynamicProps ();
 	return command_to_edit.editCommand(this);
 }
 
@@ -2398,11 +2407,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for createFromList()" );
 		}
-		// Update the shared application properties to set the
-		// "WorkingDir" property, which is used in the following
-		// dialog...
-		updateDynamicProps ();
-		edited_cv = new createFromList_JDialog ( this, __props,
+		edited_cv = new createFromList_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -2518,12 +2523,11 @@ private boolean commandList_EditCommandOldStyle (
 	else if (action.equals(__Commands_ConvertTSIDTo_readTimeSeries_String)||
 		StringUtil.indexOfIgnoreCase(command,"readTimeSeries",0)>5 ) {
 		// TS Alias = ...
-		updateDynamicProps ();
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readTimeSeries()" );
 		}
-		edited_cv = new readTimeSeries_JDialog ( this, __props,
+		edited_cv = new readTimeSeries_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -2537,8 +2541,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for readDateValue()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new readDateValue_JDialog ( this, __props,
+		edited_cv = new readDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	else if ( action.equals(
@@ -2550,9 +2553,8 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for readNWSRFSESPTraceEnsemble()" );
 		}
-		updateDynamicProps ();
 		edited_cv = new readNWSRFSESPTraceEnsemble_JDialog (
-			this, __props,
+			this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	else if ( action.equals( __Commands_Read_readMODSIM_String)||
@@ -2565,8 +2567,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for readMODSIM()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new readMODSIM_JDialog ( this, __props,
+		edited_cv = new readMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	// Put this in front of the shorter version...
@@ -2580,8 +2581,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readNWSRFSFS5Files()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new readNWSRFSFS5Files_JDialog ( this, __props,
+		edited_cv = new readNWSRFSFS5Files_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, true, __nwsrfs_dmi ).getText();
 	}
 	else if ( action.equals( __Commands_Read_readNWSRFSFS5Files_String)||
@@ -2593,8 +2593,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for readNWSRFSFS5Files()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new readNWSRFSFS5Files_JDialog ( this, __props,
+		edited_cv = new readNWSRFSFS5Files_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, false, __nwsrfs_dmi ).getText();
 	}
 	else if ( action.equals( __Commands_Read_statemodMax_String)||
@@ -2603,8 +2602,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for readStateModMax()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new statemodMax_JDialog ( this, __props,
+		edited_cv = new statemodMax_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	// These commands are "TS Alias" commands...
@@ -2615,8 +2613,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readDateValue()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new TSreadDateValue_JDialog ( this, __props,
+		edited_cv = new TSreadDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_readMODSIM_String)||
@@ -2629,8 +2626,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readMODSIM()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new TSreadMODSIM_JDialog ( this, __props,
+		edited_cv = new TSreadMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_readRiverWare_String)||
@@ -2643,8 +2639,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readRiverWare()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new TSreadRiverWare_JDialog ( this, __props,
+		edited_cv = new TSreadRiverWare_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_readUsgsNwis_String)||
@@ -2656,8 +2651,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readUsgsNwis()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new TSreadUsgsNwis_JDialog ( this, __props,
+		edited_cv = new TSreadUsgsNwis_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null ).getText();
 	}
 	else if ( action.equals(__Commands_Read_setIncludeMissingTS_String)||
@@ -2721,12 +2715,14 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for fillPattern()" );
 		}
-		updateDynamicProps ();
 		// Get the pattern time series from the previous commands...
 		Vector needed_commands_Vector = new Vector();
 		needed_commands_Vector.addElement ( "setPatternFile" );
 		Vector found_commands_Vector =
-			commandList_GetCommandsAboveInsertPosition( needed_commands_Vector,
+			TSCommandProcessorUtil.getCommandsBeforeIndex(
+			commandList_GetInsertPosition(),
+			__ts_processor,
+			needed_commands_Vector,
 			true );
 		// Transfer the file names to the data vector...
 		__fill_pattern_files.removeAllElements();
@@ -2752,7 +2748,7 @@ private boolean commandList_EditCommandOldStyle (
 			// to the dialog.
 			readPatternTS ();
 		}
-		edited_cv = new fillPattern_JDialog ( this, __props,
+		edited_cv = new fillPattern_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			__fill_pattern_files, cv,
 			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit), __fill_pattern_ids
@@ -2863,8 +2859,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for setPatternFile()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new setPatternFile_JDialog ( this, __props,
+		edited_cv = new setPatternFile_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 		if ( edited_cv != null ) {
@@ -3163,8 +3158,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for writeDateValue()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new writeDateValue_JDialog ( this, __props,
+		edited_cv = new writeDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -3174,8 +3168,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for writeNwscard()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new writeNwsCard_JDialog ( this, __props,
+		edited_cv = new writeNwsCard_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -3188,7 +3181,6 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for writeNWSRFSESPTraceEnsemble()" );
 		}
-		updateDynamicProps ();
 		edited_cv = new writeNWSRFSESPTraceEnsemble_JDialog (
 			this, __props,
 			cv, TSEngine.getTSIdentifiersFromCommands(
@@ -3201,8 +3193,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for writeStateCU()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new writeStateCU_JDialog ( this, __props,
+		edited_cv = new writeStateCU_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -3212,8 +3203,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for writeSummary()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new writeSummary_JDialog ( this, __props,
+		edited_cv = new writeSummary_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -3241,7 +3231,6 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals( __Commands_General_setBinaryTSFile_String) ||
 		command.regionMatches(true,0,"setBinaryTSFile(",0,16) ||
 		command.regionMatches(true,0,"setBinaryTSFile (",0,17) ) {
-		updateDynamicProps ();
 		edited_cv = new setBinaryTSFile_Dialog ( this, __props,
 			cv, TSEngine.getTSIdentifiersFromCommands(
 			getCommandsAboveSelected ())).getText();
@@ -3280,8 +3269,7 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for setWorkingDir()" );
 		}
-		updateDynamicProps ();
-		edited_cv = new setWorkingDir_JDialog ( this, __props, cv,
+		edited_cv = new setWorkingDir_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ), cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
@@ -3430,74 +3418,22 @@ private Vector commandList_GetCommandStrings ( boolean get_all )
 }
 
 /**
-Get the commands above a command insert position.  Only the requested commands
-are returned.  Use this, for example, to get the setWorkingDir() commands above
-the insert position for a readXXX() command, so the working directory can be
-defined and used in the readXXX_Dialog.  The returned Vector can be processed
-by the StateDMI_Processor() constructor.
-@return List of commands (as Command instances) above the insert point that match the commands in
-the needed_commands_Vector.  This will always return a non-null Vector, even if
-no commands are in the Vector.
-@param needed_commands_Vector Vector of commands (as String) that need to be processed
-(e.g., "setWorkingDir").  Only the main command name should be defined.
-@param get_all if false, only the first found item above the insert point
-is returned.  If true, all matching commands above the point are returned in
-the order from top to bottom.
+Get the insert position for a command based on current selections.
 */
-private Vector commandList_GetCommandsAboveInsertPosition (	Vector needed_commands_Vector,
-						boolean get_all )
-{	// Determine the insert position, which will be the first selected
-	// command (or the end of the list if none are selected)...
-	int selectedsize = 0;
-	int [] selected_indices = __commands_JList.getSelectedIndices();
-	if ( selected_indices != null ) {
-		selectedsize = selected_indices.length;
-	}
+private int commandList_GetInsertPosition ()
+{
+	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedSize = selectedIndices.length;
+
 	int insert_pos = 0;
-	if ( selectedsize == 0 ) {
-		// The insert position is the end of the list (same as size)...
-		insert_pos = __commands_JListModel.size();
+	if (selectedSize > 0) {
+		// Insert before the first selected item...
+		insert_pos = selectedIndices[0];
 	}
-	else {	// The insert position is the first selected item...
-		insert_pos = selected_indices[0];
+	else {	// Insert at end of commands list.
+		insert_pos = __commands_JListModel.size() - 1;
 	}
-	// Now search backwards matching commands for each of the requested
-	// commands...
-	int size = 0;
-	if ( needed_commands_Vector != null ) {
-		size = needed_commands_Vector.size();
-	}
-	String needed_command_string;
-	Vector found_commands = new Vector();
-	// Now loop up through the command list...
-	for ( int ic = (insert_pos - 1); ic >= 0; ic-- ) {
-		for ( int i = 0; i < size; i++ ) {
-			needed_command_string = (String)needed_commands_Vector.elementAt(i);
-			//((String)_command_List.getItem(ic)).trim() );
-			if (	needed_command_string.regionMatches(true,0,((Command)
-				__commands_JListModel.get(ic)).toString().trim(),0,
-				needed_command_string.length() ) ) {
-				found_commands.addElement ( __commands_JListModel.get(ic) );
-				//Message.printStatus ( 1, "",
-				//"Adding command \"" + 
-				//__commands_JListModel.get(ic) + "\"" );
-				if ( !get_all ) {
-					// Don't need to search any more...
-					break;
-				}
-			}
-		}
-	}
-	// Reverse the commands so they are listed in the order of the list...
-	size = found_commands.size();
-	if ( size <= 1 ) {
-		return found_commands;
-	}
-	Vector found_commands_sorted = new Vector(size);
-	for ( int i = size - 1; i >= 0; i-- ) {
-		found_commands_sorted.addElement ( found_commands.elementAt(i));
-	}
-	return found_commands_sorted;
+	return insert_pos;
 }
 
 /**
@@ -3906,7 +3842,12 @@ reloaded - it is a simple setter.
 @param commands_file_name Name of current commands file (can be null).
 */
 private void commandList_SetCommandsFileName ( String commands_file_name )
-{	__commands_file_name = commands_file_name;
+{	// Set the file name used in the TSTool UI...
+	__commands_file_name = commands_file_name;
+	// Also set the initial working directory for the processor as the
+	// parent folder of the commands file...
+	File file = new File ( commands_file_name );
+	commandProcessor_SetInitialWorkingDir ( file.getParent() );
 	// Update the title bar...
 	ui_UpdateStatus ( false );
 }
@@ -4205,6 +4146,14 @@ private int commandProcessor_GetTimeSeriesResultsListSize()
 }
 
 /**
+Get the working directory for a command (e.g., for editing).
+*/
+private String commandProcessor_GetWorkingDirForCommand ( Command command )
+{	
+	return TSCommandProcessorUtil.getWorkingDirForCommand( __ts_processor, command );
+}
+
+/**
 Process time series from the results list into a product (graph, etc).
 */
 private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, PropList props )
@@ -4255,7 +4204,9 @@ private void commandProcessor_RunCommands (
 {	String routine = "TSTool_JFrame.commandProcessorRunCommands";
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "CommandList", commands );
-	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
+	// FIXME SAM 2007-10-13 Remove when test out.  The initial directory needs to be set
+	// when a commands file is initialized.
+	//request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
 	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
 	Message.printStatus ( 2, routine, "Running commands in GUI thread.");
 	try { 
@@ -4303,41 +4254,6 @@ private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean cre
 }
 
 /**
-Run a command processor to get the current working directory.
-This is a limited run meant to determine the working directory for
-command editing, where the working directory may have changed from the
-original command file location and setWorkingDir() commands.  It is meant to be called from
-updateDynamicProps().
-@param ts_processor The command processor to be run.
-@param props The properties to be set with the current working directory.
-*/
-private void commandProcessor_RunSetWorkingDirCommand ( TSCommandProcessor ts_processor, PropList props )
-{	String routine = "TSTool_JFrame.commandProcessorRunSetWorkingDirCommand";
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "CommandList", ts_processor.getCommands() );
-	request_params.set ( "InitialWorkingDir", getInitialWorkingDir() );
-	request_params.setUsingObject ( "CreateOutput", new Boolean(false) );
-	//CommandProcessorRequestResultsBean bean = null;
-	try { //bean =
-		__ts_processor.processRequest( "RunCommands", request_params );
-		// Now get the working directory and set for the current environment.
-		Object o = __ts_processor.getPropContents("WorkingDir");
-		if ( o != null ) {
-			String dir = (String)o;
-			props.set ( "WorkingDir", (String)o );
-			Message.printStatus ( 2, routine,
-				"The working directory from the initial conditions and commands is \"" +
-				dir + "\"" );
-		}
-	}
-	catch ( Exception e ) {
-		String message = "Error requesting RunCommands(CommandList=...) from processor.";
-		Message.printWarning(2, routine, message );
-		Message.printWarning (3,routine, e);
-	}
-}
-
-/**
 Set the command processor HydroBase instance that is opened via the GUI.
 @param hbdmi Open HydroBaseDMI instance.
 The input name is blank since it is the default HydroBaseDMI.
@@ -4357,6 +4273,22 @@ private void commandProcessor_SetHydroBaseDMI( HydroBaseDMI hbdmi )
 	}
 	catch ( Exception e ) {
 		message = "Error requesting SetHydroBaseDMI(HydroBaseDMI=\"" + hbdmi + " from processor.";
+		Message.printWarning(2, routine, message );
+	}
+}
+
+/**
+Set the command processor initial working directory.
+@param dir Initial working directory.
+*/
+private void commandProcessor_SetInitialWorkingDir ( String InitialWorkingDir )
+{
+	try {
+		__ts_processor.setPropContents( "InitialWorkingDir", InitialWorkingDir );
+	}
+	catch ( Exception e ) {
+		String routine = getClass().getName() + ".commandProcessor_setInitialWorkingDir";
+		String message = "Error setting InitialWorkingDir(\"" + InitialWorkingDir + "\") in processor.";
 		Message.printWarning(2, routine, message );
 	}
 }
@@ -4406,6 +4338,7 @@ public void commandStarted ( int icommand, int ncommand, Command command,
 		__processor_JProgressBar.setMinimum ( 0 );
 		__processor_JProgressBar.setMaximum ( ncommand );
 		__processor_JProgressBar.setValue ( 0 );
+		Message.printStatus(2, getClass().getName()+".commandStarted", "Setting processor progress bar limits to 0 to " + ncommand );
 	}
 	// Always set the value for the command progres so that it shows up
 	// as zero.  The commandProgres() method will do a better job of setting
@@ -4973,20 +4906,6 @@ public void geoViewZoom(GRShape devlimits, GRShape datalimits) {}
 public void geoViewZoom (GRLimits devlim, GRLimits datalim ) {}
 
 /**
-Return a setWorkingDir(xxx) command where xxx is the initial working directory
-set when opening/closing a commands file or using File...Set Working Directory.
-This command should be prepended to the list of setWorkingDir() commands that
-are processed when determining the working directory for an edit dialog.
-*/
-private Command getInitialSetWorkingDirCommand()
-{	// For now put in a generic command since no specific Command class is available...
-	GenericCommand c = new GenericCommand ();
-	c.setCommandString( "setWorkingDir(\"" + getInitialWorkingDir() + "\")" );
-	return c;
-	// TODO SAM 2007-08-22 Need to implement the command class
-}
-
-/**
 Return the initial working directory, which will be the softare startup
 home, or the location of the commands file read/write (a directory).
 This directory is suitable for initializing a workflow processing run.
@@ -5245,6 +5164,7 @@ private void initGUI ( boolean show_main )
 
 	// Initialize the command processor to interact with the GUI.
 	__ts_processor = new TSCommandProcessor();
+	commandProcessor_SetInitialWorkingDir ( __initial_working_dir );
 	// FIXME SAM 2007-08-28 Need to set a WindowListener for -nomaingui calls?
 	//__ts_processor.setTSCommandProcessorUI ( this );
 	__ts_processor.addCommandProcessorListener ( this );
@@ -6497,6 +6417,9 @@ private void initGUIMenus_CommandsGeneral ()
 	__Commands_General_JMenu.add (
 		__Commands_General_testCommand_JMenuItem = new SimpleJMenuItem(
 		__Commands_General_testCommand_String, this ) );
+	__Commands_General_JMenu.add (
+			__Commands_General_CreateRegressionTestCommandFile_JMenuItem = new SimpleJMenuItem(
+			__Commands_General_CreateRegressionTestCommandFile_String, this ) );
 }
 
 /**
@@ -7935,9 +7858,26 @@ Note that this does not add the actual time series, only a description string.
 The time series are still accessed by the positions in the list.
 @param ts_info Time series information to add at the end of the list.
 */
-private void tsResultsList_AddTimeSeriesToResults ( String ts_info )
-{	__ts_JListModel.addElement ( ts_info );
-	ui_UpdateStatus ( false );
+private void tsResultsList_AddTimeSeriesToResults ( final String ts_info )
+{	// This method may be called from a thread different than the Swing thread.  To
+	// avoid bad behavior in GUI components (like the results list having big gaps),
+	// use the following to queue up GUI actions on the Swing thread.
+	Runnable r = new Runnable () {
+		public void run () {
+			__ts_JListModel.addElement ( ts_info );
+			//String routine = "TSTool_JFrame.tsResultsList_AddTimeSeriesToResults";
+			//Message.printStatus ( 2, routine, "Added time series to results for \"" + ts_info + "\"" );
+			ui_UpdateStatus ( false );
+		}
+	};
+	if ( SwingUtilities.isEventDispatchThread() )
+	{
+		r.run();
+	}
+	else 
+	{
+		SwingUtilities.invokeLater ( r );
+	}
 }
 
 /**
@@ -8957,17 +8897,37 @@ private void ui_CheckRiversideDBFeatures ()
 }
 
 /**
+Get a PropList with properties needed for an old-style editor.  Mainly this is
+the WorkingDir property, with a value determined from the initial working directory
+and subsequent setWorkingDir() commands prior to the command being edited.
+This is needed because old style editors get the information from a PropList that
+is passed to the editor.
+@param command_to_edit Command that is being edited.
+@return the PropList containing a valid WorkingDir value, accurate at for the context
+of the command being edited.
+*/
+private PropList ui_GetPropertiesForOldStyleEditor ( Command command_to_edit )
+{
+	PropList props = new PropList ( "" );
+	props.set ( "WorkingDir", commandProcessor_GetWorkingDirForCommand ( command_to_edit ) );
+	return props;
+}
+
+/**
 Indicate whether running commands should occur in a thread.
+The default if not specified is true.
+@return true if the commands should be run in a thread, false if not.
 */
 private boolean ui_Property_RunCommandProcessorInThread()
 {
 	String RunCommandProcessorInThread_String = __props.getValue ( TSTool_Options_JDialog.TSTool_RunCommandProcessorInThread );
 	if ( (RunCommandProcessorInThread_String != null) &&
-			RunCommandProcessorInThread_String.equalsIgnoreCase("True") ) {
-		return true;
+			RunCommandProcessorInThread_String.equalsIgnoreCase("False") ) {
+		return false;
 	}
 	else {
-		return false;
+		// Default.
+		return true;
 	}
 }
 
@@ -9034,8 +8994,12 @@ the location where the commands file has been read/saved.
 @param initial_working_dir The initial working directory (should be non-null).
 */
 private void ui_SetInitialWorkingDir ( String initial_working_dir )
-{
+{	String routine = getClass().getName() + ".ui_SetInitialWorkingDir";
+	Message.printStatus(2, routine, "Setting the initial working directory to \"" +
+			initial_working_dir + "\"" );
 	__initial_working_dir = initial_working_dir;
+	// Also set in the processor...
+	commandProcessor_SetInitialWorkingDir ( initial_working_dir );
 }
 
 /**
@@ -9370,7 +9334,7 @@ text.
 this text.  If null, leave the contents as previously shown.  Specify "" to
 clear the text.
 */
-private void ui_UpdateStatusTextFields (	int level, String routine, String message,
+private void ui_UpdateStatusTextFields ( int level, String routine, String message,
 				String status )
 {	if ( (level > 0) && (message != null) ) {
 		// Print a status message to the messaging system...
@@ -10748,6 +10712,10 @@ throws Exception
 	}
 	else if (command.equals( __Commands_General_testCommand_String) ) {
 		commandList_EditCommand ( __Commands_General_testCommand_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_CreateRegressionTestCommandFile_String) ) {
+		commandList_EditCommand ( __Commands_General_CreateRegressionTestCommandFile_String,
 			null, __INSERT_COMMAND );
 	}
 	else {
@@ -14912,12 +14880,12 @@ be viewed.  The former is suitable for batch files, both for the GUI.
 */
 private void uiAction_RunCommands ( boolean run_all_commands, boolean create_output )
 {	String routine = "TSTool_JFrame.runCommands";
-	Message.printStatus ( 1, routine, "Running commands." );
-	JGUIUtil.setWaitCursor ( this, true );
+	ui_UpdateStatusTextFields ( 1, routine, "Running commands...", __STATUS_BUSY);
 	tsResultsList_Clear ();
 	System.gc();
 	// Get commands to run (all or selected)...
 	Vector commands = commandList_GetCommands ( run_all_commands );
+	// The limits of the command progress bar are handled in commandStarted().
 	// Save the commands in case any output calls
 	// IOUtil.printCreatorHeader...
 	IOUtil.setProgramCommandList ( commandList_ToStringVector(commands) );
@@ -14931,6 +14899,7 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 	else {
 		// Run the commands in the current thread (the GUI will be
 		// unresponsive during this time).
+		JGUIUtil.setWaitCursor ( this, true );
 		commandProcessor_RunCommands ( __ts_processor, commands, create_output );
 		// Display the list of time series...
 		uiAction_RunCommands_ShowTSResults ();
@@ -14946,10 +14915,11 @@ private void uiAction_RunCommands_ShowTSResults ()
 	//	 Fill the time series list with the descriptions of the in-memory
 	// time series...
 	int size = commandProcessor_GetTimeSeriesResultsListSize();
+	Message.printStatus ( 2, routine, "Adding " + size + " time series to results." );
 	TS ts = null;
 	String desc = null;
 	String alias = null;
-	BinaryTS binary_ts = null;
+	//BinaryTS binary_ts = null;
 	boolean [] selected_boolean = new boolean[size];
 	for ( int i = 0; i < size; i++ ) {
 		selected_boolean[i] = false;
@@ -15038,8 +15008,10 @@ private void uiAction_RunCommands_ShowTSResults ()
 	ui_UpdateStatus ( false );
 	// Repaint the list to reflect the status of the commands...
 	__commands_AnnotatedCommandJList.repaint();
-	ui_UpdateStatusTextFields ( -1, routine, "Completed running commands.  Use Results and Tools menus.",
+	ui_UpdateStatusTextFields ( 1, routine, "Completed running commands.  Use Results and Tools menus.",
 			__STATUS_READY );
+	// Make sure that the user is not waiting on the wait cursor....
+	JGUIUtil.setWaitCursor ( this, false );
 }
 
 //TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series
@@ -16926,54 +16898,6 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 	}
 	// Update the status information...
 	ui_UpdateStatus ( false );
-}
-
-/**
-Update the dynamic properties in __props by processing specific commands.  For
-example, for a command that is about to be edited, determine the working
-directory from previous settings and commands.  If the user has set the
-working directory with a command, it will be recognized for the editor.
-*/
-private void updateDynamicProps ()
-{	// Update the shared application properties to set the
-	// "WorkingDir" property, which is used in dialogs when editing commands.
-	// The working directory in effect for the command is context sensitive
-	// and may have changed based on previous commands.
-	Vector needed_commands_Vector = new Vector();
-	needed_commands_Vector.addElement ( "setWorkingDir" );
-	// Get the commands related to changing the working directory, prior to
-	// the current command to be edited.
-	Vector working_dir_commands_Vector =
-		commandList_GetCommandsAboveInsertPosition (
-		needed_commands_Vector, true );
-	// Always add the starting working directory to the top to
-	// make sure an initial condition is set...
-	working_dir_commands_Vector.insertElementAt ( getInitialSetWorkingDirCommand(), 0 );
-	// Create a local command processor
-	TSCommandProcessor ts_processor = new TSCommandProcessor();
-	int size = working_dir_commands_Vector.size();
-	// Add all the commands (currently no method to add all because this is normally
-	// not done).
-	for ( int i = 0; i < size; i++ ) {
-		ts_processor.addCommand ( (Command)working_dir_commands_Vector.elementAt(i));
-	}
-	// Run the commands to set the working directory in the temporary processor...
-	try {	ts_processor.runCommands(
-			null,	// Process all commands in this processor
-			null );	// No need for controlling properties since controlled by commands
-	}
-	catch ( Exception e ) {
-		// This is a software problem.
-		String routine = getClass().getName() + ".updateDynamicProps";
-		Message.printWarning(2, routine, "Error setting working directory for edit." );
-		Message.printWarning(2, routine, e);
-	}
-	// Set the working directory in the current command processor based on what
-	// was set in the run.  The editor will then think this is the property in the
-	// command processor, when it is requested.
-	commandProcessor_RunSetWorkingDirCommand (
-			ts_processor,
-			__props );
 }
 
 /**

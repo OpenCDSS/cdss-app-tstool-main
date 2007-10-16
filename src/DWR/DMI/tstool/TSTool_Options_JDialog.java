@@ -151,11 +151,11 @@ private void initialize ()
 	JPanel general_JPanel = new JPanel();
 	general_JPanel.setLayout ( gbl );
     __General_RunThreaded_JCheckBox = new JCheckBox ();
-    boolean RunCommandProcessorInThread_boolean = false;
+    boolean RunCommandProcessorInThread_boolean = true;		// Default
 	String RunCommandProcessorInThread_String = __app_PropList.getValue ( TSTool_RunCommandProcessorInThread );
     if ( (RunCommandProcessorInThread_String != null) &&
-    		RunCommandProcessorInThread_String.equalsIgnoreCase(__True) ) {
-    	RunCommandProcessorInThread_boolean = true;
+    		RunCommandProcessorInThread_String.equalsIgnoreCase(__False) ) {
+    	RunCommandProcessorInThread_boolean = false;
     }
     __General_RunThreaded_JCheckBox.setText("Run commands in thread (allows cancel) (under development).");
 	__General_RunThreaded_JCheckBox.setSelected(RunCommandProcessorInThread_boolean);
