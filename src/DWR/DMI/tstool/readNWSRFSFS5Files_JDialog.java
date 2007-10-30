@@ -81,7 +81,6 @@ private Vector __input_filter_JPanel_Vector = new Vector();
 private InputFilter_JPanel __input_filter_NWSRFS_FS5Files_JPanel = null;
 						// InputFilter_JPanel for
 						// NWSRFS FS5Files time series.
-private NWSRFS_DMI	__nwsrfs_dmi = null;	// NWSRFS DMI to do queries.
 private boolean		__error_wait = false;	// Is there an error that we
 						// are waiting to be cleared up
 						// or Cancel?
@@ -343,7 +342,6 @@ private void initialize ( JFrame parent, PropList app_PropList,
 	__command_Vector = command;
 	__working_dir = app_PropList.getValue ( "WorkingDir" );
 	__read_one = read_one;
-	__nwsrfs_dmi = nwsrfs_dmi;
 	String title = "";
 
 	if ( __read_one ) {

@@ -520,9 +520,10 @@ private JProgressBar __processor_JProgressBar;
 Progress bar to show progress of running a specific commands.
 */
 private JProgressBar __command_JProgressBar;
-private JTextField __status_JTextField;		// Status area text field (e.g.,
-						// "READY", "WAIT") - small and
-						// right-most
+/**
+Status area text field (e.g., "READY", "WAIT") - small and right-most.
+*/
+private JTextField __status_JTextField;		
 
 // General...
 
@@ -555,27 +556,32 @@ result in an inaccurate initial state.
 */
 private String __initial_working_dir = "";	
 
-private boolean __gui_initialized = false;	// Lets the checkGUIState()
-						// method avoid checking for
-						// many null components during
-						// startup.
+/*
+Lets the checkGUIState() method avoid checking for many null components
+during startup.
+*/
+private boolean __gui_initialized = false;
 
-private boolean __ignore_ItemEvent;		// Use this to temporarily
-						// ignore item listener events,
-						// necessary when
-						// programatically modifying the
-						// contents of combo boxes.
+// TODO SAM 2007-10-19 Evaluate whether still needed with new list model.
+/*
+Use this to temporarily ignore item listener events, necessary when
+programatically modifying the contents of combo boxes.
+*/
+private boolean __ignore_ItemEvent = false;
+/*
+This is used in some cases to disable updates during bulk operations to
+the commands list.
+*/
 private boolean __ignore_ListSelectionEvent = false;
-						// This is used in some cases to
-						// disable updates during bulk
-						// operations to the commands
-						// list.
 
+/*
+Indicates which data sources are enabled, initialized to defaults.
+*/
 private boolean	__source_ColoradoSMS_enabled = false,
-		__source_DateValue_enabled = true,	// Indicates which data
-		__source_DIADvisor_enabled = false,	// sources are enabled,
-		__source_HydroBase_enabled = true,	// initialized to
-		__source_MexicoCSMN_enabled = false,	// defaults
+		__source_DateValue_enabled = true,
+		__source_DIADvisor_enabled = false,
+		__source_HydroBase_enabled = true,
+		__source_MexicoCSMN_enabled = false,
 		__source_MODSIM_enabled = true,
 		__source_NDFD_enabled = true,
 		__source_NWSCard_enabled = true,
@@ -1405,7 +1411,7 @@ private String
 	__Commands_General_endComment_String = TAB +
 		"*/   <end comment>",
 	__Commands_General_exit_String = TAB +
-		"exit  <to end processing>",
+		"exit()  <to end processing>",
 	__Commands_General_compareFiles_String = TAB +
 		"compareFiles()... <compare files>",
 	__Commands_General_runCommands_String = TAB+
@@ -2006,7 +2012,7 @@ own determination (e.g., ((icommand + 1)/ncommand)*100).
 */
 public void commandCompleted ( int icommand, int ncommand, Command command,
 		float percent_complete, String message )
-{
+{	String routine = "TSTool_JFrame.commandCompleted";
 	// Update the progress bar to indicate progress (1 to number of commands... completed).
 	__processor_JProgressBar.setValue ( icommand + 1 );
 	// For debugging...
@@ -2017,6 +2023,9 @@ public void commandCompleted ( int icommand, int ncommand, Command command,
 		// Last command has completed so refresh the time series results.
 		// Only need to do if threaded because otherwise will handle synchronously
 		// in the uiAction_RunCommands() method...
+		String command_string = command.toString();
+		ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string,
+				__STATUS_READY );
 		ui_SetRunningCommands ( false );
 		if ( ui_Property_RunCommandProcessorInThread() ) {
 			uiAction_RunCommands_ShowTSResults ();
@@ -2181,16 +2190,22 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	// If so then need to use a special editor rather than typical
 	// one-line editors.
 	boolean is_comment_block = false;
+	// Indicate whether an exit command, in which case editing is not needed
+	boolean is_exit = false;
 	if ( mode == __UPDATE_COMMAND ) {
 		is_comment_block = commandList_IsCommentBlock ( __ts_processor,
 			command_Vector,
 			true,	// All must be comments
 			true );	// Comments must be contiguous
+		is_exit = commandList_IsExitCommand ( command_Vector );
 	}
 	else {
 		// New command, so look for comment actions.
 		if ( action.equals(__Commands_General_Comment_String) ) {
 			is_comment_block = true;
+		}
+		if ( action.equals(__Commands_General_exit_String) ) {
+			is_exit = true;
 		}
 	}
 	if ( is_comment_block ) {
@@ -2199,11 +2214,6 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 
 	try {	// Main try to help with troubleshooting, especially during
 		// transition to new command structure.
-
-	// Set the Vectors used in dialogs, for example global data choices that need to only
-	// be generated once (this setup will not be used when running in batch mode)...
-
-	ui_CheckDialogInput ();
 
 	// First make sure we have a Command object to edit.  If an old-style command
 	// then it will be stored in a GenericCommand.
@@ -2223,6 +2233,9 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			// Use the string-based editor dialog and then convert each
 			// comment line into a command.  Don't do anything to the command
 			// list yet
+		}
+		else if ( is_exit ) {
+			// Don't do anything.
 		}
 		else {
 			// Get the original command...
@@ -2281,6 +2294,10 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	if ( is_comment_block ) {
 		// Edit using the old-style editor...
 		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, command_Vector, new_comments );
+	}
+	else if ( is_exit ) {
+		// No need to edit - just insert.
+		edit_completed = true;
 	}
 	else {	// Editing a single one-line command...
 		if ( command_to_edit instanceof GenericCommand ) {
@@ -2399,6 +2416,7 @@ private boolean commandList_EditCommandOldStyle (
 	}
 	String command_trimmed = command.trim();
 	Vector edited_cv = null;
+	// The following are listed in the order of the menus.
 	if ( action.equals( __Commands_Create_createFromList_String)||
 		(StringUtil.indexOfIgnoreCase(command,"createFromList(",0)>=0)||
 		(StringUtil.indexOfIgnoreCase(
@@ -3291,6 +3309,11 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
 	}
+	else if ( action.equals(__Commands_General_exit_String) ) {
+		// No need to edit.  Just return "exit".
+		edited_cv = new Vector(1);
+		edited_cv.addElement( "exit" );
+	}
 	else {
 		// A time series identifier or other command that for whatever reason
 		// does not have a custom dialog...
@@ -3419,6 +3442,9 @@ private Vector commandList_GetCommandStrings ( boolean get_all )
 
 /**
 Get the insert position for a command based on current selections.
+If no commands are selected, the insert position is the end of the list (size),
+and an add at the end should occur..
+If commands are selected, the insert position is the index of the first selection.
 */
 private int commandList_GetInsertPosition ()
 {
@@ -3431,7 +3457,7 @@ private int commandList_GetInsertPosition ()
 		insert_pos = selectedIndices[0];
 	}
 	else {	// Insert at end of commands list.
-		insert_pos = __commands_JListModel.size() - 1;
+		insert_pos = __commands_JListModel.size();
 	}
 	return insert_pos;
 }
@@ -3575,7 +3601,7 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 		}
 		// Get the index position in the commands processor and
 		// check for contiguousness.
-		int pos = __ts_processor.indexOf(command);
+		int pos = processor.indexOf(command);
 		if ( (i > 0) && (pos != (pos_prev + 1)) ) {
 			is_contiguous = false;
 		}
@@ -3592,7 +3618,7 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 }
 
 /**
-Determine whether an command line is a comment that starts with #.
+Determine whether a command line is a comment that starts with #.
 @param line String command line.
 @return true if a comment line, false if not.
 */
@@ -3605,6 +3631,25 @@ private boolean commandList_IsCommentLine ( String line )
 		return true;
 	}
 	if ( line.charAt(0) == '#' ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+Determine whether a command line is an exit command.
+@param command_Vector Vector of Command - only the first one will be checked.
+@return true if an exit command, false if not.
+*/
+private boolean commandList_IsExitCommand ( Vector command_Vector )
+{	if ( command_Vector == null ) {
+		return false;
+	}
+	if ( command_Vector.size() < 1 ) {
+		return false;
+	}
+	Command command = (Command)command_Vector.elementAt(0);
+	if ( StringUtil.startsWithIgnoreCase(command.toString(),"exit") ) {
 		return true;
 	}
 	return false;
@@ -3673,7 +3718,7 @@ commandList_ClearBasedOnUI.
 */
 private void commandList_RemoveAllCommands ()
 {	// Do this so that the status only needs to be updated once...
-	Message.printStatus(2,"deleteCommands", "Calling list model removeAllElements.");
+	Message.printStatus(2,"commandList_RemoveAllCommands", "Calling list model removeAllElements.");
 	__commands_JListModel.removeAllElements();
 	commandList_SetDirty ( true );
 	ui_UpdateStatus ( false );
@@ -3778,7 +3823,7 @@ Replace a contiguous block of # comments with another block.
 @param new_comments Vector of new comments (as String) to insert in its place.
 */
 private void commandList_ReplaceComments ( Vector old_comments, Vector new_comments )
-{	String routine = getClass().getName() + ".commandList_ReplaceComments";
+{	//String routine = getClass().getName() + ".commandList_ReplaceComments";
 	// Probably could get the index passed in from list operations but
 	// do the lookup through the data model to be more independent.
 	int pos_old = __ts_processor.indexOf((Command)old_comments.elementAt(0));
@@ -4331,9 +4376,13 @@ own determination (e.g., ((icommand + 1)/ncommand)*100).
 */
 public void commandStarted ( int icommand, int ncommand, Command command,
 		float percent_complete, String message )
-{	// commandCompleted updates the progress bar after each command.
+{	String routine = "TSTool_JFrame.commandStarted";
+	// commandCompleted updates the progress bar after each command.
 	// For this method, only reset the bounds of the progress bar and
 	// clear if the first command.
+	String command_string = command.toString();
+	ui_UpdateStatusTextFields ( 1, routine, "Processing \"" + command_string + "\"",
+			null, __STATUS_BUSY );
 	if ( icommand == 0 ) {
 		__processor_JProgressBar.setMinimum ( 0 );
 		__processor_JProgressBar.setMaximum ( ncommand );
@@ -5309,7 +5358,7 @@ private void initGUI ( boolean show_main )
 	getContentPane().add ("South", bottom_JPanel);
 
 	ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.initGUI",
-			"Open a commands file or add new commands.",
+			null, "Open a commands file or add new commands.",
 			__STATUS_READY );
 	ui_UpdateStatus ( false );
     pack();
@@ -7969,75 +8018,6 @@ private void ui_CheckDIADvisorFeatures()
 }
 
 /**
-Check to make sure necessary input is available for dialogs, including lists
-of available static data.
-*/
-private void ui_CheckDialogInput ()
-{	/* TODO SAM 2007-08-31 May not be needed for TSTool - global data
-	to be determined once to improve performance
-	if ( __region1_Vector == null ) {
-		// Get the counties from HydroBase...
-		__region1_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			Vector v = __hbdmi.getCountyRef();
-			int size = 0;
-			if ( v != null ) {
-				size = v.size();
-			}
-			HydroBase_CountyRef county = null;
-			for ( int i = 0; i < size; i++ ) {
-				county = (HydroBase_CountyRef)v.elementAt(i);
-				__region1_Vector.addElement (
-					county.getCounty() );
-			}
-		}
-	}
-	if ( __region2_Vector == null ) {
-		// Get the HUC from HydroBase...
-		__region2_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			__region2_Vector = __hbdmi.getHUC();
-		}
-	}
-	if ( __cropchar_cumethod_Vector == null ) {
-		// Get the Cropchar CU methods from HydroBase...
-		__cropchar_cumethod_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			Vector v = __hbdmi.getCropcharCUMethod();
-			int size = 0;
-			if ( v != null ) {
-				size = v.size();
-			}
-			HydroBase_Cropchar cropchar = null;
-			for ( int i = 0; i < size; i++ ) {
-				cropchar = (HydroBase_Cropchar)v.elementAt(i);
-				__cropchar_cumethod_Vector.addElement (
-					cropchar.getMethod_desc() );
-			}
-		}
-	}
-	if ( __blaney_criddle_cumethod_Vector == null ) {
-		// Get the CU methods from HydroBase...
-		__blaney_criddle_cumethod_Vector = new Vector();
-		if ( __hbdmi != null ) {
-			Vector v = __hbdmi.getBlaneyCriddleCUMethod();
-			int size = 0;
-			if ( v != null ) {
-				size = v.size();
-			}
-			HydroBase_CUBlaneyCriddle cubc = null;
-			for ( int i = 0; i < size; i++ ) {
-				cubc = (HydroBase_CUBlaneyCriddle)
-				v.elementAt(i);
-				__blaney_criddle_cumethod_Vector.addElement (
-					cubc.getMethod_desc() );
-			}
-		}
-	}
-	*/
-}
-
-/**
 Check the state of the GUI and enable/disable features as necessary.  For
 example, if no time series are selected, disable output options.
 This is a more primitive call than ui_UpdateStatus(), which should
@@ -9327,6 +9307,7 @@ all text fields like the number of commands, etc.
 @param level Message level.  If > 0 and the message is not null, call
 Message.printStatus() to record a message.
 @param routine Routine name used if Message.printStatus() is called.
+@param command_panel_status 
 @param message If not null, update the __message_JTextField to contain this
 text.  If null, leave the contents as previously shown.  Specify "" to clear the
 text.
@@ -9334,8 +9315,8 @@ text.
 this text.  If null, leave the contents as previously shown.  Specify "" to
 clear the text.
 */
-private void ui_UpdateStatusTextFields ( int level, String routine, String message,
-				String status )
+private void ui_UpdateStatusTextFields ( int level, String routine,
+		String command_panel_status, String message, String status )
 {	if ( (level > 0) && (message != null) ) {
 		// Print a status message to the messaging system...
 		Message.printStatus ( 1, routine, message );
@@ -10677,26 +10658,8 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals(__Commands_General_exit_String) ) {
-		// FIXME SAM 2007-08-31 Need to use Command
-		int selected_size = JGUIUtil.selectedSize ( __commands_JList );
-		if ( selected_size > 0 ) {
-			// Add after the last selected item...
-			int selected_indices[] = __commands_JList.getSelectedIndices();
-			if (	selected_indices[selected_size - 1] ==
-				(__commands_JListModel.size() - 1) ) {
-			}
-			else {	__commands_JListModel.insertElementAt (
-				"exit",
-				(selected_indices[selected_size - 1] + 1 ) );
-			}
-			selected_indices = null;
-		}
-		else {	// Add at end (or before selected command)...
-			/* FIXME SAM 2007-09-02 Need to enable
-			commandList_InsertCommand (
-					commandList_NewCommand ( "exit" ) );
-					*/
-		}
+		commandList_EditCommand ( __Commands_General_exit_String,
+			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_General_compareFiles_String)){
 		commandList_EditCommand ( __Commands_General_compareFiles_String,
@@ -14880,7 +14843,7 @@ be viewed.  The former is suitable for batch files, both for the GUI.
 */
 private void uiAction_RunCommands ( boolean run_all_commands, boolean create_output )
 {	String routine = "TSTool_JFrame.runCommands";
-	ui_UpdateStatusTextFields ( 1, routine, "Running commands...", __STATUS_BUSY);
+	ui_UpdateStatusTextFields ( 1, routine, null, "Running commands...", __STATUS_BUSY);
 	tsResultsList_Clear ();
 	System.gc();
 	// Get commands to run (all or selected)...
@@ -15008,7 +14971,7 @@ private void uiAction_RunCommands_ShowTSResults ()
 	ui_UpdateStatus ( false );
 	// Repaint the list to reflect the status of the commands...
 	__commands_AnnotatedCommandJList.repaint();
-	ui_UpdateStatusTextFields ( 1, routine, "Completed running commands.  Use Results and Tools menus.",
+	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
 			__STATUS_READY );
 	// Make sure that the user is not waiting on the wait cursor....
 	JGUIUtil.setWaitCursor ( this, false );
