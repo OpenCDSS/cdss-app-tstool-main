@@ -16029,17 +16029,9 @@ private void uiAction_ShowCommandStatus()
 private String getCommandsStatus()
 {
   Vector commands = commandList_GetCommands();
-	int size = commands.size();
-	Command command;
-	
-String html = CommandStatusUtil.getHTMLStatusReport(commands);	
-//	for ( int i = 0; i < size; i++ ) {
-//		command = (Command)commands.elementAt(i);
-//		if ( command instanceof CommandStatusProvider ) {
-//			output.addElement ( ((CommandStatusProvider)command).getCommandStatus().toString() );
-//		  
-//		}
-//	}
+
+  String html = CommandStatusUtil.getHTMLStatusReport(commands);	
+
   return html;
 }
 
