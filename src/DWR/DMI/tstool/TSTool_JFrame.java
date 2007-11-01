@@ -60,7 +60,6 @@ import rti.tscommandprocessor.core.TSCommandProcessor;
 import rti.tscommandprocessor.core.TSCommandProcessorListModel;
 import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
-
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel;
@@ -98,7 +97,6 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;
-import RTi.DMI.RiversideDB_DMI.LoginJDialog;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
@@ -147,13 +145,13 @@ import RTi.Util.IO.Command;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
 import RTi.Util.IO.CommandStatusProvider;
+import RTi.Util.IO.CommandStatusUtil;
 import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.EndianRandomAccessFile;
 import RTi.Util.IO.GenericCommand;
+import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
-import RTi.Util.IO.InvalidCommandParameterException;
-import RTi.Util.IO.InvalidCommandSyntaxException;
 import RTi.Util.IO.LicenseManager;
 import RTi.Util.IO.PrintJGUI;
 import RTi.Util.IO.ProcessManager;
@@ -14706,29 +14704,30 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 
 	ui_CheckRiversideDBFeatures ();
 
-	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
-	try {
-		while (login != LoginJDialog.LOGIN_CANCELLED 
-		    && login != LoginJDialog.LOGIN_OK) {
-			login = new LoginJDialog(this, "Riverside Login", 
-				__rdmi).response();
-		}
-	}
-	catch (Exception e) {
-		Message.printWarning(2, routine, 
-			"Error opening login dialog.");
-		Message.printWarning(2, routine, e);
-		login = LoginJDialog.LOGIN_CANCELLED;
-	}
-
-	if (login == LoginJDialog.LOGIN_CANCELLED) {
-		new ResponseJDialog(this, "Login Cancelled",
-			"RiversideDB login was cancelled.  Some capabilities "
-			+ "(such as\nsaving and editing TSProducts) will be "
-			+ "disabled.  However,\nthe connection to the "
-			+ "database was still established.", 
-			ResponseJDialog.OK);
-	}
+	//FIXME dre !!!!!!!!!uncomment this code when LoginJDialog becomes available
+//	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
+//	try {
+//		while (login != LoginJDialog.LOGIN_CANCELLED 
+//		    && login != LoginJDialog.LOGIN_OK) {
+//			login = new LoginJDialog(this, "Riverside Login", 
+//				__rdmi).response();
+//		}
+//	}
+//	catch (Exception e) {
+//		Message.printWarning(2, routine, 
+//			"Error opening login dialog.");
+//		Message.printWarning(2, routine, e);
+//		login = LoginJDialog.LOGIN_CANCELLED;
+//	}
+//
+//	if (login == LoginJDialog.LOGIN_CANCELLED) {
+//		new ResponseJDialog(this, "Login Cancelled",
+//			"RiversideDB login was cancelled.  Some capabilities "
+//			+ "(such as\nsaving and editing TSProducts) will be "
+//			+ "disabled.  However,\nthe connection to the "
+//			+ "database was still established.", 
+//			ResponseJDialog.OK);
+//	}
 }
 
 /**
@@ -16005,28 +16004,43 @@ Display the status of the selected command(s).
 */
 private void uiAction_ShowCommandStatus()
 {
-	Vector commands = commandList_GetCommands();
+  SwingUtilities.invokeLater(new Runnable() {
+    public void run() {
+      try {
+        String status = getCommandsStatus();
+
+        HTMLViewer hTMLViewer = new HTMLViewer();
+        hTMLViewer.setHTML(status);
+        hTMLViewer.setSize(700,400);
+        hTMLViewer.setVisible(true);
+      }
+      catch(Throwable t){
+        Message.printWarning(1, "uiAction_ShowCommandStatus",
+        "Problem showing Command status");
+      }
+    }
+  });
+  }
+
+/**
+ * Gets Commands status in HTML.
+ * @return
+ */
+private String getCommandsStatus()
+{
+  Vector commands = commandList_GetCommands();
 	int size = commands.size();
 	Command command;
-	Vector output = new Vector();
-	for ( int i = 0; i < size; i++ ) {
-		command = (Command)commands.elementAt(i);
-		if ( command instanceof CommandStatusProvider ) {
-			output.addElement ( ((CommandStatusProvider)command).getCommandStatus().toString() );
-		}
-	}
-	PropList reportProp = new PropList ("ReportJFrame.props");
-	// Too big (make this big when we have more stuff)...
-	//reportProp.set ( "TotalWidth", "750" );
-	//reportProp.set ( "TotalHeight", "550" );
-	reportProp.set ( "TotalWidth", "600" );
-	reportProp.set ( "TotalHeight", "300" );
-	reportProp.set ( "DisplayFont", "Courier" );
-	reportProp.set ( "DisplaySize", "11" );
-	reportProp.set ( "PrintFont", "Courier" );
-	reportProp.set ( "PrintSize", "7" );
-	reportProp.set ( "Title", "Command Status" );
-	new ReportJFrame ( output, reportProp );
+	
+String html = CommandStatusUtil.getHTMLStatusReport(commands);	
+//	for ( int i = 0; i < size; i++ ) {
+//		command = (Command)commands.elementAt(i);
+//		if ( command instanceof CommandStatusProvider ) {
+//			output.addElement ( ((CommandStatusProvider)command).getCommandStatus().toString() );
+//		  
+//		}
+//	}
+  return html;
 }
 
 /**
