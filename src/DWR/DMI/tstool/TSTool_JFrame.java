@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -56,6 +57,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
 import rti.tscommandprocessor.core.TSCommandFactory;
+import rti.tscommandprocessor.core.TSCommandFileRunner;
 import rti.tscommandprocessor.core.TSCommandProcessor;
 import rti.tscommandprocessor.core.TSCommandProcessorListModel;
 import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
@@ -97,6 +99,7 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;
+import RTi.DMI.RiversideDB_DMI.LoginJDialog;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
@@ -135,6 +138,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_Listener;
 import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.ResponseJDialog;
+import RTi.Util.GUI.SimpleBrowser;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
@@ -197,43 +201,56 @@ WindowListener,			// To handle window/app shutdown
 CommandProcessorListener// To handle command processor progress updates
 {
 
+//================================
 //  Data Members
+//================================
 
-// TODO SAM 2007-08-20 Remove when transitioned to new code.
-// Do the following so that this comment only needs to show up for
-// the following boolean, not every insert.
 /**
-Indicate whether the AnnotatedList (new technology) should be used for the commands, vs.
-a simple JList (old technology).
+The license manager to verify the license, etc. 
 */
-private boolean __use_annotated_list = true;
-
 private LicenseManager	__license_manager = null;
-						// The license manager to verify
-						// the license, etc.
-private GeoViewJFrame	__geoview_JFrame = null;// Map interface
 
+/**
+Map interface.
+*/
+private GeoViewJFrame	__geoview_JFrame = null;
+
+//================================
 // Query area...
+//================================
 
-private SimpleJComboBox	__input_type_JComboBox,	// Available input types
-						// including enabled file and
-						// databases.
-			__input_name_JComboBox,	// Available input names for the
-						// input type (history of recent
-						// choices and allow browse
-						// where necessary).
-			__data_type_JComboBox,	// Data type choice.
-			__time_step_JComboBox;  // Time step for initial query.
+/**
+Available input types including enabled file and databases.
+*/
+private SimpleJComboBox	__input_type_JComboBox;
+
+/**
+Available input names for the input type (history of recent
+choices and allow browse where necessary).
+*/
+private SimpleJComboBox __input_name_JComboBox;	
+
+/**
+Data type choice.
+*/
+private SimpleJComboBox __data_type_JComboBox;
+
+/**
+Time step for initial query.
+*/
+private SimpleJComboBox __time_step_JComboBox;
+
+/**
+FileFilter for current input name, checked with StateCU (and more being phased in).
+Having as a data member allows selection of a filter in one place and a check
+later (e.g., when the time series list is generated and displayed).
+*/
 private FileFilter __input_name_FileFilter = null;
-						// FileFilter for current input
-						// name, checked with StateCU
-						// (and more being phased in).
-						// Having as a data member
-						// allows selection of a filter
-						// in one place and a check
-						// later (e.g., when the time
-						// series list is generated and
-						// displayed).
+
+/**
+FileFilters used with StateCU input type.
+__input_name_FileFilter will be set to one of these.
+ */
 private SimpleFileFilter
 	__input_name_StateCU_ddy_FileFilter = null,
 	__input_name_StateCU_ddc_FileFilter = null,
@@ -247,187 +264,230 @@ private SimpleFileFilter
 	__input_name_StateCU_ipy_FileFilter = null,
 	__input_name_StateCU_tsp_FileFilter = null,
 	__input_name_StateCU_wsl_FileFilter = null;
-						// FileFilters used with StateCU
-						// input type.
-						// __input_name_FileFilter will
-						// be set to one of these.
+
+/**
+Vector of InputFilter_JPanel or JPanel (for input types
+that do not support input filters).  One of these will
+be visible at any time.
+*/
 private Vector __input_filter_JPanel_Vector = new Vector(5);
-						// Vector of InputFilter_JPanel
-						// or JPanel (for input types
-						// that do not support input
-						// filters).  One of these will
-						// be visible at any time.
+
+/**
+The currently selected input filter JPanel, used to check
+input and get the filter information for queries.
+Not an InputFilter_JPanel because of the generic case.
+*/
 private JPanel __selected_input_filter_JPanel = null;
-						// The currently selected input
-						// filter JPanel, used to check
-						// input and get the filter
-						// information for queries.
-						// Not an InputFilter_JPanel
-						// because of the generic case.
+
+/**
+InputFilter_JPanel for HydroBase CASS agricultural crop statistics time series.
+*/
 private InputFilter_JPanel __input_filter_HydroBase_CASSCropStats_JPanel = null;
-						// InputFilter_JPanel for
-						// HydroBase CASS agricultural
-						// crop statistics time series.
-private InputFilter_JPanel __input_filter_HydroBase_CASSLivestockStats_JPanel =
-						null;
-						// InputFilter_JPanel for
-						// HydroBase CASS agricultural
-						// livestock statistics
-						// time series.
+
+/**
+InputFilter_JPanel for HydroBase CASS agricultural livestock statistics
+time series.
+*/
+private InputFilter_JPanel __input_filter_HydroBase_CASSLivestockStats_JPanel =	null;
+
+/**
+InputFilter_JPanel for HydroBase CUPopulation time series.
+*/
 private InputFilter_JPanel __input_filter_HydroBase_CUPopulation_JPanel = null;
-						// InputFilter_JPanel for
-						// HydroBase CUPopulation
-						// time series.
+
+/**
+InputFilter_JPanel for HydroBase NASS agricultural crop statistics time series.
+*/
 private InputFilter_JPanel __input_filter_HydroBase_NASS_JPanel = null;
-						// InputFilter_JPanel for
-						// HydroBase NASS agricultural
-						// crop statistics time series.
+
+/**
+InputFilter_JPanel for HydroBase structure irrig_summary_ts time series.
+*/
 private InputFilter_JPanel __input_filter_HydroBase_irrigts_JPanel = null;
-						// InputFilter_JPanel for
-						// HydroBase structure
-						// irrig_summary_ts time series.
+
+/**
+InputFilter_JPanel for HydroBase station time series.
+*/
 private InputFilter_JPanel __input_filter_HydroBase_station_JPanel = null;
-						// InputFilter_JPanel for
-						// HydroBase station time
-						// series.
+
+/**
+InputFilter_JPanel for HydroBase structure time series - those that do not
+use SFUT.
+*/
 private InputFilter_JPanel __input_filter_HydroBase_structure_JPanel = null;
-						// InputFilter_JPanel for
-						// HydroBase structure time
-						// series - those that do not
-						// use SFUT.
-private InputFilter_JPanel __input_filter_HydroBase_structure_sfut_JPanel =null;
-						// InputFilter_JPanel for
-						// HydroBase structure time
-						// series - those that do use
-						// SFUT.
-private InputFilter_JPanel __input_filter_HydroBase_WIS_JPanel =null;
-						// InputFilter_JPanel for
-						// HydroBase WIS time
-						// series.
+
+/**
+InputFilter_JPanel for HydroBase structure time series - those that do use SFUT.
+*/
+private InputFilter_JPanel __input_filter_HydroBase_structure_sfut_JPanel = null;
+
+/**
+InputFilter_JPanel for HydroBase WIS time series.
+*/
+private InputFilter_JPanel __input_filter_HydroBase_WIS_JPanel = null;
+
+/**
+InputFilter_JPanel for Mexico CSMN stations time series.
+*/
 private InputFilter_JPanel __input_filter_MexicoCSMN_JPanel = null;
-						// InputFilter_JPanel for
-						// Mexico CSMN stations time
-						// series.
+
+/**
+InputFilter_JPanel for NWSRFS_FS5Files time series.
+*/
 private InputFilter_JPanel __input_filter_NWSRFS_FS5Files_JPanel = null;
-						// InputFilter_JPanel for
-						// NWSRFS_FS5Files time series.
+
+/**
+InputFilter_JPanel for groundwater wells data
+*/
 private InputFilter_JPanel __input_filter_HydroBase_wells_JPanel = null;
-						// InputFilter_JPanel for
-						// groundwater wells data
+
+/**
+JPanel for input types that do not support input filters.
+*/
 private InputFilter_JPanel __input_filter_generic_JPanel = null;
-						// JPanel for input types that
-						// do not support input filters.
-private int __input_filter_y = 0;		// Used to keep track of the
-						// layout position for the input
-						// filter panels because the
-						// panel cannot be initialized
-						// until after database
-						// connections are made.
+
+/**
+Used to keep track of the layout position for the input filter panels because the
+panel cannot be initialized until after database connections are made.
+*/
+private int __input_filter_y = 0;
+
+/**
+The NWSFFS FS5Files directories that have been selected during the
+session, to allow switching between input types but not losing the list of files.
+*/
 private Vector		__input_name_NWSRFS_FS5Files = new Vector();
-						// The NWSFFS FS5Files
-						// directories that have
-						// been selected during the
-						// session, to allow switching
-						// between input types but not
-						// losing the list of files.
+
+/**
+The StateCU files that have been selected during the session, to allow switching
+between input types but not losing the list of files. 
+*/
 private Vector		__input_name_StateCU = new Vector();
-						// The StateCU files that have
-						// been selected during the
-						// session, to allow switching
-						// between input types but not
-						// losing the list of files.
+
+/**
+The last StateCU file that was selected, to reset after cancelling a browse. 
+*/
 private String		__input_name_StateCU_last = null;
-						// The last StateCU file that
-						// was selected, to reset after
-						// cancelling a browse.
+
+/**
+The StateModB files that have been selected during the session, to allow switching
+between input types but not losing the list of files.
+*/
 private Vector		__input_name_StateModB = new Vector();
-						// The StateModB files that have
-						// been selected during the
-						// session, to allow switching
-						// between input types but not
-						// losing the list of files.
+
+/**
+The last StateModB file that was selected, to reset after cancelling a browse.
+*/
 private String		__input_name_StateModB_last = null;
-						// The last StateModB file that
-						// was selected, to reset after
-						// cancelling a browse.
+
+//TODO Evaluate usability - does not seem to work! - popup on popup
+/**
+Used with input name to allow a new input name to be specified.  SAM tried using
+a "Browse..." choice but the problem is that an event will not be generated if the
+item state does not change.
+*/
 private JPopupMenu __input_name_JPopupMenu = null;
-						// REVISIT - does not seem to
-						// work! - popup on popup
-						// Used with input name to allow
-						// a new input name to be
-						// specified.  SAM tried using
-						// a "Browse..." choice but the
-						// problem is that an event
-						// will not be generated if the
-						// item state does not change.
-private final String __USE_APPS_DEFAULTS =	// String to display in input
-		"Use Apps Defaults";		// name combo box to indicate
-						// that the NWSRFS_FS5Files
-						// input type should use the
-						// current apps defaults to find
-						// the files to read.
-private final String __PLEASE_SELECT =		// String to display in input
-		"Please select...";		// name combo box to indicate
-						// that something should be
-						// selected.  The selection will
-						// force an event to happen,
-						// which will allow the proper
-						// settings.
-private final String __BROWSE = "Browse...";	// String to display in input
-						// name combo box to browse for
-						// a new file...
-private SimpleJButton	__get_ts_list_JButton,	// Get TS List Button
-			__CopySelectedToCommands_JButton,
-						// Copy selected time series
-						// from list to commands (as
-						// time series identifiers).
-			__CopyAllToCommands_JButton;
-						// Copy all time series
-						// from list to commands (as
-						// time series identifiers).
-private JPanel		__query_input_JPanel,	// Panel for input options.
-			__query_results_JPanel,	// Panel to hold results of
-						// time series header lists.
-			__commands_JPanel,	// Panel for commands
-			__ts_JPanel;		// Panel for TS results
 
-private JWorksheet	__query_JWorksheet;	// Query results
+/**
+String to display in input name combo box to indicate that the NWSRFS_FS5Files
+input type should use the current apps defaults to find the files to read.
+ */
+private final String __USE_APPS_DEFAULTS = "Use Apps Defaults";
+
+/**
+String to display in input name combo box to indicate that something should be
+selected.  The selection will force an event to happen,
+which will allow the proper settings.
+*/
+private final String __PLEASE_SELECT = "Please select...";
+
+/**
+String to display in input name combo box to browse for a new file.
+*/
+private final String __BROWSE = "Browse...";
+
+/**
+Get Time Series List button.
+*/
+private SimpleJButton __get_ts_list_JButton;
+
+/**
+Copy selected time series from list to commands (as time series identifiers).
+*/
+private SimpleJButton __CopySelectedToCommands_JButton;
+
+/**
+Copy all time series from list to commands (as time series identifiers).
+*/
+private SimpleJButton __CopyAllToCommands_JButton;
+
+/**
+Panel for input options.
+*/
+private JPanel __query_input_JPanel;
+
+/**
+Panel to hold results of time series header lists.
+*/
+private JPanel __query_results_JPanel;
+
+/**
+Panel for commands.
+*/
+private JPanel __commands_JPanel;
+
+/**
+Panel for TS results.
+*/
+private JPanel __ts_JPanel;		
+
+/**
+Query results.
+*/
+private JWorksheet	__query_JWorksheet;
+
+/**
+Table model for query results.
+*/
 private JWorksheet_AbstractRowTableModel __query_TableModel = null;
-						// Table model for query
-						// results.
-private String 		__selected_input_type = null,
-						// Input type when
-						// "Get Time Series List"
-						// is selected
-			__selected_input_name = null,
-						// Input name displayed in the
-						// "Input Name: choice."
-			__selected_data_type = null,
-						// Data type when
-						// "Get Time Series List" 
-						// is selected - only containing
-						// the data type used in time
-						// series identifiers.  The
-						// leading or trailing extra
-						// information is removed after
-						// selection to simplify use.
-			__selected_data_type_full = null,
-						// Full data type from the
-						// visible choice - this allows
-						// input types like HydroBase
-						// to differentiate between
-						// stations and structures.
-			__selected_time_step = null;
-						// Time step when
-						// "Get Time Series List"
-						// is selected
 
+/**
+Input type when "Get Time Series List" is selected.
+*/
+private String __selected_input_type = null;
+
+/**
+Input name displayed in the "Input Name: choice."
+*/
+private String			__selected_input_name = null;
+
+/**
+Data type when "Get Time Series List" is selected - only containing
+the data type used in time series identifiers.  The leading or trailing extra
+information is removed after selection to simplify use.
+*/
+private String __selected_data_type = null;
+
+/**
+Full data type from the visible choice - this allows input types like HydroBase
+to differentiate between stations and structures.
+*/
+private String __selected_data_type_full = null;
+
+/**
+Time step when "Get Time Series List" is selected.
+*/
+private String __selected_time_step = null;					
+
+//================================
 // Commands area...
+//================================
 
 /**
 Annotated list to hold commands and display the command status.
 */
 private AnnotatedCommandJList __commands_AnnotatedCommandJList;
+
 /**
 Commands JList, to support interaction such as selecting and popup menus.
 This is a reference to the JList managed by AnnotatedList.
@@ -438,37 +498,60 @@ private JList __commands_JList;
 List model that maps the TSCommandProcessor Command data to the command JList.
 */
 private TSCommandProcessorListModel __commands_JListModel;
-private SimpleJButton	__Run_SelectedCommands_JButton,
-						// Run the selected commands
-			__Run_AllCommands_JButton,
-						// Run all the commands
-			__ClearCommands_JButton;
-						// Clear commands(s)
 
+/**
+Run the selected commands.
+*/
+private SimpleJButton __Run_SelectedCommands_JButton;
+
+/**
+Run all the commands.
+*/
+private SimpleJButton __Run_AllCommands_JButton;
+
+/**
+Clear commands(s).
+*/
+private SimpleJButton __ClearCommands_JButton;
+						
 /**
 The Vector of Command that is used with cut/copy/paste user actions.
 */
 private Vector __commands_cut_buffer = new Vector(100,100);
 
+/**
+Paths to pattern files.
+*/
 private Vector __fill_pattern_files = 	new Vector (10,10);
-						// paths to pattern files
-private Vector __fill_pattern_ids = new Vector ( 10, 10 );
-						// Time series with pattern
-						// data.
-private boolean __commands_dirty = false;	// Indicates whether the
-						// commands have been edited
-						// without being saved.
-private String __commands_file_name = null;	// Name of the commands file.
-						// Don't set until selected by
-						// the user (or on the command
-						// line).
 
+/**
+Time series with pattern data.
+*/
+private Vector __fill_pattern_ids = new Vector ( 10, 10 );
+
+// TODO SAM 2007-11-02 Evaluate putting in the processor
+/**
+Indicates whether the commands have been edited without being saved.
+This will trigger some changes in the UI, for example indicating that the commands
+have been modified and need to be saved (or cancel) before exit.
+*/
+private boolean __commands_dirty = false;
+
+/**
+Name of the commands file.	Don't set until selected by
+the user (or on the command line).
+*/
+private String __commands_file_name = null;	
+
+//================================
 // Results area...
+//================================
 
 /**
 Final list showing in-memory time series results.
 */
-private JList		__ts_JList;
+private JList __ts_JList;
+
 /**
 JList data model for final time series (basically a Vector of
 time series associated with __ts_JList).
@@ -484,26 +567,34 @@ example, tabs for different commands files, each with a TSCommandProcessor.
 */
 private TSCommandProcessor __ts_processor = new TSCommandProcessor();
 
-/**
-Indicates whether the command processor is running.  It will be true if the
-processor is being run in the GUI thread (until control returns) or if a thread is
-used and the last command has not yet been processed.
-*/
-private boolean __ts_processor_is_running = false;
-
 private JPopupMenu __results_JPopupMenu = null;
 
+/**
+List of results output files for viewing with an editor.  This includes StateCU AND
+StateMod files (unlike data components, which are listed by model).
+*/
+private SimpleJComboBox __results_files_JComboBox = null;
+
+//================================
 // Status-area related...
+//================================
 
 /**
 General status string to indicate that the GUI is ready for user input.
 */
 private final String __STATUS_READY = "Ready";
-
 /**
 General status string to indicate that the user should wait for the GUI to finish a task.
 */
 private final String __STATUS_BUSY = "Wait";
+/**
+General status string to indicate that command processing is being cancelled.
+*/
+private final String __STATUS_CANCELING = "Canceling";
+/**
+General status string to indicate that command processing has been cancelled.
+*/
+private final String __STATUS_CANCELLED = "Cancelled";
 
 /**
 Message area text field (e.g., "Processing commands...") - long and left-most.
@@ -523,27 +614,20 @@ Status area text field (e.g., "READY", "WAIT") - small and right-most.
 */
 private JTextField __status_JTextField;		
 
+//================================
 // General...
+//================================
 
-private PropList __props;			// TSTool application
-						// properties.  These control
-						// how the GUI behaves before
-						// commands are run.  For
-						// example, if the output
-						// period is set in the
-						// setOutputPeriod_Dialog, then
-						// the output period string
-						// properties can be passed back
-						// to this main GUI.  Then,
-						// subsequent edit dialogs can
-						// use the information to
-						// display appropriate
-						// properties or instructions.
-						// It may be somewhat difficult
-						// to use this because the
-						// properties are singular but
-						// properties can change during
-						// a run.
+/**
+TSTool application properties.  These control how the GUI behaves before
+commands are run.  For example, if the output period is set in the
+setOutputPeriod_Dialog, then the output period string properties can be
+passed back to this main GUI.  Then, subsequent edit dialogs can
+use the information to display appropriate properties or instructions.
+It may be somewhat difficult to use this because the properties are singular but
+properties can change during a run.
+*/
+private PropList __props;
 
 /**
 The initial working directory corresponding to a commands file read/write or
@@ -552,27 +636,40 @@ of setWorkingDir() commands passed to command editors. Without the initial worki
 directory, relative changes in the working directory will
 result in an inaccurate initial state.
 */
-private String __initial_working_dir = "";	
+private String __initial_working_dir = "";
 
-/*
+/**
+The last directory selected with Run...Commands File, to run an external commands
+file.
+*/
+private String __Dir_LastExternalCommandsFileRun = null;
+
+/**
+The last directory selected with Run...Commands File, to run an external commands
+file.
+*/
+private String __Dir_LastCommandsFileOpened = null;
+
+/**
 Lets the checkGUIState() method avoid checking for many null components
 during startup.
 */
 private boolean __gui_initialized = false;
 
 // TODO SAM 2007-10-19 Evaluate whether still needed with new list model.
-/*
+/**
 Use this to temporarily ignore item listener events, necessary when
 programatically modifying the contents of combo boxes.
 */
 private boolean __ignore_ItemEvent = false;
-/*
+
+/**
 This is used in some cases to disable updates during bulk operations to
 the commands list.
 */
 private boolean __ignore_ListSelectionEvent = false;
 
-/*
+/**
 Indicates which data sources are enabled, initialized to defaults.
 */
 private boolean	__source_ColoradoSMS_enabled = false,
@@ -593,25 +690,53 @@ private boolean	__source_ColoradoSMS_enabled = false,
 		__source_StateModB_enabled = true,
 		__source_USGSNWIS_enabled = true;
 
-private boolean __show_main = true;		// Indicates if the main GUI
-						// should be shown.
+/**
+Indicates if the main GUI should be shown.  This is normally true but if false
+then only graph windows will be shown, and when closed the app will close.  This
+is used when calling TSTool from other software (e.g., to provide graphing
+capabilities to GIS applications).
+*/
+private boolean __show_main = true;
 
-private RiversideDB_DMI __rdmi = null;		// DMI for RiversideDB
-private DIADvisorDMI __DIADvisor_dmi = null;	// DMIs for DIADvisor
-private DIADvisorDMI __DIADvisor_archive_dmi =	// operational and archive
-					null;	// databases.
+/**
+RiversideDB_DMI object for RiversideDB input type, opened via TSTool.cfg information
+and the RiversideDB select dialog, provided to the processor as the initial
+RiversideDB DMI instance.
+*/
+private RiversideDB_DMI __rdmi = null;
 
-private HydroBaseDMI __hbdmi = null;		// HydroBaseDMI object for
-						// HydroBase input type.
-private SatMonSysDMI __smsdmi = null;		// SatMonSysDMI object for
-						// ColoradoSMS input type.
+/**
+DiadVisor_DMI objects for DiadVisor input type, opened via TSTool.cfg information
+and the DiadVisor select dialog, provided to the processor as the initial
+DiadVisor DMI instance.
+*/
+private DIADvisorDMI __DIADvisor_dmi = null;	// Operational DB
+private DIADvisorDMI __DIADvisor_archive_dmi = null;	// Archive databases.
 
-private NWSRFS_DMI __nwsrfs_dmi = null;		// NWSRFS_DMI object.
+/**
+HydroBaseDMI object for HydroBase input type, opened via TSTool.cfg information
+and the HydroBase select dialog, provided to the processor as the initial
+HydroBase DMI instance.
+*/
+private HydroBaseDMI __hbdmi = null;
 
-// REVISIT
-//URLHelpGUI _help_index_gui = null;		// GUI for help.
+/**
+SatMonSysDMI object for ColoradoSMS input type, opened via TSTool.cfg information
+and the HydroBase select dialog, provided to the processor as the initial
+HydroBase DMI instance.
+*/
+private SatMonSysDMI __smsdmi = null;		
 
-// List in order of the menus...
+/**
+NWSRFS_DMI object for NWSRFS_FS5Files input type, opened via TSTool.cfg information
+and the NWSRFS FS5Files directory select dialog, provided to the processor as the initial
+NWSRFSS DMI instance.
+*/
+private NWSRFS_DMI __nwsrfs_dmi = null;
+
+//================================
+// Menu items and strings, list in order of the menus...
+//================================
 
 private JPopupMenu
 	__Commands_JPopupMenu;
@@ -633,6 +758,8 @@ private JMenuItem
 	__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
 	__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
 	__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
+	
+	__CommandsPopup_CancelCommandProcessing_JMenuItem,
 
 	__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
 	__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
@@ -808,7 +935,6 @@ JMenuItem
 	__Commands_Set_setMax_JMenuItem,
 	__Commands_Set_setToMin_JMenuItem;
 
-
 // Commands...Manipulate Time Series....
 JMenu
 	__Commands_ManipulateTimeSeries_JMenu = null;
@@ -866,7 +992,6 @@ JMenuItem
 
 	__Commands_Output_processTSProduct_JMenuItem;
 
-
 // Commands (General)...
 JMenu
 	__Commands_General_JMenu = null;
@@ -889,7 +1014,6 @@ JMenuItem
 	__Commands_General_testCommand_JMenuItem = null,
 	__Commands_General_CreateRegressionTestCommandFile_JMenuItem = null;
 
-
 // Commands (HydroBase)...
 JMenu
 	__Commands_HydroBase_JMenu = null;
@@ -911,6 +1035,7 @@ private JMenuItem
 	__Run_AllCommandsIgnoreOutput_JMenuItem,
 	__Run_SelectedCommandsCreateOutput_JMenuItem,
 	__Run_SelectedCommandsIgnoreOutput_JMenuItem,
+	__Run_CancelCommandProcessing_JMenuItem,
 	__Run_CommandsFromFile_JMenuItem,
 	__Run_ProcessTSProductPreview_JMenuItem,
 	__Run_ProcessTSProductOutput_JMenuItem;
@@ -1457,9 +1582,9 @@ private String
 			"Selected Commands (create all output)",
 		__Run_SelectedCommandsIgnoreOutput_String =
 			"Selected Commands (ignore output commands)",
+		__Run_CancelCommandProcessing_String = "Cancel Command Processing",
 		__Run_CommandsFromFile_String = "Commands From File...",
-		__Run_ProcessTSProductPreview_String =
-			"Process TS Product File (preview)...",
+		__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
 		__Run_ProcessTSProductOutput_String =
 			"Process TS Product File (create output)...",
 
@@ -1825,7 +1950,7 @@ public TSTool_JFrame ( boolean show_main )
 	// create the GUI ...
 	StopWatch in = new StopWatch();
 	in.start();
-	initGUI ( show_main );
+	ui_InitGUI ( show_main );
 	in.stop();
 	Message.printDebug(1, "", "JTS - InitGUI: " + in.getSeconds());
 
@@ -1866,7 +1991,7 @@ public TSTool_JFrame ( boolean show_main )
 		uiAction_OpenNWSRFSFS5Files ( null, true );
 		// Force the choices to refresh...
 		if ( __nwsrfs_dmi != null ) {
-			/* REVISIT SAM 2004-09-10 DO NOT DO THIS BECAUSE IT
+			/* TODO SAM 2004-09-10 DO NOT DO THIS BECAUSE IT
 			  THEN PROMPTS FOR a choice...
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select (
@@ -1902,7 +2027,7 @@ public TSTool_JFrame ( boolean show_main )
 		// performance hit querying databases (e.g., HydroBase stored
 		// procedures).
 		JGUIUtil.setWaitCursor ( this, true );
-		try {	initGUIInputFilters ( __input_filter_y );
+		try {	ui_InitGUIInputFilters ( __input_filter_y );
 					// Add one vertical position even though
 					// it may actually be more than one slot
 					// based on what is in the panel.
@@ -1913,7 +2038,7 @@ public TSTool_JFrame ( boolean show_main )
 			"input filters at setup." );
 			Message.printWarning ( 3, rtn, e );
 		}
-		// REVISIT SAM 2007-01-23
+		// TODO SAM 2007-01-23 Evaluate use.
 		// Force everything to refresh based on the current GUI
 		// layout.
 		// Still evaluating this.
@@ -1930,7 +2055,7 @@ public TSTool_JFrame ( boolean show_main )
 	// If running with a commands file from the command line, we don't
 	// normally want to see the main window so handle with a special case...
 
-	// REVISIT SAM 2005-10-28
+	// TODO SAM 2005-10-28 Evaluate code
 	// In the future might allow, for example, clicking on a TSTool file
 	// to bring up the GUI with that commands file, without running.  In
 	// that case the GUI would show the commands but not automatically run,
@@ -1951,7 +2076,7 @@ public TSTool_JFrame ( boolean show_main )
 			Message.printWarning ( 2, rtn,
 			"Error running commands in \"" + commands_file +
 			"\" with no main GUI." );
-			// REVISIT SAM 2005-10-28
+			// TODO SAM 2005-10-28
 			// Do we need this?...
 			// Need to close the GUI, even if hidden...
 			//closeClicked();
@@ -1996,6 +2121,33 @@ public void actionPerformed (ActionEvent event)
 }
 
 /**
+Indicate that a command has been cancelled.  The success/failure of the command
+is not indicated (see CommandStatusProvider).
+@param icommand The command index (0+).
+@param ncommand The total number of commands to process
+@param command The reference to the command that has been cancelled, either the
+one that has just been processed, or potentially the next one, depending on when
+the cancel was requested.
+@param percent_complete If >= 0, the value can be used to indicate progress
+running a list of commands (not the single command).  If less than zero, then
+no estimate is given for the percent complete and calling code can make its
+own determination (e.g., ((icommand + 1)/ncommand)*100).
+@param message A short message describing the status (e.g., "Running command ..." ).
+*/
+public void commandCancelled ( int icommand, int ncommand, Command command,
+		float percent_complete, String message )
+{	String routine = "TSTool_JFrame.commandCancelled";
+	
+	// Refresh the results with what is available...
+	//String command_string = command.toString();
+	ui_UpdateStatusTextFields ( 1, routine,
+			"Cancelled command processing.",
+			//"Cancelled: " + command_string,
+				null, __STATUS_CANCELLED );
+	uiAction_RunCommands_ShowTSResults ();
+}
+
+/**
 Indicate that a command has completed.  The success/failure of the command
 is not indicated (see CommandStatusProvider).
 @param icommand The command index (0+).
@@ -2024,7 +2176,6 @@ public void commandCompleted ( int icommand, int ncommand, Command command,
 		String command_string = command.toString();
 		ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string,
 				__STATUS_READY );
-		ui_SetRunningCommands ( false );
 		if ( ui_Property_RunCommandProcessorInThread() ) {
 			uiAction_RunCommands_ShowTSResults ();
 		}
@@ -2259,7 +2410,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			// New command so create a command as a placeholder for
 			// editing (filled out during the editing).
 			// Get everything before the ) in the command and then re-add the ").
-			// REVISIT SAM 2007-08-31 Why is this done
+			// TODO SAM 2007-08-31 Why is this done?
 			// Need to handle:
 			//	1) Traditional commands foo()
 			//	2) Comments # blocks
@@ -2438,8 +2589,9 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	// REVISIT SAM 2005-05-18 need to enable - the command string checked
-	// below is in conflice with the fillHistMonthAverage() command so that
+	// FIXME SAM 2005-05-18 need to enable - important capability.
+	// The command string checked
+	// below is in conflict with the fillHistMonthAverage() command so that
 	// needs to be resolved.
 	/*
 	else if ( action.equals( __Commands_Create_TS_average_String)||
@@ -2780,29 +2932,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	/* REVISIT SAM 2005-05-09 Use the factory code at the end of the
-	if statements...
-	else if ( action.equals(__Commands_Fill_fillRegression_String) ||
-		command.regionMatches(true,0,"fillRegression",0,14) ||
-		command.regionMatches(true,0,"regress(",0,8) ||
-		command.regionMatches(true,0,"regress (",0,9) ||
-		command.regionMatches(true,0,"regresslog(",0,11) ||
-		command.regionMatches(true,0,"regresslog (",0,12) ||
-		command.regionMatches(true,0,"regress12(",0,10) ||
-		command.regionMatches(true,0,"regress12 (",0,11) ||
-		command.regionMatches(true,0,"regressMonthly(",0,15) ||
-		command.regionMatches(true,0,"regressMonthly (",0,16) ||
-		command.regionMatches(true,0,"regressMonthlyLog(",0,18) ||
-		command.regionMatches(true,0,"regressMonthlyLog (",0,19) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillRegression()" );
-		}
-		edited_cv = new fillRegression_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-	*/
 	else if (action.equals( __Commands_Fill_fillRepeat_String)||
 		command.regionMatches( true,0,"fillRepeat",0,10)){
 		if ( Message.isDebugOn ) {
@@ -2813,20 +2942,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-    /** KAT - let this get handled by the generic code now
-	else if (action.equals(
-		__Commands_Fill_fillUsingDiversionComments_String)||
-		command.regionMatches(
-		true,0,"fillUsingDiversionComments",0,26)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillDiversionComments()" );
-		}
-        edited_cv = new fillUsingDiversionComments_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-         
-	}*/
 	else if ( action.equals(__Commands_Fill_setAutoExtendPeriod_String)||
 		command.regionMatches(true,0,"setAutoExtendPeriod",0,19) ) {
 		if ( Message.isDebugOn ) {
@@ -2895,19 +3010,7 @@ private boolean commandList_EditCommandOldStyle (
 			}
 		}
 	}
-
-/* REVISIT - phasing out
-	else if ( action.equals(__Commands_Fill_setRegressionPeriod_String)||
-		command.regionMatches(true,0,"setRegressionPeriod",0,19) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setRegressionPeriod()" );
-		}
-		edited_cv = new setRegressionPeriod_Dialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-*/
+	
 	// Set time series contents...
 
 	else if ( action.equals( __Commands_Set_replaceValue_String)||
@@ -3142,15 +3245,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit), true ).getText();
 	}
-/* REVISIT - phasing out
-	else if ( action.equals(
-		__Commands_Output_setOutputDetailedHeaders_String) ||
-		command.regionMatches(true,0,"setOutputDetailedHeaders",0,24)){
-		edited_cv = new setOutputDetailedHeaders_JDialog (this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-*/
 	else if ( action.equals( __Commands_Output_setOutputPeriod_String) ||
 		command.regionMatches(true,0,"setOutputPeriod",0,15) ) {
 		if ( Message.isDebugOn ) {
@@ -3374,15 +3468,6 @@ private boolean commandList_EditCommandOldStyleComments (
 }
 
 /**
-Get the list of commands to process.  If any are selected, only they will be
-returned.  If none are selected, all will be returned.
-@return the commands as a Vector of String.
-*/
-private Vector commandList_GetCommands ( )
-{	return commandList_GetCommands ( false );
-}
-
-/**
 Get the list of commands to process, as a Vector of Command, guaranteed
 to be non-null but may be zero length.
 @return the commands as a Vector of Command.
@@ -3417,6 +3502,15 @@ private Vector commandList_GetCommands ( boolean get_all )
 		}
 		return itemVector;
 	}
+}
+
+/**
+Get the list of commands to process.  If any are selected, only they will be
+returned.  If none are selected, all will be returned.
+@return the commands as a Vector of String.
+*/
+private Vector commandList_GetCommandsBasedOnUI ( )
+{	return commandList_GetCommands ( false );
 }
 
 /**
@@ -3699,7 +3793,7 @@ private Command commandList_NewCommand ( String command_string,
 		// try to deal with it in the editor
 		// dialog.  They can always cancel out.
 
-		// REVISIT SAM 2005-05-09 Need to handle
+		// TODO SAM 2005-05-09 Need to handle
 		// parse error.  Should the editor come
 		// up with limited information?
 		Message.printWarning ( 3, routine,
@@ -4253,15 +4347,12 @@ private void commandProcessor_RunCommands (
 	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
 	Message.printStatus ( 2, routine, "Running commands in GUI thread.");
 	try { 
-		ui_SetRunningCommands ( true );
 		ts_processor.processRequest( "RunCommands", request_params );
-		ui_SetRunningCommands ( false );
 	}
 	catch ( Exception e ) {
 		String message = "Error requesting RunCommands(CommandList=...) from processor.";
 		Message.printWarning ( 2, routine, message );
 		Message.printWarning ( 3,routine, e );
-		ui_SetRunningCommands ( false );
 	}
 }
 
@@ -4276,10 +4367,9 @@ private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean cre
 
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "CommandList", commands );
-	request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
+	request_params.setUsingObject ( "InitialWorkingDir", ui_GetInitialWorkingDir() );
 	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
 	try {
-		ui_SetRunningCommands ( true );
 		TSCommandProcessorThreadRunner runner =
 		new TSCommandProcessorThreadRunner ( __ts_processor, request_params );
 		Message.printStatus ( 2, routine, "Running commands in separate thread.");
@@ -4292,7 +4382,6 @@ private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean cre
 		String message = "Error running command processor in thread.";
 		Message.printWarning(2, routine, message );
 		Message.printWarning (3,routine, e);
-		ui_SetRunningCommands ( false );
 	}
 }
 
@@ -4300,10 +4389,21 @@ private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean cre
 Set the command processor HydroBase instance that is opened via the GUI.
 @param hbdmi Open HydroBaseDMI instance.
 The input name is blank since it is the default HydroBaseDMI.
-@return The time series at the requested position in the results or null
-if the processor is not available.
 */
 private void commandProcessor_SetHydroBaseDMI( HydroBaseDMI hbdmi )
+{	// Call the overloaded method that takes a processor as a parameter...
+	commandProcessor_SetHydroBaseDMI( __ts_processor, hbdmi );
+}
+
+/**
+Set the command processor HydroBase instance that is opened via the GUI.
+This version is generally called by the overloaded version and when processing
+an external command file.
+@param processor The command processor to set the HydroBase DMI instance.
+@param hbdmi Open HydroBaseDMI instance.
+The input name is blank since it is the default HydroBaseDMI.
+*/
+private void commandProcessor_SetHydroBaseDMI( TSCommandProcessor processor, HydroBaseDMI hbdmi )
 {	String message, routine = "TSTool_JFrame.setCommandProcessorHydroBaseDMI";
 	if ( hbdmi == null ) {
 		return;
@@ -4312,7 +4412,7 @@ private void commandProcessor_SetHydroBaseDMI( HydroBaseDMI hbdmi )
 	request_params.setUsingObject ( "HydroBaseDMI", hbdmi );
 	//CommandProcessorRequestResultsBean bean = null;
 	try { //bean =
-		__ts_processor.processRequest( "SetHydroBaseDMI", request_params );
+		processor.processRequest( "SetHydroBaseDMI", request_params );
 	}
 	catch ( Exception e ) {
 		message = "Error requesting SetHydroBaseDMI(HydroBaseDMI=\"" + hbdmi + " from processor.";
@@ -4339,11 +4439,18 @@ private void commandProcessor_SetInitialWorkingDir ( String InitialWorkingDir )
 /**
 Set the command processor NWSRFS FS5Files DMI instance that is opened via the GUI.
 @param nwsrfs_dmi Open NWSRFS FS5Files instance.
-The input name is blank since it is the default HydroBaseDMI.
-@return The time series at the requested position in the results or null
-if the processor is not available.
 */
 private void commandProcessor_SetNWSRFSFS5FilesDMI( NWSRFS_DMI nwsrfs_dmi )
+{	commandProcessor_SetNWSRFSFS5FilesDMI( __ts_processor, nwsrfs_dmi );
+}
+
+/**
+Set the command processor NWSRFS FS5Files DMI instance that is opened via the GUI.
+Typically this method is only called when running an external command file.
+@param processor the Processor that is being updated.
+@param nwsrfs_dmi Open NWSRFS FS5Files instance.
+*/
+private void commandProcessor_SetNWSRFSFS5FilesDMI( TSCommandProcessor processor, NWSRFS_DMI nwsrfs_dmi )
 {	String message, routine = "TSTool_JFrame.setCommandProcessorNWSRFSFS5FilesDMI";
 	if ( nwsrfs_dmi == null ) {
 		return;
@@ -4352,10 +4459,10 @@ private void commandProcessor_SetNWSRFSFS5FilesDMI( NWSRFS_DMI nwsrfs_dmi )
 	request_params.setUsingObject ( "NWSRFSFS5FilesDMI", nwsrfs_dmi );
 	//CommandProcessorRequestResultsBean bean = null;
 	try { //bean =
-		__ts_processor.processRequest( "SetNWSRFSFS5FilesDMI", request_params );
+		processor.processRequest( "SetNWSRFSFS5FilesDMI", request_params );
 	}
 	catch ( Exception e ) {
-		message = "Error requesting SetNWSRFSFS5FilesDMI(HydroBaseDMI=\"" + nwsrfs_dmi + " from processor.";
+		message = "Error requesting SetNWSRFSFS5FilesDMI(NWSRFSFS5FilesDMI=\"" + nwsrfs_dmi + " from processor.";
 		Message.printWarning(2, routine, message );
 	}
 }
@@ -4415,20 +4522,33 @@ public String geoViewGetLabel(GeoRecord record) {
 	return null;
 }
 
+// TODO SAM 2007-11-02 Review code.  Should this do the same as a select?
 /**
-Do nothing.  REVISIT - Should this do the same as a select?
+Do nothing.  
 @param devlimits Limits of select in device coordinates(pixels).
 @param datalimits Limits of select in data coordinates.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 */
 public void geoViewInfo(GRShape devlimits, GRShape datalimits,
-Vector selected) {}
+Vector selected)
+{
+}
 
+/**
+Do nothing.
+*/
 public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, 
-Vector selected) {}
+Vector selected)
+{
+}
 
+/**
+Do nothing.
+*/
 public void geoViewInfo(GRLimits devlimits, GRLimits datalimits,
-Vector selected) {}
+Vector selected)
+{
+}
 
 /**
 Handle the mouse motion event from another GeoView (likely a ReferenceGeoView).
@@ -4436,9 +4556,11 @@ Does nothing.
 @param devpt Coordinates of mouse in device coordinates(pixels).
 @param datapt Coordinates of mouse in data coordinates.
 */
-public void geoViewMouseMotion(GRPoint devpt, GRPoint datapt) {}
+public void geoViewMouseMotion(GRPoint devpt, GRPoint datapt)
+{
+}
 
-// REVISIT SAM 2006-03-02
+// TODO SAM 2006-03-02 Evaluate code
 // Should the select use the coordinates?  Not all time series have this
 // information available
 /**
@@ -4461,8 +4583,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	// Select from the time series query list matching the attributes in
 	// the selected layer.
 
-	// REVISIT SAM 2006-03-02
-	// Need to evaluate how to best read this file once.
+	// TODO SAM 2006-03-02 Need to evaluate how to best read this file once.
 
 	// Read the time series to layer lookup file...
 
@@ -4660,7 +4781,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 						Layer_LocationCol_int);
 				layer_datasource = (String)rec.getFieldValue(
 						Layer_DataSourceCol_int);
-				// REVISIT SAM 2006-03-02
+				// TODO SAM 2006-03-02 Evaluate code
 				// Add layer_interval if such an attribute
 				// exists, and use this in addition to the
 				// layer name to find an appropriate layer in
@@ -4752,7 +4873,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 				}
 			}
 
-			// REVISIT SAM 2006-03-02
+			// TODO SAM 2006-03-02 Add attributes other than strings
 			// For now only deal with string attributes -
 			// later need to handle other types.
 
@@ -4760,7 +4881,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 			// based on the attribute name in the lookup
 			// file...
 
-			// REVISIT SAM 2006-03-02
+			// TODO SAM 2006-03-02 Optimize code
 			// Need to implement DbaseDataTable.getTableRecord to
 			// handle on the fly reading to make this a little more
 			// directy...
@@ -4812,7 +4933,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 			for ( int its = 0; its < nrows; its++ ) {
 				// Get the attributes from the time series
 				// query list table model.
-				// REVISIT SAM 2006-03-02
+				// TODO SAM 2006-03-02 Refactor/optimize
 				// Probably what is needed here is a generic
 				// interface on time series table models to
 				// have methods that return TSIdent or TSID
@@ -4858,7 +4979,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 				// information for data type and interval,
 				// unless that is supplied in a layer
 				// attribute.
-				// REVISIT SAM 2006-03-02
+				// TIDI SAM 2006-03-02 Optimize/refactor
 				// Currently check the ID and get the data type
 				// and interval from the lookup file.  Later
 				// can get the interval from the layer attribute
@@ -4900,7 +5021,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 				Message.printStatus ( 2, routine,
 				"Selecting time seris [" + its + "]" );
 				__query_JWorksheet.selectRow ( its, false );
-				// REVISIT SAM 2006-03-02
+				// TODO SAM 2006-03-02 Evaluate usability
 				// Should the worksheet automatically scroll to
 				// the last select?
 				++match_count;
@@ -4953,17 +5074,6 @@ public void geoViewZoom(GRShape devlimits, GRShape datalimits) {}
 public void geoViewZoom (GRLimits devlim, GRLimits datalim ) {}
 
 /**
-Return the initial working directory, which will be the softare startup
-home, or the location of the commands file read/write (a directory).
-This directory is suitable for initializing a workflow processing run.
-@return the initial working directory, which should always be non-null.
-*/
-private String getInitialWorkingDir ()
-{
-	return __initial_working_dir;
-}
-
-/**
 Handle actions from the message log viewer.  In particular, when a command is
 selected and the user wants to go to the command in the interface.
 @param tag Tag that identifies the command.  This is of the format:
@@ -4999,2061 +5109,6 @@ public void goToMessageTag ( String tag )
 			commandList_SelectCommand ( iline, true );
 		}
 	}
-}
-
-/**
-Initialize the GUI.
-@param show_main Indicates if the main interface should be shown.
-*/
-private void initGUI ( boolean show_main )
-{	String routine = "TSTool_JFrame.initGUI";
-	try {	// To catch layout problems...
-	int y;
-
-	try {	JGUIUtil.setSystemLookAndFeel(true);
-	}
-	catch (Exception e) {
-		Message.printWarning ( 2, routine, e );
-	}
-
-	// Need this even if no main GUI...
-
-	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
-
-	if ( show_main ) {
-		// If not showing main, don't initialize menus, to speed
-		// performance.
-		initGUIMenus ();
-	}
-
-	// Remainder of main window...
-
-	// objects used throughout the GUI layout
-	int buffer = 3;
-	Insets insetsNLNR = new Insets(0,buffer,0,buffer);
-	Insets insetsNNNR = new Insets(0,0,0,buffer);
-	Insets insetsNLNN = new Insets(0,buffer,0,0);
-    Insets insetsNLBR = new Insets(0,buffer,buffer,buffer);
-	Insets insetsTLNR = new Insets(buffer,buffer,0,buffer);
-	Insets insetsNNNN = new Insets(0,0,0,0);
-    GridBagLayout gbl = new GridBagLayout();
-
-	// Panel to hold the query components, added to the top of the main
-	// content pane...
-
-	if ( show_main ) {
-        JPanel query_JPanel = new JPanel();
-        query_JPanel.setLayout(new BorderLayout());
-        getContentPane().add("North", query_JPanel);
-        
-	// --------------------------------------------------------------------
-	// Query input components...
-	// --------------------------------------------------------------------
-
-	__query_input_JPanel = new JPanel();
-	__query_input_JPanel.setLayout(gbl);
-	__query_input_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Input/Query Options" ));
-	
-    query_JPanel.add("West", __query_input_JPanel);
- 
-	y=0;
-        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Type:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        __input_type_JComboBox = new SimpleJComboBox(false);
-        __input_type_JComboBox.setMaximumRowCount ( 15 );
-        __input_type_JComboBox.setToolTipText (
-		"<HTML>The input type is the file/database format being read."+
-		"</HTML>" );
-	__input_type_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__query_input_JPanel, __input_type_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-
-        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Name:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        __input_name_JComboBox = new SimpleJComboBox(false);
-        __input_name_JComboBox.setToolTipText (
-		"<HTML>The input name is the name of the file or database" +
-		" being read.<BR>It will default or be promted for after " +
-		"selecting the input type.</HTML>" );
-	__input_name_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__query_input_JPanel, __input_name_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-
-        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Data Type:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	__data_type_JComboBox = new SimpleJComboBox(false);
-        __data_type_JComboBox.setMaximumRowCount ( 20 );
-	__data_type_JComboBox.setToolTipText (
-		"<HTML>The data type is used to filter the list of time " +
-		"series.</HTML>" );
-	__data_type_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__query_input_JPanel, __data_type_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-
-        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Time Step:"), 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        __time_step_JComboBox = new SimpleJComboBox(false);
-	__time_step_JComboBox.setToolTipText (
-		"<HTML>The time step is used to filter the list of time " +
-		"series.</HTML>" );
-	__time_step_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__query_input_JPanel, __time_step_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-
-	// Save the position for the input filters, which will be added after
-	// database connections are made...
-
-	__input_filter_y = y;
-	++y;	// Increment for GUI features below.
-
-	// Force the choices to assume some reasonable values...
-
-	ui_SetInputTypeChoices();
-
-        __get_ts_list_JButton = new SimpleJButton(
-		BUTTON_TOP_GET_TIME_SERIES,this);
-	__get_ts_list_JButton.setToolTipText (
-		"<HTML>Get a list of time series but not the full time " +
-		"series data.<BR>Time series can then be selected for " +
-		"processing.</HTML>" );
-        JGUIUtil.addComponent(__query_input_JPanel, __get_ts_list_JButton, 
-		2, y++, 1, 1, 0, 0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-
-	// --------------------------------------------------------------------
-	// Query results components...
-	// --------------------------------------------------------------------
-
-	__query_results_JPanel = new JPanel();
-    __query_results_JPanel.setLayout(gbl);
-	__query_results_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Time Series List"));
-    
-    // Set the minimum size for the panel based on the default size
-    // used for HydroBase, which seems to be an acceptable size.
-   __query_results_JPanel.setPreferredSize(new Dimension( 460, 200 ));
-    
-    query_JPanel.add("Center", __query_results_JPanel);
-
-	// Add the table for time series list...
-
-	y=0;
-	try {
-	PropList props = new PropList ( "QueryList" );
-	props.add("JWorksheet.ShowRowHeader=true");
-	props.add("JWorksheet.AllowCopy=true");
-	JScrollWorksheet sjw = new JScrollWorksheet ( 0, 0, props );
-	__query_JWorksheet = sjw.getJWorksheet ();
-	__query_JWorksheet.setPreferredScrollableViewportSize(null);
-	// Listen for mouse events to enable the buttons in the Time Series
-	// area...
-	__query_JWorksheet.addMouseListener ( this );
-	__query_JWorksheet.addJWorksheetListener ( this );
-        JGUIUtil.addComponent(__query_results_JPanel, sjw,
-		0, y++, 3, 7, 1.0, 1.0, insetsNLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-	}
-	catch ( Exception e ) {
-		// Absorb the exception in most cases - print if developing to
-		// see if this issue can be resolved.
-		if ( Message.isDebugOn && IOUtil.testing()  ) {
-			Message.printWarning ( 3, routine,
-			"For developers:  caught exception initializing " +
-			"JWorksheet at setup." );
-			Message.printWarning ( 3, routine, e );
-		}
-	}
-
-	// Add the button to select all the time series...
-
-	y = 7;
-        __CopySelectedToCommands_JButton = new SimpleJButton(
-		BUTTON_TOP_COPY_SELECTED_TO_COMMANDS,this);
-	__CopySelectedToCommands_JButton.setToolTipText (
-		"<HTML>Copy selected time series from above to the Commands " +
-		"list,<BR>as time series identifiers.</HTML>" );
-        JGUIUtil.addComponent ( __query_results_JPanel,
-		__CopySelectedToCommands_JButton, 
-		1, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-        __CopyAllToCommands_JButton = new SimpleJButton(
-		BUTTON_TOP_COPY_ALL_TO_COMMANDS,this);
-	__CopyAllToCommands_JButton.setToolTipText (
-		"<HTML>Copy all time series from above to the Commands " +
-		"list,<BR>as time series identifiers.</HTML>" );
-        JGUIUtil.addComponent ( __query_results_JPanel,
-		__CopyAllToCommands_JButton, 
-		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-
-	} // end if ( show_main )
- 
-	// --------------------------------------------------------------------
-	// Command components...
-	// --------------------------------------------------------------------
-
-	// Use a panel to include both the commands and time series panels and
-	// place in the center, to allow resizing.
-
-	JPanel center_JPanel = new JPanel ();
-        center_JPanel.setLayout(gbl);
-        getContentPane().add("Center", center_JPanel);
-
-        // Commands JPanel - 8 columns wide for grid bag layout
-        __commands_JPanel = new JPanel();
-        __commands_JPanel.setLayout(gbl);
-	__commands_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black), "Commands" ));
-	JGUIUtil.addComponent(center_JPanel, __commands_JPanel,
-		0, 0, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
-
-	// Initialize the command processor to interact with the GUI.
-	__ts_processor = new TSCommandProcessor();
-	commandProcessor_SetInitialWorkingDir ( __initial_working_dir );
-	// FIXME SAM 2007-08-28 Need to set a WindowListener for -nomaingui calls?
-	//__ts_processor.setTSCommandProcessorUI ( this );
-	__ts_processor.addCommandProcessorListener ( this );
-	__commands_JListModel = new TSCommandProcessorListModel(__ts_processor);
-	__commands_JListModel.addListDataListener ( this );
-	if ( __use_annotated_list ) {
-		__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
-		__commands_JList = __commands_AnnotatedCommandJList.getJList();
-		// Set the font to fixed font so that similar command text lines up...
-		__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
-		// Handling the ellipsis is dealt with in the annotated list...
-	}
-	else {
-		__commands_JList = new JList ( __commands_JListModel );
-		// Set the font to fixed font so that similar command text lines up...
-		__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
-		// The following prototype value looks like nonsense, but should ensure
-		// that the line height accomodates both very tall characters, and those
-		// that swoop below the line.
-		__commands_JList.setPrototypeCellValue("gjqqyAZ");
-		// The following line works in tandem with the call to 
-		// setPrototypeCellValue() above.  setPrototypeCellValue() changes the
-		// fixedCellWidth and fixedCellHeight on the JList so that the given
-		// string above can fit, which is good.  The downside is that setting
-		// the fixedCellWidth makes it so that the JList never scrolls 
-		// horizontally, but instead trims long strings with an ellipsis.  
-		// If the call to setPrototypeCellValue() is removed for some reason,
-		// the following line should be removed as well.
-		__commands_JList.setFixedCellWidth(-1);
-	}
-	
-	// Listen for events on the list so the GUI can respond to selections.
-	
-	__commands_JList.addListSelectionListener ( this );
-	__commands_JList.addKeyListener ( this );
-	__commands_JList.addMouseListener ( this );
-	
-	if ( __use_annotated_list ) {
-		JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedCommandJList,
-		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-	}
-	else {
-		JScrollPane commands_JScrollPane = new JScrollPane ( __commands_JList );
-		JGUIUtil.addComponent(__commands_JPanel, commands_JScrollPane,
-				0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-	}
-	
-	// Popup menu for the commands list...
-	
-	initGUIMenus_CommandsPopup ();
-
-	// Popup menu for the input name field...
-	__input_name_JPopupMenu = new JPopupMenu("Input Name Actions");
-
-	// Buttons that correspond to the command list 
-
-	// Put on left because user is typically working in that area...
-	__Run_SelectedCommands_JButton =
-		new SimpleJButton(__Button_RunSelectedCommands_String,
-		__Run_SelectedCommandsCreateOutput_String, this);
-	__Run_SelectedCommands_JButton.setToolTipText (
-		"<HTML>Run selected commands from above to generate time " +
-		"series,<BR>which will be shown in the Time Series Results " +
-		"list below.</HTML>" );
-	JGUIUtil.addComponent(__commands_JPanel,
-		__Run_SelectedCommands_JButton,
-		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	__Run_AllCommands_JButton =
-		new SimpleJButton(__Button_RunAllCommands_String,
-		__Run_AllCommandsCreateOutput_String, this);
-	__Run_AllCommands_JButton.setToolTipText (
-		"<HTML>Run all commands from above to generate time series," +
-		"<BR>which will be shown in the Time Series Results list " +
-		"below.</HTML>" );
-	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
-		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	// Put on right because we want it to be a decision to clear...
-	__ClearCommands_JButton = new SimpleJButton(
-		__Button_ClearCommands_String, this);
-	__ClearCommands_JButton.setToolTipText (
-		"<HTML>Clear selected commands from above." +
-		"<BR>Clear all commands if none are selected.</HTML>" );
-	JGUIUtil.addComponent(__commands_JPanel, __ClearCommands_JButton, 
-		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-
-	// --------------------------------------------------------------------
-	// Time series output (results) components...
-	// --------------------------------------------------------------------
-
-	// Final time series list...
-
-    __ts_JPanel = new JPanel();
-    __ts_JPanel.setLayout(gbl);
-	__ts_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Time Series Results" ));
-	JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
-		0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
-
-	__ts_JListModel = new DefaultListModel();
-	__ts_JList = new JList ( __ts_JListModel );
-	__ts_JList.addKeyListener ( this );
-	__ts_JList.addListSelectionListener ( this );
-	__ts_JList.addMouseListener ( this );
-	JScrollPane ts_JScrollPane = new JScrollPane ( __ts_JList );
-	JGUIUtil.addComponent(__ts_JPanel, ts_JScrollPane, 
-		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-
-	// Popup menu for the time series results list...
-	initGUIMenus_ResultsPopup ();
-
-	// --------------------------------------------------------------------
-	// Status messages...
-	// --------------------------------------------------------------------
-
-	// Bottom panel for the information TextFields.  Add this as the south
-	// panel of the main interface since it is not resizable...
-
-	JPanel bottom_JPanel = new JPanel();
-	bottom_JPanel.setLayout (gbl);
-
-	__message_JTextField = new JTextField();
-	__message_JTextField.setEditable(false);
-	JGUIUtil.addComponent(bottom_JPanel, __message_JTextField,
-		0, 0, 5, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-	__processor_JProgressBar = new JProgressBar ();
-	__processor_JProgressBar.setToolTipText ( "Indicates progress in processing all commands.");
-	__processor_JProgressBar.setStringPainted ( true );
-	JGUIUtil.addComponent(bottom_JPanel, __processor_JProgressBar,
-		5, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	__command_JProgressBar = new JProgressBar ();
-	__command_JProgressBar.setToolTipText ( "Indicates progress in processing the current command that is running.");
-	__command_JProgressBar.setStringPainted ( true );
-	JGUIUtil.addComponent(bottom_JPanel, __command_JProgressBar,
-		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	__status_JTextField = new JTextField ( 5 );
-	__status_JTextField.setEditable(false);
-	JGUIUtil.addComponent(bottom_JPanel, __status_JTextField,
-		9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-
-	getContentPane().add ("South", bottom_JPanel);
-
-	ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.initGUI",
-			null, "Open a commands file or add new commands.",
-			__STATUS_READY );
-	ui_UpdateStatus ( false );
-    pack();
-	setSize ( 800, 600 );
-	JGUIUtil.center ( this );
-	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
-        	setVisible ( show_main );
-		// Do this to make sure the GUI redraws.  Otherwise, sometimes
-		// it may show up with gray areas...
-		// SAM testing... does not fix problem yet.
-		//this.invalidate();
-	}
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 2, "", e );
-	}
-	__gui_initialized = true;
-	// Select an input type...
-	if ( show_main ) {
-	if ( __hbdmi != null ) {
-		// Select HydroBase for CDSS use...
-		__input_type_JComboBox.select( null );
-		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
-	}
-	else {	__input_type_JComboBox.select( null );
-		__input_type_JComboBox.select( __INPUT_TYPE_DateValue );
-	}
-	}
-    
-}
-
-// REVISIT - is this code also called when a new database connection is made
-// dynamically or assume that the filters will not change?
-/**
-Initialize the input filters.  An input filter is defined and added for each
-enabled input type but only one is set visible at a time.  Later, as an input
-type is selected, the appropriate input filter is made visible.
-@param y Layout position to add the input filters.
-*/
-private void initGUIInputFilters ( int y )
-{	// Define and add specific input filters...
-	String routine = "TSTool_JFrame.initGUIInputFilters";
-	int buffer = 3;
-	Insets insets = new Insets(0,buffer,0,0);
-	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
-		// Add input filters for stations...
-
-		try {	__input_filter_HydroBase_station_JPanel = new
-			HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel(
-			__hbdmi);
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_station_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_station_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" stations." );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for structures - there is one panel for
-		// "total" time series and one for water class time series that
-		// can be filtered by SFUT...
-
-		try {	__input_filter_HydroBase_structure_JPanel = new
-				HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
-				__hbdmi, false );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_structure_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_structure_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" structures." );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		try {	__input_filter_HydroBase_structure_sfut_JPanel = new
-			HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
-				__hbdmi, true );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_structure_sfut_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_structure_sfut_JPanel);
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" structures with SFUT." );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for structure irrig_summary_ts,
-
-		try {	__input_filter_HydroBase_irrigts_JPanel = new
-			HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_irrigts_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_irrigts_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" irrigation summary time series - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for CASS agricultural crop statistics,
-		// only available for newer databases.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_CASSCropStats_JPanel = new
-			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CASSCropStats_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_CASSCropStats_JPanel );
-		}
-		catch ( Exception e ) {
-			// Agricultural_CASS_crop_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" CASS crop statistics - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for CASS agricultural livestock statistics,
-		// only available for newer databases.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_CASSLivestockStats_JPanel = new
-			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CASSLivestockStats_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-			__input_filter_HydroBase_CASSLivestockStats_JPanel );
-		}
-		catch ( Exception e ) {
-			// Agricultural_CASS_livestock_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" CASS livestock statistics - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for CU population data, only available for
-		// newer databases.  For now, just catch an exception when not
-		// supported.
-
-		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
-			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CUPopulation_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-			__input_filter_HydroBase_CUPopulation_JPanel );
-		}
-		catch ( Exception e ) {
-			// CUPopulation probably not in HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" CU population data - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for NASS agricultural statistics, only
-		// available for newer databases.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_NASS_JPanel = new
-			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_NASS_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_NASS_JPanel );
-		}
-		catch ( Exception e ) {
-			// Agricultural_NASS_crop_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" agricultural_NASS_crop_stats - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for WIS.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_WIS_JPanel = new
-			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_WIS_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_WIS_JPanel );
-		}
-		catch ( Exception e ) {
-			// WIS tables probably not in HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" WIS - data tables not in database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		try {	
-			__input_filter_HydroBase_wells_JPanel =
-				new HydroBase_GUI_GroundWater_InputFilter_JPanel
-				(__hbdmi, null, true);
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_wells_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST);
-			__input_filter_JPanel_Vector.addElement(
-				__input_filter_HydroBase_wells_JPanel);
-		}
-		catch ( Exception e ) {
-			// Agricultural_NASS_crop_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" agricultural_NASS_crop_stats - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}		
-	}
-
-	PropList filter_props = new PropList ( "InputFilter" );
-	Vector input_filters = null;
-	InputFilter filter = null;
-
-	if ( __source_MexicoCSMN_enabled ) {
-		// Add input filters using text fields...
-		// Later may put this code in the MexicoCSMN package since it
-		// may be used by other interfaces...
-		input_filters = new Vector(2);
-		Vector statenum_Vector = new Vector (32);
-		statenum_Vector.addElement ( "01 - Aguascalientes" );
-		statenum_Vector.addElement ( "02 - Baja California" );
-		statenum_Vector.addElement ( "03 - Baja California Sur" );
-		statenum_Vector.addElement ( "04 - Campeche" );
-		statenum_Vector.addElement ( "05 - Coahuila" );
-		statenum_Vector.addElement ( "06 - Colima" );
-		statenum_Vector.addElement ( "07 - Chiapas" );
-		statenum_Vector.addElement ( "08 - Chihuahua" );
-		statenum_Vector.addElement ( "09 - Distrito Federal" );
-		statenum_Vector.addElement ( "10 - Durango" );
-		statenum_Vector.addElement ( "11 - Guanajuato" );
-		statenum_Vector.addElement ( "12 - Guerrero" );
-		statenum_Vector.addElement ( "13 - Hidalgo" );
-		statenum_Vector.addElement ( "14 - Jalisco" );
-		statenum_Vector.addElement ( "15 - Mexico" );
-		statenum_Vector.addElement ( "16 - Michoacan" );
-		statenum_Vector.addElement ( "17 - Morelos" );
-		statenum_Vector.addElement ( "18 - Nayarit" );
-		statenum_Vector.addElement ( "19 - Nuevo Leon" );
-		statenum_Vector.addElement ( "20 - Oaxaca" );
-		statenum_Vector.addElement ( "21 - Puebla" );
-		statenum_Vector.addElement ( "22 - Queretaro" );
-		statenum_Vector.addElement ( "23 - Quintana Roo" );
-		statenum_Vector.addElement ( "24 - San Luis Potosi" );
-		statenum_Vector.addElement ( "25 - Sinaloa" );
-		statenum_Vector.addElement ( "26 - Sonora" );
-		statenum_Vector.addElement ( "27 - Tabasco" );
-		statenum_Vector.addElement ( "28 - Tamaulipas" );
-		statenum_Vector.addElement ( "29 - Tlaxcala" );
-		statenum_Vector.addElement ( "30 - Veracruz" );
-		statenum_Vector.addElement ( "31 - Yucatan" );
-		statenum_Vector.addElement ( "32 - Zacatecas" );
-		input_filters.addElement ( new InputFilter (
-			"", "",
-			StringUtil.TYPE_STRING,
-			null, null, true ) );	// Blank to disable filter
-		input_filters.addElement ( new InputFilter (
-			"Station Name", "Station Name",
-			StringUtil.TYPE_STRING,
-			null, null, true ) );
-		filter = new InputFilter (
-			"State Number", "Station Number",
-			StringUtil.TYPE_INTEGER,
-			statenum_Vector, statenum_Vector, true );
-		filter.setTokenInfo("-",0);
-		input_filters.addElement ( filter );
-		filter_props.set ( "NumFilterGroups=2" );
-        	JGUIUtil.addComponent(__query_input_JPanel,
-			__input_filter_MexicoCSMN_JPanel =
-			new InputFilter_JPanel ( input_filters, filter_props ), 
-			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.EAST );
-		__input_filter_MexicoCSMN_JPanel.setToolTipText (
-			"<HTML>Mexico CSMN queries can be filtered" +
-			"<BR>based on station data.</HTML>" );
-		__input_filter_JPanel_Vector.addElement (
-			__input_filter_MexicoCSMN_JPanel );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		// Add input filters for structure irrig_summary_ts,
-
-		try {	__input_filter_NWSRFS_FS5Files_JPanel = new
-			NWSRFS_TS_InputFilter_JPanel ();
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_NWSRFS_FS5Files_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_NWSRFS_FS5Files_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for NWSRFS" +
-			" FS5Files.");
-			Message.printWarning ( 2, routine, e );
-		}
-	}
-
-	// Always add a generic input filter JPanel that is shared by input
-	// types that do not have filter capabilities and when database
-	// connections are not set up...
-
-       	JGUIUtil.addComponent(__query_input_JPanel,
-		__input_filter_generic_JPanel = new InputFilter_JPanel (),
-			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.EAST );
-	__input_filter_generic_JPanel.setToolTipText (
-		"<HTML>The selected input type does not support" +
-			"<BR>input filters.</HTML>" );
-	__input_filter_JPanel_Vector.addElement (
-		__input_filter_generic_JPanel );
-	// The appropriate JPanel will be set visible later based on the input
-	// type that is selected.
-
-	// Because a component is added to the original GUI, need to refresh
-	// the GUI layout...
-
-	ui_SetInputFilters();
-	validate();
-	repaint();
-}
-
-/**
-Initialize the GUI menus.  Split out of the main initGUI method to keep the
-method size under 64K.
-*/
-private void initGUIMenus ()
-{	JMenuBar menu_bar = new JMenuBar();
-	initGUIMenus_File ( menu_bar );
-	initGUIMenus_Edit ( menu_bar );
-	initGUIMenus_View ( menu_bar );
-	initGUIMenus_Commands ( menu_bar );
-	initGUIMenus_CommandsGeneral ();
-	initGUIMenus_Run ( menu_bar );
-	initGUIMenus_Results ( menu_bar );
-	initGUIMenus_Tools ( menu_bar );
-	initGUIMenus_Help ( menu_bar );
-	setJMenuBar ( menu_bar );
-}
-
-/**
-Initialize the GUI "Commands" menu.
-*/
-private void initGUIMenus_Commands ( JMenuBar menu_bar )
-{	// "Commands...TS Create/Convert/Read Time Series"...
-
-	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );	
-
-	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=
-		new JMenu(__Commands_CreateTimeSeries_String) );
-
-	// Create...
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_createFromList_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_createFromList_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_createTraces_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_createTraces_String, this) );
-
-	/* REVISIT SAM 2005-05-18 need to enable when functionality is added
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_average_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_TS_average_String, this) );
-	*/
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_changeInterval_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_changeInterval_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_copy_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_TS_copy_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_disaggregate_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_disaggregate_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_newStatisticYearTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_newStatisticYearTS_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_newTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_newTimeSeries_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_normalize_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_TS_normalize_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_relativeDiff_JMenuItem =
-		new SimpleJMenuItem( 
-		__Commands_Create_TS_relativeDiff_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_weightTraces_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Create_TS_weightTraces_String, this ) );
-
-	// Convert...
-
-	__Commands_JMenu.add ( __Commands_ConvertTSIDToReadCommand_JMenu=
-		new JMenu(__Commands_ConvertTSIDToReadCommand_String) );
-
-	__Commands_ConvertTSIDToReadCommand_JMenu.add (
-		__Commands_ConvertTSIDTo_readTimeSeries_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readTimeSeries_String, this ));
-
-	if ( __source_DateValue_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readDateValue_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readDateValue_String, this ));
-	}
-
-	if ( __source_HydroBase_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readHydroBase_String, this ) );
-	}
-
-	if ( __source_MODSIM_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readMODSIM_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readMODSIM_String, this ) );
-	}
-
-	if ( __source_NWSCard_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readNwsCard_String, this ) );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String,
-			this ) );
-	}
-
-	if ( __source_RiverWare_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readRiverWare_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readRiverWare_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readStateMod_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readStateMod_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readStateModB_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readStateModB_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readUsgsNwis_String, this ) );
-	}
-
-	// Read...
-
-	__Commands_JMenu.add ( __Commands_ReadTimeSeries_JMenu=
-		new JMenu(__Commands_ReadTimeSeries_String) );
-
-	__Commands_ReadTimeSeries_JMenu.add (
-		__Commands_Read_setIncludeMissingTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Read_setIncludeMissingTS_String, this ) );
-
-	__Commands_ReadTimeSeries_JMenu.add (
-		__Commands_Read_setInputPeriod_JMenuItem=new SimpleJMenuItem(
-		__Commands_Read_setInputPeriod_String, this ) );
-
-	__Commands_ReadTimeSeries_JMenu.addSeparator ();
-
-	if ( __source_DateValue_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readDateValue_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readDateValue_String, this) );
-	}
-
-	if ( __source_HydroBase_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readHydroBase_String, this) );
-	}
-
-	if ( __source_MODSIM_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readMODSIM_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readMODSIM_String, this) );
-	}
-
-	if ( __source_NWSCard_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readNwsCard_String, this) );
-	}
-
-	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readNWSRFSESPTraceEnsemble_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readNWSRFSESPTraceEnsemble_String,
-			this) );
-	}
-
-	/* REVISIT SAM 2004-09-11 need to enable
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readNWSRFSFS5Files_String, this) );
-	}
-	*/
-
-	if ( __source_StateCU_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readStateCU_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readStateCU_String, this) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readStateMod_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readStateMod_String, this) );
-	}
-
-	if ( __source_StateModB_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readStateModB_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readStateModB_String, this) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.addSeparator ();
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_statemodMax_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_statemodMax_String, this) );
-	}
-
-	__Commands_ReadTimeSeries_JMenu.addSeparator ();
-
-	if ( __source_DateValue_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add (
-			__Commands_Read_TS_readDateValue_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readDateValue_String, this) );
-	}
-
-	if ( __source_HydroBase_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add (
-			__Commands_Read_TS_readHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readHydroBase_String, this) );
-	}
-
-	if ( __source_MODSIM_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readMODSIM_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readMODSIM_String, this) );
-	}
-
-	if ( __source_NDFD_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readNDFD_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readNDFD_String, this) );
-	}
-
-	if ( __source_NWSCard_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readNwsCard_String, this) );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readNWSRFSFS5Files_String, this) );
-	}
-
-	if ( __source_RiverWare_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readRiverWare_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readRiverWare_String, this) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readStateMod_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readStateMod_String, this) );
-	}
-
-	if ( __source_StateModB_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readStateModB_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readStateModB_String, this) );
-	}
-
-	if ( __source_USGSNWIS_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readUsgsNwis_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readUsgsNwis_String, this) );
-	}
-
-	// "Commands...Fill Time Series"...
-
-	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu=
-		new JMenu(__Commands_FillTimeSeries_String));
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillCarryForward_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_fillCarryForward_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillConstant_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillConstant_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String,this) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillFromTS_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillFromTS_String,this) );
-
-	__Commands_FillTimeSeries_JMenu.add(
-		__Commands_Fill_fillHistMonthAverage_JMenuItem =
-		new SimpleJMenuItem( 
-		__Commands_Fill_fillHistMonthAverage_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillHistYearAverage_JMenuItem =
-		new SimpleJMenuItem( 
-		__Commands_Fill_fillHistYearAverage_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillInterpolate_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillInterpolate_String, this ) );
-
-	/* REVISIT SAM 2004-02-21 Comment out this menu - it may be added later.
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillMOVE1_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_fillMOVE1_String, this ) );
-	__Commands_Fill_fillMOVE1_JMenuItem.setEnabled ( false );
-	*/
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillMixedStation_JMenuItem =new SimpleJMenuItem(
-		__Commands_Fill_fillMixedStation_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillMOVE2_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillMOVE2_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillPattern_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillPattern_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillProrate_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_fillProrate_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillRegression_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_fillRegression_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillRepeat_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_fillRepeat_String, this ) );
-
-	if ( __source_HydroBase_enabled ) {
-		__Commands_FillTimeSeries_JMenu.add(
-			__Commands_Fill_fillUsingDiversionComments_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Fill_fillUsingDiversionComments_String,
-			this ) );
-	}
-
-	/* SAMX DISABLE THIS FOR now - this was an RTi freebie and needs to be
-		reworked
-	_JmenuTSFillWeights = new SimpleJMenuItem(
-		MENU_INTERMEDIATE_FILL_WEIGHTS,
-		this );
-	ts_Jmenu.add( _JmenuTSFillWeights );
-	*/
-
-	__Commands_FillTimeSeries_JMenu.addSeparator();
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_setAutoExtendPeriod_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_setAutoExtendPeriod_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_setAveragePeriod_JMenuItem =new SimpleJMenuItem(
-		__Commands_Fill_setAveragePeriod_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add(
-		__Commands_Fill_setIgnoreLEZero_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_setIgnoreLEZero_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_setMissingDataValue_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_setMissingDataValue_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_setPatternFile_JMenuItem=new SimpleJMenuItem(
-		__Commands_Fill_setPatternFile_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_setRegressionPeriod_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_setRegressionPeriod_String, this ) );
-
-
-	// "Commands...Set Time Series"...
-
-	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=
-		new JMenu(__Commands_SetTimeSeries_String));
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_replaceValue_JMenuItem =
-		new SimpleJMenuItem( __Commands_Set_replaceValue_String, this));
-	__Commands_SetTimeSeries_JMenu.addSeparator();
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_setConstant_JMenuItem =
-		new SimpleJMenuItem( __Commands_Set_setConstant_String, this ));
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_setConstantBefore_JMenuItem =new SimpleJMenuItem(
-		__Commands_Set_setConstantBefore_String, this) );
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_setDataValue_JMenuItem = new SimpleJMenuItem(
-		__Commands_Set_setDataValue_String, this ) );
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_setFromTS_JMenuItem = new SimpleJMenuItem(
-		__Commands_Set_setFromTS_String, this ) );
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_setMax_JMenuItem = new SimpleJMenuItem(
-		__Commands_Set_setMax_String, this ) );
-	
-	__Commands_SetTimeSeries_JMenu.add (
-			__Commands_Set_setToMin_JMenuItem = new SimpleJMenuItem(
-			__Commands_Set_setToMin_String, this ) );
-
-	// "Commands...Manipulate Time Series"...
-
-	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=
-		new JMenu("Manipulate Time Series"));
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_add_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_add_String,this) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_addConstant_JMenuItem=new SimpleJMenuItem(
-		__Commands_Manipulate_addConstant_String,this) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add(
-		__Commands_Manipulate_adjustExtremes_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Manipulate_adjustExtremes_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_ARMA_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_ARMA_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_blend_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_blend_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_convertDataUnits_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Manipulate_convertDataUnits_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_cumulate_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_cumulate_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_divide_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_divide_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_free_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_free_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_multiply_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_multiply_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_runningAverage_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Manipulate_runningAverage_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_scale_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_scale_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_shiftTimeByInterval_JMenuItem=
-		new SimpleJMenuItem(
-		__Commands_Manipulate_shiftTimeByInterval_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_subtract_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_subtract_String, this ) );
-
-	// "Commands...Analyze Time Series"...
-
-	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu=
-		new JMenu(__Commands_AnalyzeTimeSeries_String) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_analyzePattern_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_analyzePattern_String, this ) );
-
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_compareTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_compareTimeSeries_String, this ) );
-
-	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_newDataTest_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_newDataTest_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_readDataTestFromRiversideDB_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_readDataTestFromRiversideDB_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_runDataTests_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_runDataTests_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_processDataTestResults_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_processDataTestResults_String, this ) );
-
-	// "Commands...Models"...
-
-	__Commands_JMenu.add ( __Commands_Models_JMenu =
-		new JMenu(__Commands_Models_String) );
-	__Commands_Models_JMenu.add (
-		__Commands_Models_lagK_JMenuItem =
-		new SimpleJMenuItem( __Commands_Models_lagK_String, this ) );
-
-	// "Commands...Output Time Series"...
-
-	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=
-		new JMenu(__Commands_OutputTimeSeries_String) );
-
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_deselectTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_deselectTimeSeries_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_selectTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_selectTimeSeries_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_setOutputDetailedHeaders_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_setOutputDetailedHeaders_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add(
-		__Commands_Output_setOutputPeriod_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_setOutputPeriod_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_setOutputYearType_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_setOutputYearType_String, this ) );
-
-	__Commands_OutputTimeSeries_JMenu.addSeparator ();
-
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_sortTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_sortTimeSeries_String, this ) );
-
-	__Commands_OutputTimeSeries_JMenu.addSeparator ();
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeDateValue_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_writeDateValue_String, this ) );
-
-	if ( __source_NWSCard_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-			__Commands_Output_writeNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Output_writeNwsCard_String, this ) );
-	}
-
-	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem=
-			new SimpleJMenuItem(
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_String,
-			this ));
-	}
-
-	if ( __source_RiverWare_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add(
-			__Commands_Output_writeRiverWare_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Output_writeRiverWare_String, this ) );
-	}
-
-	if ( __source_StateCU_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeStateCU_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_writeStateCU_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeStateMod_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_writeStateMod_String, this ) );
-	}
-
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeSummary_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_writeSummary_String, this ) );
-
-	__Commands_OutputTimeSeries_JMenu.addSeparator ();
-
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_processTSProduct_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_processTSProduct_String, this ) );
-}
-
-/**
-Initialize the GUI "Commands...General".
-*/
-private void initGUIMenus_CommandsGeneral ()
-{	if ( __source_HydroBase_enabled ) {
-		__Commands_JMenu.addSeparator();
-		__Commands_JMenu.add( __Commands_HydroBase_JMenu =
-			new JMenu( __Commands_HydroBase_String, true ) );	
-		__Commands_HydroBase_JMenu.add (
-			__Commands_HydroBase_openHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_HydroBase_openHydroBase_String, this ) );
-	}
-	if ( __source_NDFD_enabled ) {
-		__Commands_JMenu.addSeparator();
-		__Commands_JMenu.add( __Commands_NDFD_JMenu =
-			new JMenu( __Commands_NDFD_String, true ) );	
-		__Commands_NDFD_JMenu.add (
-			__Commands_NDFD_openNDFD_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_NDFD_openNDFD_String, this ) );
-	}
-
-	__Commands_JMenu.addSeparator();
-	__Commands_JMenu.add( __Commands_General_JMenu =
-		new JMenu( __Commands_General_String, true ) );	
-
-	__Commands_General_JMenu.add(
-		__Commands_General_startLog_JMenuItem =new SimpleJMenuItem(
-		__Commands_General_startLog_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_setDebugLevel_JMenuItem =new SimpleJMenuItem(
-		__Commands_General_setDebugLevel_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_setWarningLevel_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_General_setWarningLevel_String, this ) );
-
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add(
-		__Commands_General_setWorkingDir_JMenuItem =new SimpleJMenuItem(
-		__Commands_General_setWorkingDir_String, this ) );
-
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add (
-		__Commands_General_comment_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_Comment_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_startComment_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_startComment_String, this ) );
-	__Commands_General_JMenu.add(
-		__Commands_General_endComment_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_endComment_String, this ) );
-
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add (
-		__Commands_General_exit_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_exit_String, this ) );
-	__Commands_General_JMenu.addSeparator ();
-	__Commands_General_JMenu.add (
-		__Commands_General_compareFiles_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_General_compareFiles_String, this ) );
-	__Commands_General_JMenu.add (__Commands_General_runCommands_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_General_runCommands_String,this));
-	__Commands_General_JMenu.add ( __Commands_General_runProgram_JMenuItem =
-		new SimpleJMenuItem(__Commands_General_runProgram_String,this));
-	
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add (
-		__Commands_General_testCommand_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_testCommand_String, this ) );
-	__Commands_General_JMenu.add (
-			__Commands_General_CreateRegressionTestCommandFile_JMenuItem = new SimpleJMenuItem(
-			__Commands_General_CreateRegressionTestCommandFile_String, this ) );
-}
-
-/**
-Define the popup menu for the commands area.  In some cases the words that are
-shown are different from the corresponding menu because the popup mixes submenus
-from different menus and also popup menus are typically more abbreviated.
-*/
-private void initGUIMenus_CommandsPopup ()
-{	// Pop-up menu to manipulate commands...
-	__Commands_JPopupMenu = new JPopupMenu("Command Actions");
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
-		new SimpleJMenuItem(
-		__Edit_String, __Edit_CommandWithErrorChecking_String, this ) );
-	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add( __CommandsPopup_Cut_JMenuItem =
-		new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
-	__Commands_JPopupMenu.add( __CommandsPopup_Copy_JMenuItem =
-		new SimpleJMenuItem ( "Copy", __Edit_CopyCommands_String,this));
-	__Commands_JPopupMenu.add( __CommandsPopup_Paste_JMenuItem=
-		new SimpleJMenuItem("Paste", __Edit_PasteCommands_String,this));
-	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add(__CommandsPopup_Delete_JMenuItem=
-		new SimpleJMenuItem(
-		__Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
-	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add( __CommandsPopup_FindCommands_JMenuItem =
-		new SimpleJMenuItem(__CommandsPopup_FindCommands_String, this));
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_SelectAll_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_SelectAllCommands_String, __Edit_SelectAllCommands_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_DeselectAll_JMenuItem =
-		new SimpleJMenuItem(
-		__Edit_DeselectAllCommands_String, __Edit_DeselectAllCommands_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsToComments_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsFromComments_String, this ) );
-	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_AllCommandsCreateOutput_String,
-		__Run_AllCommandsCreateOutput_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_AllCommandsIgnoreOutput_String,
-		__Run_AllCommandsIgnoreOutput_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_SelectedCommandsCreateOutput_String,
-		__Run_SelectedCommandsCreateOutput_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_SelectedCommandsIgnoreOutput_String,
-		__Run_SelectedCommandsIgnoreOutput_String, this ) );
-	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_ShowCommandStatus_JMenuItem =
-		new SimpleJMenuItem (
-		__CommandsPopup_ShowCommandStatus_String,
-		__CommandsPopup_ShowCommandStatus_String, this ) );
-}
-
-/**
-Initialize the GUI "Edit" menu.
-*/
-private void initGUIMenus_Edit ( JMenuBar menu_bar )
-{	JMenu __Edit_JMenu = new JMenu( "Edit", true);
-	menu_bar.add( __Edit_JMenu );	
-
-	__Edit_JMenu.add( __Edit_CutCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_CutCommands_String, this ) );
-	__Edit_CutCommands_JMenuItem.setEnabled ( false );
-
-	__Edit_JMenu.add( __Edit_CopyCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_CopyCommands_String, this ) );
-	__Edit_CopyCommands_JMenuItem.setEnabled ( false );
-
-	__Edit_JMenu.add( __Edit_PasteCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_PasteCommands_String, this ) );
-	__Edit_PasteCommands_JMenuItem.setEnabled ( false );
-
-	__Edit_JMenu.addSeparator( );
-
-	__Edit_JMenu.add( __Edit_DeleteCommands_JMenuItem = new SimpleJMenuItem(
-		__Edit_DeleteCommands_String, this) );
-	__Edit_DeleteCommands_JMenuItem.setEnabled ( false );
-
-	__Edit_JMenu.addSeparator( );
-
-	__Edit_JMenu.add(
-		__Edit_SelectAllCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_SelectAllCommands_String, this ) );
-	__Edit_JMenu.add(
-		__Edit_DeselectAllCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_DeselectAllCommands_String, this ) );
-
-	__Edit_JMenu.addSeparator( );
-
-	__Edit_JMenu.add( __Edit_CommandsFile_JMenuItem = new SimpleJMenuItem (
-		__Edit_CommandsFile_String, this ) );
-	__Edit_JMenu.add(
-		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(
-		__Edit_CommandWithErrorChecking_String, this ) );
-	__Edit_JMenu.addSeparator( );
-	__Edit_JMenu.add(
-		__Edit_ConvertSelectedCommandsToComments_JMenuItem=
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsToComments_String, this ) );
-	__Edit_JMenu.add( __Edit_ConvertSelectedCommandsFromComments_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsFromComments_String, this ) );
-}
-
-/**
-Initialize the GUI "File" menu.
-*/
-private void initGUIMenus_File ( JMenuBar menu_bar )
-{	__File_JMenu = new JMenu( __File_String, true );
-	menu_bar.add( __File_JMenu );
-
-	__File_JMenu.add( __File_Open_JMenu=new JMenu(__File_Open_String,true));
-
-	__File_Open_JMenu.add( __File_Open_CommandsFile_JMenuItem =
-		new SimpleJMenuItem( __File_Open_CommandsFile_String, this ) );
-
-	boolean separator_added = false;
-	if ( __source_DIADvisor_enabled ) {
-		if ( !separator_added ) {
-			__File_Open_JMenu.addSeparator( );
-			separator_added = true;
-		}
-		__File_Open_JMenu.add (
-			__File_Open_DIADvisor_JMenuItem = new SimpleJMenuItem(
-				__File_Open_DIADvisor_String, this ) );
-	}
-	if ( __source_HydroBase_enabled ) {
-		if ( !separator_added ) {
-			__File_Open_JMenu.addSeparator( );
-			separator_added = true;
-		}
-		__File_Open_JMenu.add (
-			__File_Open_HydroBase_JMenuItem = new SimpleJMenuItem( 
-			__File_Open_HydroBase_String, this ) );
-	}
-
-	if ( __source_RiversideDB_enabled ) {
-		if ( !separator_added ) {
-			__File_Open_JMenu.addSeparator( );
-			separator_added = true;
-		}
-		__File_Open_JMenu.add ( __File_Open_RiversideDB_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Open_RiversideDB_String, this ) );
-	}
-
-	__File_JMenu.add( __File_Save_JMenu=new JMenu(__File_Save_String,true));
-	//__File_Save_Commands_JMenuItem = new SimpleJMenuItem(
-		//__File_Save_Commands_String,__File_Save_Commands_ActionString,
-		//this );
-	__File_Save_JMenu.add ( __File_Save_Commands_JMenuItem =
-		new SimpleJMenuItem( __File_Save_Commands_String, this ) );
-	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem =
-		new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
-
-	__File_Save_JMenu.add (
-		__File_Save_TimeSeriesAs_JMenuItem = new SimpleJMenuItem(
-		__File_Save_TimeSeriesAs_String, this ) );
-
-	__File_JMenu.add( __File_Print_JMenu=
-		new JMenu(__File_Print_String,true));
-	__File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
-		new SimpleJMenuItem( __File_Print_Commands_String,
-		__File_Print_Commands_ActionString, this ) );
-
-	__File_JMenu.addSeparator( );
-
-	__File_JMenu.add( __File_Properties_JMenu=
-		new JMenu(__File_Properties_String,true));
-	if ( __source_DIADvisor_enabled ) {
-		__File_Properties_JMenu.add (
-			__File_Properties_DIADvisor_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Properties_DIADvisor_String, this ) );
-	}
-
-	__File_Properties_JMenu.add(
-		__File_Properties_CommandsRun_JMenuItem = new SimpleJMenuItem(
-		__File_Properties_CommandsRun_String, this ) );
-	__File_Properties_JMenu.add(
-		__File_Properties_TSToolSession_JMenuItem = new SimpleJMenuItem(
-		__File_Properties_TSToolSession_String, this ) );
-
-	boolean seperator_added = false;
-
-	if ( __source_ColoradoSMS_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add (
-			__File_Properties_ColoradoSMS_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Properties_ColoradoSMS_String, this ) );
-	}
-	if ( __source_HydroBase_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add (
-			__File_Properties_HydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Properties_HydroBase_String, this ) );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add (
-			__File_Properties_NWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem (
-			__File_Properties_NWSRFSFS5Files_String, this ) );
-		__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled ( false );
-	}
-
-	if ( __source_RiversideDB_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add (
-			__File_Properties_RiversideDB_JMenuItem =
-			new SimpleJMenuItem (
-			__File_Properties_RiversideDB_String, this ) );
-		__File_Properties_RiversideDB_JMenuItem.setEnabled ( false );
-	}
-
-	__File_JMenu.addSeparator( );
-	__File_JMenu.add ( __File_SetWorkingDirectory_JMenuItem =
-		new SimpleJMenuItem( __File_SetWorkingDirectory_String, this ));
-
-	// Add a test menu...
-
-	String args[] = IOUtil.getProgramArguments();
-	int argc = 0;
-	if ( args != null ) {
-		argc = args.length;
-	}
-	for ( int i = 0; i < argc; i++ ) {
-		if ( args[i].equalsIgnoreCase("-test") ) {
-			IOUtil.testing(true);
-			// Add a menu for testing...
-			args = null;
-			__File_JMenu.add ( new SimpleJMenuItem( "Test", "Test",
-				this ) );
-			break;
-		}
-	}
-	args = null;
-
-	__File_JMenu.addSeparator( );
-	__File_JMenu.add( new SimpleJMenuItem( __File_Exit_String, this ) );
-}
-
-/**
-Initialize the GUI "Help" menu.
-*/
-private void initGUIMenus_Help ( JMenuBar menu_bar )
-{	__Help_JMenu = new JMenu ( __Help_String );
-	menu_bar.add ( __Help_JMenu );
-	// REVISIT - not implemented by Java?
-	//menu_bar.setHelpMenu ( _help_JMenu );
-	__Help_JMenu.add ( new SimpleJMenuItem(__Help_AboutTSTool_String,this));
-/* REVISIT SAM 2004-05-24 Help index features are not working as well now that
-	documentation is huge and PDF is available.  Rely on tool tips and PDF
-	and not extensive on-line help.
-	__Help_JMenu.addSeparator();
-	// Initialize help to run-time values...
-	// Specify URL end parts for documentation home and help index file...
-	// To debug the help file...
-	Vector helphome = new Vector();
-	if (	(__license_manager == null) ||
-		__license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-		// Default behavior is CDSS...
-		// Development - do not leave uncommented for an official
-		// release...
-		//helphome.addElement (
-		//"J:/crdss/dmi/apps/TSTool/doc/UserManual/05.03.00/html");
-		helphome.addElement ( HBParse.getHome() +
-				"\\doc\\TSTool\\UserManual" );
-		helphome.addElement ( "http://cdss.state.co.us/manuals/TSTool");
-	}
-	else {	// Assume an RTi installation and look for help in RTi
-		// locations (home will be something like
-		// C:\Program Files\RTi\RiverTrak...
-		helphome.addElement ( HBParse.getHome() +
-				"\\doc\\TSTool\\UserManual" );
-		helphome.addElement(
-		"C:\\Program Files\\RTi\\RiverTrak\\doc\\TSTool\\UserManual" );
-		helphome.addElement(
-		"D:\\Program Files\\RTi\\RiverTrak\\doc\\TSTool\\UserManual" );
-		// Need to get TSTool documentation on the RTi web site once all
-		// the licensing issues are resolved...
-	}
-	URLHelp.initialize ( null, helphome, "tstool_help_index.txt" );
-	helphome = null;
-	// Now hook in the help system.  For some reason the code does not
-	// seem to be synchronizing...
-	try {	_help_index_gui = new URLHelpGUI ( 0, "TSTool Help");
-		_help_index_gui.attachMainMenu ( _help_JMenu );
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error setting up help system:" );
-		Message.printWarning ( 2, routine, e );
-	}
-*/
-}
-
-/**
-Initialize the GUI "Results" menu.
-*/
-private void initGUIMenus_Results ( JMenuBar menu_bar )
-{	menu_bar.add( __Results_JMenu = new JMenu( "Results", true ) );	
-
-	/* REVISIT SAM 2004-08-04 Add later?
-	__Results_JMenu.add( __Results_Graph_AnnualTraces_JMenuItem =
-		new SimpleJMenuItem(__Results_Graph_AnnualTraces_String, this));
-	__Results_Graph_AnnualTraces_JMenuItem.setEnabled ( false );
-	*/
-
-	__Results_JMenu.add( __Results_Graph_BarsLeft_JMenuItem =
-		new SimpleJMenuItem( __Results_Graph_BarsLeft_String, this ) );
-
-	__Results_JMenu.add( __Results_Graph_BarsCenter_JMenuItem =
-		new SimpleJMenuItem( __Results_Graph_BarsCenter_String, this ));
-
-	__Results_JMenu.add( __Results_Graph_BarsRight_JMenuItem =
-		new SimpleJMenuItem( __Results_Graph_BarsRight_String, this ));
-
-	/* REVISIT SAM 2004-08-04 Add later?
-	__Results_JMenu.add( __Results_Graph_DoubleMass_JMenuItem =
-		new SimpleJMenuItem( __Results_Graph_DoubleMass_String, this));
-	__Results_Graph_DoubleMass_JMenuItem.setEnabled ( false );
-	*/
-
-	__Results_JMenu.add( __Results_Graph_Duration_JMenuItem =
-		new SimpleJMenuItem( __Results_Graph_Duration_String, this ));
-
-	__Results_JMenu.add( __Results_Graph_Line_JMenuItem=new SimpleJMenuItem(
-		__Results_Graph_Line_String, this ) );
-
-	__Results_JMenu.add(
-		__Results_Graph_LineLogY_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_LineLogY_String, this ) );
-
-	/* SAMX Not enabled
-	_view_graph_percent_exceed_JMenuItem = new SimpleJMenuItem(
-	"Percent Exceedance Curve", "GraphPercentExceed", this );
-	_Results_JMenu.add( _view_graph_percent_exceed_JMenuItem );
-	_view_graph_percent_exceed.setEnabled ( false );
-	*/
-
-	__Results_JMenu.add(
-		__Results_Graph_PeriodOfRecord_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_PeriodOfRecord_String, this ) );
-
-	__Results_JMenu.add(__Results_Graph_Point_JMenuItem=new SimpleJMenuItem(
-		__Results_Graph_Point_String, this ) );
-
-	__Results_JMenu.add(
-		__Results_Graph_PredictedValue_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_PredictedValue_String, this ) );
-
-	__Results_JMenu.add(
-		__Results_Graph_PredictedValueResidual_JMenuItem =
-		new SimpleJMenuItem(
-		__Results_Graph_PredictedValueResidual_String, this ) );
-
-	__Results_JMenu.add(
-		__Results_Graph_XYScatter_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_XYScatter_String, this ) );
-
-	__Results_JMenu.addSeparator();
-
-	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( 
-		__Results_Table_String, this ) );
-
-	__Results_JMenu.addSeparator();
-
-	__Results_JMenu.add(
-		__Results_Report_Summary_JMenuItem = new SimpleJMenuItem( 
-		__Results_Report_Summary_String, this ) );
-
-	__Results_JMenu.addSeparator();
-
-	__Results_JMenu.add(
-		__Results_TimeSeriesProperties_JMenuItem = new SimpleJMenuItem( 
-		__Results_TimeSeriesProperties_String, this ) );
-}
-   
-/**
-Define the popup menu for results.
-*/
-private void initGUIMenus_ResultsPopup ()
-{	__results_JPopupMenu = new JPopupMenu("View Actions");
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_BarsLeft_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_BarsCenter_String,this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_BarsRight_String, this ));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_Duration_String, this ));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_Line_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_LineLogY_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_PeriodOfRecord_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_Point_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_PredictedValue_String, this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_PredictedValueResidual_String, this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_XYScatter_String, this));
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Table_String, this ) );
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Report_Summary_String, this ) );
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_FindTimeSeries_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		BUTTON_TS_SELECT_ALL, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		BUTTON_TS_DESELECT_ALL, this ) );
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_TimeSeriesProperties_String, this ) );
-}
-
-/**
-Initialize the GUI "Run" menu.
-*/
-private void initGUIMenus_Run ( JMenuBar menu_bar )
-{	__Run_JMenu = new JMenu( "Run", true);
-	menu_bar.add ( __Run_JMenu );	
-	__Run_JMenu.add( __Run_AllCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem(__Run_AllCommandsCreateOutput_String,this));
-	__Run_JMenu.add( __Run_AllCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem(__Run_AllCommandsIgnoreOutput_String,this));
-	__Run_JMenu.add( __Run_SelectedCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem(
-		__Run_SelectedCommandsCreateOutput_String,this));
-	__Run_JMenu.add( __Run_SelectedCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem(
-		__Run_SelectedCommandsIgnoreOutput_String,this));
-	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem = new SimpleJMenuItem (
-		__Run_CommandsFromFile_String, this ));
-	__Run_JMenu.addSeparator();
-	__Run_JMenu.add ( __Run_ProcessTSProductPreview_JMenuItem =
-		new SimpleJMenuItem(__Run_ProcessTSProductPreview_String,this));
-	__Run_JMenu.add ( __Run_ProcessTSProductOutput_JMenuItem =
-		new SimpleJMenuItem(__Run_ProcessTSProductOutput_String,this));
-}
-
-/**
-Initialize the GUI "Tools" menu.
-*/
-private void initGUIMenus_Tools ( JMenuBar menu_bar )
-{	__Tools_JMenu = new JMenu();
-	menu_bar.add( __Tools_JMenu = new JMenu( __Tools_String, true ) );	
-
-	__Tools_JMenu.add ( __Tools_Analysis_JMenu =
-		new JMenu(__Tools_Analysis_String, true ) );
-
-	__Tools_Analysis_JMenu.add(
-		__Tools_Analysis_MixedStationAnalysis_JMenuItem =
-		new SimpleJMenuItem(
-		__Tools_Analysis_MixedStationAnalysis_String, this ) );
-
-	__Tools_JMenu.add ( __Tools_Report_JMenu =
-		new JMenu(__Tools_Report_String, true ) );
-
-	__Tools_Report_JMenu.add(
-		__Tools_Report_DataCoverageByYear_JMenuItem=new SimpleJMenuItem(
-		__Tools_Report_DataCoverageByYear_String, this ) );
-
-	__Tools_Report_JMenu.add (
-		__Tools_Report_DataLimitsSummary_JMenuItem =new SimpleJMenuItem(
-		__Tools_Report_DataLimitsSummary_String, this ) );
-
-	__Tools_Report_JMenu.add (
-		__Tools_Report_MonthSummaryDailyMeans_JMenuItem =
-		new SimpleJMenuItem(
-		__Tools_Report_MonthSummaryDailyMeans_String, this ) );
-
-	__Tools_Report_JMenu.add (
-		__Tools_Report_MonthSummaryDailyTotals_JMenuItem =
-		new SimpleJMenuItem(
-		__Tools_Report_MonthSummaryDailyTotals_String, this ) );
-
-	__Tools_Report_JMenu.add (
-		__Tools_Report_YearToDateTotal_JMenuItem = new SimpleJMenuItem(
-		__Tools_Report_YearToDateTotal_String, this ) );
-
-	if (	__source_NWSRFS_FS5Files_enabled || __source_NWSCard_enabled ||
-		__source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		// Add NWSRFS-related tools (check all above because on
-		// non-UNIX system only card type may be enabled)...
-		__Tools_JMenu.addSeparator ();
-		__Tools_JMenu.add ( __Tools_NWSRFS_JMenu =
-			new JMenu(__Tools_NWSRFS_String, true ) );
-
-		__Tools_NWSRFS_JMenu.add(
-			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem=
-			new SimpleJMenuItem(
-			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String,
-			this ) );
-		__Tools_NWSRFS_JMenu.add(
-			__Tools_NWSRFS_ConvertJulianHour_JMenuItem=
-			new SimpleJMenuItem(
-			__Tools_NWSRFS_ConvertJulianHour_String, this ) );
-	}
-
-	if ( __source_RiversideDB_enabled ) {
-		// Add RiversideDB-related tools...
-		__Tools_JMenu.addSeparator ();
-		__Tools_JMenu.add ( __Tools_RiversideDB_JMenu =
-			new JMenu(__Tools_RiversideDB_String, true ) );
-
-		__Tools_RiversideDB_JMenu.add(
-			__Tools_RiversideDB_TSProductManager_JMenuItem=
-			new SimpleJMenuItem(
-			__Tools_RiversideDB_TSProductManager_String,
-			this ) );
-	}
-
-	// Options menu...
-
-	__Tools_JMenu.addSeparator ();
-	__Tools_JMenu.add ( __Tools_SelectOnMap_JMenuItem=
-			new SimpleJMenuItem( __Tools_SelectOnMap_String, this));
-
-	__Tools_JMenu.addSeparator ();
-	__Tools_JMenu.add ( __Tools_Options_JMenuItem=
-			new SimpleJMenuItem( __Tools_Options_String, this ) );
-
-	// Create the diagnostics GUI, specifying the key for the help
-	// button.  Events are handled from within the diagnostics GUI.
-	__Tools_JMenu.addSeparator ();
-	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame ();
-		// REVISIT SAM 2005-04-05 some day need to enable on-line help.
-		// ("TSTool.PreferencesMenu");
-	diagnostics_JFrame.attachMainMenu ( __Tools_JMenu );
-	Message.addMessageLogListener ( this );
-}
-
-/**
-Initialize the View menu.
-*/
-private void initGUIMenus_View ( JMenuBar menuBar )
-{	JMenu viewJMenu = new JMenu (__View_String, true);
-	menuBar.add (viewJMenu);
-
-	viewJMenu.add ( __View_MapInterface_JCheckBoxMenuItem =
-		new JCheckBoxMenuItem(__View_MapInterface_String) );
-	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
-	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
 }
 
 /**
@@ -7321,7 +5376,7 @@ Message class for status messages.
 public void printStatusMessages ( int level, String rtn, String message )
 {	if ( level <= 1 ) {
 		__message_JTextField.setText ( message );
-		// REVISIT
+		// TODO SAM 2007-11-02 Probably not needed - check on threading issues
 		// This does not seem to be redrawing, not matter what is done!
 		//__message_JTextField.validate ();
 		//__message_JTextField.repaint ();
@@ -7471,7 +5526,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 			// Alias is available so use it...
 			use_alias = true;
 		}
-		// REVISIT SAM 2004-01-06 - for now don't use the alias to put
+		// TODO SAM 2004-01-06 - for now don't use the alias to put
 		// together the ID - there are issues to resolve in how
 		// DateValueTS.readTimeSeries() handles the ID.
 		use_alias = false;
@@ -7827,7 +5882,7 @@ public void readPatternTS ()
 	TS ts = null;
 	for (	int ifile = 0; ifile < __fill_pattern_files.size();
 		ifile++ ) {
-		// REVISIT - need this to be more generic.  If a statemod
+		// TODO - need this to be more generic.  If a statemod
 		// pattern file is specified, read it, else, allow for other
 		// formats.  For now always read a StateMod file.
 		//
@@ -7932,8 +5987,12 @@ Clear the final time series List.  Updates to the label are also done.
 Also set the engine to null.
 */
 private void tsResultsList_Clear()
-{	__ts_JListModel.removeAllElements();
+{	// Clear the visible list of results...
+	__ts_JListModel.removeAllElements();
+	// Clear the time series in the processor...
 	__ts_processor.clearResults();
+	// Clear the list of output files...
+	__results_files_JComboBox.removeAll();
 	ui_UpdateStatus ( false );
 }
 
@@ -7943,7 +6002,7 @@ ColoradoSMS connection has been made.
 */
 private void ui_CheckColoradoSMSFeatures ()
 {	if ( (__smsdmi != null) && __smsdmi.isOpen() ) {
-		/* REVISIT SAM 2005-10-18 Currently time series features are not
+		/* TODO SAM 2005-10-18 Currently time series features are not
 		available...
 		if ( __input_type_JComboBox != null ) {
 			// Make sure HydroBase is in the input type list...
@@ -7966,7 +6025,7 @@ private void ui_CheckColoradoSMSFeatures ()
 			__File_Properties_ColoradoSMS_JMenuItem, true );
 	}
 	else {	// Remove ColoradoSMS from the data source list if necessary...
-		/* REVISIT SAM 2005-10-18 Currently time series cannot be
+		/* TODO SAM 2005-10-18 Currently time series cannot be
 		queried
 		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
 		}
@@ -8233,7 +6292,7 @@ private void ui_CheckGUIState ()
 			__Commands_Fill_fillHistYearAverage_JMenuItem, true);
 		JGUIUtil.setEnabled (
 			__Commands_Fill_fillInterpolate_JMenuItem, true);
-		// REVISIT SAM 2005-04-26 This fill method is not enabled.
+		// TODO SAM 2005-04-26 This fill method is not enabled - may not be needed.
 		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
 		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, true);
 		JGUIUtil.setEnabled (
@@ -8316,7 +6375,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled (
 			__Commands_Output_selectTimeSeries_JMenuItem, true);
 
-		/* REVISIT - it is irritating to not be able to run commands
+		/* TODO - it is irritating to not be able to run commands
 		  when external input changes (or during debugging)...
 		if (	__commands_dirty ||
 			(!__commands_dirty && (ts_list_size == 0)) ) {
@@ -8439,7 +6498,7 @@ private void ui_CheckGUIState ()
 			__Commands_Analyze_compareTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled (__Commands_AnalyzeTimeSeries_JMenu, false);
 
-		// REVISIT SAM 2005-07-11 For now enable because models can
+		// TODO SAM 2005-07-11 For now enable because models can
 		// create time series...
 		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
 
@@ -8482,82 +6541,8 @@ private void ui_CheckGUIState ()
 	}
 
 	// Run menu...
-
-	if ( command_list_size > 0 ) {
-		/* Revisit
-		if (	__commands_dirty ||
-			(!__commands_dirty && (ts_list_size == 0)) ) {
-			JGUIUtil.setEnabled (
-				__run_commands_JButton, true );
-		}
-		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
-		}
-		*/
-		JGUIUtil.setEnabled(
-			__Run_AllCommandsCreateOutput_JMenuItem, true);
-		JGUIUtil.setEnabled(
-			__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,
-			true);
-		JGUIUtil.setEnabled(
-			__Run_AllCommandsIgnoreOutput_JMenuItem, true);
-		JGUIUtil.setEnabled(
-			__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
-			true);
-		if ( selected_commands_size > 0 ) {
-			JGUIUtil.setEnabled(
-			__Run_SelectedCommandsCreateOutput_JMenuItem, true);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
-			true);
-			JGUIUtil.setEnabled(
-			__Run_SelectedCommandsIgnoreOutput_JMenuItem, true);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-			true);
-			JGUIUtil.setEnabled (
-				__Run_SelectedCommands_JButton, true );
-		}
-		else {	JGUIUtil.setEnabled(
-			__Run_SelectedCommandsCreateOutput_JMenuItem, false);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
-			false);
-			JGUIUtil.setEnabled(
-			__Run_SelectedCommandsIgnoreOutput_JMenuItem, false);
-			JGUIUtil.setEnabled(
-			__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-			false);
-			JGUIUtil.setEnabled (
-				__Run_SelectedCommands_JButton, false );
-		}
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
-	}
-	else {	// No commands in list...
-		JGUIUtil.setEnabled (
-			__Run_AllCommandsCreateOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Run_AllCommandsIgnoreOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Run_SelectedCommandsCreateOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-			false);
-		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
-	}
+	
+	ui_CheckGUIState_RunMenu ( command_list_size, selected_commands_size );
 
 	// Results menu...
 
@@ -8597,26 +6582,14 @@ private void ui_CheckGUIState ()
 	else {	JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
 	}
 
-	// There should be no reason that the help system does not start up
-	// other than some synchronization issue.  For now put this in to try
-	// to catch problems...
-/* REVISIT
-	if ( _help_index_gui == null ) {
-		try {	_help_index_gui = new URLHelpGUI ( 0, "TSTool Help");
-			_help_index_gui.attachMainMenu ( _help_JMenu );
-		}
-		catch ( Exception e ) {
-		}
-	}
-*/
 	// Disable all of the following menus until the dialogs can be enabled.
 	// If not enabled below, the command may be phased out or merged with
 	// another command...
 
-	// REVISIT - need to create a dialog for the following...
+	// TODO - need to create a dialog for the following...
 	JGUIUtil.setEnabled(__Commands_Create_TS_average_JMenuItem,false);
 
-	// REVISIT - all of these are new features.  The intent is to convert
+	// TODO - all of these are new features.  The intent is to convert
 	// a TSID to a specific read command, as available in other menus,
 	// simplifying the conversion from time series browsing, to command
 	// language.
@@ -8639,26 +6612,86 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled (
 		__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem,false);
 
-	// REVISIT SAM 2005-09-02
-	// Proposed new commands
+	// TODO SAM 2005-09-02 Proposed new commands
 	JGUIUtil.setEnabled(__Commands_Read_TS_readStateModB_JMenuItem,false);
 	JGUIUtil.setEnabled(__Commands_Read_TS_readStateMod_JMenuItem,false);
 
-	// REVISIT
-	// Not available as a command yet - logic not coded...
+	// TODO Not available as a command yet - logic not coded...
 	JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,false);
 
-	// REVISIT - make sure this is doing what it should
-	JGUIUtil.setEnabled(
-		__Commands_Fill_setMissingDataValue_JMenuItem,false);
+	// TODO - make sure this is doing what it should
+	JGUIUtil.setEnabled( __Commands_Fill_setMissingDataValue_JMenuItem,false);
 
-	// REVISIT - should not need this since fillRegression() does this
-	JGUIUtil.setEnabled(__Commands_Fill_setRegressionPeriod_JMenuItem,
-		false);
+	// TODO - should not need this since fillRegression() does this
+	JGUIUtil.setEnabled(__Commands_Fill_setRegressionPeriod_JMenuItem,false);
 
-	// REVISIT - can this be phased out?
-	JGUIUtil.setEnabled(
-		__Commands_Output_setOutputDetailedHeaders_JMenuItem,false);
+	// TODO - can this be phased out?
+	JGUIUtil.setEnabled(__Commands_Output_setOutputDetailedHeaders_JMenuItem,false);
+}
+
+/**
+Enable/disable Run menu items based on the state of the GUI.
+*/
+private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_commands_size )
+{
+	// Running, so allow cancel but not another run...
+	boolean enable_run = false;
+	if ( (__ts_processor != null) && __ts_processor.getIsRunning() ) {
+		// Running, so allow cancel but not another run...
+		enable_run = false;
+		JGUIUtil.setEnabled (__Run_CancelCommandProcessing_JMenuItem, true);
+		JGUIUtil.setEnabled (__CommandsPopup_CancelCommandProcessing_JMenuItem,true);
+
+	}
+	else {	// Not running, so disable cancel, but do allow run if
+		// there are commands (see below)...
+		enable_run = true;
+		JGUIUtil.setEnabled (__Run_CancelCommandProcessing_JMenuItem, false);
+		JGUIUtil.setEnabled (__CommandsPopup_CancelCommandProcessing_JMenuItem,false );
+	}
+	if ( command_list_size > 0 ) {
+		/* TODO SAM 2007-11-01 Evaluate need
+		if (	__commands_dirty ||
+			(!__commands_dirty && (ts_list_size == 0)) ) {
+			JGUIUtil.setEnabled (
+				__run_commands_JButton, true );
+		}
+		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
+		}
+		*/
+		JGUIUtil.setEnabled(__Run_AllCommandsCreateOutput_JMenuItem, enable_run);
+		JGUIUtil.setEnabled(__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,enable_run);
+		JGUIUtil.setEnabled(__Run_AllCommandsIgnoreOutput_JMenuItem, enable_run);
+		JGUIUtil.setEnabled(__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,enable_run);
+		if ( selected_commands_size > 0 ) {
+			JGUIUtil.setEnabled(__Run_SelectedCommandsCreateOutput_JMenuItem, enable_run);
+			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,enable_run);
+			JGUIUtil.setEnabled(__Run_SelectedCommandsIgnoreOutput_JMenuItem, enable_run);
+			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,enable_run);
+			JGUIUtil.setEnabled (__Run_SelectedCommands_JButton, enable_run );
+		}
+		else {	JGUIUtil.setEnabled(__Run_SelectedCommandsCreateOutput_JMenuItem, false);
+			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,false);
+			JGUIUtil.setEnabled(__Run_SelectedCommandsIgnoreOutput_JMenuItem, false);
+			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
+			JGUIUtil.setEnabled (__Run_SelectedCommands_JButton, false );
+		}
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, enable_run );
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, enable_run );
+	}
+	else {	// No commands in list...
+		JGUIUtil.setEnabled (__Run_AllCommandsCreateOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__Run_AllCommandsIgnoreOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__Run_SelectedCommandsCreateOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
+		JGUIUtil.setEnabled (__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
+	}
 }
 
 /**
@@ -8875,6 +6908,74 @@ private void ui_CheckRiversideDBFeatures ()
 }
 
 /**
+Return the directory for the last "File...Open Commands File".
+*/
+private String ui_GetDir_LastCommandFileOpened()
+{
+	if ( __Dir_LastCommandsFileOpened == null ) {
+		// Try to get the generic dialog selection location...
+		__Dir_LastCommandsFileOpened = JGUIUtil.getLastFileDialogDirectory();
+	}
+	if ( __Dir_LastCommandsFileOpened == null ) {
+		// Return the user directory
+		// TODO SAM 2007-11-01 Evaluate whether other's should be checked first.
+		return System.getProperty("user.dir");
+	}
+	return __Dir_LastCommandsFileOpened;
+}
+
+/**
+Return the last directory for "Run Commands File", which runs an external commands file
+but does not show the results.
+*/
+private String ui_GetDir_LastExternalCommandsFileRun()
+{
+	if ( __Dir_LastExternalCommandsFileRun == null ) {
+		// Try to get the generic dialog selection location...
+		__Dir_LastCommandsFileOpened = JGUIUtil.getLastFileDialogDirectory();
+	}
+	if ( __Dir_LastCommandsFileOpened == null ) {
+		// Return the user directory
+		// TODO SAM 2007-11-01 Evaluate whether other's should be checked first.
+		return System.getProperty("user.dir");
+	}
+	return __Dir_LastExternalCommandsFileRun;
+}
+
+/**
+Return the HydroBaseDMI instance that is active for the UI, opened from
+the configuration file inforation or the HydroBase select dialog.
+@return the HydroBaseDMI instance that is active for the UI.
+*/
+private HydroBaseDMI ui_GetHydroBaseDMI ()
+{
+	return __hbdmi;
+}
+
+//FIXME SAM 2007-11-01 Need to use /tmp etc for a startup home if not
+//specified so the software install home is not used.
+/**
+Return the initial working directory, which will be the softare startup
+home, or the location of new commands files.
+This directory is suitable for initializing a workflow processing run.
+@return the initial working directory, which should always be non-null.
+*/
+private String ui_GetInitialWorkingDir ()
+{
+	return __initial_working_dir;
+}
+
+/**
+Return the NWSRFSFS5Files instance that is active for the UI, opened from
+the configuration file inforation or the NWSRFS FS5Files select dialog.
+@return the NWSRFSDMI instance that is active for the UI.
+*/
+private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
+{
+	return __nwsrfs_dmi;
+}
+
+/**
 Get a PropList with properties needed for an old-style editor.  Mainly this is
 the WorkingDir property, with a value determined from the initial working directory
 and subsequent setWorkingDir() commands prior to the command being edited.
@@ -8889,6 +6990,2058 @@ private PropList ui_GetPropertiesForOldStyleEditor ( Command command_to_edit )
 	PropList props = new PropList ( "" );
 	props.set ( "WorkingDir", commandProcessor_GetWorkingDirForCommand ( command_to_edit ) );
 	return props;
+}
+
+/**
+Initialize the GUI.
+@param show_main Indicates if the main interface should be shown.
+*/
+private void ui_InitGUI ( boolean show_main )
+{	String routine = "TSTool_JFrame.initGUI";
+	try {	// To catch layout problems...
+	int y;
+
+	try {	JGUIUtil.setSystemLookAndFeel(true);
+	}
+	catch (Exception e) {
+		Message.printWarning ( 2, routine, e );
+	}
+
+	// Need this even if no main GUI...
+
+	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
+
+	if ( show_main ) {
+		// If not showing main, don't initialize menus, to speed
+		// performance.
+		ui_InitGUIMenus ();
+	}
+
+	// Remainder of main window...
+
+	// objects used throughout the GUI layout
+	int buffer = 3;
+	Insets insetsNLNR = new Insets(0,buffer,0,buffer);
+	Insets insetsNNNR = new Insets(0,0,0,buffer);
+	Insets insetsNLNN = new Insets(0,buffer,0,0);
+    Insets insetsNLBR = new Insets(0,buffer,buffer,buffer);
+	Insets insetsTLNR = new Insets(buffer,buffer,0,buffer);
+	Insets insetsNNNN = new Insets(0,0,0,0);
+    GridBagLayout gbl = new GridBagLayout();
+
+	// Panel to hold the query components, added to the top of the main
+	// content pane...
+
+	if ( show_main ) {
+        JPanel query_JPanel = new JPanel();
+        query_JPanel.setLayout(new BorderLayout());
+        getContentPane().add("North", query_JPanel);
+        
+	// --------------------------------------------------------------------
+	// Query input components...
+	// --------------------------------------------------------------------
+
+	__query_input_JPanel = new JPanel();
+	__query_input_JPanel.setLayout(gbl);
+	__query_input_JPanel.setBorder(
+		BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),
+		"Input/Query Options" ));
+	
+    query_JPanel.add("West", __query_input_JPanel);
+ 
+	y=0;
+        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Type:"), 
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+        __input_type_JComboBox = new SimpleJComboBox(false);
+        __input_type_JComboBox.setMaximumRowCount ( 15 );
+        __input_type_JComboBox.setToolTipText (
+		"<HTML>The input type is the file/database format being read."+
+		"</HTML>" );
+	__input_type_JComboBox.addItemListener( this );
+        JGUIUtil.addComponent(__query_input_JPanel, __input_type_JComboBox, 
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Input Name:"), 
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+        __input_name_JComboBox = new SimpleJComboBox(false);
+        __input_name_JComboBox.setToolTipText (
+		"<HTML>The input name is the name of the file or database" +
+		" being read.<BR>It will default or be promted for after " +
+		"selecting the input type.</HTML>" );
+	__input_name_JComboBox.addItemListener( this );
+        JGUIUtil.addComponent(__query_input_JPanel, __input_name_JComboBox, 
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Data Type:"), 
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	__data_type_JComboBox = new SimpleJComboBox(false);
+        __data_type_JComboBox.setMaximumRowCount ( 20 );
+	__data_type_JComboBox.setToolTipText (
+		"<HTML>The data type is used to filter the list of time " +
+		"series.</HTML>" );
+	__data_type_JComboBox.addItemListener( this );
+        JGUIUtil.addComponent(__query_input_JPanel, __data_type_JComboBox, 
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+        JGUIUtil.addComponent(__query_input_JPanel, new JLabel("Time Step:"), 
+		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+        __time_step_JComboBox = new SimpleJComboBox(false);
+	__time_step_JComboBox.setToolTipText (
+		"<HTML>The time step is used to filter the list of time " +
+		"series.</HTML>" );
+	__time_step_JComboBox.addItemListener( this );
+        JGUIUtil.addComponent(__query_input_JPanel, __time_step_JComboBox, 
+		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+	// Save the position for the input filters, which will be added after
+	// database connections are made...
+
+	__input_filter_y = y;
+	++y;	// Increment for GUI features below.
+
+	// Force the choices to assume some reasonable values...
+
+	ui_SetInputTypeChoices();
+
+        __get_ts_list_JButton = new SimpleJButton(
+		BUTTON_TOP_GET_TIME_SERIES,this);
+	__get_ts_list_JButton.setToolTipText (
+		"<HTML>Get a list of time series but not the full time " +
+		"series data.<BR>Time series can then be selected for " +
+		"processing.</HTML>" );
+        JGUIUtil.addComponent(__query_input_JPanel, __get_ts_list_JButton, 
+		2, y++, 1, 1, 0, 0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+
+	// --------------------------------------------------------------------
+	// Query results components...
+	// --------------------------------------------------------------------
+
+	__query_results_JPanel = new JPanel();
+    __query_results_JPanel.setLayout(gbl);
+	__query_results_JPanel.setBorder(
+		BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),
+		"Time Series List"));
+    
+    // Set the minimum size for the panel based on the default size
+    // used for HydroBase, which seems to be an acceptable size.
+   __query_results_JPanel.setPreferredSize(new Dimension( 460, 200 ));
+    
+    query_JPanel.add("Center", __query_results_JPanel);
+
+	// Add the table for time series list...
+
+	y=0;
+	try {
+	PropList props = new PropList ( "QueryList" );
+	props.add("JWorksheet.ShowRowHeader=true");
+	props.add("JWorksheet.AllowCopy=true");
+	JScrollWorksheet sjw = new JScrollWorksheet ( 0, 0, props );
+	__query_JWorksheet = sjw.getJWorksheet ();
+	__query_JWorksheet.setPreferredScrollableViewportSize(null);
+	// Listen for mouse events to enable the buttons in the Time Series
+	// area...
+	__query_JWorksheet.addMouseListener ( this );
+	__query_JWorksheet.addJWorksheetListener ( this );
+        JGUIUtil.addComponent(__query_results_JPanel, sjw,
+		0, y++, 3, 7, 1.0, 1.0, insetsNLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+	}
+	catch ( Exception e ) {
+		// Absorb the exception in most cases - print if developing to
+		// see if this issue can be resolved.
+		if ( Message.isDebugOn && IOUtil.testing()  ) {
+			Message.printWarning ( 3, routine,
+			"For developers:  caught exception initializing " +
+			"JWorksheet at setup." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
+
+	// Add the button to select all the time series...
+
+	y = 7;
+        __CopySelectedToCommands_JButton = new SimpleJButton(
+		BUTTON_TOP_COPY_SELECTED_TO_COMMANDS,this);
+	__CopySelectedToCommands_JButton.setToolTipText (
+		"<HTML>Copy selected time series from above to the Commands " +
+		"list,<BR>as time series identifiers.</HTML>" );
+        JGUIUtil.addComponent ( __query_results_JPanel,
+		__CopySelectedToCommands_JButton, 
+		1, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+        __CopyAllToCommands_JButton = new SimpleJButton(
+		BUTTON_TOP_COPY_ALL_TO_COMMANDS,this);
+	__CopyAllToCommands_JButton.setToolTipText (
+		"<HTML>Copy all time series from above to the Commands " +
+		"list,<BR>as time series identifiers.</HTML>" );
+        JGUIUtil.addComponent ( __query_results_JPanel,
+		__CopyAllToCommands_JButton, 
+		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+
+	} // end if ( show_main )
+ 
+	// --------------------------------------------------------------------
+	// Command components...
+	// --------------------------------------------------------------------
+
+	// Use a panel to include both the commands and time series panels and
+	// place in the center, to allow resizing.
+
+	JPanel center_JPanel = new JPanel ();
+        center_JPanel.setLayout(gbl);
+        getContentPane().add("Center", center_JPanel);
+
+        // Commands JPanel - 8 columns wide for grid bag layout
+        __commands_JPanel = new JPanel();
+        __commands_JPanel.setLayout(gbl);
+	__commands_JPanel.setBorder(
+		BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black), "Commands" ));
+	JGUIUtil.addComponent(center_JPanel, __commands_JPanel,
+		0, 0, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
+
+	// Initialize the command processor to interact with the GUI.  The
+	// initial working directory will be the software startup directory.
+	__ts_processor = new TSCommandProcessor();
+	ui_SetInitialWorkingDir( System.getProperty("user.dir") );
+	commandProcessor_SetInitialWorkingDir ( ui_GetInitialWorkingDir() );
+	// FIXME SAM 2007-08-28 Need to set a WindowListener for -nomaingui calls?
+	//__ts_processor.setTSCommandProcessorUI ( this );
+	__ts_processor.addCommandProcessorListener ( this );
+	__commands_JListModel = new TSCommandProcessorListModel(__ts_processor);
+	__commands_JListModel.addListDataListener ( this );
+
+	__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
+	__commands_JList = __commands_AnnotatedCommandJList.getJList();
+	// Set the font to fixed font so that similar command text lines up...
+	__commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
+	// Handling the ellipsis is dealt with in the annotated list...
+	
+	// Listen for events on the list so the GUI can respond to selections.
+	
+	__commands_JList.addListSelectionListener ( this );
+	__commands_JList.addKeyListener ( this );
+	__commands_JList.addMouseListener ( this );
+	
+	JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedCommandJList,
+		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+	
+	// Popup menu for the commands list...
+	
+	ui_InitGUIMenus_CommandsPopup ();
+
+	// Popup menu for the input name field...
+	__input_name_JPopupMenu = new JPopupMenu("Input Name Actions");
+
+	// Buttons that correspond to the command list 
+
+	// Put on left because user is typically working in that area...
+	__Run_SelectedCommands_JButton =
+		new SimpleJButton(__Button_RunSelectedCommands_String,
+		__Run_SelectedCommandsCreateOutput_String, this);
+	__Run_SelectedCommands_JButton.setToolTipText (
+		"<HTML>Run selected commands from above to generate time " +
+		"series,<BR>which will be shown in the Time Series Results " +
+		"list below.</HTML>" );
+	JGUIUtil.addComponent(__commands_JPanel,
+		__Run_SelectedCommands_JButton,
+		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	__Run_AllCommands_JButton =
+		new SimpleJButton(__Button_RunAllCommands_String,
+		__Run_AllCommandsCreateOutput_String, this);
+	__Run_AllCommands_JButton.setToolTipText (
+		"<HTML>Run all commands from above to generate time series," +
+		"<BR>which will be shown in the Time Series Results list " +
+		"below.</HTML>" );
+	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
+		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	// Put on right because we want it to be a decision to clear...
+	__ClearCommands_JButton = new SimpleJButton(
+		__Button_ClearCommands_String, this);
+	__ClearCommands_JButton.setToolTipText (
+		"<HTML>Clear selected commands from above." +
+		"<BR>Clear all commands if none are selected.</HTML>" );
+	JGUIUtil.addComponent(__commands_JPanel, __ClearCommands_JButton, 
+		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+
+	// --------------------------------------------------------------------
+	// Time series output (results) components...
+	// --------------------------------------------------------------------
+
+	// Final time series list...
+
+    __ts_JPanel = new JPanel();
+    __ts_JPanel.setLayout(gbl);
+	__ts_JPanel.setBorder(
+		BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),
+		"Time Series Results" ));
+	JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
+		0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
+
+	__ts_JListModel = new DefaultListModel();
+	__ts_JList = new JList ( __ts_JListModel );
+	__ts_JList.addKeyListener ( this );
+	__ts_JList.addListSelectionListener ( this );
+	__ts_JList.addMouseListener ( this );
+	JScrollPane ts_JScrollPane = new JScrollPane ( __ts_JList );
+	JGUIUtil.addComponent(__ts_JPanel, ts_JScrollPane, 
+		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+	
+	// List results output files...
+
+	JPanel results_JPanel = new JPanel();
+	results_JPanel.setLayout(gbl);
+	results_JPanel.setBorder(
+		BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),
+		"Output Files" ));
+	JGUIUtil.addComponent(center_JPanel, results_JPanel,
+		0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
+	JGUIUtil.addComponent(results_JPanel, new JLabel ("Output files:"),
+		0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	__results_files_JComboBox = new SimpleJComboBox ();
+	__results_files_JComboBox.addActionListener ( this );
+	__results_files_JComboBox.setToolTipText ( "<HTML>Select an output file to view.</HTML>" );
+	JGUIUtil.addComponent(results_JPanel, __results_files_JComboBox,
+		1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
+	// Popup menu for the time series results list...
+	ui_InitGUIMenus_ResultsPopup ();
+
+	// --------------------------------------------------------------------
+	// Status messages...
+	// --------------------------------------------------------------------
+
+	// Bottom panel for the information TextFields.  Add this as the south
+	// panel of the main interface since it is not resizable...
+
+	JPanel bottom_JPanel = new JPanel();
+	bottom_JPanel.setLayout (gbl);
+
+	__message_JTextField = new JTextField();
+	__message_JTextField.setEditable(false);
+	JGUIUtil.addComponent(bottom_JPanel, __message_JTextField,
+		0, 0, 5, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+	__processor_JProgressBar = new JProgressBar ();
+	__processor_JProgressBar.setToolTipText ( "Indicates progress in processing all commands.");
+	__processor_JProgressBar.setStringPainted ( true );
+	JGUIUtil.addComponent(bottom_JPanel, __processor_JProgressBar,
+		5, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	__command_JProgressBar = new JProgressBar ();
+	__command_JProgressBar.setToolTipText ( "Indicates progress in processing the current command that is running.");
+	__command_JProgressBar.setStringPainted ( true );
+	JGUIUtil.addComponent(bottom_JPanel, __command_JProgressBar,
+		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	__status_JTextField = new JTextField ( 5 );
+	__status_JTextField.setEditable(false);
+	JGUIUtil.addComponent(bottom_JPanel, __status_JTextField,
+		9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+	getContentPane().add ("South", bottom_JPanel);
+
+	ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.initGUI",
+			null, "Open a commands file or add new commands.",
+			__STATUS_READY );
+	ui_UpdateStatus ( false );
+    pack();
+	setSize ( 800, 600 );
+	JGUIUtil.center ( this );
+	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
+        	setVisible ( show_main );
+		// Do this to make sure the GUI redraws.  Otherwise, sometimes
+		// it may show up with gray areas...
+		// SAM testing... does not fix problem yet.
+		//this.invalidate();
+	}
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 2, "", e );
+	}
+	__gui_initialized = true;
+	// Select an input type...
+	if ( show_main ) {
+	if ( __hbdmi != null ) {
+		// Select HydroBase for CDSS use...
+		__input_type_JComboBox.select( null );
+		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
+	}
+	else {	__input_type_JComboBox.select( null );
+		__input_type_JComboBox.select( __INPUT_TYPE_DateValue );
+	}
+	}
+    
+}
+
+// TODO - is this code also called when a new database connection is made
+// dynamically or assume that the filters will not change?
+/**
+Initialize the input filters.  An input filter is defined and added for each
+enabled input type but only one is set visible at a time.  Later, as an input
+type is selected, the appropriate input filter is made visible.
+@param y Layout position to add the input filters.
+*/
+private void ui_InitGUIInputFilters ( int y )
+{	// Define and add specific input filters...
+	String routine = "TSTool_JFrame.initGUIInputFilters";
+	int buffer = 3;
+	Insets insets = new Insets(0,buffer,0,0);
+	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
+		// Add input filters for stations...
+
+		try {	__input_filter_HydroBase_station_JPanel = new
+			HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel(
+			__hbdmi);
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_station_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_station_JPanel );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" stations." );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for structures - there is one panel for
+		// "total" time series and one for water class time series that
+		// can be filtered by SFUT...
+
+		try {	__input_filter_HydroBase_structure_JPanel = new
+				HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
+				__hbdmi, false );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_structure_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_structure_JPanel );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" structures." );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		try {	__input_filter_HydroBase_structure_sfut_JPanel = new
+			HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
+				__hbdmi, true );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_structure_sfut_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_structure_sfut_JPanel);
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" structures with SFUT." );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for structure irrig_summary_ts,
+
+		try {	__input_filter_HydroBase_irrigts_JPanel = new
+			HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel
+				( __hbdmi );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_irrigts_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_irrigts_JPanel );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" irrigation summary time series - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for CASS agricultural crop statistics,
+		// only available for newer databases.  For now, just catch an
+		// exception when not supported.
+
+		try {	__input_filter_HydroBase_CASSCropStats_JPanel = new
+			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel
+				( __hbdmi );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_CASSCropStats_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_CASSCropStats_JPanel );
+		}
+		catch ( Exception e ) {
+			// Agricultural_CASS_crop_stats probably not in
+			// HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" CASS crop statistics - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for CASS agricultural livestock statistics,
+		// only available for newer databases.  For now, just catch an
+		// exception when not supported.
+
+		try {	__input_filter_HydroBase_CASSLivestockStats_JPanel = new
+			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel
+				( __hbdmi );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_CASSLivestockStats_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+			__input_filter_HydroBase_CASSLivestockStats_JPanel );
+		}
+		catch ( Exception e ) {
+			// Agricultural_CASS_livestock_stats probably not in
+			// HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" CASS livestock statistics - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for CU population data, only available for
+		// newer databases.  For now, just catch an exception when not
+		// supported.
+
+		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
+			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_CUPopulation_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+			__input_filter_HydroBase_CUPopulation_JPanel );
+		}
+		catch ( Exception e ) {
+			// CUPopulation probably not in HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" CU population data - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for NASS agricultural statistics, only
+		// available for newer databases.  For now, just catch an
+		// exception when not supported.
+
+		try {	__input_filter_HydroBase_NASS_JPanel = new
+			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel
+				( __hbdmi );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_NASS_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_NASS_JPanel );
+		}
+		catch ( Exception e ) {
+			// Agricultural_NASS_crop_stats probably not in
+			// HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" agricultural_NASS_crop_stats - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		// Add input filters for WIS.  For now, just catch an
+		// exception when not supported.
+
+		try {	__input_filter_HydroBase_WIS_JPanel = new
+			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel
+				( __hbdmi );
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_WIS_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_HydroBase_WIS_JPanel );
+		}
+		catch ( Exception e ) {
+			// WIS tables probably not in HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" WIS - data tables not in database?" );
+			Message.printWarning ( 2, routine, e );
+		}
+
+		try {	
+			__input_filter_HydroBase_wells_JPanel =
+				new HydroBase_GUI_GroundWater_InputFilter_JPanel
+				(__hbdmi, null, true);
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_HydroBase_wells_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST);
+			__input_filter_JPanel_Vector.addElement(
+				__input_filter_HydroBase_wells_JPanel);
+		}
+		catch ( Exception e ) {
+			// Agricultural_NASS_crop_stats probably not in
+			// HydroBase...
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for HydroBase" +
+			" agricultural_NASS_crop_stats - old database?" );
+			Message.printWarning ( 2, routine, e );
+		}		
+	}
+
+	PropList filter_props = new PropList ( "InputFilter" );
+	Vector input_filters = null;
+	InputFilter filter = null;
+
+	if ( __source_MexicoCSMN_enabled ) {
+		// Add input filters using text fields...
+		// Later may put this code in the MexicoCSMN package since it
+		// may be used by other interfaces...
+		input_filters = new Vector(2);
+		Vector statenum_Vector = new Vector (32);
+		statenum_Vector.addElement ( "01 - Aguascalientes" );
+		statenum_Vector.addElement ( "02 - Baja California" );
+		statenum_Vector.addElement ( "03 - Baja California Sur" );
+		statenum_Vector.addElement ( "04 - Campeche" );
+		statenum_Vector.addElement ( "05 - Coahuila" );
+		statenum_Vector.addElement ( "06 - Colima" );
+		statenum_Vector.addElement ( "07 - Chiapas" );
+		statenum_Vector.addElement ( "08 - Chihuahua" );
+		statenum_Vector.addElement ( "09 - Distrito Federal" );
+		statenum_Vector.addElement ( "10 - Durango" );
+		statenum_Vector.addElement ( "11 - Guanajuato" );
+		statenum_Vector.addElement ( "12 - Guerrero" );
+		statenum_Vector.addElement ( "13 - Hidalgo" );
+		statenum_Vector.addElement ( "14 - Jalisco" );
+		statenum_Vector.addElement ( "15 - Mexico" );
+		statenum_Vector.addElement ( "16 - Michoacan" );
+		statenum_Vector.addElement ( "17 - Morelos" );
+		statenum_Vector.addElement ( "18 - Nayarit" );
+		statenum_Vector.addElement ( "19 - Nuevo Leon" );
+		statenum_Vector.addElement ( "20 - Oaxaca" );
+		statenum_Vector.addElement ( "21 - Puebla" );
+		statenum_Vector.addElement ( "22 - Queretaro" );
+		statenum_Vector.addElement ( "23 - Quintana Roo" );
+		statenum_Vector.addElement ( "24 - San Luis Potosi" );
+		statenum_Vector.addElement ( "25 - Sinaloa" );
+		statenum_Vector.addElement ( "26 - Sonora" );
+		statenum_Vector.addElement ( "27 - Tabasco" );
+		statenum_Vector.addElement ( "28 - Tamaulipas" );
+		statenum_Vector.addElement ( "29 - Tlaxcala" );
+		statenum_Vector.addElement ( "30 - Veracruz" );
+		statenum_Vector.addElement ( "31 - Yucatan" );
+		statenum_Vector.addElement ( "32 - Zacatecas" );
+		input_filters.addElement ( new InputFilter (
+			"", "",
+			StringUtil.TYPE_STRING,
+			null, null, true ) );	// Blank to disable filter
+		input_filters.addElement ( new InputFilter (
+			"Station Name", "Station Name",
+			StringUtil.TYPE_STRING,
+			null, null, true ) );
+		filter = new InputFilter (
+			"State Number", "Station Number",
+			StringUtil.TYPE_INTEGER,
+			statenum_Vector, statenum_Vector, true );
+		filter.setTokenInfo("-",0);
+		input_filters.addElement ( filter );
+		filter_props.set ( "NumFilterGroups=2" );
+        	JGUIUtil.addComponent(__query_input_JPanel,
+			__input_filter_MexicoCSMN_JPanel =
+			new InputFilter_JPanel ( input_filters, filter_props ), 
+			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+			GridBagConstraints.EAST );
+		__input_filter_MexicoCSMN_JPanel.setToolTipText (
+			"<HTML>Mexico CSMN queries can be filtered" +
+			"<BR>based on station data.</HTML>" );
+		__input_filter_JPanel_Vector.addElement (
+			__input_filter_MexicoCSMN_JPanel );
+	}
+
+	if ( __source_NWSRFS_FS5Files_enabled ) {
+		// Add input filters for structure irrig_summary_ts,
+
+		try {	__input_filter_NWSRFS_FS5Files_JPanel = new
+			NWSRFS_TS_InputFilter_JPanel ();
+        		JGUIUtil.addComponent(__query_input_JPanel,
+				__input_filter_NWSRFS_FS5Files_JPanel,
+				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+				GridBagConstraints.EAST );
+			__input_filter_JPanel_Vector.addElement (
+				__input_filter_NWSRFS_FS5Files_JPanel );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 2, routine,
+			"Unable to initialize input filter for NWSRFS" +
+			" FS5Files.");
+			Message.printWarning ( 2, routine, e );
+		}
+	}
+
+	// Always add a generic input filter JPanel that is shared by input
+	// types that do not have filter capabilities and when database
+	// connections are not set up...
+
+       	JGUIUtil.addComponent(__query_input_JPanel,
+		__input_filter_generic_JPanel = new InputFilter_JPanel (),
+			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+			GridBagConstraints.EAST );
+	__input_filter_generic_JPanel.setToolTipText (
+		"<HTML>The selected input type does not support" +
+			"<BR>input filters.</HTML>" );
+	__input_filter_JPanel_Vector.addElement (
+		__input_filter_generic_JPanel );
+	// The appropriate JPanel will be set visible later based on the input
+	// type that is selected.
+
+	// Because a component is added to the original GUI, need to refresh
+	// the GUI layout...
+
+	ui_SetInputFilters();
+	validate();
+	repaint();
+}
+
+/**
+Initialize the GUI menus.  Split out of the main initGUI method to keep the
+method size under 64K.
+*/
+private void ui_InitGUIMenus ()
+{	JMenuBar menu_bar = new JMenuBar();
+	ui_InitGUIMenus_File ( menu_bar );
+	ui_InitGUIMenus_Edit ( menu_bar );
+	ui_InitGUIMenus_View ( menu_bar );
+	ui_InitGUIMenus_Commands ( menu_bar );
+	ui_InitGUIMenus_CommandsGeneral ();
+	ui_InitGUIMenus_Run ( menu_bar );
+	ui_InitGUIMenus_Results ( menu_bar );
+	ui_InitGUIMenus_Tools ( menu_bar );
+	ui_InitGUIMenus_Help ( menu_bar );
+	setJMenuBar ( menu_bar );
+}
+
+/**
+Initialize the GUI "Commands" menu.
+*/
+private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
+{	// "Commands...TS Create/Convert/Read Time Series"...
+
+	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );	
+
+	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=
+		new JMenu(__Commands_CreateTimeSeries_String) );
+
+	// Create...
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_createFromList_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_createFromList_String, this) );
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_createTraces_JMenuItem = new SimpleJMenuItem(
+		__Commands_Create_createTraces_String, this) );
+
+	/* TODO SAM 2005-05-18 need to enable when functionality is added
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_TS_average_JMenuItem = new SimpleJMenuItem(
+		__Commands_Create_TS_average_String, this) );
+	*/
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_TS_changeInterval_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_changeInterval_String, this) );
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_TS_copy_JMenuItem = new SimpleJMenuItem(
+		__Commands_Create_TS_copy_String, this) );
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_TS_disaggregate_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_disaggregate_String, this) );
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_newDayTSFromMonthAndDayTS_String, this) );
+
+	__Commands_CreateTimeSeries_JMenu.add (
+		__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String, this ) );
+
+	__Commands_CreateTimeSeries_JMenu.add (
+		__Commands_Create_TS_newStatisticYearTS_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_newStatisticYearTS_String, this ) );
+
+	__Commands_CreateTimeSeries_JMenu.add (
+		__Commands_Create_TS_newTimeSeries_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_newTimeSeries_String, this ) );
+
+	__Commands_CreateTimeSeries_JMenu.add(
+		__Commands_Create_TS_normalize_JMenuItem = new SimpleJMenuItem(
+		__Commands_Create_TS_normalize_String, this ) );
+
+	__Commands_CreateTimeSeries_JMenu.add (
+		__Commands_Create_TS_relativeDiff_JMenuItem =
+		new SimpleJMenuItem( 
+		__Commands_Create_TS_relativeDiff_String, this ) );
+
+	__Commands_CreateTimeSeries_JMenu.add (
+		__Commands_Create_TS_weightTraces_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Create_TS_weightTraces_String, this ) );
+
+	// Convert...
+
+	__Commands_JMenu.add ( __Commands_ConvertTSIDToReadCommand_JMenu=
+		new JMenu(__Commands_ConvertTSIDToReadCommand_String) );
+
+	__Commands_ConvertTSIDToReadCommand_JMenu.add (
+		__Commands_ConvertTSIDTo_readTimeSeries_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readTimeSeries_String, this ));
+
+	if ( __source_DateValue_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readDateValue_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readDateValue_String, this ));
+	}
+
+	if ( __source_HydroBase_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readHydroBase_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readHydroBase_String, this ) );
+	}
+
+	if ( __source_MODSIM_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readMODSIM_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readMODSIM_String, this ) );
+	}
+
+	if ( __source_NWSCard_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readNwsCard_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readNwsCard_String, this ) );
+	}
+
+	if ( __source_NWSRFS_FS5Files_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String,
+			this ) );
+	}
+
+	if ( __source_RiverWare_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readRiverWare_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readRiverWare_String, this ) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readStateMod_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readStateMod_String, this ) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readStateModB_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readStateModB_String, this ) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (
+			__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_ConvertTSIDTo_readUsgsNwis_String, this ) );
+	}
+
+	// Read...
+
+	__Commands_JMenu.add ( __Commands_ReadTimeSeries_JMenu=
+		new JMenu(__Commands_ReadTimeSeries_String) );
+
+	__Commands_ReadTimeSeries_JMenu.add (
+		__Commands_Read_setIncludeMissingTS_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Read_setIncludeMissingTS_String, this ) );
+
+	__Commands_ReadTimeSeries_JMenu.add (
+		__Commands_Read_setInputPeriod_JMenuItem=new SimpleJMenuItem(
+		__Commands_Read_setInputPeriod_String, this ) );
+
+	__Commands_ReadTimeSeries_JMenu.addSeparator ();
+
+	if ( __source_DateValue_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readDateValue_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readDateValue_String, this) );
+	}
+
+	if ( __source_HydroBase_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readHydroBase_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readHydroBase_String, this) );
+	}
+
+	if ( __source_MODSIM_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readMODSIM_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readMODSIM_String, this) );
+	}
+
+	if ( __source_NWSCard_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readNwsCard_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readNwsCard_String, this) );
+	}
+
+	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readNWSRFSESPTraceEnsemble_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readNWSRFSESPTraceEnsemble_String,
+			this) );
+	}
+
+	/* TODO SAM 2004-09-11 need to enable
+	if ( __source_NWSRFS_FS5Files_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readNWSRFSFS5Files_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readNWSRFSFS5Files_String, this) );
+	}
+	*/
+
+	if ( __source_StateCU_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readStateCU_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readStateCU_String, this) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readStateMod_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readStateMod_String, this) );
+	}
+
+	if ( __source_StateModB_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_readStateModB_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_readStateModB_String, this) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.addSeparator ();
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_statemodMax_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_statemodMax_String, this) );
+	}
+
+	__Commands_ReadTimeSeries_JMenu.addSeparator ();
+
+	if ( __source_DateValue_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add (
+			__Commands_Read_TS_readDateValue_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readDateValue_String, this) );
+	}
+
+	if ( __source_HydroBase_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add (
+			__Commands_Read_TS_readHydroBase_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readHydroBase_String, this) );
+	}
+
+	if ( __source_MODSIM_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readMODSIM_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readMODSIM_String, this) );
+	}
+
+	if ( __source_NDFD_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readNDFD_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readNDFD_String, this) );
+	}
+
+	if ( __source_NWSCard_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readNwsCard_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readNwsCard_String, this) );
+	}
+
+	if ( __source_NWSRFS_FS5Files_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readNWSRFSFS5Files_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readNWSRFSFS5Files_String, this) );
+	}
+
+	if ( __source_RiverWare_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readRiverWare_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readRiverWare_String, this) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readStateMod_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readStateMod_String, this) );
+	}
+
+	if ( __source_StateModB_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readStateModB_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readStateModB_String, this) );
+	}
+
+	if ( __source_USGSNWIS_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(
+			__Commands_Read_TS_readUsgsNwis_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Read_TS_readUsgsNwis_String, this) );
+	}
+
+	// "Commands...Fill Time Series"...
+
+	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu=
+		new JMenu(__Commands_FillTimeSeries_String));
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillCarryForward_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Fill_fillCarryForward_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillConstant_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_fillConstant_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String,this) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillFromTS_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_fillFromTS_String,this) );
+
+	__Commands_FillTimeSeries_JMenu.add(
+		__Commands_Fill_fillHistMonthAverage_JMenuItem =
+		new SimpleJMenuItem( 
+		__Commands_Fill_fillHistMonthAverage_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillHistYearAverage_JMenuItem =
+		new SimpleJMenuItem( 
+		__Commands_Fill_fillHistYearAverage_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillInterpolate_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_fillInterpolate_String, this ) );
+
+	/* TODO SAM 2004-02-21 Comment out this menu - it may be added later.
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillMOVE1_JMenuItem = new SimpleJMenuItem( 
+		__Commands_Fill_fillMOVE1_String, this ) );
+	__Commands_Fill_fillMOVE1_JMenuItem.setEnabled ( false );
+	*/
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillMixedStation_JMenuItem =new SimpleJMenuItem(
+		__Commands_Fill_fillMixedStation_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillMOVE2_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_fillMOVE2_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillPattern_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_fillPattern_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillProrate_JMenuItem = new SimpleJMenuItem( 
+		__Commands_Fill_fillProrate_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillRegression_JMenuItem = new SimpleJMenuItem( 
+		__Commands_Fill_fillRegression_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_fillRepeat_JMenuItem = new SimpleJMenuItem( 
+		__Commands_Fill_fillRepeat_String, this ) );
+
+	if ( __source_HydroBase_enabled ) {
+		__Commands_FillTimeSeries_JMenu.add(
+			__Commands_Fill_fillUsingDiversionComments_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Fill_fillUsingDiversionComments_String,
+			this ) );
+	}
+
+	/* SAMX DISABLE THIS FOR now - this was an RTi freebie and needs to be
+		reworked
+	_JmenuTSFillWeights = new SimpleJMenuItem(
+		MENU_INTERMEDIATE_FILL_WEIGHTS,
+		this );
+	ts_Jmenu.add( _JmenuTSFillWeights );
+	*/
+
+	__Commands_FillTimeSeries_JMenu.addSeparator();
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_setAutoExtendPeriod_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Fill_setAutoExtendPeriod_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_setAveragePeriod_JMenuItem =new SimpleJMenuItem(
+		__Commands_Fill_setAveragePeriod_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add(
+		__Commands_Fill_setIgnoreLEZero_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_setIgnoreLEZero_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_setMissingDataValue_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Fill_setMissingDataValue_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_setPatternFile_JMenuItem=new SimpleJMenuItem(
+		__Commands_Fill_setPatternFile_String, this ) );
+
+	__Commands_FillTimeSeries_JMenu.add (
+		__Commands_Fill_setRegressionPeriod_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Fill_setRegressionPeriod_String, this ) );
+
+
+	// "Commands...Set Time Series"...
+
+	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=
+		new JMenu(__Commands_SetTimeSeries_String));
+
+	__Commands_SetTimeSeries_JMenu.add (
+		__Commands_Set_replaceValue_JMenuItem =
+		new SimpleJMenuItem( __Commands_Set_replaceValue_String, this));
+	__Commands_SetTimeSeries_JMenu.addSeparator();
+
+	__Commands_SetTimeSeries_JMenu.add (
+		__Commands_Set_setConstant_JMenuItem =
+		new SimpleJMenuItem( __Commands_Set_setConstant_String, this ));
+
+	__Commands_SetTimeSeries_JMenu.add (
+		__Commands_Set_setConstantBefore_JMenuItem =new SimpleJMenuItem(
+		__Commands_Set_setConstantBefore_String, this) );
+
+	__Commands_SetTimeSeries_JMenu.add (
+		__Commands_Set_setDataValue_JMenuItem = new SimpleJMenuItem(
+		__Commands_Set_setDataValue_String, this ) );
+
+	__Commands_SetTimeSeries_JMenu.add (
+		__Commands_Set_setFromTS_JMenuItem = new SimpleJMenuItem(
+		__Commands_Set_setFromTS_String, this ) );
+
+	__Commands_SetTimeSeries_JMenu.add (
+		__Commands_Set_setMax_JMenuItem = new SimpleJMenuItem(
+		__Commands_Set_setMax_String, this ) );
+	
+	__Commands_SetTimeSeries_JMenu.add (
+			__Commands_Set_setToMin_JMenuItem = new SimpleJMenuItem(
+			__Commands_Set_setToMin_String, this ) );
+
+	// "Commands...Manipulate Time Series"...
+
+	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=
+		new JMenu("Manipulate Time Series"));
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_add_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_add_String,this) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_addConstant_JMenuItem=new SimpleJMenuItem(
+		__Commands_Manipulate_addConstant_String,this) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add(
+		__Commands_Manipulate_adjustExtremes_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Manipulate_adjustExtremes_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_ARMA_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_ARMA_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_blend_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_blend_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_convertDataUnits_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Manipulate_convertDataUnits_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_cumulate_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_cumulate_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_divide_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_divide_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_free_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_free_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_multiply_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_multiply_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_runningAverage_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Manipulate_runningAverage_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_scale_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_scale_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_shiftTimeByInterval_JMenuItem=
+		new SimpleJMenuItem(
+		__Commands_Manipulate_shiftTimeByInterval_String, this ) );
+
+	__Commands_ManipulateTimeSeries_JMenu.add (
+		__Commands_Manipulate_subtract_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_subtract_String, this ) );
+
+	// "Commands...Analyze Time Series"...
+
+	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu=
+		new JMenu(__Commands_AnalyzeTimeSeries_String) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (
+		__Commands_Analyze_analyzePattern_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Analyze_analyzePattern_String, this ) );
+
+	__Commands_AnalyzeTimeSeries_JMenu.add (
+		__Commands_Analyze_compareTimeSeries_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Analyze_compareTimeSeries_String, this ) );
+
+	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
+	__Commands_AnalyzeTimeSeries_JMenu.add (
+		__Commands_Analyze_newDataTest_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Analyze_newDataTest_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (
+		__Commands_Analyze_readDataTestFromRiversideDB_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Analyze_readDataTestFromRiversideDB_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (
+		__Commands_Analyze_runDataTests_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Analyze_runDataTests_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (
+		__Commands_Analyze_processDataTestResults_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Analyze_processDataTestResults_String, this ) );
+
+	// "Commands...Models"...
+
+	__Commands_JMenu.add ( __Commands_Models_JMenu =
+		new JMenu(__Commands_Models_String) );
+	__Commands_Models_JMenu.add (
+		__Commands_Models_lagK_JMenuItem =
+		new SimpleJMenuItem( __Commands_Models_lagK_String, this ) );
+
+	// "Commands...Output Time Series"...
+
+	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=
+		new JMenu(__Commands_OutputTimeSeries_String) );
+
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_deselectTimeSeries_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_deselectTimeSeries_String, this ) );
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_selectTimeSeries_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_selectTimeSeries_String, this ) );
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_setOutputDetailedHeaders_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_setOutputDetailedHeaders_String, this ) );
+	__Commands_OutputTimeSeries_JMenu.add(
+		__Commands_Output_setOutputPeriod_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_setOutputPeriod_String, this ) );
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_setOutputYearType_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_setOutputYearType_String, this ) );
+
+	__Commands_OutputTimeSeries_JMenu.addSeparator ();
+
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_sortTimeSeries_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_sortTimeSeries_String, this ) );
+
+	__Commands_OutputTimeSeries_JMenu.addSeparator ();
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_writeDateValue_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_writeDateValue_String, this ) );
+
+	if ( __source_NWSCard_enabled ) {
+		__Commands_OutputTimeSeries_JMenu.add (
+			__Commands_Output_writeNwsCard_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Output_writeNwsCard_String, this ) );
+	}
+
+	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+		__Commands_OutputTimeSeries_JMenu.add (
+			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem=
+			new SimpleJMenuItem(
+			__Commands_Output_writeNWSRFSESPTraceEnsemble_String,
+			this ));
+	}
+
+	if ( __source_RiverWare_enabled ) {
+		__Commands_OutputTimeSeries_JMenu.add(
+			__Commands_Output_writeRiverWare_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Output_writeRiverWare_String, this ) );
+	}
+
+	if ( __source_StateCU_enabled ) {
+		__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_writeStateCU_JMenuItem = new SimpleJMenuItem(
+		__Commands_Output_writeStateCU_String, this ) );
+	}
+
+	if ( __source_StateMod_enabled ) {
+		__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_writeStateMod_JMenuItem = new SimpleJMenuItem(
+		__Commands_Output_writeStateMod_String, this ) );
+	}
+
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_writeSummary_JMenuItem = new SimpleJMenuItem(
+		__Commands_Output_writeSummary_String, this ) );
+
+	__Commands_OutputTimeSeries_JMenu.addSeparator ();
+
+	__Commands_OutputTimeSeries_JMenu.add (
+		__Commands_Output_processTSProduct_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_Output_processTSProduct_String, this ) );
+}
+
+/**
+Initialize the GUI "Commands...General".
+*/
+private void ui_InitGUIMenus_CommandsGeneral ()
+{	if ( __source_HydroBase_enabled ) {
+		__Commands_JMenu.addSeparator();
+		__Commands_JMenu.add( __Commands_HydroBase_JMenu =
+			new JMenu( __Commands_HydroBase_String, true ) );	
+		__Commands_HydroBase_JMenu.add (
+			__Commands_HydroBase_openHydroBase_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_HydroBase_openHydroBase_String, this ) );
+	}
+	if ( __source_NDFD_enabled ) {
+		__Commands_JMenu.addSeparator();
+		__Commands_JMenu.add( __Commands_NDFD_JMenu =
+			new JMenu( __Commands_NDFD_String, true ) );	
+		__Commands_NDFD_JMenu.add (
+			__Commands_NDFD_openNDFD_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_NDFD_openNDFD_String, this ) );
+	}
+
+	__Commands_JMenu.addSeparator();
+	__Commands_JMenu.add( __Commands_General_JMenu =
+		new JMenu( __Commands_General_String, true ) );	
+
+	__Commands_General_JMenu.add(
+		__Commands_General_startLog_JMenuItem =new SimpleJMenuItem(
+		__Commands_General_startLog_String, this ) );
+	__Commands_General_JMenu.add (
+		__Commands_General_setDebugLevel_JMenuItem =new SimpleJMenuItem(
+		__Commands_General_setDebugLevel_String, this ) );
+	__Commands_General_JMenu.add (
+		__Commands_General_setWarningLevel_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_General_setWarningLevel_String, this ) );
+
+	__Commands_General_JMenu.addSeparator();
+	__Commands_General_JMenu.add(
+		__Commands_General_setWorkingDir_JMenuItem =new SimpleJMenuItem(
+		__Commands_General_setWorkingDir_String, this ) );
+
+	__Commands_General_JMenu.addSeparator();
+	__Commands_General_JMenu.add (
+		__Commands_General_comment_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_Comment_String, this ) );
+	__Commands_General_JMenu.add (
+		__Commands_General_startComment_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_startComment_String, this ) );
+	__Commands_General_JMenu.add(
+		__Commands_General_endComment_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_endComment_String, this ) );
+
+	__Commands_General_JMenu.addSeparator();
+	__Commands_General_JMenu.add (
+		__Commands_General_exit_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_exit_String, this ) );
+	__Commands_General_JMenu.addSeparator ();
+	__Commands_General_JMenu.add (
+		__Commands_General_compareFiles_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_General_compareFiles_String, this ) );
+	__Commands_General_JMenu.add (__Commands_General_runCommands_JMenuItem =
+		new SimpleJMenuItem(
+		__Commands_General_runCommands_String,this));
+	__Commands_General_JMenu.add ( __Commands_General_runProgram_JMenuItem =
+		new SimpleJMenuItem(__Commands_General_runProgram_String,this));
+	
+	__Commands_General_JMenu.addSeparator();
+	__Commands_General_JMenu.add (
+		__Commands_General_testCommand_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_testCommand_String, this ) );
+	__Commands_General_JMenu.add (
+			__Commands_General_CreateRegressionTestCommandFile_JMenuItem = new SimpleJMenuItem(
+			__Commands_General_CreateRegressionTestCommandFile_String, this ) );
+}
+
+/**
+Define the popup menu for the commands area.  In some cases the words that are
+shown are different from the corresponding menu because the popup mixes submenus
+from different menus and also popup menus are typically more abbreviated.
+*/
+private void ui_InitGUIMenus_CommandsPopup ()
+{	// Pop-up menu to manipulate commands...
+	__Commands_JPopupMenu = new JPopupMenu("Command Actions");
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
+		new SimpleJMenuItem(
+		__Edit_String, __Edit_CommandWithErrorChecking_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add( __CommandsPopup_Cut_JMenuItem =
+		new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
+	__Commands_JPopupMenu.add( __CommandsPopup_Copy_JMenuItem =
+		new SimpleJMenuItem ( "Copy", __Edit_CopyCommands_String,this));
+	__Commands_JPopupMenu.add( __CommandsPopup_Paste_JMenuItem=
+		new SimpleJMenuItem("Paste", __Edit_PasteCommands_String,this));
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add(__CommandsPopup_Delete_JMenuItem=
+		new SimpleJMenuItem(
+		__Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add( __CommandsPopup_FindCommands_JMenuItem =
+		new SimpleJMenuItem(__CommandsPopup_FindCommands_String, this));
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_SelectAll_JMenuItem =
+		new SimpleJMenuItem (
+		__Edit_SelectAllCommands_String, __Edit_SelectAllCommands_String, this ) );
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_DeselectAll_JMenuItem =
+		new SimpleJMenuItem(
+		__Edit_DeselectAllCommands_String, __Edit_DeselectAllCommands_String, this ) );
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem =
+		new SimpleJMenuItem (
+		__Edit_ConvertSelectedCommandsToComments_String, this ) );
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem =
+		new SimpleJMenuItem (
+		__Edit_ConvertSelectedCommandsFromComments_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem =
+		new SimpleJMenuItem (
+		"Run " + __Run_AllCommandsCreateOutput_String,
+		__Run_AllCommandsCreateOutput_String, this ) );
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem =
+		new SimpleJMenuItem (
+		"Run " + __Run_AllCommandsIgnoreOutput_String,
+		__Run_AllCommandsIgnoreOutput_String, this ) );
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem =
+		new SimpleJMenuItem (
+		"Run " + __Run_SelectedCommandsCreateOutput_String,
+		__Run_SelectedCommandsCreateOutput_String, this ) );
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem =
+		new SimpleJMenuItem (
+		"Run " + __Run_SelectedCommandsIgnoreOutput_String,
+		__Run_SelectedCommandsIgnoreOutput_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add(
+		__CommandsPopup_ShowCommandStatus_JMenuItem =
+		new SimpleJMenuItem (
+		__CommandsPopup_ShowCommandStatus_String,
+		__CommandsPopup_ShowCommandStatus_String, this ) );
+}
+
+/**
+Initialize the GUI "Edit" menu.
+*/
+private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar )
+{	JMenu __Edit_JMenu = new JMenu( "Edit", true);
+	menu_bar.add( __Edit_JMenu );	
+
+	__Edit_JMenu.add( __Edit_CutCommands_JMenuItem = new SimpleJMenuItem( 
+		__Edit_CutCommands_String, this ) );
+	__Edit_CutCommands_JMenuItem.setEnabled ( false );
+
+	__Edit_JMenu.add( __Edit_CopyCommands_JMenuItem = new SimpleJMenuItem( 
+		__Edit_CopyCommands_String, this ) );
+	__Edit_CopyCommands_JMenuItem.setEnabled ( false );
+
+	__Edit_JMenu.add( __Edit_PasteCommands_JMenuItem = new SimpleJMenuItem( 
+		__Edit_PasteCommands_String, this ) );
+	__Edit_PasteCommands_JMenuItem.setEnabled ( false );
+
+	__Edit_JMenu.addSeparator( );
+
+	__Edit_JMenu.add( __Edit_DeleteCommands_JMenuItem = new SimpleJMenuItem(
+		__Edit_DeleteCommands_String, this) );
+	__Edit_DeleteCommands_JMenuItem.setEnabled ( false );
+
+	__Edit_JMenu.addSeparator( );
+
+	__Edit_JMenu.add(
+		__Edit_SelectAllCommands_JMenuItem = new SimpleJMenuItem( 
+		__Edit_SelectAllCommands_String, this ) );
+	__Edit_JMenu.add(
+		__Edit_DeselectAllCommands_JMenuItem = new SimpleJMenuItem( 
+		__Edit_DeselectAllCommands_String, this ) );
+
+	__Edit_JMenu.addSeparator( );
+
+	__Edit_JMenu.add( __Edit_CommandsFile_JMenuItem = new SimpleJMenuItem (
+		__Edit_CommandsFile_String, this ) );
+	__Edit_JMenu.add(
+		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(
+		__Edit_CommandWithErrorChecking_String, this ) );
+	__Edit_JMenu.addSeparator( );
+	__Edit_JMenu.add(
+		__Edit_ConvertSelectedCommandsToComments_JMenuItem=
+		new SimpleJMenuItem (
+		__Edit_ConvertSelectedCommandsToComments_String, this ) );
+	__Edit_JMenu.add( __Edit_ConvertSelectedCommandsFromComments_JMenuItem =
+		new SimpleJMenuItem (
+		__Edit_ConvertSelectedCommandsFromComments_String, this ) );
+}
+
+/**
+Initialize the GUI "File" menu.
+*/
+private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
+{	__File_JMenu = new JMenu( __File_String, true );
+	menu_bar.add( __File_JMenu );
+
+	__File_JMenu.add( __File_Open_JMenu=new JMenu(__File_Open_String,true));
+
+	__File_Open_JMenu.add( __File_Open_CommandsFile_JMenuItem =
+		new SimpleJMenuItem( __File_Open_CommandsFile_String, this ) );
+
+	boolean separator_added = false;
+	if ( __source_DIADvisor_enabled ) {
+		if ( !separator_added ) {
+			__File_Open_JMenu.addSeparator( );
+			separator_added = true;
+		}
+		__File_Open_JMenu.add (
+			__File_Open_DIADvisor_JMenuItem = new SimpleJMenuItem(
+				__File_Open_DIADvisor_String, this ) );
+	}
+	if ( __source_HydroBase_enabled ) {
+		if ( !separator_added ) {
+			__File_Open_JMenu.addSeparator( );
+			separator_added = true;
+		}
+		__File_Open_JMenu.add (
+			__File_Open_HydroBase_JMenuItem = new SimpleJMenuItem( 
+			__File_Open_HydroBase_String, this ) );
+	}
+
+	if ( __source_RiversideDB_enabled ) {
+		if ( !separator_added ) {
+			__File_Open_JMenu.addSeparator( );
+			separator_added = true;
+		}
+		__File_Open_JMenu.add ( __File_Open_RiversideDB_JMenuItem =
+			new SimpleJMenuItem(
+			__File_Open_RiversideDB_String, this ) );
+	}
+
+	__File_JMenu.add( __File_Save_JMenu=new JMenu(__File_Save_String,true));
+	//__File_Save_Commands_JMenuItem = new SimpleJMenuItem(
+		//__File_Save_Commands_String,__File_Save_Commands_ActionString,
+		//this );
+	__File_Save_JMenu.add ( __File_Save_Commands_JMenuItem =
+		new SimpleJMenuItem( __File_Save_Commands_String, this ) );
+	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem =
+		new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
+
+	__File_Save_JMenu.add (
+		__File_Save_TimeSeriesAs_JMenuItem = new SimpleJMenuItem(
+		__File_Save_TimeSeriesAs_String, this ) );
+
+	__File_JMenu.add( __File_Print_JMenu=
+		new JMenu(__File_Print_String,true));
+	__File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
+		new SimpleJMenuItem( __File_Print_Commands_String,
+		__File_Print_Commands_ActionString, this ) );
+
+	__File_JMenu.addSeparator( );
+
+	__File_JMenu.add( __File_Properties_JMenu=
+		new JMenu(__File_Properties_String,true));
+	if ( __source_DIADvisor_enabled ) {
+		__File_Properties_JMenu.add (
+			__File_Properties_DIADvisor_JMenuItem =
+			new SimpleJMenuItem(
+			__File_Properties_DIADvisor_String, this ) );
+	}
+
+	__File_Properties_JMenu.add(
+		__File_Properties_CommandsRun_JMenuItem = new SimpleJMenuItem(
+		__File_Properties_CommandsRun_String, this ) );
+	__File_Properties_JMenu.add(
+		__File_Properties_TSToolSession_JMenuItem = new SimpleJMenuItem(
+		__File_Properties_TSToolSession_String, this ) );
+
+	boolean seperator_added = false;
+
+	if ( __source_ColoradoSMS_enabled ) {
+		if ( !seperator_added ) {
+			__File_Properties_JMenu.addSeparator ();
+			seperator_added = true;
+		}
+		__File_Properties_JMenu.add (
+			__File_Properties_ColoradoSMS_JMenuItem =
+			new SimpleJMenuItem(
+			__File_Properties_ColoradoSMS_String, this ) );
+	}
+	if ( __source_HydroBase_enabled ) {
+		if ( !seperator_added ) {
+			__File_Properties_JMenu.addSeparator ();
+			seperator_added = true;
+		}
+		__File_Properties_JMenu.add (
+			__File_Properties_HydroBase_JMenuItem =
+			new SimpleJMenuItem(
+			__File_Properties_HydroBase_String, this ) );
+	}
+
+	if ( __source_NWSRFS_FS5Files_enabled ) {
+		if ( !seperator_added ) {
+			__File_Properties_JMenu.addSeparator ();
+			seperator_added = true;
+		}
+		__File_Properties_JMenu.add (
+			__File_Properties_NWSRFSFS5Files_JMenuItem =
+			new SimpleJMenuItem (
+			__File_Properties_NWSRFSFS5Files_String, this ) );
+		__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled ( false );
+	}
+
+	if ( __source_RiversideDB_enabled ) {
+		if ( !seperator_added ) {
+			__File_Properties_JMenu.addSeparator ();
+			seperator_added = true;
+		}
+		__File_Properties_JMenu.add (
+			__File_Properties_RiversideDB_JMenuItem =
+			new SimpleJMenuItem (
+			__File_Properties_RiversideDB_String, this ) );
+		__File_Properties_RiversideDB_JMenuItem.setEnabled ( false );
+	}
+
+	__File_JMenu.addSeparator( );
+	__File_JMenu.add ( __File_SetWorkingDirectory_JMenuItem =
+		new SimpleJMenuItem( __File_SetWorkingDirectory_String, this ));
+
+	// Add a test menu...
+
+	String args[] = IOUtil.getProgramArguments();
+	int argc = 0;
+	if ( args != null ) {
+		argc = args.length;
+	}
+	for ( int i = 0; i < argc; i++ ) {
+		if ( args[i].equalsIgnoreCase("-test") ) {
+			IOUtil.testing(true);
+			// Add a menu for testing...
+			args = null;
+			__File_JMenu.add ( new SimpleJMenuItem( "Test", "Test",
+				this ) );
+			break;
+		}
+	}
+	args = null;
+
+	__File_JMenu.addSeparator( );
+	__File_JMenu.add( new SimpleJMenuItem( __File_Exit_String, this ) );
+}
+
+/**
+Initialize the GUI "Help" menu.
+*/
+private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
+{	__Help_JMenu = new JMenu ( __Help_String );
+	menu_bar.add ( __Help_JMenu );
+	// TODO - not implemented by Java?
+	//menu_bar.setHelpMenu ( _help_JMenu );
+	__Help_JMenu.add ( new SimpleJMenuItem(__Help_AboutTSTool_String,this));
+	/* TODO SAM 2004-05-24 Help index features are not working as well now that
+	documentation is huge and PDF is available.  Rely on tool tips and PDF
+	and not extensive on-line help.
+	__Help_JMenu.addSeparator();
+	// Initialize help to run-time values...
+	// Specify URL end parts for documentation home and help index file...
+	// To debug the help file...
+	Vector helphome = new Vector();
+	if (	(__license_manager == null) ||
+		__license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
+		// Default behavior is CDSS...
+		// Development - do not leave uncommented for an official
+		// release...
+		//helphome.addElement (
+		//"J:/crdss/dmi/apps/TSTool/doc/UserManual/05.03.00/html");
+		helphome.addElement ( HBParse.getHome() +
+				"\\doc\\TSTool\\UserManual" );
+		helphome.addElement ( "http://cdss.state.co.us/manuals/TSTool");
+	}
+	else {	// Assume an RTi installation and look for help in RTi
+		// locations (home will be something like
+		// C:\Program Files\RTi\RiverTrak...
+		helphome.addElement ( HBParse.getHome() +
+				"\\doc\\TSTool\\UserManual" );
+		helphome.addElement(
+		"C:\\Program Files\\RTi\\RiverTrak\\doc\\TSTool\\UserManual" );
+		helphome.addElement(
+		"D:\\Program Files\\RTi\\RiverTrak\\doc\\TSTool\\UserManual" );
+		// Need to get TSTool documentation on the RTi web site once all
+		// the licensing issues are resolved...
+	}
+	URLHelp.initialize ( null, helphome, "tstool_help_index.txt" );
+	helphome = null;
+	// Now hook in the help system.  For some reason the code does not
+	// seem to be synchronizing...
+	try {	_help_index_gui = new URLHelpGUI ( 0, "TSTool Help");
+		_help_index_gui.attachMainMenu ( _help_JMenu );
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 2, routine,
+		"Error setting up help system:" );
+		Message.printWarning ( 2, routine, e );
+	}
+*/
+}
+
+/**
+Initialize the GUI "Results" menu.
+*/
+private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
+{	menu_bar.add( __Results_JMenu = new JMenu( "Results", true ) );	
+
+	/* TODO SAM 2004-08-04 Add later?
+	__Results_JMenu.add( __Results_Graph_AnnualTraces_JMenuItem =
+		new SimpleJMenuItem(__Results_Graph_AnnualTraces_String, this));
+	__Results_Graph_AnnualTraces_JMenuItem.setEnabled ( false );
+	*/
+
+	__Results_JMenu.add( __Results_Graph_BarsLeft_JMenuItem =
+		new SimpleJMenuItem( __Results_Graph_BarsLeft_String, this ) );
+
+	__Results_JMenu.add( __Results_Graph_BarsCenter_JMenuItem =
+		new SimpleJMenuItem( __Results_Graph_BarsCenter_String, this ));
+
+	__Results_JMenu.add( __Results_Graph_BarsRight_JMenuItem =
+		new SimpleJMenuItem( __Results_Graph_BarsRight_String, this ));
+
+	/* TODO SAM 2004-08-04 Add later?
+	__Results_JMenu.add( __Results_Graph_DoubleMass_JMenuItem =
+		new SimpleJMenuItem( __Results_Graph_DoubleMass_String, this));
+	__Results_Graph_DoubleMass_JMenuItem.setEnabled ( false );
+	*/
+
+	__Results_JMenu.add( __Results_Graph_Duration_JMenuItem =
+		new SimpleJMenuItem( __Results_Graph_Duration_String, this ));
+
+	__Results_JMenu.add( __Results_Graph_Line_JMenuItem=new SimpleJMenuItem(
+		__Results_Graph_Line_String, this ) );
+
+	__Results_JMenu.add(
+		__Results_Graph_LineLogY_JMenuItem = new SimpleJMenuItem(
+		__Results_Graph_LineLogY_String, this ) );
+
+	/* SAMX Not enabled
+	_view_graph_percent_exceed_JMenuItem = new SimpleJMenuItem(
+	"Percent Exceedance Curve", "GraphPercentExceed", this );
+	_Results_JMenu.add( _view_graph_percent_exceed_JMenuItem );
+	_view_graph_percent_exceed.setEnabled ( false );
+	*/
+
+	__Results_JMenu.add(
+		__Results_Graph_PeriodOfRecord_JMenuItem = new SimpleJMenuItem(
+		__Results_Graph_PeriodOfRecord_String, this ) );
+
+	__Results_JMenu.add(__Results_Graph_Point_JMenuItem=new SimpleJMenuItem(
+		__Results_Graph_Point_String, this ) );
+
+	__Results_JMenu.add(
+		__Results_Graph_PredictedValue_JMenuItem = new SimpleJMenuItem(
+		__Results_Graph_PredictedValue_String, this ) );
+
+	__Results_JMenu.add(
+		__Results_Graph_PredictedValueResidual_JMenuItem =
+		new SimpleJMenuItem(
+		__Results_Graph_PredictedValueResidual_String, this ) );
+
+	__Results_JMenu.add(
+		__Results_Graph_XYScatter_JMenuItem = new SimpleJMenuItem(
+		__Results_Graph_XYScatter_String, this ) );
+
+	__Results_JMenu.addSeparator();
+
+	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( 
+		__Results_Table_String, this ) );
+
+	__Results_JMenu.addSeparator();
+
+	__Results_JMenu.add(
+		__Results_Report_Summary_JMenuItem = new SimpleJMenuItem( 
+		__Results_Report_Summary_String, this ) );
+
+	__Results_JMenu.addSeparator();
+
+	__Results_JMenu.add(
+		__Results_TimeSeriesProperties_JMenuItem = new SimpleJMenuItem( 
+		__Results_TimeSeriesProperties_String, this ) );
+}
+   
+/**
+Define the popup menu for results.
+*/
+private void ui_InitGUIMenus_ResultsPopup ()
+{	__results_JPopupMenu = new JPopupMenu("View Actions");
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_BarsLeft_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_BarsCenter_String,this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_BarsRight_String, this ));
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_Duration_String, this ));
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_Line_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_LineLogY_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_PeriodOfRecord_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_Point_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_PredictedValue_String, this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_PredictedValueResidual_String, this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Graph_XYScatter_String, this));
+	__results_JPopupMenu.addSeparator();
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Table_String, this ) );
+	__results_JPopupMenu.addSeparator();
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_Report_Summary_String, this ) );
+	__results_JPopupMenu.addSeparator();
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_FindTimeSeries_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		BUTTON_TS_SELECT_ALL, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		BUTTON_TS_DESELECT_ALL, this ) );
+	__results_JPopupMenu.addSeparator();
+	__results_JPopupMenu.add( new SimpleJMenuItem (
+		__Results_TimeSeriesProperties_String, this ) );
+}
+
+/**
+Initialize the GUI "Run" menu.
+*/
+private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
+{	__Run_JMenu = new JMenu( "Run", true);
+	menu_bar.add ( __Run_JMenu );	
+	__Run_JMenu.add( __Run_AllCommandsCreateOutput_JMenuItem =
+		new SimpleJMenuItem(__Run_AllCommandsCreateOutput_String,this));
+	__Run_JMenu.add( __Run_AllCommandsIgnoreOutput_JMenuItem =
+		new SimpleJMenuItem(__Run_AllCommandsIgnoreOutput_String,this));
+	__Run_JMenu.add( __Run_SelectedCommandsCreateOutput_JMenuItem =
+		new SimpleJMenuItem(
+		__Run_SelectedCommandsCreateOutput_String,this));
+	__Run_JMenu.add( __Run_SelectedCommandsIgnoreOutput_JMenuItem =
+		new SimpleJMenuItem(
+		__Run_SelectedCommandsIgnoreOutput_String,this));
+	__Run_JMenu.add ( __Run_CancelCommandProcessing_JMenuItem =
+		new SimpleJMenuItem(__Run_CancelCommandProcessing_String,this));
+	__Run_JMenu.addSeparator();
+	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem = new SimpleJMenuItem (
+		__Run_CommandsFromFile_String, this ));
+	__Run_JMenu.addSeparator();
+	__Run_JMenu.add ( __Run_ProcessTSProductPreview_JMenuItem =
+		new SimpleJMenuItem(__Run_ProcessTSProductPreview_String,this));
+	__Run_JMenu.add ( __Run_ProcessTSProductOutput_JMenuItem =
+		new SimpleJMenuItem(__Run_ProcessTSProductOutput_String,this));
+}
+
+/**
+Initialize the GUI "Tools" menu.
+*/
+private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
+{	__Tools_JMenu = new JMenu();
+	menu_bar.add( __Tools_JMenu = new JMenu( __Tools_String, true ) );	
+
+	__Tools_JMenu.add ( __Tools_Analysis_JMenu =
+		new JMenu(__Tools_Analysis_String, true ) );
+
+	__Tools_Analysis_JMenu.add(
+		__Tools_Analysis_MixedStationAnalysis_JMenuItem =
+		new SimpleJMenuItem(
+		__Tools_Analysis_MixedStationAnalysis_String, this ) );
+
+	__Tools_JMenu.add ( __Tools_Report_JMenu =
+		new JMenu(__Tools_Report_String, true ) );
+
+	__Tools_Report_JMenu.add(
+		__Tools_Report_DataCoverageByYear_JMenuItem=new SimpleJMenuItem(
+		__Tools_Report_DataCoverageByYear_String, this ) );
+
+	__Tools_Report_JMenu.add (
+		__Tools_Report_DataLimitsSummary_JMenuItem =new SimpleJMenuItem(
+		__Tools_Report_DataLimitsSummary_String, this ) );
+
+	__Tools_Report_JMenu.add (
+		__Tools_Report_MonthSummaryDailyMeans_JMenuItem =
+		new SimpleJMenuItem(
+		__Tools_Report_MonthSummaryDailyMeans_String, this ) );
+
+	__Tools_Report_JMenu.add (
+		__Tools_Report_MonthSummaryDailyTotals_JMenuItem =
+		new SimpleJMenuItem(
+		__Tools_Report_MonthSummaryDailyTotals_String, this ) );
+
+	__Tools_Report_JMenu.add (
+		__Tools_Report_YearToDateTotal_JMenuItem = new SimpleJMenuItem(
+		__Tools_Report_YearToDateTotal_String, this ) );
+
+	if (	__source_NWSRFS_FS5Files_enabled || __source_NWSCard_enabled ||
+		__source_NWSRFS_ESPTraceEnsemble_enabled ) {
+		// Add NWSRFS-related tools (check all above because on
+		// non-UNIX system only card type may be enabled)...
+		__Tools_JMenu.addSeparator ();
+		__Tools_JMenu.add ( __Tools_NWSRFS_JMenu =
+			new JMenu(__Tools_NWSRFS_String, true ) );
+
+		__Tools_NWSRFS_JMenu.add(
+			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem=
+			new SimpleJMenuItem(
+			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String,
+			this ) );
+		__Tools_NWSRFS_JMenu.add(
+			__Tools_NWSRFS_ConvertJulianHour_JMenuItem=
+			new SimpleJMenuItem(
+			__Tools_NWSRFS_ConvertJulianHour_String, this ) );
+	}
+
+	if ( __source_RiversideDB_enabled ) {
+		// Add RiversideDB-related tools...
+		__Tools_JMenu.addSeparator ();
+		__Tools_JMenu.add ( __Tools_RiversideDB_JMenu =
+			new JMenu(__Tools_RiversideDB_String, true ) );
+
+		__Tools_RiversideDB_JMenu.add(
+			__Tools_RiversideDB_TSProductManager_JMenuItem=
+			new SimpleJMenuItem(
+			__Tools_RiversideDB_TSProductManager_String,
+			this ) );
+	}
+
+	// Options menu...
+
+	__Tools_JMenu.addSeparator ();
+	__Tools_JMenu.add ( __Tools_SelectOnMap_JMenuItem=
+			new SimpleJMenuItem( __Tools_SelectOnMap_String, this));
+
+	__Tools_JMenu.addSeparator ();
+	__Tools_JMenu.add ( __Tools_Options_JMenuItem=
+			new SimpleJMenuItem( __Tools_Options_String, this ) );
+
+	// Create the diagnostics GUI, specifying the key for the help
+	// button.  Events are handled from within the diagnostics GUI.
+	__Tools_JMenu.addSeparator ();
+	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame ();
+		// TODO SAM 2005-04-05 some day need to enable on-line help.
+		// ("TSTool.PreferencesMenu");
+	diagnostics_JFrame.attachMainMenu ( __Tools_JMenu );
+	Message.addMessageLogListener ( this );
+}
+
+/**
+Initialize the View menu.
+*/
+private void ui_InitGUIMenus_View ( JMenuBar menuBar )
+{	JMenu viewJMenu = new JMenu (__View_String, true);
+	menuBar.add (viewJMenu);
+
+	viewJMenu.add ( __View_MapInterface_JCheckBoxMenuItem =
+		new JCheckBoxMenuItem(__View_MapInterface_String) );
+	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
+	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
 }
 
 /**
@@ -8964,6 +9117,29 @@ private void ui_ReadLicense ()
 	catch ( Exception e ) {
 		__license_manager = null;
 	}
+}
+
+/**
+Set the directory for the last "File...Open Commands File".
+@param Dir_LastCommandFileOpened Directory for last command file opened.
+*/
+private void ui_SetDir_LastCommandFileOpened ( String Dir_LastCommandFileOpened )
+{
+	__Dir_LastCommandsFileOpened = Dir_LastCommandFileOpened;
+	// Also set the last directory opened by a dialog...
+	JGUIUtil.setLastFileDialogDirectory(Dir_LastCommandFileOpened);
+}
+
+/**
+Set the last directory for "Run Commands File", which runs an external commands file
+but does not show the results.
+@param Dir_LastExternalCommandFileRun Directory for last command file ope
+*/
+private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalCommandFileRun )
+{
+	__Dir_LastExternalCommandsFileRun = Dir_LastExternalCommandFileRun;
+	// Also set the last directory opened by a dialog...
+	JGUIUtil.setLastFileDialogDirectory(Dir_LastExternalCommandFileRun);
 }
 
 /**
@@ -9162,7 +9338,7 @@ private void ui_SetInputTypeChoices ()
 	if ( __source_RiverWare_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_RiverWare );
 	}
-	// REVISIT - don't know how to parse SHEF yet...
+	// TODO - don't know how to parse SHEF yet...
 	//if ( __source_SHEF_enabled ) {
 		//__input_type_JComboBox.add( __INPUT_TYPE_SHEF );
 	//}
@@ -9193,16 +9369,6 @@ private void ui_SetInputTypeChoices ()
 		__input_type_JComboBox.select ( null );
 		__input_type_JComboBox.select ( 0 );
 	}
-}
-
-/**
-Set whether the commands are currently running.  This is most important when
-running the command processor in a thread.
-@param is_running Indicates whether the commands are currently being processed.
-*/
-private void ui_SetRunningCommands ( boolean is_running )
-{
-	__ts_processor_is_running = is_running;
 }
 
 /**
@@ -9365,6 +9531,14 @@ throws Exception
 	else if (command.equals(BUTTON_TS_DESELECT_ALL) ) {
 		__ts_JList.clearSelection();
 	}
+	else if ( o == __results_files_JComboBox ) {
+		uiAction_ShowOutputFile( __results_files_JComboBox.getSelected() );
+		// Reset the selected item to force the user to
+		// reselect a file to display.  Otherwise they
+		// cannot reselect the same item (no event is
+		// generated...
+		__results_files_JComboBox.select ( null );
+	}
 	else {	// Chain to the next method...
 		uiAction_ActionPerformed2_FileMenu(event);
 	}
@@ -9476,92 +9650,7 @@ throws Exception
 	}
 	else if ( command.equals(__File_Properties_CommandsRun_String) ) {
 		// Simple text display of last commands run data from TSEngine.
-		PropList reportProp = new PropList ("ReportJFrame.props");
-		// Too big (make this big when we have more stuff)...
-		//reportProp.set ( "TotalWidth", "750" );
-		//reportProp.set ( "TotalHeight", "550" );
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "TSTool Commands Run Properties" );
-		Vector v = new Vector ( 4 );
-		v.addElement ( "Properties from the last commands run." );
-		v.addElement (
-		"Note that property values are as of the end of the run." );
-		v.addElement (
-		"Properties are set as defaults and change value when" +
-		" a command is processed." );
-		v.addElement ( "" );
-		if ( __ts_processor == null ) {
-			v.addElement ( "The commands have not been run." );
-		}
-		else {
-			String s1 = "", s2 = "";
-			// Input period...
-			DateTime date1 = commandProcessor_GetInputStart();
-			if ( date1 == null ) {
-				s1 = "NOT SPECIFIED (use all available data)";
-			}
-			else {	s1 = date1.toString();
-			}
-			DateTime date2 = commandProcessor_GetInputEnd();
-			if ( date2 == null ) {
-				s2 = "NOT SPECIFIED (use all available data)";
-			}
-			else {	s2 = date2.toString();
-			}
-			v.addElement ( "Input (query/read) start: " + s1 );
-			v.addElement ( "Input (query/read) end:   " + s2 );
-			// Output period...
-			date1 = commandProcessor_GetOutputStart();
-			if ( date1 == null ) {
-				s1 = "NOT SPECIFIED (output all available data)";
-			}
-			else {	s1 = date1.toString();
-			}
-			date2 = commandProcessor_GetOutputEnd();
-			if ( date2 == null ) {
-				s2 = "NOT SPECIFIED (output all available data)";
-			}
-			else {	s2 = date2.toString();
-			}
-			v.addElement ( "Output period start: " + s1 );
-			v.addElement ( "Output period end:   " + s2 );
-			// Auto-extend period...
-			v.addElement ( "Automatically extend period to output "+
-				"period during read: " +
-				commandProcessor_GetAutoExtendPeriod () );
-			// Include missing TS automatically...
-			v.addElement ( "Include missing TS automatically: " +
-				commandProcessor_GetIncludeMissingTS() );
-			if ( __source_HydroBase_enabled ) {
-				v.addElement ( "" );
-				Object o2 = commandProcessor_GetHydroBaseDMIList();
-				if ( (o2 == null) || (((Vector)o2).size() == 0) ) {
-					v.addElement ( "No HydroBase connections are open for the command processor." );
-				}
-				else { Vector dmis = (Vector)o2;
-					int size = dmis.size();
-					for ( int i = 0; i < size; i++ ) {
-						v.addElement ( "Command processor HydroBase connection information:" );
-						StringUtil.addListToStringList ( v,
-								StringUtil.toVector(
-								((HydroBaseDMI)dmis.elementAt(i)).
-								getVersionComments() ) );
-					}
-				}
-			}
-		}
-		v.addElement ( "" );
-		v.addElement ( "Current working directory: " +
-			IOUtil.getProgramWorkingDir() );
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
+		uiAction_ShowProperties_CommandsRun();
 	}
     else if ( command.equals(__File_Properties_TSToolSession_String) ) {
 		// Simple text display of session data, including last
@@ -9836,7 +9925,7 @@ throws Exception
 			String directory = fc.getSelectedFile().getPath();
 			IOUtil.setProgramWorkingDir(directory);
 			JGUIUtil.setLastFileDialogDirectory(directory);
-			// REVISIT - is this needed with Swing?
+			// TODO - is this needed with Swing?
 			// Reset to make sure the ending delimiter is removed...
 			__props.set("WorkingDir",IOUtil.getProgramWorkingDir());
 			ui_SetInitialWorkingDir (__props.getValue ("WorkingDir"));
@@ -9943,6 +10032,7 @@ Handle a group of actions for the Run menu.
 private void uiAction_ActionPerformed4_RunMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
+	String routine = getClass().getName() + ".uiAction_ActionPerformed4_RunMenu";
 
 	// Run menu (order in menu)...
 
@@ -9964,55 +10054,17 @@ throws Exception
 		// Process selected commands but ignore write* commands...
     	uiAction_RunCommands ( false, false );
 	}
+	else if (command.equals(__Run_CancelCommandProcessing_String) ) {
+		// Cancel the current processor.  This may take awhile to occur.
+		__ts_processor.setCancelProcessingRequested ( true );
+		ui_UpdateStatusTextFields ( 1, routine, "Processing is bing cancelled...",
+				null, __STATUS_CANCELING );
+		ui_UpdateStatus ( true );
+	}
     else if ( command.equals(__Run_CommandsFromFile_String) ) {
-		// Get the name of the file to run and then execute a TSEngine
+		// Get the name of the file to run and then execute a TSCommandProcessor
 		// as if in batch mode...
-		//
-		// Instantiate a file dialog object with no default...
-		//
-/* REVISIT
-		FileDialog fd = new FileDialog(this, "Run Commands File",
-		FileDialog.LOAD );
-		if ( __last_directory_selected != null ) {
-			fd.setDirectory ( __last_directory_selected );
-		}
-		fd.setVisible(true);
-
-		// Determine the name of the commands file as specified from 
-		// the FileDialog object        
-
-		// Return if no file name is selected
-
-		if ( fd.getFile() == null || fd.getFile().equals("") ) {
-			return;
-		}
-		if ( fd.getDirectory() != null ) {
-			__last_directory_selected = fd.getDirectory();
-		}
-
-		String fileName = fd.getDirectory() + fd.getFile();        
-
-		TSEngine engine = null;
-		try {	// Process as if in batch mode...
-			JGUIUtil.setWaitCursor ( this, true );
-			engine = new TSEngine(__hbdmi, __rdmi, __DIADvisor_dmi,
-					__DIADvisor_archive_dmi,
-					__nwsrfs_dmi, __smsdmi );
-			engine.processCommands(__hbdmi,fileName);
-			engine = null;
-			Message.printStatus ( 1, rtn,
-			"Successfully processed commands file \"" + fileName +
-			"\"" );
-			JGUIUtil.setWaitCursor ( this, false );
-		}
-		catch ( Exception e ) {
-			JGUIUtil.setWaitCursor ( this, false );
-			Message.printWarning ( 1, rtn,
-			"Error running commands file \"" + fileName + "\"" );
-			Message.printWarning ( 2, rtn, e );
-			engine = null;
-		}
-*/
+    	uiAction_RunCommandFile ();
 	}
     else if (command.equals(__Run_ProcessTSProductOutput_String) ) {
 		// Test code...
@@ -10039,7 +10091,7 @@ private void uiAction_ActionPerformed5_CommandsCreateMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	// REVISIT SAM 2006-05-02
+	// TODO SAM 2006-05-02
 	// Why is all of this needed?  Should rely on the command factory for
 	// commands.  Evaluate this when all commands are in the factory.
 
@@ -11385,7 +11437,7 @@ private void uiAction_EditCommandsFile ()
 	// Instantiate a file dialog object with no default...
 	//
 	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
+			ui_GetDir_LastCommandFileOpened() );
 	fc.setDialogTitle ( "Select File" );
 	SimpleFileFilter sff = new SimpleFileFilter ( "TSTool",
 		"TSTool Commands File" );
@@ -11396,8 +11448,7 @@ private void uiAction_EditCommandsFile ()
 		return;
 	}
 	String path = fc.getSelectedFile().getPath();
-	JGUIUtil.setLastFileDialogDirectory (
-		fc.getSelectedFile().getParent() );
+	ui_SetDir_LastCommandFileOpened ( fc.getSelectedFile().getParent() );
 	String [] command_array = new String[2];
 	if ( IOUtil.isUNIXMachine() ) {
 		command_array[0] = "nedit";
@@ -12398,7 +12449,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ()
 throws IOException
 {	String message, routine = "TSTool_JFrame.readNWSCARDHeaders";
 
-	// REVISIT - allow multiple file selections...
+	// TODO - need to allow multiple file selections...
 	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 			JGUIUtil.getLastFileDialogDirectory() );
 		fc.setDialogTitle ( "Select NWS Card Time Series File" );
@@ -12490,7 +12541,7 @@ throws IOException
 		SimpleFileFilter csff = new SimpleFileFilter( "CS",
 		"Conditional Simulation Trace File");
 		fc.addChoosableFileFilter(csff);
-		/* REVISIT - add later
+		/* TODO - add later
 		SimpleFileFilter sff = new SimpleFileFilter( "HS",
 		"Historical Simulation Trace File");
 		fc.addChoosableFileFilter(sff);
@@ -13486,7 +13537,7 @@ private void uiAction_InputNameChoiceClicked()
 		// Reset the data types...
 		__data_type_JComboBox.setEnabled ( true );
 		__data_type_JComboBox.removeAll ();
-		// REVISIT SAM 2004-09-01 need to find a way to not re-read the
+		// TODO SAM 2004-09-01 need to find a way to not re-read the
 		// data types file.
 		Vector data_types = NWSRFS_Util.getTimeSeriesDataTypes (
 			__nwsrfs_dmi,
@@ -13550,8 +13601,7 @@ private void uiAction_InputTypeChoiceClicked()
 		__query_TableModel = new TSTool_TS_TableModel ( null, true );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
 			(TSTool_TS_TableModel)__query_TableModel);
-		// REVISIT
-		// Seems to be null at startup?
+		// TODO Seems to be null at startup?
 		if ( __query_JWorksheet != null ) {
 			try {	__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel (
@@ -13609,10 +13659,10 @@ private void uiAction_InputTypeChoiceClicked()
 		__data_type_JComboBox.select( null );
 		__data_type_JComboBox.select( 0 );
 
-		/* REVISIT - need to put these in input filters...
+		/* TODO - need to put these in input filters...
 		__where_JComboBox.setEnabled ( true );
 		__where_JComboBox.removeAll ();
-		// SAMX Need to decide what to put here...
+		// TODO Need to decide what to put here...
 		__where_JComboBox.add("Sensor Description");
 		__where_JComboBox.add("Sensor ID");
 		__where_JComboBox.add("Sensor Rating Type");
@@ -13644,7 +13694,7 @@ private void uiAction_InputTypeChoiceClicked()
 		heading_array[__DIADvisor_COL_INPUT_TYPE]= "Input Type";
 		width_array[__DIADvisor_COL_INPUT_TYPE]	= "85";
 		// set MultiList column headings, widths and justifications
-/* REVISIT
+		/* TODO
         	try {	_queryList_MultiList.clear();
 			_queryList_MultiList.redraw();
 			_queryList_MultiList.setHeadings( heading_array );
@@ -13654,7 +13704,7 @@ private void uiAction_InputTypeChoiceClicked()
         	catch ( Exception e ) {
                 	Message.printWarning( 2, routine, e );
         	}
-*/
+		 */
         	width_array = null;
         	heading_array = null;
 	}
@@ -13924,7 +13974,7 @@ private void uiAction_InputTypeChoiceClicked()
 		// Default to first in the list...
 		//__data_type_JComboBox.select( 0 );
 
-		/* REVISIT
+		/* TODO
 		__where_JComboBox.setEnabled ( true );
 		__where_JComboBox.removeAll ();
 		// SAMX Need to decide what to put here...
@@ -14072,7 +14122,7 @@ for all users.
 private void uiAction_OpenColoradoSMS ( boolean startup )
 {	String routine = "TSTool_JFrame.openColoradoSMS";
 	Message.printStatus ( 1, routine, "Opening ColoradoSMS connection..." );
-	// REVISIT SAM 2005-10-18
+	// TODO SAM 2005-10-18
 	// Always connect, whether in batch mode or not.  Might need a way to
 	// configure this.
 	//if ( IOUtil.isBatch() || !__show_main ) {
@@ -14119,8 +14169,7 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 			__smsdmi = null;
 		}
 	//}
-	// REVISIT SAM 2005
-	// Currently don't support an interactive login.
+	// TODO SAM 2005 Currently don't support an interactive login.
 	/*
 	else {	// Running interactively so prompt the user to login...
 		// Display the dialog to select the database.  This is a modal
@@ -14218,7 +14267,7 @@ private void uiAction_OpenCommandsFile ()
 	// and is readable...
 
 	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-					JGUIUtil.getLastFileDialogDirectory() );
+			ui_GetDir_LastCommandFileOpened() );
 	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
 	SimpleFileFilter sff =
 		new SimpleFileFilter("TSTool", "TSTool Commands File");
@@ -14229,11 +14278,11 @@ private void uiAction_OpenCommandsFile ()
 		String directory = fc.getSelectedFile().getParent();
 		String path = fc.getSelectedFile().getPath();
 
-		// REVISIT - is this necessary in Swing?
+		// TODO - is this necessary in Swing?
 		// Set the "WorkingDir" property, which will NOT contain a
 		// trailing separator...
 		IOUtil.setProgramWorkingDir(directory);
-		JGUIUtil.setLastFileDialogDirectory(directory);
+		ui_SetDir_LastCommandFileOpened(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
 		Message.printStatus(2, routine, "Working directory from commands file is \"" +
@@ -14704,30 +14753,29 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 
 	ui_CheckRiversideDBFeatures ();
 
-	//FIXME dre !!!!!!!!!uncomment this code when LoginJDialog becomes available
-//	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
-//	try {
-//		while (login != LoginJDialog.LOGIN_CANCELLED 
-//		    && login != LoginJDialog.LOGIN_OK) {
-//			login = new LoginJDialog(this, "Riverside Login", 
-//				__rdmi).response();
-//		}
-//	}
-//	catch (Exception e) {
-//		Message.printWarning(2, routine, 
-//			"Error opening login dialog.");
-//		Message.printWarning(2, routine, e);
-//		login = LoginJDialog.LOGIN_CANCELLED;
-//	}
-//
-//	if (login == LoginJDialog.LOGIN_CANCELLED) {
-//		new ResponseJDialog(this, "Login Cancelled",
-//			"RiversideDB login was cancelled.  Some capabilities "
-//			+ "(such as\nsaving and editing TSProducts) will be "
-//			+ "disabled.  However,\nthe connection to the "
-//			+ "database was still established.", 
-//			ResponseJDialog.OK);
-//	}
+	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
+	try {
+		while (login != LoginJDialog.LOGIN_CANCELLED 
+		    && login != LoginJDialog.LOGIN_OK) {
+			login = new LoginJDialog(this, "Riverside Login", 
+				__rdmi).response();
+		}
+	}
+	catch (Exception e) {
+		Message.printWarning(2, routine, 
+			"Error opening login dialog.");
+		Message.printWarning(2, routine, e);
+		login = LoginJDialog.LOGIN_CANCELLED;
+	}
+
+	if (login == LoginJDialog.LOGIN_CANCELLED) {
+		new ResponseJDialog(this, "Login Cancelled",
+			"RiversideDB login was cancelled.  Some capabilities "
+			+ "(such as\nsaving and editing TSProducts) will be "
+			+ "disabled.  However,\nthe connection to the "
+			+ "database was still established.", 
+			ResponseJDialog.OK);
+	}
 }
 
 /**
@@ -14976,6 +15024,46 @@ private void uiAction_RunCommands_ShowTSResults ()
 	JGUIUtil.setWaitCursor ( this, false );
 }
 
+/**
+Run a commands file, independent of what is shown in the UI.
+*/
+private void uiAction_RunCommandFile ()
+{	String routine = getClass().getName() + ".uiAction_RunCommandsFile";
+	// Select from the directory where the previous selection occurred.
+	JFileChooser fc = JFileChooserFactory.createJFileChooser ( ui_GetDir_LastExternalCommandsFileRun() );
+	fc.setDialogTitle("Select " + IOUtil.getProgramName() + " Commands File to Run");
+	SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Commands File");
+	fc.addChoosableFileFilter(sff);
+	fc.setFileFilter(sff);
+	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+		// If the user approves a selection do the following...
+		String directory = fc.getSelectedFile().getParent();
+		String path = fc.getSelectedFile().getPath();
+		ui_SetDir_LastExternalCommandFileRun(directory);
+		// TODO SAM 2007-11-02 Put in thread - but need to figure out how to show completion.
+		try { TSCommandFileRunner runner = new TSCommandFileRunner();
+			JGUIUtil.setWaitCursor ( this, true );
+			// Read the file
+			runner.readCommandFile ( path );
+			// Set the DMI information...
+			commandProcessor_SetHydroBaseDMI ( runner.getProcessor(), ui_GetHydroBaseDMI() );
+			commandProcessor_SetNWSRFSFS5FilesDMI ( runner.getProcessor(), ui_GetNWSRFSFS5FilesDMI() );
+			// Now run the command file
+			Message.printStatus ( 1, routine, "Running external commands file \"" + path + "\"" );
+			runner.runCommands();
+			Message.printStatus ( 1, routine, "Successfully processed commands file \"" + path + "\"" );
+			JGUIUtil.setWaitCursor ( this, false );
+		}
+		catch ( Exception e ) {
+			JGUIUtil.setWaitCursor ( this, false );
+			Message.printWarning ( 1, routine,
+			"Error running commands file \"" + path + "\"" );
+			Message.printWarning ( 2, routine, e );
+			JGUIUtil.setWaitCursor ( this, false );
+		}
+	}
+}
+
 //TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series
 //that are selected.
 /**
@@ -15045,7 +15133,7 @@ private void uiAction_SaveTimeSeries ()
 	String path = fc.getSelectedFile().getPath();
 	
 	FileFilter ff = fc.getFileFilter();
-	// REVISIT - need to do this cleaner and perhaps let users pick some
+	// TODO - need to do this cleaner and perhaps let users pick some
 	// output options.  Do enforce the file extensions.
 	if ( ff == datevalue_sff ) {
 		uiAction_ExportTimeSeriesResults("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
@@ -15104,14 +15192,14 @@ values from __input_name_NWSRFS_FS5Files.
 private void uiAction_SelectInputName_NWSRFS_FS5Files ( boolean reset_input_names )
 throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_NWSRFS_FS5Files";
-	// REVISIT SAM 2004-09-10 it does not seem like the following case ever
+	// TODO SAM 2004-09-10 it does not seem like the following case ever
 	// is true - need to decide whether to take out.
 	if ( reset_input_names ) {
 		// The NWSRFS_FS5Files input type has been selected as a change
 		// from another type.  Repopululate the list if previous choices
 		// exist...
 		//int size = __input_name_NWSRFS_FS5Files.size();
-		// REVISIT - probably not needed...
+		// TODO - probably not needed...
 		//__input_name_JComboBox.removeAll();
 		// This does NOT include the leading browse, etc...
 		__input_name_JComboBox.setData ( __input_name_NWSRFS_FS5Files );
@@ -15201,7 +15289,7 @@ throws Exception
 		__nwsrfs_dmi = null;
 		JGUIUtil.setWaitCursor ( this, false );
 		return;
-		// REVISIT SAM 2004-09-08 need to remove from the input name
+		// TODO SAM 2004-09-08 need to remove from the input name
 		// list if an error?
 	}
 	
@@ -15420,7 +15508,7 @@ throws Exception
 		// The StateModB input type has been selected as a change from
 		// another type.  Repopululate the list if previous choices
 		// exist...
-		// REVISIT - probably not needed...
+		// TODO - probably not needed...
 		//__input_name_JComboBox.removeAll();
 		__input_name_JComboBox.setData ( __input_name_StateModB );
 	}
@@ -15541,7 +15629,7 @@ throws Exception
 		interval_base = TimeInterval.DAY;
 		comp = StateMod_DataSet.COMP_WELL_STATIONS;
 	}
-	// REVISIT SAM 2006-01-15
+	// TODO SAM 2006-01-15
 	// The following is not overly efficient because of a transition in
 	// StateMod versions.  The version of the format is determined from the
 	// file.  For older versions, this is used to return hard-coded
@@ -15619,7 +15707,7 @@ throws Exception
 	// First read the file with the lookup of time series to layer
 	// information.
 
-	// REVISIT SAM 2006-03-01
+	// TODO SAM 2006-03-01
 	// Currently read this each time because it is a small file and it
 	// helps in development to not restart.  However, in the future, change
 	// so that the file is read once.
@@ -15760,7 +15848,7 @@ throws Exception
 
 	// Determine the list of features (by ID, and optionally data source
 	// and interval) to select...
-	// REVISIT SAM 2006-01-16
+	// TODO SAM 2006-01-16
 	// Need to make this more generic by using an interface to retrieve
 	// important time series data?
 
@@ -16007,9 +16095,10 @@ private void uiAction_ShowCommandStatus()
   SwingUtilities.invokeLater(new Runnable() {
     public void run() {
       try {
-        String status = getCommandsStatus();
+        String status = uiAction_ShowCommandStatus_GetCommandsStatus();
 
         HTMLViewer hTMLViewer = new HTMLViewer();
+        hTMLViewer.setTitle ( "TSTool - Command Status" );
         hTMLViewer.setHTML(status);
         hTMLViewer.setSize(700,400);
         hTMLViewer.setVisible(true);
@@ -16023,16 +16112,170 @@ private void uiAction_ShowCommandStatus()
   }
 
 /**
- * Gets Commands status in HTML.
+ * Gets Commands status in HTML - this is currently only a helper for
+ * the above method.  Rename if it will be used generically.
  * @return
  */
-private String getCommandsStatus()
+private String uiAction_ShowCommandStatus_GetCommandsStatus()
 {
-  Vector commands = commandList_GetCommands();
-
+  Vector commands = commandList_GetCommandsBasedOnUI();
   String html = CommandStatusUtil.getHTMLStatusReport(commands);	
-
   return html;
+}
+
+/**
+Show an output file using the appropriate display software/editor.
+@param selected Path to selected output file.
+*/
+private void uiAction_ShowOutputFile ( String selected )
+{	String routine = getClass().getName() + ".uiAction_ShowOutputFile";
+	// Display the selected file...
+	String [] command_array = new String[2];
+	if ( !( new File( selected ).isAbsolute() ) ) {
+		selected = IOUtil.getPathUsingWorkingDir( selected );
+	}
+	if ( selected.toUpperCase().endsWith(".HTML")) {
+		// Run the simple RTi browser to display the check file
+		// this browser enables HTML navigation features for
+		// viewing the check file
+		try {
+				new SimpleBrowser( selected ).setVisible(true);
+			} 
+		catch ( MalformedURLException e ) {
+				Message.printWarning(2, routine,
+				"Couldn't find file or url: " + selected );
+			}
+		catch (IOException e) {
+				Message.printWarning( 2, routine,
+				"Failed to open browser to view: " + selected );
+				Message.printWarning( 3, routine, e );
+			}
+	}
+	else {
+		// Display a simple text file (will show up in courier fixed width
+		// font, which looks better than the HTML browser).
+		try {
+			if ( IOUtil.isUNIXMachine() ) {
+				// Use a built in viewer (may be slow)...
+				PropList reportProp = new PropList ("Output File");
+				reportProp.set ( "TotalWidth", "600" );
+				reportProp.set ( "TotalHeight", "300" );
+				reportProp.set ( "DisplayFont", "Courier" );
+				reportProp.set ( "DisplaySize", "11" );
+				reportProp.set ( "PrintFont", "Courier" );
+				reportProp.set ( "PrintSize", "7" );
+				reportProp.set ( "Title", selected );
+				reportProp.set ( "URL", selected );
+				new ReportJFrame ( null, reportProp );
+			}
+			else {
+				// Rely on Notepad on Windows...
+				command_array[0] = "notepad";
+				command_array[1] = IOUtil.getPathUsingWorkingDir(selected);
+				ProcessManager p = new ProcessManager ( command_array );
+				Thread t = new Thread ( p );
+				t.start();
+			}
+		}
+		catch (Exception e2) {
+			Message.printWarning (1, routine,
+					"Unable to view file by running \"" + command_array[1] + "\"" );
+		}
+	}
+}
+
+/**
+Show the properties for the currnet commands run (processor).
+*/
+private void uiAction_ShowProperties_CommandsRun ()
+{
+	PropList reportProp = new PropList ("ReportJFrame.props");
+	// Too big (make this big when we have more stuff)...
+	//reportProp.set ( "TotalWidth", "750" );
+	//reportProp.set ( "TotalHeight", "550" );
+	reportProp.set ( "TotalWidth", "600" );
+	reportProp.set ( "TotalHeight", "300" );
+	reportProp.set ( "DisplayFont", "Courier" );
+	reportProp.set ( "DisplaySize", "11" );
+	reportProp.set ( "PrintFont", "Courier" );
+	reportProp.set ( "PrintSize", "7" );
+	reportProp.set ( "Title", "TSTool Commands Run Properties" );
+	Vector v = new Vector ( 4 );
+	v.addElement ( "Properties from the last commands run." );
+	v.addElement ( "Note that property values are as of the time the window is opened." );
+	v.addElement ( "Properties are set as defaults initially and change value when a command is processed." );
+	v.addElement ( "" );
+	
+	String s1 = "", s2 = "";
+	// Initial and current working directory...
+	v.addElement ( "Initial working directory:  " + __ts_processor.getInitialWorkingDir() );
+	v.addElement ( "Current working directory:  " + __ts_processor.getWorkingDir() );
+	// Whether running and cancel requested...
+	v.addElement ( "Are commands running:  " + __ts_processor.getIsRunning() );
+	v.addElement ( "Has cancel been requested (and is pending):  " + __ts_processor.getCancelProcessingRequested() );
+	// Input period...
+	DateTime date1 = commandProcessor_GetInputStart();
+	if ( date1 == null ) {
+		s1 = "NOT SPECIFIED (use all available data)";
+	}
+	else {	s1 = date1.toString();
+	}
+	DateTime date2 = commandProcessor_GetInputEnd();
+	if ( date2 == null ) {
+		s2 = "NOT SPECIFIED (use all available data)";
+	}
+	else {	s2 = date2.toString();
+	}
+	v.addElement ( "Input (query/read) start: " + s1 );
+	v.addElement ( "Input (query/read) end:   " + s2 );
+	// Output period...
+	date1 = commandProcessor_GetOutputStart();
+	if ( date1 == null ) {
+		s1 = "NOT SPECIFIED (output all available data)";
+	}
+	else {	s1 = date1.toString();
+	}
+	date2 = commandProcessor_GetOutputEnd();
+	if ( date2 == null ) {
+		s2 = "NOT SPECIFIED (output all available data)";
+	}
+	else {	s2 = date2.toString();
+	}
+	v.addElement ( "Output period start: " + s1 );
+	v.addElement ( "Output period end:   " + s2 );
+	// Auto-extend period...
+	v.addElement ( "Automatically extend period to output "+
+		"period during read: " +
+		commandProcessor_GetAutoExtendPeriod () );
+	// Include missing TS automatically...
+	v.addElement ( "Include missing TS automatically: " +
+		commandProcessor_GetIncludeMissingTS() );
+	if ( __source_HydroBase_enabled ) {
+		v.addElement ( "" );
+		Object o2 = commandProcessor_GetHydroBaseDMIList();
+		if ( (o2 == null) || (((Vector)o2).size() == 0) ) {
+			v.addElement ( "No HydroBase connections are open for the command processor." );
+		}
+		else { Vector dmis = (Vector)o2;
+			int size = dmis.size();
+			for ( int i = 0; i < size; i++ ) {
+				v.addElement ( "Command processor HydroBase connection information:" );
+				try {
+					StringUtil.addListToStringList ( v,
+						StringUtil.toVector(
+						((HydroBaseDMI)dmis.elementAt(i)).
+						getVersionComments() ) );
+				}
+				catch ( Exception e ) {
+					// Ignore for now.
+				}
+			}
+		}
+	}
+	new ReportJFrame ( v, reportProp );
+	// Clean up...
+	v = null;
+	reportProp = null;
 }
 
 /**
@@ -16262,14 +16505,14 @@ throws Exception
 		int count;	// Count of values in a day (need 4).
 		double sum;	// Sum of 6-hour values for day.
 		double value;	// Value from the 6-hour time series.
-		// REVISIT SAM 2004-10-28 TOM Replace the following to loop
+		// TODO SAM 2004-10-28 TOM Replace the following to loop
 		// through each feature in the MAP centroid layer...
 		for ( int i = 0; i < 1; i++ ) {
 		loc = "NYZ001";
-		// REVISIT SAM 2004-10-28 This will only work on systems with
+		// TODO SAM 2004-10-28 This will only work on systems with
 		// 6-hour MAP (which is most).  Additional work will need to
 		// be done to support other systems.
-		// REVISIT SAM 2004-10-28 - Tom replace the following with
+		// TODO SAM 2004-10-28 - Tom replace the following with
 		//tsid = loc + ".NWSRFS.MAP.6Hour~NWSRFS_FS5Files";
 		tsid = loc + ".NWSRFS.MAP.6Hour~NWSRFS_FS5Files" +
 			"~" + __nwsrfs_dmi.getFS5FilesLocation();
@@ -16287,7 +16530,7 @@ throws Exception
 			// No time series so don't process into daily...
 			Message.printWarning ( 2, routine,
 			"No time series read for: \"" + tsid + "\"" );
-			// REVISIT Tom...
+			// TODO Tom...
 			// Somehow need to add -999 to the attribute table for
 			// this location.  Otherwise, if the time series is not
 			// null, do the following...
@@ -16299,7 +16542,7 @@ throws Exception
 		dayts.setDataUnitsOriginal ( ts.getDataUnitsOriginal() );
 		// Set the dates to include whatever the original data do - this
 		// may result in some missing data at the ends -
-		// REVISIT SAM 2004-10-28 need to decide whether to include
+		// TODO SAM 2004-10-28 need to decide whether to include
 		// partial totals at the ends - does the processed DB always
 		// have full days?
 		date = new DateTime ( ts.getDate1() );
@@ -16314,7 +16557,7 @@ throws Exception
 		// Loop through the 6-hour time series and convert each
 		// 18, 00, 06, 12 combination to a single 1-day sum,
 		// corresponding to the hydrologic day.
-		// REVISIT SAM 2004-10-28 at some point this may just call a
+		// TODO SAM 2004-10-28 at some point this may just call a
 		// generic TSUtil.changeInterval() method, but that code is not
 		// ready.
 		count = 0;
@@ -16325,7 +16568,7 @@ throws Exception
 			date.addHour ( 6 ) ) {
 			// Add to the sum...
 			value = ts.getDataValue(date);
-			// REVISIT SAM - Tom take out this status message
+			// TODO SAM - Tom take out this status message
 			// after testing out...
 			Message.printStatus ( 2, "", " 6-hour " +
 				date.toString() + " value=" + value );
@@ -16344,7 +16587,7 @@ throws Exception
 					// ending on YYYY-MM-DD HH is
 					// YYYY-MM-DD...
 					dayts.setDataValue ( date, sum );
-					// REVISIT SAM - Tom take out this
+					// TODO SAM - Tom take out this
 					// status message after testing out...
 					Message.printStatus ( 2, "", "24-hour "+
 					date.toString() + " value=" + sum );
@@ -16354,7 +16597,7 @@ throws Exception
 				sum = 0.0;
 			}
 		}
-		// REVISIT Tom...
+		// TODO Tom...
 		// Now add the daily values to the attribute table...
 		} // End loop through centroid layer features
 	}
@@ -16613,7 +16856,7 @@ throws Exception
 							}
 				
 							// Compute the average.
-							// REVISIT - need some
+							// TODO - need some
 							// criteria for minimum
 							// number of points.
 							if ( nvalues > 10 ) {
@@ -16822,7 +17065,7 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 {	String directory = null;
 	if ( prompt_for_file ) {
 		JFileChooser fc = JFileChooserFactory.createJFileChooser(
-			JGUIUtil.getLastFileDialogDirectory() );
+				ui_GetDir_LastCommandFileOpened() );
 		fc.setDialogTitle("Save Commands File");
 		// Default name...
 		File default_file = new File("commands.TSTool");
@@ -16833,7 +17076,7 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 			directory = fc.getSelectedFile().getParent();
 			file = fc.getSelectedFile().getPath();
 			IOUtil.enforceFileExtension ( file, "TSTool" );
-			JGUIUtil.setLastFileDialogDirectory ( directory );
+			ui_SetDir_LastCommandFileOpened( directory );
 		}		
 		else {	// Did not approve...
 			return;
@@ -16855,7 +17098,7 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 			// Set the "WorkingDir" property, which will NOT
 			// contain a trailing separator...
 			IOUtil.setProgramWorkingDir(directory);
-			JGUIUtil.setLastFileDialogDirectory(directory);
+			ui_SetDir_LastCommandFileOpened(directory);
 			__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 			ui_SetInitialWorkingDir (__props.getValue("WorkingDir"));
 		}
@@ -16948,7 +17191,7 @@ public void windowOpened ( WindowEvent e )
 {
 }
 
-// REVISIT SAM 2006-03-02
+// TODO SAM 2006-03-02 - Evaluate need
 // The JWorksheet_Listener may be deprecated or reworked in the future.  It is
 // used in a limited capacity here to detect row select/deselect from the popup
 // menu, so tha the status labels can be updated properly.
