@@ -440,16 +440,32 @@ public class tstool extends JApplet
 public static final String PROGRAM_NAME = "TSTool";
 public static final String PROGRAM_VERSION = "8.01.00 (2007-10-16)";
 
-private static TSTool_JFrame	__tstool_JFrame;	// Main GUI
-private static String		__home = null;		// Home directory for
-							// system install.
-private static PropList		__tstool_props = null;	// Properties.
-private static boolean		__is_server = false;	// Indicates whether
-							// TSTool is running in
-							// server mode - under
-							// development.
-private static boolean		__show_main_gui = true;	// Indicates whether the
-							// main GUI is shown.
+/**
+Main GUI instanced, used when running interactively.
+*/
+private static TSTool_JFrame	__tstool_JFrame;
+
+/**
+Home directory for system install.
+*/
+private static String		__home = null;
+
+/**
+List of properties to control app, from config file and passed to GUI, etc.
+*/
+private static PropList		__tstool_props = null;
+
+/**
+Indicates whether TSTool is running in server mode - under development.
+*/
+private static boolean		__is_server = false;
+
+/**
+Indicates whether the main GUI is shown, for cases where TSTool is run in
+in limited interactive mode, with only the plot window shown.
+*/
+private static boolean		__show_main_gui = true;	
+
 /**
 Commands file being processed when run in batch mode with -commands File.
 */
