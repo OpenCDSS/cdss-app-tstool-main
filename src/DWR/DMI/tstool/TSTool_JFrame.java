@@ -840,6 +840,7 @@ JMenuItem
 	__Commands_Create_TS_disaggregate_JMenuItem,
 	__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,
 	__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
+	__Commands_Create_TS_NewPatternTimeSeries_JMenuItem,
 	__Commands_Create_TS_newStatisticYearTS_JMenuItem,
 	__Commands_Create_TS_newTimeSeries_JMenuItem,
 	__Commands_Create_TS_normalize_JMenuItem,
@@ -1246,12 +1247,13 @@ private String
 		"TS Alias = newEndOfMonthTSFromDayTS()...  " +
 		"<convert daily data " +
 		"to end of month time series>",
+	__Commands_Create_TS_NewPatternTimeSeries_String = TAB +
+		"TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
 	__Commands_Create_TS_newStatisticYearTS_String = TAB +
 		"TS Alias = newStatisticYearTS()... <create a " +
 		"year time series using a statistic from another time series>",
 	__Commands_Create_TS_newTimeSeries_String = TAB +
-		"TS Alias = newTimeSeries()... <create and " +
-		"initialize a new time series>",
+		"TS Alias = newTimeSeries()... <create and initialize a new time series>",
 	__Commands_Create_TS_normalize_String = TAB +
 		"TS Alias = normalize()... <normalize time series" +
 		" to unitless values>",
@@ -2514,6 +2516,8 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			}
 		}
 	}
+	
+	// Refresh the command list status?
 
 	}
 	catch ( Exception e2 ) {
@@ -7777,6 +7781,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem =
 		new SimpleJMenuItem(
 		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String, this ) );
+	
+	__Commands_CreateTimeSeries_JMenu.add (
+			__Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Create_TS_NewPatternTimeSeries_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add (
 		__Commands_Create_TS_newStatisticYearTS_JMenuItem =
@@ -10174,6 +10183,10 @@ throws Exception
 			getCommand(), __INSERT_COMMAND );
 	}
 	*/
+	else if (command.equals( __Commands_Create_TS_NewPatternTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Create_TS_NewPatternTimeSeries_String,
+			null, __INSERT_COMMAND );
+	}
 	else if (command.equals(
 		__Commands_Create_TS_newStatisticYearTS_String)){
 		commandList_EditCommand ( __Commands_Create_TS_newStatisticYearTS_String,
