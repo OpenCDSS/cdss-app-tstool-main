@@ -1131,7 +1131,7 @@ private String
 
 	__CommandsPopup_FindCommands_String = "Find Command(s)...",
 	
-	__CommandsPopup_ShowCommandStatus_String = "Show Command Status",
+	__CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
 
 	// File menu (order in GUI)...
 
@@ -5968,12 +5968,14 @@ private void tsResultsList_AddTimeSeriesToResults ( final String ts_info )
 {	// This method may be called from a thread different than the Swing thread.  To
 	// avoid bad behavior in GUI components (like the results list having big gaps),
 	// use the following to queue up GUI actions on the Swing thread.
-	Runnable r = new Runnable () {
-		public void run () {
+	
+	//Runnable r = new Runnable () {
+	//	public void run () {
 			__ts_JListModel.addElement ( ts_info );
 			//String routine = "TSTool_JFrame.tsResultsList_AddTimeSeriesToResults";
 			//Message.printStatus ( 2, routine, "Added time series to results for \"" + ts_info + "\"" );
-			ui_UpdateStatus ( false );
+			//ui_UpdateStatus ( false );
+			/*
 		}
 	};
 	if ( SwingUtilities.isEventDispatchThread() )
@@ -5984,6 +5986,7 @@ private void tsResultsList_AddTimeSeriesToResults ( final String ts_info )
 	{
 		SwingUtilities.invokeLater ( r );
 	}
+	*/
 }
 
 /**
@@ -8472,6 +8475,12 @@ private void ui_InitGUIMenus_CommandsPopup ()
 {	// Pop-up menu to manipulate commands...
 	__Commands_JPopupMenu = new JPopupMenu("Command Actions");
 	__Commands_JPopupMenu.add(
+		__CommandsPopup_ShowCommandStatus_JMenuItem =
+		new SimpleJMenuItem (
+		__CommandsPopup_ShowCommandStatus_String,
+		__CommandsPopup_ShowCommandStatus_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
+	__Commands_JPopupMenu.add(
 		__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(
 		__Edit_String, __Edit_CommandWithErrorChecking_String, this ) );
@@ -8526,12 +8535,6 @@ private void ui_InitGUIMenus_CommandsPopup ()
 		new SimpleJMenuItem (
 		"Run " + __Run_SelectedCommandsIgnoreOutput_String,
 		__Run_SelectedCommandsIgnoreOutput_String, this ) );
-	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_ShowCommandStatus_JMenuItem =
-		new SimpleJMenuItem (
-		__CommandsPopup_ShowCommandStatus_String,
-		__CommandsPopup_ShowCommandStatus_String, this ) );
 }
 
 /**
@@ -14935,6 +14938,15 @@ Display the time series from the command processor in the results list.
 */
 private void uiAction_RunCommands_ShowTSResults ()
 {	String routine = "TSTool_JFrame.uiAction_RunCommands_ShowTSResults";
+
+	//This method may be called from a thread different than the Swing thread.  To
+	// avoid bad behavior in GUI components (like the results list having big gaps),
+	// use the following to queue up GUI actions on the Swing thread.
+	Runnable r = new Runnable () {
+		
+		public void run () {
+			String routine = "TSTool_JFrame.uiAction_RunCommands_ShowTSResults";
+
 	//	 Fill the time series list with the descriptions of the in-memory
 	// time series...
 	int size = commandProcessor_GetTimeSeriesResultsListSize();
@@ -15034,7 +15046,18 @@ private void uiAction_RunCommands_ShowTSResults ()
 	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
 			__STATUS_READY );
 	// Make sure that the user is not waiting on the wait cursor....
-	JGUIUtil.setWaitCursor ( this, false );
+	//JGUIUtil.setWaitCursor ( this, false );
+
+		}
+	};
+	if ( SwingUtilities.isEventDispatchThread() )
+	{
+		r.run();
+	}
+	else 
+	{
+		SwingUtilities.invokeLater ( r );
+	}
 }
 
 /**
