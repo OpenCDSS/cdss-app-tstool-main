@@ -841,6 +841,7 @@ JMenuItem
 	__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,
 	__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
 	__Commands_Create_TS_NewPatternTimeSeries_JMenuItem,
+	__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,
 	__Commands_Create_TS_newStatisticYearTS_JMenuItem,
 	__Commands_Create_TS_newTimeSeries_JMenuItem,
 	__Commands_Create_TS_normalize_JMenuItem,
@@ -1249,6 +1250,9 @@ private String
 		"to end of month time series>",
 	__Commands_Create_TS_NewPatternTimeSeries_String = TAB +
 		"TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
+	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB +
+		"TS Alias = NewStatisticTimeSeries()... <create a " +
+		"time series as a repeating statistic from another time series - EXPERIMENTAL>",
 	__Commands_Create_TS_newStatisticYearTS_String = TAB +
 		"TS Alias = newStatisticYearTS()... <create a " +
 		"year time series using a statistic from another time series>",
@@ -2406,7 +2410,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	}
 	else {
 		if ( is_comment_block ) {
-			// Don't do anything here.  New comments will be inserted below.
+			// Don't do anything here.  New comments will be inserted in cdoe below.
 		}
 		else {
 			// New command so create a command as a placeholder for
@@ -3645,7 +3649,7 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 				(String)new_comments.elementAt(i), true );
 		if (selectedSize > 0) {
 			// Insert before the first selected item...
-			int insert_pos0 = (selectedIndices[0] + 1);
+			int insert_pos0 = selectedIndices[0];
 			insert_pos = insert_pos0 + i;
 			__commands_JListModel.insertElementAt (	inserted_command, insert_pos );
 			Message.printStatus(2, routine, "Inserting comment \"" +
@@ -6126,11 +6130,9 @@ private void ui_CheckGUIState ()
 	if ( command_list_size > 0 ) {
 		// Have commands shown...
 		if ( __commands_dirty  ) {
-			JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,
-			true );
+			JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,true );
 		}
-		else {	JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,
-			false );
+		else {	JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,false );
 		}
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
@@ -6152,39 +6154,29 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __File_Save_JMenu, enabled );
 
 	if ( __smsdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,
-			true );
+		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,
-			false );
+	else {	JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,false );
 	}
 	if ( __DIADvisor_dmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
-			true );
+		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,
-			false );
+	else {	JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,false );
 	}
 	if ( __hbdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,
-			true );
+		JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,
-			false );
+	else {	JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,false );
 	}
 	if ( __nwsrfs_dmi != null ) {
-		JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,
-			true );
+		JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,
-			false );
+	else {	JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,false );
 	}
 	if ( __rdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,
-			true );
+		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,
-			false );
+	else {	JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,false );
 	}
 
 	// Edit menu...
@@ -6199,8 +6191,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem,false);
 		JGUIUtil.setEnabled (__CommandsPopup_SelectAll_JMenuItem,false);
 		JGUIUtil.setEnabled(__Edit_DeselectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,
-			false);
+		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,false);
 	}
 	if ( selected_commands_size > 0 ) {
 		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,true);
@@ -6209,50 +6200,34 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem,true);
 		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem,true);
-		JGUIUtil.setEnabled(
-			__Edit_CommandWithErrorChecking_JMenuItem, true );
-		JGUIUtil.setEnabled(
-			__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
-			true );
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsToComments_JMenuItem,true);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
-		true);
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsFromComments_JMenuItem,true);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
-		true);
+		JGUIUtil.setEnabled ( __Edit_CommandWithErrorChecking_JMenuItem, true );
+		JGUIUtil.setEnabled ( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,true );
+		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsToComments_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,true);
 	}
-	else {	JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem, false );
+	else {
+		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem, false );
 		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem, false );
 		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem, false );
-		JGUIUtil.setEnabled (
-			__Edit_CommandWithErrorChecking_JMenuItem, false );
-		JGUIUtil.setEnabled (
-			__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
-			false );
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsToComments_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
-		false);
-		JGUIUtil.setEnabled (
-		__Edit_ConvertSelectedCommandsFromComments_JMenuItem,false);
-		JGUIUtil.setEnabled (
-		__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
-		false);
+		JGUIUtil.setEnabled ( __Edit_CommandWithErrorChecking_JMenuItem, false );
+		JGUIUtil.setEnabled ( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,false );
+		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsToComments_JMenuItem,false);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,false);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,false);
 	}
 	if ( __commands_cut_buffer.size() > 0 ) {
 		// Paste button should be enabled...
 		JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, true );
 		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, true );
 	}
-	else {	JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, false );
+	else {
+		JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, false );
 	}
 
@@ -6261,126 +6236,78 @@ private void ui_CheckGUIState ()
 	// Commands menu...
 
 	if ( command_list_size > 0 ) {
-		JGUIUtil.setEnabled (
-			__Commands_Create_createTraces_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_average_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_changeInterval_JMenuItem, true);
-		JGUIUtil.setEnabled (__Commands_Create_TS_copy_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_disaggregate_JMenuItem, true);
-		JGUIUtil.setEnabled (
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,
-			true );
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
-			true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newStatisticYearTS_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_normalize_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_relativeDiff_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_weightTraces_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_createTraces_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_average_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_changeInterval_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_copy_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_disaggregate_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,	true );
+		JGUIUtil.setEnabled ( __Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_newStatisticYearTS_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_normalize_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_relativeDiff_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_weightTraces_JMenuItem, true);
 
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillCarryForward_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillConstant_JMenuItem, true);
-		JGUIUtil.setEnabled (
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistMonthAverage_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistYearAverage_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillInterpolate_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillCarryForward_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillConstant_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillFromTS_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillHistMonthAverage_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillHistYearAverage_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillInterpolate_JMenuItem, true);
 		// TODO SAM 2005-04-26 This fill method is not enabled - may not be needed.
 		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillMixedStation_JMenuItem,true );
+		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE2_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillMixedStation_JMenuItem,true );
 		JGUIUtil.setEnabled(__Commands_Fill_fillPattern_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillProrate_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRegression_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRepeat_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillUsingDiversionComments_JMenuItem,
-			true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillUsingDiversionComments_JMenuItem,	true);
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, true );
 
-		JGUIUtil.setEnabled(__Commands_Set_replaceValue_JMenuItem,true);
-		JGUIUtil.setEnabled(__Commands_Set_setConstant_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Set_setConstantBefore_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Set_setDataValue_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Set_replaceValue_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Set_setConstant_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Set_setConstantBefore_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Set_setDataValue_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Set_setFromTS_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
 
-		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_addConstant_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_adjustExtremes_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Manipulate_ARMA_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Manipulate_blend_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_convertDataUnits_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_cumulate_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_divide_JMenuItem,true);
-		JGUIUtil.setEnabled (__Commands_Manipulate_free_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_multiply_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_runningAverage_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_Manipulate_scale_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_shiftTimeByInterval_JMenuItem,
-			true);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_subtract_JMenuItem, true);
-		JGUIUtil.setEnabled(__Commands_ManipulateTimeSeries_JMenu,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_add_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_addConstant_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_adjustExtremes_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_ARMA_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_blend_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_convertDataUnits_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_cumulate_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_divide_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_free_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_multiply_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_runningAverage_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_scale_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_shiftTimeByInterval_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_subtract_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,true);
 
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_analyzePattern_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_compareTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Analyze_analyzePattern_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Analyze_compareTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
 
 		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
 
-		JGUIUtil.setEnabled (
-			__Commands_Output_sortTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeDateValue_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeNwsCard_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
-			true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeRiverWare_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateCU_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateMod_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeSummary_JMenuItem, true);
-		JGUIUtil.setEnabled(
-			__Commands_Output_deselectTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled (
-			__Commands_Output_selectTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_sortTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeDateValue_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeStateMod_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_writeSummary_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_deselectTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_selectTimeSeries_JMenuItem, true);
 
 		/* TODO - it is irritating to not be able to run commands
 		  when external input changes (or during debugging)...
@@ -6393,158 +6320,99 @@ private void ui_CheckGUIState ()
 		}
 		*/
 		if ( selected_commands_size > 0 ) {
-			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,
-				true );
+			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, true );
 		}
-		else {	JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,
-				false );
+		else {	JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,false );
 		}
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
 		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
 	}
 	else {	// No commands are shown.
-		JGUIUtil.setEnabled (
-			__Commands_Create_createTraces_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_average_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_changeInterval_JMenuItem,false);
-		JGUIUtil.setEnabled(__Commands_Create_TS_copy_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_disaggregate_JMenuItem, false);
-		JGUIUtil.setEnabled (
-		__Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_newStatisticYearTS_JMenuItem,
-			false );
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_normalize_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_relativeDiff_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Create_TS_weightTraces_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_createTraces_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_average_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_changeInterval_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_copy_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_disaggregate_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,false );
+		JGUIUtil.setEnabled ( __Commands_Create_TS_newStatisticYearTS_JMenuItem,false );
+		JGUIUtil.setEnabled ( __Commands_Create_TS_normalize_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_relativeDiff_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_weightTraces_JMenuItem, false);
 
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillCarryForward_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillConstant_JMenuItem, false);
-		JGUIUtil.setEnabled (
-		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,
-			false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillFromTS_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistMonthAverage_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillHistYearAverage_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillInterpolate_JMenuItem, false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMixedStation_JMenuItem,
-			false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem, false);
-		JGUIUtil.setEnabled(__Commands_Fill_fillMOVE2_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillPattern_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillProrate_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRegression_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillRepeat_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Fill_fillUsingDiversionComments_JMenuItem,
-			false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillCarryForward_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillConstant_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,	false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillFromTS_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillHistMonthAverage_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillHistYearAverage_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillInterpolate_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillMixedStation_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE1_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE2_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillPattern_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillUsingDiversionComments_JMenuItem,	false);
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
 
-		JGUIUtil.setEnabled (
-			__Commands_Set_replaceValue_JMenuItem, false);
-		JGUIUtil.setEnabled(__Commands_Set_setConstant_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Set_setConstantBefore_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Set_setDataValue_JMenuItem, false);
-		JGUIUtil.setEnabled (__Commands_Set_setFromTS_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_replaceValue_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_setConstant_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Set_setConstantBefore_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_setDataValue_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_setFromTS_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_setMax_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_setToMin_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
 
-		JGUIUtil.setEnabled (__Commands_Manipulate_add_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_addConstant_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_adjustExtremes_JMenuItem,false);
-		JGUIUtil.setEnabled(__Commands_Manipulate_ARMA_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_blend_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_convertDataUnits_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_cumulate_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_divide_JMenuItem,false);
-		JGUIUtil.setEnabled(__Commands_Manipulate_free_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_multiply_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_runningAverage_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_scale_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_shiftTimeByInterval_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Commands_Manipulate_subtract_JMenuItem, false);
-		JGUIUtil.setEnabled(
-			__Commands_ManipulateTimeSeries_JMenu,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_add_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_addConstant_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_adjustExtremes_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_ARMA_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_blend_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_convertDataUnits_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_cumulate_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_divide_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_free_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_multiply_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_runningAverage_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_scale_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_shiftTimeByInterval_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_subtract_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,false);
 
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_analyzePattern_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Analyze_compareTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled (__Commands_AnalyzeTimeSeries_JMenu, false);
+		JGUIUtil.setEnabled ( __Commands_Analyze_analyzePattern_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Analyze_compareTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
 
 		// TODO SAM 2005-07-11 For now enable because models can
 		// create time series...
 		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
 
-		JGUIUtil.setEnabled(
-			__Commands_Output_sortTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled(
-			__Commands_Output_writeDateValue_JMenuItem, false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeNwsCard_JMenuItem,false);
-		JGUIUtil.setEnabled(
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
-			false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeRiverWare_JMenuItem, false );
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateCU_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeStateMod_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_writeSummary_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_deselectTimeSeries_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_Output_selectTimeSeries_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_sortTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Output_writeDateValue_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, false );
+		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_writeStateMod_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_writeSummary_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_deselectTimeSeries_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_selectTimeSeries_JMenuItem,false);
 
 		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
 		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
 	}
 	if ( selected_commands_size > 0 ) {
-		JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDTo_readTimeSeries_JMenuItem,true);
-		JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDToReadCommand_JMenu,true);
+		JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readTimeSeries_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_ConvertTSIDToReadCommand_JMenu,true);
 	}
-	else {	JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
-		JGUIUtil.setEnabled (
-			__Commands_ConvertTSIDToReadCommand_JMenu,false);
+	else {
+		JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_ConvertTSIDToReadCommand_JMenu,false);
 	}
 
 	// Run menu...
@@ -6600,24 +6468,15 @@ private void ui_CheckGUIState ()
 	// a TSID to a specific read command, as available in other menus,
 	// simplifying the conversion from time series browsing, to command
 	// language.
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readHydroBase_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readMODSIM_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readRiverWare_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readStateMod_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readStateModB_JMenuItem,false);
-	JGUIUtil.setEnabled (
-		__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readHydroBase_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readMODSIM_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readRiverWare_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readStateMod_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readStateModB_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem,false);
 
 	// TODO SAM 2005-09-02 Proposed new commands
 	JGUIUtil.setEnabled(__Commands_Read_TS_readStateModB_JMenuItem,false);
@@ -7789,6 +7648,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			__Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
 			new SimpleJMenuItem(
 			__Commands_Create_TS_NewPatternTimeSeries_String, this ) );
+	
+	__Commands_CreateTimeSeries_JMenu.add (
+			__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_Create_TS_NewStatisticTimeSeries_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add (
 		__Commands_Create_TS_newStatisticYearTS_JMenuItem =
@@ -10190,6 +10054,11 @@ throws Exception
 		commandList_EditCommand ( __Commands_Create_TS_NewPatternTimeSeries_String,
 			null, __INSERT_COMMAND );
 	}
+	else if (command.equals(
+			__Commands_Create_TS_NewStatisticTimeSeries_String)){
+			commandList_EditCommand ( __Commands_Create_TS_NewStatisticTimeSeries_String,
+				null, __INSERT_COMMAND );
+		}
 	else if (command.equals(
 		__Commands_Create_TS_newStatisticYearTS_String)){
 		commandList_EditCommand ( __Commands_Create_TS_newStatisticYearTS_String,
