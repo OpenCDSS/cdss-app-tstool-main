@@ -646,9 +646,9 @@ public static void main ( String args[] )
 		}
 	}
 	else if ( __is_server ) {
-		// Run in server mode via the GUI object.  This goes into a
-		// loop...
-		__tstool_JFrame.runServer();
+		// Run in server mode via the GUI object.  This goes into a loop...
+		//__tstool_JFrame.runServer();
+		// FIXME SAM 2007-11-06 Need to pull in XML-RPC or other server hook.
 	}
 	else {
 		// Run the GUI...

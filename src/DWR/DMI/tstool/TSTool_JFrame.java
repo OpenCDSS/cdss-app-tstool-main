@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -148,11 +149,14 @@ import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
+import RTi.Util.IO.CommandStatus;
 import RTi.Util.IO.CommandStatusProvider;
+import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.CommandStatusUtil;
 import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.EndianRandomAccessFile;
+import RTi.Util.IO.FileGenerator;
 import RTi.Util.IO.GenericCommand;
 import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
@@ -656,6 +660,12 @@ during startup.
 */
 private boolean __gui_initialized = false;
 
+/**
+Use this to temporarily ignore item action performed events, necessary when
+programatically modifying the contents of combo boxes.
+*/
+private boolean __ignore_ActionEvent = false;
+
 // TODO SAM 2007-10-19 Evaluate whether still needed with new list model.
 /**
 Use this to temporarily ignore item listener events, necessary when
@@ -984,7 +994,7 @@ JMenuItem
 	__Commands_Output_setOutputYearType_JMenuItem,
 	__Commands_Output_selectTimeSeries_JMenuItem,
 	__Commands_Output_sortTimeSeries_JMenuItem,
-	__Commands_Output_writeDateValue_JMenuItem,
+	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_writeNwsCard_JMenuItem,
 	__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Output_writeRiverWare_JMenuItem,
@@ -1149,8 +1159,7 @@ private String
 			__File_Save_CommandsAs_String = "Commands As...", 
 			__File_Save_TimeSeriesAs_String = "Time Series As...", 
 		__File_Print_String = "Print",
-			__File_Print_Commands_ActionString =
-				"File...Print...Commands...", 
+			__File_Print_Commands_ActionString = "File...Print...Commands...", 
 			__File_Print_Commands_String = "Commands...", 
 		__File_Properties_String = "Properties",
 			__File_Properties_CommandsRun_String="Commands Run",
@@ -1158,8 +1167,7 @@ private String
 			__File_Properties_ColoradoSMS_String = "ColoradoSMS",
 			__File_Properties_DIADvisor_String = "DIADvisor",
 			__File_Properties_HydroBase_String ="HydroBase",
-			__File_Properties_NWSRFSFS5Files_String =
-				"NWSRFS FS5 Files",
+			__File_Properties_NWSRFSFS5Files_String = "NWSRFS FS5 Files",
 			__File_Properties_RiversideDB_String = "RiversideDB",
 		__File_SetWorkingDirectory_String = "Set Working Directory...",
 		__File_Exit_String = "Exit",
@@ -1174,12 +1182,9 @@ private String
 		__Edit_SelectAllCommands_String ="Select All Commands",
 		__Edit_DeselectAllCommands_String = "Deselect All Commands",
 		__Edit_CommandsFile_String = "Commands File...",
-		__Edit_CommandWithErrorChecking_String =
-		"Command...",
-		__Edit_ConvertSelectedCommandsToComments_String = 
-		"Convert selected commands to # comments",
-		__Edit_ConvertSelectedCommandsFromComments_String =
-		"Convert selected commands from # comments",
+		__Edit_CommandWithErrorChecking_String = "Command...",
+		__Edit_ConvertSelectedCommandsToComments_String = "Convert selected commands to # comments",
+		__Edit_ConvertSelectedCommandsFromComments_String =	"Convert selected commands from # comments",
 
 	// View menu (order in GUI)...
 
@@ -1190,367 +1195,175 @@ private String
 
 	__Commands_String = "Commands",
 
-	__Commands_ConvertTSIDToReadCommand_String =
-		"Convert TS identifier to read command",
-	__Commands_ConvertTSIDTo_readTimeSeries_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readTimeSeries()",
-	__Commands_ConvertTSIDTo_readDateValue_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readDateValue()",
-	__Commands_ConvertTSIDTo_readHydroBase_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readHydroBase()",
-	__Commands_ConvertTSIDTo_readMODSIM_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = readMODSIM()",
-	__Commands_ConvertTSIDTo_readNwsCard_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = readNwsCard()",
-	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readNWSRFSFS5Files()",
-	__Commands_ConvertTSIDTo_readRiverWare_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readRiverWare()",
-	__Commands_ConvertTSIDTo_readStateMod_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readStateMod()",
-	__Commands_ConvertTSIDTo_readStateModB_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readStateModB()",
-	__Commands_ConvertTSIDTo_readUsgsNwis_String = TAB +
-		"Convert TS identifier (X.X.X.X.X) to TS Alias = " +
-		"readUsgsNwis()",
+	__Commands_ConvertTSIDToReadCommand_String = "Convert TS identifier to read command",
+	__Commands_ConvertTSIDTo_readTimeSeries_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readTimeSeries()",
+	__Commands_ConvertTSIDTo_readDateValue_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readDateValue()",
+	__Commands_ConvertTSIDTo_readHydroBase_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readHydroBase()",
+	__Commands_ConvertTSIDTo_readMODSIM_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readMODSIM()",
+	__Commands_ConvertTSIDTo_readNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNwsCard()",
+	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNWSRFSFS5Files()",
+	__Commands_ConvertTSIDTo_readRiverWare_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readRiverWare()",
+	__Commands_ConvertTSIDTo_readStateMod_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readStateMod()",
+	__Commands_ConvertTSIDTo_readStateModB_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readStateModB()",
+	__Commands_ConvertTSIDTo_readUsgsNwis_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readUsgsNwis()",
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
-	__Commands_Create_createFromList_String = TAB +
-		"createFromList()...  <read 1(+) time series "
-		+ "from a list of identifiers>",
-	__Commands_Create_createTraces_String = TAB +
-		"createTraces()...  <convert 1 time series " +
-		"to 1+ annual traces>",
-	__Commands_Create_TS_average_String = TAB +
-		"TS Alias = average()...  " +
-		"<create a time series as average of others>",
-	__Commands_Create_TS_changeInterval_String = TAB +
-		"TS Alias = changeInterval()...  " +
-		"<convert time series to one with a different interval (under" +
-		" development)>",
-	__Commands_Create_TS_copy_String = TAB +
-		"TS Alias = copy()...  <copy a time series>",
-	__Commands_Create_TS_disaggregate_String =TAB+
-		"TS Alias = disaggregate()...  " +
-		"<disaggregate longer interval to shorter>",
-	__Commands_Create_TS_newDayTSFromMonthAndDayTS_String =TAB+
-		"TS Alias = newDayTSFromMonthAndDayTS()...  " +
-		"<create daily time " +
-		"series from monthly total and daily pattern>",
-	__Commands_Create_TS_newEndOfMonthTSFromDayTS_String = TAB +
-		"TS Alias = newEndOfMonthTSFromDayTS()...  " +
-		"<convert daily data " +
-		"to end of month time series>",
-	__Commands_Create_TS_NewPatternTimeSeries_String = TAB +
-		"TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
-	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB +
-		"TS Alias = NewStatisticTimeSeries()... <create a " +
-		"time series as a repeating statistic from another time series - EXPERIMENTAL>",
-	__Commands_Create_TS_newStatisticYearTS_String = TAB +
-		"TS Alias = newStatisticYearTS()... <create a " +
-		"year time series using a statistic from another time series>",
-	__Commands_Create_TS_newTimeSeries_String = TAB +
-		"TS Alias = newTimeSeries()... <create and initialize a new time series>",
-	__Commands_Create_TS_normalize_String = TAB +
-		"TS Alias = normalize()... <normalize time series" +
-		" to unitless values>",
-	__Commands_Create_TS_relativeDiff_String = TAB +
-		"TS Alias = relativeDiff()... <relative difference of " +
-		"time series>",
-	__Commands_Create_TS_weightTraces_String = TAB +
-		"TS Alias = weightTraces()... <weight traces" +
-		" to create a new time series>",
+	__Commands_Create_createFromList_String = TAB + "createFromList()...  <read 1(+) time series from a list of identifiers>",
+	__Commands_Create_createTraces_String = TAB + "createTraces()...  <convert 1 time series to 1+ annual traces>",
+	__Commands_Create_TS_average_String = TAB +	"TS Alias = average()...  <create a time series as average of others>",
+	__Commands_Create_TS_changeInterval_String = TAB + "TS Alias = changeInterval()...  <convert time series to one with a different interval (under development)>",
+	__Commands_Create_TS_copy_String = TAB + "TS Alias = copy()...  <copy a time series>",
+	__Commands_Create_TS_disaggregate_String = TAB + "TS Alias = disaggregate()...  <disaggregate longer interval to shorter>",
+	__Commands_Create_TS_newDayTSFromMonthAndDayTS_String = TAB + "TS Alias = newDayTSFromMonthAndDayTS()...  <create daily time series from monthly total and daily pattern>",
+	__Commands_Create_TS_newEndOfMonthTSFromDayTS_String = TAB + "TS Alias = newEndOfMonthTSFromDayTS()...  <convert daily data to end of month time series>",
+	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
+	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as a repeating statistic from another time series - EXPERIMENTAL>",
+	__Commands_Create_TS_newStatisticYearTS_String = TAB + "TS Alias = newStatisticYearTS()... <create a year time series using a statistic from another time series>",
+	__Commands_Create_TS_newTimeSeries_String = TAB + "TS Alias = newTimeSeries()... <create and initialize a new time series>",
+	__Commands_Create_TS_normalize_String = TAB + "TS Alias = normalize()... <normalize time series to unitless values>",
+	__Commands_Create_TS_relativeDiff_String = TAB + "TS Alias = relativeDiff()... <relative difference of time series>",
+	__Commands_Create_TS_weightTraces_String = TAB + "TS Alias = weightTraces()... <weight traces to create a new time series>",
 
-	__Commands_Read_setIncludeMissingTS_String = TAB+
-		"setIncludeMissingTS()... <create empty time series if no " +
-		"data>",
-	__Commands_Read_setInputPeriod_String = TAB+
-		"setInputPeriod()... <for reading data>",
+	__Commands_Read_setIncludeMissingTS_String = TAB + "setIncludeMissingTS()... <create empty time series if no data>",
+	__Commands_Read_setInputPeriod_String = TAB + "setInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
-	__Commands_Read_readDateValue_String =TAB+
-		"readDateValue()...  <read 1(+) time " +
-		"series from a DateValue file>",
-	__Commands_Read_readHydroBase_String =TAB+
-		"readHydroBase()...  <read 1(+) time " +
-		"series from HydroBase>",
-	__Commands_Read_readMODSIM_String =TAB+
-		"readMODSIM()...  <read 1(+) time " +
-		"series from a MODSIM output file>",
-	__Commands_Read_readNwsCard_String =TAB+
-		"readNwsCard()...  <read 1(+) time " +
-		"series from an NWS CARD file>",
-	__Commands_Read_readNWSRFSESPTraceEnsemble_String =TAB+
-		"readNWSRFSESPTraceEnsemble()...  <read 1(+) time " +
-		"series from an NWSRFS ESP trace ensemble file>",
-	__Commands_Read_readNWSRFSFS5Files_String = TAB+
-		"readNWSRFSFS5Files()...  <read 1(+) time " +
-		"series from an NWSRFS FS5 Files>",
-	__Commands_Read_readStateCU_String =TAB+
-		"readStateCU()...  <read 1(+) time " +
-		"series from a StateCU file>",
-	__Commands_Read_readStateMod_String =TAB+
-		"readStateMod()...  <read 1(+) time " +
-		"series from a StateMod file>",
-	__Commands_Read_readStateModB_String =TAB+
-		"readStateModB()...  <read 1(+) time " +
-		"series from a StateMod binary output file>",
-	__Commands_Read_statemodMax_String = TAB +
-		"statemodMax()...  <generate 1(+) time series "+
-		"as max() of TS in two StateMod files>",
+	__Commands_Read_readDateValue_String = TAB + "readDateValue()...  <read 1(+) time series from a DateValue file>",
+	__Commands_Read_readHydroBase_String = TAB + "readHydroBase()...  <read 1(+) time series from HydroBase>",
+	__Commands_Read_readMODSIM_String = TAB + "readMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
+	__Commands_Read_readNwsCard_String = TAB + "readNwsCard()...  <read 1(+) time series from an NWS CARD file>",
+	__Commands_Read_readNWSRFSESPTraceEnsemble_String = TAB + "readNWSRFSESPTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
+	__Commands_Read_readNWSRFSFS5Files_String = TAB + "readNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
+	__Commands_Read_readStateCU_String = TAB + "readStateCU()...  <read 1(+) time series from a StateCU file>",
+	__Commands_Read_readStateMod_String = TAB +	"readStateMod()...  <read 1(+) time series from a StateMod file>",
+	__Commands_Read_readStateModB_String = TAB + "readStateModB()...  <read 1(+) time series from a StateMod binary output file>",
+	__Commands_Read_statemodMax_String = TAB + "statemodMax()...  <generate 1(+) time series as max() of TS in two StateMod files>",
 
-	__Commands_Read_TS_readDateValue_String = TAB+
-		"TS Alias = readDateValue()...  <read 1 time " +
-		"series from a DateValue file>",
-	__Commands_Read_TS_readHydroBase_String = TAB+
-		"TS Alias = readHydroBase()...  <read 1 time " +
-		"series from HydroBase>",
-	__Commands_Read_TS_readMODSIM_String = TAB+
-		"TS Alias = readMODSIM()...  <read 1 time " +
-		"series from a MODSIM output file>",
-	__Commands_Read_TS_readNDFD_String = TAB+
-		"TS Alias = readNDFD()...  <read 1 time " +
-		"series from NDFD web service>",
-	__Commands_Read_TS_readNwsCard_String = TAB+
-		"TS Alias = readNwsCard()...  <read 1 time " +
-		"series from an NWS CARD file>",
-	__Commands_Read_TS_readNWSRFSFS5Files_String = TAB+
-		"TS Alias = readNWSRFSFS5Files()...  <read 1 time " +
-		"series from an NWSRFS FS5 Files>",
-	__Commands_Read_TS_readRiverWare_String = TAB+
-		"TS Alias = readRiverWare()...  <read 1 time " +
-		"series from a RiverWare file>",
-	__Commands_Read_TS_readStateMod_String = TAB+
-		"TS Alias = readStateMod()...  <read 1 time " +
-		"series from a StateMod file>",
-	__Commands_Read_TS_readStateModB_String = TAB+
-		"TS Alias = readStateModB()...  <read 1 time " +
-		"series from a StateMod binary file>",
-	__Commands_Read_TS_readUsgsNwis_String = TAB+
-		"TS Alias = readUsgsNwis()...  <read 1 time " +
-		"series from a USGS NWIS file>",
+	__Commands_Read_TS_readDateValue_String = TAB +	"TS Alias = readDateValue()...  <read 1 time series from a DateValue file>",
+	__Commands_Read_TS_readHydroBase_String = TAB + "TS Alias = readHydroBase()...  <read 1 time series from HydroBase>",
+	__Commands_Read_TS_readMODSIM_String = TAB + "TS Alias = readMODSIM()...  <read 1 time series from a MODSIM output file>",
+	__Commands_Read_TS_readNDFD_String = TAB + "TS Alias = readNDFD()...  <read 1 time series from NDFD web service>",
+	__Commands_Read_TS_readNwsCard_String = TAB + "TS Alias = readNwsCard()...  <read 1 time series from an NWS CARD file>",
+	__Commands_Read_TS_readNWSRFSFS5Files_String = TAB + "TS Alias = readNWSRFSFS5Files()...  <read 1 time series from an NWSRFS FS5 Files>",
+	__Commands_Read_TS_readRiverWare_String = TAB +	"TS Alias = readRiverWare()...  <read 1 time series from a RiverWare file>",
+	__Commands_Read_TS_readStateMod_String = TAB + "TS Alias = readStateMod()...  <read 1 time series from a StateMod file>",
+	__Commands_Read_TS_readStateModB_String = TAB + "TS Alias = readStateModB()...  <read 1 time series from a StateMod binary file>",
+	__Commands_Read_TS_readUsgsNwis_String = TAB + "TS Alias = readUsgsNwis()...  <read 1 time series from a USGS NWIS file>",
 
 	// Commands... Fill Time Series...
 
 	__Commands_FillTimeSeries_String = "Fill Time Series Data",
-	__Commands_Fill_fillCarryForward_String =TAB+
-		"fillCarryForward()...  <Fill TS by carrying forward - " +
-		"** see fillRepeat()**>",
-	__Commands_Fill_fillConstant_String =TAB+
-		"fillConstant()...  <Fill TS with constant>",
-	__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String =TAB+
-		"fillDayTSFrom2MonthTSAnd1DayTS()...  " +
-		"<fill daily time series using D1 = D2*M1/M2>",
-	__Commands_Fill_fillFromTS_String =TAB+
-		"fillFromTS()...  <fill time series with " +
-		"values from another time series>",
-	__Commands_Fill_fillHistMonthAverage_String =TAB+
-		"fillHistMonthAverage()...  " +
-		"<Fill monthly TS using historic average>",
-	__Commands_Fill_fillHistYearAverage_String =TAB+
-		"fillHistYearAverage()...  <Fill yearly TS using historic " +
-		"average>",
-	__Commands_Fill_fillInterpolate_String =TAB+
-		"fillInterpolate()...  <Fill TS using interpolation>",
-	__Commands_Fill_fillMixedStation_String = TAB +
-		"fillMixedStation()...  <Fill TS using mixed stations (under" +
-		" development)>",
-	__Commands_Fill_fillMOVE1_String = TAB +
-		"fillMOVE1()...  <Fill TS using MOVE1 method>",
-	__Commands_Fill_fillMOVE2_String = TAB +
-		"fillMOVE2()...  <Fill TS using MOVE2 method>",
-	__Commands_Fill_fillPattern_String = TAB +
-		"fillPattern()...  <Fill TS using WET/DRY/AVG pattern>",
-	__Commands_Fill_fillProrate_String = TAB +
-		"fillProrate()...  <Fill TS by prorating another time series>",
-	__Commands_Fill_fillRegression_String = TAB +
-		"fillRegression()...  <Fill TS using regression>",
-	__Commands_Fill_fillRepeat_String = TAB +
-		"fillRepeat()...  <Fill TS by repeating values>",
-	__Commands_Fill_fillUsingDiversionComments_String = TAB +
-		"fillUsingDiversionComments()... <use diversion " +
-		"comments as data  - HydroBase ONLY>",
-	// SAMX - need to add later...
+	__Commands_Fill_fillCarryForward_String = TAB + "fillCarryForward()...  <Fill TS by carrying forward - ** see fillRepeat()**>",
+	__Commands_Fill_fillConstant_String = TAB + "fillConstant()...  <Fill TS with constant>",
+	__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String = TAB + "fillDayTSFrom2MonthTSAnd1DayTS()...  <fill daily time series using D1 = D2*M1/M2>",
+	__Commands_Fill_fillFromTS_String = TAB + "fillFromTS()...  <fill time series with values from another time series>",
+	__Commands_Fill_fillHistMonthAverage_String = TAB +	"fillHistMonthAverage()...  <Fill monthly TS using historic average>",
+	__Commands_Fill_fillHistYearAverage_String = TAB + "fillHistYearAverage()...  <Fill yearly TS using historic average>",
+	__Commands_Fill_fillInterpolate_String = TAB + "fillInterpolate()...  <Fill TS using interpolation>",
+	__Commands_Fill_fillMixedStation_String = TAB + "fillMixedStation()...  <Fill TS using mixed stations (under development)>",
+	__Commands_Fill_fillMOVE1_String = TAB + "fillMOVE1()...  <Fill TS using MOVE1 method>",
+	__Commands_Fill_fillMOVE2_String = TAB + "fillMOVE2()...  <Fill TS using MOVE2 method>",
+	__Commands_Fill_fillPattern_String = TAB + "fillPattern()...  <Fill TS using WET/DRY/AVG pattern>",
+	__Commands_Fill_fillProrate_String = TAB + "fillProrate()...  <Fill TS by prorating another time series>",
+	__Commands_Fill_fillRegression_String = TAB + "fillRegression()...  <Fill TS using regression>",
+	__Commands_Fill_fillRepeat_String = TAB + "fillRepeat()...  <Fill TS by repeating values>",
+	__Commands_Fill_fillUsingDiversionComments_String = TAB + "fillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
+	// TODO SAM - need to add later...
 	//MENU_INTERMEDIATE_FILL_WEIGHTS_String =
 	//	"Fill Using Weights...",
 
-	__Commands_Fill_setAutoExtendPeriod_String = TAB+
-		"setAutoExtendPeriod()... <for data filling and manipulation>",
-	__Commands_Fill_setAveragePeriod_String = TAB+
-		"setAveragePeriod()... <for data filling>",
-	__Commands_Fill_setIgnoreLEZero_String = TAB+
-		"setIgnoreLEZero()... <ignore values <= 0 in " +
-		"historical averages>",
-	__Commands_Fill_setMissingDataValue_String = TAB+
-		"setMissingDataValue()... <for data filling>",
-	__Commands_Fill_setPatternFile_String = TAB +
-		"setPatternFile()... <for use with fillPattern() >",
-	__Commands_Fill_setRegressionPeriod_String = TAB+
-		"setRegressionPeriod()... <for fillRegression()>",
-
+	__Commands_Fill_setAutoExtendPeriod_String = TAB + "setAutoExtendPeriod()... <for data filling and manipulation>",
+	__Commands_Fill_setAveragePeriod_String = TAB +	"setAveragePeriod()... <for data filling>",
+	__Commands_Fill_setIgnoreLEZero_String = TAB + "setIgnoreLEZero()... <ignore values <= 0 in historical averages>",
+	__Commands_Fill_setMissingDataValue_String = TAB + "setMissingDataValue()... <for data filling>",
+	__Commands_Fill_setPatternFile_String = TAB + "setPatternFile()... <for use with fillPattern() >",
+	__Commands_Fill_setRegressionPeriod_String = TAB + "setRegressionPeriod()... <for fillRegression()>",
 	__Commands_SetTimeSeries_String = "Set Time Series Contents",
-	__Commands_Set_replaceValue_String = TAB +
-		"replaceValue()...  <replace value (range) with constant in" +
-		" TS>",
-	__Commands_Set_setConstant_String = TAB +
-		"setConstant()...  <set all values to constant in TS>",
-	__Commands_Set_setConstantBefore_String = TAB +
-		"setConstantBefore()...  <set all values on and before a date"+
-		" to constant in TS>",
-	__Commands_Set_setDataValue_String = TAB +
-		"setDataValue()...  <set a single data value in a TS>",
-	__Commands_Set_setFromTS_String =TAB+
-		"setFromTS()...  <set time series " +
-		"values from another time series>",
-	__Commands_Set_setMax_String = TAB +
-		"setMax()...  <set values to maximum of time series>",
-	__Commands_Set_setToMin_String = TAB +
-		"setToMin()...  <set values to minimum of time series>",
+	__Commands_Set_replaceValue_String = TAB + "replaceValue()...  <replace value (range) with constant in TS>",
+	__Commands_Set_setConstant_String = TAB + "setConstant()...  <set all values to constant in TS>",
+	__Commands_Set_setConstantBefore_String = TAB +	"setConstantBefore()...  <set all values on and before a date to constant in TS>",
+	__Commands_Set_setDataValue_String = TAB + "setDataValue()...  <set a single data value in a TS>",
+	__Commands_Set_setFromTS_String = TAB + "setFromTS()...  <set time series values from another time series>",
+	__Commands_Set_setMax_String = TAB + "setMax()...  <set values to maximum of time series>",
+	__Commands_Set_setToMin_String = TAB + "setToMin()...  <set values to minimum of time series>",
 
 	// Commands...Manipulate Time Series menu...
 
-	__Commands_Manipulate_add_String = TAB +
-		"add()...  <Add one or more TS to another>",
-	__Commands_Manipulate_addConstant_String = TAB +
-		"addConstant()...  <Add a constant value to a TS>",
-	__Commands_Manipulate_adjustExtremes_String = TAB +
-		"adjustExtremes()...  <adjust extreme values>",
-	__Commands_Manipulate_ARMA_String = TAB +
-		"ARMA()...  <lag/attenuate a time series using ARMA>",
-	__Commands_Manipulate_blend_String = TAB +
-		"blend()...  <Blend one TS with another>",
-	__Commands_Manipulate_convertDataUnits_String = TAB +
-		"convertDataUnits()...  <Convert data units>",
-	__Commands_Manipulate_cumulate_String = TAB +
-		"cumulate()...  <Cumulate values over time>",
-	__Commands_Manipulate_divide_String = TAB +
-		"divide()...  <Divide one TS by another TS>",
-	__Commands_Manipulate_free_String = TAB +
-		"free()...  <Free TS>",
-	__Commands_Manipulate_multiply_String = TAB +
-		"multiply()...  <Multiply one TS by another TS>",
-	__Commands_Manipulate_runningAverage_String = TAB +
-		"runningAverage()...  <Convert TS to running average>",
-	__Commands_Manipulate_scale_String = TAB +
-		"scale()...  <Scale TS by a constant>",
-	__Commands_Manipulate_shiftTimeByInterval_String = TAB +
-		"shiftTimeByInterval()...  " +
-		"<Shift TS by an even interval>",
-	__Commands_Manipulate_subtract_String = TAB +
-		"subtract()...  <Subtract one or more TS from another>",
+	__Commands_Manipulate_add_String = TAB + "add()...  <Add one or more TS to another>",
+	__Commands_Manipulate_addConstant_String = TAB + "addConstant()...  <Add a constant value to a TS>",
+	__Commands_Manipulate_adjustExtremes_String = TAB + "adjustExtremes()...  <adjust extreme values>",
+	__Commands_Manipulate_ARMA_String = TAB + "ARMA()...  <lag/attenuate a time series using ARMA>",
+	__Commands_Manipulate_blend_String = TAB + "blend()...  <Blend one TS with another>",
+	__Commands_Manipulate_convertDataUnits_String = TAB + "convertDataUnits()...  <Convert data units>",
+	__Commands_Manipulate_cumulate_String = TAB + "cumulate()...  <Cumulate values over time>",
+	__Commands_Manipulate_divide_String = TAB +	"divide()...  <Divide one TS by another TS>",
+	__Commands_Manipulate_free_String = TAB + "free()...  <Free TS>", 
+	__Commands_Manipulate_multiply_String = TAB + "multiply()...  <Multiply one TS by another TS>",
+	__Commands_Manipulate_runningAverage_String = TAB +	"runningAverage()...  <Convert TS to running average>",
+	__Commands_Manipulate_scale_String = TAB + "scale()...  <Scale TS by a constant>",
+	__Commands_Manipulate_shiftTimeByInterval_String = TAB + "shiftTimeByInterval()...  <Shift TS by an even interval>",
+	__Commands_Manipulate_subtract_String = TAB + "subtract()...  <Subtract one or more TS from another>",
 
 	// Commands...Output Series menu...
 
 	__Commands_OutputTimeSeries_String = "Output Time Series",
-	__Commands_Output_deselectTimeSeries_String = TAB +
-		"deselectTimeSeries()...  <deselect time series for output>",
-	__Commands_Output_selectTimeSeries_String = TAB +
-		"selectTimeSeries()...  <select time series for output>",
-	__Commands_Output_setOutputDetailedHeaders_String = TAB +
-		"setOutputDetailedHeaders()... <in summary reports>",
-	__Commands_Output_setOutputPeriod_String = TAB+
-		"setOutputPeriod()... <for output products>",
-	__Commands_Output_setOutputYearType_String = TAB +
-		"setOutputYearType()... <e.g., Water, Calendar>",
-	__Commands_Output_sortTimeSeries_String = TAB +
-		"sortTimeSeries()...  <sort time series>",
-	__Commands_Output_writeDateValue_String = TAB +
-		"writeDateValue()...  <write DateValue file>",
-	__Commands_Output_writeNwsCard_String = TAB +
-		"writeNwsCard()...  <write NWS Card file>",
-	__Commands_Output_writeNWSRFSESPTraceEnsemble_String = TAB +
-		"writeNWSRFSESPTraceEnsemble()...  " +
-		"<write ESP trace ensemble file>",
-	__Commands_Output_writeRiverWare_String = TAB +
-		"writeRiverWare()...  <write RiverWare file>",
-	__Commands_Output_writeStateCU_String = TAB +
-		"writeStateCU()...  <write StateCU file>",
-	__Commands_Output_writeStateMod_String = TAB +
-		"writeStateMod()...  <write StateMod file>",
-	__Commands_Output_writeSummary_String = TAB +
-		"writeSummary()...  <write Summary file>",
-	__Commands_Output_processTSProduct_String = TAB +
-		"processTSProduct()...  <process a time series product file>",
+	__Commands_Output_deselectTimeSeries_String = TAB +	"deselectTimeSeries()...  <deselect time series for output>",
+	__Commands_Output_selectTimeSeries_String = TAB + "selectTimeSeries()...  <select time series for output>",
+	__Commands_Output_setOutputDetailedHeaders_String = TAB + "setOutputDetailedHeaders()... <in summary reports>",
+	__Commands_Output_setOutputPeriod_String = TAB + "setOutputPeriod()... <for output products>",
+	__Commands_Output_setOutputYearType_String = TAB + "setOutputYearType()... <e.g., Water, Calendar>",
+	__Commands_Output_sortTimeSeries_String = TAB +	"sortTimeSeries()...  <sort time series>",
+	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
+	__Commands_Output_writeNwsCard_String = TAB + "writeNwsCard()...  <write NWS Card file>",
+	__Commands_Output_writeNWSRFSESPTraceEnsemble_String = TAB + "writeNWSRFSESPTraceEnsemble()...  <write ESP trace ensemble file>",
+	__Commands_Output_writeRiverWare_String = TAB +	"writeRiverWare()...  <write RiverWare file>",
+	__Commands_Output_writeStateCU_String = TAB + "writeStateCU()...  <write StateCU file>",
+	__Commands_Output_writeStateMod_String = TAB + "writeStateMod()...  <write StateMod file>",
+	__Commands_Output_writeSummary_String = TAB + "writeSummary()...  <write Summary file>",
+	__Commands_Output_processTSProduct_String = TAB + "processTSProduct()...  <process a time series product file>",
 
 	// Commands...Analyze Time Series...
 
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
-	__Commands_Analyze_analyzePattern_String = TAB +
-		"analyzePattern()... <determine pattern(s) for fillPattern()" +
-		" (under development)>",
-	__Commands_Analyze_compareTimeSeries_String = TAB +
-		"compareTimeSeries()... <find differences>",
+	__Commands_Analyze_analyzePattern_String = TAB + "analyzePattern()... <determine pattern(s) for fillPattern() (under development)>",
+	__Commands_Analyze_compareTimeSeries_String = TAB + "compareTimeSeries()... <find differences>",
 
-	__Commands_Analyze_newDataTest_String = TAB +
-		"DataTest TestID = newDataTest()... <create a new data test>" +
-		" (under development)",
-	__Commands_Analyze_readDataTestFromRiversideDB_String = TAB +
-		"readDataTestFromRiversideDB()... " +
-		"<read 1 data test from RiversideDB>" +
-		" (under development)",
-	__Commands_Analyze_runDataTests_String = TAB +
-		"runDataTests()... <run data tests to evaluate time series>" +
-		" (under development)",
-	__Commands_Analyze_processDataTestResults_String = TAB +
-		"processDataTestResults()... <process data test results>" +
-		" (under development)",
+	__Commands_Analyze_newDataTest_String = TAB + "DataTest TestID = newDataTest()... <create a new data test> (under development)",
+	__Commands_Analyze_readDataTestFromRiversideDB_String = TAB + "readDataTestFromRiversideDB()... <read 1 data test from RiversideDB> (under development)",
+	__Commands_Analyze_runDataTests_String = TAB + "runDataTests()... <run data tests to evaluate time series> (under development)",
+	__Commands_Analyze_processDataTestResults_String = TAB + "processDataTestResults()... <process data test results> (under development)",
 
 	// Commands...Models...
 
 	__Commands_Models_String = "Models",
-	__Commands_Models_lagK_String =
-		"TS Alias = lagK()... <lag and attenuate (route) " +
-			"(under development)>",
+	__Commands_Models_lagK_String =	"TS Alias = lagK()... <lag and attenuate (route) (under development)>",
 
 	// HydroBase commands...
 
 	__Commands_HydroBase_String = "HydroBase",
-	__Commands_HydroBase_openHydroBase_String = TAB+
-		"openHydroBase()... <open HydroBase database connection>",
+	__Commands_HydroBase_openHydroBase_String = TAB + "openHydroBase()... <open HydroBase database connection>",
 
 	// NDFD commands...
 
 	__Commands_NDFD_String = "NDFD",
-	__Commands_NDFD_openNDFD_String = TAB+
-		"openNDFD()... <open NDFD web site connection>",
+	__Commands_NDFD_openNDFD_String = TAB +	"openNDFD()... <open NDFD web site connection>",
 
 	// General Commands...
 
 	__Commands_General_String = "General",
-	__Commands_General_startLog_String = TAB +
-		"startLog()... <(re)start the log file>",
-	__Commands_General_setDebugLevel_String = TAB+
-		"setDebugLevel()... <set debug message level>",
-	__Commands_General_setWarningLevel_String = TAB+
-		"setWarningLevel()... <set debug message level>",
-	__Commands_General_setWorkingDir_String = TAB +
-		"setWorkingDir()... <set the working " +
-		"directory for relative paths>",
-	__Commands_General_Comment_String = TAB +
-		"# comment(s)...",
-	__Commands_General_startComment_String = TAB +
-		"/*   <start comment>",
-	__Commands_General_endComment_String = TAB +
-		"*/   <end comment>",
-	__Commands_General_exit_String = TAB +
-		"exit()  <to end processing>",
-	__Commands_General_compareFiles_String = TAB +
-		"compareFiles()... <compare files>",
-	__Commands_General_runCommands_String = TAB+
-		"runCommands()... <run a commands file> (under development)",
-	__Commands_General_runProgram_String = TAB+
-		"runProgram()... <run external program>",
-	__Commands_General_testCommand_String = TAB+
-		"testCommand()... <for development testing>",
-	__Commands_General_CreateRegressionTestCommandFile_String = TAB+
-		"CreateRegressionTestCommandFile()... <to verify software>",
+	__Commands_General_startLog_String = TAB + "startLog()... <(re)start the log file>",
+	__Commands_General_setDebugLevel_String = TAB +	"setDebugLevel()... <set debug message level>",
+	__Commands_General_setWarningLevel_String = TAB + "setWarningLevel()... <set debug message level>",
+	__Commands_General_setWorkingDir_String = TAB +	"setWorkingDir()... <set the working directory for relative paths>",
+	__Commands_General_Comment_String = TAB + "# comment(s)...",
+	__Commands_General_startComment_String = TAB + "/*   <start comment>",
+	__Commands_General_endComment_String = TAB + "*/   <end comment>",
+	__Commands_General_exit_String = TAB + "exit()  <to end processing>",
+	__Commands_General_compareFiles_String = TAB + "compareFiles()... <compare files>",
+	__Commands_General_runCommands_String = TAB + "runCommands()... <run a commands file> (under development)",
+	__Commands_General_runProgram_String = TAB + "runProgram()... <run external program>",
+	__Commands_General_testCommand_String = TAB + "testCommand()... <for development testing>",
+	__Commands_General_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to verify software>",
 
 	// Results menu choices (order in GUI)...
 
@@ -1564,10 +1377,8 @@ private String
 	__Results_Graph_LineLogY_String = "Graph - Line (log Y-axis)",
 	__Results_Graph_PeriodOfRecord_String = "Graph - Period of Record",
 	__Results_Graph_Point_String = "Graph - Point",
-	__Results_Graph_PredictedValue_String =
-		"Graph - Predicted Value (under development)",
-	__Results_Graph_PredictedValueResidual_String =
-		"Graph - Predicted Value Residual (under development)",
+	__Results_Graph_PredictedValue_String =	"Graph - Predicted Value (under development)",
+	__Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
 	__Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 
 	__Results_Table_String = "Table",
@@ -1580,47 +1391,31 @@ private String
 
 	// Run menu (order in GUI)...
 
-		__Run_AllCommandsCreateOutput_String =
-			"All Commands (create all output)",
-		__Run_AllCommandsIgnoreOutput_String =
-			"All Commands (ignore output commands)",
-		__Run_SelectedCommandsCreateOutput_String =
-			"Selected Commands (create all output)",
-		__Run_SelectedCommandsIgnoreOutput_String =
-			"Selected Commands (ignore output commands)",
-		__Run_CancelCommandProcessing_String = "Cancel Command Processing",
-		__Run_CommandsFromFile_String = "Commands From File...",
-		__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
-		__Run_ProcessTSProductOutput_String =
-			"Process TS Product File (create output)...",
+	__Run_AllCommandsCreateOutput_String = "All Commands (create all output)",
+	__Run_AllCommandsIgnoreOutput_String = "All Commands (ignore output commands)",
+	__Run_SelectedCommandsCreateOutput_String =	"Selected Commands (create all output)",
+	__Run_SelectedCommandsIgnoreOutput_String =	"Selected Commands (ignore output commands)",
+	__Run_CancelCommandProcessing_String = "Cancel Command Processing",
+	__Run_CommandsFromFile_String = "Commands From File...",
+	__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
+	__Run_ProcessTSProductOutput_String = "Process TS Product File (create output)...",
 
 	// Tools menu (order in GUI)...
 
 	__Tools_String = "Tools",
 		__Tools_Analysis_String = "Analysis",
-			__Tools_Analysis_MixedStationAnalysis_String =
-				"Mixed Station Analysis... (under development)",
+			__Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
 		__Tools_Report_String = "Report",
-			__Tools_Report_DataCoverageByYear_String =
-				"Data Coverage by Year...",
-			__Tools_Report_DataLimitsSummary_String =
-				"Data Limits Summary...",
-			__Tools_Report_MonthSummaryDailyMeans_String =
-				"Month Summary (Daily Means)...",
-			__Tools_Report_MonthSummaryDailyTotals_String =
-				"Month Summary (Daily Totals)...",
-			__Tools_Report_YearToDateTotal_String =
-				"Year to Date Total... " +
-				"<Daily or real-time CFS Only!>",
+			__Tools_Report_DataCoverageByYear_String = "Data Coverage by Year...",
+			__Tools_Report_DataLimitsSummary_String = "Data Limits Summary...",
+			__Tools_Report_MonthSummaryDailyMeans_String = "Month Summary (Daily Means)...",
+			__Tools_Report_MonthSummaryDailyTotals_String =	"Month Summary (Daily Totals)...",
+			__Tools_Report_YearToDateTotal_String =	"Year to Date Total... <Daily or real-time CFS Only!>",
 		__Tools_NWSRFS_String = "NWSRFS",
-			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String =
-				"Convert NWSRFS ESP Trace Ensemble File to " +
-				"Text...",
-			__Tools_NWSRFS_ConvertJulianHour_String =
-				"Convert Julian Hour...",
+			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String = "Convert NWSRFS ESP Trace Ensemble File to Text...",
+			__Tools_NWSRFS_ConvertJulianHour_String = "Convert Julian Hour...",
 		__Tools_RiversideDB_String = "RiversideDB",
-			__Tools_RiversideDB_TSProductManager_String =
-				"Manage Time Series Products in RiversideDB...",
+			__Tools_RiversideDB_TSProductManager_String = "Manage Time Series Products in RiversideDB...",
 		__Tools_SelectOnMap_String = "Select on Map",
 		__Tools_Options_String = "Options",
 
@@ -1631,8 +1426,7 @@ private String
 
 	// Strings used in popup menu for other components...
 
-	__InputName_BrowseStateModB_String =
-		"Browse for a StateMod binary file...",
+	__InputName_BrowseStateModB_String = "Browse for a StateMod binary file...",
 
 	__DATA_TYPE_AUTO	= "Auto",
 
@@ -2108,7 +1902,12 @@ Handle action events (menu and button actions).
 @param event Event to handle.
 */
 public void actionPerformed (ActionEvent event)
-{	try {	// This will chain, calling several methods, so that each method
+{	
+	if ( ui_GetIgnoreActionEvent() ) {
+		// Ignore ActionEvent for programmatic modification of data models.
+		return;
+	}
+	try {	// This will chain, calling several methods, so that each method
 		// does not get so large...
 
 		uiAction_ActionPerformed1_MainActions(event);
@@ -2150,7 +1949,7 @@ public void commandCancelled ( int icommand, int ncommand, Command command,
 			"Cancelled command processing.",
 			//"Cancelled: " + command_string,
 				null, __STATUS_CANCELLED );
-	uiAction_RunCommands_ShowTSResults ();
+	uiAction_RunCommands_ShowResults ();
 }
 
 /**
@@ -2183,7 +1982,7 @@ public void commandCompleted ( int icommand, int ncommand, Command command,
 		ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string,
 				__STATUS_READY );
 		if ( ui_Property_RunCommandProcessorInThread() ) {
-			uiAction_RunCommands_ShowTSResults ();
+			uiAction_RunCommands_ShowResults ();
 		}
 	}
 }
@@ -3270,16 +3069,6 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new setOutputYearType_JDialog ( this, cv, null).getText();
 	}
-	else if ( action.equals( __Commands_Output_writeDateValue_String)||
-		command.regionMatches(true,0,"writeDateValue",0,14) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for writeDateValue()" );
-		}
-		edited_cv = new writeDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Output_writeNwsCard_String)||
 		command.regionMatches(true,0,"writeNwsCard",0,12) ) {
 		if ( Message.isDebugOn ) {
@@ -3541,6 +3330,23 @@ private Vector commandList_GetCommandStrings ( boolean get_all )
 }
 
 /**
+Return the number of commands with failure as max severity.
+*/
+private int commandList_GetFailureCount()
+{
+	int size = __commands_JListModel.size();
+	CommandStatusProvider command;
+	int failure_count = 0;
+	for ( int i = 0; i < size; i++ ) {
+		command = (CommandStatusProvider)__commands_JListModel.get(i);
+		if ( CommandStatusUtil.getHighestSeverity(command).equals(CommandStatusType.FAILURE) ) {
+			++failure_count;
+		}
+	}
+	return failure_count;
+}
+
+/**
 Get the insert position for a command based on current selections.
 If no commands are selected, the insert position is the end of the list (size),
 and an add at the end should occur..
@@ -3560,6 +3366,23 @@ private int commandList_GetInsertPosition ()
 		insert_pos = __commands_JListModel.size();
 	}
 	return insert_pos;
+}
+
+/**
+Return the number of commands with warnings as maximum severity.
+*/
+private int commandList_GetWarningCount()
+{
+	int size = __commands_JListModel.size();
+	CommandStatusProvider command;
+	int failure_count = 0;
+	for ( int i = 0; i < size; i++ ) {
+		command = (CommandStatusProvider)__commands_JListModel.get(i);
+		if ( CommandStatusUtil.getHighestSeverity(command).equals(CommandStatusType.WARNING) ) {
+			++failure_count;
+		}
+	}
+	return failure_count;
 }
 
 /**
@@ -3869,19 +3692,19 @@ private void commandList_RemoveCommandsBasedOnUI ()
 		// elements will not affect the index of items before that
 		// index.  At some point need to add an undo feature.
 		JGUIUtil.setWaitCursor ( this, true );
-		__ignore_ItemEvent = true;
-		__ignore_ListSelectionEvent = true;
+		ui_SetIgnoreItemEvent ( true );
+		ui_SetIgnoreListSelectionEvent ( true );
 		for ( int i = (size - 1); i >= 0; i-- ) {
 			__commands_JListModel.removeElementAt (
 				selected_indices[i] );
 		}
-		__ignore_ItemEvent = false;
-		__ignore_ListSelectionEvent = false;
+		ui_SetIgnoreItemEvent ( false );
+		ui_SetIgnoreListSelectionEvent ( false );
 		selected_indices = null;
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 	commandList_SetDirty ( true );
-	tsResultsList_Clear();
+	results_TimeSeries_Clear();
 	ui_UpdateStatus ( true );
 }
 
@@ -4050,6 +3873,15 @@ public void commandProgress ( int istep, int nstep, Command command,
 
 // All of the following methods perform and interaction with the command processor,
 // beyond basic command list insert/delete/update.
+
+/**
+Clear the time series results in the command processor.
+*/
+private void commandProcessor_ClearResults()
+{
+	// Clear the time series in the processor...
+	__ts_processor.clearResults();
+}
 
 /**
 Get the command processor AutoExtendPeriod.  This method is meant for simple
@@ -4724,9 +4556,9 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	Message.printStatus ( 1, routine,
 	"Selecting query list time series based on map selections..." );
 	JGUIUtil.setWaitCursor ( this, true );
-	__ignore_ListSelectionEvent = true;	// To increase performance
+	ui_SetIgnoreListSelectionEvent ( true );	// To increase performance
 						// during transfer...
-	__ignore_ItemEvent = true;	// To increase performance
+	ui_SetIgnoreItemEvent ( true );	// To increase performance
 	int match_count = 0;
 	int ngeo = 0;
 	if ( selected != null ) {
@@ -5043,8 +4875,8 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 		").\nVerify that the map layer matches the time series list " +
 		"and that the lookup file has accurate information." );
 	}
-	__ignore_ListSelectionEvent = false;
-	__ignore_ItemEvent = false;
+	ui_SetIgnoreListSelectionEvent ( false );
+	ui_SetIgnoreItemEvent ( false );
 	ui_UpdateStatus ( true );
 	JGUIUtil.setWaitCursor ( this, false );
 	Message.printStatus ( 1, routine, "Selected all time series." );
@@ -5156,7 +4988,7 @@ public void itemStateChanged ( ItemEvent evt )
 		return;
 	}
 
-	if ( __ignore_ItemEvent ) {
+	if ( ui_GetIgnoreItemEvent() ) {
 		// A programatic change to a list is occurring and we want to
 		// ignore the event that will result...
 		return;
@@ -5916,50 +5748,34 @@ public void readPatternTS ()
 }
 
 /**
-Run TSTool in server mode.  Currently this is done without the GUI.
-Need to update this to use TSEngine for processing.
+Clear the results displays.
 */
-public void runServer ()
-{	// Loop until an "end" or "exit" command is encountered.  Read input
-	// from standard input and execute commands.  Do not yet support full
-	// TSEngine features but focus on TS Product processing...
-	BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
-	PrintStream out = System.out;
-	String string;
-	while ( true ) {
-		try {	string = in.readLine();
-		}
-		catch ( Exception e ) {
-			break;
-		}
-		if ( string == null ) {
-			// Should this ever happen?  Or will it happen because
-			// of the buffering, etc.?
-			continue;
-		}
-		string = string.trim();
-		if ( string.length() == 0 ) {
-			continue;
-		}
-		if (	string.equalsIgnoreCase("exit") ||
-			string.equalsIgnoreCase("end") ) {
-			out.println ( "stop 0" );
-			uiAction_FileExitClicked();
-		}
-		else {	out.println("error");
-		}
+private void results_Clear()
+{
+	results_TimeSeries_Clear();
+	results_OutputFiles_Clear();
+}
+
+/**
+Add the specified output file to the list of output files that can be selected for
+viewing.
+@param file Output file generated by the processor.
+*/
+private void results_OutputFiles_AddOutputFile ( File file )
+{	try {
+		__results_files_JComboBox.add( file.getCanonicalPath());
+	}
+	catch ( IOException e ) {
+		// Ignore for now - should not happen
 	}
 }
 
 /**
-Show and hide the main frame.
-@param state true if showing the frame, false if hiding it.
+Clear the list of output files.  This is normally called before the commands are run.
 */
-public synchronized void setVisible(boolean state)
-{	if (state) {
-		setLocation(50, 50);
-	}
-	super.setVisible(state);
+private void results_OutputFiles_Clear()
+{
+	__results_files_JComboBox.removeAll();
 }
 
 /**
@@ -5968,7 +5784,7 @@ Note that this does not add the actual time series, only a description string.
 The time series are still accessed by the positions in the list.
 @param ts_info Time series information to add at the end of the list.
 */
-private void tsResultsList_AddTimeSeriesToResults ( final String ts_info )
+private void results_TimeSeries_AddTimeSeriesToResults ( final String ts_info )
 {	// This method may be called from a thread different than the Swing thread.  To
 	// avoid bad behavior in GUI components (like the results list having big gaps),
 	// use the following to queue up GUI actions on the Swing thread.
@@ -5997,14 +5813,21 @@ private void tsResultsList_AddTimeSeriesToResults ( final String ts_info )
 Clear the final time series List.  Updates to the label are also done.
 Also set the engine to null.
 */
-private void tsResultsList_Clear()
+private void results_TimeSeries_Clear()
 {	// Clear the visible list of results...
 	__ts_JListModel.removeAllElements();
-	// Clear the time series in the processor...
-	__ts_processor.clearResults();
-	// Clear the list of output files...
-	__results_files_JComboBox.removeAll();
 	ui_UpdateStatus ( false );
+}
+
+/**
+Show and hide the main frame.
+@param state true if showing the frame, false if hiding it.
+*/
+public synchronized void setVisible(boolean state)
+{	if (state) {
+		setLocation(50, 50);
+	}
+	super.setVisible(state);
 }
 
 /**
@@ -6299,7 +6122,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
 
 		JGUIUtil.setEnabled ( __Commands_Output_sortTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_writeDateValue_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, true);
@@ -6392,7 +6215,7 @@ private void ui_CheckGUIState ()
 		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
 
 		JGUIUtil.setEnabled ( __Commands_Output_sortTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Output_writeDateValue_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, false );
@@ -6816,6 +6639,30 @@ the configuration file inforation or the HydroBase select dialog.
 private HydroBaseDMI ui_GetHydroBaseDMI ()
 {
 	return __hbdmi;
+}
+
+/**
+Return whether ActionEvents should be ignored.
+*/
+private boolean ui_GetIgnoreActionEvent()
+{
+	return __ignore_ActionEvent;
+}
+
+/**
+Return whether ItemEvents should be ignored.
+*/
+private boolean ui_GetIgnoreItemEvent()
+{
+	return __ignore_ItemEvent;
+}
+
+/**
+Return whether ListSelectionEvents should be ignored.
+*/
+private boolean ui_GetIgnoreListSelectionEvent()
+{
+	return __ignore_ListSelectionEvent;
 }
 
 //FIXME SAM 2007-11-01 Need to use /tmp etc for a startup home if not
@@ -8202,9 +8049,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeDateValue_JMenuItem =
+		__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_Output_writeDateValue_String, this ) );
+		__Commands_Output_WriteDateValue_String, this ) );
 
 	if ( __source_NWSCard_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add (
@@ -9019,6 +8866,39 @@ private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalComma
 }
 
 /**
+Set whether ActionEvents should be ignored (or not).  In general they should
+not be ignored but in some cases when programatically modifying data models
+the spurious events do not need to trigger other actions.
+@param ignore whether to ignore ActionEvents.
+*/
+private void ui_SetIgnoreActionEvent ( boolean ignore )
+{
+	__ignore_ActionEvent = ignore;
+}
+
+/**
+Set whether ItemEvents should be ignored (or not).  In general they should
+not be ignored but in some cases when programatically modifying data models
+the spurious events do not need to trigger other actions.
+@param ignore whether to ignore ActionEvents.
+*/
+private void ui_SetIgnoreItemEvent ( boolean ignore )
+{
+	__ignore_ItemEvent = ignore;
+}
+
+/**
+Set whether ListSelectionEvents should be ignored (or not).  In general they should
+not be ignored but in some cases when programatically modifying data models
+the spurious events do not need to trigger other actions.
+@param ignore whether to ignore ActionEvents.
+*/
+private void ui_SetIgnoreListSelectionEvent ( boolean ignore )
+{
+	__ignore_ListSelectionEvent = ignore;
+}
+
+/**
 Set the initial working directory, which will be the software startup home or
 the location where the commands file has been read/saved.
 @param initial_working_dir The initial working directory (should be non-null).
@@ -9177,7 +9057,7 @@ private void ui_SetInputTypeChoices ()
 {	//Message.printStatus ( 1, "", "SAMX - setting input type choices..." );
 	// Ignore item events while manipulating.  This should prevent
 	// unnecessary error-handling at startup.
-	__ignore_ItemEvent = true;
+	ui_SetIgnoreItemEvent ( true );
 	if ( __input_type_JComboBox.getItemCount() > 0 ) {
 		__input_type_JComboBox.removeAll ();
 	}
@@ -9233,7 +9113,7 @@ private void ui_SetInputTypeChoices ()
 
 	// Enable item events again so the events will cascade...
 
-	__ignore_ItemEvent = false;
+	ui_SetIgnoreItemEvent ( false );
 
 	if ( __source_HydroBase_enabled ) {
 		// If enabled, select it because the users probably want it
@@ -9272,7 +9152,9 @@ Interface tasks include:
 which checks many interface settings.
 */
 private void ui_UpdateStatus ( boolean check_gui_state )
-{	if ( __commands_file_name == null ) {
+{	// Title bar (command file)...
+	
+	if ( __commands_file_name == null ) {
 		setTitle ( "TSTool - no commands saved");
 	}
 	else {	if ( __commands_dirty ) {
@@ -9282,6 +9164,9 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		else {	setTitle ( "TSTool - \"" + __commands_file_name + "\"");
 		}
 	}
+	
+	// Query results...
+	
 	int selected_size = 0;
 	if ( __query_results_JPanel != null ) {
 		int size = 0;
@@ -9310,6 +9195,9 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		"Time Series List (" + size +
 		" time series, " + selected_size + " selected)") );
 	}
+	
+	// Commands....
+	
 	int selected_indices[] = __commands_JList.getSelectedIndices();
 	selected_size = 0;
 	if ( selected_indices != null ) {
@@ -9320,8 +9208,13 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 			BorderFactory.createTitledBorder (
 			BorderFactory.createLineBorder(Color.black),
 			"Commands (" + __commands_JListModel.size() +
-			" commands, " + selected_size + " selected)") );
+			" commands, " + selected_size + " selected, " +
+			commandList_GetFailureCount() + " with failures, " +
+			commandList_GetWarningCount() + " with warnings)") );
 	}
+	
+	// Results...
+	
 	selected_indices = __ts_JList.getSelectedIndices();
 	selected_size = 0;
 	if ( selected_indices != null ) {
@@ -9408,11 +9301,11 @@ throws Exception
 		__ts_JList.clearSelection();
 	}
 	else if ( o == __results_files_JComboBox ) {
+		// Show the selected file in a platform-appropriate viewer...
 		uiAction_ShowOutputFile( __results_files_JComboBox.getSelected() );
-		// Reset the selected item to force the user to
-		// reselect a file to display.  Otherwise they
-		// cannot reselect the same item (no event is
-		// generated...
+		// Reset the selected item to force the user to reselect a file to display.
+		// Otherwise they cannot reselect the same item (no event is generated the
+		// second time without resetting the selection to null)...
 		__results_files_JComboBox.select ( null );
 	}
 	else {	// Chain to the next method...
@@ -10500,8 +10393,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Output_sortTimeSeries_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_writeDateValue_String)){
-		commandList_EditCommand ( __Commands_Output_writeDateValue_String,
+	else if (command.equals( __Commands_Output_WriteDateValue_String)){
+		commandList_EditCommand ( __Commands_Output_WriteDateValue_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_writeNwsCard_String)){
@@ -13710,7 +13603,7 @@ private void uiAction_InputTypeChoiceClicked()
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_NWSRFS_FS5Files)){
 		// Update the input name and let the user choose Apps Defaults
 		// or pick a directory...
-		__ignore_ItemEvent = true;		// Do this to prevent
+		ui_SetIgnoreItemEvent ( true );		// Do this to prevent
 							// item event cascade
 		__input_name_JComboBox.removeAll();
 		if ( IOUtil.isUNIXMachine() ) {
@@ -13753,7 +13646,7 @@ private void uiAction_InputTypeChoiceClicked()
 		__time_step_JComboBox.setEnabled ( false );
 		__time_step_JComboBox.removeAll ();
 
-		__ignore_ItemEvent = false;		// Item events OK again
+		ui_SetIgnoreItemEvent ( false );		// Item events OK again
 
 		if (	(__input_name_JComboBox.getItemCount() == 1) &&
 			(__input_name_JComboBox.getSelected().equals(
@@ -14173,6 +14066,8 @@ private void uiAction_OpenCommandsFile ()
 		Message.printStatus(2, routine, "Working directory from commands file is \"" +
 			IOUtil.getProgramWorkingDir() );
 		try { commandProcessor_ReadCommandsFile ( path );
+			// Repaint the list to reflect the status of the commands...
+			__commands_AnnotatedCommandJList.repaint();
 		}
 		catch ( FileNotFoundException e ) {
 			Message.printWarning ( 1, routine,
@@ -14776,7 +14671,7 @@ be viewed.  The former is suitable for batch files, both for the GUI.
 private void uiAction_RunCommands ( boolean run_all_commands, boolean create_output )
 {	String routine = "TSTool_JFrame.runCommands";
 	ui_UpdateStatusTextFields ( 1, routine, null, "Running commands...", __STATUS_BUSY);
-	tsResultsList_Clear ();
+	results_Clear ();
 	System.gc();
 	// Get commands to run (all or selected)...
 	Vector commands = commandList_GetCommands ( run_all_commands );
@@ -14797,24 +14692,71 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 		JGUIUtil.setWaitCursor ( this, true );
 		commandProcessor_RunCommands ( __ts_processor, commands, create_output );
 		// Display the list of time series...
-		uiAction_RunCommands_ShowTSResults ();
+		uiAction_RunCommands_ShowResults ();
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 }
 
 /**
-Display the time series from the command processor in the results list.
+Display the results of the run, time series and output files.
+This is handled as a "pinch point" in hand-off from the processor and the UI, to try
+to gracefully handle displaying output.
 */
-private void uiAction_RunCommands_ShowTSResults ()
-{	String routine = "TSTool_JFrame.uiAction_RunCommands_ShowTSResults";
-
+private void uiAction_RunCommands_ShowResults()
+{
 	//This method may be called from a thread different than the Swing thread.  To
 	// avoid bad behavior in GUI components (like the results list having big gaps),
 	// use the following to queue up GUI actions on the Swing thread.
-	Runnable r = new Runnable () {
-		
-		public void run () {
-			String routine = "TSTool_JFrame.uiAction_RunCommands_ShowTSResults";
+	
+	Runnable r = new Runnable() {
+		public void run() {
+			results_Clear();
+			uiAction_RunCommands_ShowResultsTimeSeries(); // JList
+			uiAction_RunCommands_ShowResultsOutputFiles(); // JComboBox
+		}
+	};
+	if ( SwingUtilities.isEventDispatchThread() )
+	{
+		r.run();
+	}
+	else 
+	{
+		SwingUtilities.invokeLater ( r );
+	}
+}
+
+/**
+Display the list of output files from the commands.
+*/
+private void uiAction_RunCommands_ShowResultsOutputFiles()
+{	// Loop through the commands.  For any that implement the FileGenerator interface,
+	// get the output file names and add to the list.
+	Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Entering method.");
+	int size = __commands_JListModel.size();
+	Command command;
+	ui_SetIgnoreActionEvent(true);
+	for ( int i = 0; i < size; i++ ) {
+		command = (Command)__commands_JListModel.get(i);
+		if ( command instanceof FileGenerator ) {
+			List list = ((FileGenerator)command).getGeneratedFileList();
+			if ( list != null ) {
+				int size2 = list.size();
+				for ( int ifile = 0; ifile < size2; ifile++ ) {
+					results_OutputFiles_AddOutputFile ( (File)list.get(ifile));
+				}
+			}
+		}
+	}
+	ui_SetIgnoreActionEvent(false);
+	Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Leaving method.");
+}
+
+/**
+Display the time series from the command processor in the results list.
+*/
+private void uiAction_RunCommands_ShowResultsTimeSeries ()
+{	String routine = "TSTool_JFrame.uiAction_RunCommands_ShowResultsTimeSeries";
+	Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Entering method.");
 
 	//	 Fill the time series list with the descriptions of the in-memory
 	// time series...
@@ -14851,13 +14793,13 @@ private void uiAction_RunCommands_ShowTSResults ()
 			try {	ts = commandProcessor_GetTimeSeries(i);
 			}
 			catch ( Exception e ) {
-				tsResultsList_AddTimeSeriesToResults ( "" + (i + 1) +
+				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) +
 				" - Error getting time series from processor." );
 				Message.printWarning ( 3, routine, e );
 				continue;
 			}
 			if ( ts == null ) {
-				tsResultsList_AddTimeSeriesToResults ( "" +(i + 1)+
+				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1)+
 				" - Null time series from processor." );
 				continue;
 			}
@@ -14871,7 +14813,7 @@ private void uiAction_RunCommands_ShowTSResults ()
 				if ( (desc == null) || (desc.length() == 0) ) {
 					desc = ts.getIdentifier().getLocation();
 				}
-				tsResultsList_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
+				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
 				desc + " - " + ts.getIdentifier() +
 				" (" + ts.getDate1() + " to " +
 				ts.getDate2() + ")" );
@@ -14916,17 +14858,8 @@ private void uiAction_RunCommands_ShowTSResults ()
 			__STATUS_READY );
 	// Make sure that the user is not waiting on the wait cursor....
 	//JGUIUtil.setWaitCursor ( this, false );
-
-		}
-	};
-	if ( SwingUtilities.isEventDispatchThread() )
-	{
-		r.run();
-	}
-	else 
-	{
-		SwingUtilities.invokeLater ( r );
-	}
+	
+	Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Leaving method.");
 }
 
 /**
@@ -15123,12 +15056,12 @@ throws Exception
 			// User cancelled - set the file name back to the
 			// original and disable other choices...
 			// Ignore programatic events on the combo boxes...
-			__ignore_ItemEvent = true;
+			ui_SetIgnoreItemEvent ( true );
 			if ( input_name != null ) {
 				__input_name_JComboBox.select(null);
 				__input_name_JComboBox.select(input_name);
 			}
-			__ignore_ItemEvent = false;
+			ui_SetIgnoreItemEvent ( false );
 			return;
 		}
 		// User has chosen a directory...
@@ -15139,7 +15072,7 @@ throws Exception
 
 		// Set the input name...
 
-		__ignore_ItemEvent = true;
+		ui_SetIgnoreItemEvent ( true );
 		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
 				input_name, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add after the browse string (files
@@ -15164,7 +15097,7 @@ throws Exception
 		__input_name_JComboBox.select ( null );
 		__input_name_JComboBox.select ( input_name );
 		// Now allow item events to occur as normal again...
-		__ignore_ItemEvent = false;
+		ui_SetIgnoreItemEvent ( false );
 	}
 
 	__input_name_JComboBox.setEnabled ( true );
@@ -15308,13 +15241,13 @@ throws Exception
 			// User cancelled - set the file name back to the
 			// original and disable other choices...
 			if ( input_name != null ) {
-				__ignore_ItemEvent = true;
+				ui_SetIgnoreItemEvent ( true );
 				__input_name_JComboBox.select(null);
 				if ( __input_name_StateCU_last != null ) {
 					__input_name_JComboBox.select(
 					__input_name_StateCU_last );
 				}
-				__ignore_ItemEvent = false;
+				ui_SetIgnoreItemEvent ( false );
 			}
 			return;
 		}
@@ -15330,7 +15263,7 @@ throws Exception
 
 		// Set the input name...
 
-		__ignore_ItemEvent = true;
+		ui_SetIgnoreItemEvent ( true );
 		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
 				__BROWSE, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add it at the beginning...
@@ -15351,7 +15284,7 @@ throws Exception
 				__input_name_StateCU.addElement(input_name);
 			}
 		}
-		__ignore_ItemEvent = false;
+		ui_SetIgnoreItemEvent ( false );
 		// Select the file in the input name because leaving it on
 		// browse will disable the user's ability to reselect browse...
 		__input_name_JComboBox.select ( null );
@@ -15446,13 +15379,13 @@ throws Exception
 			// User cancelled - set the file name back to the
 			// original and disable other choices...
 			if ( input_name != null ) {
-				__ignore_ItemEvent = true;
+				ui_SetIgnoreItemEvent ( true );
 				__input_name_JComboBox.select(null);
 				if ( __input_name_StateModB_last != null ) {
 					__input_name_JComboBox.select (
 					__input_name_StateModB_last );
 				}
-				__ignore_ItemEvent = false;
+				ui_SetIgnoreItemEvent ( false );
 			}
 			return;
 		}
@@ -15466,7 +15399,7 @@ throws Exception
 
 		// Set the input name...
 
-		__ignore_ItemEvent = true;
+		ui_SetIgnoreItemEvent ( true );
 		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
 				__BROWSE, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add it at the beginning...
@@ -15487,7 +15420,7 @@ throws Exception
 				__input_name_StateModB.addElement(input_name);
 			}
 		}
-		__ignore_ItemEvent = false;
+		ui_SetIgnoreItemEvent ( false );
 		// Select the file in the input name because leaving it on
 		// browse will disable the user's ability to reselect browse...
 		__input_name_JComboBox.select ( null );
@@ -16034,8 +15967,11 @@ Show an output file using the appropriate display software/editor.
 */
 private void uiAction_ShowOutputFile ( String selected )
 {	String routine = getClass().getName() + ".uiAction_ShowOutputFile";
+	if ( selected == null ) {
+		// May be the result of some UI event...
+		return;
+	}
 	// Display the selected file...
-	String [] command_array = new String[2];
 	if ( !( new File( selected ).isAbsolute() ) ) {
 		selected = IOUtil.getPathUsingWorkingDir( selected );
 	}
@@ -16047,12 +15983,10 @@ private void uiAction_ShowOutputFile ( String selected )
 				new SimpleBrowser( selected ).setVisible(true);
 			} 
 		catch ( MalformedURLException e ) {
-				Message.printWarning(2, routine,
-				"Couldn't find file or url: " + selected );
+				Message.printWarning(2, routine,"Couldn't find file or url: " + selected );
 			}
 		catch (IOException e) {
-				Message.printWarning( 2, routine,
-				"Failed to open browser to view: " + selected );
+				Message.printWarning( 2, routine,"Failed to open browser to view: " + selected );
 				Message.printWarning( 3, routine, e );
 			}
 	}
@@ -16075,6 +16009,7 @@ private void uiAction_ShowOutputFile ( String selected )
 			}
 			else {
 				// Rely on Notepad on Windows...
+				String [] command_array = new String[2];
 				command_array[0] = "notepad";
 				command_array[1] = IOUtil.getPathUsingWorkingDir(selected);
 				ProcessManager p = new ProcessManager ( command_array );
@@ -16083,8 +16018,8 @@ private void uiAction_ShowOutputFile ( String selected )
 			}
 		}
 		catch (Exception e2) {
-			Message.printWarning (1, routine,
-					"Unable to view file by running \"" + command_array[1] + "\"" );
+			Message.printWarning (1, routine, "Unable to view file \"" + selected + "\"" );
+			Message.printWarning ( 3, routine, e2 );
 		}
 	}
 }
@@ -16916,9 +16851,9 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 	"Transferring all time series to commands (" + nrows + " in list)..." );
 	JGUIUtil.setWaitCursor ( this, true );
 	int iend = nrows - 1;
-	__ignore_ListSelectionEvent = true;	// To increase performance
+	ui_SetIgnoreListSelectionEvent ( true );	// To increase performance
 						// during transfer...
-	__ignore_ItemEvent = true;	// To increase performance
+	ui_SetIgnoreItemEvent ( true );	// To increase performance
 	for ( int i = 0; i < nrows; i++ ) {
 		// Only force the GUI state to be updated if the last item.
 		if ( i == iend ) {
@@ -16929,8 +16864,8 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 		else {	queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, false );
 		}
 	}
-	__ignore_ListSelectionEvent = false;
-	__ignore_ItemEvent = false;
+	ui_SetIgnoreListSelectionEvent ( false );
+	ui_SetIgnoreItemEvent ( false );
 	JGUIUtil.setWaitCursor ( this, false );
 
 	Message.printStatus ( 1, routine, "Selected all time series." );
