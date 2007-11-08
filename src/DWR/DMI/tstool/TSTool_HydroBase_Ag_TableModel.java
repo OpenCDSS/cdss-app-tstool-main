@@ -28,7 +28,6 @@ import java.util.Vector;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_Agstats;
-
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 

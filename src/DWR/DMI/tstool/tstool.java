@@ -426,7 +426,6 @@ import javax.swing.JApplet;
 import javax.swing.JFrame;
 
 import rti.tscommandprocessor.core.TSCommandFileRunner;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
