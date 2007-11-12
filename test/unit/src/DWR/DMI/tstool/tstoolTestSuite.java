@@ -2,11 +2,10 @@ package DWR.DMI.tstool;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import junit.framework.Test;
+import RTi.Util.Test.TestCollector;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import RTi.Util.Test.TestCollector;
+import junit.framework.Test;
 
 public class tstoolTestSuite extends TestCase {
 

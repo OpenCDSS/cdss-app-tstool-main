@@ -3,6 +3,9 @@ package DWR.DMI.tstool;
 import java.io.File;
 import java.util.ArrayList;
 
+import RTi.Util.GUI.JGUIUtil;
+import RTi.Util.IO.IOUtil;
+
 import junit.framework.TestCase;
 
 public class CoverageTest extends TestCase 
