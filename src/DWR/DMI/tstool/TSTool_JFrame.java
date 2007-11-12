@@ -542,10 +542,10 @@ have been modified and need to be saved (or cancel) before exit.
 private boolean __commands_dirty = false;
 
 /**
-Name of the commands file.	Don't set until selected by
+Name of the command file.	Don't set until selected by
 the user (or on the command line).
 */
-private String __commands_file_name = null;	
+private String __command_file_name = null;	
 
 //================================
 // Results area...
@@ -567,7 +567,7 @@ The command processor, which maintains a list of command objects, process
 the data, and the time series results.  There is only one command processor
 instance for a TSTool session and it is kept current with the application.
 In the future, if threading is implemented, it may be possible to have, for
-example, tabs for different commands files, each with a TSCommandProcessor.
+example, tabs for different command files, each with a TSCommandProcessor.
 */
 private TSCommandProcessor __ts_processor = new TSCommandProcessor();
 
@@ -634,7 +634,7 @@ properties can change during a run.
 private PropList __props;
 
 /**
-The initial working directory corresponding to a commands file read/write or
+The initial working directory corresponding to a command file read/write or
 File... Set Working Dir.  This is used when processing the list
 of setWorkingDir() commands passed to command editors. Without the initial working
 directory, relative changes in the working directory will
@@ -643,16 +643,16 @@ result in an inaccurate initial state.
 private String __initial_working_dir = "";
 
 /**
-The last directory selected with Run...Commands File, to run an external commands
+The last directory selected with Run...Command File, to run an external commands
 file.
 */
-private String __Dir_LastExternalCommandsFileRun = null;
+private String __Dir_LastExternalCommandFileRun = null;
 
 /**
-The last directory selected with Run...Commands File, to run an external commands
+The last directory selected with Run...Command File, to run an external commands
 file.
 */
-private String __Dir_LastCommandsFileOpened = null;
+private String __Dir_LastCommandFileOpened = null;
 
 /**
 Lets the checkGUIState() method avoid checking for many null components
@@ -782,7 +782,7 @@ private JMenu
 	__File_JMenu = null,
 	__File_Open_JMenu = null;
 		private JMenuItem
-		__File_Open_CommandsFile_JMenuItem = null,
+		__File_Open_CommandFile_JMenuItem = null,
 		__File_Open_DIADvisor_JMenuItem = null,
 		__File_Open_HydroBase_JMenuItem = null,
 		__File_Open_RiversideDB_JMenuItem = null;
@@ -823,7 +823,7 @@ private JMenuItem
 	__Edit_SelectAllCommands_JMenuItem = null,
 	__Edit_DeselectAllCommands_JMenuItem = null,
 	// --
-	__Edit_CommandsFile_JMenuItem = null,
+	__Edit_CommandFile_JMenuItem = null,
 	__Edit_CommandWithErrorChecking_JMenuItem = null,
 	// --
 	__Edit_ConvertSelectedCommandsToComments_JMenuItem = null,
@@ -1020,10 +1020,11 @@ JMenuItem
 
 	__Commands_General_exit_JMenuItem,
 
-	__Commands_General_compareFiles_JMenuItem = null,
 	__Commands_General_runCommands_JMenuItem = null,
 	__Commands_General_runProgram_JMenuItem = null,
-	__Commands_General_testCommand_JMenuItem = null,
+	__Commands_General_CompareFiles_JMenuItem = null,
+	__Commands_General_WriteProperty_JMenuItem = null,
+	__Commands_General_TestCommand_JMenuItem = null,
 	__Commands_General_CreateRegressionTestCommandFile_JMenuItem = null;
 
 // Commands (HydroBase)...
@@ -1148,7 +1149,7 @@ private String
 
 	__File_String = "File",
 		__File_Open_String = "Open",
-			__File_Open_CommandsFile_String = "Commands File...", 
+			__File_Open_CommandFile_String = "Command File...", 
 			__File_Open_DIADvisor_String = "DIADvisor...",
 			__File_Open_HydroBase_String = "HydroBase...",
 			__File_Open_RiversideDB_String = "RiversideDB...",
@@ -1181,7 +1182,7 @@ private String
 		__Edit_DeleteCommands_String = "Delete Command(s)",
 		__Edit_SelectAllCommands_String ="Select All Commands",
 		__Edit_DeselectAllCommands_String = "Deselect All Commands",
-		__Edit_CommandsFile_String = "Commands File...",
+		__Edit_CommandFile_String = "Command File...",
 		__Edit_CommandWithErrorChecking_String = "Command...",
 		__Edit_ConvertSelectedCommandsToComments_String = "Convert selected commands to # comments",
 		__Edit_ConvertSelectedCommandsFromComments_String =	"Convert selected commands from # comments",
@@ -1359,11 +1360,12 @@ private String
 	__Commands_General_startComment_String = TAB + "/*   <start comment>",
 	__Commands_General_endComment_String = TAB + "*/   <end comment>",
 	__Commands_General_exit_String = TAB + "exit()  <to end processing>",
-	__Commands_General_compareFiles_String = TAB + "compareFiles()... <compare files>",
-	__Commands_General_runCommands_String = TAB + "runCommands()... <run a commands file> (under development)",
+	__Commands_General_runCommands_String = TAB + "runCommands()... <run a command file> (under development)",
 	__Commands_General_runProgram_String = TAB + "runProgram()... <run external program>",
-	__Commands_General_testCommand_String = TAB + "testCommand()... <for development testing>",
-	__Commands_General_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to verify software>",
+	__Commands_General_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
+	__Commands_General_WriteProperty_String = TAB + "WriteProperty()... <used to test software>",
+	__Commands_General_TestCommand_String = TAB + "TestCommand()... <to test software>",
+	__Commands_General_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to test software>",
 
 	// Results menu choices (order in GUI)...
 
@@ -1852,29 +1854,29 @@ public TSTool_JFrame ( boolean show_main )
 		ui_UpdateStatus ( true );
 	}
 
-	// If running with a commands file from the command line, we don't
+	// If running with a command file from the command line, we don't
 	// normally want to see the main window so handle with a special case...
 
 	// TODO SAM 2005-10-28 Evaluate code
 	// In the future might allow, for example, clicking on a TSTool file
-	// to bring up the GUI with that commands file, without running.  In
+	// to bring up the GUI with that command file, without running.  In
 	// that case the GUI would show the commands but not automatically run,
 	// so the following code would probably not be executed.
 
-	String commands_file = IOUtil.getProgramCommandFile();
-	if ( (commands_file != null) && (commands_file.length() > 0) ) {
+	String command_file = IOUtil.getProgramCommandFile();
+	if ( (command_file != null) && (command_file.length() > 0) ) {
 
 			/* FIXME SAM 2007-08-20 Need to reenable
 		try {	Message.printStatus ( 2, rtn,
-			"Running commands file \"" + commands_file + 
+			"Running command file \"" + command_file + 
 			"\" with no main GUI..." );
-			runNoMainGUI ( commands_file );
+			runNoMainGUI ( command_file );
 			Message.printStatus ( 2, rtn,
 			"...done running with no main GUI." );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, rtn,
-			"Error running commands in \"" + commands_file +
+			"Error running commands in \"" + command_file +
 			"\" with no main GUI." );
 			// TODO SAM 2005-10-28
 			// Do we need this?...
@@ -2003,8 +2005,8 @@ private boolean commandList_CommandsAreEqual (String original_command, String ed
 /**
 Determine whether commands are equal.  To allow for multi-line commands, each
 command is stored in a Vector (but typically only the first String is used.
-@param original_command Original command as a Vector of String.
-@param edited_command Edited command as a Vector of String.
+@param original_command Original command as a Vector of String or Command.
+@param edited_command Edited command as a Vector of String or Command.
 */
 private boolean commandList_CommandsAreEqual(Vector original_command, Vector edited_command)
 {	if ( (original_command == null) && (edited_command != null) ) {
@@ -2022,10 +2024,23 @@ private boolean commandList_CommandsAreEqual(Vector original_command, Vector edi
 	if ( original_size != edited_size ) {
 		return false;
 	}
-	String original_String, edited_String;
+	Object original_Object, edited_Object;
+	String original_String = null, edited_String = null;
 	for ( int i = 0; i < original_size; i++ ) {
-		original_String = (String)original_command.elementAt(i);
-		edited_String = (String)edited_command.elementAt(i);
+		original_Object = original_command.elementAt(i);
+		edited_Object = edited_command.elementAt(i);
+		if ( original_Object instanceof String ) {
+			original_String = (String)original_Object;
+		}
+		else if ( original_Object instanceof Command ) {
+			original_String = ((Command)original_Object).toString();
+		}
+		if ( edited_Object instanceof String ) {
+			edited_String = (String)edited_Object;
+		}
+		else if ( edited_Object instanceof Command ) {
+			edited_String = ((Command)edited_Object).toString();
+		}
 		// Must be an exact match...
 		if (	(original_String == null) && (edited_String != null) ) {
 			return false;
@@ -2280,6 +2295,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 				Message.printStatus(2, routine, "After insert, command is:  \"" +
 					"" + command_to_edit );
 			}
+			commandList_SetDirty(true);
 		}
 		else {
 			// The command was updated.
@@ -2287,12 +2303,18 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 				// Remove the commands that were selected and insert the
 				// new ones.
 				commandList_ReplaceComments ( command_Vector, new_comments );
+				if ( !commandList_CommandsAreEqual(command_Vector,new_comments)) {
+					commandList_SetDirty(true);
+				}
 			}
 			else {
 				// The contents of the command will
 				// have been modified so there is no need to do anything more.
 				Message.printStatus(2, routine, "After edit, command is:  \"" +
 					"" + command_to_edit );
+				if ( !command_to_edit_original.toString().equals(command_to_edit.toString())) {
+					commandList_SetDirty(true);
+				}
 			}
 		}
 	}
@@ -3052,15 +3074,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit), true ).getText();
 	}
-	else if ( action.equals( __Commands_Output_setOutputPeriod_String) ||
-		command.regionMatches(true,0,"setOutputPeriod",0,15) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setOutputPeriod()" );
-		}
-		edited_cv = new setOutputPeriod_JDialog ( this, cv, null ).
-							getText();
-	}
 	else if ( action.equals( __Commands_Output_setOutputYearType_String) ||
 		command.regionMatches(true,0,"setOutputYearType",0,17) ) {
 		if ( Message.isDebugOn ) {
@@ -3101,16 +3114,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for writeStateCU()" );
 		}
 		edited_cv = new writeStateCU_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Output_writeSummary_String)||
-		command.regionMatches(true,0,"writeSummary",0,12) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for writeSummary()" );
-		}
-		edited_cv = new writeSummary_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
@@ -3404,8 +3407,8 @@ private void commandList_InsertCommandAt ( Command command, int pos )
 {
 	__ts_processor.insertCommandAt( command, pos );
 	__commands_JList.ensureIndexIsVisible ( pos );
-		// Since an insert, mark the commands list as dirty...
-	commandList_SetDirty(true);
+	// Since an insert, mark the commands list as dirty...
+	//commandList_SetDirty(true);
 	ui_UpdateStatus ( false );
 }
 
@@ -3448,7 +3451,7 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 		__commands_JList.ensureIndexIsVisible ( insert_pos );
 	}
 	// Since an insert, mark the commands list as dirty...
-	commandList_SetDirty(true);
+	//commandList_SetDirty(true);
 }
 
 /**
@@ -3489,7 +3492,7 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 		__commands_JList.ensureIndexIsVisible ( insert_pos );
 	}
 	// Since an insert, mark the commands list as dirty...
-	commandList_SetDirty(true);
+	//commandList_SetDirty(true);
 }
 
 /**
@@ -3654,7 +3657,7 @@ Remove the indicated command from the command list.
 private void commandList_RemoveCommand ( Command command )
 {	int pos = commandList_IndexOf ( command );
 	__commands_JListModel.removeElementAt(pos);
-	commandList_SetDirty(true);
+	//commandList_SetDirty(true);
 	ui_UpdateStatus ( false );
 }
 
@@ -3703,7 +3706,7 @@ private void commandList_RemoveCommandsBasedOnUI ()
 		selected_indices = null;
 		JGUIUtil.setWaitCursor ( this, false );
 	}
-	commandList_SetDirty ( true );
+	//commandList_SetDirty ( true );
 	results_TimeSeries_Clear();
 	ui_UpdateStatus ( true );
 }
@@ -3736,7 +3739,7 @@ private void commandList_ReplaceCommand ( Command old_command, Command new_comma
 		__ts_processor.addCommand ( new_command );
 	}
 	// Refresh the GUI...
-	commandList_SetDirty ( true );
+	//commandList_SetDirty ( true );
 	ui_UpdateStatus ( false );
 }
 
@@ -3784,7 +3787,7 @@ private void commandList_ReplaceComments ( Vector old_comments, Vector new_comme
 		}
 	}
 	// Refresh the GUI...
-	commandList_SetDirty ( true );
+	//commandList_SetDirty ( true );
 	ui_UpdateStatus ( false );
 }
 
@@ -3804,17 +3807,17 @@ private void commandList_SelectCommand ( int iline, boolean ensure_visible )
 }
 
 /**
-Set the commands file name.  This also will refresh any interface components
-that display the commands file name.  It DOES NOT cause the commands to be
+Set the command file name.  This also will refresh any interface components
+that display the command file name.  It DOES NOT cause the commands to be
 reloaded - it is a simple setter.
-@param commands_file_name Name of current commands file (can be null).
+@param command_file_name Name of current command file (can be null).
 */
-private void commandList_SetCommandsFileName ( String commands_file_name )
+private void commandList_SetCommandFileName ( String command_file_name )
 {	// Set the file name used in the TSTool UI...
-	__commands_file_name = commands_file_name;
+	__command_file_name = command_file_name;
 	// Also set the initial working directory for the processor as the
-	// parent folder of the commands file...
-	File file = new File ( commands_file_name );
+	// parent folder of the command file...
+	File file = new File ( command_file_name );
 	commandProcessor_SetInitialWorkingDir ( file.getParent() );
 	// Update the title bar...
 	ui_UpdateStatus ( false );
@@ -4150,14 +4153,15 @@ private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, Pro
 }
 
 /**
-Read and load a commands file into the processor.
-@param path Absolute path to the commands file to read.
-@exception IOException if there is an error reading the commands file.
+Read and load a command file into the processor.
+@param path Absolute path to the command file to read.
+@exception IOException if there is an error reading the command file.
 */
-private void commandProcessor_ReadCommandsFile ( String path )
+private void commandProcessor_ReadCommandFile ( String path )
 throws IOException
-{
-	__ts_processor.readCommandsFile ( path,
+{	// Set the command file for use with output...
+	IOUtil.setProgramCommandFile ( path );
+	__ts_processor.readCommandFile ( path,
 			true,	// Create GenericCommand instances for unrecognized commands
 			false );// Do not append to the current processor contents
 }
@@ -4182,7 +4186,7 @@ private void commandProcessor_RunCommands (
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "CommandList", commands );
 	// FIXME SAM 2007-10-13 Remove when test out.  The initial directory needs to be set
-	// when a commands file is initialized.
+	// when a command file is initialized.
 	//request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
 	request_params.setUsingObject ( "CreateOutput", new Boolean(create_output) );
 	Message.printStatus ( 2, routine, "Running commands in GUI thread.");
@@ -4215,6 +4219,9 @@ private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean cre
 		Message.printStatus ( 2, routine, "Running commands in separate thread.");
 		Thread thread = new Thread ( runner );
 		thread.start();
+		// Do one update of the GUI to reflect the GUI running.  This will disable run
+		// buttons, etc. until the current run is done.
+		ui_CheckGUIState ();
 		// At this point the GUI will get updated if any notification fires from the
 		// processor.
 	}
@@ -5684,15 +5691,15 @@ private void quitProgram( int status )
 */
 
 /**
-Run with a hidden main gui but process the specified commands file.
+Run with a hidden main gui but process the specified command file.
 If also in batch mode because commands were specified on the command line, the
 a true batch run will be made.
-@param commands_file Commands file to process.
+@param command_file Command file to process.
 @exception Exception if there is an error processing the file, for example
 no data to graph.
 */
 /* FIXME SAM 2007-08-20 Need to enable.
-private void runNoMainGUI ( String commands_file )
+private void runNoMainGUI ( String command_file )
 throws Exception
 {	String routine = "TSTool_JFrame.runNoMainGUI";
 	// Run similar to the Run...Commands menu
@@ -5702,10 +5709,10 @@ throws Exception
 				__DIADvisor_archive_dmi, __nwsrfs_dmi,
 				__smsdmi );
 	engine.addTSViewWindowListener ( this );
-	engine.processCommands ( __hbdmi, commands_file, IOUtil.isBatch() );
+	engine.processCommands ( __hbdmi, command_file, IOUtil.isBatch() );
 	engine = null;
 	Message.printStatus ( 1, routine,
-	"Successfully processed commands file \"" + commands_file + "\"" );
+	"Successfully processed command file \"" + command_file + "\"" );
 }
 */
 
@@ -5763,7 +5770,22 @@ viewing.
 */
 private void results_OutputFiles_AddOutputFile ( File file )
 {	try {
-		__results_files_JComboBox.add( file.getCanonicalPath());
+		// Get the filename as a string...
+		String file_String = file.getCanonicalPath();
+		// Loop through the list and only add if it is not already in the list...
+		int size = __results_files_JComboBox.getItemCount();
+		String item;
+		for ( int i = 0; i < size; i++ ) {
+			item = __results_files_JComboBox.getItem(i);
+			if ( item == null ) {
+				continue;
+			}
+			if ( item.equalsIgnoreCase(file_String)) {
+				// Already in list...
+				return;
+			}
+		}
+		__results_files_JComboBox.add( file_String );
 	}
 	catch ( IOException e ) {
 		// Ignore for now - should not happen
@@ -6083,7 +6105,7 @@ private void ui_CheckGUIState ()
 		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE2_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillMixedStation_JMenuItem,true );
-		JGUIUtil.setEnabled(__Commands_Fill_fillPattern_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Fill_fillPattern_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem,true);
@@ -6327,12 +6349,13 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 	boolean enable_run = false;
 	if ( (__ts_processor != null) && __ts_processor.getIsRunning() ) {
 		// Running, so allow cancel but not another run...
-		enable_run = false;
+		enable_run = false;  // Handled below in second if
 		JGUIUtil.setEnabled (__Run_CancelCommandProcessing_JMenuItem, true);
 		JGUIUtil.setEnabled (__CommandsPopup_CancelCommandProcessing_JMenuItem,true);
 
 	}
-	else {	// Not running, so disable cancel, but do allow run if
+	else {
+		// Not running, so disable cancel, but do allow run if
 		// there are commands (see below)...
 		enable_run = true;
 		JGUIUtil.setEnabled (__Run_CancelCommandProcessing_JMenuItem, false);
@@ -6348,25 +6371,31 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
 		}
 		*/
+		// Run all commands menus always enabled if not already running...
 		JGUIUtil.setEnabled(__Run_AllCommandsCreateOutput_JMenuItem, enable_run);
 		JGUIUtil.setEnabled(__CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem,enable_run);
 		JGUIUtil.setEnabled(__Run_AllCommandsIgnoreOutput_JMenuItem, enable_run);
 		JGUIUtil.setEnabled(__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,enable_run);
+		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, enable_run );
 		if ( selected_commands_size > 0 ) {
+			// Run selected commands menus...
 			JGUIUtil.setEnabled(__Run_SelectedCommandsCreateOutput_JMenuItem, enable_run);
 			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,enable_run);
 			JGUIUtil.setEnabled(__Run_SelectedCommandsIgnoreOutput_JMenuItem, enable_run);
 			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,enable_run);
+			// Run buttons...
 			JGUIUtil.setEnabled (__Run_SelectedCommands_JButton, enable_run );
 		}
-		else {	JGUIUtil.setEnabled(__Run_SelectedCommandsCreateOutput_JMenuItem, false);
+		else {
+			// Run selected commands menus are false (because none selected)...
+			JGUIUtil.setEnabled(__Run_SelectedCommandsCreateOutput_JMenuItem, false);
 			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,false);
 			JGUIUtil.setEnabled(__Run_SelectedCommandsIgnoreOutput_JMenuItem, false);
 			JGUIUtil.setEnabled(__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,false);
 			JGUIUtil.setEnabled (__Run_SelectedCommands_JButton, false );
 		}
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, enable_run );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, enable_run );
+		// Have commands so can clear...
+		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
 	}
 	else {	// No commands in list...
 		JGUIUtil.setEnabled (__Run_AllCommandsCreateOutput_JMenuItem,false);
@@ -6597,38 +6626,38 @@ private void ui_CheckRiversideDBFeatures ()
 }
 
 /**
-Return the directory for the last "File...Open Commands File".
+Return the directory for the last "File...Open Command File".
 */
 private String ui_GetDir_LastCommandFileOpened()
 {
-	if ( __Dir_LastCommandsFileOpened == null ) {
+	if ( __Dir_LastCommandFileOpened == null ) {
 		// Try to get the generic dialog selection location...
-		__Dir_LastCommandsFileOpened = JGUIUtil.getLastFileDialogDirectory();
+		__Dir_LastCommandFileOpened = JGUIUtil.getLastFileDialogDirectory();
 	}
-	if ( __Dir_LastCommandsFileOpened == null ) {
+	if ( __Dir_LastCommandFileOpened == null ) {
 		// Return the user directory
 		// TODO SAM 2007-11-01 Evaluate whether other's should be checked first.
 		return System.getProperty("user.dir");
 	}
-	return __Dir_LastCommandsFileOpened;
+	return __Dir_LastCommandFileOpened;
 }
 
 /**
-Return the last directory for "Run Commands File", which runs an external commands file
+Return the last directory for "Run Command File", which runs an external command file
 but does not show the results.
 */
-private String ui_GetDir_LastExternalCommandsFileRun()
+private String ui_GetDir_LastExternalCommandFileRun()
 {
-	if ( __Dir_LastExternalCommandsFileRun == null ) {
+	if ( __Dir_LastExternalCommandFileRun == null ) {
 		// Try to get the generic dialog selection location...
-		__Dir_LastCommandsFileOpened = JGUIUtil.getLastFileDialogDirectory();
+		__Dir_LastCommandFileOpened = JGUIUtil.getLastFileDialogDirectory();
 	}
-	if ( __Dir_LastCommandsFileOpened == null ) {
+	if ( __Dir_LastCommandFileOpened == null ) {
 		// Return the user directory
 		// TODO SAM 2007-11-01 Evaluate whether other's should be checked first.
 		return System.getProperty("user.dir");
 	}
-	return __Dir_LastExternalCommandsFileRun;
+	return __Dir_LastExternalCommandFileRun;
 }
 
 /**
@@ -6669,7 +6698,7 @@ private boolean ui_GetIgnoreListSelectionEvent()
 //specified so the software install home is not used.
 /**
 Return the initial working directory, which will be the softare startup
-home, or the location of new commands files.
+home, or the location of new command files.
 This directory is suitable for initializing a workflow processing run.
 @return the initial working directory, which should always be non-null.
 */
@@ -7054,7 +7083,7 @@ private void ui_InitGUI ( boolean show_main )
 	getContentPane().add ("South", bottom_JPanel);
 
 	ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.initGUI",
-			null, "Open a commands file or add new commands.",
+			null, "Open a command file or add new commands.",
 			__STATUS_READY );
 	ui_UpdateStatus ( false );
     pack();
@@ -8158,10 +8187,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 		__Commands_General_exit_JMenuItem = new SimpleJMenuItem(
 		__Commands_General_exit_String, this ) );
 	__Commands_General_JMenu.addSeparator ();
-	__Commands_General_JMenu.add (
-		__Commands_General_compareFiles_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_General_compareFiles_String, this ) );
+
 	__Commands_General_JMenu.add (__Commands_General_runCommands_JMenuItem =
 		new SimpleJMenuItem(
 		__Commands_General_runCommands_String,this));
@@ -8170,8 +8196,16 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 	
 	__Commands_General_JMenu.addSeparator();
 	__Commands_General_JMenu.add (
-		__Commands_General_testCommand_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_testCommand_String, this ) );
+			__Commands_General_CompareFiles_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_General_CompareFiles_String, this ) );
+	__Commands_General_JMenu.add (
+			__Commands_General_WriteProperty_JMenuItem =
+			new SimpleJMenuItem(
+			__Commands_General_WriteProperty_String, this ) );
+	__Commands_General_JMenu.add (
+		__Commands_General_TestCommand_JMenuItem = new SimpleJMenuItem(
+		__Commands_General_TestCommand_String, this ) );
 	__Commands_General_JMenu.add (
 			__Commands_General_CreateRegressionTestCommandFile_JMenuItem = new SimpleJMenuItem(
 			__Commands_General_CreateRegressionTestCommandFile_String, this ) );
@@ -8284,8 +8318,8 @@ private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar )
 
 	__Edit_JMenu.addSeparator( );
 
-	__Edit_JMenu.add( __Edit_CommandsFile_JMenuItem = new SimpleJMenuItem (
-		__Edit_CommandsFile_String, this ) );
+	__Edit_JMenu.add( __Edit_CommandFile_JMenuItem = new SimpleJMenuItem (
+		__Edit_CommandFile_String, this ) );
 	__Edit_JMenu.add(
 		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(
 		__Edit_CommandWithErrorChecking_String, this ) );
@@ -8308,8 +8342,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 
 	__File_JMenu.add( __File_Open_JMenu=new JMenu(__File_Open_String,true));
 
-	__File_Open_JMenu.add( __File_Open_CommandsFile_JMenuItem =
-		new SimpleJMenuItem( __File_Open_CommandsFile_String, this ) );
+	__File_Open_JMenu.add( __File_Open_CommandFile_JMenuItem =
+		new SimpleJMenuItem( __File_Open_CommandFile_String, this ) );
 
 	boolean separator_added = false;
 	if ( __source_DIADvisor_enabled ) {
@@ -8843,24 +8877,24 @@ private void ui_ReadLicense ()
 }
 
 /**
-Set the directory for the last "File...Open Commands File".
+Set the directory for the last "File...Open Command File".
 @param Dir_LastCommandFileOpened Directory for last command file opened.
 */
 private void ui_SetDir_LastCommandFileOpened ( String Dir_LastCommandFileOpened )
 {
-	__Dir_LastCommandsFileOpened = Dir_LastCommandFileOpened;
+	__Dir_LastCommandFileOpened = Dir_LastCommandFileOpened;
 	// Also set the last directory opened by a dialog...
 	JGUIUtil.setLastFileDialogDirectory(Dir_LastCommandFileOpened);
 }
 
 /**
-Set the last directory for "Run Commands File", which runs an external commands file
+Set the last directory for "Run Command File", which runs an external command file
 but does not show the results.
 @param Dir_LastExternalCommandFileRun Directory for last command file ope
 */
 private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalCommandFileRun )
 {
-	__Dir_LastExternalCommandsFileRun = Dir_LastExternalCommandFileRun;
+	__Dir_LastExternalCommandFileRun = Dir_LastExternalCommandFileRun;
 	// Also set the last directory opened by a dialog...
 	JGUIUtil.setLastFileDialogDirectory(Dir_LastExternalCommandFileRun);
 }
@@ -8900,7 +8934,7 @@ private void ui_SetIgnoreListSelectionEvent ( boolean ignore )
 
 /**
 Set the initial working directory, which will be the software startup home or
-the location where the commands file has been read/saved.
+the location where the command file has been read/saved.
 @param initial_working_dir The initial working directory (should be non-null).
 */
 private void ui_SetInitialWorkingDir ( String initial_working_dir )
@@ -9134,11 +9168,11 @@ results list.
 Interface tasks include:
 <ol>
 <li>	Set the title bar.
-	If no commands file has been read, the title will be:
+	If no command file has been read, the title will be:
 	"TSTool - no commands saved".
-	If a commands file has been read but not modified, the title will be:
+	If a command file has been read but not modified, the title will be:
 	"TSTool - "filename"".
-	If a commands file has been read and modified, the title will be:
+	If a command file has been read and modified, the title will be:
 	"TSTool - "filename" (modified)".
 	</li>
 <li>	Call updateTextFields() to indicate the number of selected and total
@@ -9154,14 +9188,14 @@ which checks many interface settings.
 private void ui_UpdateStatus ( boolean check_gui_state )
 {	// Title bar (command file)...
 	
-	if ( __commands_file_name == null ) {
+	if ( __command_file_name == null ) {
 		setTitle ( "TSTool - no commands saved");
 	}
 	else {	if ( __commands_dirty ) {
-			setTitle ( "TSTool - \"" + __commands_file_name +
+			setTitle ( "TSTool - \"" + __command_file_name +
 			"\" (modified)");
 		}
-		else {	setTitle ( "TSTool - \"" + __commands_file_name + "\"");
+		else {	setTitle ( "TSTool - \"" + __command_file_name + "\"");
 		}
 	}
 	
@@ -9325,12 +9359,11 @@ throws Exception
 
 	// File Menu actions...
 
-	if ( o == __File_Open_CommandsFile_JMenuItem ) {
-		try {	uiAction_OpenCommandsFile();
+	if ( o == __File_Open_CommandFile_JMenuItem ) {
+		try {	uiAction_OpenCommandFile();
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-				"Error reading commands file" );
+			Message.printWarning ( 1, rtn, "Error reading command file" );
 			Message.printWarning( 3, "", e);
 		}
 	}
@@ -9381,26 +9414,24 @@ throws Exception
 		__input_type_JComboBox.select ( __INPUT_TYPE_RiversideDB );
 	}
 	else if ( o == __File_Save_Commands_JMenuItem ) {
-		try {	if ( __commands_file_name != null ) {
+		try {	if ( __command_file_name != null ) {
 				// Use the existing name...
-				uiAction_WriteCommandsFile ( __commands_file_name,false);
+				uiAction_WriteCommandFile ( __command_file_name,false);
 			}
 			else {	// Prompt for the name...
-				uiAction_WriteCommandsFile ( __commands_file_name, true);
+				uiAction_WriteCommandFile ( __command_file_name, true);
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-			"Error writing commands file." );
+			Message.printWarning ( 1, rtn, "Error writing command file." );
 		}
 	}
 	else if ( o == __File_Save_CommandsAs_JMenuItem ) {
 		try {	// Prompt for the name...
-			uiAction_WriteCommandsFile ( __commands_file_name, true);
+			uiAction_WriteCommandFile ( __command_file_name, true);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn,
-			"Error writing commands file." );
+			Message.printWarning ( 1, rtn, "Error writing command file." );
 		}
 	}
     else if ( command.equals(__File_Save_TimeSeriesAs_String) ) {
@@ -9423,7 +9454,7 @@ throws Exception
 	}
     else if ( command.equals(__File_Properties_TSToolSession_String) ) {
 		// Simple text display of session data, including last
-		// commands file that was read.  Put here where in the past
+		// command file that was read.  Put here where in the past
 		// information was shown in labels.  Now need the label space
 		// for other information.
 		PropList reportProp = new PropList ("ReportJFrame.props");
@@ -9440,12 +9471,10 @@ throws Exception
 		Vector v = new Vector ( 4 );
 		v.addElement ( "TSTool Session Properties" );
 		v.addElement ( "" );
-		if ( __commands_file_name == null ) {
-			v.addElement (
-			"No commands file has been read or saved." );
+		if ( __command_file_name == null ) {
+			v.addElement ( "No command file has been read or saved." );
 		}
-		else {	v.addElement ( "Last commands file read/saved: \"" +
-			__commands_file_name + "\"" );
+		else {	v.addElement ( "Last command file read/saved: \"" + __command_file_name + "\"" );
 		}
 		v.addElement ( "Current working directory = " +
 			IOUtil.getProgramWorkingDir() );
@@ -9764,8 +9793,8 @@ throws Exception
     else if ( command.equals(__Edit_DeselectAllCommands_String) ) {
 		uiAction_DeselectAllCommands();
 	}
-    else if ( command.equals(__Edit_CommandsFile_String) ) {
-    	uiAction_EditCommandsFile();
+    else if ( command.equals(__Edit_CommandFile_String) ) {
+    	uiAction_EditCommandFile();
 	}
 	else if ( command.equals(__Edit_CommandWithErrorChecking_String) ) {
 		// Edit the first selected item, unless a comment, in which
@@ -10489,10 +10518,6 @@ throws Exception
 		commandList_EditCommand ( __Commands_General_exit_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_compareFiles_String)){
-		commandList_EditCommand ( __Commands_General_compareFiles_String,
-			null, __INSERT_COMMAND );
-	}
 	else if (command.equals( __Commands_General_runCommands_String) ) {
 		commandList_EditCommand ( __Commands_General_runCommands_String,
 			null, __INSERT_COMMAND );
@@ -10501,8 +10526,16 @@ throws Exception
 		commandList_EditCommand ( __Commands_General_runProgram_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_testCommand_String) ) {
-		commandList_EditCommand ( __Commands_General_testCommand_String,
+	else if (command.equals( __Commands_General_CompareFiles_String)){
+		commandList_EditCommand ( __Commands_General_CompareFiles_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_WriteProperty_String)){
+		commandList_EditCommand ( __Commands_General_WriteProperty_String,
+			null, __INSERT_COMMAND );
+	}
+	else if (command.equals( __Commands_General_TestCommand_String) ) {
+		commandList_EditCommand ( __Commands_General_TestCommand_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_General_CreateRegressionTestCommandFile_String) ) {
@@ -10847,6 +10880,10 @@ private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 				commandList_ReplaceCommand ( old_command, new_command );
 			}
 		}
+	}
+	// Mark the commands as dirty...
+	if ( selected_size > 0 ) {
+		commandList_SetDirty ( true );
 	}
 }
 
@@ -11206,10 +11243,10 @@ private void uiAction_EditCommand ()
 }
 
 /**
-Handle Edit...Commands File, which uses an external editor to edit the file.
+Handle Edit...Command File, which uses an external editor to edit the file.
 */
-private void uiAction_EditCommandsFile ()
-{	String routine = getClass().getName() + ".uiAction_EditCommandsFile";
+private void uiAction_EditCommandFile ()
+{	String routine = getClass().getName() + ".uiAction_EditCommandFile";
 	// Get the name of the file to edit and then use notepad...
 	//
 	// Instantiate a file dialog object with no default...
@@ -11217,8 +11254,7 @@ private void uiAction_EditCommandsFile ()
 	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 			ui_GetDir_LastCommandFileOpened() );
 	fc.setDialogTitle ( "Select File" );
-	SimpleFileFilter sff = new SimpleFileFilter ( "TSTool",
-		"TSTool Commands File" );
+	SimpleFileFilter sff = new SimpleFileFilter ( "TSTool", "TSTool Command File" );
 	fc.addChoosableFileFilter ( sff );
 	fc.setFileFilter ( sff );
 	if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
@@ -11275,8 +11311,7 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Unable to save time series." );
+			Message.printWarning ( 1, routine, "Unable to save time series." );
 		}
 	}
 }
@@ -11286,12 +11321,12 @@ Handle "File...Exit" and X actions.
 */
 private void uiAction_FileExitClicked ()
 {	// If the commands are dirty, see if they want to save them...
-	// This code is also in openCommandsFile - might be able to remove
+	// This code is also in openCommandFile - might be able to remove
 	// copy once all actions are implemented...
 	int x = ResponseJDialog.YES;	// Default for batch mode
 	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
 		if ( __show_main && __commands_dirty ) {
-			if ( __commands_file_name == null ) {
+			if ( __command_file_name == null ) {
 				// Have not been saved before...
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
@@ -11309,11 +11344,10 @@ private void uiAction_FileExitClicked ()
 				}
 				else if ( x == ResponseJDialog.YES ) {
 					// Prompt for the name and then save...
-					uiAction_WriteCommandsFile (
-					__commands_file_name, true);
+					uiAction_WriteCommandFile (	__command_file_name, true);
 				}
 			}
-			else {	// A commands file exists...  Warn the user.
+			else {	// A command file exists...  Warn the user.
 				// They can save to the existing file name or
 				// can cancel and File...Save As... to a
 				// different name.  Have not been saved
@@ -11323,7 +11357,7 @@ private void uiAction_FileExitClicked ()
 					x = new ResponseJDialog ( this,
 					IOUtil.getProgramName(), "Do you want "+
 					"to save the changes you made to\n\""
-					+ __commands_file_name + "\"?",
+					+ __command_file_name + "\"?",
 					ResponseJDialog.YES| ResponseJDialog.NO|
 					ResponseJDialog.CANCEL).response();
 				}
@@ -11333,8 +11367,7 @@ private void uiAction_FileExitClicked ()
 					return;
 				}
 				else if ( x == ResponseJDialog.YES ) {
-					uiAction_WriteCommandsFile (
-					__commands_file_name, false );
+					uiAction_WriteCommandFile (	__command_file_name, false );
 				}
 				// Else if No will just exit below...
 			}
@@ -13991,15 +14024,15 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 }
 
 /**
-Open a commands file and read into the list of commands.  A check is made to
+Open a command file and read into the list of commands.  A check is made to
 see if the list contains anything and if it does the user is prompted as to
 whether need to save the previous commands.
 */
-private void uiAction_OpenCommandsFile ()
-{	String routine = getClass().getName() + ".openCommandsFile";
+private void uiAction_OpenCommandFile ()
+{	String routine = getClass().getName() + ".openCommandFile";
 	// See whether the old commands need to be cleared...
 	if ( __commands_dirty ) {
-		if ( __commands_file_name == null ) {
+		if ( __command_file_name == null ) {
 			// Have not been saved before...
 			int x = ResponseJDialog.NO;
 			if ( __commands_JListModel.size() > 0 ) {
@@ -14014,10 +14047,11 @@ private void uiAction_OpenCommandsFile ()
 			}
 			else if ( x == ResponseJDialog.YES ) {
 				// Prompt for the name and then save...
-				uiAction_WriteCommandsFile ( __commands_file_name, true);
+				uiAction_WriteCommandFile ( __command_file_name, true);
 			}
 		}
-		else {	// A commands file exists...  Warn the user.  They can
+		else {
+			// A command file exists...  Warn the user.  They can
 			// save to the existing file name or can cancel and
 			// File...Save As... to a different name.
 			// Have not been saved before...
@@ -14026,7 +14060,7 @@ private void uiAction_OpenCommandsFile ()
 				x = new ResponseJDialog ( this,
 				IOUtil.getProgramName(),
 				"Do you want to save the changes you made to:\n"
-				+ "\"" + __commands_file_name + "\"?",
+				+ "\"" + __command_file_name + "\"?",
 				ResponseJDialog.YES| ResponseJDialog.NO|
 				ResponseJDialog.CANCEL).response();
 			}
@@ -14034,7 +14068,7 @@ private void uiAction_OpenCommandsFile ()
 				return;
 			}
 			else if ( x == ResponseJDialog.YES ) {
-				uiAction_WriteCommandsFile ( __commands_file_name,false);
+				uiAction_WriteCommandFile ( __command_file_name,false);
 			}
 			// Else if No will clear below before opening the other
 			// file...
@@ -14046,9 +14080,8 @@ private void uiAction_OpenCommandsFile ()
 
 	JFileChooser fc = JFileChooserFactory.createJFileChooser (
 			ui_GetDir_LastCommandFileOpened() );
-	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Commands File");
-	SimpleFileFilter sff =
-		new SimpleFileFilter("TSTool", "TSTool Commands File");
+	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Command File");
+	SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Command File");
 	fc.addChoosableFileFilter(sff);
 	fc.setFileFilter(sff);
 	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -14063,15 +14096,15 @@ private void uiAction_OpenCommandsFile ()
 		ui_SetDir_LastCommandFileOpened(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		Message.printStatus(2, routine, "Working directory from commands file is \"" +
+		Message.printStatus(2, routine, "Working directory from command file is \"" +
 			IOUtil.getProgramWorkingDir() );
-		try { commandProcessor_ReadCommandsFile ( path );
+		try { commandProcessor_ReadCommandFile ( path );
 			// Repaint the list to reflect the status of the commands...
 			__commands_AnnotatedCommandJList.repaint();
 		}
 		catch ( FileNotFoundException e ) {
 			Message.printWarning ( 1, routine,
-					"Commands file \"" + path + "\" does not exist." );
+					"Command file \"" + path + "\" does not exist." );
 					Message.printWarning ( 2, routine, e );
 					// Previous contents will remain.
 					return;
@@ -14084,12 +14117,12 @@ private void uiAction_OpenCommandsFile ()
 			// Error opening the file (should not happen but maybe
 			// a read permissions problem)...
 			Message.printWarning ( 1, routine,
-			"Error reading commands file \"" + path + "\".  Displaying commands that could be read." );
+			"Error reading command file \"" + path + "\".  Displaying commands that could be read." );
 			Message.printWarning ( 2, routine, e );
 		}
 		// If successful the TSCommandProcessor, as the data model, will
 		// have fired actions to make the JList update.
-		commandList_SetCommandsFileName(path);
+		commandList_SetCommandFileName(path);
 		commandList_SetDirty(false);			
 	}
 	// New file has been opened or there was a cancel/error and the old
@@ -14731,6 +14764,7 @@ Display the list of output files from the commands.
 private void uiAction_RunCommands_ShowResultsOutputFiles()
 {	// Loop through the commands.  For any that implement the FileGenerator interface,
 	// get the output file names and add to the list.
+	// Only add a file if not already in the list (so append does not
 	Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Entering method.");
 	int size = __commands_JListModel.size();
 	Command command;
@@ -14863,14 +14897,14 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 }
 
 /**
-Run a commands file, independent of what is shown in the UI.
+Run a command file, independent of what is shown in the UI.
 */
 private void uiAction_RunCommandFile ()
-{	String routine = getClass().getName() + ".uiAction_RunCommandsFile";
+{	String routine = getClass().getName() + ".uiAction_RunCommandFile";
 	// Select from the directory where the previous selection occurred.
-	JFileChooser fc = JFileChooserFactory.createJFileChooser ( ui_GetDir_LastExternalCommandsFileRun() );
-	fc.setDialogTitle("Select " + IOUtil.getProgramName() + " Commands File to Run");
-	SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Commands File");
+	JFileChooser fc = JFileChooserFactory.createJFileChooser ( ui_GetDir_LastExternalCommandFileRun() );
+	fc.setDialogTitle("Select " + IOUtil.getProgramName() + " Command File to Run");
+	SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Command File");
 	fc.addChoosableFileFilter(sff);
 	fc.setFileFilter(sff);
 	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -14887,15 +14921,14 @@ private void uiAction_RunCommandFile ()
 			commandProcessor_SetHydroBaseDMI ( runner.getProcessor(), ui_GetHydroBaseDMI() );
 			commandProcessor_SetNWSRFSFS5FilesDMI ( runner.getProcessor(), ui_GetNWSRFSFS5FilesDMI() );
 			// Now run the command file
-			Message.printStatus ( 1, routine, "Running external commands file \"" + path + "\"" );
+			Message.printStatus ( 1, routine, "Running external command file \"" + path + "\"" );
 			runner.runCommands();
-			Message.printStatus ( 1, routine, "Successfully processed commands file \"" + path + "\"" );
+			Message.printStatus ( 1, routine, "Successfully processed command file \"" + path + "\"" );
 			JGUIUtil.setWaitCursor ( this, false );
 		}
 		catch ( Exception e ) {
 			JGUIUtil.setWaitCursor ( this, false );
-			Message.printWarning ( 1, routine,
-			"Error running commands file \"" + path + "\"" );
+			Message.printWarning ( 1, routine, "Error running command file \"" + path + "\"" );
 			Message.printWarning ( 2, routine, e );
 			JGUIUtil.setWaitCursor ( this, false );
 		}
@@ -14941,8 +14974,7 @@ private void uiAction_SaveTimeSeries ()
 	// Add RiverWare only if enabled in the configuration... 
 	SimpleFileFilter riverware_sff = null;
 	if ( __source_RiverWare_enabled ) {
-		riverware_sff = new SimpleFileFilter(
-				"txt", "RiverWare Time Series Format File" );
+		riverware_sff = new SimpleFileFilter("txt", "RiverWare Time Series Format File" );
 		fc.addChoosableFileFilter( riverware_sff );
 	}
 	// Add SHEF only if enabled in the configuration... 
@@ -14954,8 +14986,7 @@ private void uiAction_SaveTimeSeries ()
 	// Add StateMod only if enabled in the configuration... 
 	SimpleFileFilter statemod_sff = null;
 	if ( __source_StateMod_enabled ) {
-		statemod_sff = new SimpleFileFilter(
-				"stm", "StateMod Time Series File" );
+		statemod_sff = new SimpleFileFilter("stm", "StateMod Time Series File" );
 		fc.addChoosableFileFilter( statemod_sff );
 	}
 	// Add Summary always...
@@ -16895,22 +16926,22 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 }
 
 /**
-Write the current commands file list (all lines, whether selected or not) to
+Write the current command file list (all lines, whether selected or not) to
 the specified file.  Do not prompt for header comments (and do not add).
 @param prompt_for_file If true, prompt for the file name rather than using the
 value that is passed.  An extension of .TSTool is enforced.
-@param file Commands file to write.
+@param file Command file to write.
 */
-private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
+private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
 {	String directory = null;
 	if ( prompt_for_file ) {
 		JFileChooser fc = JFileChooserFactory.createJFileChooser(
 				ui_GetDir_LastCommandFileOpened() );
-		fc.setDialogTitle("Save Commands File");
+		fc.setDialogTitle("Save Command File");
 		// Default name...
 		File default_file = new File("commands.TSTool");
 		fc.setSelectedFile ( default_file );
-		SimpleFileFilter sff = new SimpleFileFilter("TSTool","TSTool Commands File");
+		SimpleFileFilter sff = new SimpleFileFilter("TSTool","TSTool Command File");
 		fc.setFileFilter(sff);
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			directory = fc.getSelectedFile().getParent();
@@ -16932,7 +16963,7 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 	
 		out.close();
 		commandList_SetDirty(false);
-		commandList_SetCommandsFileName ( file );
+		commandList_SetCommandFileName ( file );
 
 		if ( directory != null ) {
 			// Set the "WorkingDir" property, which will NOT
@@ -16944,8 +16975,7 @@ private void uiAction_WriteCommandsFile ( String file, boolean prompt_for_file )
 		}
 	}
 	catch ( Exception e ) {
-		Message.printWarning (1, "writeCommandsFile",
-			"Error writing file:\n\"" + file + "\"");
+		Message.printWarning (1, "writeCommandFile", "Error writing file:\n\"" + file + "\"");
 		// Leave the dirty flag the previous value.
 	}
 	// Update the status information...
