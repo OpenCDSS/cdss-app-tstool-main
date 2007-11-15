@@ -870,7 +870,7 @@ JMenuItem
 	__Commands_ConvertTSIDTo_readNwsCard_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readRiverWare_JMenuItem = null,
-	__Commands_ConvertTSIDTo_readStateMod_JMenuItem = null,
+	__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readStateModB_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem = null;
 
@@ -888,7 +888,7 @@ JMenuItem
 	__Commands_Read_readNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Read_readNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_readStateCU_JMenuItem,
-	__Commands_Read_readStateMod_JMenuItem,
+	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_readStateModB_JMenuItem,
 	__Commands_Read_statemodMax_JMenuItem,
 	// TS Alias = commands...
@@ -899,7 +899,7 @@ JMenuItem
 	__Commands_Read_TS_readNwsCard_JMenuItem,
 	__Commands_Read_TS_readNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_TS_readRiverWare_JMenuItem,
-	__Commands_Read_TS_readStateMod_JMenuItem,
+	__Commands_Read_TS_ReadStateMod_JMenuItem,
 	__Commands_Read_TS_readStateModB_JMenuItem,
 	__Commands_Read_TS_readUsgsNwis_JMenuItem,
 
@@ -959,7 +959,7 @@ JMenuItem
 	__Commands_Manipulate_convertDataUnits_JMenuItem,
 	__Commands_Manipulate_cumulate_JMenuItem,
 	__Commands_Manipulate_divide_JMenuItem,
-	__Commands_Manipulate_free_JMenuItem,
+	__Commands_Manipulate_Free_JMenuItem,
 	__Commands_Manipulate_multiply_JMenuItem,
 	__Commands_Manipulate_runningAverage_JMenuItem,
 	__Commands_Manipulate_scale_JMenuItem,
@@ -971,7 +971,7 @@ JMenu
 	__Commands_AnalyzeTimeSeries_JMenu = null;
 JMenuItem
 	__Commands_Analyze_analyzePattern_JMenuItem = null,
-	__Commands_Analyze_compareTimeSeries_JMenuItem = null,
+	__Commands_Analyze_CompareTimeSeries_JMenuItem = null,
 
 	__Commands_Analyze_newDataTest_JMenuItem = null,
 	__Commands_Analyze_readDataTestFromRiversideDB_JMenuItem = null,
@@ -993,7 +993,7 @@ JMenuItem
 	__Commands_Output_setOutputPeriod_JMenuItem,
 	__Commands_Output_setOutputYearType_JMenuItem,
 	__Commands_Output_selectTimeSeries_JMenuItem,
-	__Commands_Output_sortTimeSeries_JMenuItem,
+	__Commands_Output_SortTimeSeries_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_writeNwsCard_JMenuItem,
 	__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
@@ -1204,7 +1204,7 @@ private String
 	__Commands_ConvertTSIDTo_readNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNwsCard()",
 	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNWSRFSFS5Files()",
 	__Commands_ConvertTSIDTo_readRiverWare_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readRiverWare()",
-	__Commands_ConvertTSIDTo_readStateMod_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readStateMod()",
+	__Commands_ConvertTSIDTo_ReadStateMod_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadStateMod()",
 	__Commands_ConvertTSIDTo_readStateModB_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readStateModB()",
 	__Commands_ConvertTSIDTo_readUsgsNwis_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readUsgsNwis()",
 
@@ -1236,7 +1236,7 @@ private String
 	__Commands_Read_readNWSRFSESPTraceEnsemble_String = TAB + "readNWSRFSESPTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
 	__Commands_Read_readNWSRFSFS5Files_String = TAB + "readNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
 	__Commands_Read_readStateCU_String = TAB + "readStateCU()...  <read 1(+) time series from a StateCU file>",
-	__Commands_Read_readStateMod_String = TAB +	"readStateMod()...  <read 1(+) time series from a StateMod file>",
+	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()...  <read 1(+) time series from a StateMod file>",
 	__Commands_Read_readStateModB_String = TAB + "readStateModB()...  <read 1(+) time series from a StateMod binary output file>",
 	__Commands_Read_statemodMax_String = TAB + "statemodMax()...  <generate 1(+) time series as max() of TS in two StateMod files>",
 
@@ -1247,7 +1247,7 @@ private String
 	__Commands_Read_TS_readNwsCard_String = TAB + "TS Alias = readNwsCard()...  <read 1 time series from an NWS CARD file>",
 	__Commands_Read_TS_readNWSRFSFS5Files_String = TAB + "TS Alias = readNWSRFSFS5Files()...  <read 1 time series from an NWSRFS FS5 Files>",
 	__Commands_Read_TS_readRiverWare_String = TAB +	"TS Alias = readRiverWare()...  <read 1 time series from a RiverWare file>",
-	__Commands_Read_TS_readStateMod_String = TAB + "TS Alias = readStateMod()...  <read 1 time series from a StateMod file>",
+	__Commands_Read_TS_ReadStateMod_String = TAB + "TS Alias = ReadStateMod()...  <read 1 time series from a StateMod file>",
 	__Commands_Read_TS_readStateModB_String = TAB + "TS Alias = readStateModB()...  <read 1 time series from a StateMod binary file>",
 	__Commands_Read_TS_readUsgsNwis_String = TAB + "TS Alias = readUsgsNwis()...  <read 1 time series from a USGS NWIS file>",
 
@@ -1298,7 +1298,7 @@ private String
 	__Commands_Manipulate_convertDataUnits_String = TAB + "convertDataUnits()...  <Convert data units>",
 	__Commands_Manipulate_cumulate_String = TAB + "cumulate()...  <Cumulate values over time>",
 	__Commands_Manipulate_divide_String = TAB +	"divide()...  <Divide one TS by another TS>",
-	__Commands_Manipulate_free_String = TAB + "free()...  <Free TS>", 
+	__Commands_Manipulate_Free_String = TAB + "Free()...  <Free time series>", 
 	__Commands_Manipulate_multiply_String = TAB + "multiply()...  <Multiply one TS by another TS>",
 	__Commands_Manipulate_runningAverage_String = TAB +	"runningAverage()...  <Convert TS to running average>",
 	__Commands_Manipulate_scale_String = TAB + "scale()...  <Scale TS by a constant>",
@@ -1313,7 +1313,7 @@ private String
 	__Commands_Output_setOutputDetailedHeaders_String = TAB + "setOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_setOutputPeriod_String = TAB + "setOutputPeriod()... <for output products>",
 	__Commands_Output_setOutputYearType_String = TAB + "setOutputYearType()... <e.g., Water, Calendar>",
-	__Commands_Output_sortTimeSeries_String = TAB +	"sortTimeSeries()...  <sort time series>",
+	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()...  <sort time series>",
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
 	__Commands_Output_writeNwsCard_String = TAB + "writeNwsCard()...  <write NWS Card file>",
 	__Commands_Output_writeNWSRFSESPTraceEnsemble_String = TAB + "writeNWSRFSESPTraceEnsemble()...  <write ESP trace ensemble file>",
@@ -1327,7 +1327,7 @@ private String
 
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
 	__Commands_Analyze_analyzePattern_String = TAB + "analyzePattern()... <determine pattern(s) for fillPattern() (under development)>",
-	__Commands_Analyze_compareTimeSeries_String = TAB + "compareTimeSeries()... <find differences>",
+	__Commands_Analyze_CompareTimeSeries_String = TAB + "CompareTimeSeries()... <find differences between time series>",
 
 	__Commands_Analyze_newDataTest_String = TAB + "DataTest TestID = newDataTest()... <create a new data test> (under development)",
 	__Commands_Analyze_readDataTestFromRiversideDB_String = TAB + "readDataTestFromRiversideDB()... <read 1 data test from RiversideDB> (under development)",
@@ -2986,19 +2986,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for divide()" );
 		}
 		edited_cv = new divide_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals(__Commands_Manipulate_free_String) ||
-		command.regionMatches(true,0,"free(",0,5) ||
-		command.regionMatches(true,0,"free (",0,6) ) {
-		// Check with the parenthesis above because some command might
-		// actually start with the word "free".
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for free()" );
-		}
-		edited_cv = new free_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
@@ -6129,7 +6116,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Manipulate_convertDataUnits_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_cumulate_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_divide_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_free_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_multiply_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_runningAverage_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_scale_JMenuItem,true);
@@ -6138,12 +6125,12 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,true);
 
 		JGUIUtil.setEnabled ( __Commands_Analyze_analyzePattern_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Analyze_compareTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
 
 		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
 
-		JGUIUtil.setEnabled ( __Commands_Output_sortTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,true);
@@ -6220,7 +6207,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Manipulate_convertDataUnits_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_cumulate_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_divide_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_free_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_multiply_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_runningAverage_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Manipulate_scale_JMenuItem,false);
@@ -6229,14 +6216,14 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,false);
 
 		JGUIUtil.setEnabled ( __Commands_Analyze_analyzePattern_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Analyze_compareTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
 
 		// TODO SAM 2005-07-11 For now enable because models can
 		// create time series...
 		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
 
-		JGUIUtil.setEnabled ( __Commands_Output_sortTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,false);
@@ -6319,13 +6306,13 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readRiverWare_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readStateMod_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadStateMod_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readStateModB_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem,false);
 
 	// TODO SAM 2005-09-02 Proposed new commands
 	JGUIUtil.setEnabled(__Commands_Read_TS_readStateModB_JMenuItem,false);
-	JGUIUtil.setEnabled(__Commands_Read_TS_readStateMod_JMenuItem,false);
+	JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateMod_JMenuItem,false);
 
 	// TODO Not available as a command yet - logic not coded...
 	JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,false);
@@ -7609,9 +7596,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readStateMod_JMenuItem =
+			__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readStateMod_String, this ) );
+			__Commands_ConvertTSIDTo_ReadStateMod_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
@@ -7698,16 +7685,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readStateMod_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readStateMod_String, this) );
+			__Commands_Read_ReadStateMod_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_ReadStateMod_String, this) );
 	}
 
 	if ( __source_StateModB_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
 			__Commands_Read_readStateModB_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readStateModB_String, this) );
+			new SimpleJMenuItem(__Commands_Read_readStateModB_String, this) );
 	}
 
 	if ( __source_StateMod_enabled ) {
@@ -7771,16 +7756,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readStateMod_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readStateMod_String, this) );
+			__Commands_Read_TS_ReadStateMod_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadStateMod_String, this) );
 	}
 
 	if ( __source_StateModB_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
 			__Commands_Read_TS_readStateModB_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readStateModB_String, this) );
+			new SimpleJMenuItem(__Commands_Read_TS_readStateModB_String, this) );
 	}
 
 	if ( __source_USGSNWIS_enabled ) {
@@ -7866,8 +7849,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			this ) );
 	}
 
-	/* SAMX DISABLE THIS FOR now - this was an RTi freebie and needs to be
-		reworked
+	/* FIXME DISABLE THIS FOR now - this was an RTi freebie and needs to be reworked
 	_JmenuTSFillWeights = new SimpleJMenuItem(
 		MENU_INTERMEDIATE_FILL_WEIGHTS,
 		this );
@@ -7978,8 +7960,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Manipulate_divide_String, this ) );
 
 	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_free_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_free_String, this ) );
+		__Commands_Manipulate_Free_JMenuItem = new SimpleJMenuItem(
+		__Commands_Manipulate_Free_String, this ) );
 
 	__Commands_ManipulateTimeSeries_JMenu.add (
 		__Commands_Manipulate_multiply_JMenuItem = new SimpleJMenuItem(
@@ -8013,9 +7995,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Analyze_analyzePattern_String, this ) );
 
 	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_compareTimeSeries_JMenuItem =
+		__Commands_Analyze_CompareTimeSeries_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_Analyze_compareTimeSeries_String, this ) );
+		__Commands_Analyze_CompareTimeSeries_String, this ) );
 
 	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
 	__Commands_AnalyzeTimeSeries_JMenu.add (
@@ -8072,9 +8054,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
 	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_sortTimeSeries_JMenuItem =
+		__Commands_Output_SortTimeSeries_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_Output_sortTimeSeries_String, this ) );
+		__Commands_Output_SortTimeSeries_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 	__Commands_OutputTimeSeries_JMenu.add (
@@ -9929,8 +9911,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_readRiverWare_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
-	else if ( o == __Commands_ConvertTSIDTo_readStateMod_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readStateMod_String,
+	else if ( o == __Commands_ConvertTSIDTo_ReadStateMod_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadStateMod_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readStateModB_JMenuItem ) {
@@ -10053,8 +10035,8 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	// Put after longer versions...
-	else if (command.equals( __Commands_Read_readStateMod_String)){
-		commandList_EditCommand ( __Commands_Read_readStateMod_String,
+	else if (command.equals( __Commands_Read_ReadStateMod_String)){
+		commandList_EditCommand ( __Commands_Read_ReadStateMod_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_statemodMax_String)){
@@ -10094,8 +10076,8 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	// Put after longer versions...
-	else if (command.equals( __Commands_Read_TS_readStateMod_String)){
-		commandList_EditCommand ( __Commands_Read_TS_readStateMod_String,
+	else if (command.equals( __Commands_Read_TS_ReadStateMod_String)){
+		commandList_EditCommand ( __Commands_Read_TS_ReadStateMod_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_TS_readUsgsNwis_String)){
@@ -10299,8 +10281,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Manipulate_divide_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals(__Commands_Manipulate_free_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_free_String,
+	else if (command.equals(__Commands_Manipulate_Free_String) ) {
+		commandList_EditCommand ( __Commands_Manipulate_Free_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals(__Commands_Manipulate_multiply_String) ) {
@@ -10342,8 +10324,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Analyze_analyzePattern_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Analyze_compareTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Analyze_compareTimeSeries_String,
+	else if (command.equals( __Commands_Analyze_CompareTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Analyze_CompareTimeSeries_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Analyze_newDataTest_String)){
@@ -10418,8 +10400,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Output_setOutputYearType_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_sortTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_sortTimeSeries_String,
+	else if (command.equals( __Commands_Output_SortTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Output_SortTimeSeries_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
