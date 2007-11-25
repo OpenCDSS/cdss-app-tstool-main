@@ -147,6 +147,7 @@ import RTi.Util.GUI.SimpleJMenuItem;
 import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
+import RTi.Util.IO.CommandProcessor;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
 import RTi.Util.IO.CommandStatus;
@@ -865,7 +866,7 @@ JMenu
 JMenuItem
 	__Commands_ConvertTSIDTo_readTimeSeries_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readDateValue_JMenuItem = null,
-	__Commands_ConvertTSIDTo_readHydroBase_JMenuItem = null,
+	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readMODSIM_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readNwsCard_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem = null,
@@ -882,7 +883,7 @@ JMenuItem
 	//--
 	// NOT TS Alias = commands...
 	__Commands_Read_readDateValue_JMenuItem,
-	__Commands_Read_readHydroBase_JMenuItem,
+	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_readMODSIM_JMenuItem,
 	__Commands_Read_readNwsCard_JMenuItem,
 	__Commands_Read_readNWSRFSESPTraceEnsemble_JMenuItem,
@@ -893,7 +894,7 @@ JMenuItem
 	__Commands_Read_statemodMax_JMenuItem,
 	// TS Alias = commands...
 	__Commands_Read_TS_readDateValue_JMenuItem,
-	__Commands_Read_TS_readHydroBase_JMenuItem,
+	__Commands_Read_TS_ReadHydroBase_JMenuItem,
 	__Commands_Read_TS_readMODSIM_JMenuItem,
 	__Commands_Read_TS_readNDFD_JMenuItem,
 	__Commands_Read_TS_readNwsCard_JMenuItem,
@@ -1020,9 +1021,11 @@ JMenuItem
 
 	__Commands_General_exit_JMenuItem,
 
-	__Commands_General_runCommands_JMenuItem = null,
+    __Commands_General_StartRegressionTestResultsReport_JMenuItem = null,
+	__Commands_General_RunCommands_JMenuItem = null,
 	__Commands_General_runProgram_JMenuItem = null,
 	__Commands_General_CompareFiles_JMenuItem = null,
+    __Commands_General_RemoveFile_JMenuItem = null,
 	__Commands_General_WriteProperty_JMenuItem = null,
 	__Commands_General_TestCommand_JMenuItem = null,
 	__Commands_General_CreateRegressionTestCommandFile_JMenuItem = null;
@@ -1031,7 +1034,7 @@ JMenuItem
 JMenu
 	__Commands_HydroBase_JMenu = null;
 JMenuItem
-	__Commands_HydroBase_openHydroBase_JMenuItem;
+	__Commands_HydroBase_OpenHydroBase_JMenuItem;
 
 // Commands (NDFD)...
 JMenu
@@ -1199,7 +1202,7 @@ private String
 	__Commands_ConvertTSIDToReadCommand_String = "Convert TS identifier to read command",
 	__Commands_ConvertTSIDTo_readTimeSeries_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readTimeSeries()",
 	__Commands_ConvertTSIDTo_readDateValue_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readDateValue()",
-	__Commands_ConvertTSIDTo_readHydroBase_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readHydroBase()",
+	__Commands_ConvertTSIDTo_ReadHydroBase_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadHydroBase()",
 	__Commands_ConvertTSIDTo_readMODSIM_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readMODSIM()",
 	__Commands_ConvertTSIDTo_readNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNwsCard()",
 	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNWSRFSFS5Files()",
@@ -1230,7 +1233,7 @@ private String
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
 	__Commands_Read_readDateValue_String = TAB + "readDateValue()...  <read 1(+) time series from a DateValue file>",
-	__Commands_Read_readHydroBase_String = TAB + "readHydroBase()...  <read 1(+) time series from HydroBase>",
+	__Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_readMODSIM_String = TAB + "readMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_readNwsCard_String = TAB + "readNwsCard()...  <read 1(+) time series from an NWS CARD file>",
 	__Commands_Read_readNWSRFSESPTraceEnsemble_String = TAB + "readNWSRFSESPTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
@@ -1241,7 +1244,7 @@ private String
 	__Commands_Read_statemodMax_String = TAB + "statemodMax()...  <generate 1(+) time series as max() of TS in two StateMod files>",
 
 	__Commands_Read_TS_readDateValue_String = TAB +	"TS Alias = readDateValue()...  <read 1 time series from a DateValue file>",
-	__Commands_Read_TS_readHydroBase_String = TAB + "TS Alias = readHydroBase()...  <read 1 time series from HydroBase>",
+	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()...  <read 1 time series from HydroBase>",
 	__Commands_Read_TS_readMODSIM_String = TAB + "TS Alias = readMODSIM()...  <read 1 time series from a MODSIM output file>",
 	__Commands_Read_TS_readNDFD_String = TAB + "TS Alias = readNDFD()...  <read 1 time series from NDFD web service>",
 	__Commands_Read_TS_readNwsCard_String = TAB + "TS Alias = readNwsCard()...  <read 1 time series from an NWS CARD file>",
@@ -1342,7 +1345,7 @@ private String
 	// HydroBase commands...
 
 	__Commands_HydroBase_String = "HydroBase",
-	__Commands_HydroBase_openHydroBase_String = TAB + "openHydroBase()... <open HydroBase database connection>",
+	__Commands_HydroBase_OpenHydroBase_String = TAB + "OpenHydroBase()... <open HydroBase database connection>",
 
 	// NDFD commands...
 
@@ -1359,9 +1362,11 @@ private String
 	__Commands_General_Comment_String = TAB + "# comment(s)...",
 	__Commands_General_startComment_String = TAB + "/*   <start comment>",
 	__Commands_General_endComment_String = TAB + "*/   <end comment>",
-	__Commands_General_exit_String = TAB + "exit()  <to end processing>",
-	__Commands_General_runCommands_String = TAB + "runCommands()... <run a command file> (under development)",
+	__Commands_General_exit_String = TAB + "Exit()  <to end processing>",
+    __Commands_General_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
+	__Commands_General_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_runProgram_String = TAB + "runProgram()... <run external program>",
+    __Commands_General_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
 	__Commands_General_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
 	__Commands_General_WriteProperty_String = TAB + "WriteProperty()... <used to test software>",
 	__Commands_General_TestCommand_String = TAB + "TestCommand()... <to test software>",
@@ -4194,7 +4199,7 @@ interface.  In the future the command processor may put together the list withou
 being passed from the GUI.
 */
 private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean create_output )
-{	String routine = "TSTool_JFrame.commandProcessorRunCommandsThreaded";
+{	String routine = "TSTool_JFrame.commandProcessor_RunCommandsThreaded";
 
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "CommandList", commands );
@@ -4237,7 +4242,7 @@ an external command file.
 @param hbdmi Open HydroBaseDMI instance.
 The input name is blank since it is the default HydroBaseDMI.
 */
-private void commandProcessor_SetHydroBaseDMI( TSCommandProcessor processor, HydroBaseDMI hbdmi )
+private void commandProcessor_SetHydroBaseDMI( CommandProcessor processor, HydroBaseDMI hbdmi )
 {	String message, routine = "TSTool_JFrame.setCommandProcessorHydroBaseDMI";
 	if ( hbdmi == null ) {
 		return;
@@ -6301,7 +6306,7 @@ private void ui_CheckGUIState ()
 	// simplifying the conversion from time series browsing, to command
 	// language.
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readHydroBase_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readMODSIM_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
@@ -7560,9 +7565,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readHydroBase_String, this ) );
+			__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem =
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadHydroBase_String, this ) );
 	}
 
 	if ( __source_MODSIM_enabled ) {
@@ -7640,9 +7644,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readHydroBase_String, this) );
+			__Commands_Read_ReadHydroBase_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_ReadHydroBase_String, this) );
 	}
 
 	if ( __source_MODSIM_enabled ) {
@@ -7714,9 +7717,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add (
-			__Commands_Read_TS_readHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_readHydroBase_String, this) );
+			__Commands_Read_TS_ReadHydroBase_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadHydroBase_String, this) );
 	}
 
 	if ( __source_MODSIM_enabled ) {
@@ -8119,9 +8121,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 		__Commands_JMenu.add( __Commands_HydroBase_JMenu =
 			new JMenu( __Commands_HydroBase_String, true ) );	
 		__Commands_HydroBase_JMenu.add (
-			__Commands_HydroBase_openHydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_HydroBase_openHydroBase_String, this ) );
+			__Commands_HydroBase_OpenHydroBase_JMenuItem =
+			new SimpleJMenuItem(__Commands_HydroBase_OpenHydroBase_String, this ) );
 	}
 	if ( __source_NDFD_enabled ) {
 		__Commands_JMenu.addSeparator();
@@ -8170,13 +8171,20 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 		__Commands_General_exit_String, this ) );
 	__Commands_General_JMenu.addSeparator ();
 
-	__Commands_General_JMenu.add (__Commands_General_runCommands_JMenuItem =
+    __Commands_General_JMenu.add (__Commands_General_StartRegressionTestResultsReport_JMenuItem =
+        new SimpleJMenuItem(
+        __Commands_General_StartRegressionTestResultsReport_String,this));
+	__Commands_General_JMenu.add (__Commands_General_RunCommands_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_General_runCommands_String,this));
+		__Commands_General_RunCommands_String,this));
 	__Commands_General_JMenu.add ( __Commands_General_runProgram_JMenuItem =
 		new SimpleJMenuItem(__Commands_General_runProgram_String,this));
 	
 	__Commands_General_JMenu.addSeparator();
+    __Commands_General_JMenu.add (
+            __Commands_General_RemoveFile_JMenuItem =
+            new SimpleJMenuItem(
+            __Commands_General_RemoveFile_String, this ) );
 	__Commands_General_JMenu.add (
 			__Commands_General_CompareFiles_JMenuItem =
 			new SimpleJMenuItem(
@@ -9895,8 +9903,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_readDateValue_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
-	else if ( o == __Commands_ConvertTSIDTo_readHydroBase_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readHydroBase_String,
+	else if ( o == __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadHydroBase_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readMODSIM_JMenuItem ) {
@@ -10004,8 +10012,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Read_readDateValue_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Read_readHydroBase_String)){
-		commandList_EditCommand ( __Commands_Read_readHydroBase_String,
+	else if (command.equals( __Commands_Read_ReadHydroBase_String)){
+		commandList_EditCommand ( __Commands_Read_ReadHydroBase_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_readMODSIM_String)){
@@ -10047,8 +10055,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Read_TS_readDateValue_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Read_TS_readHydroBase_String)){
-		commandList_EditCommand ( __Commands_Read_TS_readHydroBase_String,
+	else if (command.equals( __Commands_Read_TS_ReadHydroBase_String)){
+		commandList_EditCommand ( __Commands_Read_TS_ReadHydroBase_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_TS_readMODSIM_String)){
@@ -10454,8 +10462,8 @@ throws Exception
 
 	// HydroBase commands...
 
-	if (command.equals(__Commands_HydroBase_openHydroBase_String)){
-		commandList_EditCommand ( __Commands_HydroBase_openHydroBase_String,
+	if (command.equals(__Commands_HydroBase_OpenHydroBase_String)){
+		commandList_EditCommand ( __Commands_HydroBase_OpenHydroBase_String,
 			null, __INSERT_COMMAND );
 	}
 
@@ -10500,14 +10508,22 @@ throws Exception
 		commandList_EditCommand ( __Commands_General_exit_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_runCommands_String) ) {
-		commandList_EditCommand ( __Commands_General_runCommands_String,
+    else if (command.equals( __Commands_General_StartRegressionTestResultsReport_String) ) {
+        commandList_EditCommand ( __Commands_General_StartRegressionTestResultsReport_String,
+            null, __INSERT_COMMAND );
+    }
+	else if (command.equals( __Commands_General_RunCommands_String) ) {
+		commandList_EditCommand ( __Commands_General_RunCommands_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_General_runProgram_String) ) {
 		commandList_EditCommand ( __Commands_General_runProgram_String,
 			null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_General_RemoveFile_String)){
+        commandList_EditCommand ( __Commands_General_RemoveFile_String,
+            null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_General_CompareFiles_String)){
 		commandList_EditCommand ( __Commands_General_CompareFiles_String,
 			null, __INSERT_COMMAND );
@@ -14177,7 +14193,7 @@ may be available and there is no reason to automatically connect to one of them
 for all users.
 */
 private void uiAction_OpenHydroBase ( boolean startup )
-{	String routine = "TSTool_JFrame.openHydroBase";
+{	String routine = "TSTool_JFrame.uiAction_OpenHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
 	if ( IOUtil.isBatch() || !__show_main ) {
 		// Running in batch mode or without a main GUI so automatically
@@ -14684,7 +14700,7 @@ TSEngine.  If false, only the time series in memory remain at the end and can
 be viewed.  The former is suitable for batch files, both for the GUI.
 */
 private void uiAction_RunCommands ( boolean run_all_commands, boolean create_output )
-{	String routine = "TSTool_JFrame.runCommands";
+{	String routine = "TSTool_JFrame.uiAction_RunCommands";
 	ui_UpdateStatusTextFields ( 1, routine, null, "Running commands...", __STATUS_BUSY);
 	results_Clear ();
 	System.gc();
@@ -14719,12 +14735,15 @@ to gracefully handle displaying output.
 */
 private void uiAction_RunCommands_ShowResults()
 {
-	//This method may be called from a thread different than the Swing thread.  To
+	// This method may be called from a thread different than the Swing thread.  To
 	// avoid bad behavior in GUI components (like the results list having big gaps),
 	// use the following to queue up GUI actions on the Swing thread.
 	
 	Runnable r = new Runnable() {
 		public void run() {
+            // Close the regression results report if it is open (have to do here because
+            // layers of recursion can occur when running a commands file)...
+            TSCommandProcessorUtil.closeRegressionTestReportFile();
 			results_Clear();
 			uiAction_RunCommands_ShowResultsTimeSeries(); // JList
 			uiAction_RunCommands_ShowResultsOutputFiles(); // JComboBox
