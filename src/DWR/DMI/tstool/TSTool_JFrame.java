@@ -868,7 +868,7 @@ JMenuItem
 	__Commands_ConvertTSIDTo_readDateValue_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readMODSIM_JMenuItem = null,
-	__Commands_ConvertTSIDTo_readNwsCard_JMenuItem = null,
+	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem = null,
 	__Commands_ConvertTSIDTo_readRiverWare_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem = null,
@@ -885,7 +885,7 @@ JMenuItem
 	__Commands_Read_readDateValue_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_readMODSIM_JMenuItem,
-	__Commands_Read_readNwsCard_JMenuItem,
+	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_readNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Read_readNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_readStateCU_JMenuItem,
@@ -897,7 +897,7 @@ JMenuItem
 	__Commands_Read_TS_ReadHydroBase_JMenuItem,
 	__Commands_Read_TS_readMODSIM_JMenuItem,
 	__Commands_Read_TS_readNDFD_JMenuItem,
-	__Commands_Read_TS_readNwsCard_JMenuItem,
+	__Commands_Read_TS_ReadNwsCard_JMenuItem,
 	__Commands_Read_TS_readNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_TS_readRiverWare_JMenuItem,
 	__Commands_Read_TS_ReadStateMod_JMenuItem,
@@ -925,7 +925,7 @@ JMenuItem
 	__Commands_Fill_fillProrate_JMenuItem,
 	__Commands_Fill_fillRegression_JMenuItem,
 	__Commands_Fill_fillRepeat_JMenuItem,
-	__Commands_Fill_fillUsingDiversionComments_JMenuItem,
+	__Commands_Fill_FillUsingDiversionComments_JMenuItem,
 
 	__Commands_Fill_setAutoExtendPeriod_JMenuItem,
 	__Commands_Fill_setAveragePeriod_JMenuItem,
@@ -997,7 +997,7 @@ JMenuItem
 	__Commands_Output_SortTimeSeries_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_writeNwsCard_JMenuItem,
-	__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,
+	__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Output_writeRiverWare_JMenuItem,
 	__Commands_Output_writeStateCU_JMenuItem,
 	__Commands_Output_writeStateMod_JMenuItem,
@@ -1204,7 +1204,7 @@ private String
 	__Commands_ConvertTSIDTo_readDateValue_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readDateValue()",
 	__Commands_ConvertTSIDTo_ReadHydroBase_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadHydroBase()",
 	__Commands_ConvertTSIDTo_readMODSIM_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readMODSIM()",
-	__Commands_ConvertTSIDTo_readNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNwsCard()",
+	__Commands_ConvertTSIDTo_ReadNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadNwsCard()",
 	__Commands_ConvertTSIDTo_readNWSRFSFS5Files_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readNWSRFSFS5Files()",
 	__Commands_ConvertTSIDTo_readRiverWare_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = readRiverWare()",
 	__Commands_ConvertTSIDTo_ReadStateMod_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadStateMod()",
@@ -1235,7 +1235,7 @@ private String
 	__Commands_Read_readDateValue_String = TAB + "readDateValue()...  <read 1(+) time series from a DateValue file>",
 	__Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_readMODSIM_String = TAB + "readMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
-	__Commands_Read_readNwsCard_String = TAB + "readNwsCard()...  <read 1(+) time series from an NWS CARD file>",
+	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
 	__Commands_Read_readNWSRFSESPTraceEnsemble_String = TAB + "readNWSRFSESPTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
 	__Commands_Read_readNWSRFSFS5Files_String = TAB + "readNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
 	__Commands_Read_readStateCU_String = TAB + "readStateCU()...  <read 1(+) time series from a StateCU file>",
@@ -1247,7 +1247,7 @@ private String
 	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()...  <read 1 time series from HydroBase>",
 	__Commands_Read_TS_readMODSIM_String = TAB + "TS Alias = readMODSIM()...  <read 1 time series from a MODSIM output file>",
 	__Commands_Read_TS_readNDFD_String = TAB + "TS Alias = readNDFD()...  <read 1 time series from NDFD web service>",
-	__Commands_Read_TS_readNwsCard_String = TAB + "TS Alias = readNwsCard()...  <read 1 time series from an NWS CARD file>",
+	__Commands_Read_TS_ReadNwsCard_String = TAB + "TS Alias = ReadNwsCard()...  <read 1 time series from an NWS CARD file>",
 	__Commands_Read_TS_readNWSRFSFS5Files_String = TAB + "TS Alias = readNWSRFSFS5Files()...  <read 1 time series from an NWSRFS FS5 Files>",
 	__Commands_Read_TS_readRiverWare_String = TAB +	"TS Alias = readRiverWare()...  <read 1 time series from a RiverWare file>",
 	__Commands_Read_TS_ReadStateMod_String = TAB + "TS Alias = ReadStateMod()...  <read 1 time series from a StateMod file>",
@@ -1271,7 +1271,7 @@ private String
 	__Commands_Fill_fillProrate_String = TAB + "fillProrate()...  <Fill TS by prorating another time series>",
 	__Commands_Fill_fillRegression_String = TAB + "fillRegression()...  <Fill TS using regression>",
 	__Commands_Fill_fillRepeat_String = TAB + "fillRepeat()...  <Fill TS by repeating values>",
-	__Commands_Fill_fillUsingDiversionComments_String = TAB + "fillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
+	__Commands_Fill_FillUsingDiversionComments_String = TAB + "FillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
 	// TODO SAM - need to add later...
 	//MENU_INTERMEDIATE_FILL_WEIGHTS_String =
 	//	"Fill Using Weights...",
@@ -1319,7 +1319,7 @@ private String
 	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()...  <sort time series>",
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
 	__Commands_Output_writeNwsCard_String = TAB + "writeNwsCard()...  <write NWS Card file>",
-	__Commands_Output_writeNWSRFSESPTraceEnsemble_String = TAB + "writeNWSRFSESPTraceEnsemble()...  <write ESP trace ensemble file>",
+	__Commands_Output_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()...  <write NWSRFS ESP trace ensemble file>",
 	__Commands_Output_writeRiverWare_String = TAB +	"writeRiverWare()...  <write RiverWare file>",
 	__Commands_Output_writeStateCU_String = TAB + "writeStateCU()...  <write StateCU file>",
 	__Commands_Output_writeStateMod_String = TAB + "writeStateMod()...  <write StateMod file>",
@@ -3084,21 +3084,6 @@ private boolean commandList_EditCommandOldStyle (
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
-	/*
-	else if (action.equals(
-		__Commands_Output_writeNWSRFSESPTraceEnsemble_String)||
-		command.regionMatches(
-		true,0,"writeNWSRFSESPTraceEnsemble",0,21) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for writeNWSRFSESPTraceEnsemble()" );
-		}
-		edited_cv = new writeNWSRFSESPTraceEnsemble_JDialog (
-			this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-	*/
 	else if ( action.equals( __Commands_Output_writeStateCU_String)||
 		command.regionMatches(true,0,"writeStateCU",0,12) ) {
 		if ( Message.isDebugOn ) {
@@ -6101,7 +6086,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillUsingDiversionComments_JMenuItem,	true);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	true);
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, true );
 
 		JGUIUtil.setEnabled ( __Commands_Set_replaceValue_JMenuItem,true);
@@ -6138,7 +6123,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeStateMod_JMenuItem, true);
@@ -6192,7 +6177,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillUsingDiversionComments_JMenuItem,	false);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	false);
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
 
 		JGUIUtil.setEnabled ( __Commands_Set_replaceValue_JMenuItem, false);
@@ -6231,7 +6216,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, false );
 		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeStateMod_JMenuItem,false);
@@ -6308,7 +6293,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readDateValue_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readMODSIM_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNwsCard_JMenuItem,false);
+	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readNWSRFSFS5Files_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_readRiverWare_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadStateMod_JMenuItem,false);
@@ -7578,9 +7563,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_readNwsCard_JMenuItem =
+			__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_readNwsCard_String, this ) );
+			__Commands_ConvertTSIDTo_ReadNwsCard_String, this ) );
 	}
 
 	if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -7657,9 +7642,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readNwsCard_JMenuItem =
+			__Commands_Read_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(
-			__Commands_Read_readNwsCard_String, this) );
+			__Commands_Read_ReadNwsCard_String, this) );
 	}
 
 	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
@@ -7737,9 +7722,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_readNwsCard_JMenuItem =
+			__Commands_Read_TS_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(
-			__Commands_Read_TS_readNwsCard_String, this) );
+			__Commands_Read_TS_ReadNwsCard_String, this) );
 	}
 
 	if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -7845,9 +7830,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_FillTimeSeries_JMenu.add(
-			__Commands_Fill_fillUsingDiversionComments_JMenuItem =
+			__Commands_Fill_FillUsingDiversionComments_JMenuItem =
 			new SimpleJMenuItem(
-			__Commands_Fill_fillUsingDiversionComments_String,
+			__Commands_Fill_FillUsingDiversionComments_String,
 			this ) );
 	}
 
@@ -8075,9 +8060,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add (
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_JMenuItem=
+			__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem=
 			new SimpleJMenuItem(
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_String,
+			__Commands_Output_WriteNWSRFSESPTraceEnsemble_String,
 			this ));
 	}
 
@@ -9911,8 +9896,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_readMODSIM_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
-	else if ( o == __Commands_ConvertTSIDTo_readNwsCard_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readNwsCard_String,
+	else if ( o == __Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem ) {
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadNwsCard_String,
 			getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readRiverWare_JMenuItem ) {
@@ -10021,8 +10006,8 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals(
-		__Commands_Read_readNwsCard_String)){
-		commandList_EditCommand ( __Commands_Read_readNwsCard_String,
+		__Commands_Read_ReadNwsCard_String)){
+		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals(
@@ -10067,8 +10052,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Read_TS_readNDFD_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Read_TS_readNwsCard_String)){
-		commandList_EditCommand ( __Commands_Read_TS_readNwsCard_String,
+	else if (command.equals( __Commands_Read_TS_ReadNwsCard_String)){
+		commandList_EditCommand ( __Commands_Read_TS_ReadNwsCard_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_TS_readNWSRFSFS5Files_String)){
@@ -10173,8 +10158,8 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	else if(command.equals(
-		__Commands_Fill_fillUsingDiversionComments_String)){
-		commandList_EditCommand (__Commands_Fill_fillUsingDiversionComments_String,
+		__Commands_Fill_FillUsingDiversionComments_String)){
+		commandList_EditCommand (__Commands_Fill_FillUsingDiversionComments_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals(__Commands_Fill_setAutoExtendPeriod_String)){
@@ -10421,9 +10406,9 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	else if(command.equals(
-		__Commands_Output_writeNWSRFSESPTraceEnsemble_String)){
+		__Commands_Output_WriteNWSRFSESPTraceEnsemble_String)){
 		commandList_EditCommand (
-			__Commands_Output_writeNWSRFSESPTraceEnsemble_String,
+			__Commands_Output_WriteNWSRFSESPTraceEnsemble_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_writeRiverWare_String)){
@@ -12256,7 +12241,7 @@ Read the list of time series from NWS CARD files and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.readNWSCARDHeaders";
+{	String message, routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders";
 
 	// TODO - need to allow multiple file selections...
 	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
