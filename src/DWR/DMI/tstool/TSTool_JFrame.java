@@ -853,8 +853,8 @@ JMenuItem
 	__Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,
 	__Commands_Create_TS_NewPatternTimeSeries_JMenuItem,
 	__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,
-	__Commands_Create_TS_newStatisticYearTS_JMenuItem,
-	__Commands_Create_TS_newTimeSeries_JMenuItem,
+	__Commands_Create_TS_NewStatisticYearTS_JMenuItem,
+	__Commands_Create_TS_NewTimeSeries_JMenuItem,
 	__Commands_Create_TS_normalize_JMenuItem,
 	__Commands_Create_TS_relativeDiff_JMenuItem,
 	__Commands_Create_TS_weightTraces_JMenuItem;
@@ -912,18 +912,18 @@ JMenu
 	__Commands_FillTimeSeries_JMenu = null;
 JMenuItem
 	__Commands_Fill_fillCarryForward_JMenuItem,
-	__Commands_Fill_fillConstant_JMenuItem,
+	__Commands_Fill_FillConstant_JMenuItem,
 	__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,
 	__Commands_Fill_fillFromTS_JMenuItem,
-	__Commands_Fill_fillHistMonthAverage_JMenuItem,
-	__Commands_Fill_fillHistYearAverage_JMenuItem,
+	__Commands_Fill_FillHistMonthAverage_JMenuItem,
+	__Commands_Fill_FillHistYearAverage_JMenuItem,
 	__Commands_Fill_fillInterpolate_JMenuItem,
 	__Commands_Fill_fillMixedStation_JMenuItem,
 	__Commands_Fill_fillMOVE1_JMenuItem,
-	__Commands_Fill_fillMOVE2_JMenuItem,
+	__Commands_Fill_FillMOVE2_JMenuItem,
 	__Commands_Fill_fillPattern_JMenuItem,
 	__Commands_Fill_fillProrate_JMenuItem,
-	__Commands_Fill_fillRegression_JMenuItem,
+	__Commands_Fill_FillRegression_JMenuItem,
 	__Commands_Fill_fillRepeat_JMenuItem,
 	__Commands_Fill_FillUsingDiversionComments_JMenuItem,
 
@@ -971,7 +971,7 @@ JMenuItem
 JMenu
 	__Commands_AnalyzeTimeSeries_JMenu = null;
 JMenuItem
-	__Commands_Analyze_analyzePattern_JMenuItem = null,
+	__Commands_Analyze_AnalyzePattern_JMenuItem = null,
 	__Commands_Analyze_CompareTimeSeries_JMenuItem = null,
 
 	__Commands_Analyze_newDataTest_JMenuItem = null,
@@ -983,7 +983,7 @@ JMenuItem
 JMenu
 	__Commands_Models_JMenu = null;
 JMenuItem
-	__Commands_Models_lagK_JMenuItem = null;
+	__Commands_Models_LagK_JMenuItem = null;
 
 // Commands...Output Time Series....
 JMenu
@@ -998,12 +998,12 @@ JMenuItem
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_writeNwsCard_JMenuItem,
 	__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,
-	__Commands_Output_writeRiverWare_JMenuItem,
+	__Commands_Output_WriteRiverWare_JMenuItem,
 	__Commands_Output_writeStateCU_JMenuItem,
-	__Commands_Output_writeStateMod_JMenuItem,
-	__Commands_Output_writeSummary_JMenuItem,
+	__Commands_Output_WriteStateMod_JMenuItem,
+	__Commands_Output_WriteSummary_JMenuItem,
 
-	__Commands_Output_processTSProduct_JMenuItem;
+	__Commands_Output_ProcessTSProduct_JMenuItem;
 
 // Commands (General)...
 JMenu
@@ -1222,8 +1222,8 @@ private String
 	__Commands_Create_TS_newEndOfMonthTSFromDayTS_String = TAB + "TS Alias = newEndOfMonthTSFromDayTS()...  <convert daily data to end of month time series>",
 	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
 	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as a repeating statistic from another time series - EXPERIMENTAL>",
-	__Commands_Create_TS_newStatisticYearTS_String = TAB + "TS Alias = newStatisticYearTS()... <create a year time series using a statistic from another time series>",
-	__Commands_Create_TS_newTimeSeries_String = TAB + "TS Alias = newTimeSeries()... <create and initialize a new time series>",
+	__Commands_Create_TS_NewStatisticYearTS_String = TAB + "TS Alias = NewStatisticYearTS()... <create a year time series using a statistic from another time series>",
+	__Commands_Create_TS_NewTimeSeries_String = TAB + "TS Alias = NewTimeSeries()... <create and initialize a new time series>",
 	__Commands_Create_TS_normalize_String = TAB + "TS Alias = normalize()... <normalize time series to unitless values>",
 	__Commands_Create_TS_relativeDiff_String = TAB + "TS Alias = relativeDiff()... <relative difference of time series>",
 	__Commands_Create_TS_weightTraces_String = TAB + "TS Alias = weightTraces()... <weight traces to create a new time series>",
@@ -1256,20 +1256,20 @@ private String
 
 	// Commands... Fill Time Series...
 
-	__Commands_FillTimeSeries_String = "Fill Time Series Data",
+	__Commands_FillTimeSeries_String = "Fill Time Series Missing Data",
 	__Commands_Fill_fillCarryForward_String = TAB + "fillCarryForward()...  <Fill TS by carrying forward - ** see fillRepeat()**>",
-	__Commands_Fill_fillConstant_String = TAB + "fillConstant()...  <Fill TS with constant>",
+	__Commands_Fill_FillConstant_String = TAB + "FillConstant()...  <Fill TS with constant>",
 	__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_String = TAB + "fillDayTSFrom2MonthTSAnd1DayTS()...  <fill daily time series using D1 = D2*M1/M2>",
 	__Commands_Fill_fillFromTS_String = TAB + "fillFromTS()...  <fill time series with values from another time series>",
-	__Commands_Fill_fillHistMonthAverage_String = TAB +	"fillHistMonthAverage()...  <Fill monthly TS using historic average>",
-	__Commands_Fill_fillHistYearAverage_String = TAB + "fillHistYearAverage()...  <Fill yearly TS using historic average>",
+	__Commands_Fill_FillHistMonthAverage_String = TAB +	"FillHistMonthAverage()...  <Fill monthly TS using historic average>",
+	__Commands_Fill_FillHistYearAverage_String = TAB + "FillHistYearAverage()...  <Fill yearly TS using historic average>",
 	__Commands_Fill_fillInterpolate_String = TAB + "fillInterpolate()...  <Fill TS using interpolation>",
 	__Commands_Fill_fillMixedStation_String = TAB + "fillMixedStation()...  <Fill TS using mixed stations (under development)>",
 	__Commands_Fill_fillMOVE1_String = TAB + "fillMOVE1()...  <Fill TS using MOVE1 method>",
-	__Commands_Fill_fillMOVE2_String = TAB + "fillMOVE2()...  <Fill TS using MOVE2 method>",
+	__Commands_Fill_FillMOVE2_String = TAB + "FillMOVE2()...  <Fill TS using MOVE2 method>",
 	__Commands_Fill_fillPattern_String = TAB + "fillPattern()...  <Fill TS using WET/DRY/AVG pattern>",
 	__Commands_Fill_fillProrate_String = TAB + "fillProrate()...  <Fill TS by prorating another time series>",
-	__Commands_Fill_fillRegression_String = TAB + "fillRegression()...  <Fill TS using regression>",
+	__Commands_Fill_FillRegression_String = TAB + "FillRegression()...  <Fill TS using regression>",
 	__Commands_Fill_fillRepeat_String = TAB + "fillRepeat()...  <Fill TS by repeating values>",
 	__Commands_Fill_FillUsingDiversionComments_String = TAB + "FillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
 	// TODO SAM - need to add later...
@@ -1320,16 +1320,16 @@ private String
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
 	__Commands_Output_writeNwsCard_String = TAB + "writeNwsCard()...  <write NWS Card file>",
 	__Commands_Output_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()...  <write NWSRFS ESP trace ensemble file>",
-	__Commands_Output_writeRiverWare_String = TAB +	"writeRiverWare()...  <write RiverWare file>",
-	__Commands_Output_writeStateCU_String = TAB + "writeStateCU()...  <write StateCU file>",
-	__Commands_Output_writeStateMod_String = TAB + "writeStateMod()...  <write StateMod file>",
-	__Commands_Output_writeSummary_String = TAB + "writeSummary()...  <write Summary file>",
-	__Commands_Output_processTSProduct_String = TAB + "processTSProduct()...  <process a time series product file>",
+	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write RiverWare file>",
+	__Commands_Output_writeStateCU_String = TAB + "WriteStateCU()...  <write StateCU file>",
+	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write StateMod file>",
+	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write Summary file>",
+	__Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()...  <process a time series product file>",
 
 	// Commands...Analyze Time Series...
 
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
-	__Commands_Analyze_analyzePattern_String = TAB + "analyzePattern()... <determine pattern(s) for fillPattern() (under development)>",
+	__Commands_Analyze_AnalyzePattern_String = TAB + "AnalyzePattern()... <determine pattern(s) for FillPattern() (under development)>",
 	__Commands_Analyze_CompareTimeSeries_String = TAB + "CompareTimeSeries()... <find differences between time series>",
 
 	__Commands_Analyze_newDataTest_String = TAB + "DataTest TestID = newDataTest()... <create a new data test> (under development)",
@@ -1340,7 +1340,7 @@ private String
 	// Commands...Models...
 
 	__Commands_Models_String = "Models",
-	__Commands_Models_lagK_String =	"TS Alias = lagK()... <lag and attenuate (route) (under development)>",
+	__Commands_Models_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route) (under development)>",
 
 	// HydroBase commands...
 
@@ -2425,7 +2425,7 @@ private boolean commandList_EditCommandOldStyle (
 	}
 	// FIXME SAM 2005-05-18 need to enable - important capability.
 	// The command string checked
-	// below is in conflict with the fillHistMonthAverage() command so that
+	// below is in conflict with the FillHistMonthAverage() command so that
 	// needs to be resolved.
 	/*
 	else if ( action.equals( __Commands_Create_TS_average_String)||
@@ -6066,25 +6066,25 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,	true );
 		JGUIUtil.setEnabled ( __Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_newStatisticYearTS_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticYearTS_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_normalize_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_relativeDiff_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_weightTraces_JMenuItem, true);
 
 		JGUIUtil.setEnabled ( __Commands_Fill_fillCarryForward_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillConstant_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillHistMonthAverage_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillHistYearAverage_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillHistMonthAverage_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillHistYearAverage_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillInterpolate_JMenuItem, true);
 		// TODO SAM 2005-04-26 This fill method is not enabled - may not be needed.
 		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE2_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE2_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillMixedStation_JMenuItem,true );
 		JGUIUtil.setEnabled ( __Commands_Fill_fillPattern_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillRegression_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	true);
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, true );
@@ -6114,7 +6114,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Manipulate_subtract_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,true);
 
-		JGUIUtil.setEnabled ( __Commands_Analyze_analyzePattern_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
 
@@ -6124,10 +6124,10 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_writeStateMod_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_writeSummary_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_deselectTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_selectTimeSeries_JMenuItem, true);
 
@@ -6158,24 +6158,24 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Create_TS_newDayTSFromMonthAndDayTS_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_newEndOfMonthTSFromDayTS_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,false );
-		JGUIUtil.setEnabled ( __Commands_Create_TS_newStatisticYearTS_JMenuItem,false );
+		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticYearTS_JMenuItem,false );
 		JGUIUtil.setEnabled ( __Commands_Create_TS_normalize_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_relativeDiff_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_weightTraces_JMenuItem, false);
 
 		JGUIUtil.setEnabled ( __Commands_Fill_fillCarryForward_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillConstant_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,	false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillFromTS_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillHistMonthAverage_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillHistYearAverage_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillHistMonthAverage_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillHistYearAverage_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillInterpolate_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillMixedStation_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE1_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillMOVE2_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE2_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillPattern_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillProrate_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_fillRegression_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Fill_FillRegression_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_fillRepeat_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	false);
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
@@ -6205,7 +6205,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Manipulate_subtract_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,false);
 
-		JGUIUtil.setEnabled ( __Commands_Analyze_analyzePattern_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
 
@@ -6217,10 +6217,10 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_writeNwsCard_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_writeRiverWare_JMenuItem, false );
+		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, false );
 		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_writeStateMod_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_writeSummary_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_deselectTimeSeries_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_selectTimeSeries_JMenuItem,false);
 
@@ -7508,14 +7508,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			__Commands_Create_TS_NewStatisticTimeSeries_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_newStatisticYearTS_JMenuItem =
+		__Commands_Create_TS_NewStatisticYearTS_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_Create_TS_newStatisticYearTS_String, this ) );
+		__Commands_Create_TS_NewStatisticYearTS_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_newTimeSeries_JMenuItem =
+		__Commands_Create_TS_NewTimeSeries_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_Create_TS_newTimeSeries_String, this ) );
+		__Commands_Create_TS_NewTimeSeries_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add(
 		__Commands_Create_TS_normalize_JMenuItem = new SimpleJMenuItem(
@@ -7771,8 +7771,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Fill_fillCarryForward_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillConstant_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillConstant_String, this ) );
+		__Commands_Fill_FillConstant_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_FillConstant_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
 		__Commands_Fill_fillDayTSFrom2MonthTSAnd1DayTS_JMenuItem =
@@ -7784,14 +7784,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Fill_fillFromTS_String,this) );
 
 	__Commands_FillTimeSeries_JMenu.add(
-		__Commands_Fill_fillHistMonthAverage_JMenuItem =
+		__Commands_Fill_FillHistMonthAverage_JMenuItem =
 		new SimpleJMenuItem( 
-		__Commands_Fill_fillHistMonthAverage_String, this ) );
+		__Commands_Fill_FillHistMonthAverage_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillHistYearAverage_JMenuItem =
+		__Commands_Fill_FillHistYearAverage_JMenuItem =
 		new SimpleJMenuItem( 
-		__Commands_Fill_fillHistYearAverage_String, this ) );
+		__Commands_Fill_FillHistYearAverage_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
 		__Commands_Fill_fillInterpolate_JMenuItem = new SimpleJMenuItem(
@@ -7809,8 +7809,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Fill_fillMixedStation_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillMOVE2_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_fillMOVE2_String, this ) );
+		__Commands_Fill_FillMOVE2_JMenuItem = new SimpleJMenuItem(
+		__Commands_Fill_FillMOVE2_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
 		__Commands_Fill_fillPattern_JMenuItem = new SimpleJMenuItem(
@@ -7821,8 +7821,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Fill_fillProrate_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillRegression_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_fillRegression_String, this ) );
+		__Commands_Fill_FillRegression_JMenuItem = new SimpleJMenuItem( 
+		__Commands_Fill_FillRegression_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
 		__Commands_Fill_fillRepeat_JMenuItem = new SimpleJMenuItem( 
@@ -7977,9 +7977,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu=
 		new JMenu(__Commands_AnalyzeTimeSeries_String) );
 	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_analyzePattern_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_analyzePattern_String, this ) );
+		__Commands_Analyze_AnalyzePattern_JMenuItem = new SimpleJMenuItem(
+		__Commands_Analyze_AnalyzePattern_String, this ) );
 
 	__Commands_AnalyzeTimeSeries_JMenu.add (
 		__Commands_Analyze_CompareTimeSeries_JMenuItem =
@@ -8009,8 +8008,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.add ( __Commands_Models_JMenu =
 		new JMenu(__Commands_Models_String) );
 	__Commands_Models_JMenu.add (
-		__Commands_Models_lagK_JMenuItem =
-		new SimpleJMenuItem( __Commands_Models_lagK_String, this ) );
+		__Commands_Models_LagK_JMenuItem = new SimpleJMenuItem( __Commands_Models_LagK_String, this ) );
 
 	// "Commands...Output Time Series"...
 
@@ -8068,9 +8066,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_RiverWare_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add(
-			__Commands_Output_writeRiverWare_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Output_writeRiverWare_String, this ) );
+			__Commands_Output_WriteRiverWare_JMenuItem =
+			new SimpleJMenuItem(__Commands_Output_WriteRiverWare_String, this ) );
 	}
 
 	if ( __source_StateCU_enabled ) {
@@ -8081,20 +8078,20 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeStateMod_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_writeStateMod_String, this ) );
+		__Commands_Output_WriteStateMod_JMenuItem = new SimpleJMenuItem(
+		__Commands_Output_WriteStateMod_String, this ) );
 	}
 
 	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeSummary_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_writeSummary_String, this ) );
+		__Commands_Output_WriteSummary_JMenuItem = new SimpleJMenuItem(
+		__Commands_Output_WriteSummary_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
 	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_processTSProduct_JMenuItem =
+		__Commands_Output_ProcessTSProduct_JMenuItem =
 		new SimpleJMenuItem(
-		__Commands_Output_processTSProduct_String, this ) );
+		__Commands_Output_ProcessTSProduct_String, this ) );
 }
 
 /**
@@ -9957,12 +9954,12 @@ throws Exception
 				null, __INSERT_COMMAND );
 		}
 	else if (command.equals(
-		__Commands_Create_TS_newStatisticYearTS_String)){
-		commandList_EditCommand ( __Commands_Create_TS_newStatisticYearTS_String,
+		__Commands_Create_TS_NewStatisticYearTS_String)){
+		commandList_EditCommand ( __Commands_Create_TS_NewStatisticYearTS_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Create_TS_newTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Create_TS_newTimeSeries_String,
+	else if (command.equals( __Commands_Create_TS_NewTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Create_TS_NewTimeSeries_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Create_TS_normalize_String)){
@@ -10103,8 +10100,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Fill_fillCarryForward_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Fill_fillConstant_String)){
-		commandList_EditCommand ( __Commands_Fill_fillConstant_String,
+	else if (command.equals( __Commands_Fill_FillConstant_String)){
+		commandList_EditCommand ( __Commands_Fill_FillConstant_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals(
@@ -10117,12 +10114,12 @@ throws Exception
 		commandList_EditCommand ( __Commands_Fill_fillFromTS_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Fill_fillHistMonthAverage_String)){
-		commandList_EditCommand ( __Commands_Fill_fillHistMonthAverage_String,
+	else if (command.equals( __Commands_Fill_FillHistMonthAverage_String)){
+		commandList_EditCommand ( __Commands_Fill_FillHistMonthAverage_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Fill_fillHistYearAverage_String)){
-		commandList_EditCommand ( __Commands_Fill_fillHistYearAverage_String,
+	else if (command.equals( __Commands_Fill_FillHistYearAverage_String)){
+		commandList_EditCommand ( __Commands_Fill_FillHistYearAverage_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Fill_fillInterpolate_String)){
@@ -10137,8 +10134,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Fill_fillMOVE1_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Fill_fillMOVE2_String)){
-		commandList_EditCommand ( __Commands_Fill_fillMOVE2_String,
+	else if (command.equals( __Commands_Fill_FillMOVE2_String)){
+		commandList_EditCommand ( __Commands_Fill_FillMOVE2_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Fill_fillPattern_String) ) {
@@ -10149,8 +10146,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Fill_fillProrate_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Fill_fillRegression_String) ) {
-		commandList_EditCommand ( __Commands_Fill_fillRegression_String,
+	else if (command.equals( __Commands_Fill_FillRegression_String) ) {
+		commandList_EditCommand ( __Commands_Fill_FillRegression_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Fill_fillRepeat_String) ) {
@@ -10313,8 +10310,8 @@ private void uiAction_ActionPerformed10_CommandsAnalyzeMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	if (command.equals( __Commands_Analyze_analyzePattern_String)){
-		commandList_EditCommand ( __Commands_Analyze_analyzePattern_String,
+	if (command.equals( __Commands_Analyze_AnalyzePattern_String)){
+		commandList_EditCommand ( __Commands_Analyze_AnalyzePattern_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Analyze_CompareTimeSeries_String)){
@@ -10354,8 +10351,8 @@ private void uiAction_ActionPerformed11_CommandsModelsMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	if (command.equals( __Commands_Models_lagK_String)){
-		commandList_EditCommand ( __Commands_Models_lagK_String,
+	if (command.equals( __Commands_Models_LagK_String)){
+		commandList_EditCommand ( __Commands_Models_LagK_String,
 			null, __INSERT_COMMAND );
 	}
 	else {
@@ -10411,24 +10408,24 @@ throws Exception
 			__Commands_Output_WriteNWSRFSESPTraceEnsemble_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_writeRiverWare_String)){
-		commandList_EditCommand ( __Commands_Output_writeRiverWare_String,
+	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
+		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_writeStateCU_String)){
 		commandList_EditCommand ( __Commands_Output_writeStateCU_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_writeStateMod_String)){
-		commandList_EditCommand ( __Commands_Output_writeStateMod_String,
+	else if (command.equals( __Commands_Output_WriteStateMod_String)){
+		commandList_EditCommand ( __Commands_Output_WriteStateMod_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_writeSummary_String)){
-		commandList_EditCommand ( __Commands_Output_writeSummary_String,
+	else if (command.equals( __Commands_Output_WriteSummary_String)){
+		commandList_EditCommand ( __Commands_Output_WriteSummary_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_processTSProduct_String)){
-		commandList_EditCommand ( __Commands_Output_processTSProduct_String,
+	else if (command.equals( __Commands_Output_ProcessTSProduct_String)){
+		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String,
 			null, __INSERT_COMMAND );
 	}
 	else {	// Chain to next list of commands...
