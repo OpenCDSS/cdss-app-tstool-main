@@ -68,7 +68,7 @@ fillDayTSFrom2MonthTSAnd1DayTS_JDialog constructor.
 public fillDayTSFrom2MonthTSAnd1DayTS_JDialog (	JFrame parent, Vector command,
 						Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit fillDayTSFrom2MonthTSAnd1DayTS() Command",
+	initialize ( parent, "Edit FillDayTSFrom2MonthTSAnd1DayTS() Command",
 		command, tsids );
 }
 
@@ -298,7 +298,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillDayTSFrom2MonthTSAnd1DayTS.refresh",
-				"Existing fillDayTSFrom2MonthTSAnd1DayTS() " +
+				"Existing FillDayTSFrom2MonthTSAnd1DayTS() " +
 				"references a non-existent\n"+
 				"D1 time series \"" + alias +
 				"\".  Select a\n" +
@@ -311,7 +311,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillDayTSFrom2MonthTSAnd1DayTS.refresh",
-				"Existing fillDayTSFrom2MonthTSAnd1DayTS() " +
+				"Existing FillDayTSFrom2MonthTSAnd1DayTS() " +
 				"references a non-existent\n"+
 				"M1 time series \"" + monthts1 +
 				"\".  Select a\n" +
@@ -324,7 +324,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillDayTSFrom2MonthTSAnd1DayTS.refresh",
-				"Existing fillDayTSFrom2MonthTSAnd1DayTS() " +
+				"Existing FillDayTSFrom2MonthTSAnd1DayTS() " +
 				"references a non-existent\n"+
 				"M2 time series \"" + monthts2 +
 				"\".  Select a\n" +
@@ -337,7 +337,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillDayTSFrom2MonthTSAnd1DayTS.refresh",
-				"Existing fillDayTSFrom2MonthTSAnd1DayTS() " +
+				"Existing FillDayTSFrom2MonthTSAnd1DayTS() " +
 				"references a non-existent\n"+
 				"D2 time series \"" + dayts2 +"\".  Select a\n"+
 				"different time series or Cancel." );
@@ -369,7 +369,7 @@ private void refresh ()
 	if ( (dayts2 == null) || (dayts2.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("fillDayTSFrom2MonthTSAnd1DayTS(" +
+	__command_JTextField.setText("FillDayTSFrom2MonthTSAnd1DayTS(" +
 		alias + "," + monthts1 + "," + monthts2 + "," + dayts2 + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

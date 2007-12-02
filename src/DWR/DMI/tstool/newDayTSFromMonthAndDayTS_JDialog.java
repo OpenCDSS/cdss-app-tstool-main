@@ -65,7 +65,7 @@ newDayTSFromMonthAndDayTS constructor.
 public newDayTSFromMonthAndDayTS_JDialog ( JFrame parent, Vector command,
 					Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit newDayTSFromMonthAndDayTS() Command",
+	initialize ( parent, "Edit NewDayTSFromMonthAndDayTS() Command",
 			command, tsids );
 }
 
@@ -302,7 +302,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"newDayTSFromMonthAndDayTS.refresh","Existing "+
-				"newDayTSFromMonthAndDayTS() references a " +
+				"command references a " +
 				" non-existent\n"+
 				"monthly time series \"" + monthts +
 				"\".  Select a\n" +
@@ -315,7 +315,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"newDayTSFromMonthAndDayTS.refresh","Existing "+
-				"newDayTSFromMonthAndDayTS() references a " +
+				"command references a " +
 				"non-existent\n"+
 				"daily time series \"" + dayts +
 				"\".  Select a\n" +
@@ -347,7 +347,7 @@ private void refresh ()
 		return;
 	}
 	__command_JTextField.setText("TS " + alias0 +
-		" = newDayTSFromMonthAndDayTS(" + alias + "," +
+		" = NewDayTSFromMonthAndDayTS(" + alias + "," +
 		monthts + "," + dayts + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

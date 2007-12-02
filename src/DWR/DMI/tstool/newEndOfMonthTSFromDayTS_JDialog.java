@@ -71,7 +71,7 @@ newEndOfMonthTSFromDayTS_JDialog constructor.
 public newEndOfMonthTSFromDayTS_JDialog (	JFrame parent, Vector command,
 						Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit newEndOfMonthTSFromDayTS() Command", command,
+	initialize ( parent, "Edit NewEndOfMonthTSFromDayTS() Command", command,
 		tsids );
 }
 
@@ -334,7 +334,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"newEndOfMonthTSFromDayTS_JDialog.refresh",
-				"Existing newEndOfMonthTSFromDayTS() " +
+				"Existing command " +
 				"references a non-existent\n"+
 				"time series \"" + tsident + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -347,7 +347,7 @@ private void refresh ()
 	tsident = __independent_JComboBox.getSelected();
 	ndays = __ndays_JTextField.getText();
 	__command_JTextField.setText("TS " + alias +
-			" = newEndOfMonthTSFromDayTS(" +
+			" = NewEndOfMonthTSFromDayTS(" +
 			tsident + "," + ndays + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

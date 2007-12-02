@@ -79,7 +79,7 @@ normalize_JDialog constructor.
 */
 public normalize_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit normalize() Command", command, tsids );
+	initialize ( parent, "Edit Normalize() Command", command, tsids );
 }
 
 /**
@@ -359,7 +359,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"normalize_JDialog.refresh",
-				"Existing normalize() references a " +
+				"Existing command references a " +
 				"non-existent\n"+
 				"time series \"" + tsident + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -371,7 +371,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"normalize_JDialog.refresh", "Existing " +
-				"normalize() references an invalid\n"+
+				"command references an invalid\n"+
 				"minimum value choice \"" + minval_type +
 				"\".  Select a\n" +
 				"different choice or Cancel." );
@@ -390,7 +390,7 @@ private void refresh ()
 	if ( (alias == null) || (alias.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("TS " + alias + " = normalize(" +
+	__command_JTextField.setText("TS " + alias + " = Normalize(" +
 			tsident + "," + minval_type + "," + minval + "," +
 			maxval + ")" );
 	// See if alias is already in the time series identifiers list.  If so

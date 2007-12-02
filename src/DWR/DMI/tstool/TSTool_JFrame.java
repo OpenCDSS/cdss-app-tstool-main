@@ -911,7 +911,6 @@ JMenuItem
 JMenu
 	__Commands_FillTimeSeries_JMenu = null;
 JMenuItem
-	__Commands_Fill_FillCarryForward_JMenuItem,
 	__Commands_Fill_FillConstant_JMenuItem,
 	__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,
 	__Commands_Fill_FillFromTS_JMenuItem,
@@ -1257,7 +1256,6 @@ private String
 	// Commands... Fill Time Series...
 
 	__Commands_FillTimeSeries_String = "Fill Time Series Missing Data",
-	__Commands_Fill_FillCarryForward_String = TAB + "FillCarryForward()...  <fill TS by carrying forward - ** see fillRepeat()**>",
 	__Commands_Fill_FillConstant_String = TAB + "FillConstant()...  <fill TS with constant>",
 	__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String = TAB + "FillDayTSFrom2MonthTSAnd1DayTS()...  <fill daily time series using D1 = D2*M1/M2>",
 	__Commands_Fill_FillFromTS_String = TAB + "FillFromTS()...  <fill time series with values from another time series>",
@@ -2402,15 +2400,13 @@ private boolean commandList_EditCommandOldStyle (
 	// The following are listed in the order of the menus.
 	if ( action.equals( __Commands_Create_CreateFromList_String)||
 		(StringUtil.indexOfIgnoreCase(command,"createFromList(",0)>=0)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"createFromList (",0) >= 0) ) {
+		(StringUtil.indexOfIgnoreCase(command,"createFromList (",0) >= 0) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for createFromList()" );
+			Message.printDebug ( dl, routine, "Opening dialog for createFromList()" );
 		}
 		edited_cv = new createFromList_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
+					__ts_processor, command_to_edit), command_to_edit).getText();
 	}
 	else if ( action.equals( __Commands_Create_CreateTraces_String)||
 		(StringUtil.indexOfIgnoreCase(command,"createTraces(",0) >= 0)||
@@ -2472,7 +2468,7 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals(
 		__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String)||
 		(StringUtil.indexOfIgnoreCase(
-		command,"newEndOfMonthTSFromDayTS",0) >= 0) ) {
+		command,"NewEndOfMonthTSFromDayTS",0) >= 0) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias =" +
@@ -2544,12 +2540,11 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for readDateValue()" );
 		}
 		edited_cv = new readDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals(__Commands_Read_ReadNWSRFSESPTraceEnsemble_String)||
 		(!command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		(StringUtil.indexOfIgnoreCase(command,
-			"readNWSRFSESPTraceEnsemble",0)>= 0))){
+		(StringUtil.indexOfIgnoreCase(command,"readNWSRFSESPTraceEnsemble",0)>= 0))){
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
 			"Opening dialog for readNWSRFSESPTraceEnsemble()" );
@@ -2668,16 +2663,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Fill Time Series Data...
 
-	else if ( action.equals( __Commands_Fill_FillCarryForward_String)||
-		command.regionMatches(true,0,"fillCarryForward",0,16) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillCarryForward()" );
-		}
-		edited_cv = new fillCarryForward_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals(
 		__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String)||
 		command.regionMatches(
@@ -6068,7 +6053,6 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Create_TS_RelativeDiff_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_WeightTraces_JMenuItem, true);
 
-		JGUIUtil.setEnabled ( __Commands_Fill_FillCarryForward_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillFromTS_JMenuItem, true);
@@ -6160,7 +6144,6 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Create_TS_RelativeDiff_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_WeightTraces_JMenuItem, false);
 
-		JGUIUtil.setEnabled ( __Commands_Fill_FillCarryForward_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,	false);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillFromTS_JMenuItem,false);
@@ -7760,11 +7743,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu=
 		new JMenu(__Commands_FillTimeSeries_String));
-
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillCarryForward_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_FillCarryForward_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (
 		__Commands_Fill_FillConstant_JMenuItem = new SimpleJMenuItem(
@@ -9932,20 +9910,16 @@ throws Exception
 			__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String,
 			null, __INSERT_COMMAND );
 	}
-	/* FIXME SAM
-	else if (command.equals(
-		__Commands_Create_TS_newEndOfMonthTSFromDayTS_String) ) {
+	else if (command.equals(__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String) ) {
 		commandList_EditCommand (
-			__Commands_Create_TS_newEndOfMonthTSFromDayTS_String,
-			getCommand(), __INSERT_COMMAND );
+			__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String,
+			null, __INSERT_COMMAND );
 	}
-	*/
 	else if (command.equals( __Commands_Create_TS_NewPatternTimeSeries_String)){
 		commandList_EditCommand ( __Commands_Create_TS_NewPatternTimeSeries_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-			__Commands_Create_TS_NewStatisticTimeSeries_String)){
+	else if (command.equals(__Commands_Create_TS_NewStatisticTimeSeries_String)){
 			commandList_EditCommand ( __Commands_Create_TS_NewStatisticTimeSeries_String,
 				null, __INSERT_COMMAND );
 		}
@@ -10092,11 +10066,7 @@ private void uiAction_ActionPerformed7_CommandsFillMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	if (command.equals( __Commands_Fill_FillCarryForward_String)){
-		commandList_EditCommand ( __Commands_Fill_FillCarryForward_String,
-			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_FillConstant_String)){
+    if (command.equals( __Commands_Fill_FillConstant_String)){
 		commandList_EditCommand ( __Commands_Fill_FillConstant_String,
 			null, __INSERT_COMMAND );
 	}

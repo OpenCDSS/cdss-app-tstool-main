@@ -81,7 +81,7 @@ divide_JDialog constructor.
 */
 public divide_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit divide() Command", command, tsids );
+	initialize ( parent, "Edit Divide() Command", command, tsids );
 }
 
 /**
@@ -372,7 +372,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"divide_JDialog.refresh", "Existing " +
-				"divide() references a non-existent\n"+
+				"Divide() references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -422,7 +422,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"divide_JDialog.refresh", "Existing " +
-				"divide() references a non-existent\n"+
+				"Divide() references a non-existent\n"+
 				"time series \"" + independent +
 				"\".  Select a\n" +
 				"different time series or Cancel." );
@@ -452,7 +452,7 @@ private void refresh ()
 	if ( (independent == null) || (independent.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("divide(" + alias + "," +
+	__command_JTextField.setText("Divide(" + alias + "," +
 		independent + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

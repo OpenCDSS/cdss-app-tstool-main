@@ -73,7 +73,7 @@ fillRepeat_JDialog constructor.
 */
 public fillRepeat_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit fillRepeat() Command", command, tsids );
+	initialize ( parent, "Edit FillRepeat() Command", command, tsids );
 }
 
 /**
@@ -365,7 +365,7 @@ private void refresh()
 			}
 			else {	Message.printWarning ( 1,
 				"fillRepeat_JDialog.refresh",
-				"Existing fillRepeat() " +
+				"Existing command " +
 				"references an invalid\nTSID\"" + TSID +
 				"\".  Select a different time " +
 				"series or Cancel.");
@@ -389,7 +389,7 @@ private void refresh()
 			}
 			else {	Message.printWarning ( 1,
 				"fillRepeat_JDialog.refresh",
-				"Existing fillRepeat() " +
+				"Existing command " +
 				"references an invalid\nrun mode \"" +
 				FillDirection +
 				"\".  Select a different run mode or Cancel.");
@@ -434,8 +434,7 @@ private void refresh()
 		}
 		b.append ( "MaxIntervals=" + MaxIntervals );
 	}
-	__command_JTextField.setText("fillRepeat(" +
-		b.toString() + ")" );
+	__command_JTextField.setText("FillRepeat(" + b.toString() + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

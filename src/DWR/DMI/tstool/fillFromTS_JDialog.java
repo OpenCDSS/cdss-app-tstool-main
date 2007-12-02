@@ -88,7 +88,7 @@ fillFromTS_JDialog constructor.
 */
 public fillFromTS_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit fillFromTS() Command", command, tsids );
+	initialize ( parent, "Edit FillFromTS() Command", command, tsids );
 }
 
 /**
@@ -407,10 +407,6 @@ public void mouseReleased ( MouseEvent event )
 
 /**
 Refresh the command from the other text field contents.
-The command is like:
-<pre>
-fillFromTS(Dependent,Independent,AnalysisStart,AnalysisEnd)
-</pre>
 */
 private void refresh ()
 {	String alias = "";
@@ -419,7 +415,7 @@ private void refresh ()
 	String analysis_period_end = "";
 	__error_wait = false;
 	boolean found_ts = false;
-	String command = "fillFromTS";
+	String command = "FillFromTS";
 	String temp = null;
 	int pos = 0;
 	if ( __first_time ) {

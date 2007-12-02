@@ -67,7 +67,7 @@ replaceValue_JDialog constructor.
 */
 public replaceValue_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit replaceValue() Command", command, tsids );
+	initialize ( parent, "Edit ReplaceValue() Command", command, tsids );
 }
 
 /**
@@ -418,7 +418,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"replaceValue_JDialog.refresh",
-				"Existing replaceValue() references a " +
+				"Existing command references a " +
 				"non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -449,7 +449,7 @@ private void refresh ()
 	date2 = __date2_JTextField.getText().trim();
 	// Don't automatically fill any fields since the next edit may be
 	// more complicated...
-	__command_JTextField.setText("replaceValue("
+	__command_JTextField.setText("ReplaceValue("
 	+ alias + "," + minvalue + "," + maxvalue + "," +
 	constant + "," + date1 + "," + date2 + ")" );
 	__command_Vector.removeAllElements();

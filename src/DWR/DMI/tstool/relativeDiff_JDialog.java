@@ -73,7 +73,7 @@ relativeDiff_JDialog constructor.
 */
 public relativeDiff_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit relativeDiff() Command", command, tsids );
+	initialize ( parent, "Edit RelativeDiff() Command", command, tsids );
 }
 
 /**
@@ -333,7 +333,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"relativeDiff_JDialog.refresh", "Existing " +
-				"relativeDiff() references a non-existent\n"+
+				"command references a non-existent\n"+
 				"TS1 time series \"" + ts1 + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -343,7 +343,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"relativeDiff_JDialog.refresh", "Existing " +
-				"relativeDiff() references a non-existent\n"+
+				"command references a non-existent\n"+
 				"TS2 time series \"" + ts2 + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -354,7 +354,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"relativeDiff_JDialog.refresh", "Existing " +
-				"relativeDiff() divisor parameter \""+ divisor+
+				"command divisor parameter \""+ divisor+
 				"\" is invalid\".\nSelect a" +
 				"different value or Cancel." );
 			}
@@ -368,7 +368,7 @@ private void refresh ()
 	if ( (alias == null) || (alias.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("TS " + alias + " = relativeDiff(" +
+	__command_JTextField.setText("TS " + alias + " = RelativeDiff(" +
 			ts1 + "," + ts2 + "," + divisor + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

@@ -67,7 +67,7 @@ convertDataUnits_JDialog constructor.
 */
 public convertDataUnits_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit convertDataUnits() Command", command, tsids);
+	initialize ( parent, "Edit ConvertDataUnits() Command", command, tsids);
 }
 
 /**
@@ -153,19 +153,17 @@ private void initialize ( JFrame parent, String title, Vector command,
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"The units of the selected time series will be converted"+
-		" to the new data units." ), 
+		"The units of the selected time series will be converted to the new data units." ), 
 		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The old and new data units must have the same dimension." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"However, the dimension is not checked until time series are" +
-		" actually processed." ), 
+		"However, the dimension is not checked until time series are actually processed." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Time Series to Convert:" ), 
+		"Time series to convert:" ), 
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__alias_JComboBox = new SimpleJComboBox ( false );
 	int size = 0;
@@ -327,7 +325,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"convertDataUnits_JDialog.refresh",
-				"Existing convertDataUnits() references a " +
+				"Existing ConvertDataUnits() references a " +
 				"non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -342,7 +340,7 @@ private void refresh ()
 			catch ( Exception e ) {
 				Message.printWarning ( 1,
 				"convertDataUnits_JDialog.refresh",
-				"Existing convertDataUnits() " +
+				"Existing ConvertDataUnits() " +
 				"references unrecognized\n"+
 				"data units \"" + new_units +
 				"\".  Select recognized data " +
@@ -361,7 +359,7 @@ private void refresh ()
 				catch ( Exception e ) {
 					Message.printWarning ( 1,
 					"convertDataUnits_JDialog.refresh",
-					"Existing convertDataUnits() " +
+					"Existing ConvertDataUnits() " +
 					"references units with unrecognized\n"+
 					"data dimension \"" +
 					dataunits.getDimension(
@@ -382,7 +380,7 @@ private void refresh ()
 				catch ( Exception e ) {
 					Message.printWarning ( 1,
 					"convertDataUnits_JDialog.refresh",
-					"Existing convertDataUnits() " +
+					"Existing ConvertDataUnits() " +
 					"references unrecognized\n"+
 					"data units \"" + new_units +
 					"\".  Select recognized data " +
@@ -398,8 +396,7 @@ private void refresh ()
 	// Regardless, reset the command from the fields...
 	alias = __alias_JComboBox.getSelected();
 	new_units =StringUtil.getToken(__units_JComboBox.getSelected()," ",0,0);
-	__command_JTextField.setText("convertDataUnits(" + alias + "," +
-	new_units + ")" );
+	__command_JTextField.setText("ConvertDataUnits(" + alias + "," + new_units + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

@@ -81,7 +81,7 @@ multiply_JDialog constructor.
 */
 public multiply_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit multiply() Command", command, tsids );
+	initialize ( parent, "Edit Multiply() Command", command, tsids );
 }
 
 /**
@@ -368,7 +368,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"multiply_JDialog.refresh", "Existing " +
-				"multiply() references a non-existent\n"+
+				"command references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -418,7 +418,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"multiply_JDialog.refresh", "Existing " +
-				"multiply() references a non-existent\n"+
+				"command references a non-existent\n"+
 				"time series \"" + independent +
 				"\".  Select a\n" +
 				"different time series or Cancel." );
@@ -448,7 +448,7 @@ private void refresh ()
 	if ( (independent == null) || (independent.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("multiply(" + alias + "," +
+	__command_JTextField.setText("Multiply(" + alias + "," +
 		independent + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

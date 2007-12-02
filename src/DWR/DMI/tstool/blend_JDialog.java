@@ -82,7 +82,7 @@ blend_JDialog constructor.
 */
 public blend_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit blend() Command", command, tsids );
+	initialize ( parent, "Edit Blend() Command", command, tsids );
 }
 
 /**
@@ -174,13 +174,12 @@ Instantiates the GUI components.
 @param command Vector of String containing the command.
 @param tsids Time series identifiers for time series that can be used.
 */
-private void initialize ( JFrame parent, String title, Vector command,
-		Vector tsids )
+private void initialize ( JFrame parent, String title, Vector command, Vector tsids )
 {	__command_Vector = command;
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -389,7 +388,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"blend_JDialog.refresh", "Existing " +
-				"blend() references a non-existent\n"+
+				"Blend() references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -439,7 +438,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"blend_JDialog.refresh", "Existing " +
-				"blend() references a non-existent\n"+
+				"Blend() references a non-existent\n"+
 				"time series \"" + independent +
 				"\".  Select a\n" +
 				"different time series or Cancel." );
@@ -451,7 +450,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"blend_JDialog.refresh", "Existing " +
-				"blend() references an invalid\n"+
+				"Blend() references an invalid\n"+
 				"blend method choice \"" + method_type +
 				"\".  Select a\n" +
 				"different choice or Cancel." );
@@ -482,8 +481,7 @@ private void refresh ()
 	if ( (independent == null) || (independent.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("blend(" + alias + "," +
-		independent + "," + method_type + ")" );
+	__command_JTextField.setText("Blend(" + alias + "," + independent + "," + method_type + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

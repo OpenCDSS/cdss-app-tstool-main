@@ -71,7 +71,7 @@ adjustExtremes_JDialog constructor.
 */
 public adjustExtremes_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit adjustExtremes() Command", command, tsids );
+	initialize ( parent, "Edit AdjustExtremes() Command", command, tsids );
 }
 
 /**
@@ -101,8 +101,7 @@ private void checkInput ()
 {	// Check the data...
 	String extreme_value = __extreme_JTextField.getText().trim();
 	String max_intervals = __max_intervals_JTextField.getText().trim();
-	String analysis_period_start =
-		__analysis_period_start_JTextField.getText();
+	String analysis_period_start = __analysis_period_start_JTextField.getText();
 	String analysis_period_end = __analysis_period_end_JTextField.getText();
 	String warning = "";
 	if ( !StringUtil.isDouble(extreme_value) ) {
@@ -142,7 +141,7 @@ private void checkInput ()
 	}
 	if ( warning.length() > 0 ) {
 		__error_wait = true;
-		Message.printWarning ( 1, "scale_JDialog", warning );
+		Message.printWarning ( 1, "AdjustExtremes_JDialog", warning );
 	}
 }
 
@@ -183,13 +182,12 @@ Instantiates the GUI components.
 @param tsids Time series identifiers from
 TSEngine.getTSIdentifiersFromCommands().
 */
-private void initialize ( JFrame parent, String title, Vector command,
-			Vector tsids )
+private void initialize ( JFrame parent, String title, Vector command, Vector tsids )
 {	__command_Vector = command;
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -215,7 +213,7 @@ private void initialize ( JFrame parent, String title, Vector command,
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"by the average of all values, preserving the total." ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-/* SAX
+/* TODO SAM Evaluate code
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The WeightedAverage Adjust Method replaces the extreme and" +
 		" values on each side of the extreme"),
@@ -396,7 +394,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"adjustExtremes_JDialog.refresh",
-				"Existing adjustExtremes() references a " +
+				"Existing AdjustExtremes() references a " +
 				"non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -410,7 +408,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"adjustExtremes_JDialog.refresh",
-				"Existing adjustExtremes() uses an " +
+				"Existing AdjustExtremes() uses an " +
 				"unrecognized\n"+
 				"adjust method \"" + method + "\".  Select a\n"+
 				"recognized method." );
@@ -424,7 +422,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"adjustExtremes_JDialog.refresh",
-				"Existing adjustExtremes() uses an " +
+				"Existing AdjustExtremes() uses an " +
 				"unrecognized\n"+
 				"extreme to adjust \"" + extreme_flag +
 				"\".  Select a recognized extreme to adjust." );
@@ -454,8 +452,7 @@ private void refresh ()
 	extreme_flag = __extreme_JComboBox.getSelected();
 	extreme_value = __extreme_JTextField.getText().trim();
 	max_intervals = __max_intervals_JTextField.getText().trim();
-	analysis_period_start=
-		__analysis_period_start_JTextField.getText().trim();
+	analysis_period_start = __analysis_period_start_JTextField.getText().trim();
 	analysis_period_end = __analysis_period_end_JTextField.getText().trim();
 	if ( (alias == null) || (alias.trim().length() == 0) ) {
 		return;
@@ -463,9 +460,8 @@ private void refresh ()
 	if ( (extreme_value == null) || (extreme_value.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("adjustExtremes(" + alias + "," + method +
-		"," + extreme_flag + "," + extreme_value + "," +
-		max_intervals + "," +
+	__command_JTextField.setText("AdjustExtremes(" + alias + "," + method +
+		"," + extreme_flag + "," + extreme_value + "," + max_intervals + "," +
 		analysis_period_start + "," + analysis_period_end + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

@@ -71,7 +71,7 @@ fillInterpolate_JDialog constructor.
 */
 public fillInterpolate_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit fillInterpolate() Command", command, tsids );
+	initialize ( parent, "Edit FillInterpolate() Command", command, tsids );
 }
 
 /**
@@ -329,8 +329,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillInterpolate_JDialog.refresh",
-				"Existing fillInterpolate() references a " +
-				"non-existent\n"+
+				"Existing FillInterpolate() references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -347,7 +346,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillInterpolate_JDialog.refresh",
-				"Existing fillInterpolate() references a " +
+				"Existing FillInterpolate() references a " +
 				"non-existent\n"+
 				"interpolation type \"" + interpolate_type +
 				"\".  Select a\n" +
@@ -359,7 +358,7 @@ private void refresh ()
 	alias = __alias_JComboBox.getSelected();
 	maxint = __maxint_JTextField.getText().trim();
 	interpolate_type = __interpolate_type_JComboBox.getSelected();
-	__command_JTextField.setText("fillInterpolate(\"" + alias + "\"," +
+	__command_JTextField.setText("FillInterpolate(\"" + alias + "\"," +
 	maxint + "," + interpolate_type + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

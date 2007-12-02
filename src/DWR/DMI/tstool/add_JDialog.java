@@ -110,8 +110,7 @@ add_JDialog constructor.
 a subtract() command.
 @param tsids Time series identifiers for time series that can be used.
 */
-public add_JDialog (	JFrame parent, Vector command, boolean is_add,
-			Vector tsids )
+public add_JDialog ( JFrame parent, Vector command, boolean is_add, Vector tsids )
 {	super(parent, true);
 	initialize ( parent, command, is_add, tsids );
 }
@@ -159,7 +158,7 @@ private void checkInput ()
 	String warning = "";
 	if (	TSList.equalsIgnoreCase ( __SpecifiedTS) &&
 		(JGUIUtil.indexOf(__AddTSID_JList, TSID, true, true) >= 0) ) {
-		if ( __command.equals("add") ) {
+		if ( __command.equalsIgnoreCase("add") ) {
 			warning +=
 			"\nTime series to receive sum \"" + TSID +
 			"\" is the same.\nas a time series to be added.\n" +
@@ -226,14 +225,13 @@ Instantiates the GUI components.
 a subtract() command.
 @param tsids Time series identifiers for time series that can be used.
 */
-private void initialize (	JFrame parent, Vector command, boolean is_add,
-				Vector tsids )
+private void initialize ( JFrame parent, Vector command, boolean is_add, Vector tsids )
 {	__command_Vector = command;
 	__command = ((String)command.elementAt(0)).trim();
 	if ( is_add ) {
-		__command = "add";
+		__command = "Add";
 	}
-	else {	__command = "subtract";
+	else {	__command = "Subtract";
 	}
 	String title = "Edit " + __command + "() Command";
 
@@ -246,13 +244,13 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
-	if ( __command.equals("add") ) {
+	if ( __command.equalsIgnoreCase("add") ) {
         	JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Add one or more time series to a time series." +
 		"  The receiving time series is modified."),
 		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
-	else if ( __command.equals("subtract") ) {
+	else if ( __command.equalsIgnoreCase("subtract") ) {
         	JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Subtract one or more time series from a time " +
 		"series.  The receiving time series is modified."),
@@ -275,13 +273,13 @@ private void initialize (	JFrame parent, Vector command, boolean is_add,
 		" time series selected from the list below (* will " +
 		__command + " all previous time series)"),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	if ( __command.equals("add") ) {
+	if ( __command.equalsIgnoreCase("add") ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Right-click on \"Time Series to Add\" to convert to" +
 		" TEMPTS."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	}
-	else if ( __command.equals("subtract") ) {
+	else if ( __command.equalsIgnoreCase("subtract") ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Right-click on \"Time Series to Subtract\" to convert to" +
 		" TEMPTS."),
@@ -484,8 +482,7 @@ private void refresh ()
 	String command_string = ((String)__command_Vector.elementAt(0)).trim();
 	if ( __first_time ) {
 		__first_time = false;
-		if (	(command_string.length() > 0) &&
-			command_string.indexOf('=') < 0 ) {
+		if ( (command_string.length() > 0) && command_string.indexOf('=') < 0 ) {
 			// Old syntax...
 			int first_to_add = 2;	// Index of first time series
 						// to add.
@@ -527,8 +524,7 @@ private void refresh ()
 		}
 		else {	// New syntax...
 			Vector v = StringUtil.breakStringList (
-			((String)__command_Vector.elementAt(0)).trim(),"()",
-			StringUtil.DELIM_SKIP_BLANKS );
+			((String)__command_Vector.elementAt(0)).trim(),"()",0 );
 			PropList props = null;
 			if (	(v != null) && (v.size() > 1) &&
 				(((String)v.elementAt(1)).indexOf("=") > 0) ) {
@@ -540,7 +536,7 @@ private void refresh ()
 			}
 			TSID = props.getValue ( "TSID" );
 			TSList = props.getValue ( "TSList" );
-			if ( __command.equals("add") ) {
+			if ( __command.equalsIgnoreCase("add") ) {
 				AddTSID = props.getValue ( "AddTSID" );
 			}
 			else {	AddTSID = props.getValue ( "SubtractTSID" );
@@ -723,7 +719,7 @@ private void refresh ()
 		if ( b.length() > 0 ) {
 			b.append ( "," );
 		}
-		if ( __command.equals("add") ) {
+		if ( __command.equalsIgnoreCase("add") ) {
 			b.append ( "AddTSID=\"" + AddTSID + "\"" );
 		}
 		else {	b.append ( "SubtractTSID=\"" + AddTSID + "\"" );

@@ -88,7 +88,7 @@ disaggregate_JDialog constructor.
 */
 public disaggregate_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit disaggregate() Command", command, tsids );
+	initialize ( parent, "Edit Disaggregate() Command", command, tsids );
 }
 
 /**
@@ -210,8 +210,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Disaggregation converts a longer-interval time series" +
-		" to a shorter interval."),
+		"Disaggregation converts a longer-interval time series to a shorter interval."),
 		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Specify the new interal as Nbase, where base is Minute, " +
@@ -452,7 +451,7 @@ private void refresh ()
 			if ( alias == null ) {
 				Message.printWarning ( 1,
 				"disaggregate_JDialog.refresh",
-				"Existing disaggregate() does not specify" +
+				"Existing Disaggregate() does not specify" +
 				" the time series alias." );
 				alias = "";
 			}
@@ -513,7 +512,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"disaggregate_JDialog.refresh", "Existing " +
-				"disaggregate() references a non-existent\n"+
+				"Disaggregate() references a non-existent\n"+
 				"time series \"" + independent +
 				"\".  Select a\n" +
 				"different time series or Cancel." );
@@ -527,7 +526,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"disaggregate_JDialog.refresh", "Existing " +
-				"disaggregate() references an invalid\n"+
+				"Disaggregate() references an invalid\n"+
 				"method \"" + method + "\".  Select a\n" +
 				"different method or Cancel." );
 			}
@@ -582,7 +581,7 @@ private void refresh ()
 	if ( (interval == null) || (interval.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText( "TS " + alias + " = disaggregate(" +
+	__command_JTextField.setText( "TS " + alias + " = Disaggregate(" +
 			independent + "," + method + "," + interval +
 			"," + datatype + "," + units + ")" );
 	__command_Vector.removeAllElements();

@@ -49,11 +49,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -73,6 +77,7 @@ private SimpleJButton	__browse_JButton = null,// Browse for file.
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths
 private Vector		__command_Vector = null;// Command as Vector of String
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private String		__working_dir = null;	// Working directory.
 private JTextField	__command_JTextField=null;
 						// Command as TextField
@@ -118,10 +123,9 @@ createFromList_JDialog constructor.
 @param tsids Time series identifiers for existing time series.
 */
 public createFromList_JDialog (	JFrame parent, PropList app_PropList,
-				Vector command, Vector tsids )
+				Vector command, Vector tsids, Command command_class )
 {	super ( parent, true );
-	initialize (	parent, "Edit createFromList() Command", app_PropList,
-			command, tsids );
+	initialize ( parent, "Edit CreateFromList() Command", app_PropList,	command, tsids, command_class );
 }
 
 /**
@@ -294,13 +298,14 @@ Instantiates the GUI components.
 */
 private void initialize (	JFrame parent, String title,
 				PropList app_PropList, Vector command,
-				Vector tsids )
+				Vector tsids, Command command_class )
 {	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+    __Command = command_class;
+	__working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(0,2,0,2);
+    Insets insetsTLBR = new Insets(0,2,0,2);
 
 	// Main panel...
 
@@ -310,8 +315,7 @@ private void initialize (	JFrame parent, String title,
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Create a list of time series from a list of identifiers " +
-		"in a file." ),
+		"Create a list of time series from a list of identifiers in a file." ),
 		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"The information specified below is used with the identifiers" +
@@ -322,8 +326,7 @@ private void initialize (	JFrame parent, String title,
 		"identifiers are of the form:"),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"  ID.DataSource.DataType.Interval.Scenario~InputType~" +
-		"InputName"),
+		"  ID.DataSource.DataType.Interval.Scenario~InputType~InputName"),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"This command is useful for automating time series creation " +
@@ -333,8 +336,7 @@ private void initialize (	JFrame parent, String title,
 		"The list file can contain comment lines starting with #." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"It is recommended that the path to the file be specified " +
-		"using a relative path."),
+		"It is recommended that the path to the file be specified using a relative path."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	if ( __working_dir != null ) {
         	JGUIUtil.addComponent(main_JPanel, new JLabel (
@@ -616,7 +618,7 @@ private void refresh ()
 					__IDCol_JComboBox.select ( IDCol );
 				}
 				else {	Message.printWarning ( 1, routine,
-					"Existing createFromList() " +
+					"Existing CreateFromList() " +
 					"references an invalid\n"+
 					"IDCol \"" + IDCol +
 					"\".  Select a\ndifferent value or " +
@@ -659,7 +661,7 @@ private void refresh ()
 					HandleMissingTSHow );
 				}
 				else {	Message.printWarning ( 1, routine,
-					"Existing createFromList() references" +
+					"Existing CreateFromList() references" +
 					" an invalid\n"+
 					"HandleMissingTSHow \"" +
 					HandleMissingTSHow +
@@ -687,8 +689,7 @@ private void refresh ()
 	InputType = __InputType_JTextField.getText().trim();
 	InputName = __InputName_JTextField.getText().trim();
 	if ( __HandleMissingTSHow_JComboBox != null ) {
-		HandleMissingTSHow =
-		__HandleMissingTSHow_JComboBox.getSelected();
+		HandleMissingTSHow = __HandleMissingTSHow_JComboBox.getSelected();
 	}
 	DefaultUnits = __DefaultUnits_JTextField.getText().trim();
 	if ( (ListFile == null) || (ListFile.trim().length() == 0) ) {
@@ -766,9 +767,8 @@ private void refresh ()
 		}
 		b.append ( "DefaultUnits=\"" + DefaultUnits + "\"");
 	}
-	__command_JTextField.setText("createFromList(" + b.toString() + ")" );
-	// Check the path and determine what the label on the path button should
-	// be...
+	__command_JTextField.setText("CreateFromList(" + b.toString() + ")" );
+	// Check the path and determine what the label on the path button should be...
 	if ( __path_JButton != null ) {
 		__path_JButton.setEnabled ( true );
 		File f = new File ( ListFile );

@@ -369,10 +369,9 @@ private void refresh ()
 	// Regardless, reset the command from the fields...
 	alias = __alias_JComboBox.getSelected();
 	add = __add_JTextField.getText().trim();
-	analysis_period_start=
-		__analysis_period_start_JTextField.getText().trim();
+	analysis_period_start=__analysis_period_start_JTextField.getText().trim();
 	analysis_period_end = __analysis_period_end_JTextField.getText().trim();
-	__command_JTextField.setText("addConstant(" + alias + "," + add + "," +
+	__command_JTextField.setText("AddConstant(" + alias + "," + add + "," +
 		analysis_period_start + "," + analysis_period_end + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

@@ -85,7 +85,7 @@ public fillPattern_JDialog (	JFrame parent, PropList app_PropList,
 				Vector pattern_file_Vector, Vector command,
 				Vector tsids, Vector patterns )
 {	super(parent, true);
-	initialize (	parent, "Edit fillPattern() Command", app_PropList,
+	initialize (	parent, "Edit FillPattern() Command", app_PropList,
 			pattern_file_Vector, command, tsids, patterns );
 }
 
@@ -442,7 +442,7 @@ private void refresh ()
 				JGUIUtil.NONE, null, null ) ) {
 				__TSID_JComboBox.select ( TSID );
 		}
-		else {	/* REVISIT SAM 2005-04-26 disable since this may
+		else {	/* TODO SAM 2005-04-26 disable since this may
 			prohibit advanced users.
 			Message.printWarning ( 1,
 				"fillPattern_JDialog.refresh",
@@ -472,7 +472,7 @@ private void refresh ()
 		}
 		else {	Message.printWarning ( 1,
 			"fillPattern_JDialog.refresh",
-			"Existing fillPattern() references a non-existent\n"+
+			"Existing command references a non-existent\n"+
 			"pattern ID \"" + PatternID + "\".  Select a\n" +
 			"different pattern or Cancel." );
 		}
@@ -501,7 +501,7 @@ private void refresh ()
 		}
 		b.append ( "PatternID=\"" + PatternID + "\"" );
 	}
-	__command_JTextArea.setText("fillPattern(" + b.toString() + ")");
+	__command_JTextArea.setText("FillPattern(" + b.toString() + ")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextArea.getText() );
 }

@@ -90,7 +90,7 @@ createTraces_JDialog constructor.
 */
 public createTraces_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit createTraces() Command", command, tsids );
+	initialize ( parent, "Edit CreateTraces() Command", command, tsids );
 }
 
 /**
@@ -205,7 +205,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -213,28 +213,23 @@ private void initialize ( JFrame parent, String title, Vector command,
 	int y = 0;
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Convert a time series to a sequence of traces (typically" +
-		" one trace per year)."),
+		"Convert a time series to a sequence of traces (typically one trace per year)."),
 		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Each trace will start on the reference date and will be as " +
-		"long as specified."),
+		"Each trace will start on the reference date and will be as long as specified."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Each trace will have the properties of the original " +
-		"time series with unique sequence numbers."),
+		"Each trace will have the properties of the original time series with unique sequence numbers."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Specify the reference date using standard date formats to a" +
-		" precision appropriate for the data."),
+		"Specify the reference date using standard date formats to a precision appropriate for the data."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"If shifted, each trace will start on the reference date" +
-		" (use to overlay plots)."),
+		"If shifted, each trace will start on the reference date (use to overlay plots)."),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel,
-		new JLabel ( "Time Series to Create Traces From:"),
+		new JLabel ( "Time series from which to create traces:"),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	int size = 0;
 	if ( tsids != null ) {
@@ -248,8 +243,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 		// No time series to choose or the existing command does not
 		// use a TEMPTS.
 		Message.printWarning ( 1, "createTraces_JDialog.initialize",
-		"You must define time series before inserting a" +
-		" createTraces() command." );
+		"You must define time series before inserting a CreateTraces() command." );
 		response ( 0 );
 	}
 	__independent_JListModel = new DefaultListModel();
@@ -257,8 +251,7 @@ private void initialize ( JFrame parent, String title, Vector command,
 		__independent_JListModel.addElement((String)tsids.elementAt(i));
 	}
 	__independent_JList = new JList ( __independent_JListModel );
-	__independent_JList.setSelectionMode (
-		ListSelectionModel.SINGLE_SELECTION );
+	__independent_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
 	__independent_JList.addListSelectionListener ( this );
 	__independent_JList.addKeyListener ( this );
 	__independent_JList.addMouseListener ( this );
@@ -466,8 +459,7 @@ private void refresh ()
 					// list so add to the bottom.
 					// The TEMPTS is already at the
 					// front of the independent TS..
-					__independent_JListModel.addElement(
-							independent);
+					__independent_JListModel.addElement(independent);
 					JGUIUtil.select (
 						__independent_JList,
 						independent, true );
@@ -501,7 +493,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"createTraces_JDialog.refresh", "Existing " +
-				"createTraces() references an invalid\n"+
+				"CreateTraces() references an invalid\n"+
 				"shift type \"" + shift_type +
 				"\".  Select a\n" +
 				"different type or Cancel." );
@@ -535,7 +527,7 @@ private void refresh ()
 	if ( (shift_type == null) || (shift_type.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText( "createTraces(" + independent + "," +
+	__command_JTextField.setText( "CreateTraces(" + independent + "," +
 			period + "," + reference + "," + shift_type + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

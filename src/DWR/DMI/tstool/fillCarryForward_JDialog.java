@@ -62,7 +62,7 @@ fillCarryForward_JDialog constructor.
 */
 public fillCarryForward_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit fillCarryForward() Command", command,tsids );
+	initialize ( parent, "Edit FillCarryForward() Command", command,tsids );
 }
 
 /**
@@ -144,9 +144,13 @@ private void initialize ( JFrame parent, String title, Vector command,
 	getContentPane().add ( "North", main_JPanel );
 	int y = 0;
 
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
+    "<HTML><B>THIS COMMAND HAS BEEN REPLACED BY FillRepeat().</B></HTML>" ),
+    0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    
         JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Fill time series by carrying forward non-missing data." ),
-		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel ( "Time series to fill:"),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -252,7 +256,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"fillCarryForward_JDialog.refresh",
-				"Existing fillCarryForward() references a " +
+				"Existing FillCarryForward() references a " +
 				"non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -261,7 +265,7 @@ private void refresh ()
 	}
 	// Regardless, reset the command from the fields...
 	alias = __alias_JComboBox.getSelected();
-	__command_JTextField.setText("fillCarryForward(" + alias + ")" );
+	__command_JTextField.setText("FillCarryForward(" + alias + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

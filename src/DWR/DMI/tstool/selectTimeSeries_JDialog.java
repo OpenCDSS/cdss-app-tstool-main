@@ -88,7 +88,7 @@ private boolean		__select = true;		// If true, then the
 							// false the
 							// deselectTimeSeries()
 							// command is used.
-private String		__command = "selectTimeSeries";	// Command being edited
+private String		__command = "SelectTimeSeries";	// Command being edited
 
 /**
 selectTimeSeries_JDialog constructor.
@@ -183,9 +183,9 @@ private void initialize ( JFrame parent, Vector command,
 {	__command_Vector = command;
 	__select = select;
 	if ( __select ) {
-		__command = "selectTimeSeries";
+		__command = "SelectTimeSeries";
 	}
-	else {	__command = "deselectTimeSeries";
+	else {	__command = "DeselectTimeSeries";
 	}
 
 	addWindowListener( this );
@@ -414,9 +414,9 @@ private void refresh ()
 				DeselectAllFirst );
 			}
 			else {	Message.printWarning ( 1, routine,
-				"Existing openHydroBase() references an " +
-				"invalid\nODBC DSN \"" + DeselectAllFirst +
-				"\".  Select a different ODBC DSN or Cancel.");
+				"Existing " + __command + "() references an " +
+				"invalid\nDeselectAllFirst \"" + DeselectAllFirst +
+				"\".  Select a different value or Cancel.");
 				__error_wait = true;
 			}
 		}
@@ -433,9 +433,9 @@ private void refresh ()
 				SelectAllFirst );
 			}
 			else {	Message.printWarning ( 1, routine,
-				"Existing openHydroBase() references an " +
-				"invalid\nODBC DSN \"" + SelectAllFirst +
-				"\".  Select a different ODBC DSN or Cancel.");
+				"Existing " + __command + "() references an " +
+				"invalid\nSelectAllFirst \"" + SelectAllFirst +
+				"\".  Select a different value or Cancel.");
 				__error_wait = true;
 			}
 		}

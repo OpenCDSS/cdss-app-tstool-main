@@ -115,7 +115,7 @@ fillProrate_JDialog constructor.
 */
 public fillProrate_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit fillProrate() Command", command, tsids );
+	initialize ( parent, "Edit FillProrate() Command", command, tsids );
 }
 
 /**
@@ -635,7 +635,7 @@ private void refresh()
 			}
 			else {	Message.printWarning ( 1,
 				"fillProrate_JDialog.refresh",
-				"Existing fillProrate() " +
+				"Existing command " +
 				"references an invalid\nTSID \"" + TSID +
 				"\".  Select a different time " +
 				"series or Cancel.");
@@ -685,7 +685,7 @@ private void refresh()
 		}
 		else {	Message.printWarning ( 1,
 			"fillProrate_JDialog.refresh", "Existing " +
-			"fillProrate() references a non-existent\n"+
+			"command references a non-existent\n"+
 			"time series \"" + IndependentTSID +
 			"\".  Select a\n" +
 			"different time series or Cancel." );
@@ -707,7 +707,7 @@ private void refresh()
 			}
 			else {	Message.printWarning ( 1,
 				"fillProrate_JDialog.refresh",
-				"Existing fillProrate() " +
+				"Existing command " +
 				"references an invalid\nfill direction \"" +
 				FillDirection + "\".  Select a different " +
 				"fill direction or Cancel.");
@@ -726,7 +726,7 @@ private void refresh()
 			}
 			else {	Message.printWarning ( 1,
 				"fillProrate_JDialog.refresh",
-				"Existing fillProrate() " +
+				"Existing command " +
 				"references an invalid\nCalculateFactorHow \"" +
 				CalculateFactorHow +
 				"\".  Select a different value or Cancel.");
@@ -755,7 +755,7 @@ private void refresh()
 			}
 			else {	Message.printWarning ( 1,
 				"fillProrate_JDialog.refresh",
-				"Existing fillProrate() " +
+				"Existing command " +
 				"references an invalid\nInitialValue \"" +
 				InitialValue +
 				"\".  Select a different value or Cancel.");
@@ -835,8 +835,7 @@ private void refresh()
 		}
 		b.append ( "FillFlag=\"" + FillFlag + "\"" );
 	}
-	__command_JTextArea.setText("fillProrate(" +
-		b.toString() + ")" );
+	__command_JTextArea.setText("FillProrate(" + b.toString() + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextArea.getText() );
 }
