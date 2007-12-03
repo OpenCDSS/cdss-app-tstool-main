@@ -97,7 +97,7 @@ setFromTS_JDialog constructor.
 */
 public setFromTS_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setFromTS() Command", command, tsids );
+	initialize ( parent, "Edit SetFromTS() Command", command, tsids );
 }
 
 /**
@@ -444,7 +444,7 @@ private void refresh ()
 	String transfer = "";
 	__error_wait = false;
 	boolean found_ts = false;
-	String command = "setFromTS";
+	String command = "SetFromTS";
 	String temp = null;
 	int pos = 0;
 	if ( __first_time ) {

@@ -43,10 +43,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -62,6 +66,7 @@ private SimpleJButton	__browse_JButton = null,// directory browse button
 			__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
 private Vector		__command_Vector = null; // Command as Vector of String
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private String		__working_dir = null;	// Working directory.
 private JTextField	__command_JTextField = null;
 						// Command as JTextField
@@ -81,10 +86,10 @@ setWorkingDir_JDialog constructor.
 ignored.
 */
 public setWorkingDir_JDialog (	JFrame parent, PropList app_PropList,
-				Vector command, Vector tsids )
+				Vector command, Vector tsids, Command command_class )
 {	super(parent, true);
-	initialize ( parent, "Edit setWorkingDir() Command",
-		app_PropList, command, tsids );
+	initialize ( parent, "Edit SetWorkingDir() Command",
+		app_PropList, command, tsids, command_class );
 }
 
 /**
@@ -202,9 +207,10 @@ Instantiates the GUI components.
 */
 private void initialize (	JFrame parent, String title,
 				PropList app_PropList, Vector command,
-				Vector tsids )
+				Vector tsids, Command command_class )
 {	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+    __Command = command_class;
+	__working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 
 	addWindowListener( this );
 
@@ -343,7 +349,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setWorkingDir_JDialog.refresh",
-				"Existing setWorkingDir() references a " +
+				"Existing command references a " +
 				"non-existent\n"+
 				"apply-to type \"" + type + "\".  Select a\n" +
 				"different choice or Cancel." );
@@ -359,7 +365,7 @@ private void refresh ()
 	if ( (type == null) || (type.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("setWorkingDir(\""+dir + "\"," + type+")");
+	__command_JTextField.setText("SetWorkingDir(\""+dir + "\"," + type+")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

@@ -35,6 +35,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 
@@ -45,6 +48,7 @@ import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -64,6 +68,7 @@ private SimpleJButton	__cancel_JButton = null,// Cancel Button
 			__browse_JButton = null,	// To pick FS5Files dir
 			__path_JButton = null;	// Convert between relative and absolute paths
 private Vector		__command_Vector = null;// Command as Vector of String
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private JTextField	__Alias_JTextField = null,// Alias for time series.
 			__location_JTextField,	// Location part of TSID
 			__datasource_JTextField,// Data source part of TSID
@@ -101,9 +106,9 @@ readNWSRFSFS5Files_JDialog constructor.
 */
 public readNWSRFSFS5Files_JDialog(	JFrame parent, PropList app_PropList,
 					Vector command, boolean read_one,
-					NWSRFS_DMI nwsrfs_dmi )
+					NWSRFS_DMI nwsrfs_dmi, Command command_class )
 {	super(parent, true);
-	initialize ( parent, app_PropList, command, read_one, nwsrfs_dmi );
+	initialize ( parent, app_PropList, command, read_one, nwsrfs_dmi, command_class );
 }
 
 /**
@@ -130,7 +135,7 @@ public void actionPerformed( ActionEvent event )
 		sff = new SimpleFileFilter("CS",
 			"Conditional Simulation Trace File");
 		fc.addChoosableFileFilter(sff);
-		/* REVISIT later when tested.
+		/* TODO later when tested.
 		sff = new SimpleFileFilter("HS",
 			"Historical Simulation Trace File");
 		fc.addChoosableFileFilter(sff);
@@ -337,20 +342,21 @@ should have a time series identifier and optionally comments.
 @param nwsrfs_dmi NWSRFS_DMI to do queries.
 */
 private void initialize ( JFrame parent, PropList app_PropList,
-			Vector command, boolean read_one, NWSRFS_DMI nwsrfs_dmi)
+			Vector command, boolean read_one, NWSRFS_DMI nwsrfs_dmi, Command command_class )
 {	String routine = "readNWSRFSFS5Files_JDialog.initialize";
 	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+    __Command = command_class;
+    __working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 	__read_one = read_one;
 	String title = "";
 
 	if ( __read_one ) {
-		title = "Edit TS x = readNWSRFSFS5Files() Command";
+		title = "Edit TS Alias = ReadNWSRFSFS5Files() Command";
 	}
-	else {	title = "Edit readNWSRFSFS5Files() Command";
+	else {	title = "Edit ReadNWSRFSFS5Files() Command";
 	}
 
-	try {	// REVISIT SAM 2004-09-11 put in until dialog is fully enabled
+	try {	// TODO SAM 2004-09-11 put in until dialog is fully enabled
 	addWindowListener( this );
 
     Insets insetsTLBR = new Insets(2,2,2,2);
@@ -797,9 +803,9 @@ private void refresh ()
 	if ( __read_one ) {
 		__TSID_JTextField.setText ( TSID );
 		__command_JTextField.setText("TS " + Alias +
-		" = readNWSRFSFS5Files(" + b.toString() + ")" );
+		" = ReadNWSRFSFS5Files(" + b.toString() + ")" );
 	}
-	else {	__command_JTextField.setText( "readNWSRFSFS5Files(" +
+	else {	__command_JTextField.setText( "ReadNWSRFSFS5Files(" +
 		b.toString() + ")" );
 	}
 	__command_Vector.removeAllElements();

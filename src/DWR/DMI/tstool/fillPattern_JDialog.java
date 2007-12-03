@@ -470,11 +470,14 @@ private void refresh ()
 			PatternID, JGUIUtil.NONE, null, null ) ) {
 			__PatternID_JComboBox.select ( PatternID );
 		}
-		else {	Message.printWarning ( 1,
+		else {
+            /* FIXME SAM 2007-12-02 Evaluate code use
+            Message.printWarning ( 1,
 			"fillPattern_JDialog.refresh",
 			"Existing command references a non-existent\n"+
 			"pattern ID \"" + PatternID + "\".  Select a\n" +
 			"different pattern or Cancel." );
+            */
 		}
 	}
 	// Regardless, reset the command from the fields...

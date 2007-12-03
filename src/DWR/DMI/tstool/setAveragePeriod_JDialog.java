@@ -64,7 +64,7 @@ ignored.
 */
 public setAveragePeriod_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setAveragePeriod() Command", command, tsids);
+	initialize ( parent, "Edit SetAveragePeriod() Command", command, tsids);
 }
 
 /**
@@ -289,7 +289,7 @@ private void refresh ()
 	// Regardless, reset the command from the fields...
 	date1 = __date1_JTextField.getText().trim();
 	date2 = __date2_JTextField.getText().trim();
-	__command_JTextField.setText("setAveragePeriod("+date1 + ","+date2+")");
+	__command_JTextField.setText("SetAveragePeriod("+date1 + ","+date2+")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

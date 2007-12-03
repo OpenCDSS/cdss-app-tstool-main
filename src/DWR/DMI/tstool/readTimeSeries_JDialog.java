@@ -77,7 +77,7 @@ readTimeSeries_JDialog constructor.
 public readTimeSeries_JDialog (	JFrame parent, PropList app_PropList,
 				Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit readTimeSeries() Command", app_PropList,
+	initialize ( parent, "Edit ReadTimeSeries() Command", app_PropList,
 		command, tsids );
 }
 
@@ -299,8 +299,7 @@ private void refresh ()
 	// Regardless, reset the command from the fields...
 	alias = __alias_JTextField.getText().trim();
 	tsident = __tsident_JTextField.getText().trim();
-	__command_JTextField.setText("TS " + alias +
-		" = readTimeSeries(\"" + tsident + "\")" );
+	__command_JTextField.setText("TS " + alias + " = ReadTimeSeries(\"" + tsident + "\")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

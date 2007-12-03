@@ -59,7 +59,7 @@ setWarningLevel_JDialog constructor.
 */
 public setWarningLevel_JDialog ( JFrame parent, Vector command, Vector tsids )
 { 	super(parent, true);
-	initialize ( parent, "Edit setWarningLevel() Command", command, tsids );
+	initialize ( parent, "Edit SetWarningLevel() Command", command, tsids );
 }
 
 /**
@@ -304,15 +304,15 @@ private void refresh ()
 	screen = __screen_JTextField.getText().trim();
 	log = __log_JTextField.getText().trim();
 	if ( (log.length() > 0) && (screen.length() > 0) ) {
-		__command_JTextField.setText("setWarningLevel(" + screen +
+		__command_JTextField.setText("SetWarningLevel(" + screen +
 		"," + log + ")" );
 	}
 	else if ( (log.length() == 0) && (screen.length() == 0) ) {
-		__command_JTextField.setText("setWarningLevel()");
+		__command_JTextField.setText("SetWarningLevel()");
 	}
 	else {	// For now don't do anything fancy but this may cause
 		// problems...
-		__command_JTextField.setText("setWarningLevel(" + screen +
+		__command_JTextField.setText("SetWarningLevel(" + screen +
 		"," + log + ")" );
 	}
 	__command_Vector.removeAllElements();

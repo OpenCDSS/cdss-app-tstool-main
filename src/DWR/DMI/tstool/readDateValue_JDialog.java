@@ -81,8 +81,7 @@ readDateValue_JDialog constructor.
 @param command Time series command to parse.
 @param tsids Time series identifiers for available time series.
 */
-public readDateValue_JDialog (	JFrame parent, PropList app_PropList,
-				Vector command, Vector tsids, Command command_class )
+public readDateValue_JDialog (	JFrame parent, PropList app_PropList, Vector command, Vector tsids, Command command_class )
 {	super(parent, true);
 	initialize ( parent, "Edit ReadDateValue() Command", app_PropList,
 		command, tsids, command_class );

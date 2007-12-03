@@ -66,8 +66,7 @@ unused.
 */
 public setOutputYearType_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setOutputYearType() Command", command,
-		tsids );
+	initialize ( parent, "Edit SetOutputYearType() Command", command, tsids );
 }
 
 /**
@@ -264,7 +263,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setOutputYearType_JDialog.refresh",
-				"Existing setOutputYearType() references an " +
+				"Existing command references an " +
 				"invalid\nyear type \"" + year_type +
 				"\".  Select a different year type or Cancel.");
 				__error_wait = true;
@@ -279,7 +278,7 @@ private void refresh ()
 	}
 	else {	__error_wait = true;
 	}
-	__command_JTextField.setText("setOutputYearType(" + year_type + ")" );
+	__command_JTextField.setText("SetOutputYearType(" + year_type + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

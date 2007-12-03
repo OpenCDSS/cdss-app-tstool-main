@@ -66,8 +66,7 @@ setIgnoreLEZero_JDialog constructor.
 */
 public setIgnoreLEZero_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setIgnoreLEZero() Command", command,
-		tsids );
+	initialize ( parent, "Edit SetIgnoreLEZero() Command", command, tsids );
 }
 
 /**
@@ -275,7 +274,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setIgnoreLEZero_JDialog.refresh",
-				"Existing setIgnoreLEZero() uses an " +
+				"Existing command uses an " +
 				"invalid\nflag value \"" + toggle +
 				"\".  Select a different value or Cancel." );
 				__error_wait = true;
@@ -290,7 +289,7 @@ private void refresh ()
 	}
 	else {	__error_wait = true;
 	}
-	__command_JTextField.setText("setIgnoreLEZero(" + toggle +")");
+	__command_JTextField.setText("SetIgnoreLEZero(" + toggle +")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

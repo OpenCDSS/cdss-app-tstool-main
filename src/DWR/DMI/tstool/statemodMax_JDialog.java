@@ -33,6 +33,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import java.io.File;
 import java.util.Vector;
 
@@ -40,6 +43,7 @@ import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -58,6 +62,7 @@ private SimpleJButton	__browse1_JButton = null,	// File browse button
 			__path2_JButton = null;		// absolute path.
 private Vector		__command_Vector = null;	// Command as Vector of
 							// String
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private JTextField	__command_JTextField=null;	// Command as JTextField
 private JTextField	__file1_JTextField = null;	// Field for first file
 							// to read.
@@ -77,10 +82,9 @@ statemodMax_JDialog constructor.
 @param tsids Time series identifiers for available time series.
 */
 public statemodMax_JDialog (	JFrame parent, PropList app_PropList,
-				Vector command, Vector tsids )
+				Vector command, Vector tsids, Command command_class )
 {	super(parent, true);
-	initialize ( parent, "Edit statemodMax() Command", app_PropList,
-		command, tsids );
+	initialize ( parent, "Edit StateModMax() Command", app_PropList, command, tsids, command_class );
 }
 
 /**
@@ -138,8 +142,7 @@ public void actionPerformed( ActionEvent event )
 		fc.setDialogTitle( "Select StateMod Time Series File (File 2)");
 		// REVISIT - maybe need to list all recognized StateMod file
 		// extensions for data sets.
-		SimpleFileFilter sff = new SimpleFileFilter("stm",
-			"StateMod Time Series File");
+		SimpleFileFilter sff = new SimpleFileFilter("stm","StateMod Time Series File");
 		fc.addChoosableFileFilter(sff);
 		
 		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -302,13 +305,14 @@ should have a time series identifier and optionally comments.
 TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
-			Vector command, Vector tsids )
+			Vector command, Vector tsids, Command command_class )
 {	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+    __Command = command_class;
+	__working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -449,49 +453,37 @@ private void refresh ()
 	}
 	// Regardless, reset the command from the fields...
 	file1 = __file1_JTextField.getText();
-	boolean do_return = false;
 	if ( (file1 == null) || (file1.trim().length() == 0) ) {
 		if ( __path1_JButton != null ) {
 			__path1_JButton.setEnabled ( false );
 		}
-		do_return = true;
 	}
 	file2 = __file2_JTextField.getText();
 	if ( (file2 == null) || (file2.trim().length() == 0) ) {
 		if ( __path2_JButton != null ) {
 			__path2_JButton.setEnabled ( false );
 		}
-		do_return = true;
 	}
-	if ( do_return ) {
-		return;
-	}
-	__command_JTextField.setText("statemodMax(\"" + file1 + "\",\"" +
-			file2 + "\")" );
+	__command_JTextField.setText("StateModMax(\"" + file1 + "\",\"" + file2 + "\")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
-	// Check the path and determine what the label on the path button should
-	// be...
+	// Check the path and determine what the label on the path button should be...
 	if ( __path1_JButton != null ) {
 		__path1_JButton.setEnabled ( true );
 		File f = new File ( file1 );
 		if ( f.isAbsolute() ) {
-			__path1_JButton.setText (
-			"Remove Working Directory (File 1)" );
+			__path1_JButton.setText ( "Remove Working Directory (File 1)" );
 		}
-		else {	__path1_JButton.setText (
-			"Add Working Directory (File 1)" );
+		else {	__path1_JButton.setText ( "Add Working Directory (File 1)" );
 		}
 	}
 	if ( __path2_JButton != null ) {
 		__path2_JButton.setEnabled ( true );
 		File f = new File ( file2 );
 		if ( f.isAbsolute() ) {
-			__path2_JButton.setText (
-			"Remove Working Directory (File 2)" );
+			__path2_JButton.setText ( "Remove Working Directory (File 2)" );
 		}
-		else {	__path2_JButton.setText (
-			"Add Working Directory (File 2)" );
+		else {	__path2_JButton.setText ( "Add Working Directory (File 2)" );
 		}
 	}
 }

@@ -59,7 +59,7 @@ setDebugLevel_JDialog constructor.
 */
 public setDebugLevel_JDialog ( JFrame parent, Vector command, Vector tsids )
 { 	super(parent, true);
-	initialize ( parent, "Edit setDebugLevel() Command", command, tsids );
+	initialize ( parent, "Edit SetDebugLevel() Command", command, tsids );
 }
 
 /**
@@ -305,16 +305,14 @@ private void refresh ()
 	screen = __screen_JTextField.getText().trim();
 	log = __log_JTextField.getText().trim();
 	if ( (log.length() > 0) && (screen.length() > 0) ) {
-		__command_JTextField.setText("setDebugLevel(" + screen +
-		"," + log + ")" );
+		__command_JTextField.setText("SetDebugLevel(" + screen + "," + log + ")" );
 	}
 	else if ( (log.length() == 0) && (screen.length() == 0) ) {
-		__command_JTextField.setText("setDebugLevel()");
+		__command_JTextField.setText("SetDebugLevel()");
 	}
-	else {	// For now don't do anything fancy but this may cause
-		// problems...
-		__command_JTextField.setText("setDebugLevel(" + screen +
-		"," + log + ")" );
+	else {
+        // For now don't do anything fancy but this may cause problems...
+		__command_JTextField.setText("SetDebugLevel(" + screen + "," + log + ")" );
 	}
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

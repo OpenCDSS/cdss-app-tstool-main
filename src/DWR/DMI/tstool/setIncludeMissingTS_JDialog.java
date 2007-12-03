@@ -62,8 +62,7 @@ setIncludeMissingTS_JDialog constructor.
 */
 public setIncludeMissingTS_JDialog(JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setIncludeMissingTS() Command", command,
-		tsids );
+	initialize ( parent, "Edit SetIncludeMissingTS() Command", command, tsids );
 }
 
 /**
@@ -260,7 +259,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setIncludeMissingTS_JDialog.refresh",
-				"Existing setIncludeMissingTS() uses an " +
+				"Existing command uses an " +
 				"invalid\nflag value \"" + toggle +
 				"\".  Select a different value or Cancel." );
 				__error_wait = true;
@@ -269,13 +268,12 @@ private void refresh ()
 	}
 	// Regardless, reset the command from the fields...
 	toggle = __toggle_JComboBox.getSelected();
-	if (	JGUIUtil.isSimpleJComboBoxItem( __toggle_JComboBox,
-		toggle, JGUIUtil.NONE, null, null ) ) {
+	if ( JGUIUtil.isSimpleJComboBoxItem( __toggle_JComboBox,	toggle, JGUIUtil.NONE, null, null ) ) {
 		__error_wait = false;
 	}
 	else {	__error_wait = true;
 	}
-	__command_JTextField.setText("setIncludeMissingTS(" + toggle +")");
+	__command_JTextField.setText("SetIncludeMissingTS(" + toggle +")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

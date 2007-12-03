@@ -891,7 +891,7 @@ JMenuItem
 	__Commands_Read_ReadStateCU_JMenuItem,
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
-	__Commands_Read_StatemodMax_JMenuItem,
+	__Commands_Read_StateModMax_JMenuItem,
 	// TS Alias = commands...
 	__Commands_Read_TS_ReadDateValue_JMenuItem,
 	__Commands_Read_TS_ReadHydroBase_JMenuItem,
@@ -941,7 +941,6 @@ JMenuItem
 	__Commands_Set_ReplaceValue_JMenuItem,
 	//--
 	__Commands_Set_SetConstant_JMenuItem,
-	__Commands_Set_SetConstantBefore_JMenuItem,
 	__Commands_Set_SetDataValue_JMenuItem,
 	__Commands_Set_SetFromTS_JMenuItem,
 	__Commands_Set_SetMax_JMenuItem,
@@ -1240,7 +1239,7 @@ private String
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()...  <read 1(+) time series from a StateCU file>",
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()...  <read 1(+) time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()...  <read 1(+) time series from a StateMod binary output file>",
-	__Commands_Read_StatemodMax_String = TAB + "StatemodMax()...  <generate 1(+) time series as max() of TS in two StateMod files>",
+	__Commands_Read_StateModMax_String = TAB + "StateModMax()...  <generate 1(+) time series as Max() of TS in two StateMod files>",
 
 	__Commands_Read_TS_ReadDateValue_String = TAB +	"TS Alias = ReadDateValue()...  <read 1 time series from a DateValue file>",
 	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()...  <read 1 time series from HydroBase>",
@@ -1283,7 +1282,6 @@ private String
 	__Commands_SetTimeSeries_String = "Set Time Series Contents",
 	__Commands_Set_ReplaceValue_String = TAB + "ReplaceValue()...  <replace value (range) with constant in TS>",
 	__Commands_Set_SetConstant_String = TAB + "SetConstant()...  <set all values to constant in TS>",
-	__Commands_Set_SetConstantBefore_String = TAB +	"SetConstantBefore()...  <set all values on and before a date to constant in TS>",
 	__Commands_Set_SetDataValue_String = TAB + "SetDataValue()...  <set a single data value in a TS>",
 	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()...  <set time series values from another time series>",
 	__Commands_Set_SetMax_String = TAB + "SetMax()...  <set values to maximum of time series>",
@@ -1912,13 +1910,12 @@ public void actionPerformed (ActionEvent event)
 		// Ignore ActionEvent for programmatic modification of data models.
 		return;
 	}
-	try {	// This will chain, calling several methods, so that each method
-		// does not get so large...
+	try {
+        // This will chain, calling several methods, so that each method does not get so large...
 
 		uiAction_ActionPerformed1_MainActions(event);
 
-		// Check the GUI state and disable buttons, etc., depending on
-		// the selections that are made...
+		// Check the GUI state and disable buttons, etc., depending on the selections that are made...
 
 		ui_UpdateStatus ( true );
 	}
@@ -2551,7 +2548,7 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new readNWSRFSESPTraceEnsemble_JDialog (
 			this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals( __Commands_Read_ReadMODSIM_String)||
 		(!command_trimmed.regionMatches(true,0,"TS",0,2) &&
@@ -2564,7 +2561,7 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for readMODSIM()" );
 		}
 		edited_cv = new readMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	// Put this in front of the shorter version...
 	else if ( action.equals( __Commands_Read_TS_ReadNWSRFSFS5Files_String)||
@@ -2578,7 +2575,7 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for TS Alias = readNWSRFSFS5Files()" );
 		}
 		edited_cv = new readNWSRFSFS5Files_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, true, __nwsrfs_dmi ).getText();
+			cv, true, __nwsrfs_dmi, command_to_edit ).getText();
 	}
 	else if ( action.equals( __Commands_Read_ReadNWSRFSFS5Files_String)||
 		(StringUtil.indexOfIgnoreCase(
@@ -2590,16 +2587,12 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for readNWSRFSFS5Files()" );
 		}
 		edited_cv = new readNWSRFSFS5Files_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, false, __nwsrfs_dmi ).getText();
+			cv, false, __nwsrfs_dmi, command_to_edit ).getText();
 	}
-	else if ( action.equals( __Commands_Read_StatemodMax_String)||
-		StringUtil.startsWithIgnoreCase(command,"statemodMax") ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for readStateModMax()" );
-		}
+	else if ( action.equals( __Commands_Read_StateModMax_String)||
+		StringUtil.startsWithIgnoreCase(command,"StateModMax") ) {
 		edited_cv = new statemodMax_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	// These commands are "TS Alias" commands...
 	else if ( action.equals( __Commands_Read_TS_ReadDateValue_String)||
@@ -2610,7 +2603,7 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for TS Alias = readDateValue()" );
 		}
 		edited_cv = new TSreadDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_ReadMODSIM_String)||
 		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
@@ -2623,7 +2616,7 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for TS Alias = readMODSIM()" );
 		}
 		edited_cv = new TSreadMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_ReadRiverWare_String)||
 		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
@@ -2636,7 +2629,7 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for TS Alias = readRiverWare()" );
 		}
 		edited_cv = new TSreadRiverWare_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_ReadUsgsNwis_String)||
 		(StringUtil.indexOfIgnoreCase(
@@ -2648,7 +2641,7 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for TS Alias = readUsgsNwis()" );
 		}
 		edited_cv = new TSreadUsgsNwis_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null ).getText();
+			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals(__Commands_Read_SetIncludeMissingTS_String)||
 		command.regionMatches(true,0,"setIncludeMissingTS",0,19) ) {
@@ -2719,7 +2712,7 @@ private boolean commandList_EditCommandOldStyle (
 		Vector tokens;
 		for ( int ip = 0; ip < psize; ip++ ) {
 			tokens = StringUtil.breakStringList (
-				(String)found_commands_Vector.elementAt(ip),
+				found_commands_Vector.elementAt(ip).toString(),
 				"() ", StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			if ( (tokens != null) && (tokens.size() == 2) ) {
@@ -2810,7 +2803,7 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new setPatternFile_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
+					__ts_processor, command_to_edit), command_to_edit).getText();
 		if ( edited_cv != null ) {
 			// Read the pattern file information, at least enough
 			// to get a list of the identifiers that are available
@@ -2848,16 +2841,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for setConstant()" );
 		}
 		edited_cv = new setConstant_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Set_SetConstantBefore_String)||
-		command.regionMatches(true,0,"setConstantBefore",0,17) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setConstantBefore()" );
-		}
-		edited_cv = new setConstantBefore_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
@@ -3064,7 +3047,7 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new writeNwsCard_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
+					__ts_processor, command_to_edit), command_to_edit).getText();
 	}
 	else if ( action.equals( __Commands_Output_writeStateCU_String)||
 		command.regionMatches(true,0,"writeStateCU",0,12) ) {
@@ -3074,7 +3057,7 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new writeStateCU_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
+					__ts_processor, command_to_edit), command_to_edit).getText();
 	}
 
 	// General...
@@ -3140,7 +3123,7 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new setWorkingDir_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ), cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
+						__ts_processor, command_to_edit), command_to_edit).getText();
 	}
 	else if ( action.equals(__Commands_General_StartComment_String) ) {
 		// edited_cv is just a new comment...
@@ -4123,6 +4106,7 @@ throws IOException
 	__ts_processor.readCommandFile ( path,
 			true,	// Create GenericCommand instances for unrecognized commands
 			false );// Do not append to the current processor contents
+    // Refresh the GUI list to show the status done in call to this method
 }
 
 /**
@@ -6072,7 +6056,6 @@ private void ui_CheckGUIState ()
 
 		JGUIUtil.setEnabled ( __Commands_Set_ReplaceValue_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetConstant_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetConstantBefore_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetMax_JMenuItem, true);
@@ -6161,8 +6144,6 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
 
 		JGUIUtil.setEnabled ( __Commands_Set_ReplaceValue_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetConstant_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetConstantBefore_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetMax_JMenuItem, false);
@@ -7665,9 +7646,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.addSeparator ();
 		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_StatemodMax_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_StatemodMax_String, this) );
+			__Commands_Read_StateModMax_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_StateModMax_String, this) );
 	}
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
@@ -7860,10 +7840,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_SetTimeSeries_JMenu.add (
 		__Commands_Set_SetConstant_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_SetConstant_String, this ));
-
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_SetConstantBefore_JMenuItem =new SimpleJMenuItem(
-		__Commands_Set_SetConstantBefore_String, this) );
 
 	__Commands_SetTimeSeries_JMenu.add (
 		__Commands_Set_SetDataValue_JMenuItem = new SimpleJMenuItem(
@@ -9999,8 +9975,8 @@ throws Exception
 		commandList_EditCommand ( __Commands_Read_ReadStateMod_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Read_StatemodMax_String)){
-		commandList_EditCommand ( __Commands_Read_StatemodMax_String,
+	else if (command.equals( __Commands_Read_StateModMax_String)){
+		commandList_EditCommand ( __Commands_Read_StateModMax_String,
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_TS_ReadDateValue_String)){
@@ -10171,11 +10147,7 @@ throws Exception
 	else if (command.equals( __Commands_Set_SetConstant_String)){
 		commandList_EditCommand ( __Commands_Set_SetConstant_String,
 			null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Set_SetConstantBefore_String)){
-		commandList_EditCommand ( __Commands_Set_SetConstantBefore_String,
-			null, __INSERT_COMMAND );
-	}
+    }
 	else if (command.equals( __Commands_Set_SetDataValue_String)){
 		commandList_EditCommand ( __Commands_Set_SetDataValue_String,
 			null, __INSERT_COMMAND );
@@ -14044,7 +14016,8 @@ private void uiAction_OpenCommandFile ()
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
 		Message.printStatus(2, routine, "Working directory from command file is \"" +
 			IOUtil.getProgramWorkingDir() );
-		try { commandProcessor_ReadCommandFile ( path );
+		try {
+            commandProcessor_ReadCommandFile ( path );
 			// Repaint the list to reflect the status of the commands...
 			__commands_AnnotatedCommandJList.repaint();
 		}

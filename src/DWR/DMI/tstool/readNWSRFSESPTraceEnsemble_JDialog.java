@@ -40,6 +40,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import java.io.File;
 import java.util.Vector;
 
@@ -47,6 +50,7 @@ import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -61,6 +65,7 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 			__path_JButton = null;	// Convert between relative and
 						// absolute paths
 private Vector		__command_Vector = null;// Command as Vector of String
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private JTextField	__command_JTextField=null;
 						// Command as JTextField
 private JTextField	__InputFile_JTextField = null;
@@ -80,10 +85,10 @@ readNWSRFSESPTraceEnsemble_JDialog constructor.
 */
 public readNWSRFSESPTraceEnsemble_JDialog (	JFrame parent,
 						PropList app_PropList,
-						Vector command, Vector tsids )
+						Vector command, Vector tsids, Command command_class )
 {	super(parent, true);
-	initialize ( parent, "Edit readNWSRFSESPTraceEnsemble() Command",
-		app_PropList, command, tsids );
+	initialize ( parent, "Edit ReadNWSRFSESPTraceEnsemble() Command",
+		app_PropList, command, tsids, command_class );
 }
 
 /**
@@ -233,9 +238,10 @@ should have a time series identifier and optionally comments.
 TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
-			Vector command, Vector tsids )
+			Vector command, Vector tsids, Command command_class )
 {	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+__Command = command_class;
+__working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 
 	addWindowListener( this );
 
@@ -377,8 +383,7 @@ private void refresh ()
 		}
 		return;
 	}
-	__command_JTextField.setText("readNWSRFSESPTraceEnsemble(" + 
-		b.toString() + ")" );
+	__command_JTextField.setText("ReadNWSRFSESPTraceEnsemble(" + b.toString() + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 	// Check the path and determine what the label on the path button should

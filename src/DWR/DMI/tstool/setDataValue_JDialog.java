@@ -66,7 +66,7 @@ setDataValue_JDialog constructor.
 */
 public setDataValue_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setDataValue() Command", command, tsids );
+	initialize ( parent, "Edit SetDataValue() Command", command, tsids );
 }
 
 /**
@@ -318,8 +318,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setDataValue_JDialog.refresh",
-				"Existing setDataValue() " +
-				"references a non-existent\n"+
+				"Existing command references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -341,9 +340,7 @@ private void refresh ()
 	if ( (constant == null) || (constant.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("setDataValue("
-		+ alias + "," +
-		date + "," + constant + ")" );
+	__command_JTextField.setText("SetDataValue(" + alias + "," + date + "," + constant + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

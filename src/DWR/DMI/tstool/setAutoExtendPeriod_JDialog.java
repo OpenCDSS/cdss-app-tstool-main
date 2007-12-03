@@ -63,7 +63,7 @@ ignored
 */
 public setAutoExtendPeriod_JDialog (JFrame parent, Vector command, Vector tsids)
 {	super(parent, true);
-	initialize ( parent, "Edit setAutoExtendPeriod() Command", command,
+	initialize ( parent, "Edit SetAutoExtendPeriod() Command", command,
 		tsids );
 }
 
@@ -147,8 +147,8 @@ private void initialize ( JFrame parent, String title, Vector command,
 		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"to include the output period, if setOutputPeriod() is used." +
-		"  The default if setAutoExtendPeriod()" ),
+		"to include the output period, if SetOutputPeriod() is used." +
+		"  The default if SetAutoExtendPeriod()" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         JGUIUtil.addComponent(main_JPanel, new JLabel (
@@ -269,7 +269,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setAutoExtendPeriod_JDialog.refresh",
-				"Existing setAutoExtendPeriod() uses an " +
+				"Existing command uses an " +
 				"invalid\nflag value \"" + toggle +
 				"\".  Select a different value or Cancel." );
 				__error_wait = true;
@@ -284,7 +284,7 @@ private void refresh ()
 	}
 	else {	__error_wait = true;
 	}
-	__command_JTextField.setText("setAutoExtendPeriod(" + toggle +")");
+	__command_JTextField.setText("SetAutoExtendPeriod(" + toggle +")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

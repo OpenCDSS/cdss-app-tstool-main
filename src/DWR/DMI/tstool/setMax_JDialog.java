@@ -83,7 +83,7 @@ setMax_JDialog constructor.
 */
 public setMax_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setMax() Command", command, tsids );
+	initialize ( parent, "Edit SetMax() Command", command, tsids );
 }
 
 /**
@@ -371,7 +371,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setMax_JDialog.refresh", "Existing " +
-				"setMax() references a non-existent\n"+
+				"command references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -433,7 +433,7 @@ private void refresh ()
 				}
 				else {	Message.printWarning ( 1,
 					"setMax_JDialog.refresh", "Existing " +
-					"setMax() references a non-existent\n"+
+					"command references a non-existent\n"+
 					"time series \"" + independent +
 					"\".  Select a\n" +
 					"different time series or Cancel." );
@@ -450,7 +450,7 @@ private void refresh ()
 		return;
 	}
 	StringBuffer buffer = new StringBuffer ();
-	buffer.append ( "setMax(\"" + alias + "\"" );
+	buffer.append ( "SetMax(\"" + alias + "\"" );
 	int selected[] = __independent_JList.getSelectedIndices();
 	int size = JGUIUtil.selectedSize(__independent_JList);
 	for ( int i = 0; i < size; i++ ) {

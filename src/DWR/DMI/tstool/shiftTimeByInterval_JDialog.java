@@ -63,7 +63,7 @@ shiftTimeByInterval_JDialog constructor.
 */
 public shiftTimeByInterval_JDialog(JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize( parent, "Edit shiftTimeByInterval() Command",command,tsids);
+	initialize( parent, "Edit ShiftTimeByInterval() Command",command,tsids);
 }
 
 /**
@@ -326,15 +326,13 @@ private void refresh ()
 			alias = ((String)v.elementAt(1)).trim();
 			// Now select the item in the list.  If not a match,
 			// print a warning.
-			if (	JGUIUtil.isSimpleJComboBoxItem(
-				__alias_JComboBox, alias,
-				JGUIUtil.NONE, null, null ) ) {
+			if ( JGUIUtil.isSimpleJComboBoxItem( __alias_JComboBox, alias, JGUIUtil.NONE, null, null ) ) {
 				__alias_JComboBox.select ( alias );
 			}
-			else {	Message.printWarning ( 1,
+			else {
+                Message.printWarning ( 1,
 				"shiftTimeByInterval_JDialog.refresh",
-				"Existing shiftTimeByInterval() references a " +
-				"non-existent\n"+
+				"Existing command references a non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
 			}
@@ -355,8 +353,7 @@ private void refresh ()
 	if ( (alias == null) || (alias.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("shiftTimeByInterval(" + alias + "," +
-		interval + ")" );
+	__command_JTextField.setText("ShiftTimeByInterval(" + alias + "," + interval + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

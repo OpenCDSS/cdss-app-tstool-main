@@ -73,7 +73,7 @@ setConstant_JDialog constructor.
 */
 public setConstant_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setConstant() Command", command, tsids );
+	initialize ( parent, "Edit SetConstant() Command", command, tsids );
 }
 
 /**
@@ -427,7 +427,7 @@ private void refresh ()
 				__TSID_JComboBox.select ( TSID );
 			}
 			else {	Message.printWarning ( 1, routine,
-				"Existing setConstant() references a " +
+				"Existing command references a " +
 				"non-existent\n"+
 				"time series \"" + TSID + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -480,7 +480,7 @@ private void refresh ()
 		}
 		b.append ( "SetEnd=\"" + SetEnd + "\"" );
 	}
-	__command_JTextField.setText("setConstant(" + b.toString() + ")" );
+	__command_JTextField.setText("SetConstant(" + b.toString() + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

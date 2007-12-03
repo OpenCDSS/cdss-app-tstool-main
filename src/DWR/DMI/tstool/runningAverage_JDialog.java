@@ -69,7 +69,7 @@ runningAverage_JDialog constructor.
 */
 public runningAverage_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit runningAverage() Command", command, tsids );
+	initialize ( parent, "Edit RunningAverage() Command", command, tsids );
 }
 
 /**
@@ -305,7 +305,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"runningAverage_JDialog.refresh",
-				"Existing runningAverage() references a " +
+				"Existing command references a " +
 				"non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -326,7 +326,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"runningAverage_JDialog.refresh",
-				"Existing runningAverage() references a " +
+				"Existing command references a " +
 				"non-existent\n"+ "average type \"" +
 				average_type + "\".  Select a\n" +
 				"different average type or Cancel." );
@@ -351,7 +351,7 @@ private void refresh ()
 	if ( (bracket == null) || (bracket.trim().length() == 0) ) {
 		return;
 	}
-	__command_JTextField.setText("runningAverage(" + alias + "," +
+	__command_JTextField.setText("RunningAverage(" + alias + "," +
 	average_type + "," + bracket + ")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );

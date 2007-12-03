@@ -75,7 +75,7 @@ weightTraces_JDialog constructor.
 */
 public weightTraces_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit weightTraces() Command", command, tsids );
+	initialize ( parent, "Edit WeightTraces() Command", command, tsids );
 }
 
 /**
@@ -342,7 +342,7 @@ private void refresh ()
 				}
 				else {	Message.printWarning ( 1,
 					"weightTraces_JDialog.refresh",
-					"Existing weightTraces() references a "+
+					"Existing command references a "+
 					"non-existent\ntime series \"" +
 					independent + "\".  Select a\n" +
 					"different time series or Cancel." );
@@ -355,7 +355,7 @@ private void refresh ()
 				}
 				else {	Message.printWarning ( 1,
 					"weightTraces_JDialog.refresh",
-					"Existing weightTraces() references an "
+					"Existing command references an "
 					+ "invalid\nweight type \"" +
 					weight_type + "\".  Select a\n"+
 					"different type or Cancel." );
@@ -401,8 +401,7 @@ private void refresh ()
 	if ( (independent == null) || (independent.trim().length() == 0) ) {
 		return;
 	}
-	StringBuffer buffer = new StringBuffer (
-			"TS " + alias + " = weightTraces(" +
+	StringBuffer buffer = new StringBuffer ( "TS " + alias + " = WeightTraces(" +
 			independent + "," + weight_type );
 	int size = traces.size();
 	if ( weights.size() == traces.size() ) {

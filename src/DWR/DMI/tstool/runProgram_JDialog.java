@@ -61,7 +61,7 @@ runProgram_JDialog constructor.
 */
 public runProgram_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit runProgram() Command", command, tsids );
+	initialize ( parent, "Edit RunProgram() Command", command, tsids );
 }
 
 /**
@@ -287,8 +287,7 @@ private void refresh ()
 	// Regardless, reset the command from the fields...
 	program = __program_JTextField.getText();
 	timeoutval = __timeout_JTextField.getText();
-	__command_JTextField.setText(
-		"runProgram(\""+ program + "\","+timeoutval+")");
+	__command_JTextField.setText("RunProgram(\""+ program + "\","+timeoutval+")");
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 }

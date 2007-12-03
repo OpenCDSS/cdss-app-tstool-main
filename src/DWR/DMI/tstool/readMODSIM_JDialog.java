@@ -35,6 +35,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import java.io.File;
 import java.util.Vector;
 
@@ -42,6 +45,7 @@ import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -57,6 +61,7 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 						// absolute paths
 private Vector		__command_Vector = null; // Command as Vector of String
 private JTextField	__command_JTextField=null;// Command as JTextField
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private JTextField	__file_JTextField = null;	// File name field
 private String		__working_dir = null;	// Working directory.
 private boolean		__error_wait = false;	// Is there an error that we
@@ -72,10 +77,10 @@ readMODSIM_JDialog constructor.
 @param tsids Time series identifiers for available time series - unused
 */
 public readMODSIM_JDialog (	JFrame parent, PropList app_PropList,
-				Vector command, Vector tsids )
+				Vector command, Vector tsids, Command command_class )
 {	super(parent, true);
-	initialize ( parent, "Edit readMODSIM() Command", app_PropList,
-		command, tsids );
+	initialize ( parent, "Edit ReadMODSIM() Command", app_PropList,
+		command, tsids, command_class );
 }
 
 /**
@@ -231,13 +236,14 @@ Instantiates the GUI components.
 @param tsids Time series identifiers - ignored.
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
-			Vector command, Vector tsids )
+			Vector command, Vector tsids, Command command_class )
 {	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+    __Command = command_class;
+    __working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -355,7 +361,7 @@ private void refresh ()
 		}
 		return;
 	}
-	__command_JTextField.setText("readMODSIM(\"" + file + "\")" );
+	__command_JTextField.setText("ReadMODSIM(\"" + file + "\")" );
 	__command_Vector.removeAllElements();
 	__command_Vector.addElement ( __command_JTextField.getText() );
 	// Check the path and determine what the label on the path button should

@@ -67,7 +67,7 @@ setConstantBefore_JDialog constructor.
 */
 public setConstantBefore_JDialog ( JFrame parent, Vector command, Vector tsids )
 {	super(parent, true);
-	initialize ( parent, "Edit setConstantBefore() Command", command,tsids);
+	initialize ( parent, "Edit SetConstantBefore() Command", command,tsids);
 }
 
 /**
@@ -308,7 +308,7 @@ private void refresh ()
 			}
 			else {	Message.printWarning ( 1,
 				"setConstantBefore_JDialog.refresh",
-				"Existing setConstantBefore() references a " +
+				"Existing command references a " +
 				"non-existent\n"+
 				"time series \"" + alias + "\".  Select a\n" +
 				"different time series or Cancel." );
@@ -330,7 +330,7 @@ private void refresh ()
 		__command_JTextField.setText("setConstant("
 		+ alias + "," + constant + ")" );
 	}
-	else {	__command_JTextField.setText("setConstantBefore("
+	else {	__command_JTextField.setText("SetConstantBefore("
 		+ alias + "," +
 		constant + "," + before + ")" );
 	}

@@ -41,9 +41,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import rti.tscommandprocessor.core.TSCommandProcessor;
+import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -64,6 +68,7 @@ private SimpleJButton	__browse_JButton = null,// File browse button
 			__cancel_JButton = null,// Cancel Button
 			__ok_JButton = null;	// Ok Button
 private Vector		__command_Vector = null;// Command as Vector of String
+private Command __Command = null;   // FIXME SAM 2007-12-01 change to __command when Command class is implemented
 private String		__working_dir = null;	// Working directory.
 private JTextField	__alias_JTextField = null,// Alias for time series.
 			__filealias_JTextField,	// TSID/Alias to read in the
@@ -92,10 +97,10 @@ TSreadDateValue_JDialog constructor.
 @param tsids Time series identifiers for available time series.
 */
 public TSreadDateValue_JDialog (	JFrame parent, PropList app_PropList,
-				Vector command, Vector tsids )
+				Vector command, Vector tsids, Command command_class )
 {	super(parent, true);
-	initialize ( parent, "Edit TS x = readDateValue() Command",
-		app_PropList, command, tsids );
+	initialize ( parent, "Edit TS Alias = ReadDateValue() Command",
+		app_PropList, command, tsids, command_class );
 }
 
 /**
@@ -298,13 +303,14 @@ should have a time series identifier and optionally comments.
 TSEngine.getTSIdentifiersFromCommands().
 */
 private void initialize ( JFrame parent, String title, PropList app_PropList,
-			Vector command, Vector tsids )
+			Vector command, Vector tsids, Command command_class )
 {	__command_Vector = command;
-	__working_dir = app_PropList.getValue ( "WorkingDir" );
+    __Command = command_class;
+    __working_dir = TSCommandProcessorUtil.getWorkingDirForCommand ( (TSCommandProcessor)__Command.getCommandProcessor(), __Command );
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
@@ -584,7 +590,7 @@ private void refresh ()
 		__command_JTextField.setText("");
 	}
 	else {	__command_JTextField.setText("TS " + alias +
-		" = readDateValue(\"" + file + "\",*,*," +
+		" = ReadDateValue(\"" + file + "\",*,*," +
 		analysis_period_start + "," + analysis_period_end +")"); 
 	}
 	__command_Vector.removeAllElements();
