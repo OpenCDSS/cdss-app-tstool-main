@@ -32,11 +32,13 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -50,6 +52,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -219,6 +222,11 @@ private LicenseManager	__license_manager = null;
 Map interface.
 */
 private GeoViewJFrame	__geoview_JFrame = null;
+
+/**
+Path to icons/graphics in classpath.
+*/
+private String __TOOL_ICON_PATH = "/DWR/DMI/tstool";
 
 //================================
 // Query area...
@@ -744,6 +752,15 @@ and the NWSRFS FS5Files directory select dialog, provided to the processor as th
 NWSRFSS DMI instance.
 */
 private NWSRFS_DMI __nwsrfs_dmi = null;
+
+//================================
+// Main toolbar
+//================================
+
+private SimpleJButton
+    __toolbarNew_JButton = null,
+    __toolbarOpen_JButton = null,
+    __toolbarSave_JButton = null;
 
 //================================
 // Menu items and strings, list in order of the menus...
@@ -4992,7 +5009,7 @@ public void itemStateChanged ( ItemEvent evt )
 		queryResultsList_Clear();
 		uiAction_TimeStepChoiceClicked();
 	}
-        else if ( o == __View_MapInterface_JCheckBoxMenuItem ) {
+    else if ( o == __View_MapInterface_JCheckBoxMenuItem ) {
 		if ( __View_MapInterface_JCheckBoxMenuItem.isSelected() ) {
 			// User wants the map to be displayed...
 			try {	if ( __geoview_JFrame != null ) {
@@ -5000,28 +5017,24 @@ public void itemStateChanged ( ItemEvent evt )
 					__geoview_JFrame.setVisible ( true );
 				}
 				else {	// No existing GeoView so create one...
-					__geoview_JFrame = new GeoViewJFrame (
-						this, null );
-					// Add a GeoViewListener so TSTool can
-					// handle selects from the map...
-					__geoview_JFrame.getGeoViewJPanel().
-					getGeoView().addGeoViewListener(this);
-					// Add a window listener so TSTool can
-					// listen for when the GeoView closes...
-					__geoview_JFrame.addWindowListener (
-						this );
+					__geoview_JFrame = new GeoViewJFrame ( this, null );
+					// Add a GeoViewListener so TSTool can handle selects from the map...
+					__geoview_JFrame.getGeoViewJPanel().getGeoView().addGeoViewListener(this);
+					// Add a window listener so TSTool can listen for when the GeoView closes...
+					__geoview_JFrame.addWindowListener ( this );
 					JGUIUtil.center ( __geoview_JFrame );
 				}
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 1, "TSTool",
-				"Error displaying map interface." );
+				Message.printWarning ( 1, "TSTool", "Error displaying map interface." );
 				__geoview_JFrame = null;
 			}
 		}
-		else {	// Map is deselected.  Just set the map frame to not
-			// visible...
-			__geoview_JFrame.setVisible ( false );
+		else {
+            // Map is deselected.  Just set the map frame to not visible...
+            if ( __geoview_JFrame != null ) {
+                __geoview_JFrame.setVisible ( false );
+            }
 		}
 	}
 	ui_UpdateStatus ( true );
@@ -6681,7 +6694,8 @@ private void ui_InitGUI ( boolean show_main )
 	try {	// To catch layout problems...
 	int y;
 
-	try {	JGUIUtil.setSystemLookAndFeel(true);
+	try {
+        JGUIUtil.setSystemLookAndFeel(true);
 	}
 	catch (Exception e) {
 		Message.printWarning ( 2, routine, e );
@@ -6692,9 +6706,9 @@ private void ui_InitGUI ( boolean show_main )
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 
 	if ( show_main ) {
-		// If not showing main, don't initialize menus, to speed
-		// performance.
+		// If not showing main, don't initialize menus, to speed performance.
 		ui_InitGUIMenus ();
+        ui_InitToolbar ();
 	}
 
 	// Remainder of main window...
@@ -6709,8 +6723,7 @@ private void ui_InitGUI ( boolean show_main )
 	Insets insetsNNNN = new Insets(0,0,0,0);
     GridBagLayout gbl = new GridBagLayout();
 
-	// Panel to hold the query components, added to the top of the main
-	// content pane...
+	// Panel to hold the query components, added to the top of the main content pane...
 
 	if ( show_main ) {
         JPanel query_JPanel = new JPanel();
@@ -6736,8 +6749,7 @@ private void ui_InitGUI ( boolean show_main )
         __input_type_JComboBox = new SimpleJComboBox(false);
         __input_type_JComboBox.setMaximumRowCount ( 15 );
         __input_type_JComboBox.setToolTipText (
-		"<HTML>The input type is the file/database format being read."+
-		"</HTML>" );
+		"<HTML>The input type is the file/database format being read.</HTML>" );
 	__input_type_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __input_type_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6758,8 +6770,7 @@ private void ui_InitGUI ( boolean show_main )
 	__data_type_JComboBox = new SimpleJComboBox(false);
         __data_type_JComboBox.setMaximumRowCount ( 20 );
 	__data_type_JComboBox.setToolTipText (
-		"<HTML>The data type is used to filter the list of time " +
-		"series.</HTML>" );
+		"<HTML>The data type is used to filter the list of time series.</HTML>" );
 	__data_type_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __data_type_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6768,8 +6779,7 @@ private void ui_InitGUI ( boolean show_main )
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __time_step_JComboBox = new SimpleJComboBox(false);
 	__time_step_JComboBox.setToolTipText (
-		"<HTML>The time step is used to filter the list of time " +
-		"series.</HTML>" );
+		"<HTML>The time step is used to filter the list of time series.</HTML>" );
 	__time_step_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__query_input_JPanel, __time_step_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -7046,7 +7056,8 @@ private void ui_InitGUI ( boolean show_main )
 		__input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
 	}
-	else {	__input_type_JComboBox.select( null );
+	else {
+        __input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_DateValue );
 	}
 	}
@@ -8721,6 +8732,67 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 		new JCheckBoxMenuItem(__View_MapInterface_String) );
 	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
 	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
+}
+
+/**
+Initialize the toolbar.
+*/
+private void ui_InitToolbar ()
+{
+    JToolBar toolbar = new JToolBar("TSTool Control Buttons");
+
+    Insets none = new Insets(0, 0, 0, 0);
+    URL url = null;
+    /* TODO SAM 2007-12-04 Enable when decide how to handle blank file better - /tmp, etc.
+    url = this.getClass().getResource( __TOOL_ICON_PATH + "/icon_newFile.gif" );
+    String New_CommandFile_String = "New command file";
+    if (url != null) {
+        __toolbarNew_JButton = new SimpleJButton(new ImageIcon(url),
+            New_CommandFile_String,
+            New_CommandFile_String,
+            none, false, this);
+    }
+ 
+    if ( __toolbarNew_JButton != null ) {
+        // Might be null if no files are found.
+        __toolbarNew_JButton.setToolTipText ( "<HTML>" + New_CommandFile_String + "</HTML>" );
+        toolbar.add(__toolbarNew_JButton);
+    }
+    */
+
+    url = this.getClass().getResource( __TOOL_ICON_PATH + "/icon_openFile.gif");
+    String Open_CommandFile_String = "Open command file";
+    if (url != null) {
+        __toolbarOpen_JButton = new SimpleJButton(new ImageIcon(url),
+            Open_CommandFile_String,
+            Open_CommandFile_String,
+            none, false, this);
+    }
+
+    if ( __toolbarOpen_JButton != null ) {
+        // Might be null if no files are found.
+        __toolbarOpen_JButton.setToolTipText ( "<HTML>" + Open_CommandFile_String + "/HTML>" );
+        toolbar.add(__toolbarOpen_JButton);
+    }
+
+    url = this.getClass().getResource( __TOOL_ICON_PATH + "/icon_saveFile.gif");
+    String Save_CommandFile_String = "Save command file";
+    if (url != null) {
+        __toolbarSave_JButton = new SimpleJButton(new ImageIcon(url),
+            Save_CommandFile_String,
+            Save_CommandFile_String,
+            none, false, this);
+
+    }
+
+    if ( __toolbarSave_JButton != null ) {
+        // Might be null if no files are found.
+        __toolbarSave_JButton.setToolTipText ( "<HTML>" + Save_CommandFile_String + "/HTML>" );
+        toolbar.add(__toolbarSave_JButton);
+    }
+    // FIXME SAM 2007-12-04 Add when some of the other layout changes - adding split pane to separate
+    // commands and results, etc.  Right now this conflicts with the query panel.
+    //getContentPane().add ("North", toolbar);
 }
 
 /**
@@ -16933,13 +17005,12 @@ public void windowClosed ( WindowEvent e )
 	// then set the __geoview_JFrame instance to null.
 	Component c = e.getComponent();
 	if ( (__geoview_JFrame != null) && (c == __geoview_JFrame) ) {
-		// GeoView...
+		// GeoView window is closing...
 		__geoview_JFrame = null;
 		__View_MapInterface_JCheckBoxMenuItem.setSelected ( false );
 	}
 	else if ( !__show_main ) {
-		// Running in hidden mode and the TSViewJFrame has closed so
-		// close the application...
+		// Running in hidden mode and the TSViewJFrame has closed so close the application...
 		uiAction_FileExitClicked ();
 	}
 }

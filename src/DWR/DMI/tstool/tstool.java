@@ -435,50 +435,54 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
+/**
+Main (application startup) class for TSTool.  This class will start the TSTool GUI
+or run the TSCommandProcessor in batch mode with a command file.
+*/
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.01.00 (2007-10-16)";
+public static final String PROGRAM_VERSION = "8.02.00 (2007-12-03)";
 
 /**
-Main GUI instanced, used when running interactively.
+Main GUI instance, used when running interactively.
 */
-private static TSTool_JFrame	__tstool_JFrame;
+private static TSTool_JFrame __tstool_JFrame;
 
 /**
 Home directory for system install.
 */
-private static String		__home = null;
+private static String __home = null;
 
 /**
 List of properties to control app, from config file and passed to GUI, etc.
 */
-private static PropList		__tstool_props = null;
+private static PropList __tstool_props = null;
 
 /**
 Indicates whether TSTool is running in server mode - under development.
 */
-private static boolean		__is_server = false;
+private static boolean __is_server = false;
 
 /**
 Indicates whether the main GUI is shown, for cases where TSTool is run in
 in limited interactive mode, with only the plot window shown.
 */
-private static boolean		__show_main_gui = true;	
+private static boolean __show_main_gui = true;	
 
 /**
-Commands file being processed when run in batch mode with -commands File.
+Command file being processed when run in batch mode with -commands File.
 */
-private static String __commands_file = null;
+private static String __command_file = null;
 
 /**
-Return the commands file that is being processed, or null if not being run
+Return the command file that is being processed, or null if not being run
 in batch mode.
-@return the path to the commands file to run.
+@return the path to the command file to run.
 */
-private static String getCommandsFile ()
+private static String getCommandFile ()
 {
-	return __commands_file;
+	return __command_file;
 }
 
 /**
@@ -511,16 +515,16 @@ public void init()
 {	String routine = "TSTool.init";
 	IOUtil.setApplet ( this );
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null );
-        try {	parseArgs( this );
+    try {
+        parseArgs( this );
 	}
 	catch ( Exception e ) {
-                Message.printWarning( 1, routine,
-                "Error parsing command line arguments.  Using default " +
-		"behavior if necessary." );
+        Message.printWarning( 1, routine,
+                "Error parsing command line arguments.  Using default behavior if necessary." );
 		Message.printWarning ( 3, routine, e );
-        }
+    }
 
-        // Instantiate main GUI
+    // Instantiate main GUI
 
 	initialize();
 
@@ -558,12 +562,11 @@ private static void initialize2 ()
 
 	// Initialize the system data...
 
-	String units_file = __home + File.separator +
-				"system" + File.separator + "DATAUNIT";
+	String units_file = __home + File.separator + "system" + File.separator + "DATAUNIT";
 
-	Message.printStatus ( 2, routine, "Reading the units file \"" +
-		units_file + "\"" );
-	try {	DataUnits.readUnitsFile( units_file );
+	Message.printStatus ( 2, routine, "Reading the units file \"" +	units_file + "\"" );
+	try {
+        DataUnits.readUnitsFile( units_file );
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine,
@@ -605,12 +608,12 @@ public static void main ( String args[] )
 
 	initialize();
 
-	try {	parseArgs ( args );
+	try {
+        parseArgs ( args );
 	}
 	catch ( Exception e ) {
-                Message.printWarning ( 1, routine, 
-                "Error parsing command line arguments.  Using default " +
-		"behavior if necessary." );
+        Message.printWarning ( 1, routine, 
+            "Error parsing command line arguments.  Using default behavior if necessary." );
 		Message.printWarning ( 3, routine, e );
 	}
 
@@ -626,21 +629,21 @@ public static void main ( String args[] )
 		// Running like "tstool -commands file"
 		TSCommandFileRunner runner = new TSCommandFileRunner();
 		try {
-			runner.readCommandFile ( getCommandsFile() );
+			runner.readCommandFile ( getCommandFile() );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error reading commands file \"" +
-					getCommandsFile() + "\".  Unable to run commands." );
+			Message.printWarning ( 1, routine, "Error reading command file \"" +
+					getCommandFile() + "\".  Unable to run commands." );
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
-		try {	runner.runCommands();
+		try {
+            runner.runCommands();
 			quitProgram ( 0 );
 		}
 		catch ( Exception e ) {
 			// Some type of error
-			Message.printWarning ( 1, routine, "Error running commands file \"" +
-					getCommandsFile() + "\"." );
+			Message.printWarning ( 1, routine, "Error running command file \"" + getCommandFile() + "\"." );
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
@@ -653,7 +656,8 @@ public static void main ( String args[] )
 	else {
 		// Run the GUI...
 		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
-		try {	__tstool_JFrame = new TSTool_JFrame ( __show_main_gui );
+		try {
+            __tstool_JFrame = new TSTool_JFrame ( __show_main_gui );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error starting TSTool." );
@@ -680,29 +684,25 @@ private static void openLogFile ()
 	String user = IOUtil.getProgramUser();
 
 	if ( IOUtil.isApplet() ) {
-		Message.printWarning ( 2, routine,
-		"Running as applet - no TSTool log file opened." );
+		Message.printWarning ( 2, routine, "Running as applet - no TSTool log file opened." );
 	}
-	else {	if (	(__home == null) || (__home.length() == 0) || 
-			(__home.charAt(0) == '.')) {
+	else {	if ( (__home == null) || (__home.length() == 0) || (__home.charAt(0) == '.')) {
 			Message.printWarning ( 2, routine, "Home directory is "+
 			"not defined.  Not opening log file.");
 		}
-		else {	if ( (user == null) || user.trim().equals("")) {
-				__logfile = __home + File.separator + "logs" +
-						File.separator + "TSTool.log";
+		else {
+            if ( (user == null) || user.trim().equals("")) {
+				__logfile = __home + File.separator + "logs" + File.separator + "TSTool.log";
 			}
-			else {	__logfile = __home + File.separator + "logs" +
-						File.separator + "TSTool_" +
-						user + ".log";
+			else {
+                __logfile = __home + File.separator + "logs" + File.separator + "TSTool_" +	user + ".log";
 			}
-			Message.printStatus ( 1, routine, "Log file name: " +
-				__logfile );
-			try {	Message.openLogFile ( __logfile );
+			Message.printStatus ( 1, routine, "Log file name: " + __logfile );
+			try {
+                Message.openLogFile ( __logfile );
 			}
 			catch (Exception e) {
-				Message.printWarning ( 1, routine,
-				"Error opening log file \"" + __logfile + "\"");
+				Message.printWarning ( 1, routine, "Error opening log file \"" + __logfile + "\"");
 			}
 		}
 	}
@@ -719,24 +719,19 @@ throws Exception
 	for (int i = 0; i < args.length; i++) {
 		if (args[i].equalsIgnoreCase("-commands")) {
 			if ((i + 1)== args.length) {
-				Message.printWarning(1,routine,
-				"No argument provided to '-commands'");
-				throw new Exception("No argument provided to "
-					+ "'-commands'");
+				Message.printWarning(1,routine, "No argument provided to '-commands'");
+				throw new Exception("No argument provided to '-commands'");
 			}
 			i++;
 			String user_dir = System.getProperty("user.dir");
-			Message.printStatus (1, routine, "Startup (user) directory is \"" +
-					user_dir + "\"");
+			Message.printStatus (1, routine, "Startup (user) directory is \"" +	user_dir + "\"");
 			String commands = (new File(args[i])).getCanonicalPath();;
 			
-            Message.printStatus ( 1, routine,
-			"Commands file is \"" + commands + "\"" );
-			// Save this so it can be processed when the GUI
-			// initializes.
-            // TODO SAM 2007-09-09 Evaluate phasing global commands file out.
+            Message.printStatus ( 1, routine, "Command file is \"" + commands + "\"" );
+			// Save this so it can be processed when the GUI initializes.
+            // TODO SAM 2007-09-09 Evaluate phasing global command file out.
 			IOUtil.setProgramCommandFile ( commands );
-			setCommandsFile ( commands );
+			setCommandFile ( commands );
 			IOUtil.isBatch ( true );
                    
             File f = new File ( commands );
@@ -746,16 +741,15 @@ throws Exception
 				working_dir = f.getParent();
 			}
 			else if ( commands.startsWith("..") ) {
-				// Append the commands file to the user
+				// Append the command file to the user
 				// directory and set the working directory to
 				// the resulting directory.
-				String commands_full = user_dir +
-					File.separator + commands;
+				String commands_full = user_dir + File.separator + commands;
 				f = new File ( commands_full );
 				working_dir = f.getParent();
 			}
-			else {	// Else the working directory is the current
-				// directory for the application...
+			else {
+                // Else the working directory is the current directory for the application...
 				working_dir = user_dir;
 			}
             
@@ -764,11 +758,10 @@ throws Exception
 			// REVISIT SAM 2005-10-18 This does not display
 			// because the log file is not yet initialized.
 			Message.printStatus ( 2, routine,
-			"Setting working directory to commands file " +
-			"directory: \"" + working_dir +"\".");
+			"Setting working directory to command file " + "directory: \"" + working_dir +"\".");
 			
 			if ( !f.exists() ) {
-				Message.printWarning(1, routine, "Commands file \"" + commands +
+				Message.printWarning(1, routine, "Command file \"" + commands +
 						"\" does not exist.  Exiting." );
 				quitProgram ( 1 );
 						
@@ -777,29 +770,24 @@ throws Exception
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
 			// Set debug information...
 			if ((i + 1)== args.length) {
-				// No argument.  Turn terminal and log file
-				// debug on to level 1...
+				// No argument.  Turn terminal and log file debug on to level 1...
 				Message.isDebugOn = true;
 				Message.setDebugLevel ( Message.TERM_OUTPUT, 1);
 				Message.setDebugLevel ( Message.LOG_OUTPUT, 1);
 			}
 			i++;
 			if ( (i + 1) == args.length && args[i].indexOf(",") >= 0 ) {
-				// Comma, set screen and file debug to different
-				// levels...
-				String token =
-					StringUtil.getToken(args[i],",",0,0);
+				// Comma, set screen and file debug to different levels...
+				String token = StringUtil.getToken(args[i],",",0,0);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
-					Message.setDebugLevel (
-					Message.TERM_OUTPUT,
+					Message.setDebugLevel (	Message.TERM_OUTPUT,
 					StringUtil.atoi(token) );
 				}
 				token=StringUtil.getToken(args[i],",",0,1);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
-					Message.setDebugLevel (
-					Message.LOG_OUTPUT,
+					Message.setDebugLevel (	Message.LOG_OUTPUT,
 					StringUtil.atoi(token) );
 				}
 			}
@@ -807,61 +795,47 @@ throws Exception
 				// to the requested level...
 				if ( StringUtil.isInteger(args[i]) ) {
 					Message.isDebugOn = true;
-					Message.setDebugLevel (
-					Message.TERM_OUTPUT,
-					StringUtil.atoi(args[i]) );
-					Message.setDebugLevel (
-					Message.LOG_OUTPUT,
-					StringUtil.atoi(args[i]) );
+					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(args[i]) );
+					Message.setDebugLevel ( Message.LOG_OUTPUT,	StringUtil.atoi(args[i]) );
 				}
 			}
 		}
 		else if (args[i].equalsIgnoreCase("-home")) {
 			if ((i + 1)== args.length) {
-				Message.printWarning(1,routine,
-				"No argument provided to '-home'");
-				throw new Exception("No argument provided to "
-					+ "'-home'");
+				Message.printWarning(1,routine, "No argument provided to '-home'");
+				throw new Exception("No argument provided to '-home'");
 			}
 			i++;
            
-            //Changed __home since old way wasn't supporting relative paths
-            //__home = args[i];
+            //Changed __home since old way wasn't supporting relative paths __home = args[i];
             __home = (new File(args[i])).getCanonicalPath().toString();
            
-			// Open the log file so that remaining messages will
-			// be seen in the log file...
+			// Open the log file so that remaining messages will be seen in the log file...
 			openLogFile();
 			// Read the configuration file to get TSTool properties,
-			// so that later command-line parameters can override
-			// them...
+			// so that later command-line parameters can override them...
 			readConfiguration();
-			Message.printStatus ( 1, routine,
-			"Home directory for TSTool is \"" + __home + "\"" );
+			Message.printStatus ( 1, routine, "Home directory for TSTool is \"" + __home + "\"" );
 			IOUtil.setProgramWorkingDir(__home);
 			IOUtil.setApplicationHomeDir(__home);
 			JGUIUtil.setLastFileDialogDirectory(__home);
 		}
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
 			// Don't make the main GUI visible...
-			Message.printStatus ( 1, routine,
-			"Will process command file using hidden main GUI." );
+			Message.printStatus ( 1, routine, "Will process command file using hidden main GUI." );
 			__show_main_gui = false;
 		}
 		else if (args[i].equalsIgnoreCase("-release")) {
 			IOUtil.setRelease(true);
-			Message.printStatus ( 1, routine,
-			"Running in release mode." );
+			Message.printStatus ( 1, routine, "Running in release mode." );
 		}
 		else if (args[i].equalsIgnoreCase("-server")) {
-			Message.printStatus ( 1, routine,
-			"Starting TSTool in server mode" );
+			Message.printStatus ( 1, routine, "Starting TSTool in server mode" );
 			__is_server = true;
 		}
 		else if (args[i].equalsIgnoreCase("-test")) {
 			IOUtil.testing(true);
-			Message.printStatus ( 1, routine,
-			"Running in test mode." );
+			Message.printStatus ( 1, routine, "Running in test mode." );
 		}
 		else if ( (pos = args[i].indexOf("=")) > 0 ) {
 			// A command line argument of the form:
@@ -870,12 +844,10 @@ throws Exception
 			// mode.  The properties can be interpreted by the
 			// GUI or other code.
 			String propname = args[i].substring(0,pos);
-			String propval = 
-				args[i].substring((pos+1), args[i].length());
+			String propval = args[i].substring((pos+1), args[i].length());
 			Prop prop = new Prop ( propname, propval );
 			Message.printStatus ( 1, routine,
-				"Using run-time parameter " + propname + "=\"" +
-				propval + "\"" );
+				"Using run-time parameter " + propname + "=\"" + propval + "\"" );
 			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 			if ( __tstool_props == null ) {
 				// Create a PropList.  This should not normally
@@ -888,10 +860,9 @@ throws Exception
 	}
 }
 
-// REVISIT - need to make these work as expected.
+// TODO - need to make these work as expected.
 /**
-Parse the command-line arguments for the applet, determined from the applet
-data.
+Parse the command-line arguments for the applet, determined from the applet data.
 @param a JApplet for this application.
 */
 public static void parseArgs ( JApplet a )
@@ -923,9 +894,9 @@ public static void printUsage ( )
 {	String nl = System.getProperty ( "line.separator" );
 	String routine = "tstool.printUsage";
 	String usage =  nl +
-"Usage:  " + PROGRAM_NAME + " [options] [-commands File]" + nl + nl +
-"TSTool displays, analyzes, and manipulates time series." + nl+
-"See the documentation for more information." + nl + nl;
+	"Usage:  " + PROGRAM_NAME + " [options] [-commands File]" + nl + nl +
+	"TSTool displays, analyzes, and manipulates time series." + nl+
+	"See the documentation for more information." + nl + nl;
 	System.out.println ( usage );
 	Message.printStatus ( 1, routine, usage );
 	quitProgram(0);
@@ -936,8 +907,7 @@ Print the program version and exit the program.
 */
 public static void printVersion ( )
 {	String nl = System.getProperty ( "line.separator" );
-	System.out.println (  nl +
-	PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl );
+	System.out.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl );
 	quitProgram (0);
 }
 
@@ -948,8 +918,7 @@ Clean up and quit the program.
 public static void quitProgram ( int status )
 {	String	routine="tstool.quitProgram";
 
-	Message.printStatus ( 1, routine, 
-	"Exiting with status " + status + "." );
+	Message.printStatus ( 1, routine, "Exiting with status " + status + "." );
 
 	System.out.print( "STOP " + status + "\n" );
 	Message.closeLogFile ();
@@ -961,14 +930,14 @@ Read the configuration file.  This should be done as soon as the application
 home is known.
 */
 private static void readConfiguration ()
-{	String config_file = __home + File.separator +
-			"system" + File.separator + "TSTool.cfg",
+{	String config_file = __home + File.separator + "system" + File.separator + "TSTool.cfg",
 	routine = "TSTool.readConfiguration";
 	
 	if ( IOUtil.fileReadable(config_file) ) {
 		__tstool_props = new PropList ( config_file );
 		__tstool_props.setPersistentName ( config_file );
-		try {	__tstool_props.readPersistent ();
+		try {
+            __tstool_props.readPersistent ();
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
@@ -979,21 +948,21 @@ private static void readConfiguration ()
 }
 
 /**
-Set the commands file that is being used with TSTool.
-@param commands_file Commands file being processed, when started with
+Set the command file that is being used with TSTool.
+@param command_file Command file being processed, when started with
 -commands File parameter.  This indicates that a batch run should be done, with
 no main TSTool GUI, although windows may display for graphical products.
 */
-private static void setCommandsFile ( String commands_file )
+private static void setCommandFile ( String command_file )
 {
-	__commands_file = commands_file;
+	__command_file = command_file;
 }
 
 /**
 Set the icon for the application.  This will be used for all windows.
-@param icon_type If CDSS, the RTi icon will be searched for using
+@param icon_type If CDSS, the application icon will be searched for using
 TSToolCDSSIcon32.gif.  Otherwise, the RTi icon will be used by searching for
-TSToolRTiIcon32.gif.
+TSToolRTiIcon32.gif, both using a path for the main application.
 */
 public static void setIcon ( String icon_type )
 {	// First try loading the icon from the JAR file or class path...
@@ -1002,33 +971,13 @@ public static void setIcon ( String icon_type )
 	if ( icon_type.equalsIgnoreCase("CDSS") ) {
 		icon_file = "TSToolCDSSIcon32.gif";
 	}
-	try {	icon_path = "DWR/DMI/tstool/" + icon_file;
+	try {
+        // The icon files live in the main application folder in the classpath.
+        icon_path = "DWR/DMI/tstool/" + icon_file;
 		JGUIUtil.setIconImage( icon_path );
 	}
 	catch ( Exception e ) {
-		Message.printStatus ( 2, "", "TSTool icon \"" + icon_path +
-			"\" does not exist in classpath." );
-		// Try using the file on RTi's development system...
-		if ( !IOUtil.release() ) {
-			icon_path = "J:\\CDSS\\develop\\doc\\graphics\\" +
-				icon_file;
-			if ( IOUtil.fileExists( icon_path ) ) {
-				try {	JGUIUtil.setIconImage( icon_path );
-				}
-				catch ( Exception e2 ) {
-					Message.printStatus ( 2, "",
-					"Development TSTool icon \"" +
-					icon_path +
-					"\" can't be set." );
-				}
-			}
-			else {	// Not on RTi's development system so default
-				// to normal Java icon...
-				Message.printStatus ( 2, "",
-				"TSTool icon file does " +
-				"not exist...defaulting to Java");
-			}
-		}
+		Message.printStatus ( 2, "", "TSTool icon \"" + icon_path +	"\" does not exist in classpath." );
 	}
 }
 
