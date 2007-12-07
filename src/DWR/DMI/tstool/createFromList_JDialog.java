@@ -215,16 +215,13 @@ private void checkInput ()
 	// Adjust the working directory that was passed in by the specified
 	// directory.  If the directory does not exist, warn the user...
 	if ( ListFile.length() == 0 ) {
-		warning +=
-		"The list file must be specified.";
+		warning += "The list file must be specified.";
 	}
 	else {
-	try {	String adjusted_path = IOUtil.adjustPath ( __working_dir,
-			ListFile);
+	try {	String adjusted_path = IOUtil.verifyPathForOS(IOUtil.adjustPath ( __working_dir,ListFile));
 		File f = new File ( adjusted_path );
 		if ( !f.exists() && !f.isFile() ) {
-			warning +=
-			"The list file does not exist:\n" +
+			warning += "The list file does not exist:\n" +
 			"    " + adjusted_path + "\n" +
 		  	"Correct or Cancel.";
 		}

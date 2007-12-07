@@ -161,7 +161,8 @@ private void checkInput ()
 	String warning = "";
 	// Adjust the working directory that was passed in by the specified
 	// directory.  If the directory does not exist, warn the user...
-	try {	String adjusted_path = IOUtil.adjustPath ( __working_dir, file);
+	try {
+        String adjusted_path = IOUtil.verifyPathForOS(IOUtil.adjustPath ( __working_dir, file));
 		File f = new File ( adjusted_path );
 		File f2 = new File ( f.getParent() );
 		if ( !f2.exists() ) {

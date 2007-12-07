@@ -178,7 +178,8 @@ private void checkInput ()
 	String routine = "readNWSRFSESPTraceEnsemble_JDialog.checkInput";
 	// Adjust the working directory that was passed in by the specified
 	// directory.  If the directory does not exist, warn the user...
-	try {	String adjusted_path = IOUtil.adjustPath ( __working_dir, file);
+	try {
+        String adjusted_path = IOUtil.verifyPathForOS(IOUtil.adjustPath ( __working_dir, file));
 		File f = new File ( adjusted_path );
 		if ( !f.exists() ) {
 			Message.printWarning ( 1, routine,
