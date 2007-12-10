@@ -150,6 +150,7 @@ import RTi.Util.GUI.SimpleJMenuItem;
 import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
+import RTi.Util.IO.CommandDiscoverable;
 import RTi.Util.IO.CommandProcessor;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
@@ -862,7 +863,7 @@ JMenu
 JMenuItem
 	__Commands_Create_CreateFromList_JMenuItem,
 	__Commands_Create_CreateTraces_JMenuItem,
-	__Commands_Create_TS_Average_JMenuItem,
+    __Commands_Create_ResequenceTimeSeriesData_JMenuItem,
 	__Commands_Create_TS_ChangeInterval_JMenuItem,
 	__Commands_Create_TS_Copy_JMenuItem,
 	__Commands_Create_TS_Disaggregate_JMenuItem,
@@ -1020,7 +1021,15 @@ JMenuItem
 
 	__Commands_Output_ProcessTSProduct_JMenuItem;
 
+// Commands (Table)...
+
+JMenu
+    __Commands_Table_JMenu = null;
+JMenuItem
+    __Commands_Table_ReadTableFromDelimitedFile_JMenuItem;
+
 // Commands (General)...
+
 JMenu
 	__Commands_General_JMenu = null;
 JMenuItem
@@ -1229,7 +1238,7 @@ private String
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()...  <read 1(+) time series from a list of identifiers>",
 	__Commands_Create_CreateTraces_String = TAB + "CreateTraces()...  <convert 1 time series to 1+ annual traces>",
-	__Commands_Create_TS_Average_String = TAB +	"TS Alias = Average()...  <create a time series as average of others>",
+    __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()...  <resequence years to create new scenarios>",
 	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()...  <convert time series to one with a different interval (under development)>",
 	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()...  <copy a time series>",
 	__Commands_Create_TS_Disaggregate_String = TAB + "TS Alias = Disaggregate()...  <disaggregate longer interval to shorter>",
@@ -1364,6 +1373,11 @@ private String
 
 	__Commands_NDFD_String = "NDFD",
 	__Commands_NDFD_openNDFD_String = TAB +	"OpenNDFD()... <open NDFD web site connection>",
+    
+    // Table Commands...
+
+    __Commands_Table_String = "Table",
+    __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
 
 	// General Commands...
 
@@ -2172,6 +2186,11 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 {	String routine = getClass().getName() + ".editCommand";
 	int dl = 1;		// Debug level
 	
+    // Make absolutely sure that warning level 1 messages are shown to the user in a dialog.
+    // This may have been turned off in command processing.
+    // Should not need this if set properly in the command processor.
+    //Message.setPropValue ( "ShowWarningDialog=true" );
+    
 	// Indicate whether the commands are a block of # comments.
 	// If so then need to use a special editor rather than typical
 	// one-line editors.
@@ -2198,7 +2217,8 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		Message.printStatus(2, routine, "Command is a comment block.");
 	}
 
-	try {	// Main try to help with troubleshooting, especially during
+	try {
+        // Main try to help with troubleshooting, especially during
 		// transition to new command structure.
 
 	// First make sure we have a Command object to edit.  If an old-style command
@@ -2228,8 +2248,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			command_to_edit_original = (Command)command_Vector.elementAt(0);
 			// Clone it so that the edit occurs on the copy...
 			command_to_edit = (Command)command_to_edit_original.clone();
-			Message.printStatus(2, routine, "Cloned command to edit: \"" +
-					command_to_edit + "\"" );
+			Message.printStatus(2, routine, "Cloned command to edit: \"" + command_to_edit + "\"" );
 			// Remove the original command...
 			int pos = commandList_IndexOf ( command_to_edit_original );
 			commandList_RemoveCommand ( command_to_edit_original );
@@ -2239,9 +2258,9 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 				"Will edit the copy and restore to the original if the edit is cancelled.");
 		}
 	}
-	else {
+	else if ( mode == __INSERT_COMMAND ) {
 		if ( is_comment_block ) {
-			// Don't do anything here.  New comments will be inserted in cdoe below.
+			// Don't do anything here.  New comments will be inserted in code below.
 		}
 		else {
 			// New command so create a command as a placeholder for
@@ -2257,13 +2276,11 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			String command_string = StringUtil.getToken(action,")",0,0)+ ")";
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
-						"Using command factory to create new " +
-						"command for \"" + command_string + "\"" );
+						"Using command factory to create new command for \"" + command_string + "\"" );
 			}
 		
 			command_to_edit = commandList_NewCommand( command_string, true );
-			Message.printStatus(2, routine, "Created new command to insert:  \"" +
-        		command_to_edit + "\"" );
+			Message.printStatus(2, routine, "Created new command to insert:  \"" + command_to_edit + "\"" );
         
 			// Add it to the processor at the insert point of the edit (before the
 			// first selected command...
@@ -2286,20 +2303,28 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		edit_completed = true;
 	}
 	else {	// Editing a single one-line command...
-		if ( command_to_edit instanceof GenericCommand ) {
-			// Edit with the old style editors.
-			Message.printStatus(2, routine, "Editing GenericCommand with old-style editor.");
-			edit_completed = commandList_EditCommandOldStyle ( mode, action, command_Vector, (GenericCommand)command_to_edit );
-		}
-		else {
-			// Edit with the new style editors...
-			Message.printStatus(2, routine, "Editing Command with new-style editor.");
-			edit_completed = commandList_EditCommandNewStyle ( command_to_edit );
-		}
+        try {
+    		if ( command_to_edit instanceof GenericCommand ) {
+    			// Edit with the old style editors.
+    			Message.printStatus(2, routine, "Editing GenericCommand with old-style editor.");
+    			edit_completed = commandList_EditCommandOldStyle ( mode, action, command_Vector, (GenericCommand)command_to_edit );
+    		}
+    		else {
+    			// Edit with the new style editors...
+    			Message.printStatus(2, routine, "Editing Command with new-style editor.");
+    			edit_completed = commandList_EditCommandNewStyle ( command_to_edit );
+    		}
+        }
+        catch ( Exception e ) {
+            Message.printWarning (1 , routine, "Unexpected error editing command - refer to log and report to software support." );
+            Message.printWarning( 3, routine, e );
+            edit_completed = false;
+        }
 	}
 	
 	// Third, make sure that the edits are to be saved.  If not, restore the original
 	// copy (if an update) or discard the command (if a new insert).
+    // If the command implements CommandDiscoverable, try to make the discovery run.
 
 	if ( edit_completed ) {
 		if ( mode == __INSERT_COMMAND ) {
@@ -2309,34 +2334,36 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			}
 			else {
 				// The command has already been inserted in the list.
-				Message.printStatus(2, routine, "After insert, command is:  \"" +
-					"" + command_to_edit );
+				Message.printStatus(2, routine, "After insert, command is:  \"" + command_to_edit + "\"" );
+                if ( command_to_edit instanceof CommandDiscoverable ) {
+                    commandList_EditCommand_RunDiscovery ( command_to_edit );
+                }
 			}
 			commandList_SetDirty(true);
 		}
-		else {
+		else if ( mode == __UPDATE_COMMAND ) {
 			// The command was updated.
 			if ( is_comment_block ) {
-				// Remove the commands that were selected and insert the
-				// new ones.
+				// Remove the commands that were selected and insert the new ones.
 				commandList_ReplaceComments ( command_Vector, new_comments );
 				if ( !commandList_CommandsAreEqual(command_Vector,new_comments)) {
 					commandList_SetDirty(true);
 				}
 			}
 			else {
-				// The contents of the command will
-				// have been modified so there is no need to do anything more.
-				Message.printStatus(2, routine, "After edit, command is:  \"" +
-					"" + command_to_edit );
+				// The contents of the command will have been modified so there is no need to do anything more.
+				Message.printStatus(2, routine, "After edit, command is:  \"" + command_to_edit + "\"" );
 				if ( !command_to_edit_original.toString().equals(command_to_edit.toString())) {
 					commandList_SetDirty(true);
 				}
+                if ( command_to_edit instanceof CommandDiscoverable ) {
+                    commandList_EditCommand_RunDiscovery ( command_to_edit );
+                }
 			}
 		}
 	}
-	else {	// The edit was cancelled.  If it was a new command being inserted,
-		// remove the command from the processor...
+	else {
+        // The edit was cancelled.  If it was a new command being inserted, remove the command from the processor...
 		if ( mode == __INSERT_COMMAND ) {
 			if ( is_comment_block ) {
 				// No comments were inserted at start of edit.  No need to do anything.
@@ -2346,7 +2373,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 				commandList_RemoveCommand(command_to_edit);
 			}
 		}
-		else {
+		else if ( mode == __UPDATE_COMMAND ) {
 			if ( is_comment_block ) {
 				// The original comments will remain.  No need to do anything.
 			}
@@ -2359,7 +2386,9 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		}
 	}
 	
-	// Refresh the command list status?
+	// TODO SAM 2007-12-07 Evaluate whether to refresh the command list status?
+    
+    ui_ShowCurrentCommandListStatus();
 
 	}
 	catch ( Exception e2 ) {
@@ -2367,6 +2396,27 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		Message.printWarning(1, routine, "Unexpected error editing command." );
 		Message.printWarning ( 3, routine, e2 );
 	}
+}
+
+/**
+Run discovery on the command. This will, for example, make available a list of time series
+to be requested with the ObjectListProvider.getObjectList() method.
+*/
+private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
+{   String routine = getClass().getName() + ".commandList_EditCommand_RunDiscovery";
+    // Run the discovery...
+    Message.printStatus(2, routine, "Running discovery mode on command:  \"" + command_to_edit + "\"" );
+    try {
+        ((CommandDiscoverable)command_to_edit).runCommandDiscovery(__ts_processor.indexOf(command_to_edit));
+        // Redraw the status area
+        ui_ShowCurrentCommandListStatus();
+    }
+    catch ( Exception e )
+    {
+        // For now ignore because edit-time input may not be complete...
+        String message = "Unable to make discover run - may be OK if partial data.";
+        Message.printStatus(2, routine, message);
+    }
 }
 
 /**
@@ -2433,26 +2483,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	// FIXME SAM 2005-05-18 need to enable - important capability.
-	// The command string checked
-	// below is in conflict with the FillHistMonthAverage() command so that
-	// needs to be resolved.
-	/*
-	else if ( action.equals( __Commands_Create_TS_average_String)||
-		(((StringUtil.indexOfIgnoreCase( command,"average(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase( command,"average (",0) >= 0)) &&
-		(command.indexOf("=") >= 0)) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = average()" );
-		}
-		// Need to check the above combinations to avoid conflict with
-		// historical average commands.
-		edited_cv = new average_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-	*/
 	else if ( action.equals( __Commands_Create_TS_Disaggregate_String)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate(",0) >= 0)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate (",0) >=0)){
@@ -6038,7 +6068,6 @@ private void ui_CheckGUIState ()
 
 	if ( command_list_size > 0 ) {
 		JGUIUtil.setEnabled ( __Commands_Create_CreateTraces_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Average_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, true);
@@ -6126,9 +6155,9 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
 		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
 	}
-	else {	// No commands are shown.
+	else {
+        // No commands are shown.
 		JGUIUtil.setEnabled ( __Commands_Create_CreateTraces_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Average_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, false);
@@ -6256,9 +6285,6 @@ private void ui_CheckGUIState ()
 	// Disable all of the following menus until the dialogs can be enabled.
 	// If not enabled below, the command may be phased out or merged with
 	// another command...
-
-	// TODO - need to create a dialog for the following...
-	JGUIUtil.setEnabled(__Commands_Create_TS_Average_JMenuItem,false);
 
 	// TODO - all of these are new features.  The intent is to convert
 	// a TSID to a specific read command, as available in other menus,
@@ -6985,7 +7011,7 @@ private void ui_InitGUI ( boolean show_main )
 	results_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
-		"Output Files" ));
+		"Results: Output Files" ));
 	JGUIUtil.addComponent(center_JPanel, results_JPanel,
 		0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 	JGUIUtil.addComponent(results_JPanel, new JLabel ("Output files:"),
@@ -7438,12 +7464,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_CreateTimeSeries_JMenu.add(
 		__Commands_Create_CreateTraces_JMenuItem = new SimpleJMenuItem(
 		__Commands_Create_CreateTraces_String, this) );
-
-	/* TODO SAM 2005-05-18 need to enable when functionality is added
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_average_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_TS_average_String, this) );
-	*/
+    
+    __Commands_CreateTimeSeries_JMenu.add(
+        __Commands_Create_ResequenceTimeSeriesData_JMenuItem = new SimpleJMenuItem(
+        __Commands_Create_ResequenceTimeSeriesData_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add(
 		__Commands_Create_TS_ChangeInterval_JMenuItem =
@@ -8076,6 +8100,12 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 			new SimpleJMenuItem(
 			__Commands_NDFD_openNDFD_String, this ) );
 	}
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
+    __Commands_Table_JMenu.add(
+            __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =new SimpleJMenuItem(
+            __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
 
 	__Commands_JMenu.addSeparator();
 	__Commands_JMenu.add( __Commands_General_JMenu =
@@ -9156,6 +9186,16 @@ private void ui_SetInputTypeChoices ()
 }
 
 /**
+Update the command list to show the current status.  This is called after all commands
+have been processed in run mode(), when a command has been edited(), and when loading
+commands from a file.
+*/
+private void ui_ShowCurrentCommandListStatus ()
+{
+    __commands_AnnotatedCommandJList.repaint();
+}
+
+/**
 Update the main status information when the list contents have changed.  This
 method should be called after any change to the query, command, or time series
 results list.
@@ -9185,11 +9225,12 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 	if ( __command_file_name == null ) {
 		setTitle ( "TSTool - no commands saved");
 	}
-	else {	if ( __commands_dirty ) {
-			setTitle ( "TSTool - \"" + __command_file_name +
-			"\" (modified)");
+	else {
+        if ( __commands_dirty ) {
+			setTitle ( "TSTool - \"" + __command_file_name + "\" (modified)");
 		}
-		else {	setTitle ( "TSTool - \"" + __command_file_name + "\"");
+		else {
+            setTitle ( "TSTool - \"" + __command_file_name + "\"");
 		}
 	}
 	
@@ -9199,20 +9240,18 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 	if ( __query_results_JPanel != null ) {
 		int size = 0;
 		if ( __query_JWorksheet != null ) {
-			try {	size=__query_JWorksheet.getRowCount();
-				selected_size=__query_JWorksheet.
-				getSelectedRowCount();
+			try {
+                size=__query_JWorksheet.getRowCount();
+				selected_size=__query_JWorksheet.getSelectedRowCount();
 			}
 			catch ( Exception e ) {
 				// Absorb the exception in most cases - print if
 				// developing to see if this issue can be
 				// resolved.
 				if ( Message.isDebugOn && IOUtil.testing()  ) {
-					String routine =
-						"TSTool_JFrame.updateStatus";
+					String routine = "TSTool_JFrame.updateStatus";
 					Message.printWarning ( 3, routine,
-					"For developers:  caught exception in "+
-					"clearQueryList JWorksheet at setup." );
+					"For developers:  caught exception in clearQueryList JWorksheet at setup." );
 					Message.printWarning ( 3, routine, e );
 				}
 			}
@@ -9220,8 +9259,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
         __query_results_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
-		"Time Series List (" + size +
-		" time series, " + selected_size + " selected)") );
+		"Time Series List (" + size + " time series, " + selected_size + " selected)") );
 	}
 	
 	// Commands....
@@ -9252,8 +9290,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
         	__ts_JPanel.setBorder(
 			BorderFactory.createTitledBorder (
 			BorderFactory.createLineBorder(Color.black),
-			"Time Series Results (" +
-			__ts_JListModel.size() + " time series, " +
+			"Results: Time Series (" +	__ts_JListModel.size() + " time series, " +
 			selected_size + " selected)") );
 	}
 	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
@@ -9895,6 +9932,9 @@ throws Exception
 		commandList_EditCommand ( __Commands_Create_CreateTraces_String,
 			null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Create_ResequenceTimeSeriesData_String) ) {
+        commandList_EditCommand ( __Commands_Create_ResequenceTimeSeriesData_String, null, __INSERT_COMMAND );
+    }
 
 	// Convert TS Identifier to read command...
 
@@ -9936,10 +9976,6 @@ throws Exception
 			getCommand(), __UPDATE_COMMAND );
 	}
 	*/
-	else if (command.equals( __Commands_Create_TS_Average_String)){
-		commandList_EditCommand ( __Commands_Create_TS_Average_String,
-			null, __INSERT_COMMAND );
-	}
 	else if (command.equals( __Commands_Create_TS_ChangeInterval_String)){
 		commandList_EditCommand ( __Commands_Create_TS_ChangeInterval_String,
 			null, __INSERT_COMMAND );
@@ -10465,6 +10501,12 @@ throws Exception
 		commandList_EditCommand ( __Commands_NDFD_openNDFD_String,
 			null, __INSERT_COMMAND );
 	}
+    
+    // Table commands...
+    
+    else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
+        commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, __INSERT_COMMAND );
+    }
 
 	// General commands...
 
@@ -12675,64 +12717,37 @@ throws Exception
 			(__input_name_FileFilter ==
 			__input_name_StateCU_frost_FileFilter) ) {
 			JGUIUtil.setWaitCursor ( this, true );
-			tslist = StateCU_TS.readTimeSeriesList (
-					path, null, null, null, false );
+			tslist = StateCU_TS.readTimeSeriesList ( path, null, null, null, false );
 			if ( tslist != null ) {
 				size = tslist.size();
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
+				__query_TableModel = new TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =	new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
 	
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
+				// Turn off columns in the table model that do not apply...
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (cr.getColumnWidths(), getGraphics() );
 			}
 		}
-		else if ( __input_name_FileFilter ==
-			__input_name_StateCU_cds_FileFilter ) {
+		else if ( __input_name_FileFilter == __input_name_StateCU_cds_FileFilter ) {
 			// Yearly crop patterns...
 			JGUIUtil.setWaitCursor ( this, true );
-			tslist = StateCU_CropPatternTS.readTimeSeriesList (
-					path, null, null, null, false );
+			tslist = StateCU_CropPatternTS.readTimeSeriesList (	path, null, null, null, false );
 			if ( tslist != null ) {
 				size = tslist.size();
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
+				__query_TableModel = new TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
 	
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
+				// Turn off columns in the table model that do not apply...
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (cr.getColumnWidths(), getGraphics() );
 			}
 		}
 		else if ((__input_name_FileFilter ==
@@ -12741,33 +12756,19 @@ throws Exception
 			__input_name_StateCU_tsp_FileFilter) ) {
 			// Yearly irrigation practice...
 			JGUIUtil.setWaitCursor ( this, true );
-			tslist = StateCU_IrrigationPracticeTS.
-					readTimeSeriesList (
-					path, null, null, null, false );
+			tslist = StateCU_IrrigationPracticeTS.readTimeSeriesList ( path, null, null, null, false );
 			if ( tslist != null ) {
 				size = tslist.size();
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
+				__query_TableModel = new TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =	new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
 	
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
+				// Turn off columns in the table model that do not apply...
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (cr.getColumnWidths(), getGraphics() );
 			}
 		}
 		else if ((__input_name_FileFilter ==
@@ -12784,15 +12785,11 @@ throws Exception
 			__input_name_StateCU_frost_FileFilter) ) {
 			// Normal daily or monthly StateMod file...
 			JGUIUtil.setWaitCursor ( this, true );
-			if (	 __input_name_FileFilter ==
-				__input_name_StateCU_frost_FileFilter ) {
-				tslist = StateCU_TS.
-					readTimeSeriesList (
-					path, null, null, null, false );
+			if ( __input_name_FileFilter == __input_name_StateCU_frost_FileFilter ) {
+				tslist = StateCU_TS.readTimeSeriesList (path, null, null, null, false );
 			}
 			else {	// Normal StateMod file...
-				tslist = StateMod_TS.readTimeSeriesList (
-					path, null, null, null, false );
+				tslist = StateMod_TS.readTimeSeriesList ( path, null, null, null, false );
 			}
 			// Change time series data source to StateCU since the
 			// file is part of a StateCU data set...
@@ -12805,49 +12802,34 @@ throws Exception
 					}
 					ts.getIdentifier().setSource("StateCU");
 				}
-				__query_TableModel = new
-					TSTool_TS_TableModel ( tslist );
-				TSTool_TS_CellRenderer cr =
-					new TSTool_TS_CellRenderer(
-					(TSTool_TS_TableModel)
-					__query_TableModel);
+				__query_TableModel = new TSTool_TS_TableModel ( tslist );
+				TSTool_TS_CellRenderer cr =	new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
 	
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do
-				// not apply...
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_ALIAS );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_SOURCE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_DATA_TYPE );
-				__query_JWorksheet.removeColumn (
-					((TSTool_TS_TableModel)
-					__query_TableModel).COL_SCENARIO);
-				__query_JWorksheet.setColumnWidths (
-					cr.getColumnWidths(), getGraphics() );
+				// Turn off columns in the table model that do not apply...
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
+				__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+				__query_JWorksheet.setColumnWidths (cr.getColumnWidths(), getGraphics() );
 			}
 		}
-		else {	Message.printWarning ( 1, routine,
-			"File format not recognized for \"" + path + "\"" );
+		else {	Message.printWarning ( 1, routine, "File format not recognized for \"" + path + "\"" );
 		}
-       		if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus (1, routine,"No StateCU TS read.");
+        if ( (tslist == null) || (size == 0) ) {
+			Message.printStatus (1, routine,"No StateCU time series read.");
 			queryResultsList_Clear ();
-       		}
-       		else {	Message.printStatus ( 1, routine, ""
-			+ size + " StateCU TS read." );
-       		}
+        }
+       	else {
+            Message.printStatus ( 1, routine, "" + size + " StateCU TS read." );
+        }
 
 		JGUIUtil.setWaitCursor ( this, false );
        	ui_UpdateStatus ( false );
 	}
 	catch ( Exception e ) {
-		message = "Error reading StateCU file.";
+		message = "Unexpected error reading StateCU file.";
 		Message.printWarning ( 2, routine, message );
 		Message.printWarning ( 2, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
@@ -14091,7 +14073,7 @@ private void uiAction_OpenCommandFile ()
 		try {
             commandProcessor_ReadCommandFile ( path );
 			// Repaint the list to reflect the status of the commands...
-			__commands_AnnotatedCommandJList.repaint();
+            ui_ShowCurrentCommandListStatus();
 		}
 		catch ( FileNotFoundException e ) {
 			Message.printWarning ( 1, routine,
@@ -14881,7 +14863,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	__ts_JList.setSelectedIndices ( selected );
 	ui_UpdateStatus ( false );
 	// Repaint the list to reflect the status of the commands...
-	__commands_AnnotatedCommandJList.repaint();
+    ui_ShowCurrentCommandListStatus ();
 	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
 			__STATUS_READY );
 	// Make sure that the user is not waiting on the wait cursor....
