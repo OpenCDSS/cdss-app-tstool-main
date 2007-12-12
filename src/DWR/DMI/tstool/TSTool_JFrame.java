@@ -177,6 +177,7 @@ import RTi.Util.Message.Message;
 import RTi.Util.Message.MessageLogListener;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
+import RTi.Util.Table.DataTable_JFrame;
 import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
@@ -584,8 +585,12 @@ private TSCommandProcessor __ts_processor = new TSCommandProcessor();
 private JPopupMenu __results_JPopupMenu = null;
 
 /**
-List of results output files for viewing with an editor.  This includes StateCU AND
-StateMod files (unlike data components, which are listed by model).
+List of results tables for viewing with an editor.
+*/
+private SimpleJComboBox __results_tables_JComboBox = null;
+
+/**
+List of results output files for viewing with an editor.
 */
 private SimpleJComboBox __results_files_JComboBox = null;
 
@@ -960,9 +965,10 @@ JMenuItem
 	//--
 	__Commands_Set_SetConstant_JMenuItem,
 	__Commands_Set_SetDataValue_JMenuItem,
-	__Commands_Set_SetFromTS_JMenuItem,
+    __Commands_Set_SetFromTS_JMenuItem,
 	__Commands_Set_SetMax_JMenuItem,
-	__Commands_Set_SetToMin_JMenuItem;
+	__Commands_Set_SetToMin_JMenuItem,
+    __Commands_Set_SetTimeSeriesProperty_JMenuItem;
 
 // Commands...Manipulate Time Series....
 JMenu
@@ -1015,7 +1021,8 @@ JMenuItem
 	__Commands_Output_WriteNwsCard_JMenuItem,
 	__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Output_WriteRiverWare_JMenuItem,
-	__Commands_Output_writeStateCU_JMenuItem,
+    __Commands_Output_WriteSHEF_JMenuItem,
+	__Commands_Output_WriteStateCU_JMenuItem,
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
 
@@ -1312,6 +1319,7 @@ private String
 	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()...  <set time series values from another time series>",
 	__Commands_Set_SetMax_String = TAB + "SetMax()...  <set values to maximum of time series>",
 	__Commands_Set_SetToMin_String = TAB + "SetToMin()...  <set values to minimum of time series>",
+    __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()...  <set time series properties>",
 
 	// Commands...Manipulate Time Series menu...
 
@@ -1343,7 +1351,8 @@ private String
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()...  <write NWS Card file>",
 	__Commands_Output_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()...  <write NWSRFS ESP trace ensemble file>",
 	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write RiverWare file>",
-	__Commands_Output_writeStateCU_String = TAB + "WriteStateCU()...  <write StateCU file>",
+    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write SHEF (Standard Hydrologic Exchange Format) file>",
+	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()...  <write StateCU file>",
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write Summary file>",
 	__Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()...  <process a time series product file>",
@@ -2472,17 +2481,6 @@ private boolean commandList_EditCommandOldStyle (
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit), command_to_edit).getText();
 	}
-	else if ( action.equals( __Commands_Create_CreateTraces_String)||
-		(StringUtil.indexOfIgnoreCase(command,"createTraces(",0) >= 0)||
-		(StringUtil.indexOfIgnoreCase(command,"createTraces (",0) >=0)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for createTraces()" );
-		}
-		edited_cv = new createTraces_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Create_TS_Disaggregate_String)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate(",0) >= 0)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate (",0) >=0)){
@@ -3089,18 +3087,16 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals( __Commands_Output_WriteNwsCard_String)||
 		command.regionMatches(true,0,"writeNwsCard",0,12) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for writeNwscard()" );
+			Message.printDebug ( dl, routine, "Opening dialog for writeNwscard()" );
 		}
 		edited_cv = new writeNwsCard_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit), command_to_edit).getText();
 	}
-	else if ( action.equals( __Commands_Output_writeStateCU_String)||
-		command.regionMatches(true,0,"writeStateCU",0,12) ) {
+	else if ( action.equals( __Commands_Output_WriteStateCU_String)||
+            command.regionMatches(true,0,"writeStateCU",0,12) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for writeStateCU()" );
+			Message.printDebug ( dl, routine, "Opening dialog for writeStateCU()" );
 		}
 		edited_cv = new writeStateCU_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -4041,6 +4037,65 @@ private DateTime commandProcessor_GetOutputStart()
 	}
 	else { return (DateTime)o;
 	}
+}
+
+/**
+Get the command processor table results for a table identifier.
+Typically this corresponds to a user selecting the time series from the
+results list, for further display.
+@param table_id Table identifier to display.
+@return The matching table or null if not available from the processor.
+*/
+private DataTable commandProcessor_GetTable ( String table_id )
+{   String message, routine = "TSTool_JFrame.commandProcessorGetTimeSeries";
+    if ( __ts_processor == null ) {
+        return null;
+    }
+    PropList request_params = new PropList ( "" );
+    request_params.set ( "TableID", table_id );
+    CommandProcessorRequestResultsBean bean = null;
+    try { bean =
+        __ts_processor.processRequest( "GetTable", request_params);
+    }
+    catch ( Exception e ) {
+        message = "Error requesting GetTable(TableID=\"" + table_id + "\") from processor.";
+        Message.printWarning(2, routine, message );
+        Message.printWarning ( 3, routine, e );
+    }
+    PropList bean_PropList = bean.getResultsPropList();
+    Object o_table = bean_PropList.getContents ( "Table" );
+    DataTable table = null;
+    if ( o_table == null ) {
+        message = "Null table returned from processor for GetTable(TableID=\"" + table_id + "\").";
+        Message.printWarning ( 2, routine, message );
+    }
+    else {
+        table = (DataTable)o_table;
+    }
+    return table;
+}
+
+/**
+Get the command processor table results list.
+@return The table results list or null
+if the processor is not available.
+*/
+private List commandProcessor_GetTableResultsList()
+{   String routine = "TSTool_JFrame.commandProcessorGetTableResultsList";
+    Object o = null;
+    try {
+        o = __ts_processor.getPropContents ( "TableResultsList" );
+    }
+    catch ( Exception e ) {
+        String message = "Error requesting TableResultsList from processor.";
+        Message.printWarning(2, routine, message );
+    }
+    if ( o == null ) {
+        return null;
+    }
+    else {
+        return (List)o;
+    }
 }
 
 /**
@@ -5746,6 +5801,7 @@ Clear the results displays.
 private void results_Clear()
 {
 	results_TimeSeries_Clear();
+    results_Tables_Clear();
 	results_OutputFiles_Clear();
 }
 
@@ -5784,6 +5840,42 @@ Clear the list of output files.  This is normally called before the commands are
 private void results_OutputFiles_Clear()
 {
 	__results_files_JComboBox.removeAll();
+}
+
+/**
+Add the specified table to the list of tables that can be selected for viewing.
+@param table Table generated by the processor.
+*/
+private void results_Tables_AddTable ( DataTable table )
+{   try {
+        // Get the table identifier as a string...
+        String table_id = table.getTableID();
+        // Loop through the list and only add if it is not already in the list...
+        int size = __results_tables_JComboBox.getItemCount();
+        String item;
+        for ( int i = 0; i < size; i++ ) {
+            item = __results_tables_JComboBox.getItem(i);
+            if ( item == null ) {
+                continue;
+            }
+            if ( item.equalsIgnoreCase(table_id)) {
+                // Already in list...
+                return;
+            }
+        }
+        __results_tables_JComboBox.add( table_id );
+    }
+    catch ( Exception e ) {
+        // Ignore for now - should not happen
+    }
+}
+
+/**
+Clear the list of results tables.  This is normally called before the commands are run.
+*/
+private void results_Tables_Clear()
+{
+    __results_tables_JComboBox.removeAll();
 }
 
 /**
@@ -5930,8 +6022,7 @@ private void ui_CheckGUIState ()
 		return;
 	}
 
-	boolean enabled = true;		// Used to enable/disable main menus
-					// based on submenus.
+	boolean enabled = true;		// Used to enable/disable main menus based on submenus.
 
 	// Get the needed list sizes...
 
@@ -5952,8 +6043,7 @@ private void ui_CheckGUIState ()
 		ts_list_size = __ts_JListModel.size();
 	}
 
-	// List in the order of the GUI.  Popup menu items are checked as
-	// needed mixed in below...
+	// List in the order of the GUI.  Popup menu items are checked as needed mixed in below...
 
 	// File menu...
 
@@ -5963,7 +6053,8 @@ private void ui_CheckGUIState ()
 		if ( __commands_dirty  ) {
 			JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,true );
 		}
-		else {	JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,false );
+		else {
+            JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,false );
 		}
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
@@ -5980,34 +6071,40 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem, true);
 		enabled = true;
 	}
-	else {	JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem,false);
+	else {
+        JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem,false);
 	}
 	JGUIUtil.setEnabled ( __File_Save_JMenu, enabled );
 
 	if ( __smsdmi != null ) {
 		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,false );
+	else {
+        JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,false );
 	}
 	if ( __DIADvisor_dmi != null ) {
 		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,false );
+	else {
+        JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,false );
 	}
 	if ( __hbdmi != null ) {
 		JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,false );
+	else {
+        JGUIUtil.setEnabled ( __File_Properties_HydroBase_JMenuItem,false );
 	}
 	if ( __nwsrfs_dmi != null ) {
 		JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,false );
+	else {
+        JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,false );
 	}
 	if ( __rdmi != null ) {
 		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,true );
 	}
-	else {	JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,false );
+	else {
+        JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,false );
 	}
 
 	// Edit menu...
@@ -6015,14 +6112,14 @@ private void ui_CheckGUIState ()
 	if ( command_list_size > 0 ) {
 		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem, true);
 		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,true);
-		JGUIUtil.setEnabled (__Edit_DeselectAllCommands_JMenuItem,true);
-		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,true);
 	}
 	else {	// No commands are shown.
 		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled (__CommandsPopup_SelectAll_JMenuItem,false);
-		JGUIUtil.setEnabled(__Edit_DeselectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled(__CommandsPopup_DeselectAll_JMenuItem,false);
+		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,false);
+		JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,false);
 	}
 	if ( selected_commands_size > 0 ) {
 		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,true);
@@ -6068,6 +6165,7 @@ private void ui_CheckGUIState ()
 
 	if ( command_list_size > 0 ) {
 		JGUIUtil.setEnabled ( __Commands_Create_CreateTraces_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, true);
@@ -6102,6 +6200,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetMax_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, true );
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
 
 		JGUIUtil.setEnabled ( __Commands_Manipulate_Add_JMenuItem, true);
@@ -6131,7 +6230,8 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, true);
@@ -6150,7 +6250,8 @@ private void ui_CheckGUIState ()
 		if ( selected_commands_size > 0 ) {
 			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, true );
 		}
-		else {	JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,false );
+		else {
+            JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,false );
 		}
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
 		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
@@ -6158,6 +6259,7 @@ private void ui_CheckGUIState ()
 	else {
         // No commands are shown.
 		JGUIUtil.setEnabled ( __Commands_Create_CreateTraces_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, false);
@@ -6190,6 +6292,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetMax_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, false );
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
 
 		JGUIUtil.setEnabled ( __Commands_Manipulate_Add_JMenuItem,false);
@@ -6221,7 +6324,8 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Commands_Output_writeStateCU_JMenuItem,false);
+        JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem,false);
@@ -6249,7 +6353,8 @@ private void ui_CheckGUIState ()
 	if ( ts_list_size > 0 ) {
 		JGUIUtil.setEnabled ( __Results_JMenu, true );
 	}
-	else {	// DISABLE file and view options...
+	else {
+        // DISABLE file and view options...
 		JGUIUtil.setEnabled ( __Results_JMenu, false );
 	}
 
@@ -6259,13 +6364,15 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, true );
 		JGUIUtil.setEnabled ( __Tools_Report_JMenu, true );
 	}
-	else {	JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, false );
+	else {
+        JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, false );
 		JGUIUtil.setEnabled ( __Tools_Report_JMenu, false );
 	}
 	if ( (query_list_size > 0) && (__geoview_JFrame != null) ) {
 		JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, true );
 	}
-	else {	JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, false );
+	else {
+        JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, false );
 	}
 
 	// Enable/disable features related to the query list...
@@ -6273,13 +6380,15 @@ private void ui_CheckGUIState ()
 	if ( query_list_size > 0 ) {
 		JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, true );
 	}
-	else {	JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
+	else {
+        JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
 	}
 	if (	(query_list_size > 0) && (__query_JWorksheet != null) &&
 		(__query_JWorksheet.getSelectedRowCount() > 0) ) {
 		JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, true );
 	}
-	else {	JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
+	else {
+        JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
 	}
 
 	// Disable all of the following menus until the dialogs can be enabled.
@@ -6439,42 +6548,31 @@ private void ui_CheckInputTypesForLicense ()
 	if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
 		if ( !__source_StateCU_enabled ) {
 			// Might not be in older config files...
-			Message.printStatus ( 1, routine,
-			"StateCU input type being enabled for CDSS." );
+			Message.printStatus ( 1, routine, "StateCU input type being enabled for CDSS." );
 			__source_StateCU_enabled = true;
 		}
 		if ( !__source_StateMod_enabled ) {
 			// Might not be in older config files...
-			Message.printStatus ( 1, routine,
-			"StateMod input type being enabled for CDSS." );
+			Message.printStatus ( 1, routine, "StateMod input type being enabled for CDSS." );
 			__source_StateMod_enabled = true;
 		}
-		Message.printStatus ( 2, routine,
-		"DIADvisor input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
 		__source_DIADvisor_enabled = false;
-		Message.printStatus ( 2, routine,
-		"Mexico CSMN input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
 		__source_MexicoCSMN_enabled = false;
-		Message.printStatus ( 2, routine,
-		"MODSIM input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
 		__source_MODSIM_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NDFD input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "NDFD input type being disabled for CDSS." );
 		__source_NDFD_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NWSCard input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "NWSCard input type being disabled for CDSS." );
 		__source_NWSCard_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NWSRFS FS5Files input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "NWSRFS FS5Files input type being disabled for CDSS." );
 		__source_NWSRFS_FS5Files_enabled = false;
-		Message.printStatus ( 2, routine,
-		"NWSRFS ESPTraceEnsemble input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "NWSRFS ESPTraceEnsemble input type being disabled for CDSS." );
 		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
-		Message.printStatus ( 2, routine,
-		"RiversideDB input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "RiversideDB input type being disabled for CDSS." );
 		__source_RiversideDB_enabled = false;
-		Message.printStatus ( 2, routine,
-		"SHEF input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
 		__source_SHEF_enabled = false;
 	}
 }
@@ -6485,10 +6583,9 @@ If not print a warning and exit.  The data member __license_manager is created
 for use elsewhere (e.g., in Help About).
 */
 private void ui_CheckLicense ()
-{	try {	if (	(__license_manager == null) ||
-			!__license_manager.isLicenseValid() ) {
-			Message.printWarning ( 1, "TSTool.checkLicense",
-			"The license is invalid.  TSTool will exit." );
+{	try {
+        if ( (__license_manager == null) ||	!__license_manager.isLicenseValid() ) {
+			Message.printWarning ( 1, "TSTool.checkLicense", "The license is invalid.  TSTool will exit." );
 			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 			setVisible(false);
 			dispose();
@@ -6497,8 +6594,7 @@ private void ui_CheckLicense ()
 		}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 1, "TSTool.checkLicense",
-		"Error checking the license.  TSTool will exit." );
+		Message.printWarning ( 1, "TSTool.checkLicense", "Error checking the license.  TSTool will exit." );
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setVisible(false);
 		dispose();
@@ -6507,18 +6603,16 @@ private void ui_CheckLicense ()
 	}
 	if ( __license_manager.getLicenseType().equalsIgnoreCase("Demo") ) {
 		if ( __license_manager.isLicenseExpired() ) {
-			Message.printWarning ( 1, "TSTool.checkLicense",
-			"The demonstration license has expired." +
-			"  TSTool will exit." );
+			Message.printWarning ( 1, "TSTool.checkLicense", "The demonstration license has expired.  TSTool will exit." );
 			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 			setVisible(false);
 			dispose();
 			Message.closeLogFile();
 			System.exit(0);
 		}
-		else {	Message.printWarning ( 1, "TSTool.checkLicense",
-			"This is a demonstration version of TSTool and will " +
-			"expire on " + __license_manager.getLicenseExpires() );
+		else {
+            Message.printWarning ( 1, "TSTool.checkLicense",
+			"This is a demonstration version of TSTool and will expire on " + __license_manager.getLicenseExpires() );
 		}
 	}
 }
@@ -6984,14 +7078,14 @@ private void ui_InitGUI ( boolean show_main )
 	// Time series output (results) components...
 	// --------------------------------------------------------------------
 
-	// Final time series list...
+	// Results: time series...
 
     __ts_JPanel = new JPanel();
     __ts_JPanel.setLayout(gbl);
 	__ts_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
-		"Time Series Results" ));
+		"Results: Time Series" ));
 	JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
 		0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
@@ -7004,7 +7098,25 @@ private void ui_InitGUI ( boolean show_main )
 	JGUIUtil.addComponent(__ts_JPanel, ts_JScrollPane, 
 		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 	
-	// List results output files...
+    // Results: tables...
+
+    JPanel results_tables_JPanel = new JPanel();
+    results_tables_JPanel.setLayout(gbl);
+    results_tables_JPanel.setBorder(
+        BorderFactory.createTitledBorder (
+        BorderFactory.createLineBorder(Color.black),
+        "Results: Tables" ));
+    JGUIUtil.addComponent(center_JPanel, results_tables_JPanel,
+        0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
+    JGUIUtil.addComponent(results_tables_JPanel, new JLabel ("Tables:"),
+        0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    __results_tables_JComboBox = new SimpleJComboBox ();
+    __results_tables_JComboBox.addActionListener ( this );
+    __results_tables_JComboBox.setToolTipText ( "<HTML>Select a table to view.</HTML>" );
+    JGUIUtil.addComponent(results_tables_JPanel, __results_tables_JComboBox,
+        1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    
+	// Results: output files...
 
 	JPanel results_JPanel = new JPanel();
 	results_JPanel.setLayout(gbl);
@@ -7013,7 +7125,7 @@ private void ui_InitGUI ( boolean show_main )
 		BorderFactory.createLineBorder(Color.black),
 		"Results: Output Files" ));
 	JGUIUtil.addComponent(center_JPanel, results_JPanel,
-		0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
+		0, 3, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 	JGUIUtil.addComponent(results_JPanel, new JLabel ("Output files:"),
 		0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__results_files_JComboBox = new SimpleJComboBox ();
@@ -7891,6 +8003,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_SetTimeSeries_JMenu.add (
 			__Commands_Set_SetToMin_JMenuItem = new SimpleJMenuItem(
 			__Commands_Set_SetToMin_String, this ) );
+    
+    __Commands_SetTimeSeries_JMenu.addSeparator ();
+    __Commands_SetTimeSeries_JMenu.add (
+            __Commands_Set_SetTimeSeriesProperty_JMenuItem = new SimpleJMenuItem(
+            __Commands_Set_SetTimeSeriesProperty_String, this ) );
 
 	// "Commands...Manipulate Time Series"...
 
@@ -8054,11 +8171,17 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			__Commands_Output_WriteRiverWare_JMenuItem =
 			new SimpleJMenuItem(__Commands_Output_WriteRiverWare_String, this ) );
 	}
+    
+    if ( __source_SHEF_enabled ) {
+        __Commands_OutputTimeSeries_JMenu.add (
+        __Commands_Output_WriteSHEF_JMenuItem = new SimpleJMenuItem(
+        __Commands_Output_WriteSHEF_String, this ) );
+    }
 
 	if ( __source_StateCU_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_writeStateCU_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_writeStateCU_String, this ) );
+		__Commands_Output_WriteStateCU_JMenuItem = new SimpleJMenuItem(
+		__Commands_Output_WriteStateCU_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
@@ -9365,9 +9488,17 @@ throws Exception
 	else if (command.equals(BUTTON_TS_DESELECT_ALL) ) {
 		__ts_JList.clearSelection();
 	}
+    else if ( o == __results_tables_JComboBox ) {
+        // Show the selected file in a platform-appropriate viewer...
+        uiAction_ShowResultsTable( __results_tables_JComboBox.getSelected() );
+        // Reset the selected item to force the user to reselect a file to display.
+        // Otherwise they cannot reselect the same item (no event is generated the
+        // second time without resetting the selection to null)...
+        __results_tables_JComboBox.select ( null );
+    }
 	else if ( o == __results_files_JComboBox ) {
 		// Show the selected file in a platform-appropriate viewer...
-		uiAction_ShowOutputFile( __results_files_JComboBox.getSelected() );
+		uiAction_ShowResultsOutputFile( __results_files_JComboBox.getSelected() );
 		// Reset the selected item to force the user to reselect a file to display.
 		// Otherwise they cannot reselect the same item (no event is generated the
 		// second time without resetting the selection to null)...
@@ -10272,6 +10403,10 @@ throws Exception
 		commandList_EditCommand ( __Commands_Set_SetToMin_String,
 			null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Set_SetTimeSeriesProperty_String)){
+        commandList_EditCommand ( __Commands_Set_SetTimeSeriesProperty_String,
+            null, __INSERT_COMMAND );
+    }
 	else {
 		uiAction_ActionPerformed9_CommandsManipulateMenu ( event );
 	}
@@ -10455,24 +10590,22 @@ throws Exception
 			null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
-		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String,
-			null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Output_writeStateCU_String)){
-		commandList_EditCommand ( __Commands_Output_writeStateCU_String,
-			null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_Output_WriteSHEF_String)){
+        commandList_EditCommand ( __Commands_Output_WriteSHEF_String, null, __INSERT_COMMAND );
+    }
+	else if (command.equals( __Commands_Output_WriteStateCU_String)){
+		commandList_EditCommand ( __Commands_Output_WriteStateCU_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_WriteStateMod_String)){
-		commandList_EditCommand ( __Commands_Output_WriteStateMod_String,
-			null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteStateMod_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_WriteSummary_String)){
-		commandList_EditCommand ( __Commands_Output_WriteSummary_String,
-			null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteSummary_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_ProcessTSProduct_String)){
-		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String,
-			null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, __INSERT_COMMAND );
 	}
 	else {	// Chain to next list of commands...
 		uiAction_ActionPerformed13_CommandsGeneralMenu ( event );
@@ -14042,8 +14175,7 @@ private void uiAction_OpenCommandFile ()
 			else if ( x == ResponseJDialog.YES ) {
 				uiAction_WriteCommandFile ( __command_file_name,false);
 			}
-			// Else if No will clear below before opening the other
-			// file...
+			// Else if No will clear below before opening the other file...
 		}
 	}
 
@@ -14096,10 +14228,11 @@ private void uiAction_OpenCommandFile ()
 		// If successful the TSCommandProcessor, as the data model, will
 		// have fired actions to make the JList update.
 		commandList_SetCommandFileName(path);
-		commandList_SetDirty(false);			
+		commandList_SetDirty(false);
+        // Clear the old results...
+        results_Clear();
 	}
-	// New file has been opened or there was a cancel/error and the old
-	// list remains.
+	// New file has been opened or there was a cancel/error and the old list remains.
 	Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
 	ui_UpdateStatus ( true );
 	Message.printStatus ( 2, routine, "Back from update status." );
@@ -14721,6 +14854,7 @@ private void uiAction_RunCommands_ShowResults()
             TSCommandProcessorUtil.closeRegressionTestReportFile();
 			results_Clear();
 			uiAction_RunCommands_ShowResultsTimeSeries(); // JList
+            uiAction_RunCommands_ShowResultsTables(); // JComboBox
 			uiAction_RunCommands_ShowResultsOutputFiles(); // JComboBox
 		}
 	};
@@ -14762,14 +14896,35 @@ private void uiAction_RunCommands_ShowResultsOutputFiles()
 }
 
 /**
+Display the table results.
+*/
+private void uiAction_RunCommands_ShowResultsTables()
+{   // Get the list of tables from the processor.
+    Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTables", "Entering method.");
+    // Get the list of table identifiers from the processor.
+    List table_List = commandProcessor_GetTableResultsList();
+    int size = 0;
+    if ( table_List != null ) {
+        size = table_List.size();
+    }
+    ui_SetIgnoreActionEvent(true);
+    DataTable table;
+    for ( int i = 0; i < size; i++ ) {
+        table = (DataTable)table_List.get(i);
+        results_Tables_AddTable ( table );
+    }
+    ui_SetIgnoreActionEvent(false);
+    Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTables", "Leaving method.");
+}
+
+/**
 Display the time series from the command processor in the results list.
 */
 private void uiAction_RunCommands_ShowResultsTimeSeries ()
 {	String routine = "TSTool_JFrame.uiAction_RunCommands_ShowResultsTimeSeries";
 	Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Entering method.");
 
-	//	 Fill the time series list with the descriptions of the in-memory
-	// time series...
+	// Fill the time series list with the descriptions of the in-memory time series...
 	int size = commandProcessor_GetTimeSeriesResultsListSize();
 	Message.printStatus ( 2, routine, "Adding " + size + " time series to results." );
 	TS ts = null;
@@ -14800,7 +14955,8 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 			}
 		}
 		else {	*/
-			try {	ts = commandProcessor_GetTimeSeries(i);
+			try {
+                ts = commandProcessor_GetTimeSeries(i);
 			}
 			catch ( Exception e ) {
 				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) +
@@ -14827,8 +14983,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 				desc + " - " + ts.getIdentifier() +
 				" (" + ts.getDate1() + " to " +
 				ts.getDate2() + ")" );
-				// Determine whether the time series was programmatically selected
-				// in the commands...
+				// Determine whether the time series was programmatically selected in the commands...
 				selected_boolean[i] = ts.isSelected();
 			}
 		//}
@@ -15969,66 +16124,35 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
 }
 
 /**
-Show an output file using the appropriate display software/editor.
-@param selected Path to selected output file.
+Show the Help About dialog in response to a user selecting a menu.
 */
-private void uiAction_ShowOutputFile ( String selected )
-{	String routine = getClass().getName() + ".uiAction_ShowOutputFile";
-	if ( selected == null ) {
-		// May be the result of some UI event...
-		return;
-	}
-	// Display the selected file...
-	if ( !( new File( selected ).isAbsolute() ) ) {
-		selected = IOUtil.getPathUsingWorkingDir( selected );
-	}
-	if ( selected.toUpperCase().endsWith(".HTML")) {
-		// Run the simple RTi browser to display the check file
-		// this browser enables HTML navigation features for
-		// viewing the check file
-		try {
-				new SimpleBrowser( selected ).setVisible(true);
-			} 
-		catch ( MalformedURLException e ) {
-				Message.printWarning(2, routine,"Couldn't find file or url: " + selected );
-			}
-		catch (IOException e) {
-				Message.printWarning( 2, routine,"Failed to open browser to view: " + selected );
-				Message.printWarning( 3, routine, e );
-			}
-	}
-	else {
-		// Display a simple text file (will show up in courier fixed width
-		// font, which looks better than the HTML browser).
-		try {
-			if ( IOUtil.isUNIXMachine() ) {
-				// Use a built in viewer (may be slow)...
-				PropList reportProp = new PropList ("Output File");
-				reportProp.set ( "TotalWidth", "600" );
-				reportProp.set ( "TotalHeight", "300" );
-				reportProp.set ( "DisplayFont", "Courier" );
-				reportProp.set ( "DisplaySize", "11" );
-				reportProp.set ( "PrintFont", "Courier" );
-				reportProp.set ( "PrintSize", "7" );
-				reportProp.set ( "Title", selected );
-				reportProp.set ( "URL", selected );
-				new ReportJFrame ( null, reportProp );
-			}
-			else {
-				// Rely on Notepad on Windows...
-				String [] command_array = new String[2];
-				command_array[0] = "notepad";
-				command_array[1] = IOUtil.getPathUsingWorkingDir(selected);
-				ProcessManager p = new ProcessManager ( command_array );
-				Thread t = new Thread ( p );
-				t.start();
-			}
-		}
-		catch (Exception e2) {
-			Message.printWarning (1, routine, "Unable to view file \"" + selected + "\"" );
-			Message.printWarning ( 3, routine, e2 );
-		}
-	}
+private void uiAction_ShowHelpAbout ()
+{   String license_type = __license_manager.getLicenseType();
+    if ( license_type.equalsIgnoreCase("CDSS") ) {
+        // CDSS installation...
+        new HelpAboutJDialog ( this, "About TSTool",
+        "TSTool - Time Series Tool\n" +
+        "A component of CDSS\n" +
+        IOUtil.getProgramVersion() + "\n" +
+        "Copyright 1997-2007\n" +
+        "Developed by Riverside Technology, inc.\n" +
+        "Funded by:\n" +
+        "Colorado Division of Water Resources\n" +
+        "Colorado Water Conservation Board\n" +
+        "Send comments about this interface to:\n" +
+        "cdss@state.co.us (CDSS)\n" +
+        "support@riverside.com (general)\n" );
+    }
+    else {  // An RTi installation...
+        new HelpAboutJDialog ( this, "About TSTool",
+        "TSTool - Time Series Tool\n" +
+        IOUtil.getProgramVersion() + "\n" +
+        "Copyright 1997-2007\n" +
+        "Developed by Riverside Technology, inc.\n" +
+        "Licensed to: " + __license_manager.getLicenseOwner() + "\n" +
+        "Contact support at:\n" +
+        "support@riverside.com\n" );
+    }
 }
 
 /**
@@ -16126,35 +16250,90 @@ private void uiAction_ShowProperties_CommandsRun ()
 }
 
 /**
-Show the Help About dialog in response to a user selecting a menu.
+Show an output file using the appropriate display software/editor.
+@param selected Path to selected output file.
 */
-private void uiAction_ShowHelpAbout ()
-{	String license_type = __license_manager.getLicenseType();
-	if ( license_type.equalsIgnoreCase("CDSS") ) {
-		// CDSS installation...
-		new HelpAboutJDialog ( this, "About TSTool",
-		"TSTool - Time Series Tool\n" +
-		"A component of CDSS\n" +
-		IOUtil.getProgramVersion() + "\n" +
-		"Copyright 1997-2007\n" +
-		"Developed by Riverside Technology, inc.\n" +
-		"Funded by:\n" +
-		"Colorado Division of Water Resources\n" +
-		"Colorado Water Conservation Board\n" +
-		"Send comments about this interface to:\n" +
-		"cdss@state.co.us (CDSS)\n" +
-		"support@riverside.com (general)\n" );
-	}
-	else {	// An RTi installation...
-		new HelpAboutJDialog ( this, "About TSTool",
-		"TSTool - Time Series Tool\n" +
-		IOUtil.getProgramVersion() + "\n" +
-		"Copyright 1997-2007\n" +
-		"Developed by Riverside Technology, inc.\n" +
-		"Licensed to: " + __license_manager.getLicenseOwner() + "\n" +
-		"Contact support at:\n" +
-		"support@riverside.com\n" );
-	}
+private void uiAction_ShowResultsOutputFile ( String selected )
+{   String routine = getClass().getName() + ".uiAction_ShowOutputFile";
+    if ( selected == null ) {
+        // May be the result of some UI event...
+        return;
+    }
+    // Display the selected file...
+    if ( !( new File( selected ).isAbsolute() ) ) {
+        selected = IOUtil.getPathUsingWorkingDir( selected );
+    }
+    if ( selected.toUpperCase().endsWith(".HTML")) {
+        // Run the simple RTi browser to display the check file
+        // this browser enables HTML navigation features for
+        // viewing the check file
+        try {
+                new SimpleBrowser( selected ).setVisible(true);
+            } 
+        catch ( MalformedURLException e ) {
+                Message.printWarning(2, routine,"Couldn't find file or url: " + selected );
+            }
+        catch (IOException e) {
+                Message.printWarning( 2, routine,"Failed to open browser to view: " + selected );
+                Message.printWarning( 3, routine, e );
+            }
+    }
+    else {
+        // Display a simple text file (will show up in courier fixed width
+        // font, which looks better than the HTML browser).
+        try {
+            if ( IOUtil.isUNIXMachine() ) {
+                // Use a built in viewer (may be slow)...
+                PropList reportProp = new PropList ("Output File");
+                reportProp.set ( "TotalWidth", "600" );
+                reportProp.set ( "TotalHeight", "300" );
+                reportProp.set ( "DisplayFont", "Courier" );
+                reportProp.set ( "DisplaySize", "11" );
+                reportProp.set ( "PrintFont", "Courier" );
+                reportProp.set ( "PrintSize", "7" );
+                reportProp.set ( "Title", selected );
+                reportProp.set ( "URL", selected );
+                new ReportJFrame ( null, reportProp );
+            }
+            else {
+                // Rely on Notepad on Windows...
+                String [] command_array = new String[2];
+                command_array[0] = "notepad";
+                command_array[1] = IOUtil.getPathUsingWorkingDir(selected);
+                ProcessManager p = new ProcessManager ( command_array );
+                Thread t = new Thread ( p );
+                t.start();
+            }
+        }
+        catch (Exception e2) {
+            Message.printWarning (1, routine, "Unable to view file \"" + selected + "\"" );
+            Message.printWarning ( 3, routine, e2 );
+        }
+    }
+}
+
+/**
+Show a table using the built in display component.
+@param selected Identifier for the table to display.
+*/
+private void uiAction_ShowResultsTable ( String selected )
+{   String routine = getClass().getName() + ".uiAction_ShowResultsTable";
+    if ( selected == null ) {
+        // May be the result of some UI event...
+        return;
+    }
+    // Display the table...
+    try {
+        DataTable table = commandProcessor_GetTable ( selected );
+        if ( table == null ) {
+            Message.printWarning (1, routine, "Unable to get table \"" + selected + "\" from processor to view." );  
+        }
+        new DataTable_JFrame ( "Table \"" + selected + "\"", table );
+    }
+    catch (Exception e2) {
+        Message.printWarning (1, routine, "Unable to view table \"" + selected + "\"" );
+        Message.printWarning ( 3, routine, e2 );
+    }
 }
 
 /**
