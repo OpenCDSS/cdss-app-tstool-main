@@ -51,6 +51,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -127,6 +128,7 @@ import RTi.TS.ModsimTS;
 import RTi.TS.RiverWareTS;
 import RTi.TS.ShefATS;
 import RTi.TS.TS;
+import RTi.TS.TSEnsemble;
 import RTi.TS.TSIdent;
 import RTi.TS.TSUtil;
 import RTi.TS.UsgsNwisTS;
@@ -452,11 +454,6 @@ Panel for commands.
 private JPanel __commands_JPanel;
 
 /**
-Panel for TS results.
-*/
-private JPanel __ts_JPanel;		
-
-/**
 Query results.
 */
 private JWorksheet	__query_JWorksheet;
@@ -563,15 +560,41 @@ private String __command_file_name = null;
 //================================
 
 /**
+Tabbed panel to include all results.
+*/
+private JTabbedPane __results_JTabbedPane;
+
+/**
+Panel for TSEnsemble results.
+*/
+private JPanel __results_tsensembles_JPanel; 
+
+/**
+Final list showing in-memory time series ensemble results.
+*/
+private JList __results_tsensembles_JList;
+
+/**
+JList data model for final time series ensembles (basically a Vector of
+time series associated with __ts_JList).
+*/
+private DefaultListModel __results_tsensembles_JListModel;
+
+/**
+Panel for TS results.
+*/
+private JPanel __results_ts_JPanel; 
+
+/**
 Final list showing in-memory time series results.
 */
-private JList __ts_JList;
+private JList __results_ts_JList;
 
 /**
 JList data model for final time series (basically a Vector of
 time series associated with __ts_JList).
 */
-private DefaultListModel __ts_JListModel;	
+private DefaultListModel __results_ts_JListModel;	
 
 /**
 The command processor, which maintains a list of command objects, process
@@ -867,7 +890,6 @@ JMenu
 	__Commands_CreateTimeSeries_JMenu = null;
 JMenuItem
 	__Commands_Create_CreateFromList_JMenuItem,
-	__Commands_Create_CreateTraces_JMenuItem,
     __Commands_Create_ResequenceTimeSeriesData_JMenuItem,
 	__Commands_Create_TS_ChangeInterval_JMenuItem,
 	__Commands_Create_TS_Copy_JMenuItem,
@@ -1000,6 +1022,14 @@ JMenuItem
 	__Commands_Analyze_ReadDataTestFromRiversideDB_JMenuItem = null,
 	__Commands_Analyze_RunDataTests_JMenuItem = null,
 	__Commands_Analyze_ProcessDataTestResults_JMenuItem = null;
+
+// Commands...Ensemble Processing...
+
+JMenu
+    __Commands_Ensemble_JMenu = null;
+JMenuItem
+    __Commands_Ensemble_CreateEnsemble_JMenuItem,
+    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem;
 
 // Commands...Models....
 JMenu
@@ -1244,7 +1274,6 @@ private String
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()...  <read 1(+) time series from a list of identifiers>",
-	__Commands_Create_CreateTraces_String = TAB + "CreateTraces()...  <convert 1 time series to 1+ annual traces>",
     __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()...  <resequence years to create new scenarios>",
 	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()...  <convert time series to one with a different interval (under development)>",
 	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()...  <copy a time series>",
@@ -1372,6 +1401,12 @@ private String
 
 	__Commands_Models_String = "Models",
 	__Commands_Models_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route) (under development)>",
+    
+    // Commands...Ensemble processing...
+    
+    __Commands_Ensemble_String = "Ensemble Processing",
+    __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()...  <convert 1 time series into an ensemble>",
+    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
 
 	// HydroBase commands...
 
@@ -3896,6 +3931,89 @@ private Boolean commandProcessor_GetAutoExtendPeriod()
 }
 
 /**
+Return the command processor instance that is being used.  This method should be
+called to avoid direct interaction with the processor data member.
+@return the TSCommandProcessor instance that is being used.
+*/
+private TSCommandProcessor commandProcessor_GetCommandProcessor ()
+{
+    return __ts_processor;
+}
+
+/**
+Get the command processor time series ensemble results for an index position.
+Typically this corresponds to a user selecting the ensemble from the
+results list, for further display.
+@param pos Position (0+ for the time series).
+@return The time series ensemble at the requested position in the results or null
+if the processor is not available.
+*/
+private TSEnsemble commandProcessor_GetEnsembleAt( int pos )
+{   String message, routine = "TSTool_JFrame.commandProcessorGetEnsembleAt";
+    if ( __ts_processor == null ) {
+        return null;
+    }
+    PropList request_params = new PropList ( "" );
+    request_params.setUsingObject ( "Index", new Integer(pos) );
+    CommandProcessorRequestResultsBean bean = null;
+    try {
+        bean = __ts_processor.processRequest( "GetEnsembleAt", request_params);
+    }
+    catch ( Exception e ) {
+        message = "Error requesting GetEnsembleAt(Index=" + pos + ") from processor.";
+        Message.printWarning(2, routine, message );
+        Message.printWarning ( 3, routine, e );
+    }
+    PropList bean_PropList = bean.getResultsPropList();
+    Object o_TSEnsemble = bean_PropList.getContents ( "TSEnsemble" );
+    TSEnsemble tsensemble = null;
+    if ( o_TSEnsemble == null ) {
+        message = "Null TSEnsemble returned from processor for GetEnsembleAt(Index=\"" + pos + "\").";
+        Message.printWarning ( 2, routine, message );
+    }
+    else {
+        tsensemble = (TSEnsemble)o_TSEnsemble;
+    }
+    return tsensemble;
+}
+
+/**
+Get the command processor table results list.
+@return The table results list or null
+if the processor is not available.
+*/
+private List commandProcessor_GetEnsembleResultsList()
+{   String routine = "TSTool_JFrame.commandProcessorGetEnsembleResultsList";
+    Object o = null;
+    try {
+        o = __ts_processor.getPropContents ( "EnsembleResultsList" );
+    }
+    catch ( Exception e ) {
+        String message = "Error requesting EnsembleResultsList from processor.";
+        Message.printWarning(2, routine, message );
+    }
+    if ( o == null ) {
+        return null;
+    }
+    else {
+        return (List)o;
+    }
+}
+
+/**
+Get the size of the command processor ensemble results list.
+@return the size of the command processor ensemble results list.
+*/
+private int commandProcessor_GetEnsembleResultsListSize()
+{
+    List results = commandProcessor_GetEnsembleResultsList();
+    if ( results == null ) {
+        return 0;
+    }
+    return results.size();
+}
+
+/**
 Get the command processor HydroBaseDMIList.  This method is meant for simple
 reporting.  Any errors in the processor should be detected during command
 initialization and processing.
@@ -4357,6 +4475,32 @@ private void commandProcessor_SetNWSRFSFS5FilesDMI( TSCommandProcessor processor
 		message = "Error requesting SetNWSRFSFS5FilesDMI(NWSRFSFS5FilesDMI=\"" + nwsrfs_dmi + " from processor.";
 		Message.printWarning(2, routine, message );
 	}
+}
+
+/**
+Set the command processor RiversideDB instance that is opened via the GUI.
+This version is generally called by the overloaded version and when processing
+an external command file.
+@param processor The command processor to set the RiversideDB DMI instance.
+@param rdmi Open RiversideDB_DMI instance.
+The input name is blank since it is the default RiversideDB_DMI.
+*/
+private void commandProcessor_SetRiversideDB_DMI( RiversideDB_DMI rdmi )
+{   String message, routine = "TSTool_JFrame.commandProcessor_SetRiversideDBDMI";
+    if ( rdmi == null ) {
+        return;
+    }
+    CommandProcessor processor = commandProcessor_GetCommandProcessor();
+    PropList request_params = new PropList ( "" );
+    request_params.setUsingObject ( "RiversideDB_DMI", rdmi );
+    //CommandProcessorRequestResultsBean bean = null;
+    try { //bean =
+        processor.processRequest( "SetRiversideDB_DMI", request_params );
+    }
+    catch ( Exception e ) {
+        message = "Error requesting SetRiversideDB_DMI(RiversideDB_DMI=\"" + rdmi + "\") from processor.";
+        Message.printWarning(2, routine, message );
+    }
 }
 
 /**
@@ -5213,22 +5357,19 @@ public void mousePressed ( MouseEvent event )
 		__Commands_JPopupMenu.show ( c, pt.x, pt.y );
 	}
 	// Popup for commands...
-	else if ( (c == __ts_JList) && (__ts_JListModel.size() > 0) &&
+	else if ( (c == __results_ts_JList) && (__results_ts_JListModel.size() > 0) &&
 		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
 		//event.isPopupTrigger() ) {}
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), c, __Commands_JPopupMenu );
+		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __Commands_JPopupMenu );
 		__results_JPopupMenu.show ( c, pt.x, pt.y );
 	}
 	// Popup for input name...
 	else if ( (c == __input_name_JComboBox) &&
 		((mods & MouseEvent.BUTTON3_MASK) != 0) &&
 		__selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), c, __input_name_JPopupMenu );
+		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
 		__input_name_JPopupMenu.removeAll();
-		__input_name_JPopupMenu.add( new SimpleJMenuItem (
-			__InputName_BrowseStateModB_String, this ) );
+		__input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseStateModB_String, this ) );
 		__input_name_JPopupMenu.show ( c, pt.x, pt.y );
 	}
 	// Check the state of the "Copy Selected to Commands" button...
@@ -5806,6 +5947,16 @@ private void results_Clear()
 }
 
 /**
+Add a time series ensemble description at the end of the time series ensemble results list.
+Note that this does not add the actual ensemble, only a description string.
+The ensembles are still accessed by the positions in the list.
+@param tsensemble_info Time series ensemble information to add at the end of the list.
+*/
+private void results_Ensembles_AddEnsembleToResults ( final String tsensemble_info )
+{   __results_tsensembles_JListModel.addElement ( tsensemble_info );
+}
+
+/**
 Add the specified output file to the list of output files that can be selected for
 viewing.
 @param file Output file generated by the processor.
@@ -5885,28 +6036,7 @@ The time series are still accessed by the positions in the list.
 @param ts_info Time series information to add at the end of the list.
 */
 private void results_TimeSeries_AddTimeSeriesToResults ( final String ts_info )
-{	// This method may be called from a thread different than the Swing thread.  To
-	// avoid bad behavior in GUI components (like the results list having big gaps),
-	// use the following to queue up GUI actions on the Swing thread.
-	
-	//Runnable r = new Runnable () {
-	//	public void run () {
-			__ts_JListModel.addElement ( ts_info );
-			//String routine = "TSTool_JFrame.tsResultsList_AddTimeSeriesToResults";
-			//Message.printStatus ( 2, routine, "Added time series to results for \"" + ts_info + "\"" );
-			//ui_UpdateStatus ( false );
-			/*
-		}
-	};
-	if ( SwingUtilities.isEventDispatchThread() )
-	{
-		r.run();
-	}
-	else 
-	{
-		SwingUtilities.invokeLater ( r );
-	}
-	*/
+{	__results_ts_JListModel.addElement ( ts_info );
 }
 
 /**
@@ -5915,7 +6045,7 @@ Also set the engine to null.
 */
 private void results_TimeSeries_Clear()
 {	// Clear the visible list of results...
-	__ts_JListModel.removeAllElements();
+	__results_ts_JListModel.removeAllElements();
 	ui_UpdateStatus ( false );
 }
 
@@ -6039,8 +6169,8 @@ private void ui_CheckGUIState ()
 	}
 
 	int ts_list_size = 0;
-	if ( __ts_JListModel != null ) {
-		ts_list_size = __ts_JListModel.size();
+	if ( __results_ts_JListModel != null ) {
+		ts_list_size = __results_ts_JListModel.size();
 	}
 
 	// List in the order of the GUI.  Popup menu items are checked as needed mixed in below...
@@ -6164,7 +6294,6 @@ private void ui_CheckGUIState ()
 	// Commands menu...
 
 	if ( command_list_size > 0 ) {
-		JGUIUtil.setEnabled ( __Commands_Create_CreateTraces_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, true);
@@ -6224,6 +6353,9 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
 
 		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
+        
+        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
 
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
@@ -6258,7 +6390,6 @@ private void ui_CheckGUIState ()
 	}
 	else {
         // No commands are shown.
-		JGUIUtil.setEnabled ( __Commands_Create_CreateTraces_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, false);
@@ -6318,6 +6449,9 @@ private void ui_CheckGUIState ()
 		// TODO SAM 2005-07-11 For now enable because models can
 		// create time series...
 		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
+        
+        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
 
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
@@ -6667,8 +6801,7 @@ private void ui_CheckRiversideDBFeatures ()
 		int count = __input_type_JComboBox.getItemCount();
 		boolean rfound = false;
 		for ( int i = 0; i < count; i++ ) {
-			if ( __input_type_JComboBox.getItem(i).equals(
-				__INPUT_TYPE_RiversideDB) ) {
+			if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_RiversideDB) ) {
 				rfound = true;
 				break;
 			}
@@ -6678,20 +6811,19 @@ private void ui_CheckRiversideDBFeatures ()
 			ui_SetInputTypeChoices();
 		}
 		if (__File_Properties_RiversideDB_JMenuItem != null ) {
-			__File_Properties_RiversideDB_JMenuItem.setEnabled(
-				true);
+			__File_Properties_RiversideDB_JMenuItem.setEnabled(true);
 		}
 	}
-	else {	// RiversideDB connection failed so remove RiversideDB from the
-		// data source list if necessary...
-		try {	__input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
+	else {
+        // RiversideDB connection failed so remove RiversideDB from the data source list if necessary...
+		try {
+            __input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
 		}
 		catch ( Exception e ) {
 			// Ignore - probably already removed...
 		}
-		if (__File_Properties_RiversideDB_JMenuItem != null ) {
-			__File_Properties_RiversideDB_JMenuItem.setEnabled (
-				false );
+		if ( __File_Properties_RiversideDB_JMenuItem != null ) {
+			__File_Properties_RiversideDB_JMenuItem.setEnabled ( false );
 		}
 	}
 }
@@ -6856,10 +6988,8 @@ private void ui_InitGUI ( boolean show_main )
 
 	__query_input_JPanel = new JPanel();
 	__query_input_JPanel.setLayout(gbl);
-	__query_input_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Input/Query Options" ));
+	__query_input_JPanel.setBorder(	BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),"Input/Query Options" ));
 	
     query_JPanel.add("West", __query_input_JPanel);
  
@@ -6944,16 +7074,15 @@ private void ui_InitGUI ( boolean show_main )
 
 	y=0;
 	try {
-	PropList props = new PropList ( "QueryList" );
-	props.add("JWorksheet.ShowRowHeader=true");
-	props.add("JWorksheet.AllowCopy=true");
-	JScrollWorksheet sjw = new JScrollWorksheet ( 0, 0, props );
-	__query_JWorksheet = sjw.getJWorksheet ();
-	__query_JWorksheet.setPreferredScrollableViewportSize(null);
-	// Listen for mouse events to enable the buttons in the Time Series
-	// area...
-	__query_JWorksheet.addMouseListener ( this );
-	__query_JWorksheet.addJWorksheetListener ( this );
+    	PropList props = new PropList ( "QueryList" );
+    	props.add("JWorksheet.ShowRowHeader=true");
+    	props.add("JWorksheet.AllowCopy=true");
+    	JScrollWorksheet sjw = new JScrollWorksheet ( 0, 0, props );
+    	__query_JWorksheet = sjw.getJWorksheet ();
+    	__query_JWorksheet.setPreferredScrollableViewportSize(null);
+    	// Listen for mouse events to enable the buttons in the Time Series area...
+    	__query_JWorksheet.addMouseListener ( this );
+    	__query_JWorksheet.addJWorksheetListener ( this );
         JGUIUtil.addComponent(__query_results_JPanel, sjw,
 		0, y++, 3, 7, 1.0, 1.0, insetsNLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 	}
@@ -6962,8 +7091,7 @@ private void ui_InitGUI ( boolean show_main )
 		// see if this issue can be resolved.
 		if ( Message.isDebugOn && IOUtil.testing()  ) {
 			Message.printWarning ( 3, routine,
-			"For developers:  caught exception initializing " +
-			"JWorksheet at setup." );
+			"For developers:  caught exception initializing JWorksheet at setup." );
 			Message.printWarning ( 3, routine, e );
 		}
 	}
@@ -7001,9 +7129,9 @@ private void ui_InitGUI ( boolean show_main )
         center_JPanel.setLayout(gbl);
         getContentPane().add("Center", center_JPanel);
 
-        // Commands JPanel - 8 columns wide for grid bag layout
-        __commands_JPanel = new JPanel();
-        __commands_JPanel.setLayout(gbl);
+    // Commands JPanel - 8 columns wide for grid bag layout
+    __commands_JPanel = new JPanel();
+    __commands_JPanel.setLayout(gbl);
 	__commands_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black), "Commands" ));
@@ -7075,39 +7203,70 @@ private void ui_InitGUI ( boolean show_main )
 		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	// --------------------------------------------------------------------
-	// Time series output (results) components...
+	// Results components (listed alphabetically by label).
 	// --------------------------------------------------------------------
 
-	// Results: time series...
+    __results_JTabbedPane = new JTabbedPane ();
+    __results_JTabbedPane.setBorder(
+            BorderFactory.createTitledBorder (
+            BorderFactory.createLineBorder(Color.black),
+            "Results" ));
+    JGUIUtil.addComponent(center_JPanel, __results_JTabbedPane,
+            0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
+    
+    // Results: Ensembles...
 
-    __ts_JPanel = new JPanel();
-    __ts_JPanel.setLayout(gbl);
-	__ts_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Results: Time Series" ));
-	JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
-		0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
+    __results_tsensembles_JPanel = new JPanel();
+    __results_tsensembles_JPanel.setLayout(gbl);
+    /*
+    __results_tsensembles_JPanel.setBorder(
+        BorderFactory.createTitledBorder (
+        BorderFactory.createLineBorder(Color.black),
+        "Results: Ensembles of Time Series" ));
+        */
+    __results_tsensembles_JListModel = new DefaultListModel();
+    __results_tsensembles_JList = new JList ( __results_tsensembles_JListModel );
+    __results_tsensembles_JList.addKeyListener ( this );
+    __results_tsensembles_JList.addListSelectionListener ( this );
+    __results_tsensembles_JList.addMouseListener ( this );
+    JScrollPane results_tsensembles_JScrollPane = new JScrollPane ( __results_tsensembles_JList );
+    JGUIUtil.addComponent(__results_tsensembles_JPanel, results_tsensembles_JScrollPane, 
+        0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Ensembles", __results_tsensembles_JPanel );
+    
+    // Results: output files...
 
-	__ts_JListModel = new DefaultListModel();
-	__ts_JList = new JList ( __ts_JListModel );
-	__ts_JList.addKeyListener ( this );
-	__ts_JList.addListSelectionListener ( this );
-	__ts_JList.addMouseListener ( this );
-	JScrollPane ts_JScrollPane = new JScrollPane ( __ts_JList );
-	JGUIUtil.addComponent(__ts_JPanel, ts_JScrollPane, 
-		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-	
+    JPanel results_files_JPanel = new JPanel();
+    results_files_JPanel.setLayout(gbl);
+    /*
+    results_files_JPanel.setBorder(
+        BorderFactory.createTitledBorder (
+        BorderFactory.createLineBorder(Color.black),
+        "Results: Output Files" ));
+        */
+    JGUIUtil.addComponent(center_JPanel, results_files_JPanel,
+        0, 3, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
+    JGUIUtil.addComponent(results_files_JPanel, new JLabel ("Output files:"),
+        0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    __results_files_JComboBox = new SimpleJComboBox ();
+    __results_files_JComboBox.addActionListener ( this );
+    __results_files_JComboBox.setToolTipText ( "<HTML>Select an output file to view.</HTML>" );
+    JGUIUtil.addComponent(results_files_JPanel, __results_files_JComboBox,
+        1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Output Files", results_files_JPanel );
+    
     // Results: tables...
 
     JPanel results_tables_JPanel = new JPanel();
     results_tables_JPanel.setLayout(gbl);
+    /*
     results_tables_JPanel.setBorder(
         BorderFactory.createTitledBorder (
         BorderFactory.createLineBorder(Color.black),
         "Results: Tables" ));
-    JGUIUtil.addComponent(center_JPanel, results_tables_JPanel,
-        0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
+        */
+    //JGUIUtil.addComponent(center_JPanel, results_tables_JPanel,
+    //    0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
     JGUIUtil.addComponent(results_tables_JPanel, new JLabel ("Tables:"),
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __results_tables_JComboBox = new SimpleJComboBox ();
@@ -7115,25 +7274,36 @@ private void ui_InitGUI ( boolean show_main )
     __results_tables_JComboBox.setToolTipText ( "<HTML>Select a table to view.</HTML>" );
     JGUIUtil.addComponent(results_tables_JPanel, __results_tables_JComboBox,
         1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Tables", results_tables_JPanel );
     
-	// Results: output files...
+	// Results: time series...
 
-	JPanel results_JPanel = new JPanel();
-	results_JPanel.setLayout(gbl);
-	results_JPanel.setBorder(
+    __results_ts_JPanel = new JPanel();
+    __results_ts_JPanel.setLayout(gbl);
+    /*
+	__results_ts_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
-		"Results: Output Files" ));
-	JGUIUtil.addComponent(center_JPanel, results_JPanel,
-		0, 3, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
-	JGUIUtil.addComponent(results_JPanel, new JLabel ("Output files:"),
-		0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	__results_files_JComboBox = new SimpleJComboBox ();
-	__results_files_JComboBox.addActionListener ( this );
-	__results_files_JComboBox.setToolTipText ( "<HTML>Select an output file to view.</HTML>" );
-	JGUIUtil.addComponent(results_JPanel, __results_files_JComboBox,
-		1, 0, 1, 1, 1.0, 0.0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+		"Results: Time Series" ));
+        */
+	//JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
+	//	0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
+	__results_ts_JListModel = new DefaultListModel();
+	__results_ts_JList = new JList ( __results_ts_JListModel );
+	__results_ts_JList.addKeyListener ( this );
+	__results_ts_JList.addListSelectionListener ( this );
+	__results_ts_JList.addMouseListener ( this );
+	JScrollPane results_ts_JScrollPane = new JScrollPane ( __results_ts_JList );
+	JGUIUtil.addComponent(__results_ts_JPanel, results_ts_JScrollPane, 
+		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Time Series", __results_ts_JPanel );
+    
+    // Default to time series selected since that is what most people have seen with previous
+    // TSTool versions...
+    
+    __results_JTabbedPane.setSelectedComponent ( __results_ts_JPanel );
+	
 	// Popup menu for the time series results list...
 	ui_InitGUIMenus_ResultsPopup ();
 
@@ -7572,10 +7742,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Create_CreateFromList_JMenuItem =
 		new SimpleJMenuItem(
 		__Commands_Create_CreateFromList_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_CreateTraces_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_CreateTraces_String, this) );
     
     __Commands_CreateTimeSeries_JMenu.add(
         __Commands_Create_ResequenceTimeSeriesData_JMenuItem = new SimpleJMenuItem(
@@ -8107,10 +8273,20 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	// "Commands...Models"...
 
-	__Commands_JMenu.add ( __Commands_Models_JMenu =
-		new JMenu(__Commands_Models_String) );
+	__Commands_JMenu.add ( __Commands_Models_JMenu = new JMenu(__Commands_Models_String) );
 	__Commands_Models_JMenu.add (
 		__Commands_Models_LagK_JMenuItem = new SimpleJMenuItem( __Commands_Models_LagK_String, this ) );
+    
+	// "Commands...Ensemble processing"...
+    
+    __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
+    __Commands_Ensemble_JMenu.add(
+        __Commands_Ensemble_CreateEnsemble_JMenuItem = new SimpleJMenuItem(
+        __Commands_Ensemble_CreateEnsemble_String, this) );
+    __Commands_Ensemble_JMenu.add (
+            __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
+            new SimpleJMenuItem(
+            __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, this ) );
 
 	// "Commands...Output Time Series"...
 
@@ -9404,17 +9580,18 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 	
 	// Results...
 	
-	selected_indices = __ts_JList.getSelectedIndices();
+	selected_indices = __results_ts_JList.getSelectedIndices();
 	selected_size = 0;
 	if ( selected_indices != null ) {
 		selected_size = selected_indices.length;
 	}
-	if ( __ts_JPanel != null ) {
-        	__ts_JPanel.setBorder(
+	if ( __results_ts_JPanel != null ) {
+        	__results_ts_JPanel.setBorder(
 			BorderFactory.createTitledBorder (
 			BorderFactory.createLineBorder(Color.black),
-			"Results: Time Series (" +	__ts_JListModel.size() + " time series, " +
-			selected_size + " selected)") );
+			//"Results: Time Series (" +	
+            "" + __results_ts_JListModel.size() + " time series, " +
+			selected_size + " selected") );
 	}
 	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
 	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null,
@@ -9483,10 +9660,10 @@ throws Exception
 		commandList_RemoveCommandsBasedOnUI();
 	}
 	else if (command.equals(BUTTON_TS_SELECT_ALL) ) {
-		JGUIUtil.selectAll ( __ts_JList );
+		JGUIUtil.selectAll ( __results_ts_JList );
 	}
 	else if (command.equals(BUTTON_TS_DESELECT_ALL) ) {
-		__ts_JList.clearSelection();
+		__results_ts_JList.clearSelection();
 	}
     else if ( o == __results_tables_JComboBox ) {
         // Show the selected file in a platform-appropriate viewer...
@@ -10059,10 +10236,6 @@ throws Exception
 		commandList_EditCommand ( __Commands_Create_CreateFromList_String,
 			null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Create_CreateTraces_String)){
-		commandList_EditCommand ( __Commands_Create_CreateTraces_String,
-			null, __INSERT_COMMAND );
-	}
     else if (command.equals( __Commands_Create_ResequenceTimeSeriesData_String) ) {
         commandList_EditCommand ( __Commands_Create_ResequenceTimeSeriesData_String, null, __INSERT_COMMAND );
     }
@@ -10137,7 +10310,7 @@ throws Exception
 	else if (command.equals(__Commands_Create_TS_NewStatisticTimeSeries_String)){
 			commandList_EditCommand ( __Commands_Create_TS_NewStatisticTimeSeries_String,
 				null, __INSERT_COMMAND );
-		}
+	}
 	else if (command.equals(
 		__Commands_Create_TS_NewStatisticYearTS_String)){
 		commandList_EditCommand ( __Commands_Create_TS_NewStatisticYearTS_String,
@@ -10538,15 +10711,37 @@ throws Exception
 	}
 	else {
 		// Chain to other actions
-		uiAction_ActionPerformed12_CommandsOutputMenu ( event );
+		uiAction_ActionPerformed12_CommandsEnsembleMenu ( event );
 	}
+}
+
+/**
+Handle a group of actions for the Commands...Ensemble... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed12_CommandsEnsembleMenu (ActionEvent event)
+throws Exception
+{   String command = event.getActionCommand();
+
+    if (command.equals( __Commands_Ensemble_CreateEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_CreateEnsemble_String,
+        null, __INSERT_COMMAND );
+    }
+    else if (command.equals(__Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String,
+            null, __INSERT_COMMAND );
+    }
+    else {
+        // Chain to other actions
+        uiAction_ActionPerformed13_CommandsOutputMenu ( event );
+    }
 }
 
 /**
 Handle a group of actions for the Commands...Output... menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed12_CommandsOutputMenu (ActionEvent event)
+private void uiAction_ActionPerformed13_CommandsOutputMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
@@ -10608,7 +10803,7 @@ throws Exception
 		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, __INSERT_COMMAND );
 	}
 	else {	// Chain to next list of commands...
-		uiAction_ActionPerformed13_CommandsGeneralMenu ( event );
+		uiAction_ActionPerformed14_CommandsGeneralMenu ( event );
 	}
 }
 
@@ -10617,7 +10812,7 @@ Handle a group of actions for the Commands...General... menu.
 Also include a couple of special open commands for input types.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed13_CommandsGeneralMenu (ActionEvent event)
+private void uiAction_ActionPerformed14_CommandsGeneralMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
@@ -10804,21 +10999,21 @@ throws Exception
 	// Only on View pop-up...
 
 	else if (command.equals(__Results_FindTimeSeries_String) ) {
-		new FindInJListJDialog ( this, false, __ts_JList, "Find Time Series" );
+		new FindInJListJDialog ( this, false, __results_ts_JList, "Find Time Series" );
 	}
     else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
 		// Get the first time series selected in the view window...
 		if ( __ts_processor != null ) {
 			int pos = 0;
-			if ( JGUIUtil.selectedSize(__ts_JList) == 0 ) {
+			if ( JGUIUtil.selectedSize(__results_ts_JList) == 0 ) {
 				pos = 0;
 			}
-			else {	pos = JGUIUtil.selectedIndex(__ts_JList,0);
+			else {
+                pos = JGUIUtil.selectedIndex(__results_ts_JList,0);
 			}
 			// Now display the properties...
 			if ( pos >= 0 ) {
-				new TSPropertiesJFrame ( this,
-				commandProcessor_GetTimeSeries(pos) );
+				new TSPropertiesJFrame ( this, commandProcessor_GetTimeSeries(pos) );
 			}
 		}
 	}
@@ -11467,12 +11662,12 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 	props.set ( "OutputFile=" + filename );
 	// Final list is selected...
 	 if ( __ts_processor != null ) {
-		try {	int selected_ts = JGUIUtil.selectedSize(__ts_JList);
+		try {	int selected_ts = JGUIUtil.selectedSize(__results_ts_JList);
 			if ( selected_ts == 0 ) {
 				commandProcessor_ProcessTimeSeriesResultsList(null,props);
 			}
-			else {	commandProcessor_ProcessTimeSeriesResultsList (
-				__ts_JList.getSelectedIndices(), props );
+			else {
+                commandProcessor_ProcessTimeSeriesResultsList (	__results_ts_JList.getSelectedIndices(), props );
 			}
 		}
 		catch ( Exception e ) {
@@ -13409,18 +13604,17 @@ private void uiAction_GraphTimeSeriesResults ( String graph_type, String params 
 		}
 		// Final list is selected...
 		if ( __ts_processor != null ) {
-			try {	int selected_ts=JGUIUtil.selectedSize(__ts_JList);
+			try {
+                int selected_ts=JGUIUtil.selectedSize(__results_ts_JList);
 				if ( selected_ts == 0 ) {
-					commandProcessor_ProcessTimeSeriesResultsList (
-					null, props );
+					commandProcessor_ProcessTimeSeriesResultsList (	null, props );
 				}
-				else {	commandProcessor_ProcessTimeSeriesResultsList (
-					__ts_JList.getSelectedIndices(), props );
+				else {
+                    commandProcessor_ProcessTimeSeriesResultsList (	__results_ts_JList.getSelectedIndices(), props );
 				}
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Unable to graph time series." );
+				Message.printWarning ( 1, routine, "Unable to graph time series." );
 			}
 		}
 		JGUIUtil.setWaitCursor ( this, false );
@@ -14310,35 +14504,33 @@ private void uiAction_OpenHydroBase ( boolean startup )
 		String hbcfg = HydroBase_Util.getConfigurationFile();
 		PropList props = null;
 		if ( IOUtil.fileExists(hbcfg) ) {
-			// Use the configuration file to get HydroBase
-			// properties...
-			try {	props = HydroBase_Util.readConfiguration(hbcfg);
+			// Use the configuration file to get HydroBase properties...
+			try {
+                props = HydroBase_Util.readConfiguration(hbcfg);
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 1, routine,
-				"Error reading HydroBase configuration file \""+
-				hbcfg + "\".  Using defaults for HydroBase." );
+				"Error reading HydroBase configuration file \""+ hbcfg + "\".  Using defaults for HydroBase." );
 				Message.printWarning ( 3, routine, e );
 				props = null;
 			}
 		}
 		
-		try {	// Now open the database...
+		try {
+            // Now open the database...
 			// This uses the guest login.  If properties were not
-			// found, then default HydroBase information will be
-			// used.
+			// found, then default HydroBase information will be used.
 			__hbdmi = new HydroBaseDMI ( props );
 			__hbdmi.open();
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error opening HydroBase.  " +
-			"HydroBase features will be disabled." );
+			Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
 			Message.printWarning ( 3, routine, e );
 			__hbdmi = null;
 		}
 	}
-	else {	// Running interactively so prompt the user to login...
+	else {
+        // Running interactively so prompt the user to login...
 		// Display the dialog to select the database.  This is a modal
 		// dialog that will not allow anything else to occur until the
 		// information is entered.  Use a PropList to pass information
@@ -14353,23 +14545,19 @@ private void uiAction_OpenHydroBase ( boolean startup )
 		// can be displayed as the initial values...
 
 		SelectHydroBaseJDialog selectHydroBaseJDialog = null;
-		try {	// Let the dialog check HydroBase properties in the 
-			// CDSS configuration file...
-			selectHydroBaseJDialog =
-			new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
+		try {
+            // Let the dialog check HydroBase properties in the CDSS configuration file...
+			selectHydroBaseJDialog = new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
 			// After getting to here, the dialog has been closed.
-			// The HydroBaseDMI from the dialog can be retrieved and
-			// used...
+			// The HydroBaseDMI from the dialog can be retrieved and used...
 			__hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
 			if ( __hbdmi == null ) {
-				Message.printWarning ( 1, routine,
-				"HydroBase features will be disabled." );
+				Message.printWarning ( 1, routine, "HydroBase features will be disabled." );
 			}
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
-			"Error opening HydroBase connection.  " +
-			"HydroBase features will be disabled." );
+                    "Error opening HydroBase connection.  HydroBase features will be disabled." );
 			Message.printWarning ( 3, routine, e );
 			__hbdmi = null;
 		}
@@ -14492,13 +14680,15 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 {	String routine = "TSTool_JFrame.openRiversideDB";
 	// First close the existing connection...
 	if ( __rdmi != null ) {
-		try {	__rdmi.close();
+		try {
+            __rdmi.close();
 		}
 		catch ( Exception e ) {
 			// Ignore - any reason not to?
 		}
 	}
-	try {	String	connect_method = null,
+	try {
+        String	connect_method = null,
 			database_engine = null,
 			database_server = null,
 			database_name = null,
@@ -14514,12 +14704,10 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// Get the database connect method (optional - will default)...
 
 		if ( props == null ) {
-			connect_method = tstool.getPropValue(
-				"RiversideDB.JavaConnectMethod");
+			connect_method = tstool.getPropValue("RiversideDB.JavaConnectMethod");
 		}
 		else {	// Newer...
-			connect_method = props.getValue(
-				"RiversideDB.JavaConnectMethod");
+			connect_method = props.getValue("RiversideDB.JavaConnectMethod");
 		}
 		if ( connect_method == null ) {
 			connect_method = "JDBCODBC";
@@ -14528,18 +14716,17 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// First get the database engine (required)...
 
 		if ( props == null ) {
-			database_engine = tstool.getPropValue(
-				"RiversideDB.DatabaseEngine" );
+			database_engine = tstool.getPropValue("RiversideDB.DatabaseEngine" );
 		}
-		else {	database_engine = props.getValue(
-				"RiversideDB.DatabaseEngine");
+		else {
+            database_engine = props.getValue("RiversideDB.DatabaseEngine");
 		}
 		if ( database_engine == null ) {
-			errors +=
-			"\nRiversideDB.DatabaseEngine is not defined.";
+			errors += "\nRiversideDB.DatabaseEngine is not defined.";
 			++error_count;
 		}
-		else {	++needed_prop_count;
+		else {
+            ++needed_prop_count;
 		}
 
 		// Now get the properties for the connect method...
@@ -14547,18 +14734,17 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		if ( connect_method.equalsIgnoreCase ( "JDBCODBC" ) ) {
 			// Database server name (required)...
 			if ( props == null ) {
-				database_server = tstool.getPropValue(
-					"RiversideDB.JavaDatabaseServer" );
+				database_server = tstool.getPropValue( "RiversideDB.JavaDatabaseServer" );
 			}
-			else {	database_server = props.getValue(
-					"RiversideDB.JavaDatabaseServer");
+			else {
+                database_server = props.getValue( "RiversideDB.JavaDatabaseServer");
 			}
 			if ( database_server == null ) {
-				errors += "\nRiversideDB.JavaDatabaseServer" +
-					" is not defined.";
+				errors += "\nRiversideDB.JavaDatabaseServer is not defined.";
 				++error_count;
 			}
-			else {	++needed_prop_count;
+			else {
+                ++needed_prop_count;
 			}
 		}
 
@@ -14566,18 +14752,17 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// connect methods (required)...
 
 		if ( props == null ) {
-			database_name = tstool.getPropValue(
-				"RiversideDB.JavaDatabase" );
+			database_name = tstool.getPropValue("RiversideDB.JavaDatabase" );
 		}
-		else {	database_name = props.getValue(
-				"RiversideDB.JavaDatabase" );
+		else {
+            database_name = props.getValue(	"RiversideDB.JavaDatabase" );
 		}
 		if ( database_name == null ) {
-			errors +=
-			"\nRiversideDB.JavaDatabase is not defined.";
+			errors += "\nRiversideDB.JavaDatabase is not defined.";
 			++error_count;
 		}
-		else {	++needed_prop_count;
+		else {
+            ++needed_prop_count;
 		}
 
 		// Now get the system login and password to use
@@ -14585,47 +14770,39 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 
 		if ( props == null ) {
 			// Newer...
-			system_login = tstool.getPropValue(
-				"RiversideDB.SystemLogin");
+			system_login = tstool.getPropValue(	"RiversideDB.SystemLogin");
 			if ( system_login == null ) {
 				// Older...
-				system_login = tstool.getPropValue(
-					"RiversideDB.Login");
+				system_login = tstool.getPropValue("RiversideDB.Login");
 			}
 		}
 		else {	// Newer...
 			system_login=props.getValue("RiversideDB.SystemLogin");
 			if ( system_login == null ) {
 				// Older...
-				system_login = props.getValue (
-					"RiversideDB.Login");
+				system_login = props.getValue (	"RiversideDB.Login");
 			}
 		}
 		if ( props == null ) {
 			// Newer...
-			system_password = tstool.getPropValue(
-				"RiversideDB.SystemPassword");
+			system_password = tstool.getPropValue("RiversideDB.SystemPassword");
 			if ( system_password == null ) {
 				// Older...
-				system_password = tstool.getPropValue(
-					"RiversideDB.Password");
+				system_password = tstool.getPropValue("RiversideDB.Password");
 			}
 		}
 		else {	// Newer...
-			system_password = props.getValue(
-				"RiversideDB.SystemPassword");
+			system_password = props.getValue("RiversideDB.SystemPassword");
 			if ( system_password == null ) {
 				// Older...
-				system_password = props.getValue(
-					"RiversideDB.Password");
+				system_password = props.getValue("RiversideDB.Password");
 			}
 		}
 
 		// Check for configuration errors...
 
 		if ( error_count > 0 ) {
-			if (	!startup ||
-				(startup && (needed_prop_count > 0) ) ) {
+			if ( !startup || (startup && (needed_prop_count > 0) ) ) {
 				// A startup condition where RiversideDB
 				// properties have been given that are incorrect
 				// and should be corrected... OR...
@@ -14633,10 +14810,8 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 				// properties are not given - no error because
 				// we expect the user to specify connection
 				// information later.
-				errors += "\n\nError in RiversideDB " +
-				"configuration properties.";
-				errors +=
-				"\nUnable to open RiversideDB database.";
+				errors += "\n\nError in RiversideDB configuration properties.";
+				errors += "\nUnable to open RiversideDB database.";
 				Message.printWarning ( 1, routine, errors );
 			}
 			__rdmi = null;
@@ -14650,7 +14825,8 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 					database_name, system_login,
 					system_password );
 		}
-		else {	__rdmi = new RiversideDB_DMI ( database_engine,
+		else {
+            __rdmi = new RiversideDB_DMI ( database_engine,
 					database_server, database_name,
 					-1, system_login, system_password );
 		}
@@ -14659,8 +14835,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		__rdmi.open();
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 1, routine, 
-		"Unable to open RiversideDB database. ");
+		Message.printWarning ( 1, routine, "Unable to open RiversideDB database. ");
 		Message.printWarning( 2, routine, e );
 		// Set the DMI to null so that features will be turned on but
 		// still allow the RiversideDB input type to be enabled so that
@@ -14681,8 +14856,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		}
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, 
-			"Error opening login dialog.");
+		Message.printWarning(2, routine, "Error opening login dialog.");
 		Message.printWarning(2, routine, e);
 		login = LoginJDialog.LOGIN_CANCELLED;
 	}
@@ -14695,6 +14869,11 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 			+ "database was still established.", 
 			ResponseJDialog.OK);
 	}
+    
+    // Set the HydroBaseDMI for the command processor...
+    commandProcessor_SetRiversideDB_DMI ( __rdmi );
+    // Enable/disable HydroBase features as necessary...
+    ui_CheckRiversideDBFeatures();
 }
 
 /**
@@ -14856,6 +15035,10 @@ private void uiAction_RunCommands_ShowResults()
 			uiAction_RunCommands_ShowResultsTimeSeries(); // JList
             uiAction_RunCommands_ShowResultsTables(); // JComboBox
 			uiAction_RunCommands_ShowResultsOutputFiles(); // JComboBox
+            uiAction_RunCommands_ShowResultsEnsembles(); // JList
+            
+            // Repaint the list to reflect the status of the commands...
+            ui_ShowCurrentCommandListStatus ();
 		}
 	};
 	if ( SwingUtilities.isEventDispatchThread() )
@@ -14866,6 +15049,48 @@ private void uiAction_RunCommands_ShowResults()
 	{
 		SwingUtilities.invokeLater ( r );
 	}
+}
+
+/**
+Display the ensembles from the command processor in the results list.
+*/
+private void uiAction_RunCommands_ShowResultsEnsembles ()
+{   String routine = "TSTool_JFrame.uiAction_RunCommands_ShowResultsEnsembles";
+    Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsEnsembles", "Entering method.");
+
+    // Fill the ensemble list with the descriptions of the in-memory time series...
+    int size = commandProcessor_GetEnsembleResultsListSize();
+    Message.printStatus ( 2, routine, "Adding " + size + " ensembles to results." );
+    TSEnsemble tsensemble = null;
+    for ( int i = 0; i < size; i++ ) {
+        try {
+            tsensemble = commandProcessor_GetEnsembleAt(i);
+        }
+        catch ( Exception e ) {
+            results_Ensembles_AddEnsembleToResults ( "" + (i + 1) + " - Error getting ensemble from processor." );
+            Message.printWarning ( 3, routine, e );
+            continue;
+        }
+        if ( tsensemble == null ) {
+            results_Ensembles_AddEnsembleToResults ( "" + (i + 1)+ " - Null ensemble from processor." );
+            continue;
+        }
+        else {
+            // Have actual data to display...
+            String id = tsensemble.getEnsembleID();
+            String name = tsensemble.getEnsembleName();
+            results_Ensembles_AddEnsembleToResults ( "" + (i + 1) + ") " + id + " - " + name );
+            //+ " - " + ts.getIdentifier() + " (" + ts.getDate1() + " to " + ts.getDate2() + ")" );
+        }
+    }
+    ui_UpdateStatus ( false );
+
+    ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
+            __STATUS_READY );
+    // Make sure that the user is not waiting on the wait cursor....
+    //JGUIUtil.setWaitCursor ( this, false );
+    
+    Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Leaving method.");
 }
 
 /**
@@ -14960,13 +15185,13 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 			}
 			catch ( Exception e ) {
 				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) +
-				" - Error getting time series from processor." );
+				") - Error getting time series from processor." );
 				Message.printWarning ( 3, routine, e );
 				continue;
 			}
 			if ( ts == null ) {
 				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1)+
-				" - Null time series from processor." );
+				") - Null time series from processor." );
 				continue;
 			}
 			else {
@@ -14980,9 +15205,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 					desc = ts.getIdentifier().getLocation();
 				}
 				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
-				desc + " - " + ts.getIdentifier() +
-				" (" + ts.getDate1() + " to " +
-				ts.getDate2() + ")" );
+				desc + " - " + ts.getIdentifier() +	" (" + ts.getDate1() + " to " +	ts.getDate2() + ")" );
 				// Determine whether the time series was programmatically selected in the commands...
 				selected_boolean[i] = ts.isSelected();
 			}
@@ -15006,7 +15229,8 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 			selected[i] = i;
 		}
 	}
-	else {	// Select the time series of interest.
+	else {
+        // Select the time series of interest.
 		selected = new int[num_selected];	// Whether visually selected
 		for ( int i = 0; i < num_selected; i++ ) {
 			if ( selected_boolean[i] ) {
@@ -15015,7 +15239,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 		}
 	}
 	// Now actually select the time series in the visual output...
-	__ts_JList.setSelectedIndices ( selected );
+	__results_ts_JList.setSelectedIndices ( selected );
 	ui_UpdateStatus ( false );
 	// Repaint the list to reflect the status of the commands...
     ui_ShowCurrentCommandListStatus ();

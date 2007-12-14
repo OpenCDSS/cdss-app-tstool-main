@@ -136,7 +136,7 @@ Instantiates the GUI components.
 private void initialize ()
 {	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	JTabbedPane main_JTabbedPane = new JTabbedPane();
 	GridBagLayout gbl = new GridBagLayout();
