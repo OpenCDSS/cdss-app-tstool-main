@@ -931,7 +931,6 @@ JMenuItem
 	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
-	__Commands_Read_ReadNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Read_ReadNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
 	__Commands_Read_ReadStateMod_JMenuItem,
@@ -1030,6 +1029,7 @@ JMenu
     __Commands_Ensemble_JMenu = null;
 JMenuItem
     __Commands_Ensemble_CreateEnsemble_JMenuItem,
+    __Commands_Ensemble_ReadNWSRFSESPTraceEnsemble_JMenuItem,
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem;
 
 // Commands...Models....
@@ -1297,7 +1297,6 @@ private String
 	__Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
-	__Commands_Read_ReadNWSRFSESPTraceEnsemble_String = TAB + "ReadNWSRFSESPTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
 	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()...  <read 1(+) time series from a StateCU file>",
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()...  <read 1(+) time series from a StateMod file>",
@@ -1408,6 +1407,7 @@ private String
     
     __Commands_Ensemble_String = "Ensemble Processing",
     __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()...  <convert 1 time series into an ensemble>",
+    __Commands_Ensemble_ReadNWSRFSESPTraceEnsemble_String = TAB + "ReadNWSRFSESPTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
 
 	// HydroBase commands...
@@ -2611,27 +2611,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Read Time Series...
 
-	else if ( action.equals( __Commands_Read_ReadDateValue_String)||
-		(!command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		(StringUtil.indexOfIgnoreCase(command,"readDateValue",0)>= 0))){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for readDateValue()" );
-		}
-		edited_cv = new readDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
-	else if ( action.equals(__Commands_Read_ReadNWSRFSESPTraceEnsemble_String)||
-		(!command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		(StringUtil.indexOfIgnoreCase(command,"readNWSRFSESPTraceEnsemble",0)>= 0))){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for readNWSRFSESPTraceEnsemble()" );
-		}
-		edited_cv = new readNWSRFSESPTraceEnsemble_JDialog (
-			this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
 	else if ( action.equals( __Commands_Read_ReadMODSIM_String)||
 		(!command_trimmed.regionMatches(true,0,"TS",0,2) &&
 		(StringUtil.indexOfIgnoreCase(
@@ -3088,7 +3067,9 @@ private boolean commandList_EditCommandOldStyle (
 	// Analyze Time Series...
 
 	// Models (all handled by the TSCommandFactory)...
-
+    
+    // Ensemble
+    
 	// Output Time Series...
 
 	else if ( action.equals(__Commands_Output_DeselectTimeSeries_String) ||
@@ -7825,14 +7806,12 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_ConvertTSIDToReadCommand_JMenu.add (
 		__Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadTimeSeries_String, this ));
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadTimeSeries_String, this ));
 
 	if ( __source_DateValue_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
 	}
 
 	if ( __source_HydroBase_enabled ) {
@@ -7844,51 +7823,43 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_MODSIM_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadMODSIM_String, this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadMODSIM_String, this ) );
 	}
 
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadNwsCard_String, this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadNwsCard_String, this ) );
 	}
 
 	if ( __source_NWSRFS_FS5Files_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String,
-			this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String,this ) );
 	}
 
 	if ( __source_RiverWare_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadRiverWare_String, this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadRiverWare_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadStateMod_String, this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadStateMod_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadStateModB_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadStateModB_String, this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadStateModB_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (
 			__Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_ConvertTSIDTo_ReadUsgsNwis_String, this ) );
+			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadUsgsNwis_String, this ) );
 	}
 
 	// Read...
@@ -7898,8 +7869,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_ReadTimeSeries_JMenu.add (
 		__Commands_Read_SetIncludeMissingTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Read_SetIncludeMissingTS_String, this ) );
+		new SimpleJMenuItem(__Commands_Read_SetIncludeMissingTS_String, this ) );
 
 	__Commands_ReadTimeSeries_JMenu.add (
 		__Commands_Read_SetInputPeriod_JMenuItem=new SimpleJMenuItem(
@@ -7910,8 +7880,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
 			__Commands_Read_ReadDateValue_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_ReadDateValue_String, this) );
+			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
 	}
 
 	if ( __source_HydroBase_enabled ) {
@@ -7923,8 +7892,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_MODSIM_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
 			__Commands_Read_ReadMODSIM_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_ReadMODSIM_String, this) );
+			new SimpleJMenuItem(__Commands_Read_ReadMODSIM_String, this) );
 	}
 
 	if ( __source_NWSCard_enabled ) {
@@ -7932,14 +7900,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			__Commands_Read_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(
 			__Commands_Read_ReadNwsCard_String, this) );
-	}
-
-	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadNWSRFSESPTraceEnsemble_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_ReadNWSRFSESPTraceEnsemble_String,
-			this) );
 	}
 
 	/* TODO SAM 2004-09-11 need to enable
@@ -7981,8 +7941,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add (
 			__Commands_Read_TS_ReadDateValue_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadDateValue_String, this) );
+			new SimpleJMenuItem(__Commands_Read_TS_ReadDateValue_String, this) );
 	}
 
 	if ( __source_HydroBase_enabled ) {
@@ -8299,6 +8258,12 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     __Commands_Ensemble_JMenu.add(
         __Commands_Ensemble_CreateEnsemble_JMenuItem = new SimpleJMenuItem(
         __Commands_Ensemble_CreateEnsemble_String, this) );
+
+    if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+        __Commands_Ensemble_JMenu.add(
+            __Commands_Ensemble_ReadNWSRFSESPTraceEnsemble_JMenuItem =
+            new SimpleJMenuItem( __Commands_Ensemble_ReadNWSRFSESPTraceEnsemble_String, this) );
+    }
     __Commands_Ensemble_JMenu.add (
             __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
             new SimpleJMenuItem(
@@ -8323,39 +8288,32 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_Output_SetOutputDetailedHeaders_String, this ) );
 	__Commands_OutputTimeSeries_JMenu.add(
 		__Commands_Output_SetOutputPeriod_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_SetOutputPeriod_String, this ) );
+		new SimpleJMenuItem(__Commands_Output_SetOutputPeriod_String, this ) );
 	__Commands_OutputTimeSeries_JMenu.add (
 		__Commands_Output_SetOutputYearType_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_SetOutputYearType_String, this ) );
+		new SimpleJMenuItem(__Commands_Output_SetOutputYearType_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
 	__Commands_OutputTimeSeries_JMenu.add (
 		__Commands_Output_SortTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_SortTimeSeries_String, this ) );
+		new SimpleJMenuItem(__Commands_Output_SortTimeSeries_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 	__Commands_OutputTimeSeries_JMenu.add (
 		__Commands_Output_WriteDateValue_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_WriteDateValue_String, this ) );
+		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
 
 	if ( __source_NWSCard_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add (
 			__Commands_Output_WriteNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Output_WriteNwsCard_String, this ) );
+			new SimpleJMenuItem( __Commands_Output_WriteNwsCard_String, this ) );
 	}
 
 	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add (
 			__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem=
-			new SimpleJMenuItem(
-			__Commands_Output_WriteNWSRFSESPTraceEnsemble_String,
-			this ));
+			new SimpleJMenuItem(__Commands_Output_WriteNWSRFSESPTraceEnsemble_String,this ));
 	}
 
 	if ( __source_RiverWare_enabled ) {
@@ -8390,8 +8348,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add (
 		__Commands_Output_ProcessTSProduct_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Output_ProcessTSProduct_String, this ) );
+		new SimpleJMenuItem( __Commands_Output_ProcessTSProduct_String, this ) );
 }
 
 /**
@@ -9296,103 +9253,70 @@ private void ui_SetInputFilters()
 		(__input_filter_HydroBase_structure_sfut_JPanel != null) ) {
 		// Can only use the HydroBase filters if they were originally
 		// set up (if HydroBase was originally available)...
-		String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType(
-				__selected_data_type, __selected_time_step );
+		String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( __selected_data_type, __selected_time_step );
 
 		String meas_type = hb_mt[0];
 		//String vax_field = hb_mt[1];
 		//String time_step = hb_mt[2];
 		Message.printStatus(2, "", "isStationTimeSeriesDataType("+ __selected_data_type
 				+ "," + __selected_time_step + "," + meas_type +
-				")=" + HydroBase_Util.isStationTimeSeriesDataType (
-				__hbdmi, meas_type));
-		if ( HydroBase_Util.isStationTimeSeriesDataType (
-			__hbdmi, meas_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_station_JPanel;
+				")=" + HydroBase_Util.isStationTimeSeriesDataType (__hbdmi, meas_type));
+		if ( HydroBase_Util.isStationTimeSeriesDataType ( __hbdmi, meas_type) ) {
+			__selected_input_filter_JPanel = __input_filter_HydroBase_station_JPanel;
 		}
-		// Call this before the more general
-		// isStructureTimeSeriesDataType() method...
-		else if ( HydroBase_Util.isStructureSFUTTimeSeriesDataType (
-			__hbdmi, meas_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_structure_sfut_JPanel;
+		// Call this before the more general isStructureTimeSeriesDataType() method...
+		else if ( HydroBase_Util.isStructureSFUTTimeSeriesDataType ( __hbdmi, meas_type) ) {
+			__selected_input_filter_JPanel = __input_filter_HydroBase_structure_sfut_JPanel;
 		}
-		else if ( HydroBase_Util.isStructureTimeSeriesDataType (
-			__hbdmi, meas_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_structure_JPanel;
+		else if ( HydroBase_Util.isStructureTimeSeriesDataType ( __hbdmi, meas_type) ) {
+			__selected_input_filter_JPanel = __input_filter_HydroBase_structure_JPanel;
 		}
 		else if ((__input_filter_HydroBase_CASSCropStats_JPanel != null)
-			&& HydroBase_Util.
-			isAgriculturalCASSCropStatsTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying CASS crop stats panel");
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_CASSCropStats_JPanel;
+			&& HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType (	__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "","Displaying CASS crop stats panel");
+			__selected_input_filter_JPanel = __input_filter_HydroBase_CASSCropStats_JPanel;
 		}
-		else if ((__input_filter_HydroBase_CASSLivestockStats_JPanel
-			!= null) && HydroBase_Util.
-			isAgriculturalCASSLivestockStatsTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying CASS livestock stats panel");
-			__selected_input_filter_JPanel =
-			__input_filter_HydroBase_CASSLivestockStats_JPanel;
+		else if ((__input_filter_HydroBase_CASSLivestockStats_JPanel != null) && HydroBase_Util.
+			isAgriculturalCASSLivestockStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "","Displaying CASS livestock stats panel");
+			__selected_input_filter_JPanel = __input_filter_HydroBase_CASSLivestockStats_JPanel;
 		}
-		else if ((__input_filter_HydroBase_CUPopulation_JPanel
-			!= null) && HydroBase_Util.
-			isCUPopulationTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying CU population panel");
-			__selected_input_filter_JPanel =
-			__input_filter_HydroBase_CUPopulation_JPanel;
+		else if ((__input_filter_HydroBase_CUPopulation_JPanel != null) && HydroBase_Util.
+			isCUPopulationTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "","Displaying CU population panel");
+			__selected_input_filter_JPanel = __input_filter_HydroBase_CUPopulation_JPanel;
 		}
 		else if ( (__input_filter_HydroBase_NASS_JPanel != null) &&
-			HydroBase_Util.
-			isAgriculturalNASSCropStatsTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			//Message.printStatus (2, "",
-			//"Displaying NASS agstats panel");
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_NASS_JPanel;
+			HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType (	__hbdmi, __selected_data_type) ) {
+			//Message.printStatus (2, "","Displaying NASS agstats panel");
+			__selected_input_filter_JPanel = __input_filter_HydroBase_NASS_JPanel;
 		}
 		else if ( (__input_filter_HydroBase_irrigts_JPanel != null) &&
-			HydroBase_Util.isIrrigSummaryTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_irrigts_JPanel;
+			HydroBase_Util.isIrrigSummaryTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			__selected_input_filter_JPanel = __input_filter_HydroBase_irrigts_JPanel;
 		}
 		else if ((__input_filter_HydroBase_wells_JPanel != null) 
-		    && HydroBase_Util.isGroundWaterWellTimeSeriesDataType(
-		    __hbdmi, __selected_data_type)) {
+		    && HydroBase_Util.isGroundWaterWellTimeSeriesDataType( __hbdmi, __selected_data_type)) {
 			if (__selected_time_step.equals(__TIMESTEP_IRREGULAR)) {
-				__selected_input_filter_JPanel =
-					__input_filter_HydroBase_station_JPanel;
+				__selected_input_filter_JPanel = __input_filter_HydroBase_station_JPanel;
 			}
 			else {
-				__selected_input_filter_JPanel =
-					__input_filter_HydroBase_wells_JPanel;
+				__selected_input_filter_JPanel = __input_filter_HydroBase_wells_JPanel;
 			}
 		}		
 		else if ( (__input_filter_HydroBase_WIS_JPanel != null) &&
-			HydroBase_Util.isWISTimeSeriesDataType (
-			__hbdmi, __selected_data_type) ) {
-			__selected_input_filter_JPanel =
-				__input_filter_HydroBase_WIS_JPanel;
+			HydroBase_Util.isWISTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			__selected_input_filter_JPanel = __input_filter_HydroBase_WIS_JPanel;
 		}
 		
-		else {	// Generic input filter does not have anything...
-			__selected_input_filter_JPanel =
-				__input_filter_generic_JPanel;
+		else {
+            // Generic input filter does not have anything...
+			__selected_input_filter_JPanel = __input_filter_generic_JPanel;
 		}
 	}
 	else if(__selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) &&
 		(__input_filter_MexicoCSMN_JPanel != null) ) {
-		// Can only use the Mexico CSMN filters if they were originally
-		// set up...
+		// Can only use the Mexico CSMN filters if they were originally set up...
 		__selected_input_filter_JPanel=__input_filter_MexicoCSMN_JPanel;
 	}
 	else if(__selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) &&
@@ -9400,18 +9324,16 @@ private void ui_SetInputFilters()
 		__selected_input_filter_JPanel =
 		__input_filter_NWSRFS_FS5Files_JPanel;
 	}
-	else {	// Currently no other input types support filtering - this may
-		// also be used if HydroBase input filters were not set up due
-		// to a missing database connection...
+	else {
+        // Currently no other input types support filtering - this may also be used if HydroBase input
+        // filters were not set up due to a missing database connection...
 		__selected_input_filter_JPanel = __input_filter_generic_JPanel;
 	}
-	// Now loop through the available input filter panels and set visible
-	// the selected one...
+	// Now loop through the available input filter panels and set visible the selected one...
 	int size = __input_filter_JPanel_Vector.size();
 	JPanel input_filter_JPanel;
 	for ( int i = 0; i < size; i++ ) {
-		input_filter_JPanel =
-			(JPanel)__input_filter_JPanel_Vector.elementAt(i);
+		input_filter_JPanel = (JPanel)__input_filter_JPanel_Vector.elementAt(i);
 		if ( input_filter_JPanel == __selected_input_filter_JPanel ) {
 			input_filter_JPanel.setVisible ( true );
 		}
@@ -9489,12 +9411,12 @@ private void ui_SetInputTypeChoices ()
 	ui_SetIgnoreItemEvent ( false );
 
 	if ( __source_HydroBase_enabled ) {
-		// If enabled, select it because the users probably want it
-		// as the choice...
+		// If enabled, select it because the users probably want it as the choice...
 		__input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
 	}
-	else {	// Select the first item in the list...
+	else {
+        // Select the first item in the list...
 		__input_type_JComboBox.select ( null );
 		__input_type_JComboBox.select ( 0 );
 	}
@@ -9606,8 +9528,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 			BorderFactory.createTitledBorder (
 			BorderFactory.createLineBorder(Color.black),
 			//"Results: Time Series (" +	
-            "" + __results_ts_JListModel.size() + " time series, " +
-			selected_size + " selected") );
+            "" + __results_ts_JListModel.size() + " time series, " + selected_size + " selected") );
 	}
 	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
 	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null,
@@ -10362,10 +10283,6 @@ throws Exception
 		__Commands_Read_ReadNwsCard_String)){
 		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-		__Commands_Read_ReadNWSRFSESPTraceEnsemble_String)){
-		commandList_EditCommand ( __Commands_Read_ReadNWSRFSESPTraceEnsemble_String, null, __INSERT_COMMAND );
-	}
 	else if (command.equals( __Commands_Read_ReadNWSRFSFS5Files_String)){
 		commandList_EditCommand ( __Commands_Read_ReadNWSRFSFS5Files_String, null, __INSERT_COMMAND );
 	}
@@ -10657,6 +10574,10 @@ throws Exception
     if (command.equals( __Commands_Ensemble_CreateEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_CreateEnsemble_String, null, __INSERT_COMMAND );
     }
+    else if (command.equals(
+            __Commands_Ensemble_ReadNWSRFSESPTraceEnsemble_String)){
+            commandList_EditCommand ( __Commands_Ensemble_ReadNWSRFSESPTraceEnsemble_String, null, __INSERT_COMMAND );
+        }
     else if (command.equals(__Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, null, __INSERT_COMMAND );
     }
@@ -11042,8 +10963,7 @@ throws Exception
 		}
 		catch ( Exception e ) {
 			JGUIUtil.setWaitCursor ( this, false );
-			Message.printWarning ( 1, routine,
-			"Unable to select locations on map." );
+			Message.printWarning ( 1, routine, "Unable to select locations on map." );
 			Message.printWarning ( 3, routine, e );
 		}
 	}
@@ -11103,8 +11023,7 @@ private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 		old_command = (Command)__commands_JListModel.get(selected_indexes[i]);
 		old_command_string = (String)old_command.toString();
 		if ( to_comment ) {
-			// Replace the current command with a new string that has the
-			// comment character...
+			// Replace the current command with a new string that has the comment character...
 			new_command = commandList_NewCommand(
 					"# " + old_command_string,	// New command as comment
 					true );	// Create the command even if not recognized.
@@ -11127,8 +11046,7 @@ private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 
 /**
 Get the selected commands from the commands list, clone a copy, and save in the cut buffer.
-The commands can then be pasted into the command list with
-uiAction_PasteFromCutBufferToCommandList.
+The commands can then be pasted into the command list with uiAction_PasteFromCutBufferToCommandList.
 @param remove_original If true, then this is a Cut operation and the original
 commands should be removed from the list.  If false, a copy is made but the original
 commands will remain in the list.
@@ -11165,11 +11083,9 @@ This also calls timestepChoiceClicked() to set the data type modifier.
 */
 private void uiAction_DataTypeChoiceClicked()
 {	String rtn = "TSTool_JFrame.dataTypeChoiceClicked";
-	if (	(__input_type_JComboBox == null) ||
-		(__data_type_JComboBox == null) ) {
+	if ( (__input_type_JComboBox == null) || (__data_type_JComboBox == null) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Data type has been " +
-			"selected but GUI is not initialized." );
+			Message.printDebug ( 1, rtn, "Data type has been selected but GUI is not initialized." );
 		}
 		return;	// Not done initializing.
 	}
@@ -11178,26 +11094,24 @@ private void uiAction_DataTypeChoiceClicked()
 		// Apparently this happens when setData() or similar is called
 		// on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Data type has been " +
-			"selected:  null (select is ignored)" );
+			Message.printDebug ( 1, rtn, "Data type has been selected:  null (select is ignored)" );
 		}
 		return;
 	}
-	// For some input types, data types have additional label-only
-	// information...
+	// For some input types, data types have additional label-only information...
 	if ( __selected_data_type_full.indexOf('-') >= 0 ) {
-		if (	__selected_input_type.equals(__INPUT_TYPE_HydroBase) ||
+		if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ||
 			__selected_input_type.equals(__INPUT_TYPE_StateModB)) {
 			// Data type group is first and data type second...
-			__selected_data_type = StringUtil.getToken(
-				__selected_data_type_full, "-", 0, 1).trim();
+			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 1).trim();
 		}
-		else {	// Data type is first and explanation second...
-			__selected_data_type = StringUtil.getToken(
-				__selected_data_type_full, "-", 0, 0).trim();
+		else {
+            // Data type is first and explanation second...
+			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 0).trim();
 		}
 	}
-	else {	__selected_data_type = __selected_data_type_full;
+	else {
+        __selected_data_type = __selected_data_type_full;
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, rtn, "Data type has been selected:  \""
@@ -11223,24 +11137,18 @@ private void uiAction_DataTypeChoiceClicked()
 		String group =StringUtil.getToken(__selected_data_type,"-",0,0);
 		__time_step_JComboBox.removeAll ();
 		__time_step_JComboBox.setEnabled ( true );
-		if (	__selected_data_type.endsWith("DataValue") &&
-			group.equalsIgnoreCase("Rain") ) {
+		if ( __selected_data_type.endsWith("DataValue") && group.equalsIgnoreCase("Rain") ) {
 			__time_step_JComboBox.add ( __TIMESTEP_DAY );
 			__time_step_JComboBox.add ( __TIMESTEP_HOUR );
 		}
 		__time_step_JComboBox.add ( __TIMESTEP_IRREGULAR );
-		if (	__selected_data_type.endsWith("DataValue") &&
-			group.equalsIgnoreCase("Rain") ) {
-			try {	DIADvisor_SysConfig config =
-				__DIADvisor_dmi.readSysConfig();
-				__time_step_JComboBox.add ( "" +
-					config.getInterval() +
-					__TIMESTEP_MINUTE );
+		if ( __selected_data_type.endsWith("DataValue") && group.equalsIgnoreCase("Rain") ) {
+			try {
+                DIADvisor_SysConfig config = __DIADvisor_dmi.readSysConfig();
+				__time_step_JComboBox.add ( "" + config.getInterval() +	__TIMESTEP_MINUTE );
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 2, rtn,
-				"Could not determine"
-				+ " DIADvisor interval for time step choice." );
+				Message.printWarning ( 2, rtn, "Could not determine DIADvisor interval for time step choice." );
 				Message.printWarning ( 2, rtn, e );
 			}
 		}
@@ -11248,8 +11156,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__time_step_JComboBox.select ( 0 );
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ) {
-		Vector time_steps =
-			HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
+		Vector time_steps =	HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
 			__selected_data_type,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
@@ -11261,22 +11168,20 @@ private void uiAction_DataTypeChoiceClicked()
 		__time_step_JComboBox.select ( null );
 		__time_step_JComboBox.setEnabled ( true );
 		// Select monthly as the default if available...
-		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,
-			"Month", JGUIUtil.NONE, null, null ) ) {
+		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,"Month", JGUIUtil.NONE, null, null ) ) {
 			__time_step_JComboBox.select ( "Month" );
 		}
 		else {	// Select the first item...
-			try {	__time_step_JComboBox.select ( 0 );
+			try {
+                __time_step_JComboBox.select ( 0 );
 			}
 			catch ( Exception e ) {
-				// For cases when for some reason no choice
-				// is available.
+				// For cases when for some reason no choice is available.
 				__time_step_JComboBox.setEnabled ( false );
 			}
 		}
 		// If the data type is for a diversion or reservoir data type,
-		// hide the abbreviation column in the table model.  Else show
-		// the column.
+		// hide the abbreviation column in the table model.  Else show the column.
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ) {
 		// Mexico CSMN file...
@@ -11304,28 +11209,26 @@ private void uiAction_DataTypeChoiceClicked()
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
 		// Time steps are determined from the system...
-		Vector time_steps = NWSRFS_Util.getDataTypeIntervals (
-			__nwsrfs_dmi, __selected_data_type );
+		Vector time_steps = NWSRFS_Util.getDataTypeIntervals ( __nwsrfs_dmi, __selected_data_type );
 		__time_step_JComboBox.setData ( time_steps );
 		__time_step_JComboBox.select ( null );
 		__time_step_JComboBox.setEnabled ( true );
 		// Select 6Hour as the default if available...
-		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,
-			"6Hour", JGUIUtil.NONE, null, null ) ) {
+		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,"6Hour", JGUIUtil.NONE, null, null ) ) {
 			__time_step_JComboBox.select ( "6Hour" );
 		}
-		else {	// Select the first item...
-			try {	__time_step_JComboBox.select ( 0 );
+		else {
+            // Select the first item...
+			try {
+                __time_step_JComboBox.select ( 0 );
 			}
 			catch ( Exception e ) {
-				// For cases when for some reason no choice
-				// is available.
+				// For cases when for some reason no choice is available.
 				__time_step_JComboBox.setEnabled ( false );
 			}
 		}
 	}
-	else if ( __selected_input_type.equals(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble) ){
+	else if ( __selected_input_type.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble) ){
 		// ESP Trace Ensemble file...
 		__time_step_JComboBox.removeAll ();
 		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11334,17 +11237,14 @@ private void uiAction_DataTypeChoiceClicked()
 		__time_step_JComboBox.setEnabled ( false );
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
-		// Time steps are determined from the database based on the
-		// data type that is selected...
-		String data_type = StringUtil.getToken(
-			__data_type_JComboBox.getSelected()," ",0,0).trim();
+		// Time steps are determined from the database based on the data type that is selected...
+		String data_type = StringUtil.getToken(__data_type_JComboBox.getSelected()," ",0,0).trim();
 		Vector v = null;
-		try {	v = __rdmi.readMeasTypeListForTSIdent (
-					".." + data_type + ".." );
+		try {
+            v = __rdmi.readMeasTypeListForTSIdent (	".." + data_type + ".." );
 		}
 		catch ( Exception e ) {
-			Message.printWarning(2, rtn, "Error getting time "
-				+ "steps from RiversideDB.");
+			Message.printWarning(2, rtn, "Error getting time steps from RiversideDB.");
 			Message.printWarning(2, rtn, e);
 			v = null;
 		}
@@ -11360,21 +11260,16 @@ private void uiAction_DataTypeChoiceClicked()
 		if ( size > 0 ) {
 			for ( int i = 0; i < size; i++ ) {
 				mt = (RiversideDB_MeasType)v.elementAt(i);
-				// Only add if not already listed.
-				// Alternatively - add a "distinct" query
+				// Only add if not already listed. Alternatively - add a "distinct" query
 				time_step_base = mt.getTime_step_base();
 				time_step_mult = mt.getTime_step_mult();
-				if (	time_step_base.equalsIgnoreCase(
-					"IRREGULAR") ||
-					DMIUtil.isMissing(time_step_mult) ) {
+				if ( time_step_base.equalsIgnoreCase( "IRREGULAR") || DMIUtil.isMissing(time_step_mult) ) {
 					timestep = mt.getTime_step_base();
 				}
-				else {	timestep = "" + mt.getTime_step_mult() +
-						mt.getTime_step_base();
+				else {
+                    timestep = "" + mt.getTime_step_mult() + mt.getTime_step_base();
 				}
-				if (	!JGUIUtil.isSimpleJComboBoxItem(
-					__time_step_JComboBox,
-					timestep, JGUIUtil.NONE, null, null)){
+				if ( !JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox, timestep, JGUIUtil.NONE, null, null)){
 					__time_step_JComboBox.add(timestep);
 				}
 			}
@@ -11382,7 +11277,8 @@ private void uiAction_DataTypeChoiceClicked()
 			__time_step_JComboBox.select ( 0 );
 			__time_step_JComboBox.setEnabled ( true );
 		}
-		else {	__time_step_JComboBox.setEnabled ( false );
+		else {
+            __time_step_JComboBox.setEnabled ( false );
 		}
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_RiverWare) ) {
@@ -11457,9 +11353,8 @@ private void uiAction_EditCommand ()
 		Vector v = null;
 		if ( command.toString().startsWith("#") ) {
 			// Allow multiple lines to be edited in a comment...
-			// This is handled in the called method, which brings up a multi-line
-			// editor for comments.  Only edit the contiguous # block.
-			// The first one is a # but stop adding when lines no longer
+			// This is handled in the called method, which brings up a multi-line editor for comments.
+            // Only edit the contiguous # block. The first one is a # but stop adding when lines no longer
 			// start with #
 			v = new Vector ( selected_size );
 			for ( int i = 0; i < selected_size; i++ ) {
@@ -11471,12 +11366,12 @@ private void uiAction_EditCommand ()
 				v.addElement ( command );
 			}
 		}
-		else {	// Commands are one line...
+		else {
+            // Commands are one line...
 			v = new Vector ( 1 );
 			v.addElement ( command );
 		}
-		commandList_EditCommand ( "", // No action event from menus
-				v, __UPDATE_COMMAND );
+		commandList_EditCommand ( "", v, __UPDATE_COMMAND ); // No action event from menus
 	}
 }
 
@@ -11489,8 +11384,7 @@ private void uiAction_EditCommandFile ()
 	//
 	// Instantiate a file dialog object with no default...
 	//
-	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			ui_GetDir_LastCommandFileOpened() );
+	JFileChooser fc = JFileChooserFactory.createJFileChooser (ui_GetDir_LastCommandFileOpened() );
 	fc.setDialogTitle ( "Select File" );
 	SimpleFileFilter sff = new SimpleFileFilter ( "TSTool", "TSTool Command File" );
 	fc.addChoosableFileFilter ( sff );
@@ -11505,17 +11399,18 @@ private void uiAction_EditCommandFile ()
 	if ( IOUtil.isUNIXMachine() ) {
 		command_array[0] = "nedit";
 	}
-	else {	command_array[0] = "notepad";
+	else {
+        command_array[0] = "notepad";
 	}
 	if ( path != null ) {
-		try {	command_array[1] = path;
+		try {
+            command_array[1] = path;
 			ProcessManager p = new ProcessManager( command_array );
 			Thread thread = new Thread ( p );
 			thread.start ();
 		}
 		catch ( Exception e2 ) {
-			Message.printWarning ( 1, routine,
-			"Unable to edit file \"" + path + "\"" );
+			Message.printWarning ( 1, routine, "Unable to edit file \"" + path + "\"" );
 		}
 	}
 }
@@ -11540,7 +11435,8 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 	props.set ( "OutputFile=" + filename );
 	// Final list is selected...
 	 if ( __ts_processor != null ) {
-		try {	int selected_ts = JGUIUtil.selectedSize(__results_ts_JList);
+		try {
+            int selected_ts = JGUIUtil.selectedSize(__results_ts_JList);
 			if ( selected_ts == 0 ) {
 				commandProcessor_ProcessTimeSeriesResultsList(null,props);
 			}
@@ -11570,14 +11466,11 @@ private void uiAction_FileExitClicked ()
 				if ( __commands_JListModel.size() > 0 ) {
 					x = new ResponseJDialog ( this,
 					IOUtil.getProgramName(),
-					"Do you want to save the changes you " +
-					"made?",
-					ResponseJDialog.YES| ResponseJDialog.NO|
-					ResponseJDialog.CANCEL).response();
+					"Do you want to save the changes you made?",
+					ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
 				}
 				if ( x == ResponseJDialog.CANCEL ) {
-					setDefaultCloseOperation(
-						DO_NOTHING_ON_CLOSE);
+					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
 				else if ( x == ResponseJDialog.YES ) {
@@ -11585,23 +11478,18 @@ private void uiAction_FileExitClicked ()
 					uiAction_WriteCommandFile (	__command_file_name, true);
 				}
 			}
-			else {	// A command file exists...  Warn the user.
-				// They can save to the existing file name or
-				// can cancel and File...Save As... to a
-				// different name.  Have not been saved
-				// before...
+			else {
+                // A command file exists...  Warn the user. They can save to the existing file name or
+				// can cancel and File...Save As... to a different name.  Have not been saved before...
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
 					x = new ResponseJDialog ( this,
-					IOUtil.getProgramName(), "Do you want "+
-					"to save the changes you made to\n\""
+					IOUtil.getProgramName(), "Do you want to save the changes you made to\n\""
 					+ __command_file_name + "\"?",
-					ResponseJDialog.YES| ResponseJDialog.NO|
-					ResponseJDialog.CANCEL).response();
+					ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
 				}
 				if ( x == ResponseJDialog.CANCEL ) {
-					setDefaultCloseOperation(
-						DO_NOTHING_ON_CLOSE);
+					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
 				else if ( x == ResponseJDialog.YES ) {
@@ -11610,18 +11498,17 @@ private void uiAction_FileExitClicked ()
 				// Else if No will just exit below...
 			}
 		}
-		// Now make sure the user wants to exit - they might have a lot
-		// of data processed...
+		// Now make sure the user wants to exit - they might have a lot of data processed...
 		if ( __show_main ) {
-			x = new ResponseJDialog (this,
-			"Exit TSTool", "Are you sure you want to exit TSTool?",
+			x = new ResponseJDialog (this, "Exit TSTool", "Are you sure you want to exit TSTool?",
 			ResponseJDialog.YES| ResponseJDialog.NO).response();
 		}
 	}
 	if ( x == ResponseJDialog.YES ) {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setVisible(false);
-		try {	dispose();
+		try {
+            dispose();
 		}
 		catch ( Exception e ) {
 			// Why is this a problem?
@@ -11629,7 +11516,8 @@ private void uiAction_FileExitClicked ()
 		Message.closeLogFile();
 		System.exit(0);
 	}
-	else {	// Cancel...
+	else {
+        // Cancel...
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
 }
@@ -11639,17 +11527,14 @@ Respond to "Get Time Series List" being clicked.
 */
 private void uiAction_GetTimeSeriesListClicked()
 {	String message, routine = getClass().getName() + ".getTimeSeriesListClicked";
-	Message.printStatus ( 1, routine,
-	"Getting time series list from " + __selected_input_type +
-	" input type..." );
+	Message.printStatus ( 1, routine, "Getting time series list from " + __selected_input_type + " input type..." );
 
 	// Verify that the input filters have valid data...
 
 	if ( __selected_input_filter_JPanel != __input_filter_generic_JPanel ) {
-		if (	!((InputFilter_JPanel)__selected_input_filter_JPanel).
+		if ( !((InputFilter_JPanel)__selected_input_filter_JPanel).
 			checkInput(true) ) {
-			// An input error was detected so don't get the time
-			// series...
+			// An input error was detected so don't get the time series...
 			return;
 		}
 	}
@@ -11659,168 +11544,163 @@ private void uiAction_GetTimeSeriesListClicked()
 	// should only be printed if successful.
 
 	if ( __selected_input_type.equals (__INPUT_TYPE_DateValue)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading DateValue file.  Cannot " +
-			"display time series list.";
+			message = "Error reading DateValue file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_DIADvisor)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading DIADvisor.  Cannot " +
-			"display time series list.";
+			message = "Error reading DIADvisor.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_HydroBase)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( null ); 
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( null ); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading HydroBase.  Cannot " +
-			"display time series list.";
+			message = "Error reading HydroBase.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_MEXICO_CSMN)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ();
 		}
 		catch ( Exception e ) {
 			message =
-			"Error reading Mexico CSMN catalog file.  Cannot " +
-			"display time series list.";
+			"Error reading Mexico CSMN catalog file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_MODSIM)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading MODSIM file.  Cannot " +
-			"display time series list.";
+			message = "Error reading MODSIM file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_NWSCARD)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading NWS CARD file.  Cannot " +
-			"display time series list.";
+			message = "Error reading NWS CARD file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
-	else if ( __selected_input_type.equals(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadNWSRFSESPTraceEnsembleHeaders ();
+	else if ( __selected_input_type.equals(	__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadNWSRFSESPTraceEnsembleHeaders ();
 		}
 		catch ( Exception e ) {
-			message =
-			"Error reading NWSRFS_ESPTraceEnsemble file.  Cannot " +
-			"display time series list.";
+			message = "Error reading NWSRFS_ESPTraceEnsemble file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
-		try {	// This reads the time series headers and displays the
-			// results in the list...
+		try {
+            // This reads the time series headers and displays the results in the list...
 			uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ();
 		}
 		catch ( Exception e ) {
-			message =
-			"Error reading NWSRFS FS5Files time series list. " +
-			"Cannot display time series list.";
+			message = "Error reading NWSRFS FS5Files time series list.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_RiversideDB)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading RiversideDB.  Cannot " +
-			"display time series list.";
+			message = "Error reading RiversideDB.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_RiverWare)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading RiverWare file.  Cannot " +
-			"display time series list.";
+			message = "Error reading RiverWare file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_StateCU)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading StateCU file.  Cannot " +
-			"display time series list.";
+			message = "Error reading StateCU file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_StateMod)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading StateMod file.  Cannot " +
-			"display time series list.";
+			message = "Error reading StateMod file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_StateModB)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading StateMod binary file.  Cannot "
-			+ "display time series list.";
+			message = "Error reading StateMod binary file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	else if ( __selected_input_type.equals (__INPUT_TYPE_USGSNWIS)) {
-		try {	uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ();
+		try {
+            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading USGS NWIS file.  Cannot " +
-			"display time series list.";
+			message = "Error reading USGS NWIS file.  Cannot display time series list.";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 2, routine, e );
 			return;
 		}
 	}
 	Message.printStatus ( 1, routine,
-	"Time series list from " + __selected_input_type +
-	" input type are listed in Time Series List area." );
+	"Time series list from " + __selected_input_type + " input type are listed in Time Series List area." );
 }
 
 /**
