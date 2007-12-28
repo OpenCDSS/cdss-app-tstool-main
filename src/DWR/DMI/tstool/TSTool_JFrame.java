@@ -23,13 +23,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -120,7 +117,6 @@ import RTi.GR.GRShape;
 import RTi.GRTS.TSProcessor;
 import RTi.GRTS.TSPropertiesJFrame;
 import RTi.GRTS.TSViewJFrame;
-import RTi.TS.BinaryTS;
 import RTi.TS.DateValueTS;
 import RTi.TS.DayTS;
 import RTi.TS.MexicoCsmnTS;
@@ -156,7 +152,6 @@ import RTi.Util.IO.CommandDiscoverable;
 import RTi.Util.IO.CommandProcessor;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
-import RTi.Util.IO.CommandStatus;
 import RTi.Util.IO.CommandStatusProvider;
 import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.CommandStatusUtil;
@@ -1022,16 +1017,6 @@ JMenuItem
 	__Commands_Analyze_RunDataTests_JMenuItem = null,
 	__Commands_Analyze_ProcessDataTestResults_JMenuItem = null;
 
-// Commands...Ensemble Processing...
-
-JMenu
-    __Commands_Ensemble_JMenu = null;
-JMenuItem
-    __Commands_Ensemble_CreateEnsemble_JMenuItem,
-    __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem,
-    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
-    __Commands_Ensemble_TS_WeightTraces_JMenuItem;
-
 // Commands...Models....
 JMenu
 	__Commands_Models_JMenu = null;
@@ -1050,7 +1035,6 @@ JMenuItem
 	__Commands_Output_SortTimeSeries_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
-	__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,
 	__Commands_Output_WriteRiverWare_JMenuItem,
     __Commands_Output_WriteSHEF_JMenuItem,
 	__Commands_Output_WriteStateCU_JMenuItem,
@@ -1059,7 +1043,17 @@ JMenuItem
 
     __Commands_Output_ProcessTSProduct_JMenuItem,
 	__Commands_Output_CustomCommand_JMenuItem;
-   
+
+//Commands...Ensemble Processing...
+
+JMenu
+    __Commands_Ensemble_JMenu = null;
+JMenuItem
+    __Commands_Ensemble_CreateEnsemble_JMenuItem,
+    __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem,
+    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
+    __Commands_Ensemble_TS_WeightTraces_JMenuItem,
+    __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem;
 
 // Commands (Table)...
 
@@ -1071,28 +1065,44 @@ JMenuItem
 // Commands (General)...
 
 JMenu
-	__Commands_General_JMenu = null;
+	__Commands_General_Logging_JMenu = null;
 JMenuItem
-	__Commands_General_StartLog_JMenuItem,
-	__Commands_General_SetDebugLevel_JMenuItem,
-	__Commands_General_SetWarningLevel_JMenuItem,
+	__Commands_General_Logging_StartLog_JMenuItem = null,
+	__Commands_General_Logging_SetDebugLevel_JMenuItem = null,
+	__Commands_General_Logging_SetWarningLevel_JMenuItem = null;
 
-	__Commands_General_SetWorkingDir_JMenuItem,
+JMenu
+    __Commands_General_Comments_JMenu = null;
+JMenuItem
+	__Commands_General_Comments_Comment_JMenuItem = null,
+	__Commands_General_Comments_StartComment_JMenuItem = null,
+	__Commands_General_Comments_EndComment_JMenuItem = null;
 
-	__Commands_General_Comment_JMenuItem,
-	__Commands_General_StartComment_JMenuItem,
-	__Commands_General_EndComment_JMenuItem,
+JMenu
+    __Commands_General_FileHandling_JMenu = null;
+JMenuItem
+    __Commands_General_FileHandling_RemoveFile_JMenuItem = null;
 
-	__Commands_General_Exit_JMenuItem,
+JMenu
+    __Commands_General_Running_JMenu = null;
+JMenuItem
+	__Commands_General_Running_RunCommands_JMenuItem = null,
+	__Commands_General_Running_RunProgram_JMenuItem = null,
+    __Commands_General_Running_RunPython_JMenuItem = null,
+    __Commands_General_Running_Exit_JMenuItem = null,
+    __Commands_General_Running_SetWorkingDir_JMenuItem = null;
 
-    __Commands_General_StartRegressionTestResultsReport_JMenuItem = null,
-	__Commands_General_RunCommands_JMenuItem = null,
-	__Commands_General_RunProgram_JMenuItem = null,
-	__Commands_General_CompareFiles_JMenuItem = null,
-    __Commands_General_RemoveFile_JMenuItem = null,
-	__Commands_General_WriteProperty_JMenuItem = null,
-	__Commands_General_TestCommand_JMenuItem = null,
-	__Commands_General_CreateRegressionTestCommandFile_JMenuItem = null;
+//Commands (General - Test Processing)...
+JMenu
+    __Commands_General_TestProcessing_JMenu = null;
+JMenuItem
+    __Commands_General_TestProcessing_CompareFiles_JMenuItem = null,
+    __Commands_General_TestProcessing_WriteProperty_JMenuItem = null,
+    //-- separator ---
+    __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem = null,
+    __Commands_General_TestProcessing_StartRegressionTestResultsReport_JMenuItem = null,
+    //-- separator ---
+    __Commands_General_TestProcessing_TestCommand_JMenuItem = null;
 
 // Commands (HydroBase)...
 JMenu
@@ -1380,7 +1390,6 @@ private String
 	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()...  <sort time series>",
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()...  <write NWS Card file>",
-	__Commands_Output_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()...  <write NWSRFS ESP trace ensemble file>",
 	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write RiverWare file>",
     __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write SHEF (Standard Hydrologic Exchange Format) file>",
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()...  <write StateCU file>",
@@ -1405,14 +1414,6 @@ private String
 	__Commands_Models_String = "Models",
 	__Commands_Models_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route) (under development)>",
     
-    // Commands...Ensemble processing...
-    
-    __Commands_Ensemble_String = "Ensemble Processing",
-    __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()...  <convert 1 time series into an ensemble>",
-    __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
-    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
-    __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
-    
 	// HydroBase commands...
 
 	__Commands_HydroBase_String = "HydroBase",
@@ -1423,6 +1424,15 @@ private String
 	__Commands_NDFD_String = "NDFD",
 	__Commands_NDFD_openNDFD_String = TAB +	"OpenNDFD()... <open NDFD web site connection>",
     
+    // Commands...Ensemble processing...
+    
+    __Commands_Ensemble_String = "Ensemble Processing",
+    __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()...  <convert 1 time series into an ensemble>",
+    __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
+    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
+    __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
+    __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()...  <write NWSRFS ESP trace ensemble file>",
+    
     // Table Commands...
 
     __Commands_Table_String = "Table",
@@ -1430,24 +1440,33 @@ private String
 
 	// General Commands...
 
-	__Commands_General_String = "General",
-	__Commands_General_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
-	__Commands_General_SetDebugLevel_String = TAB +	"SetDebugLevel()... <set debug message level>",
-	__Commands_General_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
-	__Commands_General_SetWorkingDir_String = TAB +	"SetWorkingDir()... <set the working directory for relative paths>",
-	__Commands_General_Comment_String = TAB + "# comment(s)...",
-	__Commands_General_StartComment_String = TAB + "/*   <start comment>",
-	__Commands_General_EndComment_String = TAB + "*/   <end comment>",
-	__Commands_General_Exit_String = TAB + "Exit()  <to end processing>",
-    __Commands_General_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
-	__Commands_General_RunCommands_String = TAB + "RunCommands()... <run a command file>",
-	__Commands_General_RunProgram_String = TAB + "RunProgram()... <run external program>",
-    __Commands_General_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
-	__Commands_General_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
-	__Commands_General_WriteProperty_String = TAB + "WriteProperty()... <used to test software>",
-	__Commands_General_TestCommand_String = TAB + "TestCommand()... <to test software>",
-	__Commands_General_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to test software>",
-
+	__Commands_General_Logging_String = "General - Logging",
+	__Commands_General_Logging_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
+	__Commands_General_Logging_SetDebugLevel_String = TAB +	"SetDebugLevel()... <set debug message level>",
+	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
+   
+    __Commands_General_Comments_String = "General - Comments",
+	__Commands_General_Comments_Comment_String = TAB + "# comment(s)...",
+	__Commands_General_Comments_StartComment_String = TAB + "/*   <start comment>",
+	__Commands_General_Comments_EndComment_String = TAB + "*/   <end comment>",
+    
+    __Commands_General_FileHandling_String = "General - File Handling",
+    __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
+	
+    __Commands_General_Running_String = "General - Running",
+	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
+	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run external program>",
+    __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
+    __Commands_General_Running_Exit_String = TAB + "Exit()  <to end processing>",
+    __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
+ 
+    __Commands_General_TestProcessing_String = "General - Test Processing",
+    __Commands_General_TestProcessing_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
+	__Commands_General_TestProcessing_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
+	__Commands_General_TestProcessing_WriteProperty_String = TAB + "WriteProperty()... <used to test software>",
+	__Commands_General_TestProcessing_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to test software>",
+    __Commands_General_TestProcessing_TestCommand_String = TAB + "TestCommand()... <to test software>",
+    
 	// Results menu choices (order in GUI)...
 
 	__Results_Graph_AnnualTraces_String = "Graph - Annual Traces...",
@@ -2255,10 +2274,10 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	}
 	else {
 		// New command, so look for comment actions.
-		if ( action.equals(__Commands_General_Comment_String) ) {
+		if ( action.equals(__Commands_General_Comments_Comment_String) ) {
 			is_comment_block = true;
 		}
-		if ( action.equals(__Commands_General_Exit_String) ) {
+		if ( action.equals(__Commands_General_Running_Exit_String) ) {
 			is_exit = true;
 		}
 	}
@@ -3125,40 +3144,7 @@ private boolean commandList_EditCommandOldStyle (
 
 	// General...
 
-	else if ( action.equals( __Commands_General_RunProgram_String)||
-		(StringUtil.indexOfIgnoreCase(command,"runProgram",0)>= 0) ) { 
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for runProgram()" );
-		}
-		edited_cv = new runProgram_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-/*
-	else if (action.equals(__Commands_General_setBinaryTSDayCutoff_String)||
-		command.regionMatches(true,0,"setBinaryTSDayCutoff(",0,21) ||
-		command.regionMatches(true,0,"setBinaryTSDayCutoff (",0,22)){
-		edited_cv = new setBinaryTSDayCutoff_Dialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-	else if ( action.equals( __Commands_General_setBinaryTSFile_String) ||
-		command.regionMatches(true,0,"setBinaryTSFile(",0,16) ||
-		command.regionMatches(true,0,"setBinaryTSFile (",0,17) ) {
-		edited_cv = new setBinaryTSFile_Dialog ( this, __props,
-			cv, TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-	else if (action.equals( __Commands_General_setBinaryTSPeriod_String) ||
-		command.regionMatches(true,0,"setBinaryTSPeriod(",0,18) ||
-		command.regionMatches(true,0,"setBinaryTSPeriod (",0,19)){
-		edited_cv = new setBinaryTSPeriod_Dialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-*/
-	else if ( action.equals( __Commands_General_SetDebugLevel_String) ||
+	else if ( action.equals( __Commands_General_Logging_SetDebugLevel_String) ||
 		command.regionMatches(true,0,"setDebugLevel",0,13) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
@@ -3168,7 +3154,7 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_General_SetWarningLevel_String) ||
+	else if ( action.equals( __Commands_General_Logging_SetWarningLevel_String) ||
 		command.regionMatches(true,0,"setWarningLevel",0,15) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
@@ -3178,7 +3164,7 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_General_SetWorkingDir_String) ||
+	else if ( action.equals( __Commands_General_Running_SetWorkingDir_String) ||
 		command.regionMatches(true,0,"setWorkingDir",0,13) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
@@ -3188,7 +3174,7 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit), command_to_edit).getText();
 	}
-	else if ( action.equals(__Commands_General_StartComment_String) ) {
+	else if ( action.equals(__Commands_General_Comments_StartComment_String) ) {
 		// edited_cv is just a new comment...
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
@@ -3197,7 +3183,7 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "/*" );
 	}
-	else if ( action.equals(__Commands_General_EndComment_String) ) {
+	else if ( action.equals(__Commands_General_Comments_EndComment_String) ) {
 		// edited_cv is just a new comment...
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
@@ -3206,7 +3192,7 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
 	}
-	else if ( action.equals(__Commands_General_Exit_String) ) {
+	else if ( action.equals(__Commands_General_Running_Exit_String) ) {
 		// No need to edit.  Just return "exit".
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "Exit" );
@@ -6349,14 +6335,9 @@ private void ui_CheckGUIState ()
 
 		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
         
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, true);
-
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, true);
@@ -6364,15 +6345,20 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem, true);
+        
+        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem,true);
 
 		/* TODO - it is irritating to not be able to run commands
 		  when external input changes (or during debugging)...
 		if (	__commands_dirty ||
 			(!__commands_dirty && (ts_list_size == 0)) ) {
-			JGUIUtil.setEnabled (
-				__run_commands_JButton, true );
+			JGUIUtil.setEnabled ( __run_commands_JButton, true );
 		}
-		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
+		else {
+            JGUIUtil.setEnabled ( __run_commands_JButton, false );
 		}
 		*/
 		if ( selected_commands_size > 0 ) {
@@ -6446,14 +6432,9 @@ private void ui_CheckGUIState ()
 		// create time series...
 		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
         
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, false);
-
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, false );
         JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem,false);
@@ -6461,6 +6442,11 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem,false);
+        
+        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
+        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem,false);
 
 		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
@@ -8138,207 +8124,136 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	// "Commands...Manipulate Time Series"...
 
-	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=
-		new JMenu("Manipulate Time Series"));
+	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=new JMenu("Manipulate Time Series"));
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Add_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Add_String,this) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Add_JMenuItem =
+        new SimpleJMenuItem( __Commands_Manipulate_Add_String,this) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_AddConstant_JMenuItem=new SimpleJMenuItem(
-		__Commands_Manipulate_AddConstant_String,this) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_AddConstant_JMenuItem=
+        new SimpleJMenuItem( __Commands_Manipulate_AddConstant_String,this) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add(
-		__Commands_Manipulate_AdjustExtremes_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Manipulate_AdjustExtremes_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add(__Commands_Manipulate_AdjustExtremes_JMenuItem =
+		new SimpleJMenuItem(__Commands_Manipulate_AdjustExtremes_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_ARMA_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_ARMA_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ARMA_JMenuItem =
+        new SimpleJMenuItem( __Commands_Manipulate_ARMA_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Blend_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Blend_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Blend_JMenuItem =
+        new SimpleJMenuItem( __Commands_Manipulate_Blend_String, this ) );
     
-    __Commands_ManipulateTimeSeries_JMenu.add (
-            __Commands_Manipulate_ChangePeriod_JMenuItem =
-            new SimpleJMenuItem( __Commands_Manipulate_ChangePeriod_String, this ) );
+    __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ChangePeriod_JMenuItem =
+        new SimpleJMenuItem( __Commands_Manipulate_ChangePeriod_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_ConvertDataUnits_JMenuItem =
+	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ConvertDataUnits_JMenuItem =
 		new SimpleJMenuItem( __Commands_Manipulate_ConvertDataUnits_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Cumulate_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Cumulate_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Cumulate_JMenuItem =
+        new SimpleJMenuItem(__Commands_Manipulate_Cumulate_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Divide_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Divide_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Divide_JMenuItem =
+        new SimpleJMenuItem( __Commands_Manipulate_Divide_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Free_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Free_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Free_JMenuItem =
+        new SimpleJMenuItem(__Commands_Manipulate_Free_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Multiply_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Multiply_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Multiply_JMenuItem =
+        new SimpleJMenuItem( __Commands_Manipulate_Multiply_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_RunningAverage_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Manipulate_RunningAverage_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_RunningAverage_JMenuItem =
+		new SimpleJMenuItem(__Commands_Manipulate_RunningAverage_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Scale_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Scale_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Scale_JMenuItem =
+        new SimpleJMenuItem(__Commands_Manipulate_Scale_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_ShiftTimeByInterval_JMenuItem=
-		new SimpleJMenuItem(
-		__Commands_Manipulate_ShiftTimeByInterval_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_ShiftTimeByInterval_JMenuItem=
+		new SimpleJMenuItem(__Commands_Manipulate_ShiftTimeByInterval_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (
-		__Commands_Manipulate_Subtract_JMenuItem = new SimpleJMenuItem(
-		__Commands_Manipulate_Subtract_String, this ) );
+	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Subtract_JMenuItem =
+        new SimpleJMenuItem(__Commands_Manipulate_Subtract_String, this ) );
 
 	// "Commands...Analyze Time Series"...
 
-	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu=
-		new JMenu(__Commands_AnalyzeTimeSeries_String) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_AnalyzePattern_JMenuItem = new SimpleJMenuItem(
-		__Commands_Analyze_AnalyzePattern_String, this ) );
+	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu= new JMenu(__Commands_AnalyzeTimeSeries_String) );
+	__Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_AnalyzePattern_JMenuItem =
+        new SimpleJMenuItem(__Commands_Analyze_AnalyzePattern_String, this ) );
 
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_CompareTimeSeries_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_CompareTimeSeries_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_CompareTimeSeries_JMenuItem =
+		new SimpleJMenuItem(__Commands_Analyze_CompareTimeSeries_String, this ) );
 
 	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_NewDataTest_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_NewDataTest_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_ReadDataTestFromRiversideDB_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_ReadDataTestFromRiversideDB_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_RunDataTests_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_RunDataTests_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (
-		__Commands_Analyze_ProcessDataTestResults_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Analyze_ProcessDataTestResults_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_NewDataTest_JMenuItem =
+		new SimpleJMenuItem(__Commands_Analyze_NewDataTest_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ReadDataTestFromRiversideDB_JMenuItem =
+		new SimpleJMenuItem(__Commands_Analyze_ReadDataTestFromRiversideDB_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_RunDataTests_JMenuItem =
+		new SimpleJMenuItem(__Commands_Analyze_RunDataTests_String, this ) );
+	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ProcessDataTestResults_JMenuItem =
+		new SimpleJMenuItem(__Commands_Analyze_ProcessDataTestResults_String, this ) );
 
 	// "Commands...Models"...
 
 	__Commands_JMenu.add ( __Commands_Models_JMenu = new JMenu(__Commands_Models_String) );
-	__Commands_Models_JMenu.add (
-		__Commands_Models_LagK_JMenuItem = new SimpleJMenuItem( __Commands_Models_LagK_String, this ) );
-    
-	// "Commands...Ensemble processing"...
-    
-    __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
-    __Commands_Ensemble_JMenu.add(
-        __Commands_Ensemble_CreateEnsemble_JMenuItem = new SimpleJMenuItem(
-        __Commands_Ensemble_CreateEnsemble_String, this) );
-
-    if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-        __Commands_Ensemble_JMenu.add(
-            __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem =
-            new SimpleJMenuItem( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, this) );
-    }
-    __Commands_Ensemble_JMenu.add (
-            __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
-            new SimpleJMenuItem( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, this ) );
-    
-    __Commands_Ensemble_JMenu.add (
-            __Commands_Ensemble_TS_WeightTraces_JMenuItem =
-            new SimpleJMenuItem(__Commands_Ensemble_TS_WeightTraces_String, this ) );
+	__Commands_Models_JMenu.add ( __Commands_Models_LagK_JMenuItem =
+        new SimpleJMenuItem( __Commands_Models_LagK_String, this ) );
 
 	// "Commands...Output Time Series"...
 
 	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=new JMenu(__Commands_OutputTimeSeries_String) );
 
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_DeselectTimeSeries_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_DeselectTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_DeselectTimeSeries_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_SelectTimeSeries_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SelectTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SelectTimeSeries_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_SetOutputDetailedHeaders_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SetOutputDetailedHeaders_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputDetailedHeaders_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add(
-		__Commands_Output_SetOutputPeriod_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add(	__Commands_Output_SetOutputPeriod_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputPeriod_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_SetOutputYearType_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SetOutputYearType_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputYearType_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_SortTimeSeries_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SortTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SortTimeSeries_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_WriteDateValue_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
 
 	if ( __source_NWSCard_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-			__Commands_Output_WriteNwsCard_JMenuItem =
+		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteNwsCard_JMenuItem =
 			new SimpleJMenuItem( __Commands_Output_WriteNwsCard_String, this ) );
 	}
 
-	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-			__Commands_Output_WriteNWSRFSESPTraceEnsemble_JMenuItem=
-			new SimpleJMenuItem(__Commands_Output_WriteNWSRFSESPTraceEnsemble_String,this ));
-	}
-
 	if ( __source_RiverWare_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add(
-			__Commands_Output_WriteRiverWare_JMenuItem =
+		__Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiverWare_JMenuItem =
 			new SimpleJMenuItem(__Commands_Output_WriteRiverWare_String, this ) );
 	}
     
     if ( __source_SHEF_enabled ) {
-        __Commands_OutputTimeSeries_JMenu.add (
-        __Commands_Output_WriteSHEF_JMenuItem = new SimpleJMenuItem(  __Commands_Output_WriteSHEF_String, this ) );
+        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteSHEF_JMenuItem =
+            new SimpleJMenuItem(  __Commands_Output_WriteSHEF_String, this ) );
     }
 
 	if ( __source_StateCU_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_WriteStateCU_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_WriteStateCU_String, this ) );
+		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteStateCU_JMenuItem =
+            new SimpleJMenuItem( __Commands_Output_WriteStateCU_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
-		__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_WriteStateMod_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_WriteStateMod_String, this ) );
+		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteStateMod_JMenuItem =
+            new SimpleJMenuItem(__Commands_Output_WriteStateMod_String, this ) );
 	}
 
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_WriteSummary_JMenuItem = new SimpleJMenuItem(
-		__Commands_Output_WriteSummary_String, this ) );
+	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteSummary_JMenuItem =
+        new SimpleJMenuItem( __Commands_Output_WriteSummary_String, this ) );
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
-	__Commands_OutputTimeSeries_JMenu.add (
-		__Commands_Output_ProcessTSProduct_JMenuItem =
+	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_ProcessTSProduct_JMenuItem =
 		new SimpleJMenuItem( __Commands_Output_ProcessTSProduct_String, this ) );
-    __Commands_OutputTimeSeries_JMenu.add (
-            __Commands_Output_CustomCommand_JMenuItem =
-            new SimpleJMenuItem( __Commands_Output_CustomCommand_String, this ) );
+    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_CustomCommand_JMenuItem =
+        new SimpleJMenuItem( __Commands_Output_CustomCommand_String, this ) );
 }
 
 /**
@@ -8347,87 +8262,92 @@ Initialize the GUI "Commands...General".
 private void ui_InitGUIMenus_CommandsGeneral ()
 {	if ( __source_HydroBase_enabled ) {
 		__Commands_JMenu.addSeparator();
-		__Commands_JMenu.add( __Commands_HydroBase_JMenu =
-			new JMenu( __Commands_HydroBase_String, true ) );	
-		__Commands_HydroBase_JMenu.add (
-			__Commands_HydroBase_OpenHydroBase_JMenuItem =
+		__Commands_JMenu.add( __Commands_HydroBase_JMenu = new JMenu( __Commands_HydroBase_String, true ) );	
+		__Commands_HydroBase_JMenu.add (__Commands_HydroBase_OpenHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_HydroBase_OpenHydroBase_String, this ) );
 	}
+    /* FIXME SAM 2007-12-23 Need to re-enable when there is time
 	if ( __source_NDFD_enabled ) {
 		__Commands_JMenu.addSeparator();
-		__Commands_JMenu.add( __Commands_NDFD_JMenu =
-			new JMenu( __Commands_NDFD_String, true ) );	
-		__Commands_NDFD_JMenu.add (
-			__Commands_NDFD_openNDFD_JMenuItem =
+		__Commands_JMenu.add( __Commands_NDFD_JMenu =new JMenu( __Commands_NDFD_String, true ) );	
+		__Commands_NDFD_JMenu.add (	__Commands_NDFD_openNDFD_JMenuItem =
 			new SimpleJMenuItem(__Commands_NDFD_openNDFD_String, this ) );
 	}
+    */
+
+    // "Commands...Ensemble processing"...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
+    __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CreateEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_CreateEnsemble_String, this) );
+    
+    if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+        __Commands_Ensemble_JMenu.add( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, this) );
+    }
+    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, this ) );
+    
+    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_WeightTraces_JMenuItem =
+        new SimpleJMenuItem(__Commands_Ensemble_TS_WeightTraces_String, this ) );
+    if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem=
+            new SimpleJMenuItem(__Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String,this ));
+    }
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
-    __Commands_Table_JMenu.add(
-            __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =new SimpleJMenuItem(
-            __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
 
-	__Commands_JMenu.addSeparator();
-	__Commands_JMenu.add( __Commands_General_JMenu = new JMenu( __Commands_General_String, true ) );	
+	__Commands_JMenu.addSeparator();   // Separate general commands from others
+    
+    __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
+    __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_Comment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_StartComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_StartComment_String, this ) );
+    __Commands_General_Comments_JMenu.add( __Commands_General_Comments_EndComment_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Comments_EndComment_String, this ) );
+    
+    __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
+    
+	__Commands_JMenu.add( __Commands_General_Logging_JMenu = new JMenu( __Commands_General_Logging_String, true ) );	
+	__Commands_General_Logging_JMenu.add(__Commands_General_Logging_StartLog_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Logging_StartLog_String, this ) );
+	__Commands_General_Logging_JMenu.add (__Commands_General_Logging_SetDebugLevel_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Logging_SetDebugLevel_String, this ) );
+	__Commands_General_Logging_JMenu.add ( __Commands_General_Logging_SetWarningLevel_JMenuItem =
+		new SimpleJMenuItem(__Commands_General_Logging_SetWarningLevel_String, this ) );
 
-	__Commands_General_JMenu.add(
-		__Commands_General_StartLog_JMenuItem =new SimpleJMenuItem(
-		__Commands_General_StartLog_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_SetDebugLevel_JMenuItem =new SimpleJMenuItem(
-		__Commands_General_SetDebugLevel_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_SetWarningLevel_JMenuItem =
-		new SimpleJMenuItem(__Commands_General_SetWarningLevel_String, this ) );
+    __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
+    __Commands_General_Running_JMenu.add (__Commands_General_Running_RunCommands_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunProgram_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_RunProgram_String,this));
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
+    __Commands_General_Running_JMenu.addSeparator();
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
+	__Commands_General_Running_JMenu.add(__Commands_General_Running_SetWorkingDir_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_SetWorkingDir_String, this ) );
 
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add(
-		__Commands_General_SetWorkingDir_JMenuItem =new SimpleJMenuItem(
-		__Commands_General_SetWorkingDir_String, this ) );
-
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add (
-		__Commands_General_Comment_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_Comment_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_StartComment_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_StartComment_String, this ) );
-	__Commands_General_JMenu.add(
-		__Commands_General_EndComment_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_EndComment_String, this ) );
-
-	__Commands_General_JMenu.addSeparator();
-	__Commands_General_JMenu.add (
-		__Commands_General_Exit_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_Exit_String, this ) );
-	__Commands_General_JMenu.addSeparator ();
-
-    __Commands_General_JMenu.add (__Commands_General_StartRegressionTestResultsReport_JMenuItem =
-        new SimpleJMenuItem(
-        __Commands_General_StartRegressionTestResultsReport_String,this));
-	__Commands_General_JMenu.add (__Commands_General_RunCommands_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_General_RunCommands_String,this));
-	__Commands_General_JMenu.add ( __Commands_General_RunProgram_JMenuItem =
-		new SimpleJMenuItem(__Commands_General_RunProgram_String,this));
-	
-	__Commands_General_JMenu.addSeparator();
-    __Commands_General_JMenu.add (
-            __Commands_General_RemoveFile_JMenuItem =
-            new SimpleJMenuItem( __Commands_General_RemoveFile_String, this ) );
-	__Commands_General_JMenu.add (
-			__Commands_General_CompareFiles_JMenuItem =
-			new SimpleJMenuItem(__Commands_General_CompareFiles_String, this ) );
-	__Commands_General_JMenu.add (
-			__Commands_General_WriteProperty_JMenuItem =
-			new SimpleJMenuItem(__Commands_General_WriteProperty_String, this ) );
-	__Commands_General_JMenu.add (
-		__Commands_General_TestCommand_JMenuItem = new SimpleJMenuItem(
-		__Commands_General_TestCommand_String, this ) );
-	__Commands_General_JMenu.add (
-			__Commands_General_CreateRegressionTestCommandFile_JMenuItem = new SimpleJMenuItem(
-			__Commands_General_CreateRegressionTestCommandFile_String, this ) );
+    __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteProperty_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_TestProcessing_WriteProperty_String, this ) );
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareFiles_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_TestProcessing_CompareFiles_String, this ) );
+    __Commands_General_TestProcessing_JMenu.addSeparator();
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String, this ) );
+    __Commands_General_TestProcessing_JMenu.add (__Commands_General_TestProcessing_StartRegressionTestResultsReport_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String,this));
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_TestCommand_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_TestProcessing_TestCommand_String, this ) );
 }
 
 /**
@@ -8438,59 +8358,41 @@ from different menus and also popup menus are typically more abbreviated.
 private void ui_InitGUIMenus_CommandsPopup ()
 {	// Pop-up menu to manipulate commands...
 	__Commands_JPopupMenu = new JPopupMenu("Command Actions");
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_ShowCommandStatus_JMenuItem =
-		new SimpleJMenuItem (
-		__CommandsPopup_ShowCommandStatus_String,
-		__CommandsPopup_ShowCommandStatus_String, this ) );
+	__Commands_JPopupMenu.add( __CommandsPopup_ShowCommandStatus_JMenuItem =
+		new SimpleJMenuItem ( __CommandsPopup_ShowCommandStatus_String,	__CommandsPopup_ShowCommandStatus_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
+	__Commands_JPopupMenu.add( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(__Edit_String, __Edit_CommandWithErrorChecking_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Cut_JMenuItem =
-		new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
+        new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
 	__Commands_JPopupMenu.add( __CommandsPopup_Copy_JMenuItem =
-		new SimpleJMenuItem ( "Copy", __Edit_CopyCommands_String,this));
+        new SimpleJMenuItem ( "Copy", __Edit_CopyCommands_String,this));
 	__Commands_JPopupMenu.add( __CommandsPopup_Paste_JMenuItem=
-		new SimpleJMenuItem("Paste", __Edit_PasteCommands_String,this));
+        new SimpleJMenuItem("Paste", __Edit_PasteCommands_String,this));
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add(__CommandsPopup_Delete_JMenuItem=
-		new SimpleJMenuItem(
-		__Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
+		new SimpleJMenuItem( __Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_FindCommands_JMenuItem =
 		new SimpleJMenuItem(__CommandsPopup_FindCommands_String, this));
 	__Commands_JPopupMenu.add( __CommandsPopup_SelectAll_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_SelectAllCommands_String, __Edit_SelectAllCommands_String, this ) );
+		new SimpleJMenuItem ( __Edit_SelectAllCommands_String, __Edit_SelectAllCommands_String, this ) );
 	__Commands_JPopupMenu.add( __CommandsPopup_DeselectAll_JMenuItem =
-		new SimpleJMenuItem(
-		__Edit_DeselectAllCommands_String, __Edit_DeselectAllCommands_String, this ) );
+		new SimpleJMenuItem( __Edit_DeselectAllCommands_String, __Edit_DeselectAllCommands_String, this ) );
 	__Commands_JPopupMenu.add( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsToComments_String, this ) );
+		new SimpleJMenuItem ( __Edit_ConvertSelectedCommandsToComments_String, this ) );
 	__Commands_JPopupMenu.add( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem =
 		new SimpleJMenuItem ( __Edit_ConvertSelectedCommandsFromComments_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem ( "Run " + __Run_AllCommandsCreateOutput_String,
-		__Run_AllCommandsCreateOutput_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_AllCommandsIgnoreOutput_String,
-		__Run_AllCommandsIgnoreOutput_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_SelectedCommandsCreateOutput_String,
-		__Run_SelectedCommandsCreateOutput_String, this ) );
-	__Commands_JPopupMenu.add(
-		__CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem (
-		"Run " + __Run_SelectedCommandsIgnoreOutput_String,
-		__Run_SelectedCommandsIgnoreOutput_String, this ) );
+		new SimpleJMenuItem ( "Run " + __Run_AllCommandsCreateOutput_String, __Run_AllCommandsCreateOutput_String, this ) );
+	__Commands_JPopupMenu.add( __CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem =
+		new SimpleJMenuItem ( "Run " + __Run_AllCommandsIgnoreOutput_String,__Run_AllCommandsIgnoreOutput_String, this ) );
+	__Commands_JPopupMenu.add( __CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem =
+		new SimpleJMenuItem ( "Run " + __Run_SelectedCommandsCreateOutput_String,__Run_SelectedCommandsCreateOutput_String, this ) );
+	__Commands_JPopupMenu.add( __CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem =
+		new SimpleJMenuItem ( "Run " + __Run_SelectedCommandsIgnoreOutput_String, __Run_SelectedCommandsIgnoreOutput_String, this ) );
 }
 
 /**
@@ -10152,40 +10054,31 @@ throws Exception
 
 	/* FIXME SAM need to enable
 	else if ( o == __Commands_ConvertTSIDTo_readTimeSeries_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readTimeSeries_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readTimeSeries_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readDateValue_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readDateValue_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readDateValue_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadHydroBase_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadHydroBase_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readMODSIM_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readMODSIM_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readMODSIM_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadNwsCard_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadNwsCard_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readRiverWare_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readRiverWare_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readRiverWare_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_ReadStateMod_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadStateMod_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadStateMod_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_ReadStateModB_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadStateModB_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadStateModB_String, getCommand(), __UPDATE_COMMAND );
 	}
 	else if ( o == __Commands_ConvertTSIDTo_readUsgsNwis_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readUsgsNwis_String,
-			getCommand(), __UPDATE_COMMAND );
+		commandList_EditCommand ( __Commands_ConvertTSIDTo_readUsgsNwis_String, getCommand(), __UPDATE_COMMAND );
 	}
 	*/
 	else if (command.equals( __Commands_Create_TS_ChangeInterval_String)){
@@ -10246,8 +10139,7 @@ throws Exception
 	else if (command.equals( __Commands_Read_ReadMODSIM_String)){
 		commandList_EditCommand ( __Commands_Read_ReadMODSIM_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-		__Commands_Read_ReadNwsCard_String)){
+	else if (command.equals(__Commands_Read_ReadNwsCard_String)){
 		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Read_ReadNWSRFSFS5Files_String)){
@@ -10320,8 +10212,7 @@ throws Exception
     if (command.equals( __Commands_Fill_FillConstant_String)){
 		commandList_EditCommand ( __Commands_Fill_FillConstant_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-		__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String)){
+	else if (command.equals(__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String)){
 		commandList_EditCommand ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Fill_FillFromTS_String)){
@@ -10357,8 +10248,7 @@ throws Exception
 	else if (command.equals( __Commands_Fill_FillRepeat_String) ) {
 		commandList_EditCommand ( __Commands_Fill_FillRepeat_String, null, __INSERT_COMMAND );
 	}
-	else if(command.equals(
-		__Commands_Fill_FillUsingDiversionComments_String)){
+	else if(command.equals(	__Commands_Fill_FillUsingDiversionComments_String)){
 		commandList_EditCommand (__Commands_Fill_FillUsingDiversionComments_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals(__Commands_Fill_SetAutoExtendPeriod_String)){
@@ -10466,8 +10356,7 @@ throws Exception
 	else if (command.equals(__Commands_Manipulate_Scale_String) ) {
 		commandList_EditCommand ( __Commands_Manipulate_Scale_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-		__Commands_Manipulate_ShiftTimeByInterval_String) ) {
+	else if (command.equals(__Commands_Manipulate_ShiftTimeByInterval_String) ) {
 		commandList_EditCommand ( __Commands_Manipulate_ShiftTimeByInterval_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Manipulate_Subtract_String)){
@@ -10496,15 +10385,13 @@ throws Exception
 	else if (command.equals( __Commands_Analyze_NewDataTest_String)){
 		commandList_EditCommand ( __Commands_Analyze_NewDataTest_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-		__Commands_Analyze_ReadDataTestFromRiversideDB_String)){
+	else if (command.equals(__Commands_Analyze_ReadDataTestFromRiversideDB_String)){
 		commandList_EditCommand ( __Commands_Analyze_ReadDataTestFromRiversideDB_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Analyze_RunDataTests_String)){
 		commandList_EditCommand ( __Commands_Analyze_RunDataTests_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(
-		__Commands_Analyze_ProcessDataTestResults_String)){
+	else if (command.equals( __Commands_Analyze_ProcessDataTestResults_String)){
 		commandList_EditCommand ( __Commands_Analyze_ProcessDataTestResults_String, null, __INSERT_COMMAND );
 	}
 	else {
@@ -10541,15 +10428,17 @@ throws Exception
     if (command.equals( __Commands_Ensemble_CreateEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_CreateEnsemble_String, null, __INSERT_COMMAND );
     }
-    else if (command.equals(
-            __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String)){
-            commandList_EditCommand ( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, null, __INSERT_COMMAND );
-        }
+    else if (command.equals( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, null, __INSERT_COMMAND );
+    }
     else if (command.equals(__Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_Ensemble_TS_WeightTraces_String)){
-        commandList_EditCommand ( __Commands_Ensemble_TS_WeightTraces_String,   null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_TS_WeightTraces_String, null, __INSERT_COMMAND );
+    }
+    else if(command.equals( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String, null, __INSERT_COMMAND );
     }
     else {
         // Chain to other actions
@@ -10589,10 +10478,6 @@ throws Exception
 	}
 	else if (command.equals( __Commands_Output_WriteNwsCard_String)){
 		commandList_EditCommand ( __Commands_Output_WriteNwsCard_String, null, __INSERT_COMMAND );
-	}
-	else if(command.equals(
-		__Commands_Output_WriteNWSRFSESPTraceEnsemble_String)){
-		commandList_EditCommand ( __Commands_Output_WriteNWSRFSESPTraceEnsemble_String,	null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
 		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, __INSERT_COMMAND );
@@ -10649,53 +10534,56 @@ throws Exception
 
 	// General commands...
 
-	else if (command.equals( __Commands_General_StartLog_String) ) {
-		commandList_EditCommand ( __Commands_General_StartLog_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_Logging_StartLog_String) ) {
+		commandList_EditCommand ( __Commands_General_Logging_StartLog_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_SetDebugLevel_String) ) {
-		commandList_EditCommand ( __Commands_General_SetDebugLevel_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_Logging_SetDebugLevel_String) ) {
+		commandList_EditCommand ( __Commands_General_Logging_SetDebugLevel_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_SetWarningLevel_String) ) {
-		commandList_EditCommand ( __Commands_General_SetWarningLevel_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_Logging_SetWarningLevel_String) ) {
+		commandList_EditCommand ( __Commands_General_Logging_SetWarningLevel_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_SetWorkingDir_String) ) {
-		commandList_EditCommand ( __Commands_General_SetWorkingDir_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
+		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(__Commands_General_Comment_String) ) {
-		commandList_EditCommand ( __Commands_General_Comment_String, null, __INSERT_COMMAND );
+	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
+		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(__Commands_General_StartComment_String) ) {
-		commandList_EditCommand ( __Commands_General_StartComment_String, null, __INSERT_COMMAND );
+	else if (command.equals(__Commands_General_Comments_StartComment_String) ) {
+		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(__Commands_General_EndComment_String) ) {
-		commandList_EditCommand ( __Commands_General_EndComment_String,	null, __INSERT_COMMAND );
+	else if (command.equals(__Commands_General_Comments_EndComment_String) ) {
+		commandList_EditCommand ( __Commands_General_Comments_EndComment_String,	null, __INSERT_COMMAND );
 	}
-	else if (command.equals(__Commands_General_Exit_String) ) {
-		commandList_EditCommand ( __Commands_General_Exit_String, null, __INSERT_COMMAND );
+	else if (command.equals(__Commands_General_Running_Exit_String) ) {
+		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, __INSERT_COMMAND );
 	}
-    else if (command.equals( __Commands_General_StartRegressionTestResultsReport_String) ) {
-        commandList_EditCommand ( __Commands_General_StartRegressionTestResultsReport_String, null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String) ) {
+        commandList_EditCommand ( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String, null, __INSERT_COMMAND );
     }
-	else if (command.equals( __Commands_General_RunCommands_String) ) {
-		commandList_EditCommand ( __Commands_General_RunCommands_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_Running_RunCommands_String) ) {
+		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_RunProgram_String) ) {
-		commandList_EditCommand ( __Commands_General_RunProgram_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_Running_RunProgram_String) ) {
+		commandList_EditCommand ( __Commands_General_Running_RunProgram_String, null, __INSERT_COMMAND );
 	}
-    else if (command.equals( __Commands_General_RemoveFile_String)){
-        commandList_EditCommand ( __Commands_General_RemoveFile_String, null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_General_Running_RunPython_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, __INSERT_COMMAND );
     }
-	else if (command.equals( __Commands_General_CompareFiles_String)){
-		commandList_EditCommand ( __Commands_General_CompareFiles_String, null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, __INSERT_COMMAND );
+    }
+	else if (command.equals( __Commands_General_TestProcessing_CompareFiles_String)){
+		commandList_EditCommand ( __Commands_General_TestProcessing_CompareFiles_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_WriteProperty_String)){
-		commandList_EditCommand ( __Commands_General_WriteProperty_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_TestProcessing_WriteProperty_String)){
+		commandList_EditCommand ( __Commands_General_TestProcessing_WriteProperty_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_TestCommand_String) ) {
-		commandList_EditCommand ( __Commands_General_TestCommand_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_TestProcessing_TestCommand_String) ) {
+		commandList_EditCommand ( __Commands_General_TestProcessing_TestCommand_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_General_CreateRegressionTestCommandFile_String) ) {
-		commandList_EditCommand ( __Commands_General_CreateRegressionTestCommandFile_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String) ) {
+		commandList_EditCommand ( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String, null, __INSERT_COMMAND );
 	}
 	else {
 		// Chain to other actions...
@@ -12861,9 +12749,8 @@ throws Exception
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
 		// TODO SAM 2007-05-14 Need to better handle picking files.
-		// Need to pick the file first and detect the time
-		// step from the file, similar to the binary file.  For now,
-		// key off the selected time step.
+		// Need to pick the file first and detect the time step from the file, similar to the binary file.
+        // For now, key off the selected time step.
 		SimpleFileFilter ddr_filter = null;
 		SimpleFileFilter ifr_filter = null;
 		SimpleFileFilter rer_filter = null;
@@ -14665,61 +14552,38 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	TS ts = null;
 	String desc = null;
 	String alias = null;
-	//BinaryTS binary_ts = null;
 	boolean [] selected_boolean = new boolean[size];
 	for ( int i = 0; i < size; i++ ) {
 		selected_boolean[i] = false;
-		/* TODO SAM 2007-08-10 Decide whether binary TS should be used
-		if ( __final_ts_engine.isBinaryTSUsed() ) {
-			try {	binary_ts = __final_ts_engine.getBinaryTS();
-				desc = binary_ts.getDescription(i);
-				if ( (desc == null) || (desc.length() == 0) ) {
-					desc=	binary_ts.getIdentifier(i
-						).getLocation();
-				}
-				addTimeSeries ( "" + (i + 1) + ") " +
-				desc + " - " +
-				binary_ts.getIdentifier(i) + " (" +
-				binary_ts.getDate1() + " to " +
-				binary_ts.getDate2() + ")" );
-			}
-			catch ( Exception e ) {
-				addTimeSeries ( "" + (i + 1) +
-				" Error getting Time Series" );
-				continue;
-			}
+		try {
+            ts = commandProcessor_GetTimeSeries(i);
 		}
-		else {	*/
-			try {
-                ts = commandProcessor_GetTimeSeries(i);
+		catch ( Exception e ) {
+			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) +
+			") - Error getting time series from processor." );
+			Message.printWarning ( 3, routine, e );
+			continue;
+		}
+		if ( ts == null ) {
+			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1)+
+			") - Null time series from processor." );
+			continue;
+		}
+		else {
+			// Have actual data to display...
+			desc = ts.getDescription();
+			alias = ts.getAlias();
+			if ( !alias.equals("") ) {
+				alias = alias + " - ";
 			}
-			catch ( Exception e ) {
-				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) +
-				") - Error getting time series from processor." );
-				Message.printWarning ( 3, routine, e );
-				continue;
+			if ( (desc == null) || (desc.length() == 0) ) {
+				desc = ts.getIdentifier().getLocation();
 			}
-			if ( ts == null ) {
-				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1)+
-				") - Null time series from processor." );
-				continue;
-			}
-			else {
-				// Have actual data to display...
-				desc = ts.getDescription();
-				alias = ts.getAlias();
-				if ( !alias.equals("") ) {
-					alias = alias + " - ";
-				}
-				if ( (desc == null) || (desc.length() == 0) ) {
-					desc = ts.getIdentifier().getLocation();
-				}
-				results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
-				desc + " - " + ts.getIdentifier() +	" (" + ts.getDate1() + " to " +	ts.getDate2() + ")" );
-				// Determine whether the time series was programmatically selected in the commands...
-				selected_boolean[i] = ts.isSelected();
-			}
-		//}
+			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
+			desc + " - " + ts.getIdentifier() +	" (" + ts.getDate1() + " to " +	ts.getDate2() + ")" );
+			// Determine whether the time series was programmatically selected in the commands...
+			selected_boolean[i] = ts.isSelected();
+		}
 	}
 	// If no time series are selected in the data, then visually select all.
 	// If any are selected, then visually select only the ones that are
@@ -15250,30 +15114,22 @@ throws Exception
 	String input_name = __input_name_JComboBox.getSelected();
 	if ( (input_name == null) || input_name.equals(__BROWSE) ) {
 		// Prompt for the name of a StateMod binary file...
-		// Based on the file extension, set the data types and other
-		// information...
+		// Based on the file extension, set the data types and other information...
 		JFileChooser fc = JFileChooserFactory.createJFileChooser (
 				JGUIUtil.getLastFileDialogDirectory() );
 		fc.setDialogTitle("Select StateMod Binary Output File");
-		SimpleFileFilter sff = new SimpleFileFilter("b43",
-			"Diversion, Stream, Instream stations (Monthly)");
+		SimpleFileFilter sff = new SimpleFileFilter("b43","Diversion, Stream, Instream stations (Monthly)");
 		fc.addChoosableFileFilter( sff );
-		fc.addChoosableFileFilter( new SimpleFileFilter("b49",
-			"Diversion, Stream, Instream stations (Daily)") );
-		fc.addChoosableFileFilter( new SimpleFileFilter("b44",
-			"Reservoir stations (Monthly)") );
-		fc.addChoosableFileFilter( new SimpleFileFilter("b50",
-			"Reservoir stations (Daily)") );
-		fc.addChoosableFileFilter( new SimpleFileFilter("b42",
-			"Well stations (Monthly)") );
-		fc.addChoosableFileFilter( new SimpleFileFilter("b65",
-			"Well stations (Daily)") );
+		fc.addChoosableFileFilter( new SimpleFileFilter("b49","Diversion, Stream, Instream stations (Daily)") );
+		fc.addChoosableFileFilter( new SimpleFileFilter("b44","Reservoir stations (Monthly)") );
+		fc.addChoosableFileFilter( new SimpleFileFilter("b50","Reservoir stations (Daily)") );
+		fc.addChoosableFileFilter( new SimpleFileFilter("b42","Well stations (Monthly)") );
+		fc.addChoosableFileFilter( new SimpleFileFilter("b65","Well stations (Daily)") );
 		fc.setFileFilter(sff);
 		// Only allow recognized extensions...
 		fc.setAcceptAllFileFilterUsed ( false );
 		if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// User cancelled - set the file name back to the
-			// original and disable other choices...
+			// User cancelled - set the file name back to the original and disable other choices...
 			if ( input_name != null ) {
 				ui_SetIgnoreItemEvent ( true );
 				__input_name_JComboBox.select(null);
@@ -15290,29 +15146,25 @@ throws Exception
 		input_name = fc.getSelectedFile().getPath(); 
 		// Save as last selection...
 		__input_name_StateModB_last = input_name;
-		JGUIUtil.setLastFileDialogDirectory (
-			fc.getSelectedFile().getParent() );
+		JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
 
 		// Set the input name...
 
 		ui_SetIgnoreItemEvent ( true );
-		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
-				__BROWSE, JGUIUtil.NONE, null, null ) ) {
+		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add it at the beginning...
 			__input_name_StateModB.addElement ( __BROWSE );
 			__input_name_JComboBox.add ( __BROWSE );
 		}
-		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
-				input_name, JGUIUtil.NONE, null, null ) ) {
+		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add after the browse string (files
-			// are listed chronologically by select with most recent
-			// at the top...
+			// are listed chronologically by select with most recent at the top...
 			if ( __input_name_JComboBox.getItemCount() > 1 ) {
 				__input_name_JComboBox.addAt ( input_name, 1 );
-				__input_name_StateModB.insertElementAt (
-						input_name, 1 );
+				__input_name_StateModB.insertElementAt ( input_name, 1 );
 			}
-			else {	__input_name_JComboBox.add ( input_name );
+			else {
+                __input_name_JComboBox.add ( input_name );
 				__input_name_StateModB.addElement(input_name);
 			}
 		}
@@ -15339,8 +15191,7 @@ throws Exception
 		comp = StateMod_DataSet.COMP_WELL_STATIONS;
 	}
 	else if ( extension.equalsIgnoreCase("b43" ) ) {
-		// Diversions, streamflow, instream - monthly
-		// Use diversions below...
+		// Diversions, streamflow, instream - monthly Use diversions below...
 		comp = StateMod_DataSet.COMP_DIVERSION_STATIONS;
 	}
 	else if ( extension.equalsIgnoreCase("b44" ) ) {
@@ -15348,8 +15199,7 @@ throws Exception
 		comp = StateMod_DataSet.COMP_RESERVOIR_STATIONS;
 	}
 	else if ( extension.equalsIgnoreCase("b49" ) ) {
-		// Diversions, streamflow, instream - daily
-		// Use diversions below...
+		// Diversions, streamflow, instream - daily. Use diversions below...
 		interval_base = TimeInterval.DAY;
 		comp = StateMod_DataSet.COMP_DIVERSION_STATIONS;
 	}
@@ -15387,8 +15237,7 @@ throws Exception
 
 	Message.printStatus ( 2, routine, "Setting StateModB data types..." );
 	__data_type_JComboBox.setData ( data_types );
-	Message.printStatus ( 2, routine,
-		"Selecting the first StateModB data type..." );
+	Message.printStatus ( 2, routine, "Selecting the first StateModB data type..." );
 	__data_type_JComboBox.select ( null );
 	__data_type_JComboBox.select ( 0 );
 
@@ -15408,17 +15257,13 @@ throws Exception
 	// Initialize with blank data vector...
 
 	__query_TableModel = new TSTool_TS_TableModel(null);
-	TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(
-	(TSTool_TS_TableModel)__query_TableModel);
+	TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
 	__query_JWorksheet.setCellRenderer ( cr );
 	__query_JWorksheet.setModel ( __query_TableModel );
 	// Turn off columns in the table model that do not apply...
-	__query_JWorksheet.removeColumn (
-		((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-	__query_JWorksheet.removeColumn (
-		((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
-	__query_JWorksheet.removeColumn (
-		((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE);
+	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE);
 	__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
@@ -15433,13 +15278,11 @@ throws Exception
 {	String routine = "TSTool_JFrame.selectOnMap";
 	int size = __query_JWorksheet.getRowCount();	// To size Vector
 	Vector idlist = new Vector(size);
-	Message.printStatus ( 1, routine,
-		"Selecting and zooming to stations on map.  Please wait...");
+	Message.printStatus ( 1, routine, "Selecting and zooming to stations on map.  Please wait...");
 	JGUIUtil.setWaitCursor(this, true);
 
 	// Get the list of layers to select from, and the attributes to use...
-	// First read the file with the lookup of time series to layer
-	// information.
+	// First read the file with the lookup of time series to layer information.
 
 	// TODO SAM 2006-03-01
 	// Currently read this each time because it is a small file and it
@@ -15448,26 +15291,21 @@ throws Exception
 
 	String filename = tstool.getPropValue ( "TSTool.MapLayerLookupFile" );
 	if ( filename == null ) {
-		Message.printWarning ( 1, routine,
-		"The TSTool.MapLayerLookupFile is not defined - " +
-		"cannot link map and time series." );
+		Message.printWarning ( 1, routine, "The TSTool.MapLayerLookupFile is not defined - cannot link map and time series." );
 		return;
 	}
 
 	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileExists(full_filename) ) {
 		Message.printWarning ( 1, routine,
-		"The map layer lookup file \"" + full_filename +
-		"\" does not exist.  Cannot link map and time series." );
+		"The map layer lookup file \"" + full_filename + "\" does not exist.  Cannot link map and time series." );
 		return;
 	}
 	
 	PropList props = new PropList ("");
 	props.set ( "Delimiter=," );		// see existing prototype
-	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start
-						// with this
-	props.set ( "TrimStrings=True" );	// If true, trim strings after
-						// reading.
+	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this
+	props.set ( "TrimStrings=True" );	// If true, trim strings after reading.
 	DataTable table = DataTable.parseFile ( full_filename, props );
 	
 	int tsize = 0;
@@ -15490,8 +15328,7 @@ throws Exception
 		TS_IntervalCol_int = table.getFieldIndex ( "TS_Interval" );
 		Layer_NameCol_int = table.getFieldIndex ( "Layer_Name" );
 		Layer_LocationCol_int = table.getFieldIndex ( "Layer_Location");
-		Layer_DataSourceCol_int = table.getFieldIndex (
-			"Layer_DataSource");
+		Layer_DataSourceCol_int = table.getFieldIndex (	"Layer_DataSource");
 		Message.printStatus ( 2, routine, "TimeSeriesLookup table for "+
 		"map has columns...TS_InputType=" + TS_InputTypeCol_int +
 		",TS_DataType=" + TS_DataTypeCol_int +
@@ -15501,106 +15338,80 @@ throws Exception
 		",Layer_DataSource=" + Layer_DataSourceCol_int );
 	}
 
-	Vector layerlist = new Vector();	// List of layers to match
-						// features
-	Vector mapidlist = new Vector();	// List of identifier attributes
-						// in map data to match features
+	Vector layerlist = new Vector();	// List of layers to match features
+	Vector mapidlist = new Vector();	// List of identifier attributes in map data to match features
 	String ts_inputtype, ts_datatype, ts_interval,
 		layer_name, layer_location, layer_datasource = "",
-		layer_interval = "";
-						// TSTool input to match
-						// against layers.
+		layer_interval = ""; // TSTool input to match against layers.
 	TableRecord rec;
 	if (	(TS_InputTypeCol_int >= 0) && (TS_DataTypeCol_int >= 0) &&
 		(TS_IntervalCol_int >= 0) && (Layer_NameCol_int >= 0) &&
 		(Layer_LocationCol_int >= 0) ) {
-		// Have the necessary columns in the file to search for a
-		// matching layer...
+		// Have the necessary columns in the file to search for a matching layer...
 		for ( int i = 0; i < tsize; i++ ) {
 			rec = table.getRecord(i);
-			ts_inputtype = (String)rec.getFieldValue(
-					TS_InputTypeCol_int);
-			ts_datatype = (String)rec.getFieldValue(
-					TS_DataTypeCol_int);
-			ts_interval = (String)rec.getFieldValue(
-					TS_IntervalCol_int);
-			layer_name = (String)rec.getFieldValue(
-					Layer_NameCol_int);
-			layer_location = (String)rec.getFieldValue(
-					Layer_LocationCol_int);
+			ts_inputtype = (String)rec.getFieldValue(TS_InputTypeCol_int);
+			ts_datatype = (String)rec.getFieldValue(TS_DataTypeCol_int);
+			ts_interval = (String)rec.getFieldValue(TS_IntervalCol_int);
+			layer_name = (String)rec.getFieldValue(Layer_NameCol_int);
+			layer_location = (String)rec.getFieldValue(Layer_LocationCol_int);
 			if ( Layer_DataSourceCol_int >= 0 ) {
 				// Also include the data source in the query
-				layer_datasource = (String)rec.getFieldValue(
-					Layer_DataSourceCol_int);
+				layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
 			}
 			if ( Layer_IntervalCol_int >= 0 ) {
 				// Also include the data interval in the query
-				layer_interval = (String)rec.getFieldValue(
-					Layer_IntervalCol_int);
+				layer_interval = (String)rec.getFieldValue(	Layer_IntervalCol_int);
 			}
 			// Required fields...
-			if (!ts_inputtype.equalsIgnoreCase(
-				__selected_input_type)){
+			if (!ts_inputtype.equalsIgnoreCase(	__selected_input_type)){
 				continue;
 			}
-			if ( !ts_datatype.equalsIgnoreCase(
-				__selected_data_type)){
+			if ( !ts_datatype.equalsIgnoreCase(	__selected_data_type)){
 				continue;
 			}
-			if ( !ts_interval.equalsIgnoreCase(
-				__selected_time_step)){
+			if ( !ts_interval.equalsIgnoreCase(	__selected_time_step)){
 				continue;
 			}
 			// The layer matches the main input selections...
-			// Save optional information that will be used for
-			// record by record comparisons...
+			// Save optional information that will be used for record by record comparisons...
 			if ( Layer_DataSourceCol_int >= 0 ) {
-				layer_datasource = (String)rec.getFieldValue(
-					Layer_DataSourceCol_int);
+				layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
 			}
 			if ( Layer_IntervalCol_int >= 0 ) {
-				layer_interval = (String)rec.getFieldValue(
-					Layer_IntervalCol_int);
+				layer_interval = (String)rec.getFieldValue(	Layer_IntervalCol_int);
 			}
 			// Save the layer to search and attribute(s) to match...
 			layerlist.addElement ( layer_name );
 			attributes.setLength(0);
 			attributes.append ( layer_location );
-			if (	(Layer_DataSourceCol_int >= 0) &&
-				(layer_datasource != null) &&
-				!layer_datasource.equals("") ) {
+			if ( (Layer_DataSourceCol_int >= 0) && (layer_datasource != null) && !layer_datasource.equals("") ) {
 				attributes.append ( "," + layer_datasource );
 			}
-			if (	(Layer_IntervalCol_int >= 0) &&
-				(layer_interval != null) &&
-				!layer_interval.equals("") ) {
+			if ( (Layer_IntervalCol_int >= 0) && (layer_interval != null) && !layer_interval.equals("") ) {
 				attributes.append ( "," + layer_interval );
 			}
 			mapidlist.addElement ( attributes.toString() );
 		}
 	}
 
-	// Determine the list of features (by ID, and optionally data source
-	// and interval) to select...
+	// Determine the list of features (by ID, and optionally data source and interval) to select...
 	// TODO SAM 2006-01-16
-	// Need to make this more generic by using an interface to retrieve
-	// important time series data?
+	// Need to make this more generic by using an interface to retrieve important time series data?
 
 	// Get the worksheet of interest...
 
 	int row = -1, location_col = -1, datasource_col = -1, interval_col = -1;
 	if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_TS_TableModel){
-			TSTool_TS_TableModel model =
-				(TSTool_TS_TableModel)__query_TableModel;
+			TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 			location_col = model.COL_ID;
 			datasource_col = model.COL_DATA_SOURCE;
 			interval_col = model.COL_TIME_STEP;
 		}
 		else if ( __query_TableModel instanceof
 			TSTool_HydroBase_TableModel){
-			TSTool_HydroBase_TableModel model =
-				(TSTool_HydroBase_TableModel)__query_TableModel;
+			TSTool_HydroBase_TableModel model =	(TSTool_HydroBase_TableModel)__query_TableModel;
 			location_col = model.COL_ID;
 			datasource_col = model.COL_DATA_SOURCE;
 			interval_col = model.COL_TIME_STEP;
@@ -15616,11 +15427,11 @@ throws Exception
 		all = true;
 		size = __query_JWorksheet.getRowCount();
 	}
-	else {	size = rows.length;
+	else {
+        size = rows.length;
 	}
 
-	// Loop through either all rows or selected rows to get the identifiers
-	// of interest...
+	// Loop through either all rows or selected rows to get the identifiers of interest...
 	
 	String id = null;
 	for ( int i = 0; i < size; i++ ) {
@@ -15628,7 +15439,8 @@ throws Exception
 			// Process all rows...
 			row = i;
 		}
-		else {	// Process only selected rows...
+		else {
+            // Process only selected rows...
 			row = rows[i];
 		}
 		
@@ -15636,27 +15448,18 @@ throws Exception
 
 		if ( (row >= 0) && (location_col >= 0) ) {
 			// The identifier is always matched...
-			id = (String)__query_TableModel.getValueAt( row,
-				location_col );
+			id = (String)__query_TableModel.getValueAt( row, location_col );
 			if ( (id == null) || (id.length() <= 0) ) {
 				continue;
 			}
 			attributes.setLength(0);
 			attributes.append ( id );
 			// Optional fields that if non-null should be used...
-			if (	(Layer_DataSourceCol_int >= 0) &&
-				(layer_datasource != null) &&
-				!layer_datasource.equals("") ) {
-				attributes.append ( "," + (String)
-					__query_TableModel.getValueAt( row,
-					datasource_col ) );
+			if ( (Layer_DataSourceCol_int >= 0) && (layer_datasource != null) && !layer_datasource.equals("") ) {
+				attributes.append ( "," + (String)__query_TableModel.getValueAt( row, datasource_col ) );
 			}
-			if (	(Layer_IntervalCol_int >= 0) &&
-				(layer_interval != null) &&
-				!layer_interval.equals("") ) {
-				attributes.append ( "," + (String)
-					__query_TableModel.getValueAt( row,
-					interval_col ) );
+			if ( (Layer_IntervalCol_int >= 0) && (layer_interval != null) && !layer_interval.equals("") ) {
+				attributes.append ( "," + (String)__query_TableModel.getValueAt( row,interval_col ) );
 			}
 			// Add to the list to match...
 			idlist.addElement ( attributes.toString() );
@@ -15675,8 +15478,7 @@ throws Exception
 	Vector matching_features =
 		__geoview_JFrame.getGeoViewJPanel().selectLayerFeatures(
 			layerlist,	// Layers to search
-			mapidlist,	// Attributes to use to compare to the
-					// identifiers
+			mapidlist,	// Attributes to use to compare to the identifiers
 			idlist,		// Identifiers to find
 			select_props );	// Properties to control search/select
 	int matches = 0;
@@ -15695,7 +15497,7 @@ throws Exception
 		" records were found in map data.\n" +
 		"This may be because of incomplete location data.");
 	}
-        //__statusJTextField.setText(
+    //__statusJTextField.setText(
 	//"Map is zoomed to selected stations.  Ready.");
 	JGUIUtil.setWaitCursor(this, false);
 	idlist = null;
@@ -15878,7 +15680,8 @@ private void uiAction_ShowHelpAbout ()
         "cdss@state.co.us (CDSS)\n" +
         "support@riverside.com (general)\n" );
     }
-    else {  // An RTi installation...
+    else {
+        // An RTi installation...
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
@@ -15924,7 +15727,8 @@ private void uiAction_ShowProperties_CommandsRun ()
 	if ( date1 == null ) {
 		s1 = "NOT SPECIFIED (use all available data)";
 	}
-	else {	s1 = date1.toString();
+	else {
+        s1 = date1.toString();
 	}
 	DateTime date2 = commandProcessor_GetInputEnd();
 	if ( date2 == null ) {
@@ -15939,23 +15743,23 @@ private void uiAction_ShowProperties_CommandsRun ()
 	if ( date1 == null ) {
 		s1 = "NOT SPECIFIED (output all available data)";
 	}
-	else {	s1 = date1.toString();
+	else {
+        s1 = date1.toString();
 	}
 	date2 = commandProcessor_GetOutputEnd();
 	if ( date2 == null ) {
 		s2 = "NOT SPECIFIED (output all available data)";
 	}
-	else {	s2 = date2.toString();
+	else {
+        s2 = date2.toString();
 	}
 	v.addElement ( "Output period start: " + s1 );
 	v.addElement ( "Output period end:   " + s2 );
 	// Auto-extend period...
-	v.addElement ( "Automatically extend period to output "+
-		"period during read: " +
+	v.addElement ( "Automatically extend period to output period during read: " +
 		commandProcessor_GetAutoExtendPeriod () );
 	// Include missing TS automatically...
-	v.addElement ( "Include missing TS automatically: " +
-		commandProcessor_GetIncludeMissingTS() );
+	v.addElement ( "Include missing TS automatically: " + commandProcessor_GetIncludeMissingTS() );
 	if ( __source_HydroBase_enabled ) {
 		v.addElement ( "" );
 		Object o2 = commandProcessor_GetHydroBaseDMIList();
@@ -15968,9 +15772,7 @@ private void uiAction_ShowProperties_CommandsRun ()
 				v.addElement ( "Command processor HydroBase connection information:" );
 				try {
 					StringUtil.addListToStringList ( v,
-						StringUtil.toVector(
-						((HydroBaseDMI)dmis.elementAt(i)).
-						getVersionComments() ) );
+						StringUtil.toVector( ((HydroBaseDMI)dmis.elementAt(i)).getVersionComments() ) );
 				}
 				catch ( Exception e ) {
 					// Ignore for now.
@@ -16000,18 +15802,17 @@ private void uiAction_ShowResultsOutputFile ( String selected )
     }
     if ( selected.toUpperCase().endsWith(".HTML")) {
         // Run the simple RTi browser to display the check file
-        // this browser enables HTML navigation features for
-        // viewing the check file
+        // this browser enables HTML navigation features for viewing the check file
         try {
                 new SimpleBrowser( selected ).setVisible(true);
-            } 
+        } 
         catch ( MalformedURLException e ) {
                 Message.printWarning(2, routine,"Couldn't find file or url: " + selected );
-            }
+        }
         catch (IOException e) {
                 Message.printWarning( 2, routine,"Failed to open browser to view: " + selected );
                 Message.printWarning( 3, routine, e );
-            }
+        }
     }
     else {
         // Display a simple text file (will show up in courier fixed width
