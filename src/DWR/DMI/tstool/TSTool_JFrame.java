@@ -2678,38 +2678,22 @@ private boolean commandList_EditCommandOldStyle (
 			cv, null, command_to_edit ).getText();
 	}
 	// These commands are "TS Alias" commands...
-	else if ( action.equals( __Commands_Read_TS_ReadDateValue_String)||
-		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		(StringUtil.indexOfIgnoreCase(command,"readDateValue",0) >=0))){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = readDateValue()" );
-		}
-		edited_cv = new TSreadDateValue_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
 	else if ( action.equals( __Commands_Read_TS_ReadMODSIM_String)||
 		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
 		((StringUtil.indexOfIgnoreCase(
-		command,"readMODSIM(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readMODSIM (",0) >= 0)) ) ) {
+		command,"readMODSIM(",0) >= 0) || (StringUtil.indexOfIgnoreCase( command,"readMODSIM (",0) >= 0)) ) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = readMODSIM()" );
+			Message.printDebug ( dl, routine, "Opening dialog for TS Alias = readMODSIM()" );
 		}
 		edited_cv = new TSreadMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null, command_to_edit ).getText();
 	}
 	else if ( action.equals( __Commands_Read_TS_ReadRiverWare_String)||
 		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		((StringUtil.indexOfIgnoreCase(
-			command,"readRiverWare(",0) >= 0)||
-		(StringUtil.indexOfIgnoreCase(
-			command,"readRiverWare(",0) >=0)))){
+		((StringUtil.indexOfIgnoreCase(	command,"readRiverWare(",0) >= 0)||
+		(StringUtil.indexOfIgnoreCase(command,"readRiverWare(",0) >=0)))){
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = readRiverWare()" );
+			Message.printDebug ( dl, routine,"Opening dialog for TS Alias = readRiverWare()" );
 		}
 		edited_cv = new TSreadRiverWare_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null, command_to_edit ).getText();
@@ -3078,8 +3062,7 @@ private boolean commandList_EditCommandOldStyle (
 		command.regionMatches(true,0,"subtract",0,8) ) {
 		// Reuse the add dialog...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for subtract()" );
+			Message.printDebug ( dl, routine, "Opening dialog for subtract()" );
 		}
 		edited_cv = new add_JDialog ( this, cv, false,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -3098,8 +3081,7 @@ private boolean commandList_EditCommandOldStyle (
 		command.regionMatches(true,0,"deselectTimeSeries",0,18)){
 		// Re-use the selectTimeSeries() command dialog...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for deselectTimeSeries()" );
+			Message.printDebug ( dl, routine, "Opening dialog for deselectTimeSeries()" );
 		}
 		edited_cv = new selectTimeSeries_JDialog (this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -3108,8 +3090,7 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals(__Commands_Output_SelectTimeSeries_String) ||
 		command.regionMatches(true,0,"selectTimeSeries",0,16)){
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for selectTimeSeries()" );
+			Message.printDebug ( dl, routine,"Opening dialog for selectTimeSeries()" );
 		}
 		edited_cv = new selectTimeSeries_JDialog (this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -3118,19 +3099,9 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals( __Commands_Output_SetOutputYearType_String) ||
 		command.regionMatches(true,0,"setOutputYearType",0,17) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setOutputYearType()" );
+			Message.printDebug ( dl, routine, "Opening dialog for setOutputYearType()" );
 		}
 		edited_cv = new setOutputYearType_JDialog ( this, cv, null).getText();
-	}
-	else if ( action.equals( __Commands_Output_WriteNwsCard_String)||
-		command.regionMatches(true,0,"writeNwsCard",0,12) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for writeNwscard()" );
-		}
-		edited_cv = new writeNwsCard_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit), command_to_edit).getText();
 	}
 	else if ( action.equals( __Commands_Output_WriteStateCU_String)||
             command.regionMatches(true,0,"writeStateCU",0,12) ) {
@@ -6509,13 +6480,11 @@ private void ui_CheckGUIState ()
 	}
 
 	// Disable all of the following menus until the dialogs can be enabled.
-	// If not enabled below, the command may be phased out or merged with
-	// another command...
+	// If not enabled below, the command may be phased out or merged with another command...
 
 	// TODO - all of these are new features.  The intent is to convert
 	// a TSID to a specific read command, as available in other menus,
-	// simplifying the conversion from time series browsing, to command
-	// language.
+	// simplifying the conversion from time series browsing, to command language.
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadDateValue_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem,false);
