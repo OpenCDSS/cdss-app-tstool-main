@@ -216,12 +216,12 @@ CommandProcessorListener// To handle command processor progress updates
 /**
 The license manager to verify the license, etc. 
 */
-private LicenseManager	__license_manager = null;
+private LicenseManager __license_manager = null;
 
 /**
 Map interface.
 */
-private GeoViewJFrame	__geoview_JFrame = null;
+private GeoViewJFrame __geoview_JFrame = null;
 
 /**
 Path to icons/graphics in classpath.
@@ -5270,6 +5270,32 @@ public void keyTyped ( KeyEvent event )
 }
 
 /**
+Indicate if the software license is for CDSS.
+*/
+private boolean license_IsCDSSInstall()
+{
+    if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+Indicate if the software license is for CDSS.
+*/
+private boolean license_IsOwnerRTi()
+{
+    if ( __license_manager.getLicenseOwner().equalsIgnoreCase("RTi") ) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/**
 Handle mouse clicked event.
 */
 public void mouseClicked ( MouseEvent event )
@@ -7659,62 +7685,48 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );	
 
-	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=
-		new JMenu(__Commands_CreateTimeSeries_String) );
+	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=new JMenu(__Commands_CreateTimeSeries_String) );
 
 	// Create...
 
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_CreateFromList_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add( __Commands_Create_CreateFromList_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_CreateFromList_String, this) );
     
-    __Commands_CreateTimeSeries_JMenu.add(
-        __Commands_Create_ResequenceTimeSeriesData_JMenuItem = new SimpleJMenuItem(
-        __Commands_Create_ResequenceTimeSeriesData_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_ResequenceTimeSeriesData_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ResequenceTimeSeriesData_String, this ) );
 
     __Commands_CreateTimeSeries_JMenu.addSeparator();
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_ChangeInterval_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_ChangeInterval_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_ChangeInterval_String, this) );
 
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_Copy_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_TS_Copy_String, this) );
+	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Copy_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_Copy_String, this) );
 
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_Disaggregate_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add( __Commands_Create_TS_Disaggregate_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_Disaggregate_String, this) );
 
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String, this) );
 
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String, this ) );
 	
-	__Commands_CreateTimeSeries_JMenu.add (
-			__Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
 			new SimpleJMenuItem(__Commands_Create_TS_NewPatternTimeSeries_String, this ) );
 	
-	__Commands_CreateTimeSeries_JMenu.add (
-			__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem =
 			new SimpleJMenuItem(__Commands_Create_TS_NewStatisticTimeSeries_String, this ) );
 
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_NewStatisticYearTS_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewStatisticYearTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_NewStatisticYearTS_String, this ) );
 
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_NewTimeSeries_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_NewTimeSeries_String, this ) );
 
-	__Commands_CreateTimeSeries_JMenu.add(
-		__Commands_Create_TS_Normalize_JMenuItem = new SimpleJMenuItem(
-		__Commands_Create_TS_Normalize_String, this ) );
+	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Normalize_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_Normalize_String, this ) );
 
-	__Commands_CreateTimeSeries_JMenu.add (
-		__Commands_Create_TS_RelativeDiff_JMenuItem =
+	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_RelativeDiff_JMenuItem =
 		new SimpleJMenuItem( __Commands_Create_TS_RelativeDiff_String, this ) );
 
 	// Convert...
@@ -7722,102 +7734,84 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.add ( __Commands_ConvertTSIDToReadCommand_JMenu=
 		new JMenu(__Commands_ConvertTSIDToReadCommand_String) );
 
-	__Commands_ConvertTSIDToReadCommand_JMenu.add (
-		__Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem =
+	__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadTimeSeries_String, this ));
 
 	if ( __source_DateValue_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
 	}
 
 	if ( __source_HydroBase_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadHydroBase_String, this ) );
 	}
 
 	if ( __source_MODSIM_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadMODSIM_String, this ) );
 	}
 
 	if ( __source_NWSCard_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadNwsCard_String, this ) );
 	}
 
 	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String,this ) );
 	}
 
 	if ( __source_RiverWare_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadRiverWare_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadStateMod_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadStateModB_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadStateModB_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadStateModB_String, this ) );
 	}
 
 	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (
-			__Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem =
+		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadUsgsNwis_String, this ) );
 	}
 
 	// Read...
 
-	__Commands_JMenu.add ( __Commands_ReadTimeSeries_JMenu=
-		new JMenu(__Commands_ReadTimeSeries_String) );
+	__Commands_JMenu.add ( __Commands_ReadTimeSeries_JMenu=	new JMenu(__Commands_ReadTimeSeries_String) );
 
-	__Commands_ReadTimeSeries_JMenu.add (
-		__Commands_Read_SetIncludeMissingTS_JMenuItem =
+	__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_SetIncludeMissingTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Read_SetIncludeMissingTS_String, this ) );
 
-	__Commands_ReadTimeSeries_JMenu.add (
-		__Commands_Read_SetInputPeriod_JMenuItem=new SimpleJMenuItem(
-		__Commands_Read_SetInputPeriod_String, this ) );
+	__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_SetInputPeriod_JMenuItem=
+        new SimpleJMenuItem(__Commands_Read_SetInputPeriod_String, this ) );
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
 
 	if ( __source_DateValue_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadDateValue_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
 	}
 
 	if ( __source_HydroBase_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadHydroBase_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadHydroBase_String, this) );
 	}
 
 	if ( __source_MODSIM_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadMODSIM_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadMODSIM_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadMODSIM_String, this) );
 	}
 
 	if ( __source_NWSCard_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_ReadNwsCard_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsCard_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_ReadNwsCard_String, this) );
 	}
 
 	/* TODO SAM 2004-09-11 need to enable
@@ -7830,129 +7824,99 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	*/
 
 	if ( __source_StateCU_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadStateCU_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCU_JMenuItem =
 			new SimpleJMenuItem( __Commands_Read_ReadStateCU_String, this) );
 	}
 
 	if ( __source_StateMod_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadStateMod_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadStateMod_String, this) );
 	}
 
 	if ( __source_StateModB_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_ReadStateModB_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateModB_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadStateModB_String, this) );
 	}
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.addSeparator ();
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_StateModMax_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_StateModMax_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_StateModMax_String, this) );
 	}
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
 
 	if ( __source_DateValue_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add (
-			__Commands_Read_TS_ReadDateValue_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadDateValue_String, this) );
 	}
 
 	if ( __source_HydroBase_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add (
-			__Commands_Read_TS_ReadHydroBase_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadHydroBase_String, this) );
 	}
 
 	if ( __source_MODSIM_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadMODSIM_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadMODSIM_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadMODSIM_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadMODSIM_String, this) );
 	}
 
 	if ( __source_NDFD_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadNDFD_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadNDFD_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadNDFD_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadNDFD_String, this) );
 	}
 
 	if ( __source_NWSCard_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadNwsCard_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadNwsCard_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadNwsCard_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadNwsCard_String, this) );
 	}
 
 	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadNWSRFSFS5Files_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadNWSRFSFS5Files_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadNWSRFSFS5Files_String, this) );
 	}
 
 	if ( __source_RiverWare_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadRiverWare_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadRiverWare_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadRiverWare_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadRiverWare_String, this) );
 	}
 
 	if ( __source_StateMod_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadStateMod_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadStateMod_String, this) );
 	}
 
 	if ( __source_StateModB_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadStateModB_JMenuItem =
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadStateModB_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadStateModB_String, this) );
 	}
 
 	if ( __source_USGSNWIS_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_TS_ReadUsgsNwis_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_TS_ReadUsgsNwis_String, this) );
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadUsgsNwis_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_TS_ReadUsgsNwis_String, this) );
 	}
 
 	// "Commands...Fill Time Series"...
 
-	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu=
-		new JMenu(__Commands_FillTimeSeries_String));
+	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu=new JMenu(__Commands_FillTimeSeries_String));
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillConstant_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_FillConstant_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillConstant_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_FillConstant_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String,this) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem =
+		new SimpleJMenuItem(__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String,this) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillFromTS_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_FillFromTS_String,this) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillFromTS_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_FillFromTS_String,this) );
 
-	__Commands_FillTimeSeries_JMenu.add(
-		__Commands_Fill_FillHistMonthAverage_JMenuItem =
-		new SimpleJMenuItem( 
-		__Commands_Fill_FillHistMonthAverage_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_FillHistMonthAverage_JMenuItem =
+		new SimpleJMenuItem( __Commands_Fill_FillHistMonthAverage_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillHistYearAverage_JMenuItem =
-		new SimpleJMenuItem( 
-		__Commands_Fill_FillHistYearAverage_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillHistYearAverage_JMenuItem =
+		new SimpleJMenuItem( __Commands_Fill_FillHistYearAverage_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillInterpolate_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_FillInterpolate_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillInterpolate_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_FillInterpolate_String, this ) );
 
 	/* TODO SAM 2004-02-21 Comment out this menu - it may be added later.
 	__Commands_FillTimeSeries_JMenu.add (
@@ -7961,36 +7925,27 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_Fill_fillMOVE1_JMenuItem.setEnabled ( false );
 	*/
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillMixedStation_JMenuItem =new SimpleJMenuItem(
-		__Commands_Fill_FillMixedStation_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillMixedStation_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_FillMixedStation_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillMOVE2_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_FillMOVE2_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillMOVE2_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_FillMOVE2_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillPattern_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_FillPattern_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillPattern_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_FillPattern_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillProrate_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_FillProrate_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillProrate_JMenuItem =
+        new SimpleJMenuItem( __Commands_Fill_FillProrate_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillRegression_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_FillRegression_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillRegression_JMenuItem =
+        new SimpleJMenuItem( __Commands_Fill_FillRegression_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_FillRepeat_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_FillRepeat_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillRepeat_JMenuItem =
+        new SimpleJMenuItem( __Commands_Fill_FillRepeat_String, this ) );
 
 	if ( __source_HydroBase_enabled ) {
-		__Commands_FillTimeSeries_JMenu.add(
-			__Commands_Fill_FillUsingDiversionComments_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Fill_FillUsingDiversionComments_String,
-			this ) );
+		__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_FillUsingDiversionComments_JMenuItem =
+			new SimpleJMenuItem(__Commands_Fill_FillUsingDiversionComments_String,this ) );
 	}
 
 	/* FIXME DISABLE THIS FOR now - this was an RTi freebie and needs to be reworked
@@ -8002,68 +7957,51 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_FillTimeSeries_JMenu.addSeparator();
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_SetAutoExtendPeriod_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_SetAutoExtendPeriod_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetAutoExtendPeriod_JMenuItem =
+		new SimpleJMenuItem(__Commands_Fill_SetAutoExtendPeriod_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_SetAveragePeriod_JMenuItem =new SimpleJMenuItem(
-		__Commands_Fill_SetAveragePeriod_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetAveragePeriod_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_SetAveragePeriod_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add(
-		__Commands_Fill_SetIgnoreLEZero_JMenuItem = new SimpleJMenuItem(
-		__Commands_Fill_SetIgnoreLEZero_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_SetIgnoreLEZero_JMenuItem =
+        new SimpleJMenuItem(__Commands_Fill_SetIgnoreLEZero_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_SetMissingDataValue_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_SetMissingDataValue_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetMissingDataValue_JMenuItem =
+		new SimpleJMenuItem(__Commands_Fill_SetMissingDataValue_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_SetPatternFile_JMenuItem=new SimpleJMenuItem(
-		__Commands_Fill_SetPatternFile_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetPatternFile_JMenuItem=
+        new SimpleJMenuItem(__Commands_Fill_SetPatternFile_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_SetRegressionPeriod_JMenuItem =
-		new SimpleJMenuItem(
-		__Commands_Fill_SetRegressionPeriod_String, this ) );
+	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetRegressionPeriod_JMenuItem =
+		new SimpleJMenuItem(__Commands_Fill_SetRegressionPeriod_String, this ) );
 
 
 	// "Commands...Set Time Series"...
 
-	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=
-		new JMenu(__Commands_SetTimeSeries_String));
+	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=new JMenu(__Commands_SetTimeSeries_String));
 
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_ReplaceValue_JMenuItem =
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_ReplaceValue_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_ReplaceValue_String, this));
 	__Commands_SetTimeSeries_JMenu.addSeparator();
 
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_SetConstant_JMenuItem =
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetConstant_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_SetConstant_String, this ));
 
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_SetDataValue_JMenuItem = new SimpleJMenuItem(
-		__Commands_Set_SetDataValue_String, this ) );
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetDataValue_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetDataValue_String, this ) );
 
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_SetFromTS_JMenuItem = new SimpleJMenuItem(
-		__Commands_Set_SetFromTS_String, this ) );
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetFromTS_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetFromTS_String, this ) );
 
-	__Commands_SetTimeSeries_JMenu.add (
-		__Commands_Set_SetMax_JMenuItem = new SimpleJMenuItem(
-		__Commands_Set_SetMax_String, this ) );
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetMax_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetMax_String, this ) );
 	
-	__Commands_SetTimeSeries_JMenu.add (
-			__Commands_Set_SetToMin_JMenuItem = new SimpleJMenuItem(
-			__Commands_Set_SetToMin_String, this ) );
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMin_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetToMin_String, this ) );
     
     __Commands_SetTimeSeries_JMenu.addSeparator ();
-    __Commands_SetTimeSeries_JMenu.add (
-            __Commands_Set_SetTimeSeriesProperty_JMenuItem = new SimpleJMenuItem(
-            __Commands_Set_SetTimeSeriesProperty_String, this ) );
+    __Commands_SetTimeSeries_JMenu.add ( __Commands_Set_SetTimeSeriesProperty_JMenuItem =
+        new SimpleJMenuItem( __Commands_Set_SetTimeSeriesProperty_String, this ) );
 
 	// "Commands...Manipulate Time Series"...
 
@@ -8195,8 +8133,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_ProcessTSProduct_JMenuItem =
 		new SimpleJMenuItem( __Commands_Output_ProcessTSProduct_String, this ) );
-    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_CustomCommand_JMenuItem =
-        new SimpleJMenuItem( __Commands_Output_CustomCommand_String, this ) );
+    // Only enable the following command if it is an RTi license (internal RTi use).
+    if ( !license_IsCDSSInstall() && license_IsOwnerRTi() ) {
+        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_CustomCommand_JMenuItem =
+            new SimpleJMenuItem( __Commands_Output_CustomCommand_String, this ) );
+    }
 }
 
 /**
@@ -8235,7 +8176,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_WeightTraces_JMenuItem =
         new SimpleJMenuItem(__Commands_Ensemble_TS_WeightTraces_String, this ) );
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem=
+        __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem=
             new SimpleJMenuItem(__Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String,this ));
     }
     
@@ -8345,48 +8286,37 @@ private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar )
 {	JMenu __Edit_JMenu = new JMenu( "Edit", true);
 	menu_bar.add( __Edit_JMenu );	
 
-	__Edit_JMenu.add( __Edit_CutCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_CutCommands_String, this ) );
+	__Edit_JMenu.add( __Edit_CutCommands_JMenuItem = new SimpleJMenuItem( __Edit_CutCommands_String, this ) );
 	__Edit_CutCommands_JMenuItem.setEnabled ( false );
 
-	__Edit_JMenu.add( __Edit_CopyCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_CopyCommands_String, this ) );
+	__Edit_JMenu.add( __Edit_CopyCommands_JMenuItem = new SimpleJMenuItem( __Edit_CopyCommands_String, this ) );
 	__Edit_CopyCommands_JMenuItem.setEnabled ( false );
 
-	__Edit_JMenu.add( __Edit_PasteCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_PasteCommands_String, this ) );
+	__Edit_JMenu.add( __Edit_PasteCommands_JMenuItem = new SimpleJMenuItem( __Edit_PasteCommands_String, this ) );
 	__Edit_PasteCommands_JMenuItem.setEnabled ( false );
 
 	__Edit_JMenu.addSeparator( );
 
-	__Edit_JMenu.add( __Edit_DeleteCommands_JMenuItem = new SimpleJMenuItem(
-		__Edit_DeleteCommands_String, this) );
+	__Edit_JMenu.add( __Edit_DeleteCommands_JMenuItem = new SimpleJMenuItem(__Edit_DeleteCommands_String, this) );
 	__Edit_DeleteCommands_JMenuItem.setEnabled ( false );
 
 	__Edit_JMenu.addSeparator( );
 
 	__Edit_JMenu.add(
-		__Edit_SelectAllCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_SelectAllCommands_String, this ) );
+		__Edit_SelectAllCommands_JMenuItem = new SimpleJMenuItem( __Edit_SelectAllCommands_String, this ) );
 	__Edit_JMenu.add(
-		__Edit_DeselectAllCommands_JMenuItem = new SimpleJMenuItem( 
-		__Edit_DeselectAllCommands_String, this ) );
+		__Edit_DeselectAllCommands_JMenuItem = new SimpleJMenuItem( __Edit_DeselectAllCommands_String, this ) );
 
 	__Edit_JMenu.addSeparator( );
 
-	__Edit_JMenu.add( __Edit_CommandFile_JMenuItem = new SimpleJMenuItem (
-		__Edit_CommandFile_String, this ) );
+	__Edit_JMenu.add( __Edit_CommandFile_JMenuItem = new SimpleJMenuItem (__Edit_CommandFile_String, this ) );
 	__Edit_JMenu.add(
-		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(
-		__Edit_CommandWithErrorChecking_String, this ) );
+		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(__Edit_CommandWithErrorChecking_String, this ) );
 	__Edit_JMenu.addSeparator( );
-	__Edit_JMenu.add(
-		__Edit_ConvertSelectedCommandsToComments_JMenuItem=
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsToComments_String, this ) );
+	__Edit_JMenu.add(__Edit_ConvertSelectedCommandsToComments_JMenuItem=
+		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsToComments_String, this ) );
 	__Edit_JMenu.add( __Edit_ConvertSelectedCommandsFromComments_JMenuItem =
-		new SimpleJMenuItem (
-		__Edit_ConvertSelectedCommandsFromComments_String, this ) );
+		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsFromComments_String, this ) );
 }
 
 /**
@@ -8407,9 +8337,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			__File_Open_JMenu.addSeparator( );
 			separator_added = true;
 		}
-		__File_Open_JMenu.add (
-			__File_Open_DIADvisor_JMenuItem = new SimpleJMenuItem(
-				__File_Open_DIADvisor_String, this ) );
+		__File_Open_JMenu.add (	__File_Open_DIADvisor_JMenuItem =
+            new SimpleJMenuItem(__File_Open_DIADvisor_String, this ) );
 	}
 	if ( __source_HydroBase_enabled ) {
 		if ( !separator_added ) {
@@ -8417,8 +8346,7 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			separator_added = true;
 		}
 		__File_Open_JMenu.add (
-			__File_Open_HydroBase_JMenuItem = new SimpleJMenuItem( 
-			__File_Open_HydroBase_String, this ) );
+			__File_Open_HydroBase_JMenuItem = new SimpleJMenuItem( __File_Open_HydroBase_String, this ) );
 	}
 
 	if ( __source_RiversideDB_enabled ) {
@@ -8427,46 +8355,34 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			separator_added = true;
 		}
 		__File_Open_JMenu.add ( __File_Open_RiversideDB_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Open_RiversideDB_String, this ) );
+			new SimpleJMenuItem(__File_Open_RiversideDB_String, this ) );
 	}
 
 	__File_JMenu.add( __File_Save_JMenu=new JMenu(__File_Save_String,true));
 	//__File_Save_Commands_JMenuItem = new SimpleJMenuItem(
-		//__File_Save_Commands_String,__File_Save_Commands_ActionString,
-		//this );
-	__File_Save_JMenu.add ( __File_Save_Commands_JMenuItem =
-		new SimpleJMenuItem( __File_Save_Commands_String, this ) );
-	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem =
-		new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
+		//__File_Save_Commands_String,__File_Save_Commands_ActionString,this );
+	__File_Save_JMenu.add ( __File_Save_Commands_JMenuItem = new SimpleJMenuItem( __File_Save_Commands_String, this ) );
+	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem = new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
 
-	__File_Save_JMenu.add (
-		__File_Save_TimeSeriesAs_JMenuItem = new SimpleJMenuItem(
-		__File_Save_TimeSeriesAs_String, this ) );
+	__File_Save_JMenu.add (	__File_Save_TimeSeriesAs_JMenuItem =
+        new SimpleJMenuItem(__File_Save_TimeSeriesAs_String, this ) );
 
-	__File_JMenu.add( __File_Print_JMenu=
-		new JMenu(__File_Print_String,true));
+	__File_JMenu.add( __File_Print_JMenu=new JMenu(__File_Print_String,true));
 	__File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
-		new SimpleJMenuItem( __File_Print_Commands_String,
-		__File_Print_Commands_ActionString, this ) );
+		new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_ActionString, this ) );
 
 	__File_JMenu.addSeparator( );
 
-	__File_JMenu.add( __File_Properties_JMenu=
-		new JMenu(__File_Properties_String,true));
+	__File_JMenu.add( __File_Properties_JMenu=new JMenu(__File_Properties_String,true));
 	if ( __source_DIADvisor_enabled ) {
-		__File_Properties_JMenu.add (
-			__File_Properties_DIADvisor_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Properties_DIADvisor_String, this ) );
+		__File_Properties_JMenu.add (__File_Properties_DIADvisor_JMenuItem =
+			new SimpleJMenuItem(__File_Properties_DIADvisor_String, this ) );
 	}
 
-	__File_Properties_JMenu.add(
-		__File_Properties_CommandsRun_JMenuItem = new SimpleJMenuItem(
-		__File_Properties_CommandsRun_String, this ) );
-	__File_Properties_JMenu.add(
-		__File_Properties_TSToolSession_JMenuItem = new SimpleJMenuItem(
-		__File_Properties_TSToolSession_String, this ) );
+	__File_Properties_JMenu.add(__File_Properties_CommandsRun_JMenuItem =
+        new SimpleJMenuItem( __File_Properties_CommandsRun_String, this ) );
+	__File_Properties_JMenu.add( __File_Properties_TSToolSession_JMenuItem =
+        new SimpleJMenuItem( __File_Properties_TSToolSession_String, this ) );
 
 	boolean seperator_added = false;
 
@@ -8475,20 +8391,16 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			__File_Properties_JMenu.addSeparator ();
 			seperator_added = true;
 		}
-		__File_Properties_JMenu.add (
-			__File_Properties_ColoradoSMS_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Properties_ColoradoSMS_String, this ) );
+		__File_Properties_JMenu.add ( __File_Properties_ColoradoSMS_JMenuItem =
+			new SimpleJMenuItem( __File_Properties_ColoradoSMS_String, this ) );
 	}
 	if ( __source_HydroBase_enabled ) {
 		if ( !seperator_added ) {
 			__File_Properties_JMenu.addSeparator ();
 			seperator_added = true;
 		}
-		__File_Properties_JMenu.add (
-			__File_Properties_HydroBase_JMenuItem =
-			new SimpleJMenuItem(
-			__File_Properties_HydroBase_String, this ) );
+		__File_Properties_JMenu.add ( __File_Properties_HydroBase_JMenuItem =
+			new SimpleJMenuItem( __File_Properties_HydroBase_String, this ) );
 	}
 
 	if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -8496,10 +8408,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			__File_Properties_JMenu.addSeparator ();
 			seperator_added = true;
 		}
-		__File_Properties_JMenu.add (
-			__File_Properties_NWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem (
-			__File_Properties_NWSRFSFS5Files_String, this ) );
+		__File_Properties_JMenu.add ( __File_Properties_NWSRFSFS5Files_JMenuItem =
+			new SimpleJMenuItem ( __File_Properties_NWSRFSFS5Files_String, this ) );
 		__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled ( false );
 	}
 
@@ -8508,10 +8418,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			__File_Properties_JMenu.addSeparator ();
 			seperator_added = true;
 		}
-		__File_Properties_JMenu.add (
-			__File_Properties_RiversideDB_JMenuItem =
-			new SimpleJMenuItem (
-			__File_Properties_RiversideDB_String, this ) );
+		__File_Properties_JMenu.add ( __File_Properties_RiversideDB_JMenuItem =
+			new SimpleJMenuItem ( __File_Properties_RiversideDB_String, this ) );
 		__File_Properties_RiversideDB_JMenuItem.setEnabled ( false );
 	}
 
@@ -8531,8 +8439,7 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			IOUtil.testing(true);
 			// Add a menu for testing...
 			args = null;
-			__File_JMenu.add ( new SimpleJMenuItem( "Test", "Test",
-				this ) );
+			__File_JMenu.add ( new SimpleJMenuItem( "Test", "Test",	this ) );
 			break;
 		}
 	}
@@ -8627,12 +8534,11 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 	__Results_JMenu.add( __Results_Graph_Duration_JMenuItem =
 		new SimpleJMenuItem( __Results_Graph_Duration_String, this ));
 
-	__Results_JMenu.add( __Results_Graph_Line_JMenuItem=new SimpleJMenuItem(
-		__Results_Graph_Line_String, this ) );
+	__Results_JMenu.add( __Results_Graph_Line_JMenuItem=
+        new SimpleJMenuItem( __Results_Graph_Line_String, this ) );
 
-	__Results_JMenu.add(
-		__Results_Graph_LineLogY_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_LineLogY_String, this ) );
+	__Results_JMenu.add( __Results_Graph_LineLogY_JMenuItem =
+        new SimpleJMenuItem( __Results_Graph_LineLogY_String, this ) );
 
 	/* SAMX Not enabled
 	_view_graph_percent_exceed_JMenuItem = new SimpleJMenuItem(
@@ -8641,42 +8547,31 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 	_view_graph_percent_exceed.setEnabled ( false );
 	*/
 
-	__Results_JMenu.add(
-		__Results_Graph_PeriodOfRecord_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_PeriodOfRecord_String, this ) );
+	__Results_JMenu.add( __Results_Graph_PeriodOfRecord_JMenuItem =
+        new SimpleJMenuItem(__Results_Graph_PeriodOfRecord_String, this ) );
 
-	__Results_JMenu.add(__Results_Graph_Point_JMenuItem=new SimpleJMenuItem(
-		__Results_Graph_Point_String, this ) );
+	__Results_JMenu.add(__Results_Graph_Point_JMenuItem=
+        new SimpleJMenuItem( __Results_Graph_Point_String, this ) );
 
-	__Results_JMenu.add(
-		__Results_Graph_PredictedValue_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_PredictedValue_String, this ) );
+	__Results_JMenu.add(__Results_Graph_PredictedValue_JMenuItem =
+        new SimpleJMenuItem(__Results_Graph_PredictedValue_String, this ) );
 
-	__Results_JMenu.add(
-		__Results_Graph_PredictedValueResidual_JMenuItem =
-		new SimpleJMenuItem(
-		__Results_Graph_PredictedValueResidual_String, this ) );
+	__Results_JMenu.add(__Results_Graph_PredictedValueResidual_JMenuItem =
+		new SimpleJMenuItem(__Results_Graph_PredictedValueResidual_String, this ) );
 
-	__Results_JMenu.add(
-		__Results_Graph_XYScatter_JMenuItem = new SimpleJMenuItem(
-		__Results_Graph_XYScatter_String, this ) );
+	__Results_JMenu.add(__Results_Graph_XYScatter_JMenuItem =
+        new SimpleJMenuItem(__Results_Graph_XYScatter_String, this ) );
 
 	__Results_JMenu.addSeparator();
-
-	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( 
-		__Results_Table_String, this ) );
+	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( __Results_Table_String, this ) );
 
 	__Results_JMenu.addSeparator();
-
-	__Results_JMenu.add(
-		__Results_Report_Summary_JMenuItem = new SimpleJMenuItem( 
-		__Results_Report_Summary_String, this ) );
+	__Results_JMenu.add(__Results_Report_Summary_JMenuItem =
+        new SimpleJMenuItem( __Results_Report_Summary_String, this ) );
 
 	__Results_JMenu.addSeparator();
-
-	__Results_JMenu.add(
-		__Results_TimeSeriesProperties_JMenuItem = new SimpleJMenuItem( 
-		__Results_TimeSeriesProperties_String, this ) );
+	__Results_JMenu.add(__Results_TimeSeriesProperties_JMenuItem =
+        new SimpleJMenuItem( __Results_TimeSeriesProperties_String, this ) );
 }
    
 /**
@@ -8684,44 +8579,27 @@ Define the popup menu for results.
 */
 private void ui_InitGUIMenus_ResultsPopup ()
 {	__results_JPopupMenu = new JPopupMenu("View Actions");
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_BarsLeft_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_BarsCenter_String,this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_BarsRight_String, this ));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_Duration_String, this ));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_Line_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_LineLogY_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_PeriodOfRecord_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_Point_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_PredictedValue_String, this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_PredictedValueResidual_String, this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Graph_XYScatter_String, this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_BarsLeft_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_BarsCenter_String,this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_BarsRight_String, this ));
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_Duration_String, this ));
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_Line_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_LineLogY_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_PeriodOfRecord_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_Point_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_PredictedValue_String, this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_PredictedValueResidual_String, this));
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_XYScatter_String, this));
 	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Table_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Table_String, this ) );
 	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_Report_Summary_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Report_Summary_String, this ) );
 	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_FindTimeSeries_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		BUTTON_TS_SELECT_ALL, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		BUTTON_TS_DESELECT_ALL, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_FindTimeSeries_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	BUTTON_TS_SELECT_ALL, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	BUTTON_TS_DESELECT_ALL, this ) );
 	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (
-		__Results_TimeSeriesProperties_String, this ) );
+	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_TimeSeriesProperties_String, this ) );
 }
 
 /**
@@ -8735,16 +8613,14 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 	__Run_JMenu.add( __Run_AllCommandsIgnoreOutput_JMenuItem =
 		new SimpleJMenuItem(__Run_AllCommandsIgnoreOutput_String,this));
 	__Run_JMenu.add( __Run_SelectedCommandsCreateOutput_JMenuItem =
-		new SimpleJMenuItem(
-		__Run_SelectedCommandsCreateOutput_String,this));
+		new SimpleJMenuItem(__Run_SelectedCommandsCreateOutput_String,this));
 	__Run_JMenu.add( __Run_SelectedCommandsIgnoreOutput_JMenuItem =
-		new SimpleJMenuItem(
-		__Run_SelectedCommandsIgnoreOutput_String,this));
+		new SimpleJMenuItem(__Run_SelectedCommandsIgnoreOutput_String,this));
 	__Run_JMenu.add ( __Run_CancelCommandProcessing_JMenuItem =
 		new SimpleJMenuItem(__Run_CancelCommandProcessing_String,this));
 	__Run_JMenu.addSeparator();
-	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem = new SimpleJMenuItem (
-		__Run_CommandsFromFile_String, this ));
+	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem =
+        new SimpleJMenuItem ( __Run_CommandsFromFile_String, this ));
 	__Run_JMenu.addSeparator();
 	__Run_JMenu.add ( __Run_ProcessTSProductPreview_JMenuItem =
 		new SimpleJMenuItem(__Run_ProcessTSProductPreview_String,this));
@@ -8759,87 +8635,63 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 {	__Tools_JMenu = new JMenu();
 	menu_bar.add( __Tools_JMenu = new JMenu( __Tools_String, true ) );	
 
-	__Tools_JMenu.add ( __Tools_Analysis_JMenu =
-		new JMenu(__Tools_Analysis_String, true ) );
+	__Tools_JMenu.add ( __Tools_Analysis_JMenu =new JMenu(__Tools_Analysis_String, true ) );
 
-	__Tools_Analysis_JMenu.add(
-		__Tools_Analysis_MixedStationAnalysis_JMenuItem =
-		new SimpleJMenuItem(
-		__Tools_Analysis_MixedStationAnalysis_String, this ) );
+	__Tools_Analysis_JMenu.add(	__Tools_Analysis_MixedStationAnalysis_JMenuItem =
+		new SimpleJMenuItem(__Tools_Analysis_MixedStationAnalysis_String, this ) );
 
-	__Tools_JMenu.add ( __Tools_Report_JMenu =
-		new JMenu(__Tools_Report_String, true ) );
+	__Tools_JMenu.add ( __Tools_Report_JMenu = new JMenu(__Tools_Report_String, true ) );
 
-	__Tools_Report_JMenu.add(
-		__Tools_Report_DataCoverageByYear_JMenuItem=new SimpleJMenuItem(
-		__Tools_Report_DataCoverageByYear_String, this ) );
+	__Tools_Report_JMenu.add(__Tools_Report_DataCoverageByYear_JMenuItem=
+        new SimpleJMenuItem(__Tools_Report_DataCoverageByYear_String, this ) );
 
-	__Tools_Report_JMenu.add (
-		__Tools_Report_DataLimitsSummary_JMenuItem =new SimpleJMenuItem(
-		__Tools_Report_DataLimitsSummary_String, this ) );
+	__Tools_Report_JMenu.add (__Tools_Report_DataLimitsSummary_JMenuItem =
+        new SimpleJMenuItem(__Tools_Report_DataLimitsSummary_String, this ) );
 
-	__Tools_Report_JMenu.add (
-		__Tools_Report_MonthSummaryDailyMeans_JMenuItem =
-		new SimpleJMenuItem(
-		__Tools_Report_MonthSummaryDailyMeans_String, this ) );
+	__Tools_Report_JMenu.add (__Tools_Report_MonthSummaryDailyMeans_JMenuItem =
+		new SimpleJMenuItem(__Tools_Report_MonthSummaryDailyMeans_String, this ) );
 
-	__Tools_Report_JMenu.add (
-		__Tools_Report_MonthSummaryDailyTotals_JMenuItem =
-		new SimpleJMenuItem(
-		__Tools_Report_MonthSummaryDailyTotals_String, this ) );
+	__Tools_Report_JMenu.add (__Tools_Report_MonthSummaryDailyTotals_JMenuItem =
+		new SimpleJMenuItem(__Tools_Report_MonthSummaryDailyTotals_String, this ) );
 
-	__Tools_Report_JMenu.add (
-		__Tools_Report_YearToDateTotal_JMenuItem = new SimpleJMenuItem(
-		__Tools_Report_YearToDateTotal_String, this ) );
+	__Tools_Report_JMenu.add (__Tools_Report_YearToDateTotal_JMenuItem =
+        new SimpleJMenuItem( __Tools_Report_YearToDateTotal_String, this ) );
 
-	if (	__source_NWSRFS_FS5Files_enabled || __source_NWSCard_enabled ||
+	if ( __source_NWSRFS_FS5Files_enabled || __source_NWSCard_enabled ||
 		__source_NWSRFS_ESPTraceEnsemble_enabled ) {
 		// Add NWSRFS-related tools (check all above because on
 		// non-UNIX system only card type may be enabled)...
 		__Tools_JMenu.addSeparator ();
-		__Tools_JMenu.add ( __Tools_NWSRFS_JMenu =
-			new JMenu(__Tools_NWSRFS_String, true ) );
+		__Tools_JMenu.add ( __Tools_NWSRFS_JMenu = new JMenu(__Tools_NWSRFS_String, true ) );
 
-		__Tools_NWSRFS_JMenu.add(
-			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem=
-			new SimpleJMenuItem(
-			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String,
-			this ) );
-		__Tools_NWSRFS_JMenu.add(
-			__Tools_NWSRFS_ConvertJulianHour_JMenuItem=
-			new SimpleJMenuItem(
-			__Tools_NWSRFS_ConvertJulianHour_String, this ) );
+		__Tools_NWSRFS_JMenu.add( __Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem=
+			new SimpleJMenuItem(__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String,this ) );
+		__Tools_NWSRFS_JMenu.add( __Tools_NWSRFS_ConvertJulianHour_JMenuItem=
+			new SimpleJMenuItem(__Tools_NWSRFS_ConvertJulianHour_String, this ) );
 	}
 
 	if ( __source_RiversideDB_enabled ) {
 		// Add RiversideDB-related tools...
 		__Tools_JMenu.addSeparator ();
-		__Tools_JMenu.add ( __Tools_RiversideDB_JMenu =
-			new JMenu(__Tools_RiversideDB_String, true ) );
+		__Tools_JMenu.add ( __Tools_RiversideDB_JMenu =	new JMenu(__Tools_RiversideDB_String, true ) );
 
-		__Tools_RiversideDB_JMenu.add(
-			__Tools_RiversideDB_TSProductManager_JMenuItem=
-			new SimpleJMenuItem(
-			__Tools_RiversideDB_TSProductManager_String,
-			this ) );
+		__Tools_RiversideDB_JMenu.add( __Tools_RiversideDB_TSProductManager_JMenuItem=
+			new SimpleJMenuItem( __Tools_RiversideDB_TSProductManager_String, this ) );
 	}
 
 	// Options menu...
 
 	__Tools_JMenu.addSeparator ();
-	__Tools_JMenu.add ( __Tools_SelectOnMap_JMenuItem=
-			new SimpleJMenuItem( __Tools_SelectOnMap_String, this));
+	__Tools_JMenu.add ( __Tools_SelectOnMap_JMenuItem=new SimpleJMenuItem( __Tools_SelectOnMap_String, this));
 
 	__Tools_JMenu.addSeparator ();
-	__Tools_JMenu.add ( __Tools_Options_JMenuItem=
-			new SimpleJMenuItem( __Tools_Options_String, this ) );
+	__Tools_JMenu.add ( __Tools_Options_JMenuItem=new SimpleJMenuItem( __Tools_Options_String, this ) );
 
 	// Create the diagnostics GUI, specifying the key for the help
 	// button.  Events are handled from within the diagnostics GUI.
 	__Tools_JMenu.addSeparator ();
 	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame ();
-		// TODO SAM 2005-04-05 some day need to enable on-line help.
-		// ("TSTool.PreferencesMenu");
+	// TODO SAM 2005-04-05 some day need to enable on-line help. ("TSTool.PreferencesMenu");
 	diagnostics_JFrame.attachMainMenu ( __Tools_JMenu );
 	Message.addMessageLogListener ( this );
 }
@@ -8851,8 +8703,7 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 {	JMenu viewJMenu = new JMenu (__View_String, true);
 	menuBar.add (viewJMenu);
 
-	viewJMenu.add ( __View_MapInterface_JCheckBoxMenuItem =
-		new JCheckBoxMenuItem(__View_MapInterface_String) );
+	viewJMenu.add ( __View_MapInterface_JCheckBoxMenuItem =	new JCheckBoxMenuItem(__View_MapInterface_String) );
 	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
 	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
 }
@@ -8952,28 +8803,23 @@ private void ui_ReadLicense ()
 	Message.printStatus ( 1, "TSTool.checkLicense", "Checking license" );
 	license_owner = tstool.getPropValue ( "TSTool.LicenseOwner" );
 	if ( license_owner == null ) {
-		warning += "\nLicenseOwner is not specified in the TSTool " +
-			"license information.";
+		warning += "\nLicenseOwner is not specified in the TSTool license information.";
 	}
 	license_type = tstool.getPropValue ( "TSTool.LicenseType" );
 	if ( license_type == null ) {
-		warning += "\nLicenseType is not specified in the TSTool " +
-			"license information.";
+		warning += "\nLicenseType is not specified in the TSTool license information.";
 	}
 	license_count = tstool.getPropValue ( "TSTool.LicenseCount" );
 	if ( license_count == null ) {
-		warning += "\nLicenseCount is not specified in the TSTool " +
-			"license information.";
+		warning += "\nLicenseCount is not specified in the TSTool license information.";
 	}
 	license_expires = tstool.getPropValue ( "TSTool.LicenseExpires" );
 	if ( license_expires == null ) {
-		warning += "\nLicenseExpires is not specified in the TSTool " +
-			"license information.";
+		warning += "\nLicenseExpires is not specified in the TSTool license information.";
 	}
 	license_key = tstool.getPropValue ( "TSTool.LicenseKey" );
 	if ( license_key == null ) {
-		warning += "\nLicenseKey is not specified in the TSTool " +
-			"license information.";
+		warning += "\nLicenseKey is not specified in the TSTool license information.";
 	}
 	if ( warning.length() > 0 ) {
 		warning += "\nTSTool will not run.";
