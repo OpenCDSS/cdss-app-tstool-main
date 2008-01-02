@@ -442,7 +442,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.06.00 (2007-12-21)";
+public static final String PROGRAM_VERSION = "8.07.01 (2007-12-31)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -824,10 +824,6 @@ throws Exception
 			// Don't make the main GUI visible...
 			Message.printStatus ( 1, routine, "Will process command file using hidden main GUI." );
 			__show_main_gui = false;
-		}
-		else if (args[i].equalsIgnoreCase("-release")) {
-			IOUtil.setRelease(true);
-			Message.printStatus ( 1, routine, "Running in release mode." );
 		}
 		else if (args[i].equalsIgnoreCase("-server")) {
 			Message.printStatus ( 1, routine, "Starting TSTool in server mode" );
