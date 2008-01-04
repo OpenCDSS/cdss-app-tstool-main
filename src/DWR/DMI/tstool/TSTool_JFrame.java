@@ -1496,7 +1496,7 @@ private String
 	__Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
 	__Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 
-	__Results_Table_String = "Table",
+	__Results_Table_String = "Table Processing",
 	__Results_Report_Summary_String = "Report - Summary",
 	__Results_TimeSeriesProperties_String = "Time Series Properties",
 
@@ -2914,16 +2914,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Set_SetConstant_String) ||
-		command.regionMatches(true,0,"setConstant",0,11) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setConstant()" );
-		}
-		edited_cv = new setConstant_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Set_SetDataValue_String)||
 		command.regionMatches(true,0,"setDataValue",0,12) ) {
 		if ( Message.isDebugOn ) {
@@ -3018,15 +3008,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for blend()" );
 		}
 		edited_cv = new blend_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals(__Commands_Manipulate_ConvertDataUnits_String)||
-		command.regionMatches(true,0,"convertDataUnits",0,16) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,"Opening dialog for convertDataUnits()" );
-		}
-		edited_cv = new convertDataUnits_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
