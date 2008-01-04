@@ -2823,16 +2823,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if (action.equals( __Commands_Fill_FillRepeat_String)||
-		command.regionMatches( true,0,"fillRepeat",0,10)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillRepeat()" );
-		}
-		edited_cv = new fillRepeat_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals(__Commands_Fill_SetAutoExtendPeriod_String)||
 		command.regionMatches(true,0,"setAutoExtendPeriod",0,19) ) {
 		if ( Message.isDebugOn ) {
@@ -3038,17 +3028,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for runningAverage()" );
 		}
 		edited_cv = new runningAverage_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if(action.equals(
-		__Commands_Manipulate_ShiftTimeByInterval_String)||
-		command.regionMatches(true,0,"shiftTimeByInterval",0,19) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for shiftTimeByInterval()" );
-		}
-		edited_cv = new shiftTimeByInterval_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
