@@ -2914,16 +2914,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Set_SetFromTS_String ) ||
-		command.regionMatches( true,0,"setFromTS",0,9) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setFromTS()" );
-		}
-		edited_cv = new setFromTS_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Set_SetMax_String)||
 		command.regionMatches(true,0,"setMax",0,6) ) {
 		if ( Message.isDebugOn ) {
@@ -3018,16 +3008,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for multiply()" );
 		}
 		edited_cv = new multiply_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals(__Commands_Manipulate_RunningAverage_String) ||
-		command.regionMatches(true,0,"runningAverage",0,14) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for runningAverage()" );
-		}
-		edited_cv = new runningAverage_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
