@@ -1450,7 +1450,7 @@ private String
     
     // Table Commands...
 
-    __Commands_Table_String = "Table",
+    __Commands_Table_String = "Table Processing",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
 
 	// General Commands...
@@ -1498,7 +1498,7 @@ private String
 	__Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
 	__Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 
-	__Results_Table_String = "Table Processing",
+	__Results_Table_String = "Table",
 	__Results_Report_Summary_String = "Report - Summary",
 	__Results_TimeSeriesProperties_String = "Time Series Properties",
 
@@ -2749,16 +2749,6 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new fillDayTSFrom2MonthTSAnd1DayTS_JDialog ( 
 			this, cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Fill_FillFromTS_String)||
-		command.regionMatches( true,0,"fillFromTS",0,10) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillFromTS()" );
-		}
-		edited_cv = new fillFromTS_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
 	}
 	else if ( action.equals( __Commands_Fill_FillInterpolate_String)||
 		command.regionMatches(true,0,"fillInterpolate",0,15) ) {
