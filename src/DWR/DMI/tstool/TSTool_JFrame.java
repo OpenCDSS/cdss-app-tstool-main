@@ -577,6 +577,11 @@ time series associated with __results_tsensembles_JList).
 private DefaultListModel __results_tsensembles_JListModel;
 
 /**
+Popup menu for ensemble results.
+*/
+private JPopupMenu __results_tsensembles_JPopupMenu = null;
+
+/**
 Panel for TS results.
 */
 private JPanel __results_ts_JPanel; 
@@ -601,7 +606,10 @@ example, tabs for different command files, each with a TSCommandProcessor.
 */
 private TSCommandProcessor __ts_processor = new TSCommandProcessor();
 
-private JPopupMenu __results_JPopupMenu = null;
+/**
+Popup menu for time series results.
+*/
+private JPopupMenu __results_ts_JPopupMenu = null;
 
 /**
 List of results tables for viewing with an editor.
@@ -4182,6 +4190,103 @@ private String commandProcessor_GetWorkingDirForCommand ( Command command )
 	return TSCommandProcessorUtil.getWorkingDirForCommand( __ts_processor, command );
 }
 
+// TODO SAM 2008-01-05 Evaluate whether this should live in the processor.
+/**
+Process ensembles from the results list into a product (graph, etc).
+@param indices Indices of the ensembles to process.
+@param props Properties to control output (graph type).
+*/
+private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropList props )
+{   String routine = "TSTool_JFrame.commandProcessor_ProcessEnsembleResultsList";
+    if ( indices == null ) {
+        // No ensembles are selected so return.
+        Message.printWarning( 1, "", "Select an ensemble to graph." );
+        return;
+    }
+    // Translate the ensemble indices into time series indices
+    // Get the list of time series results...
+    Object o_tslist = null;
+    try {
+        o_tslist = __ts_processor.getPropContents ( "TSResultsList" );
+    }
+    catch ( Exception e ) {
+        String message = "Error getting time series from processor.";
+        Message.printWarning(1, routine, message );
+        Message.printWarning(3, routine, e );
+        return;
+    }
+    if ( o_tslist == null ) {
+        String message = "No time series are available from processor - null list.";
+        Message.printWarning(1, routine, message );
+        return;
+    }
+    Vector tslist = (Vector)o_tslist;
+    int tslist_size = tslist.size();
+    if ( tslist_size == 0 ) {
+        String message = "No time series are available from processor.";
+        Message.printWarning(1, routine, message );
+        return;
+    }
+    // Get the list of ensembles...
+    Vector match_index_Vector = new Vector();   // List of matching time series indices
+    for ( int i = 0; i < indices.length; i++ ) {
+        PropList request_params = new PropList ( "" );
+        // String is of format 1) EnsembleID - EnsembleName
+        String EnsembleID = StringUtil.getToken((String)__results_tsensembles_JListModel.elementAt(indices[i]),
+                " -",StringUtil.DELIM_SKIP_BLANKS,1);
+        Message.printStatus ( 2, routine, "Getting processor ensemble results for \"" + EnsembleID + "\"" );
+        request_params.setUsingObject ( "EnsembleID", EnsembleID );
+        CommandProcessorRequestResultsBean bean = null;
+        try {
+            bean = __ts_processor.processRequest( "GetEnsemble", request_params );
+        }
+        catch ( Exception e ) {
+            String message = "Error requesting GetEnsemble(EnsembleID=\"" + EnsembleID + "\") from processor.";
+            Message.printWarning(2, routine, message );
+            return;
+        }
+        PropList results_props = bean.getResultsPropList();
+        Object o_ensemble = results_props.getContents ( "TSEnsemble" );
+        if ( o_ensemble == null ) {
+            String message = "Null ensemble requesting GetEnsemble(EnsembleID=\"" + EnsembleID + "\") from processor.";
+            Message.printWarning(2, routine, message );
+            return;
+        }
+        TSEnsemble ensemble = (TSEnsemble)o_ensemble;
+        // Loop through the time series in the ensemble and add to the time series index list for matches
+        int ensemble_size = ensemble.size();
+        TS ens_ts, ts;
+        for ( int iens = 0; iens < ensemble_size; iens++ ) {
+            ens_ts = (TS)ensemble.get(iens);
+            for ( int its = 0; its < tslist_size; its++ ) {
+                ts = (TS)tslist.elementAt(its);
+                if ( ens_ts == ts ) {
+                    // Have a matching time series
+                    match_index_Vector.addElement ( new Integer(its));
+                }
+            }
+        }
+    }
+    // Convert the indices to an array
+    int [] indices2 = new int[match_index_Vector.size()];
+    for ( int i = 0; i < indices2.length; i++ ) {
+        indices2[i] = ((Integer)match_index_Vector.elementAt(i)).intValue();
+    }
+    // Now display the list of time series
+    PropList request_params = new PropList ( "" );
+    request_params.setUsingObject ( "Indices", indices2 );
+    request_params.setUsingObject ( "Properties", props );
+
+    try { //bean =
+        __ts_processor.processRequest( "ProcessTimeSeriesResultsList", request_params );
+    }
+    catch ( Exception e ) {
+        String message = "Error requesting ProcessTimeSeriesResultsList(Indices=\"" + indices + "\"," +
+        " Properties=\"" + props + "\") from processor.";
+        Message.printWarning(2, routine, message );
+    }
+}
+
 /**
 Process time series from the results list into a product (graph, etc).
 */
@@ -4196,7 +4301,7 @@ private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, Pro
 	}
 	catch ( Exception e ) {
 		String message = "Error requesting ProcessTimeSeriesResultsList(Indices=\"" + indices + "\"," +
-		" Properties=\"" + props + "\" from processor.";
+		" Properties=\"" + props + "\") from processor.";
 		Message.printWarning(2, routine, message );
 	}
 }
@@ -5234,8 +5339,7 @@ public void mouseClicked ( MouseEvent event )
 {	Object source = event.getSource();
 	if ( source == __commands_JList ) {
 		if ( event.getClickCount() == 2 ) {
-			// Edit the first selected item, unless a comment, in
-			// which case all are edited...
+			// Edit the first selected item, unless a comment, in which case all are edited...
 			uiAction_EditCommand ();
 		}
 	}
@@ -5261,24 +5365,26 @@ Handle mouse pressed event.
 public void mousePressed ( MouseEvent event )
 {	int mods = event.getModifiers();
 	Component c = event.getComponent();
-	// Popup for time series list...
-	if (	(c == __commands_JList) && (__commands_JListModel.size() > 0) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
-		//event.isPopupTrigger() ) {}
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), c, __Commands_JPopupMenu );
+    // Popup for commands...
+	if ( (c == __commands_JList) && (__commands_JListModel.size() > 0) &&
+		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
+		Point pt = JGUIUtil.computeOptimalPosition ( event.getPoint(), c, __Commands_JPopupMenu );
 		__Commands_JPopupMenu.show ( c, pt.x, pt.y );
 	}
-	// Popup for commands...
+    // Popup for time series results list...
 	else if ( (c == __results_ts_JList) && (__results_ts_JListModel.size() > 0) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {//&&
-		//event.isPopupTrigger() ) {}
-		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __Commands_JPopupMenu );
-		__results_JPopupMenu.show ( c, pt.x, pt.y );
+		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
+		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __results_ts_JPopupMenu );
+		__results_ts_JPopupMenu.show ( c, pt.x, pt.y );
 	}
+    // Popup for ensemble results list...
+    else if ( (c == __results_tsensembles_JList) && (__results_tsensembles_JListModel.size() > 0) &&
+        ((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
+        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __results_tsensembles_JPopupMenu );
+        __results_tsensembles_JPopupMenu.show ( c, pt.x, pt.y );
+    }
 	// Popup for input name...
-	else if ( (c == __input_name_JComboBox) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+	else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
 		__selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
 		__input_name_JPopupMenu.removeAll();
@@ -5287,13 +5393,11 @@ public void mousePressed ( MouseEvent event )
 	}
 	// Check the state of the "Copy Selected to Commands" button...
 	else if ( c == __query_JWorksheet ) {
-		if (	(__query_JWorksheet != null) &&
-			(__query_JWorksheet.getSelectedRowCount() > 0) ) {
-			JGUIUtil.setEnabled (
-				__CopySelectedToCommands_JButton, true );
+		if ( (__query_JWorksheet != null) && (__query_JWorksheet.getSelectedRowCount() > 0) ) {
+			JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, true );
 		}
-		else {	JGUIUtil.setEnabled (
-			__CopySelectedToCommands_JButton, false );
+		else {
+            JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
 		}
 		// Update the border to reflect selections...
 		ui_UpdateStatus ( false );
@@ -8511,31 +8615,59 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 }
    
 /**
-Define the popup menu for results.
+Define the popup menus for results.
 */
 private void ui_InitGUIMenus_ResultsPopup ()
-{	__results_JPopupMenu = new JPopupMenu("View Actions");
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_BarsLeft_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_BarsCenter_String,this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_BarsRight_String, this ));
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_Duration_String, this ));
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_Line_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_LineLogY_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_PeriodOfRecord_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_Point_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_PredictedValue_String, this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_PredictedValueResidual_String, this));
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Graph_XYScatter_String, this));
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Table_String, this ) );
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_Report_Summary_String, this ) );
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_FindTimeSeries_String, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	BUTTON_TS_SELECT_ALL, this ) );
-	__results_JPopupMenu.add( new SimpleJMenuItem (	BUTTON_TS_DESELECT_ALL, this ) );
-	__results_JPopupMenu.addSeparator();
-	__results_JPopupMenu.add( new SimpleJMenuItem (	__Results_TimeSeriesProperties_String, this ) );
+{	__results_ts_JPopupMenu = new JPopupMenu("TS Results Actions");
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsLeft_String, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsCenter_String,this));
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsRight_String, this ));
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Duration_String, this ));
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_LineLogY_String, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PeriodOfRecord_String, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Point_String, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValue_String, this));
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValueResidual_String, this));
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_XYScatter_String, this));
+	__results_ts_JPopupMenu.addSeparator();
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Table_String, this ) );
+	__results_ts_JPopupMenu.addSeparator();
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Report_Summary_String, this ) );
+	__results_ts_JPopupMenu.addSeparator();
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_FindTimeSeries_String, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_SELECT_ALL, this ) );
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_DESELECT_ALL, this ) );
+	__results_ts_JPopupMenu.addSeparator();
+	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_TimeSeriesProperties_String, this ) );
+    
+    ActionListener_ResultsEnsembles ens_l = new ActionListener_ResultsEnsembles();
+    __results_tsensembles_JPopupMenu = new JPopupMenu("Ensembles Results Actions");
+    /* TODO SAM 2008-01-05 Evaluate what to enable, maybe add exceedance plot, etc.
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsLeft_String, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsCenter_String,this));
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsRight_String, this ));
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Duration_String, this ));
+    */
+    __results_tsensembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, ens_l ) );
+    /*
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_LineLogY_String, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PeriodOfRecord_String, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Point_String, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PredictedValue_String, this));
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PredictedValueResidual_String, this));
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_XYScatter_String, this));
+    __results_ts_JPopupMenu.addSeparator();
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Table_String, this ) );
+    __results_ts_JPopupMenu.addSeparator();
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Report_Summary_String, this ) );
+    __results_ts_JPopupMenu.addSeparator();
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_FindTimeSeries_String, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  BUTTON_TS_SELECT_ALL, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  BUTTON_TS_DESELECT_ALL, this ) );
+    __results_ts_JPopupMenu.addSeparator();
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_TimeSeriesProperties_String, this ) );
+    */
 }
 
 /**
@@ -10300,7 +10432,7 @@ throws Exception
 	}
 	else {
 		// Chain to other actions...
-		uiAction_ActionPerformed14_ViewMenu ( event );
+		uiAction_ActionPerformed15_ResultsMenu ( event );
 	}
 }
 
@@ -10308,7 +10440,7 @@ throws Exception
 Handle a group of actions for the View menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed14_ViewMenu (ActionEvent event)
+private void uiAction_ActionPerformed15_ResultsMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
@@ -10407,7 +10539,7 @@ throws Exception
 	}
     else {
     	// Chain to next actions...
-    	uiAction_ActionPerformed15_ToolsMenu ( event );
+    	uiAction_ActionPerformed16_ToolsMenu ( event );
     }
 }
 
@@ -10415,7 +10547,7 @@ throws Exception
 Handle a group of actions for the Tools menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed15_ToolsMenu (ActionEvent event)
+private void uiAction_ActionPerformed16_ToolsMenu (ActionEvent event)
 throws Exception
 {	Object o = event.getSource();
 	String command = event.getActionCommand();
@@ -10555,7 +10687,7 @@ throws Exception
 	}
 	else {
 		// Chain to remaining actions...
-		uiAction_ActionPerformed16_HelpMenu ( event );
+		uiAction_ActionPerformed17_HelpMenu ( event );
 	}
 }
 
@@ -10563,7 +10695,7 @@ throws Exception
 Handle a group of actions for the Tools menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed16_HelpMenu (ActionEvent event)
+private void uiAction_ActionPerformed17_HelpMenu (ActionEvent event)
 throws Exception
 {	//Object o = event.getSource();
 	String command = event.getActionCommand();
@@ -12786,6 +12918,41 @@ throws IOException
 }
 
 /**
+Graph ensemble results.
+@param graph_type Type of graph (same as tstool command line arguments).
+*/
+private void uiAction_GraphEnsembleResults ( String graph_type ) 
+{   String routine = getClass().getName() + ".uiAction_GraphEnsembleResults";
+
+    try {
+        // Change the wait cursor here in the main GUI to indicate that the graph is being processed.
+        JGUIUtil.setWaitCursor ( this, true );
+        PropList props = new PropList ( "GraphProps" );
+        props.set ( "OutputFormat=" + graph_type );
+        // Final list is selected...
+        if ( __ts_processor != null ) {
+            try {
+                int selected_tsensembles = JGUIUtil.selectedSize(__results_tsensembles_JList);
+                if ( selected_tsensembles == 0 ) {
+                    commandProcessor_ProcessEnsembleResultsList ( null, props );
+                }
+                else {
+                    commandProcessor_ProcessEnsembleResultsList ( __results_tsensembles_JList.getSelectedIndices(), props );
+                }
+            }
+            catch ( Exception e ) {
+                Message.printWarning ( 1, routine, "Unable to graph time series from ensemble results." );
+                Message.printWarning ( 3, routine, e );
+            }
+        }
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+}
+
+/**
 Graph time series that are in the final list.
 @param graph_type Type of graph to create.
 */
@@ -12801,8 +12968,7 @@ private void uiAction_GraphTimeSeriesResults ( String graph_type, String params 
 {	String routine = getClass().getName() + ".uiAction_GraphTimeSeriesResults";
 
 	try {
-		// Change the wait cursor here in the main GUI to indicate that the
-		// graph is being processed.
+		// Change the wait cursor here in the main GUI to indicate that the graph is being processed.
 		JGUIUtil.setWaitCursor ( this, true );
 		PropList props = new PropList ( "GraphProps" );
 		props.set ( "OutputFormat=" + graph_type );
@@ -12822,6 +12988,7 @@ private void uiAction_GraphTimeSeriesResults ( String graph_type, String params 
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 1, routine, "Unable to graph time series." );
+                Message.printWarning ( 3, routine, e );
 			}
 		}
 		JGUIUtil.setWaitCursor ( this, false );
@@ -16398,7 +16565,7 @@ public void valueChanged ( ListSelectionEvent e )
 	}
     Object component = e.getSource();
     if ( component == __results_tsensembles_JList ) {
-        Message.printStatus(2, "", "Ensemble selected in list");
+        //Message.printStatus(2, "", "Ensemble selected in list");
     }
     else if ( component == __results_files_JList ) {
         if ( !e.getValueIsAdjusting() ) {
@@ -16535,6 +16702,24 @@ Required by JWorksheet_Listener.
 */
 public void worksheetSetRowCount ( int count )
 {
+}
+
+/**
+Internal class to handle action events from ensemble results list.
+*/
+private class ActionListener_ResultsEnsembles implements ActionListener
+{
+    /**
+    Handle a group of actions for the View menu.
+    @param event Event to handle.
+    */
+    public void actionPerformed (ActionEvent event)
+    {   String command = event.getActionCommand();
+
+        if ( command.equals(__Results_Graph_Line_String) ) {
+            uiAction_GraphEnsembleResults("-olinegraph");
+        }
+    }
 }
 
 }
