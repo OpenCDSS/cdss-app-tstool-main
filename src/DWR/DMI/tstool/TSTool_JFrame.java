@@ -2937,20 +2937,7 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Manipulate time series...
 
-	else if ( action.equals( __Commands_Manipulate_Add_String)||
-		command.regionMatches(true,0,"add(",0,4) ||
-		command.regionMatches(true,0,"add (",0,5) ) {
-		// Use the above because there may be a conflict with other
-		// commands that start with "add".
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for add()" );
-		}
-		edited_cv = new add_JDialog ( this, cv, true,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Manipulate_AddConstant_String)||
+	if ( action.equals( __Commands_Manipulate_AddConstant_String)||
 		command.regionMatches(true,0,"addConstant",0,11) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
@@ -3008,16 +2995,6 @@ private boolean commandList_EditCommandOldStyle (
 			"Opening dialog for multiply()" );
 		}
 		edited_cv = new multiply_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Manipulate_Subtract_String)||
-		command.regionMatches(true,0,"subtract",0,8) ) {
-		// Reuse the add dialog...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for subtract()" );
-		}
-		edited_cv = new add_JDialog ( this, cv, false,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
