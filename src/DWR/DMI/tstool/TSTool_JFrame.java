@@ -2937,17 +2937,7 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Manipulate time series...
 
-	if ( action.equals( __Commands_Manipulate_AddConstant_String)||
-		command.regionMatches(true,0,"addConstant",0,11) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for addConstant()" );
-		}
-		edited_cv = new addConstant_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Manipulate_AdjustExtremes_String)||
+	if ( action.equals( __Commands_Manipulate_AdjustExtremes_String)||
 		command.regionMatches(true,0,"adjustExtremes",0,14) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
