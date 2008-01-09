@@ -926,6 +926,7 @@ JMenu
 JMenuItem
 	__Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem = null,
+    __Commands_ConvertTSIDTo_ReadDelimitedFile_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem = null,
@@ -943,6 +944,7 @@ JMenuItem
 	//--
 	// NOT TS Alias = commands...
 	__Commands_Read_ReadDateValue_JMenuItem,
+    __Commands_Read_ReadDelimitedFile_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
@@ -953,6 +955,7 @@ JMenuItem
 	__Commands_Read_StateModMax_JMenuItem,
 	// TS Alias = commands...
 	__Commands_Read_TS_ReadDateValue_JMenuItem,
+    __Commands_Read_TS_ReadDelimitedFile_JMenuItem,
 	__Commands_Read_TS_ReadHydroBase_JMenuItem,
 	__Commands_Read_TS_ReadMODSIM_JMenuItem,
 	__Commands_Read_TS_ReadNDFD_JMenuItem,
@@ -1298,6 +1301,7 @@ private String
 	__Commands_ConvertTSIDToReadCommand_String = "Convert TS identifier to read command",
 	__Commands_ConvertTSIDTo_ReadTimeSeries_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadTimeSeries()",
 	__Commands_ConvertTSIDTo_ReadDateValue_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadDateValue()",
+    __Commands_ConvertTSIDTo_ReadDelimitedFile_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadDelimitedFile()",
 	__Commands_ConvertTSIDTo_ReadHydroBase_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadHydroBase()",
 	__Commands_ConvertTSIDTo_ReadMODSIM_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadMODSIM()",
 	__Commands_ConvertTSIDTo_ReadNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadNwsCard()",
@@ -1327,6 +1331,7 @@ private String
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()...  <read 1(+) time series from a DateValue file>",
+    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file>",
 	__Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
@@ -1337,6 +1342,7 @@ private String
 	__Commands_Read_StateModMax_String = TAB + "StateModMax()...  <generate 1(+) time series as Max() of TS in two StateMod files>",
 
 	__Commands_Read_TS_ReadDateValue_String = TAB +	"TS Alias = ReadDateValue()...  <read 1 time series from a DateValue file>",
+    __Commands_Read_TS_ReadDelimitedFile_String = TAB + "TS Alias = ReadDelimitedFile()...  <read 1 time series from a delimited file>",
 	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()...  <read 1 time series from HydroBase>",
 	__Commands_Read_TS_ReadMODSIM_String = TAB + "TS Alias = ReadMODSIM()...  <read 1 time series from a MODSIM output file>",
 	__Commands_Read_TS_ReadNDFD_String = TAB + "TS Alias = ReadNDFD()...  <read 1 time series from NDFD web service>",
@@ -6499,6 +6505,7 @@ private void ui_CheckGUIState ()
 	// a TSID to a specific read command, as available in other menus,
 	// simplifying the conversion from time series browsing, to command language.
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadDateValue_JMenuItem,false);
+    JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadDelimitedFile_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem,false);
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem,false);
@@ -7746,6 +7753,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
 	}
+    //if ( __source_DelimitedFile_enabled ) {
+    //    __Commands_ConvertTSIDToReadCommand_JMenu.add ( __Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
+    //        new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
+    //}
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem =
@@ -7803,6 +7814,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
 	}
+    
+    //if ( __source_DateValue_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelimitedFile_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadDelimitedFile_String, this) );
+    //}
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHydroBase_JMenuItem =
@@ -7855,6 +7871,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadDateValue_String, this) );
 	}
+    
+    //if ( __source_DateValue_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadDelimitedFile_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_TS_ReadDelimitedFile_String, this) );
+    //}
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadHydroBase_JMenuItem =
@@ -9868,6 +9889,9 @@ throws Exception
 	else if ( o == __Commands_ConvertTSIDTo_readDateValue_JMenuItem ) {
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_readDateValue_String, getCommand(), __UPDATE_COMMAND );
 	}
+    else if ( o == __Commands_ConvertTSIDTo_readDateDelimitedFile_JMenuItem ) {
+        commandList_EditCommand ( __Commands_ConvertTSIDTo_readDelimitedFile_String, getCommand(), __UPDATE_COMMAND );
+    }
 	else if ( o == __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem ) {
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_ReadHydroBase_String, getCommand(), __UPDATE_COMMAND );
 	}
@@ -9942,6 +9966,9 @@ throws Exception
 	if (command.equals( __Commands_Read_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Read_ReadDelimitedFile_String)){
+        commandList_EditCommand ( __Commands_Read_ReadDelimitedFile_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Read_ReadHydroBase_String)){
 		commandList_EditCommand ( __Commands_Read_ReadHydroBase_String,	null, __INSERT_COMMAND );
 	}
@@ -9970,6 +9997,9 @@ throws Exception
 	else if (command.equals( __Commands_Read_TS_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_TS_ReadDateValue_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Read_TS_ReadDelimitedFile_String)){
+        commandList_EditCommand ( __Commands_Read_TS_ReadDelimitedFile_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Read_TS_ReadHydroBase_String)){
 		commandList_EditCommand ( __Commands_Read_TS_ReadHydroBase_String, null, __INSERT_COMMAND );
 	}
