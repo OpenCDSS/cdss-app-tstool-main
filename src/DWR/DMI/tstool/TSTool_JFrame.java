@@ -2460,7 +2460,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		}
 	}
 	else {
-        // The edit was cancelled.  If it was a new command being inserted, remove the command from the processor...
+        // The edit was canceled.  If it was a new command being inserted, remove the command from the processor...
 		if ( mode == __INSERT_COMMAND ) {
 			if ( is_comment_block ) {
 				// No comments were inserted at start of edit.  No need to do anything.
@@ -2943,7 +2943,7 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Manipulate time series...
 
-	if ( action.equals( __Commands_Manipulate_AdjustExtremes_String)||
+	else if ( action.equals( __Commands_Manipulate_AdjustExtremes_String)||
 		command.regionMatches(true,0,"adjustExtremes",0,14) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
