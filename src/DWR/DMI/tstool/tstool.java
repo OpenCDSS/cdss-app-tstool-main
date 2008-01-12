@@ -443,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.12.00 beta (2008-01-11)";
+public static final String PROGRAM_VERSION = "8.12.02 beta (2008-01-12)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -542,7 +542,7 @@ public void init()
 
     // Instantiate main GUI
 
-	initialize();
+	initializeLoggingLevelsAfterLogOpened();
 
 	// Full GUI as applet (no log file)...
 	// Show the main GUI, although later might be able to start up just
@@ -551,9 +551,9 @@ public void init()
 }
 
 /**
-Initialize important data and set message levels for console startup.
+Initialize important data and set message levels for application after startup.
 */
-private static void initialize ()
+private static void initializeLoggingLevelsAfterLogOpened ()
 {	// Initialize message levels...
     // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
 	Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
@@ -571,9 +571,29 @@ private static void initialize ()
 }
 
 /**
-Initialize important data.
+Initialize important data and set message levels for console startup.
 */
-private static void initialize2 ()
+private static void initializeLoggingLevelsBeforeLogOpened ()
+{   // Initialize message levels...
+    // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
+    Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
+    Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );
+    Message.setStatusLevel ( Message.TERM_OUTPUT, 2 );
+    Message.setStatusLevel ( Message.LOG_OUTPUT, 2 );
+    Message.setWarningLevel ( Message.TERM_OUTPUT, 2 );
+    Message.setWarningLevel ( Message.LOG_OUTPUT, 3 );
+
+    // Indicate that message levels should be shown in messages, to allow
+    // for a filter when displaying messages...
+
+    Message.setPropValue ( "ShowMessageLevel=true" );
+    Message.setPropValue ( "ShowMessageTag=true" );
+}
+
+/**
+Initialize important data relative to the installation home.
+*/
+private static void initializeAfterHomeIsKnown ()
 {	String routine = "tstool.initialize2";
 
     // Rest some message levels now that the log file should b
@@ -613,6 +633,8 @@ public static void main ( String args[] )
 	try {
 	// Main try...
 
+	initializeLoggingLevelsBeforeLogOpened();
+	setWorkingDirInitial ();
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args );
 	JGUIUtil.setAppNameForWindows("TSTool");
 
@@ -623,10 +645,12 @@ public static void main ( String args[] )
 
 	// Note that messages will not be printed to the log file until the log file is opened below.
 
-	initialize();
+	initializeLoggingLevelsAfterLogOpened();
 
 	try {
         parseArgs ( args );
+        // The result of this is that the full path to the command file will be set.
+        // Or the GUI will need to start up in the current directory.
 	}
 	catch ( Exception e ) {
         Message.printWarning ( 1, routine, 
@@ -636,7 +660,7 @@ public static void main ( String args[] )
 
 	// Read the data units...
 
-	initialize2 ();
+	initializeAfterHomeIsKnown ();
 
 	Message.printStatus ( 1, routine,
 	        "Setup completed.  showmain = " + __show_main_gui + " isbatch=" + IOUtil.isBatch() );
@@ -647,7 +671,9 @@ public static void main ( String args[] )
 		// Running like "tstool -commands file"
 		TSCommandFileRunner runner = new TSCommandFileRunner();
 		try {
-			runner.readCommandFile ( getCommandFile() );
+		    String command_file_full = getCommandFile();
+		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + command_file_full + "\"" );
+			runner.readCommandFile ( command_file_full );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error reading command file \"" +
@@ -797,7 +823,8 @@ throws Exception
 			// so that later command-line parameters can override them...
 			readConfiguration();
 			Message.printStatus ( 1, routine, "Home directory for TSTool is \"" + __home + "\"" );
-			IOUtil.setProgramWorkingDir(__home);
+			// Don't do this since we set to user.dir at startup
+			//IOUtil.setProgramWorkingDir(__home);
 			IOUtil.setApplicationHomeDir(__home);
 			JGUIUtil.setLastFileDialogDirectory(__home);
 		}
@@ -990,42 +1017,31 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     // directory for all other processing.
     String user_dir = System.getProperty("user.dir");
     Message.printStatus (1, routine, "Startup (user.dir) directory is \"" + user_dir + "\"");
+    String command_file_canonical = null;   // Does not need to be absolute
     File command_file_File = new File(command_file_arg);
     File command_file_full_File = null;
     String command_file_full = null;
     try {
-        command_file_full = command_file_File.getCanonicalPath();
-        command_file_full_File = new File ( command_file_full );
+        command_file_canonical = command_file_File.getCanonicalPath();
+        Message.printStatus( 1, routine, "Canonical path for command file is \"" + command_file_canonical + "\"" );
     }
     catch ( Exception e ) {
         Message.printWarning ( 1, routine,
-                "Unable to determine canonical (full) path for \"" + command_file_arg + "\"." +
+                "Unable to determine canonical path for \"" + command_file_arg + "\"." +
                 		"Check that the file exists and read permissions are granted.  Not using command file." );
         return;
     }
     
-    // Indicate whether running in batch mode...
-    
-    IOUtil.isBatch ( is_batch );
-    
-    // Set the working directory (virtual, managed by RTi software)...
-
-    // FIXME SAM 2008-01-11 Shouldn't a canonical path always be absolute?
-    // If absolute, set the working directory...
-    String working_dir = null;
-    if ( command_file_full_File.isAbsolute() ) {
-        working_dir = command_file_full_File.getParent();
+    // Get the absolute path to the command file.
+    // TODO SAM 2008-01-11 Shouldn't a canonical path always be absolute?
+    File command_file_canonical_File = new File ( command_file_canonical );
+    if ( command_file_canonical_File.isAbsolute() ) {
+        command_file_full = command_file_canonical;
     }
-    else if ( command_file_full.startsWith("..") ) {
+    else {
         // Append the command file to the user directory and set the working directory to
         // the resulting directory.
         command_file_full = user_dir + File.separator + command_file_full;
-        command_file_full_File = new File ( command_file_full );
-        working_dir = command_file_full_File.getParent();
-    }
-    else {
-        // Else the working directory is the current directory for the application...
-        working_dir = user_dir;
     }
     
     // Save the full path to the command file so it can be processed when the GUI initializes.
@@ -1035,12 +1051,9 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     IOUtil.setProgramCommandFile ( command_file_full );
     setCommandFile ( command_file_full );
     
-    IOUtil.setProgramWorkingDir ( working_dir );
-    JGUIUtil.setLastFileDialogDirectory( working_dir );
-    // Print at level 1 because the log file is not yet initialized.
-    Message.printStatus ( 1, routine,
-            "Setting working directory to command file folder \"" + working_dir +"\".");
+    setWorkingDirUsingCommandFile ( command_file_full );
     
+    command_file_full_File = new File ( command_file_full );
     if ( !command_file_full_File.exists() ) {
         Message.printWarning(1, routine, "Command file \"" + command_file_full + "\" does not exist." );
         if ( is_batch ) {
@@ -1051,6 +1064,37 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
             // In GUI mode, go ahead and start up but there will be more warnings about no file to read.
         }
     }
+    
+    // Indicate whether running in batch mode...
+    
+    IOUtil.isBatch ( is_batch );
+}
+
+/**
+Set the working directory as the system "user.dir" property.
+*/
+private static void setWorkingDirInitial()
+{String routine = "tstool.setWorkingDirInitial";
+    String working_dir = System.getProperty("user.dir");
+    IOUtil.setProgramWorkingDir ( working_dir );
+    Message.printStatus ( 1, routine,
+            "Setting working directory to command file folder \"" + working_dir +"\".");
+    System.out.println("Setting working directory to user's directory \"" + working_dir +"\".");
+}
+
+/**
+Set the working directory as the parent of the command file.
+*/
+private static void setWorkingDirUsingCommandFile ( String command_file_full )
+{   String routine = "tstool.setWorkingDirUsingCommandFile";
+    File command_file_full_File = new File ( command_file_full );
+    String working_dir = command_file_full_File.getParent();
+    IOUtil.setProgramWorkingDir ( working_dir );
+    JGUIUtil.setLastFileDialogDirectory( working_dir );
+    // Print at level 1 because the log file is not yet initialized.
+    Message.printStatus ( 1, routine,
+        "Setting working directory to command file folder \"" + working_dir +"\".");
+    System.out.println("Setting working directory to command file folder \"" + working_dir +"\".");
 }
 
 } // End TSTool
