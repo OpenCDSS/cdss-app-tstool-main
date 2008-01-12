@@ -421,6 +421,7 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.util.Vector;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
@@ -442,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.11.01 (2008-01-10)";
+public static final String PROGRAM_VERSION = "8.12.00 beta (2008-01-11)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -455,7 +456,8 @@ Home directory for system install.
 private static String __home = null;
 
 /**
-List of properties to control app, from config file and passed to GUI, etc.
+List of properties to control the software from the configuration file and passed
+in on the command line.
 */
 private static PropList __tstool_props = null;
 
@@ -463,6 +465,11 @@ private static PropList __tstool_props = null;
 Indicates whether TSTool is running in server mode - under development.
 */
 private static boolean __is_server = false;
+
+/**
+Indicates whether the command file should run after loading, when used in GUI mode.
+*/
+private static boolean __run_commands_on_load = false;  
 
 /**
 Indicates whether the main GUI is shown, for cases where TSTool is run in
@@ -476,8 +483,7 @@ Command file being processed when run in batch mode with -commands File.
 private static String __command_file = null;
 
 /**
-Return the command file that is being processed, or null if not being run
-in batch mode.
+Return the command file that is being processed, or null if not being run in batch mode.
 @return the path to the command file to run.
 */
 private static String getCommandFile ()
@@ -509,6 +515,16 @@ public static String getPropValue ( String property )
 }
 
 /**
+Indicate whether the commands should be run after loaded into the GUI (when a command
+file is specified on the command line).
+@return true if the commands should automatically be run after loading.
+*/
+public static boolean getRunOnLoad ()
+{
+    return __run_commands_on_load;
+}
+
+/**
 Instantiates the application instance as an applet.
 */
 public void init()
@@ -531,15 +547,15 @@ public void init()
 	// Full GUI as applet (no log file)...
 	// Show the main GUI, although later might be able to start up just
 	// the TSView part via a web site.
-	__tstool_JFrame = new TSTool_JFrame ( true );
+	__tstool_JFrame = new TSTool_JFrame ( null, false );
 }
 
 /**
-Initialize important data.
+Initialize important data and set message levels for console startup.
 */
 private static void initialize ()
 {	// Initialize message levels...
-
+    // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
 	Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
 	Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );
 	Message.setStatusLevel ( Message.TERM_OUTPUT, 0 );
@@ -559,6 +575,8 @@ Initialize important data.
 */
 private static void initialize2 ()
 {	String routine = "tstool.initialize2";
+
+    // Rest some message levels now that the log file should b
 
 	// Initialize the system data...
 
@@ -603,8 +621,7 @@ public static void main ( String args[] )
 
 	setIcon ( "RTi" );
 
-	// Note that messages will not be printed to the log file until
-	// the log file is opened below.
+	// Note that messages will not be printed to the log file until the log file is opened below.
 
 	initialize();
 
@@ -622,10 +639,11 @@ public static void main ( String args[] )
 	initialize2 ();
 
 	Message.printStatus ( 1, routine,
-			"Starting GUI, showmain = " + __show_main_gui + " isbatch=" +
-			IOUtil.isBatch() );
+	        "Setup completed.  showmain = " + __show_main_gui + " isbatch=" + IOUtil.isBatch() );
 	
 	if ( IOUtil.isBatch() ) {
+	    // FIXME SAM 2008-01-11 determine whether batch mode works with TS Products (no main GUI)
+	    // Maybe -nomaingui is no longer needed.
 		// Running like "tstool -commands file"
 		TSCommandFileRunner runner = new TSCommandFileRunner();
 		try {
@@ -657,10 +675,10 @@ public static void main ( String args[] )
 		// Run the GUI...
 		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
 		try {
-            __tstool_JFrame = new TSTool_JFrame ( __show_main_gui );
+            __tstool_JFrame = new TSTool_JFrame ( getCommandFile(), getRunOnLoad() );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error starting TSTool." );
+			Message.printWarning ( 1, routine, "Error starting TSTool GUI." );
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
@@ -676,8 +694,7 @@ public static void main ( String args[] )
 
 /**
 Open the log file.  This should be done as soon as the application home
-directory is known so that remaining information can be captured in the log
-file.
+directory is known so that remaining information can be captured in the log file.
 */
 private static void openLogFile ()
 {	String routine = "TSTool.openLogFile", __logfile = "";
@@ -686,9 +703,10 @@ private static void openLogFile ()
 	if ( IOUtil.isApplet() ) {
 		Message.printWarning ( 2, routine, "Running as applet - no TSTool log file opened." );
 	}
-	else {	if ( (__home == null) || (__home.length() == 0) || (__home.charAt(0) == '.')) {
-			Message.printWarning ( 2, routine, "Home directory is "+
-			"not defined.  Not opening log file.");
+	else {
+	    // FIXME SAM 2008-01-11 need to open log file in user space (e.g., /home/$USER/.TSTool/.. on Linux)
+	    if ( (__home == null) || (__home.length() == 0) || (__home.charAt(0) == '.')) {
+			Message.printWarning ( 2, routine, "Home directory is not defined.  Not opening log file.");
 		}
 		else {
             if ( (user == null) || user.trim().equals("")) {
@@ -717,56 +735,16 @@ throws Exception
 {	String routine = "TSTool.parseArgs";
 	int pos = 0;	// Position in a string.
 	for (int i = 0; i < args.length; i++) {
+	    // User specified....
 		if (args[i].equalsIgnoreCase("-commands")) {
 			if ((i + 1)== args.length) {
 				Message.printWarning(1,routine, "No argument provided to '-commands'");
 				throw new Exception("No argument provided to '-commands'");
 			}
 			i++;
-			String user_dir = System.getProperty("user.dir");
-			Message.printStatus (1, routine, "Startup (user) directory is \"" +	user_dir + "\"");
-			String commands = (new File(args[i])).getCanonicalPath();;
-			
-            Message.printStatus ( 1, routine, "Command file is \"" + commands + "\"" );
-			// Save this so it can be processed when the GUI initializes.
-            // TODO SAM 2007-09-09 Evaluate phasing global command file out.
-			IOUtil.setProgramCommandFile ( commands );
-			setCommandFile ( commands );
-			IOUtil.isBatch ( true );
-                   
-            File f = new File ( commands );
-			// If absolute, set the working directory...
-            String working_dir = null;
-			if ( f.isAbsolute() ) {
-				working_dir = f.getParent();
-			}
-			else if ( commands.startsWith("..") ) {
-				// Append the command file to the user
-				// directory and set the working directory to
-				// the resulting directory.
-				String commands_full = user_dir + File.separator + commands;
-				f = new File ( commands_full );
-				working_dir = f.getParent();
-			}
-			else {
-                // Else the working directory is the current directory for the application...
-				working_dir = user_dir;
-			}
-            
-			IOUtil.setProgramWorkingDir ( working_dir );
-			JGUIUtil.setLastFileDialogDirectory( working_dir );
-			// REVISIT SAM 2005-10-18 This does not display
-			// because the log file is not yet initialized.
-			Message.printStatus ( 2, routine,
-			"Setting working directory to command file " + "directory: \"" + working_dir +"\".");
-			
-			if ( !f.exists() ) {
-				Message.printWarning(1, routine, "Command file \"" + commands +
-						"\" does not exist.  Exiting." );
-				quitProgram ( 1 );
-						
-			}
+			setupUsingCommandFile ( args[i], true );
 		}
+		// User specified...
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
 			// Set debug information...
 			if ((i + 1)== args.length) {
@@ -800,6 +778,9 @@ throws Exception
 				}
 			}
 		}
+		// Should be specified in batch file or script that runs TSTool, or in properties for
+		// a executable launcher.  Therefore this should be processed before any user command line
+		// parameters and the log file should open up before much else is done.
 		else if (args[i].equalsIgnoreCase("-home")) {
 			if ((i + 1)== args.length) {
 				Message.printWarning(1,routine, "No argument provided to '-home'");
@@ -820,22 +801,31 @@ throws Exception
 			IOUtil.setApplicationHomeDir(__home);
 			JGUIUtil.setLastFileDialogDirectory(__home);
 		}
+		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
 			// Don't make the main GUI visible...
 			Message.printStatus ( 1, routine, "Will process command file using hidden main GUI." );
 			__show_main_gui = false;
 		}
+	    // User specified or specified by a script/system call to the normal TSTool script/launcher.
+        else if (args[i].equalsIgnoreCase("-runcommandsonload")) {
+            Message.printStatus ( 1, routine, "Will run commands on load." );
+            __run_commands_on_load = true;
+        }
+		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-server")) {
 			Message.printStatus ( 1, routine, "Starting TSTool in server mode" );
 			__is_server = true;
 		}
+		// User specified (generally by deverlopers)
 		else if (args[i].equalsIgnoreCase("-test")) {
 			IOUtil.testing(true);
 			Message.printStatus ( 1, routine, "Running in test mode." );
 		}
+		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if ( (pos = args[i].indexOf("=")) > 0 ) {
 			// A command line argument of the form:
-			// Prop.erty=Value
+			// Property=Value
 			// For example, specify a database login for batch
 			// mode.  The properties can be interpreted by the
 			// GUI or other code.
@@ -853,6 +843,11 @@ throws Exception
 			}
 			__tstool_props.set ( prop );
 		}
+		// User specified or specified by a script/system call to the normal TSTool script/launcher.
+		else {
+		    // Assume that a command file has been specified on the command line
+		    setupUsingCommandFile ( args[i], false );
+		}
 	}
 }
 
@@ -863,24 +858,18 @@ Parse the command-line arguments for the applet, determined from the applet data
 */
 public static void parseArgs ( JApplet a )
 throws Exception
-{	String home = a.getParameter("-home");
-	String test = a.getParameter("-test");
-	String release = a.getParameter("-release");
-
-	if ( home != null ) {
-		__home = (new File(home)).getCanonicalPath().toString();
-		IOUtil.setProgramWorkingDir(__home);
-		IOUtil.setApplicationHomeDir(__home);
-		JGUIUtil.setLastFileDialogDirectory(__home);
+{	
+    // Convert the applet parameters to an array of strings and call the
+    // other parse method.
+	Vector args = new Vector();
+	if ( a.getParameter("-home") != null ) {
+	    args.addElement ( "-home" );
+	    args.addElement ( a.getParameter("-home") );
 	}
-
-	if ( test != null ) {
-		IOUtil.testing(true);
-	}
-
-	if ( release != null ) {
-		IOUtil.setRelease(true);
-	}
+    if ( a.getParameter("-test") != null ) {
+        args.addElement ( "-test" );
+    }
+    parseArgs ( (String [])args.toArray() );
 }
 
 /**
@@ -890,8 +879,17 @@ public static void printUsage ( )
 {	String nl = System.getProperty ( "line.separator" );
 	String routine = "tstool.printUsage";
 	String usage =  nl +
-	"Usage:  " + PROGRAM_NAME + " [options] [-commands File]" + nl + nl +
+	"Usage:  " + PROGRAM_NAME + " [options] [[-commands CommandFile] | CommandFile]" + nl + nl +
 	"TSTool displays, analyzes, and manipulates time series." + nl+
+	"" + nl+
+	PROGRAM_NAME + " -commands CommandFile" + nl +
+	"                Runs the commands in batch mode and exits." + nl+
+	PROGRAM_NAME + " -commands CommandFile -nomaingui" + nl +
+	"                Runs the commands in batch mode, displays product windows" + nl +
+	"                (no main window), and exists when the window(s) are closed." + nl+
+	PROGRAM_NAME + " CommandFile" + nl +
+	"                Opens up the main GUI and loads the command file." + nl +
+	"" + nl+
 	"See the documentation for more information." + nl + nl;
 	System.out.println ( usage );
 	Message.printStatus ( 1, routine, usage );
@@ -975,6 +973,84 @@ public static void setIcon ( String icon_type )
 	catch ( Exception e ) {
 		Message.printStatus ( 2, "", "TSTool icon \"" + icon_path +	"\" does not exist in classpath." );
 	}
+}
+
+/**
+Setup the application using the specific command file, which either came in on the
+command line with "-commands CommandFile" or simply as an argument.
+@param command_file_arg Command file from the command line argument (no processing on the argument
+before this call).
+@param is_batch Indicates if the command file was specified with "-commands CommandFile",
+indicating that a batch run is requested.
+*/
+private static void setupUsingCommandFile ( String command_file_arg, boolean is_batch )
+{   String routine = "tstool.setupUsingCommandFile";
+
+    // Make sure that the command file is an absolute path because it indicates the working
+    // directory for all other processing.
+    String user_dir = System.getProperty("user.dir");
+    Message.printStatus (1, routine, "Startup (user.dir) directory is \"" + user_dir + "\"");
+    File command_file_File = new File(command_file_arg);
+    File command_file_full_File = null;
+    String command_file_full = null;
+    try {
+        command_file_full = command_file_File.getCanonicalPath();
+        command_file_full_File = new File ( command_file_full );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine,
+                "Unable to determine canonical (full) path for \"" + command_file_arg + "\"." +
+                		"Check that the file exists and read permissions are granted.  Not using command file." );
+        return;
+    }
+    
+    // Indicate whether running in batch mode...
+    
+    IOUtil.isBatch ( is_batch );
+    
+    // Set the working directory (virtual, managed by RTi software)...
+
+    // FIXME SAM 2008-01-11 Shouldn't a canonical path always be absolute?
+    // If absolute, set the working directory...
+    String working_dir = null;
+    if ( command_file_full_File.isAbsolute() ) {
+        working_dir = command_file_full_File.getParent();
+    }
+    else if ( command_file_full.startsWith("..") ) {
+        // Append the command file to the user directory and set the working directory to
+        // the resulting directory.
+        command_file_full = user_dir + File.separator + command_file_full;
+        command_file_full_File = new File ( command_file_full );
+        working_dir = command_file_full_File.getParent();
+    }
+    else {
+        // Else the working directory is the current directory for the application...
+        working_dir = user_dir;
+    }
+    
+    // Save the full path to the command file so it can be processed when the GUI initializes.
+    // TODO SAM 2007-09-09 Evaluate phasing global command file out - needs to be handled in
+    // the command processor.
+    Message.printStatus ( 1, routine, "Command file is \"" + command_file_full + "\"" );
+    IOUtil.setProgramCommandFile ( command_file_full );
+    setCommandFile ( command_file_full );
+    
+    IOUtil.setProgramWorkingDir ( working_dir );
+    JGUIUtil.setLastFileDialogDirectory( working_dir );
+    // Print at level 1 because the log file is not yet initialized.
+    Message.printStatus ( 1, routine,
+            "Setting working directory to command file folder \"" + working_dir +"\".");
+    
+    if ( !command_file_full_File.exists() ) {
+        Message.printWarning(1, routine, "Command file \"" + command_file_full + "\" does not exist." );
+        if ( is_batch ) {
+             // Exit because there is nothing to do...
+            quitProgram ( 1 );
+        }
+        else {
+            // In GUI mode, go ahead and start up but there will be more warnings about no file to read.
+        }
+    }
 }
 
 } // End TSTool

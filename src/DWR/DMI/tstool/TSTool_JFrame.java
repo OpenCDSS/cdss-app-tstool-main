@@ -760,7 +760,7 @@ then only graph windows will be shown, and when closed the app will close.  This
 is used when calling TSTool from other software (e.g., to provide graphing
 capabilities to GIS applications).
 */
-private boolean __show_main = true;
+//private boolean __show_main = true;
 
 /**
 RiversideDB_DMI object for RiversideDB input type, opened via TSTool.cfg information
@@ -1609,27 +1609,17 @@ private final static int
 
 /**
 TSTool_JFrame constructor.
-@param show_main Indicates whether the JFrame should be displayed at creation
-(true) or not (false).
+@param command_file Name of the command file to load at initialization.
+@param run_on_load If true, a successful load of a command file will be followed by
+running the commands.  If false, the command file will be loaded but not automatically
+run.
 */
-public TSTool_JFrame ( boolean show_main )
+public TSTool_JFrame ( String command_file, boolean run_on_load )
 {	super();
 	StopWatch swMain = new StopWatch();
 	swMain.start();
 	String rtn = "TSTool_JFrame";
-	__show_main = show_main;
-
    
-	if ( !IOUtil.isBatch() ) {
-		Message.setTopLevel ( this );
-		// If batch this should have been set in the main program
-		// when command line options were parsed...
-		String last_directory_selected=System.getProperty ("user.dir") +
-			System.getProperty("file.separator");
-		//IOUtil.setProgramWorkingDir(last_directory_selected);
-		JGUIUtil.setLastFileDialogDirectory(last_directory_selected);
-	}
-	
 	// Set the initial working directory up front because it is used in the
 	// command processor and edit dialogs.
     
@@ -1675,8 +1665,7 @@ public TSTool_JFrame ( boolean show_main )
 
 	// NWSRFS_ESPTraceEnsemble not enabled by default...
 
-	prop_value = tstool.getPropValue (
-		"TSTool.NWSRFSESPTraceEnsembleEnabled" );
+	prop_value = tstool.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_NWSRFS_ESPTraceEnsemble_enabled = false;
@@ -1686,15 +1675,13 @@ public TSTool_JFrame ( boolean show_main )
 		}
 	}
 	// Always disable if not available in the Jar file...
-	if (	!IOUtil.classCanBeLoaded(
-		"RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble") ) {
+	if ( !IOUtil.classCanBeLoaded( "RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble") ) {
 		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
 	}
 
 	// NWSRFS_FS5Files not enabled by default...
 
-	prop_value = tstool.getPropValue (
-		"TSTool.NWSRFSFS5FilesEnabled" );
+	prop_value = tstool.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_NWSRFS_FS5Files_enabled = false;
@@ -1722,10 +1709,10 @@ public TSTool_JFrame ( boolean show_main )
 		if ( (prop_value != null) && StringUtil.isInteger(prop_value)){
 			__props.set ( "HydroBase.WDIDLength", prop_value );
 			// Also set in global location.
-			HydroBase_Util.setPreferredWDIDLength (
-				StringUtil.atoi ( prop_value ) );
+			HydroBase_Util.setPreferredWDIDLength (	StringUtil.atoi ( prop_value ) );
 		}
-		else {	// Default...
+		else {
+		    // Default...
 			__props.set ( "HydroBase.WDIDLength", "7" );
 		}
 		prop_value = tstool.getPropValue ( "HydroBase.OdbcDsn" );
@@ -1733,7 +1720,8 @@ public TSTool_JFrame ( boolean show_main )
 			__props.set ( "HydroBase.OdbcDsn", prop_value );
 		}
 	}
-	else {	__props.set ( "TSTool.HydroBaseEnabled", "false" );
+	else {
+	    __props.set ( "TSTool.HydroBaseEnabled", "false" );
 	}
 
 	// Mexico CSMN disabled by default...
@@ -1778,13 +1766,12 @@ public TSTool_JFrame ( boolean show_main )
 	}
 	else if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ){
 		__source_NWSRFS_FS5Files_enabled = true;
-		prop_value = tstool.getPropValue (
-		"NWSRFSFS5Files.UseAppsDefaults" );
+		prop_value = tstool.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
 		if ( prop_value != null ) {
-			__props.set(
-			"NWSRFSFS5Files.UseAppsDefaults",prop_value );
+			__props.set( "NWSRFSFS5Files.UseAppsDefaults",prop_value );
 		}
-		else {	// Default is to use files.  If someone has Apps
+		else {
+		    // Default is to use files.  If someone has Apps
 			// Defaults configured, this property can be changed.
 			__props.set ( "NWSRFSFS5Files.UseAppsDefaults","false");
 		}
@@ -1865,12 +1852,10 @@ public TSTool_JFrame ( boolean show_main )
 
 	__props.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
 	__props.set ( "WorkingDir", IOUtil.getProgramWorkingDir() );
-	Message.printStatus ( 1, "", "Working directory is " +
-		__props.getValue ( "WorkingDir" ) );
+	Message.printStatus ( 1, "", "Working directory is " + __props.getValue ( "WorkingDir" ) );
 	__props.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 
-	// Read the license information and disable/enable input types based on
-	// the license...
+	// Read the license information and disable/enable input types based on the license...
 
 	ui_ReadLicense ();
 	ui_CheckInputTypesForLicense ();
@@ -1881,16 +1866,15 @@ public TSTool_JFrame ( boolean show_main )
 	// create the GUI ...
 	StopWatch in = new StopWatch();
 	in.start();
-	ui_InitGUI ( show_main );
+	ui_InitGUI ();
 	in.stop();
 	Message.printDebug(1, "", "JTS - InitGUI: " + in.getSeconds());
 
-	// Check the license.  Do this after GUI is initialized so that a dialog
-	// can be shown...
+	// Check the license.  Do this after GUI is initialized so that a dialog can be shown...
 
 	ui_CheckLicense ();
 
-        // Get database connection information.  Force a login if the
+    // Get database connection information.  Force a login if the
 	// database connection cannot be made.  The login is interactive and
 	// is disabled if no main GUI is to be shown.
 
@@ -1904,26 +1888,22 @@ public TSTool_JFrame ( boolean show_main )
 	sms.stop();
 	Message.printDebug(1, "", "JTS - OpenColoradoSMS: " + sms.getSeconds());
 	swMain.stop();
-	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " 
-		+ swMain.getSeconds());
+	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " + swMain.getSeconds());
 	if ( __source_HydroBase_enabled ) {
-		// Login to HydroBase using information in the TSTool
-		// configuration file...
+		// Login to HydroBase using information in the TSTool configuration file...
 		uiAction_OpenHydroBase ( true );
 		// Force the choices to refresh...
-		if ( __show_main && (__hbdmi != null) ) {
+		if ( __hbdmi != null ) {
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select (__INPUT_TYPE_HydroBase);
 		}
 	}
 	if ( __source_NWSRFS_FS5Files_enabled ) {
-		// Open NWSRFS FS5Files using information in the TSTool
-		// configuration file...
+		// Open NWSRFS FS5Files using information in the TSTool configuration file...
 		uiAction_OpenNWSRFSFS5Files ( null, true );
 		// Force the choices to refresh...
 		if ( __nwsrfs_dmi != null ) {
-			/* TODO SAM 2004-09-10 DO NOT DO THIS BECAUSE IT
-			  THEN PROMPTS FOR a choice...
+			/* TODO SAM 2004-09-10 DO NOT DO THIS BECAUSE IT THEN PROMPTS FOR a choice...
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select (
 				__INPUT_TYPE_NWSRFS_FS5Files );
@@ -1931,100 +1911,42 @@ public TSTool_JFrame ( boolean show_main )
 		}
 	}
 	if ( __source_RiversideDB_enabled ) {
-		// Login to the RiversideDB using information in the TSTool
-		// configuration file...
+		// Login to the RiversideDB using information in the TSTool configuration file...
 		uiAction_OpenRiversideDB ( null, true );
 	}
-
-	// Connect the Message class to output to the status bar in the main
-	// GUI...
-
-	/* TODO SAM 2007-09-12 Has never been that useful
-	if ( show_main ) {
-		Message.setOutputFunction ( Message.STATUS_BAR_OUTPUT, this,
-		"printStatusMessages" );
-	}
-	*/
 
 	// Add GUI features that depend on the databases...
 	// The appropriate panel will be set visible as input types and data
 	// types are chosen.  The panels are currently only intialized once so
 	// changing databases or enabling new databases after setup may require
-	// some code changes.  Set the wait cursor because queries are
-	// done during setup.
+	// some code changes.  Set the wait cursor because queries are done during setup.
 
-	if ( show_main ) {
-		// Don't do this in batch mode because it may cause a
-		// performance hit querying databases (e.g., HydroBase stored
-		// procedures).
-		JGUIUtil.setWaitCursor ( this, true );
-		try {	ui_InitGUIInputFilters ( __input_filter_y );
-					// Add one vertical position even though
-					// it may actually be more than one slot
-					// based on what is in the panel.
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 3, rtn,
-			"For developers:  caught exception initializing " +
-			"input filters at setup." );
-			Message.printWarning ( 3, rtn, e );
-		}
-		// TODO SAM 2007-01-23 Evaluate use.
-		// Force everything to refresh based on the current GUI
-		// layout.
-		// Still evaluating this.
-		this.invalidate ();
-		JGUIUtil.setWaitCursor ( this, false );
+	JGUIUtil.setWaitCursor ( this, true );
+	try {
+	    ui_InitGUIInputFilters ( __input_filter_y );
 	}
+	catch ( Exception e ) {
+		Message.printWarning ( 3, rtn,
+		"For developers:  caught exception initializing input filters at setup." );
+		Message.printWarning ( 3, rtn, e );
+	}
+	// TODO SAM 2007-01-23 Evaluate use.
+	// Force everything to refresh based on the current GUI layout.
+	// Still evaluating this.
+	this.invalidate ();
+	JGUIUtil.setWaitCursor ( this, false );
 
 	// Use the window listener
 
-	if ( show_main ) {
-		ui_UpdateStatus ( true );
-	}
+	ui_UpdateStatus ( true );
 
 	// If running with a command file from the command line, we don't
 	// normally want to see the main window so handle with a special case...
 
-	// TODO SAM 2005-10-28 Evaluate code
-	// In the future might allow, for example, clicking on a TSTool file
-	// to bring up the GUI with that command file, without running.  In
-	// that case the GUI would show the commands but not automatically run,
-	// so the following code would probably not be executed.
-
-	String command_file = IOUtil.getProgramCommandFile();
+	// TSTool has been started with a command file so try to open and display
+	// It should already be absolute
 	if ( (command_file != null) && (command_file.length() > 0) ) {
-
-			/* FIXME SAM 2007-08-20 Need to reenable
-		try {	Message.printStatus ( 2, rtn,
-			"Running command file \"" + command_file + 
-			"\" with no main GUI..." );
-			runNoMainGUI ( command_file );
-			Message.printStatus ( 2, rtn,
-			"...done running with no main GUI." );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, rtn,
-			"Error running commands in \"" + command_file +
-			"\" with no main GUI." );
-			// TODO SAM 2005-10-28
-			// Do we need this?...
-			// Need to close the GUI, even if hidden...
-			//closeClicked();
-			tstool.quitProgram ( 1 );
-		}
-		*/
-
-		// In this mode it is assumed that a graph window was created
-		// which when closed will close the application based on a
-		// WindowListener method call.
-
-		if ( show_main ) {
-			// In a batch run without -nomaingui, the show_main
-			// option is left as true.  In this case, we need to
-			// close down the interface manually...
-			uiAction_FileExitClicked();
-		}
+	    ui_LoadCommandFile ( command_file, run_on_load );
 	}
 }
 
@@ -3468,7 +3390,6 @@ private boolean commandList_IsExitCommand ( Vector command_Vector )
 	}
 	return false;
 }
-
 /**
 Create a new Command instance given a command string.  This may be called when
 loading commands from a file or adding new commands while editing.
@@ -6913,7 +6834,7 @@ private PropList ui_GetPropertiesForOldStyleEditor ( Command command_to_edit )
 Initialize the GUI.
 @param show_main Indicates if the main interface should be shown.
 */
-private void ui_InitGUI ( boolean show_main )
+private void ui_InitGUI (  )
 {	String routine = "TSTool_JFrame.initGUI";
 	try {	// To catch layout problems...
 	int y;
@@ -6929,11 +6850,8 @@ private void ui_InitGUI ( boolean show_main )
 
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 
-	if ( show_main ) {
-		// If not showing main, don't initialize menus, to speed performance.
-		ui_InitGUIMenus ();
-        ui_InitToolbar ();
-	}
+	ui_InitGUIMenus ();
+    ui_InitToolbar ();
 
 	// Remainder of main window...
 
@@ -6949,10 +6867,9 @@ private void ui_InitGUI ( boolean show_main )
 
 	// Panel to hold the query components, added to the top of the main content pane...
 
-	if ( show_main ) {
-        JPanel query_JPanel = new JPanel();
-        query_JPanel.setLayout(new BorderLayout());
-        getContentPane().add("North", query_JPanel);
+    JPanel query_JPanel = new JPanel();
+    query_JPanel.setLayout(new BorderLayout());
+    getContentPane().add("North", query_JPanel);
         
 	// --------------------------------------------------------------------
 	// Query input components...
@@ -7076,8 +6993,6 @@ private void ui_InitGUI ( boolean show_main )
 		"list,<BR>as time series identifiers.</HTML>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopyAllToCommands_JButton, 
 		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-
-	} // end if ( show_main )
  
 	// --------------------------------------------------------------------
 	// Command components...
@@ -7309,20 +7224,16 @@ private void ui_InitGUI ( boolean show_main )
     pack();
 	setSize ( 800, 600 );
 	JGUIUtil.center ( this );
-	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
-        	setVisible ( show_main );
-		// Do this to make sure the GUI redraws.  Otherwise, sometimes
-		// it may show up with gray areas...
-		// SAM testing... does not fix problem yet.
-		//this.invalidate();
+	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
+	if ( !tstool.isServer() ) {
+       	setVisible ( true );
 	}
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, "", e );
 	}
 	__gui_initialized = true;
-	// Select an input type...
-	if ( show_main ) {
+	// Select an input type to get the UI to a usable initial state.
 	if ( __hbdmi != null ) {
 		// Select HydroBase for CDSS use...
 		__input_type_JComboBox.select( null );
@@ -7332,8 +7243,6 @@ private void ui_InitGUI ( boolean show_main )
         __input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_DateValue );
 	}
-	}
-    
 }
 
 // TODO - is this code also called when a new database connection is made
@@ -8823,6 +8732,55 @@ private void ui_InitToolbar ()
     // FIXME SAM 2007-12-04 Add when some of the other layout changes - adding split pane to separate
     // commands and results, etc.  Right now this conflicts with the query panel.
     //getContentPane().add ("North", toolbar);
+}
+
+/**
+Load a command file and display in the command list.
+@param command_file Full path to command file to load.
+@param run_on_load If true, the commands will be run after loading.
+*/
+private void ui_LoadCommandFile ( String command_file, boolean run_on_load )
+{   String routine = "TSTool_JFrame.ui_LoadCommandFile";
+    try {
+        commandProcessor_ReadCommandFile ( command_file );
+        // Repaint the list to reflect the status of the commands...
+        ui_ShowCurrentCommandListStatus();
+    }
+    catch ( FileNotFoundException e ) {
+        Message.printWarning ( 1, routine, "Command file \"" + command_file + "\" does not exist." );
+        Message.printWarning ( 3, routine, e );
+        // Previous contents will remain.
+        return;
+    }
+    catch ( IOException e ) {
+        Message.printWarning ( 1, routine, "Error reading command file \"" + command_file +
+                "\".  List of commands may be incomplete." );
+        Message.printWarning ( 3, routine, e );
+        // Previous contents will remain.
+        return;
+    }
+    catch ( Exception e ) {
+        // FIXME SAM 2007-10-09 Perhaps should revert to previous
+        // data model contents?  For now allow partical contents to be
+        // displayed.
+        //
+        // Error opening the file (should not happen but maybe a read permissions problem)...
+        Message.printWarning ( 1, routine,
+        "Unexpected error reading command file \"" + command_file +
+        "\".  Displaying commands that could be read." );
+        Message.printWarning ( 3, routine, e );
+    }
+    // If successful the TSCommandProcessor, as the data model, will
+    // have fired actions to make the JList update.
+    commandList_SetCommandFileName(command_file);
+    commandList_SetDirty(false);
+    // Clear the old results...
+    results_Clear();
+    // If requested, run the commands.
+    if ( run_on_load ) {
+        // Run all commands and create output.
+        uiAction_RunCommands ( true, true );
+    }
 }
 
 /**
@@ -11162,13 +11120,12 @@ private void uiAction_FileExitClicked ()
 	// copy once all actions are implemented...
 	int x = ResponseJDialog.YES;	// Default for batch mode
 	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
-		if ( __show_main && __commands_dirty ) {
+		if ( __commands_dirty ) {
 			if ( __command_file_name == null ) {
 				// Have not been saved before...
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
-					x = new ResponseJDialog ( this,
-					IOUtil.getProgramName(),
+					x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
 					"Do you want to save the changes you made?",
 					ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
 				}
@@ -11202,10 +11159,8 @@ private void uiAction_FileExitClicked ()
 			}
 		}
 		// Now make sure the user wants to exit - they might have a lot of data processed...
-		if ( __show_main ) {
-			x = new ResponseJDialog (this, "Exit TSTool", "Are you sure you want to exit TSTool?",
+		x = new ResponseJDialog (this, "Exit TSTool", "Are you sure you want to exit TSTool?",
 			ResponseJDialog.YES| ResponseJDialog.NO).response();
-		}
 	}
 	if ( x == ResponseJDialog.YES ) {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -13685,34 +13640,8 @@ private void uiAction_OpenCommandFile ()
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
 		Message.printStatus(2, routine, "Working directory from command file is \"" +
 			IOUtil.getProgramWorkingDir() );
-		try {
-            commandProcessor_ReadCommandFile ( path );
-			// Repaint the list to reflect the status of the commands...
-            ui_ShowCurrentCommandListStatus();
-		}
-		catch ( FileNotFoundException e ) {
-			Message.printWarning ( 1, routine, "Command file \"" + path + "\" does not exist." );
-			Message.printWarning ( 2, routine, e );
-			// Previous contents will remain.
-			return;
-		}
-		catch ( Exception e ) {
-			// FIXME SAM 2007-10-09 Perhaps should revert to previous
-			// data model contents?  For now allow partical contents to be
-			// displayed.
-			//
-			// Error opening the file (should not happen but maybe
-			// a read permissions problem)...
-			Message.printWarning ( 1, routine,
-			"Error reading command file \"" + path + "\".  Displaying commands that could be read." );
-			Message.printWarning ( 2, routine, e );
-		}
-		// If successful the TSCommandProcessor, as the data model, will
-		// have fired actions to make the JList update.
-		commandList_SetCommandFileName(path);
-		commandList_SetDirty(false);
-        // Clear the old results...
-        results_Clear();
+		// Load but do not automatically run.
+		ui_LoadCommandFile ( path, false );
 	}
 	// New file has been opened or there was a cancel/error and the old list remains.
 	Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
@@ -13780,6 +13709,7 @@ for all users.
 private void uiAction_OpenHydroBase ( boolean startup )
 {	String routine = "TSTool_JFrame.uiAction_OpenHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
+	/* Does not apply since only in GUI mode here
 	if ( IOUtil.isBatch() || !__show_main ) {
 		// Running in batch mode or without a main GUI so automatically
 		// open HydroBase from the TSTool.cfg file information...
@@ -13812,7 +13742,7 @@ private void uiAction_OpenHydroBase ( boolean startup )
 			__hbdmi = null;
 		}
 	}
-	else {
+	else { */
         // Running interactively so prompt the user to login...
 		// Display the dialog to select the database.  This is a modal
 		// dialog that will not allow anything else to occur until the
@@ -13844,7 +13774,9 @@ private void uiAction_OpenHydroBase ( boolean startup )
 			Message.printWarning ( 3, routine, e );
 			__hbdmi = null;
 		}
+		/*
 	}
+	*/
 	// Set the HydroBaseDMI for the command processor...
 	commandProcessor_SetHydroBaseDMI ( __hbdmi );
 	// Enable/disable HydroBase features as necessary...
@@ -16612,10 +16544,12 @@ public void windowClosed ( WindowEvent e )
 		__geoview_JFrame = null;
 		__View_MapInterface_JCheckBoxMenuItem.setSelected ( false );
 	}
+	/* FIXME SAM 2008-01-11 Need to test how -nomaingui mode is working with recent changes and then delete this code
 	else if ( !__show_main ) {
 		// Running in hidden mode and the TSViewJFrame has closed so close the application...
 		uiAction_FileExitClicked ();
 	}
+	*/
 }
 
 /**
