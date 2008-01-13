@@ -443,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.12.02 beta (2008-01-12)";
+public static final String PROGRAM_VERSION = "8.12.03 beta (2008-01-12)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -826,7 +826,7 @@ throws Exception
 			// Don't do this since we set to user.dir at startup
 			//IOUtil.setProgramWorkingDir(__home);
 			IOUtil.setApplicationHomeDir(__home);
-			JGUIUtil.setLastFileDialogDirectory(__home);
+			//JGUIUtil.setLastFileDialogDirectory(__home);
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
@@ -1026,9 +1026,11 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
         Message.printStatus( 1, routine, "Canonical path for command file is \"" + command_file_canonical + "\"" );
     }
     catch ( Exception e ) {
-        Message.printWarning ( 1, routine,
-                "Unable to determine canonical path for \"" + command_file_arg + "\"." +
-                		"Check that the file exists and read permissions are granted.  Not using command file." );
+        String message = "Unable to determine canonical path for \"" + command_file_arg + "\"." +
+        "Check that the file exists and read permissions are granted.  Not using command file.";
+        Message.printWarning ( 1, routine, message );
+        System.out.println ( message );
+                
         return;
     }
     
@@ -1055,7 +1057,9 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     
     command_file_full_File = new File ( command_file_full );
     if ( !command_file_full_File.exists() ) {
-        Message.printWarning(1, routine, "Command file \"" + command_file_full + "\" does not exist." );
+        String message = "Command file \"" + command_file_full + "\" does not exist.";
+        Message.printWarning(1, routine, message );
+        System.out.println ( message );
         if ( is_batch ) {
              // Exit because there is nothing to do...
             quitProgram ( 1 );
@@ -1077,9 +1081,10 @@ private static void setWorkingDirInitial()
 {String routine = "tstool.setWorkingDirInitial";
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
-    Message.printStatus ( 1, routine,
-            "Setting working directory to command file folder \"" + working_dir +"\".");
-    System.out.println("Setting working directory to user's directory \"" + working_dir +"\".");
+    //JGUIUtil.setLastFileDialogDirectory( working_dir );
+    String message = "Setting working directory to user directory \"" + working_dir +"\".";
+    Message.printStatus ( 1, routine, message );
+    System.out.println(message);
 }
 
 /**
@@ -1090,11 +1095,11 @@ private static void setWorkingDirUsingCommandFile ( String command_file_full )
     File command_file_full_File = new File ( command_file_full );
     String working_dir = command_file_full_File.getParent();
     IOUtil.setProgramWorkingDir ( working_dir );
-    JGUIUtil.setLastFileDialogDirectory( working_dir );
+    //JGUIUtil.setLastFileDialogDirectory( working_dir );
     // Print at level 1 because the log file is not yet initialized.
-    Message.printStatus ( 1, routine,
-        "Setting working directory to command file folder \"" + working_dir +"\".");
-    System.out.println("Setting working directory to command file folder \"" + working_dir +"\".");
+    String message = "Setting working directory to command file folder \"" + working_dir + ".\"";
+    //Message.printStatus ( 1, routine, message );
+    System.out.println(message);
 }
 
 } // End TSTool

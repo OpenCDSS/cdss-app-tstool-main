@@ -697,20 +697,17 @@ result in an inaccurate initial state.
 private String __initial_working_dir = "";
 
 /**
-The last directory selected with Run...Command File, to run an external commands
-file.
+The last directory selected with Run...Command File, to run an external commands file.
 */
 private String __Dir_LastExternalCommandFileRun = null;
 
 /**
-The last directory selected with Run...Command File, to run an external commands
-file.
+The last directory selected with Run...Command File, to run an external commands file.
 */
 private String __Dir_LastCommandFileOpened = null;
 
 /**
-Lets the checkGUIState() method avoid checking for many null components
-during startup.
+Lets the checkGUIState() method avoid checking for many null components during startup.
 */
 private boolean __gui_initialized = false;
 
@@ -6725,16 +6722,24 @@ private void ui_CheckRiversideDBFeatures ()
 Return the directory for the last "File...Open Command File".
 */
 private String ui_GetDir_LastCommandFileOpened()
-{
-	if ( __Dir_LastCommandFileOpened == null ) {
-		// Try to get the generic dialog selection location...
-		__Dir_LastCommandFileOpened = JGUIUtil.getLastFileDialogDirectory();
+{   String routine = "TSTool_JFrame.ui_GetDir_LastCommandFileOpened";
+	if ( __Dir_LastCommandFileOpened != null ) {
+	    Message.printStatus ( 2, routine,
+	            "Returning last (non null) command file directory: " + __Dir_LastCommandFileOpened );
+	    return __Dir_LastCommandFileOpened;
 	}
-	if ( __Dir_LastCommandFileOpened == null ) {
-		// Return the user directory
-		// TODO SAM 2007-11-01 Evaluate whether other's should be checked first.
-		return System.getProperty("user.dir");
-	}
+	    
+	// Try to get the generic dialog selection location...
+	__Dir_LastCommandFileOpened = JGUIUtil.getLastFileDialogDirectory();
+    if ( __Dir_LastCommandFileOpened != null ) {
+        Message.printStatus ( 2, routine,
+                "Returning last command file directory from last dialog selection: " + __Dir_LastCommandFileOpened );
+        return __Dir_LastCommandFileOpened;
+    }
+	// This will check user.dir
+	__Dir_LastCommandFileOpened = IOUtil.getProgramWorkingDir ();
+	Message.printStatus ( 2, routine,
+            "Returning last command file directory from working directory: " + __Dir_LastCommandFileOpened );
 	return __Dir_LastCommandFileOpened;
 }
 
@@ -6743,16 +6748,17 @@ Return the last directory for "Run Command File", which runs an external command
 but does not show the results.
 */
 private String ui_GetDir_LastExternalCommandFileRun()
-{
+{   String routine = "TSTool_JFrame.ui_GetDir_LastExternalCommandFileRun";
+	
+    if ( __Dir_LastExternalCommandFileRun != null ) {
+        return __Dir_LastExternalCommandFileRun;
+    }
+    // Try to get the generic dialog selection location...
+	__Dir_LastExternalCommandFileRun = JGUIUtil.getLastFileDialogDirectory();
 	if ( __Dir_LastExternalCommandFileRun == null ) {
-		// Try to get the generic dialog selection location...
-		__Dir_LastCommandFileOpened = JGUIUtil.getLastFileDialogDirectory();
-	}
-	if ( __Dir_LastCommandFileOpened == null ) {
-		// Return the user directory
-		// TODO SAM 2007-11-01 Evaluate whether other's should be checked first.
-		return System.getProperty("user.dir");
-	}
+	    // This will check user.dir
+        __Dir_LastExternalCommandFileRun = IOUtil.getProgramWorkingDir ();
+    }
 	return __Dir_LastExternalCommandFileRun;
 }
 
@@ -9667,7 +9673,6 @@ throws Exception
 		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			String directory = fc.getSelectedFile().getPath();
 			IOUtil.setProgramWorkingDir(directory);
-			JGUIUtil.setLastFileDialogDirectory(directory);
 			// TODO - is this needed with Swing?
 			// Reset to make sure the ending delimiter is removed...
 			__props.set("WorkingDir",IOUtil.getProgramWorkingDir());
@@ -12635,7 +12640,6 @@ throws Exception
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
-		JGUIUtil.setLastFileDialogDirectory ( directory );
 		JGUIUtil.setLastFileDialogDirectory(directory);
 		String path = fc.getSelectedFile().getPath();
 		Message.printStatus ( 1, routine, "Reading StateMod file \"" + path + "\"" );
@@ -13622,7 +13626,9 @@ private void uiAction_OpenCommandFile ()
 
 	// Get the file.  Do not clear the list until the file has been chosen and is readable...
 
-	JFileChooser fc = JFileChooserFactory.createJFileChooser ( ui_GetDir_LastCommandFileOpened() );
+	String initial_dir = ui_GetDir_LastCommandFileOpened();
+	Message.printStatus ( 2, routine, "Initial directory for browsing:  \"" + initial_dir + "\"" );
+	JFileChooser fc = JFileChooserFactory.createJFileChooser ( initial_dir );
 	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Command File");
 	SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Command File");
 	fc.addChoosableFileFilter(sff);
@@ -14636,8 +14642,7 @@ throws Exception
 		// User has chosen a directory...
 
 		input_name = fc.getSelectedFile().getPath(); 
-		JGUIUtil.setLastFileDialogDirectory (
-			fc.getSelectedFile().getParent() );
+		JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
 
 		// Set the input name...
 
@@ -14827,8 +14832,7 @@ throws Exception
 		// Save as last selection...
 		__input_name_StateCU_last = input_name;
 		__input_name_FileFilter = fc.getFileFilter();
-		JGUIUtil.setLastFileDialogDirectory (
-			fc.getSelectedFile().getParent() );
+		JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
 
 		// Set the input name...
 
