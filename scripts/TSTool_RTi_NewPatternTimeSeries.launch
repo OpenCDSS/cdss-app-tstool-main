@@ -11,7 +11,6 @@
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="DWR.DMI.tstool.tstool"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-home test/operational/CDSS"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-home test/operational/RTi test/regression/commands/general/NewPatternTimeSeries/Test_NewPatternTimeSeries_1.TSTool -runcommandsonload"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TSTool"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx768m"/>
 </launchConfiguration>
