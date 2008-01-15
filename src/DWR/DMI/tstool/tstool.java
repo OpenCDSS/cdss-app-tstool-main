@@ -443,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.12.05 (2008-01-14)";
+public static final String PROGRAM_VERSION = "8.12.06 (2008-01-14)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -826,7 +826,7 @@ throws Exception
 			// Don't do this since we set to user.dir at startup
 			//IOUtil.setProgramWorkingDir(__home);
 			IOUtil.setApplicationHomeDir(__home);
-			//JGUIUtil.setLastFileDialogDirectory(__home);
+			JGUIUtil.setLastFileDialogDirectory(__home);
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
@@ -1081,7 +1081,9 @@ private static void setWorkingDirInitial()
 {String routine = "tstool.setWorkingDirInitial";
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
-    //JGUIUtil.setLastFileDialogDirectory( working_dir );
+    // Set the dialog because if the running in batch mode and interaction with the graph
+    // occurs, this default for dialogs should be the home of the command file.
+    JGUIUtil.setLastFileDialogDirectory( working_dir );
     String message = "Setting working directory to user directory \"" + working_dir +"\".";
     Message.printStatus ( 1, routine, message );
     System.out.println(message);
@@ -1095,7 +1097,9 @@ private static void setWorkingDirUsingCommandFile ( String command_file_full )
     File command_file_full_File = new File ( command_file_full );
     String working_dir = command_file_full_File.getParent();
     IOUtil.setProgramWorkingDir ( working_dir );
-    //JGUIUtil.setLastFileDialogDirectory( working_dir );
+    // Set the dialog because if the running in batch mode and interaction with the graph
+    // occurs, this default for dialogs should be the home of the command file.
+    JGUIUtil.setLastFileDialogDirectory( working_dir );
     // Print at level 1 because the log file is not yet initialized.
     String message = "Setting working directory to command file folder \"" + working_dir + ".\"";
     //Message.printStatus ( 1, routine, message );
