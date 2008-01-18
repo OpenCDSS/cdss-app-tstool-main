@@ -443,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.12.06 (2008-01-14)";
+public static final String PROGRAM_VERSION = "8.13.00 (2008-01-16)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -823,10 +823,10 @@ throws Exception
 			// so that later command-line parameters can override them...
 			readConfiguration();
 			Message.printStatus ( 1, routine, "Home directory for TSTool is \"" + __home + "\"" );
-			// Don't do this since we set to user.dir at startup
+			// Don't call setProgramWorkingDir or setLastFileDialogDirectory this since we set to user.dir at startup
 			//IOUtil.setProgramWorkingDir(__home);
+			//JGUIUtil.setLastFileDialogDirectory(__home);
 			IOUtil.setApplicationHomeDir(__home);
-			JGUIUtil.setLastFileDialogDirectory(__home);
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
