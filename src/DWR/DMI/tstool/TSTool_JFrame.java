@@ -228,6 +228,16 @@ Path to icons/graphics in classpath.
 */
 private String __TOOL_ICON_PATH = "/DWR/DMI/tstool";
 
+/**
+Fixed-width font - courier
+*/
+private String __FIXED_WIDTH_FONT = "Courier";
+
+/**
+Command font - looks better than courier
+*/
+private String __COMMANDS_FONT = "Lucida Console";
+
 //================================
 // Query area...
 //================================
@@ -3493,26 +3503,25 @@ private void commandList_RemoveCommandsBasedOnUI ()
 		}
 	}
 	if ( size == 0 ) {
-		// nothing selected
-		// Remove all...
+		// Nothing selected so remove all...
 		__commands_JListModel.removeAllElements();
 	}
-	else {	// Need to remove from back of selected_indices so that removing
+	else {
+	    // Need to remove from back of selected_indices so that removing
 		// elements will not affect the index of items before that
 		// index.  At some point need to add an undo feature.
 		JGUIUtil.setWaitCursor ( this, true );
 		ui_SetIgnoreItemEvent ( true );
 		ui_SetIgnoreListSelectionEvent ( true );
 		for ( int i = (size - 1); i >= 0; i-- ) {
-			__commands_JListModel.removeElementAt (
-				selected_indices[i] );
+			__commands_JListModel.removeElementAt (	selected_indices[i] );
 		}
 		ui_SetIgnoreItemEvent ( false );
 		ui_SetIgnoreListSelectionEvent ( false );
 		selected_indices = null;
 		JGUIUtil.setWaitCursor ( this, false );
 	}
-	//commandList_SetDirty ( true );
+	commandList_SetDirty ( true );
 	results_TimeSeries_Clear();
 	ui_UpdateStatus ( true );
 }
@@ -7034,11 +7043,11 @@ private void ui_InitGUI (  )
 	// Set the font to fixed font so that similar command text lines up, especially for comments...
     // This looks like crap on Linux. Try using Lucida Console on windows and Linux to get some feedback.
     if ( IOUtil.isUNIXMachine() ) {
-        __commands_JList.setFont ( new Font("Lucida Console", Font.PLAIN, 12 ) );
+        __commands_JList.setFont ( new Font(__COMMANDS_FONT, Font.PLAIN, 12 ) );
     }
     else {
         // __commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
-        __commands_JList.setFont ( new Font("Lucida Console", Font.PLAIN, 12 ) );
+        __commands_JList.setFont ( new Font(__COMMANDS_FONT, Font.PLAIN, 12 ) );
     }
 	// Handling the ellipsis is dealt with in the annotated list...
 	
@@ -9409,9 +9418,9 @@ throws Exception
 		//reportProp.set ( "TotalHeight", "550" );
 		reportProp.set ( "TotalWidth", "600" );
 		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "TSTool Session Properties" );
 		Vector v = new Vector ( 4 );
@@ -9561,9 +9570,9 @@ throws Exception
 		PropList reportProp = new PropList ("Colorado SMS Properties");
 		reportProp.set ( "TotalWidth", "600" );
 		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "Colorado SMS Properties" );
 		Vector v = null;
@@ -9585,9 +9594,9 @@ throws Exception
 		// Too big (make this big when we have more stuff)...
 		reportProp.set ( "TotalWidth", "600" );
 		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "DIADvisor Properties" );
 		Vector v = new Vector();
@@ -9608,9 +9617,9 @@ throws Exception
 		PropList reportProp = new PropList ("HydroBase Properties");
 		reportProp.set ( "TotalWidth", "600" );
 		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "HydroBase Properties" );
 		Vector v = null;
@@ -9632,9 +9641,9 @@ throws Exception
 		// Too big (make this big when we have more stuff)...
 		reportProp.set ( "TotalWidth", "600" );
 		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "NWSRFS FS5Files Properties" );
 		Vector v = null;
@@ -9655,9 +9664,9 @@ throws Exception
 		// Too big (make this big when we have more stuff)...
 		reportProp.set ( "TotalWidth", "600" );
 		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "RiversideDB Properties" );
 		Vector v = __rdmi.getDatabaseProperties ( 3 );
@@ -15517,9 +15526,9 @@ private void uiAction_ShowProperties_CommandsRun ()
 	//reportProp.set ( "TotalHeight", "550" );
 	reportProp.set ( "TotalWidth", "600" );
 	reportProp.set ( "TotalHeight", "300" );
-	reportProp.set ( "DisplayFont", "Courier" );
+	reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 	reportProp.set ( "DisplaySize", "11" );
-	reportProp.set ( "PrintFont", "Courier" );
+	reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 	reportProp.set ( "PrintSize", "7" );
 	reportProp.set ( "Title", "TSTool Commands Run Properties" );
 	Vector v = new Vector ( 4 );
@@ -15634,11 +15643,11 @@ private void uiAction_ShowResultsOutputFile ( String selected )
             if ( IOUtil.isUNIXMachine() ) {
                 // Use a built in viewer (may be slow)...
                 PropList reportProp = new PropList ("Output File");
-                reportProp.set ( "TotalWidth", "600" );
-                reportProp.set ( "TotalHeight", "300" );
-                reportProp.set ( "DisplayFont", "Courier" );
+                reportProp.set ( "TotalWidth", "800" );
+                reportProp.set ( "TotalHeight", "600" );
+                reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
                 reportProp.set ( "DisplaySize", "11" );
-                reportProp.set ( "PrintFont", "Courier" );
+                reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
                 reportProp.set ( "PrintSize", "7" );
                 reportProp.set ( "Title", selected );
                 reportProp.set ( "URL", selected );
@@ -15783,9 +15792,9 @@ throws Exception
 		graphprops.set ( "TotalWidth", "600" );
 		graphprops.set ( "TotalHeight", "400" );
 		//graphprops.set ( "Title", "Summary" );
-		graphprops.set ( "DisplayFont", "Courier" );
+		graphprops.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		graphprops.set ( "DisplaySize", "11" );
-		graphprops.set ( "PrintFont", "Courier" );
+		graphprops.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		graphprops.set ( "PrintSize", "7" );
 		graphprops.set ( "PageLength", "100" );
 		new TSViewJFrame ( tslist2, graphprops );
@@ -16285,9 +16294,9 @@ throws Exception
 		graphprops.set ( "TotalWidth", "600" );
 		graphprops.set ( "TotalHeight", "400" );
 		graphprops.set ( "InitialView", "Graph" );
-		//graphprops.set ( "DisplayFont", "Courier" );
+		//graphprops.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 		//graphprops.set ( "DisplaySize", "11" );
-		//graphprops.set ( "PrintFont", "Courier" );
+		//graphprops.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		//graphprops.set ( "PrintSize", "7" );
 		//graphprops.set ( "PageLength", "100" );
 		new TSViewJFrame ( tslist, graphprops );

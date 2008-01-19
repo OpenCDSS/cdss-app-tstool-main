@@ -443,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.13.00 (2008-01-16)";
+public static final String PROGRAM_VERSION = "8.13.00beta (2008-01-18)";
 
 /**
 Main GUI instance, used when running interactively.
