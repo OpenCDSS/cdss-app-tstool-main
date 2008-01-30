@@ -477,7 +477,7 @@ private String __selected_input_type = null;
 /**
 Input name displayed in the "Input Name: choice."
 */
-private String			__selected_input_name = null;
+private String __selected_input_name = null;
 
 /**
 Data type when "Get Time Series List" is selected - only containing
@@ -1626,6 +1626,10 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	StopWatch swMain = new StopWatch();
 	swMain.start();
 	String rtn = "TSTool_JFrame";
+	
+	// Let the Message class know the frame so that message dialogs can popu up.
+	
+	Message.setTopLevel ( this );
    
 	// Set the initial working directory up front because it is used in the
 	// command processor and edit dialogs.
@@ -2004,8 +2008,7 @@ public void commandCancelled ( int icommand, int ncommand, Command command,
 	
 	// Refresh the results with what is available...
 	//String command_string = command.toString();
-	ui_UpdateStatusTextFields ( 1, routine,
-			"Cancelled command processing.",
+	ui_UpdateStatusTextFields ( 1, routine,	"Cancelled command processing.",
 			//"Cancelled: " + command_string,
 				null, __STATUS_CANCELLED );
 	uiAction_RunCommands_ShowResults ();
@@ -2218,8 +2221,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
     //Message.setPropValue ( "ShowWarningDialog=true" );
     
 	// Indicate whether the commands are a block of # comments.
-	// If so then need to use a special editor rather than typical
-	// one-line editors.
+	// If so then need to use a special editor rather than typical one-line editors.
 	boolean is_comment_block = false;
 	// Indicate whether an exit command, in which case editing is not needed
 	boolean is_exit = false;
@@ -5088,77 +5090,73 @@ public void itemStateChanged ( ItemEvent evt )
 	// choices and list are in agreement...
 
 	try {
-	// List in the order of the GUI...
-
-	if (	(o == __input_type_JComboBox) &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		// New input type selected...
-		queryResultsList_Clear();
-		uiAction_InputTypeChoiceClicked();
-	}
-	else if((o == __input_name_JComboBox) &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		// New input name selected...
-		if (	__selected_input_type.equals(
-			__INPUT_TYPE_NWSRFS_FS5Files) &&
-			!__input_name_JComboBox.getSelected().equals(
-			__PLEASE_SELECT) ) {
-			// If the default "Please Select" is shown, the it is
-			// initialization - don't force a selection...
-			try {	uiAction_SelectInputName_NWSRFS_FS5Files ( false );
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Error opening NWSRFS FS5Files connection." );
-				Message.printWarning ( 2, routine, e );
-			}
-		}
-		else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU ) ){
-			uiAction_SelectInputName_StateCU ( false );
-		}
-		else if(__selected_input_type.equals(__INPUT_TYPE_StateModB )) {
-			uiAction_SelectInputName_StateModB ( false );
-		}
-	}
-	else if ( o == __data_type_JComboBox &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		queryResultsList_Clear();
-		uiAction_DataTypeChoiceClicked();
-	}
-	else if ( o == __time_step_JComboBox &&
-		(evt.getStateChange() == ItemEvent.SELECTED) ) {
-		queryResultsList_Clear();
-		uiAction_TimeStepChoiceClicked();
-	}
-    else if ( o == __View_MapInterface_JCheckBoxMenuItem ) {
-		if ( __View_MapInterface_JCheckBoxMenuItem.isSelected() ) {
-			// User wants the map to be displayed...
-			try {	if ( __geoview_JFrame != null ) {
-					// Just set the map visible...
-					__geoview_JFrame.setVisible ( true );
-				}
-				else {	// No existing GeoView so create one...
-					__geoview_JFrame = new GeoViewJFrame ( this, null );
-					// Add a GeoViewListener so TSTool can handle selects from the map...
-					__geoview_JFrame.getGeoViewJPanel().getGeoView().addGeoViewListener(this);
-					// Add a window listener so TSTool can listen for when the GeoView closes...
-					__geoview_JFrame.addWindowListener ( this );
-					JGUIUtil.center ( __geoview_JFrame );
-				}
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, "TSTool", "Error displaying map interface." );
-				__geoview_JFrame = null;
-			}
-		}
-		else {
-            // Map is deselected.  Just set the map frame to not visible...
-            if ( __geoview_JFrame != null ) {
-                __geoview_JFrame.setVisible ( false );
-            }
-		}
-	}
-	ui_UpdateStatus ( true );
+    	// List in the order of the GUI...
+    
+    	if ( (o == __input_type_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+    		// New input type selected...
+    		queryResultsList_Clear();
+    		uiAction_InputTypeChoiceClicked();
+    	}
+    	else if((o == __input_name_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+    		// New input name selected...
+    		if ( __selected_input_type.equals( __INPUT_TYPE_NWSRFS_FS5Files) &&
+    			!__input_name_JComboBox.getSelected().equals( __PLEASE_SELECT) ) {
+    			// If the default "Please Select" is shown, the it is
+    			// initialization - don't force a selection...
+    			try {
+    			    uiAction_SelectInputName_NWSRFS_FS5Files ( false );
+    			}
+    			catch ( Exception e ) {
+    				Message.printWarning ( 1, routine, "Error opening NWSRFS FS5Files connection." );
+    				Message.printWarning ( 2, routine, e );
+    			}
+    		}
+    		else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU ) ){
+    			uiAction_SelectInputName_StateCU ( false );
+    		}
+    		else if(__selected_input_type.equals(__INPUT_TYPE_StateModB )) {
+    			uiAction_SelectInputName_StateModB ( false );
+    		}
+    	}
+    	else if ( o == __data_type_JComboBox && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+    		queryResultsList_Clear();
+    		uiAction_DataTypeChoiceClicked();
+    	}
+    	else if ( o == __time_step_JComboBox && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+    		queryResultsList_Clear();
+    		uiAction_TimeStepChoiceClicked();
+    	}
+        else if ( o == __View_MapInterface_JCheckBoxMenuItem ) {
+    		if ( __View_MapInterface_JCheckBoxMenuItem.isSelected() ) {
+    			// User wants the map to be displayed...
+    			try {
+    			    if ( __geoview_JFrame != null ) {
+    					// Just set the map visible...
+    					__geoview_JFrame.setVisible ( true );
+    				}
+    				else {
+    				    // No existing GeoView so create one...
+    					__geoview_JFrame = new GeoViewJFrame ( this, null );
+    					// Add a GeoViewListener so TSTool can handle selects from the map...
+    					__geoview_JFrame.getGeoViewJPanel().getGeoView().addGeoViewListener(this);
+    					// Add a window listener so TSTool can listen for when the GeoView closes...
+    					__geoview_JFrame.addWindowListener ( this );
+    					JGUIUtil.center ( __geoview_JFrame );
+    				}
+    			}
+    			catch ( Exception e ) {
+    				Message.printWarning ( 1, "TSTool", "Error displaying map interface." );
+    				__geoview_JFrame = null;
+    			}
+    		}
+    		else {
+                // Map is deselected.  Just set the map frame to not visible...
+                if ( __geoview_JFrame != null ) {
+                    __geoview_JFrame.setVisible ( false );
+                }
+    		}
+    	}
+    	ui_UpdateStatus ( true );
 	}
 	catch ( Exception e ) {
 		// Unexpected exception...
@@ -6786,7 +6784,7 @@ Return whether ActionEvents should be ignored.
 */
 private boolean ui_GetIgnoreActionEvent()
 {
-	return __ignore_ActionEvent;
+    return __ignore_ActionEvent;
 }
 
 /**
@@ -6794,7 +6792,7 @@ Return whether ItemEvents should be ignored.
 */
 private boolean ui_GetIgnoreItemEvent()
 {
-	return __ignore_ItemEvent;
+    return __ignore_ItemEvent;
 }
 
 /**
@@ -6802,7 +6800,7 @@ Return whether ListSelectionEvents should be ignored.
 */
 private boolean ui_GetIgnoreListSelectionEvent()
 {
-	return __ignore_ListSelectionEvent;
+    return __ignore_ListSelectionEvent;
 }
 
 //FIXME SAM 2007-11-01 Need to use /tmp etc for a startup home if not
@@ -6849,7 +6847,7 @@ private PropList ui_GetPropertiesForOldStyleEditor ( Command command_to_edit )
 Initialize the GUI.
 @param show_main Indicates if the main interface should be shown.
 */
-private void ui_InitGUI (  )
+private void ui_InitGUI ( )
 {	String routine = "TSTool_JFrame.initGUI";
 	try {	// To catch layout problems...
 	int y;
@@ -8805,7 +8803,8 @@ The default if not specified is true.
 */
 private boolean ui_Property_RunCommandProcessorInThread()
 {
-	String RunCommandProcessorInThread_String = __props.getValue ( TSTool_Options_JDialog.TSTool_RunCommandProcessorInThread );
+	String RunCommandProcessorInThread_String =
+	    __props.getValue ( TSTool_Options_JDialog.TSTool_RunCommandProcessorInThread );
 	if ( (RunCommandProcessorInThread_String != null) &&
 			RunCommandProcessorInThread_String.equalsIgnoreCase("False") ) {
 		return false;
@@ -15684,7 +15683,8 @@ private void uiAction_ShowResultsTable ( String selected )
     try {
         DataTable table = commandProcessor_GetTable ( selected );
         if ( table == null ) {
-            Message.printWarning (1, routine, "Unable to get table \"" + selected + "\" from processor to view." );  
+            Message.printWarning (1, routine,
+                "Unable to get table \"" + selected + "\" from processor to view." );  
         }
         new DataTable_JFrame ( "Table \"" + selected + "\"", table );
     }
@@ -16530,7 +16530,7 @@ public void valueChanged ( ListSelectionEvent e )
             int maxIndex = lsm.getMaxSelectionIndex();
             for (int i = minIndex; i <= maxIndex; i++) {
                 if (lsm.isSelectedIndex(i)) {
-                    uiAction_ShowResultsOutputFile( (String)__results_tables_JListModel.elementAt(i) );
+                    uiAction_ShowResultsTable( (String)__results_tables_JListModel.elementAt(i) );
                 }
             }
         }
