@@ -962,7 +962,6 @@ JMenuItem
 	__Commands_Read_StateModMax_JMenuItem,
 	// TS Alias = commands...
 	__Commands_Read_TS_ReadDateValue_JMenuItem,
-    __Commands_Read_TS_ReadDelimitedFile_JMenuItem,
 	__Commands_Read_TS_ReadHydroBase_JMenuItem,
 	__Commands_Read_TS_ReadMODSIM_JMenuItem,
 	__Commands_Read_TS_ReadNDFD_JMenuItem,
@@ -1072,8 +1071,7 @@ JMenuItem
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
 
-    __Commands_Output_ProcessTSProduct_JMenuItem,
-	__Commands_Output_CustomCommand_JMenuItem;
+    __Commands_Output_ProcessTSProduct_JMenuItem;
 
 //Commands...Ensemble Processing...
 
@@ -1118,6 +1116,7 @@ JMenuItem
 JMenu
     __Commands_General_Running_JMenu = null;
 JMenuItem
+    __Commands_General_Running_SetProperty_JMenuItem = null,
 	__Commands_General_Running_RunCommands_JMenuItem = null,
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
@@ -1349,7 +1348,6 @@ private String
 	__Commands_Read_StateModMax_String = TAB + "StateModMax()...  <generate 1(+) time series as Max() of TS in two StateMod files>",
 
 	__Commands_Read_TS_ReadDateValue_String = TAB +	"TS Alias = ReadDateValue()...  <read 1 time series from a DateValue file>",
-    __Commands_Read_TS_ReadDelimitedFile_String = TAB + "TS Alias = ReadDelimitedFile()...  <read 1 time series from a delimited file>",
 	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()...  <read 1 time series from HydroBase>",
 	__Commands_Read_TS_ReadMODSIM_String = TAB + "TS Alias = ReadMODSIM()...  <read 1 time series from a MODSIM output file>",
 	__Commands_Read_TS_ReadNDFD_String = TAB + "TS Alias = ReadNDFD()...  <read 1 time series from NDFD web service>",
@@ -1431,7 +1429,6 @@ private String
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write Summary file>",
     __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()...  <process a time series product file>",
-    __Commands_Output_CustomCommand_String = TAB + "CustomCommand()...  <create a custom report - under development>",
 
 	// Commands...Analyze Time Series...
 
@@ -1490,6 +1487,7 @@ private String
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
 	
     __Commands_General_Running_String = "General - Running",
+    __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a property>",
 	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
@@ -7793,11 +7791,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadDateValue_String, this) );
 	}
-    
-    //if ( __source_DateValue_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadDelimitedFile_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_TS_ReadDelimitedFile_String, this) );
-    //}
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadHydroBase_JMenuItem =
@@ -8081,11 +8074,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_ProcessTSProduct_JMenuItem =
 		new SimpleJMenuItem( __Commands_Output_ProcessTSProduct_String, this ) );
-    // Only enable the following command if it is an RTi license (internal RTi use).
-    if ( !license_IsCDSSInstall() && license_IsOwnerRTi() ) {
-        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_CustomCommand_JMenuItem =
-            new SimpleJMenuItem( __Commands_Output_CustomCommand_String, this ) );
-    }
 }
 
 /**
@@ -8158,6 +8146,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 		new SimpleJMenuItem(__Commands_General_Logging_SetWarningLevel_String, this ) );
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
+    __Commands_General_Running_JMenu.add (__Commands_General_Running_SetProperty_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_SetProperty_String,this));
+    __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add (__Commands_General_Running_RunCommands_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunProgram_JMenuItem =
@@ -9968,9 +9959,6 @@ throws Exception
 	else if (command.equals( __Commands_Read_TS_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_TS_ReadDateValue_String, null, __INSERT_COMMAND );
 	}
-    else if (command.equals( __Commands_Read_TS_ReadDelimitedFile_String)){
-        commandList_EditCommand ( __Commands_Read_TS_ReadDelimitedFile_String, null, __INSERT_COMMAND );
-    }
 	else if (command.equals( __Commands_Read_TS_ReadHydroBase_String)){
 		commandList_EditCommand ( __Commands_Read_TS_ReadHydroBase_String, null, __INSERT_COMMAND );
 	}
@@ -10310,9 +10298,6 @@ throws Exception
 	else if (command.equals( __Commands_Output_ProcessTSProduct_String)){
 		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, __INSERT_COMMAND );
 	}
-    else if (command.equals( __Commands_Output_CustomCommand_String)){
-        commandList_EditCommand ( __Commands_Output_CustomCommand_String, null, __INSERT_COMMAND );
-    }
 	else {	// Chain to next list of commands...
 		uiAction_ActionPerformed14_CommandsGeneralMenu ( event );
 	}
@@ -10373,6 +10358,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String) ) {
         commandList_EditCommand ( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_General_Running_SetProperty_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_SetProperty_String, null, __INSERT_COMMAND );
     }
 	else if (command.equals( __Commands_General_Running_RunCommands_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, __INSERT_COMMAND );
