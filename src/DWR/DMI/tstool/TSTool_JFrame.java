@@ -1041,6 +1041,7 @@ JMenu
 JMenuItem
 	__Commands_Analyze_AnalyzePattern_JMenuItem = null,
 	__Commands_Analyze_CompareTimeSeries_JMenuItem = null,
+	__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem = null,
 
 	__Commands_Analyze_NewDataTest_JMenuItem = null,
 	__Commands_Analyze_ReadDataTestFromRiversideDB_JMenuItem = null,
@@ -1435,6 +1436,7 @@ private String
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
 	__Commands_Analyze_AnalyzePattern_String = TAB + "AnalyzePattern()... <determine pattern(s) for FillPattern() (under development)>",
 	__Commands_Analyze_CompareTimeSeries_String = TAB + "CompareTimeSeries()... <find differences between time series>",
+	__Commands_Analyze_ComputeErrorTimeSeries_String = TAB + "ComputeErrorTimeSeries()... <compute error between time series>",
 
 	__Commands_Analyze_NewDataTest_String = TAB + "DataTest TestID = NewDataTest()... <create a new data test> (under development)",
 	__Commands_Analyze_ReadDataTestFromRiversideDB_String = TAB + "ReadDataTestFromRiversideDB()... <read 1 data test from RiversideDB> (under development)",
@@ -6242,6 +6244,7 @@ private void ui_CheckGUIState ()
 
 		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
 
 		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
@@ -6338,6 +6341,7 @@ private void ui_CheckGUIState ()
 
 		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
 
 		// TODO SAM 2005-07-11 For now enable because models can
@@ -8001,7 +8005,12 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_CompareTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Analyze_CompareTimeSeries_String, this ) );
+	
+	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
+	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Analyze_ComputeErrorTimeSeries_String, this ) );
 
+	/* FIXME SAM 2008-02-04 Enable after talking with Ian about new data tests and working on result validation.
 	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_NewDataTest_JMenuItem =
 		new SimpleJMenuItem(__Commands_Analyze_NewDataTest_String, this ) );
@@ -8011,6 +8020,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		new SimpleJMenuItem(__Commands_Analyze_RunDataTests_String, this ) );
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ProcessDataTestResults_JMenuItem =
 		new SimpleJMenuItem(__Commands_Analyze_ProcessDataTestResults_String, this ) );
+    */
 
 	// "Commands...Models"...
 
@@ -10180,6 +10190,9 @@ throws Exception
 	else if (command.equals( __Commands_Analyze_CompareTimeSeries_String)){
 		commandList_EditCommand ( __Commands_Analyze_CompareTimeSeries_String, null, __INSERT_COMMAND );
 	}
+	else if (command.equals( __Commands_Analyze_ComputeErrorTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Analyze_ComputeErrorTimeSeries_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Analyze_NewDataTest_String)){
 		commandList_EditCommand ( __Commands_Analyze_NewDataTest_String, null, __INSERT_COMMAND );
 	}
