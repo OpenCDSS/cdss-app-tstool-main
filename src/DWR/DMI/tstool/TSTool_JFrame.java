@@ -1118,6 +1118,7 @@ JMenu
     __Commands_General_Running_JMenu = null;
 JMenuItem
     __Commands_General_Running_SetProperty_JMenuItem = null,
+    __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem = null,
 	__Commands_General_Running_RunCommands_JMenuItem = null,
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
@@ -1490,6 +1491,8 @@ private String
 	
     __Commands_General_Running_String = "General - Running",
     __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a property>",
+    __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
+        TAB + "SetPropertyFromNwsrfsAppDefault()... <set a property from an NWSRFS App Default>",
 	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
@@ -5205,9 +5208,10 @@ public void keyTyped ( KeyEvent event )
 }
 
 /**
-Indicate if the software license is for CDSS.
+Indicate if the software install is for CDSS, in which case certain non-CDSS
+features should be turned off.
 */
-private boolean license_IsCDSSInstall()
+private boolean license_IsInstallCDSS()
 {
     if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
         return true;
@@ -5218,7 +5222,24 @@ private boolean license_IsCDSSInstall()
 }
 
 /**
-Indicate if the software license is for CDSS.
+Indicate if the software install is for RTi, in which case all features are
+typically on (although there may also be checks to see which input types are
+enabled - no reason to show HydroBase features if not enabled).
+*/
+private boolean license_IsInstallRTi()
+{
+    if ( __license_manager.getLicenseType().equalsIgnoreCase("RTi") ) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+Indicate if the software license owner is RTi, in which case it is an RTi
+install AND RTi is the owner, resulting in only internal features being
+enabled.
 */
 private boolean license_IsOwnerRTi()
 {
@@ -8158,13 +8179,19 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetProperty_String,this));
+    if ( __source_NWSRFS_FS5Files_enabled ) {
+        __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String,this));
+    }
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add (__Commands_General_Running_RunCommands_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunProgram_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunProgram_String,this));
-    __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
+    if ( license_IsInstallRTi() ) {
+        __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
+    }
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
@@ -10374,6 +10401,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_Running_SetProperty_String) ) {
         commandList_EditCommand ( __Commands_General_Running_SetProperty_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String, null, __INSERT_COMMAND );
     }
 	else if (command.equals( __Commands_General_Running_RunCommands_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, __INSERT_COMMAND );
