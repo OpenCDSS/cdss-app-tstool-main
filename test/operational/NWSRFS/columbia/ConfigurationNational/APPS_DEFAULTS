@@ -1,0 +1,482 @@
+# ============= To see syntax rules for this file, see the bottom of the file
+
+locks_dir              : $(rfs_dir)/locks                    
+ofs_lock_max_wait      : 60   # no. of mins to wait to get an ofs lock
+ofs_lock_wait_interval : 5    # no. of secs 'tween retries to get an ofs lock
+
+ofs_level       : oper
+ofs_reor_lvl    : test
+ofs_inpt_grp    : oper
+
+cm_database  : programs@gilligan           # CM database
+
+home_files_workstation   :   pamlico       # added by gfs 4/13/94, changed for
+                                           # each site to be workstation where
+                                           # ofs files physically reside
+
+base_dir        : /awips/hydroapps/lx/rfc     # apps directory
+rfs_dir         : $(base_dir)/nwsrfs       # Top-level rfs mt.
+#rfs_sys_dir     : $(rfs_dir)/sys_files     # RFS system files
+# for development testing
+rfs_sys_dir     : test/operational/nwsrfs/sys_files     # RFS system files
+#rfs_doc         : $(rfs_dir)/doc           # NWSRFS documentation
+#rfs_doc         : /users/public/html/hrl/nwsrfs/users_manual  # NWSRFS documentation
+rfs_doc         : $(rfs_dir)/doc
+
+ofs_log_output   : off                     # whether to output file r/w info
+ofs_error_output : on                      # whether to output file error info
+fortran_stderr   : 7                       # FORTRAN standard error unit
+
+#  = = = = = = = = = = = = = = = = = = = = = = begin "ds_" system requirements
+
+ds_system          : $(base_dir)/devl_sys
+ds_system_lvl_dirs : "src inc ctl lib obj mak log rls"
+ds_system_levels1  : "ofs util calb my ifp mgr ffg siii st2 st1 pproc icp oli"
+ds_system_levels2  : "esp cmdb"
+
+      my_dir        : /users/$(LOGNAME)/devl
+      my_rls        :   $(my_dir)/bin
+      my_bin        :   $(my_dir)/bin
+
+      ofs_dir       : $(base_dir)/nwsrfs/ofs
+      util_dir      : $(base_dir)/nwsrfs/util
+      calb_dir      : $(base_dir)/nwsrfs/calb
+      ifp_dir       : $(base_dir)/nwsrfs/ifp
+      icp_dir       : $(base_dir)/nwsrfs/icp
+      pproc_dir     : $(base_dir)/nwsrfs/pproc
+      esp_dir       : $(base_dir)/nwsrfs/esp
+
+      mgr_dir       : $(base_dir)/mgr
+      cmdb_dir      : $(base_dir)/cmdb
+      ffg_dir       : $(base_dir)/ffg
+      oli_dir       : $(base_dir)/oli
+      st1_dir       : $(base_dir)/st1
+
+      st2_dir       : /users/pst/st2
+      siii_dir      : /users/pst/siii
+
+#  = = = = = = = = = = = = = = = = = = = = = = end "ds_" system requirements
+
+      ofs_rls       :   $(ofs_dir)/bin/RELEASE
+      util_rls      :   $(util_dir)/bin/RELEASE
+      calb_rls      :   $(calb_dir)/bin/RELEASE
+      ffg_rls       :   $(ffg_dir)/bin/RELEASE
+      ifp_rls       :   $(ifp_dir)/bin/RELEASE
+      mgr_rls       :   $(mgr_dir)/bin/RELEASE
+      st1_rls       :   $(st1_dir)/bin/RELEASE
+      st2_rls       :   $(st2_dir)/bin/RELEASE
+      siii_rls      :   $(siii_dir)/bin/RELEASE
+      pproc_rls     :   $(pproc_dir)/bin/RELEASE
+      icp_rls       :   $(icp_dir)/bin/RELEASE
+      oli_rls       :   $(oli_dir)/bin/RELEASE
+      esp_rls       :   $(esp_dir)/bin/RELEASE
+      cmdb_rls      :   $(cmdb_dir)/bin/RELEASE
+
+      ofs_arc       :   $(ofs_dir)/bin/ARCHIVE
+      util_arc      :   $(util_dir)/bin/ARCHIVE
+      calb_arc      :   $(calb_dir)/bin/ARCHIVE
+      ffg_arc       :   $(ffg_dir)/bin/ARCHIVE
+      ifp_arc       :   $(ifp_dir)/bin/ARCHIVE
+      pproc_arc     :   $(pproc_dir)/bin/ARCHIVE
+      icp_arc       :   $(icp_dir)/bin/ARCHIVE
+      esp_arc       :   $(esp_dir)/bin/ARCHIVE
+      cmdb_arc      :   $(cmdb_dir)/bin/ARCHIVE
+
+      my_src        :   $(my_dir)/src
+      ofs_src       :   $(ofs_dir)/src
+      util_src      :   $(util_dir)/src
+      calb_src      :   $(calb_dir)/src
+
+#  = = = = = = = = = = = = = = = = = = = = = = end of other "ds_" tokens
+
+ofs_bin         : $(ofs_dir)/bin                        # OFS executables dir
+ofs_files       : $(ofs_dir)/files                      # OFS file group
+ofs_fs5files    : $(ofs_files)/$(ofs_level)/fs5files    # OFS files dir
+ofs_reorder_dir : $(ofs_files)/$(ofs_reor_lvl)/fs5files # OFS ==> reordered
+ofs_output      : $(ofs_dir)/output                     # OFS output dir
+ofs_input       : $(ofs_dir)/input/$(ofs_inpt_grp)      # OFS input dir
+ofs_input_dflt  : $(ofs_dir)/input/$(ofs_inpt_grp)      # OFS input dir
+ofs_shefdata_dir: $(ofs_files)/$(ofs_level)/shefdata    # OFS SHEF data dir
+ofs_shefout_dir : $(ofs_files)/$(ofs_level)/shefdata    # OFS shefout file dir
+ofs_mods_dir    : $(ofs_files)/$(ofs_level)/mods        # OFS MODS files dir
+ofs_griddb_dir  : $(ofs_files)/$(ofs_level)/griddb      # OFS gridded fields
+ofs_scripts     : $(ofs_dir)/scripts                    # OFS scripts dir
+ofs_server      : apwk01g2                              # OFS "slave" server
+
+calb_bin           :   $(calb_dir)/bin
+calb_lib           :   $(calb_dir)/lib
+calb_input         :   $(calb_dir)/input
+calb_output        :   $(calb_dir)/output
+
+calb_data_dir      :  $(base_dir)/nwsrfs/calb/input/mcp3/data
+
+icp_bin            :  $(icp_dir)/bin
+icp_pw             :  hILLEL
+mcp3_icp_iface     :  $(HOME)/mcp3_ntrfc
+icp_editor         :  vi                           #Added for R26 Feb 3, 2005 by jmb
+icp_scripts        :  $(icp_dir)/scripts           #Added for R26 Feb 3, 2005 by jmb (must for R26!!)
+mcp_decks          :  $(calb_input)/mcp3/decks
+mcp_dir            :  $(calb_rls)
+
+
+# Resources for IFP
+
+ifp_ctl            :   $(ifp_dir)/ctl             # IFP control files
+ifp_mak            :   $(ifp_dir)/mak             # IFP make files
+ifp_log            :   $(ifp_dir)/log
+ifp_src            :   $(ifp_dir)/src             # IFP source files
+ifp_inc            :   $(ifp_dir)/inc             # IFP include files
+ifp_bin            :   $(ifp_dir)/bin/RELEASE     # IFP bin files
+
+ifp_help_dir       :   $(ifp_dir)/help_files      # IFP help files
+ifp_bin_dir        :   $(ifp_dir)/bin/RELEASE     # IFP bin files - ref in code
+ifp_nwsrfs_bin_dir :   $(ifp_dir)/bin/RELEASE     # ifp_nwsrfs bin - ref in code
+ifp_sys_dir        :   $(ifp_dir)/system          # IFP system files       
+ifp_scripts_dir    :   $(ifp_dir)/scripts         # IFP script files
+ifp_options_dir    :   $(ifp_dir)/options         # IFP options files
+ifp_colors_dir     :   $(ifp_options_dir)/colors # IFP color files
+ifp_fs5files       :   $(HOME)/ofs_ifp/fs5files   # user copy of fs5files
+ifp_rfc            :   abrfc                      # name of RFC to run
+ifp_num_columns    :   3                         # number of columns to display
+ifp_gif_files      : $(ofs_files)/$(ofs_level)/gif_files  # gif files directory
+
+#New Tokens added May 6, 2002 
+#Added for LINUX configuration
+#Install Notes for Rel 20 for Linux indicates that one additional
+#token should be added that we are NOT adding at this point: xnav_geo_data
+ens_files	: $(ens_dir)/files/$(ofs_level)
+ens_input	: $(ens_dir)/input/$(ofs_level)
+ens_output	: $(ens_dir)/output/
+ens_basin       : /
+
+preadj_outts_dir	: $calb_area_ts_dir
+public_bin	: $(base_dir)/public/bin
+
+ffg_dir	: $(base_dir)/rfc/nwsrfs/ffg
+geo_data	: /awips/hydroapps/lx/geo_data
+
+ofsde_log_dir	: $(ofs_output)/ofsde_logs
+
+
+
+
+nav_dir            : $(base_dir)/nav
+nav_bin            :   $(nav_dir)/bin
+
+qpf_dir            : $(base_dir)/qpf
+qpf_source         :   $(qpf_dir)/source
+qpf_bin            :   $(qpf_dir)/bin
+
+st2_source         :   $(st2_dir)/source
+st2_bin            :   $(st2_dir)/bin
+
+siii_bin           :   $(siii_dir)/bin
+
+st1_source         :   $(st1_dir)/source
+st1_bin            :   $(st1_dir)/bin
+
+my_output          :   $(ofs_output)/$(LOGNAME)
+
+# Resources for FFG
+
+ffg_level       : oper
+
+ffg_bin         : $(ffg_dir)/bin              # FFG execute dir
+ffg_files       : $(ffg_dir)/files            # FFG file group
+ffg_gsfiles     : $(ffg_files)/$(ffg_level)   # FFG files dir
+ffg_out_dir     : $(ffg_dir)/output           # FFG output dir
+
+ffg_usr_dir     : $(ffg_gsfiles)/user         # FFG user dir
+ffg_area_dir    : $(ffg_gsfiles)/affg         # FFG area dir
+ffg_cary_dir    : $(ffg_gsfiles)/cary         # FFG carryover dir
+ffg_define_dir  : $(ffg_gsfiles)/define       # FFG definition dir
+ffg_gridff_dir  : $(ffg_gsfiles)/grff         # FFG grid ff dir
+ffg_gridro_dir  : $(ffg_gsfiles)/grro         # FFG grid ro dir
+ffg_hwatr_dir   : $(ffg_gsfiles)/hffg         # FFG headwater dir
+ffg_inteno_dir  : $(ffg_gsfiles)/inob         # FFG intensity/
+#                                               overbank dir
+
+ffg_group_dir   : $(ffg_gsfiles)/grpp         # FFG groups of products
+ffg_prod_dir    : $(ffg_gsfiles)/prod         # FFG products dir
+ffg_text_dir    : $(ffg_gsfiles)/text         # FFG text dir
+
+#    ffg program control
+ffg_error_output   : on     # whether to output error messages
+#ffg_log_output     : on     # whether to output log messages
+ 
+#    GRIB packer/encoder for FFG
+
+grb_in_dir         : $(ffg_out_dir)        # GRIB input dir
+grb_out_dir        : $(ffg_out_dir)/grib   # GRIB output dir
+grb_error_output   : on          # whether to output error messages
+#grb_log_output     : on          # whether to log pgm info
+
+# Resources for OLI  (FFG online doc)
+
+oli_bin            :   $(oli_dir)/bin
+oli_doc_dir        :   $(oli_dir)/doc
+oli_mastr_dir      :   $(oli_doc_dir)/master
+
+nwsrfs_calbfile_default   : CARD             # default calibration file type
+nwsrfs_platform           : AIX              # operating system
+
+# Defaults for DHQC processes
+
+dhqc_dir         : $(base_dir)/dhqc               # DHQC top-level dir
+shared_dir       : $(dhqc_dir)/shared           # DHQC shared source
+intlppp          :  2                           # number of hours before 12z
+                                                #  for changing ppp data to 12z
+intuppp          :  2                           # number of hours after 12z
+                                                #  for changing ppp data to 12z
+
+# siipp tokens
+
+siipp_dir        : $(dhqc_dir)/siipp            # SIIPP top-level dir
+siipp_output_dir :  $(siipp_dir)/output         # SIIPP output dir
+siipp_input_dir  :  $(siipp_dir)/input          # SIIPP input dir
+siipp_main       :  $(siipp_dir)/source/main    # SIIPP main source dir
+siipp_esql       :  $(siipp_dir)/source/esql    # SIIPP esql dir
+siipp_bin_dir    :  $(siipp_dir)/bin            # SIIPP bin dir
+intpc            :  10                          # interval (minutes) around top
+                                                #  of hour for using pc data
+
+# ofs_de tokens
+
+ofsde_dir        : $(dhqc_dir)/ofs_de           # OFS_DE top-level dir
+ofsde_output_dir :  $(ofsde_dir)/output         # OFS_DE output dir
+ofsde_main       :  $(ofsde_dir)/source/main    # OFS_DE main source dir
+ofsde_esql       :  $(ofsde_dir)/source/esql    # OFS_DE esql dir
+ofsde_bin_dir    :  $(ofsde_dir)/bin            # OFS_DE bin dir
+ofsde_ndate      :  7                           # number of days to search
+                                                #   for forecast temps
+
+# intervals for max/min temperatures (used by ofs_de)
+# these represent number of hours around 12z
+
+intlrmn          :  8
+inturmn          :  2
+intlrzn          :  2
+inturzn          :  2
+intlrzx          :  8
+inturzx          :  2
+
+# Clean tokens
+
+clean_dir        : /users/oper/clean            # CLEAN dir
+
+#deldb process
+
+deldb_dir        : /users/oper/deldb
+deldb_output_dir :  $(deldb_dir)/output         # deldb output dir
+deldb_input_dir  :  $(deldb_dir)/input          # deldb input dir
+deldb_make_dir   :  $(deldb_dir)/make           # deldb make dir
+deldb_bin_dir    :  $(deldb_dir)/bin
+deldb_source_dir :  $(deldb_dir)/source
+delau_output_dir :  $(deldb_dir)/delaux         # delaux output dir
+delau_input_dir  :  $(deldb_dir)/delaux         # delaux intput dir
+
+# defaults for stage ii source
+
+stgii_dir        : $(base_dir)/stageii          # Stage II top-level dir
+sii_bin          :  $(stgii_dir)/bin
+sii_main         :  $(stgii_dir)/source/main
+sii_esql         :  $(stgii_dir)/source/esql
+sii_common       :  $(stgii_dir)/source/common
+
+# defaults for StageII input data
+# for output directories see under STAGE III
+
+st2_input        : $(stgii_dir)/input        # main stageII dir
+st2_param        :  $(st2_input)/param       # stageII parameter values dir
+st2_st1          :  $(st2_input)/stagei      # stageI data dir
+st1_data         :  $(st2_input)/stagei      # stageI data dir used by StageIII
+st2_satel        :  $(st2_input)/satel       # satellite data dir
+
+st2_log          : $(stgii_dir)/logs         # logs top level dir
+st2_log_auto     :  $(st2_log)/auto          # logs for auto runs
+st2_log_man      :  $(st2_log)/manual        # logs for manual runs
+
+#  defaults for stageiii
+
+st3_dir          : $(base_dir)/stageiii        # stage 3 top level dir
+st3_src          :  $(st3_dir)/source        # stage 3 source code
+st3_include      :  $(st3_src)/Includes
+st3_esql         :  $(st3_src)/Esql
+s3exe            :  $(st3_dir)/bin
+
+st3_data         : $(st3_dir)/input          # main stage 3 data directory
+st3_input        :  $(st3_data)/stageii      # dir containing gg,ml,MB files 
+st3_param        :  $(st3_data)/param        # parametric data for stage 3
+st3_help         :  $(st3_dir)/help/
+
+st3_rfc          : abrfc
+
+#  defaults for stageiii output
+
+st3_output     : $(ofs_griddb_dir)        # dir containing xmrg files 
+post_output    : $(st3_dir)/util/data/post_analysis
+st3_mapx_id    : xmrg                     # identifier for Stage 3 output
+st3_date_form  : mmddyy                   # date format
+					  #  current allowable = yymmdd,mmddyy
+
+st3_mkimage    : $(st3_dir)/util/mkimage  # location of executables for
+                                          #   generating gif and jpeg
+                                          #   and location of temporary
+                                          #   files
+
+st3_save_netcdf : nosave                  # save flag for netCDF files
+                                          #  = save or nosave
+st3_save_gif    : nosave                  # save flag for gif files
+                                          #  = save or nosave
+st3_save_jpeg   : nosave                  # save flag for jpeg files
+                                          #  = save or nosave
+st3_save_grib   : nosave                  # save flag for grib encoded files
+                                          #  = save or nosave
+
+st3_netcdf_dir  : $(st3_dir)/util/data/NETCDF_files  # dir containing
+                                                     #   netcdf files
+st3_gif_dir     : $(st3_dir)/util/data/GIF_files     # dir containing
+                                                     #   gif files
+st3_jpeg_dir    : $(st3_dir)/util/data/JPEG_files    # dir containing
+                                                     #   jpeg files
+st3_grib_dir    : $(st3_dir)/util/data/GRIB_files    # dir containing
+                                                         grib files
+
+#  defaults for netCDF output
+
+st3_netcdf_loc : arkansas_red_basin_river_forecast_center_tulsa_ok
+                                       # underscores needed between words
+st3_netcdf_swlat  : 33.603
+st3_netcdf_swlon  : 106.456
+st3_netcdf_selat  : 32.433
+st3_netcdf_selon  : 92.322
+st3_netcdf_nelat  : 38.027
+st3_netcdf_nelon  : 90.678
+st3_netcdf_nwlat  : 39.420
+st3_netcdf_nwlon  : 106.652
+
+#defaults for auto stageiii
+
+st3_auto_dir     : $(base_dir)/stageiii/auto     # dir containing source,
+                                               #  exec and scripts
+st3_auto_data    : $(st3_auto_dir)/data        # dir containing xmrg
+                                               #  files
+st3_auto_logs    : $(st3_auto_dir)/logs
+
+#LDM tokens
+
+ldm_bin            : $(base_dir)/ldm/bin
+ldm_source         : $(base_dir)/ldm/source
+ldm_action_file    : $(ldm_bin)/afos_actions
+ldm_log_dir        : $(ldm_bin)
+ldm_userid         : oper
+ldm_host           : skipper
+
+#  shefdecode tokens
+
+shefdecode_dir    : $(base_dir)/shefdecode             # shefdecode main dir
+shefdecode_make   :  $(shefdecode_dir)/make          #      "     make dir
+shefdecode_bin    :  $(shefdecode_dir)/bin           #      "     bin dir
+shefdecode_input  :  $(shefdecode_dir)/input         #      "     input dir
+shefdecode_log    :  $(shefdecode_dir)/logs          #      "     log dir
+shef_post_source  :  $(shefdecode_dir)/source/post  # posting source dir
+shef_parse_source :  $(shefdecode_dir)/source/main  # parsing source dir
+
+shef_mess         : MESSAGEOFF                  # debug flag
+shef_data_dir     : /users/hpdata/shefdata    
+shef_error_dir    : /users/hpdata/sheferror   
+shef_prod         : /users/hpdata/products       # dir with shef products
+                                                 #   in text form
+
+shef_keeperror    : IF_ERROR                 # keep error log flag
+                                             #   = IF_ERROR -- keep if error
+                                             #   = ALWAYS -- keep always
+shef_storetext    : OFF    	             # store text product to Informix flag
+shef_sleep        : 10                       # sleep duration in between queries
+shef_winpast      : 10                        # number of days in past
+                                              #  to post shef data
+                                              #  units = days
+shef_use_revcode  : 0                      # flag for revision code use
+                                           #   in posting data
+                                           #  0 -- use revision code
+                                           #  1 -- ignore revision code
+shefdecode_userid : oper
+shefdecode_host   : apwk01g2
+
+#  database selection tokens
+
+server_name        : skipper                    # server name
+test_server_name   : marianne             
+db_name            : rfcdb                      # database name
+aux_server_name    : minnow                     # auxiliary server name
+aux_db_name        : rfcdb_old                  # auxiliary database name
+dbutil_dir         : $(shared_dir)/dbutil       # database utilities dir
+
+# DecodeHDP tokens
+
+hdp_dir          : $(base_dir)/decodehdp    # hdp decode top level dir
+hdp_source_dir   : $(hdp_dir)/source    
+hdp_bin_dir      : $(hdp_dir)/bin      
+hdp_input_dir    : $(hdp_dir)/input   
+hdp_logs_dir     : $(hdp_dir)/logs  
+hdp_data         : $(base_dir)/stageiii/util   # hdp data top level dir
+hdp_prod_dir     : $(hdp_data)/ftp             # dir containing raw
+					      #   hdp products
+hdp_arch_dir      : $(hdp_data)/archive        # dir containing raw HDP
+                                              #   products for archive
+hdp_wind         : 10                        # number of minutes around top
+                                             #  of hour
+# defaults for NAV
+
+nav_parameters : $(base_dir)/nav/params
+nav_data_dir   : $(base_dir)/nav/data
+qpf_data_dir   : $(base_dir)/qpf/bin
+nav_rfc        : abrfc
+nav_fvid       : COMO2
+
+# defaults for geographic data
+geo_data       : /awips/hydroapps/lx/geo_data
+geo_util       : $(geo_data)/util
+geo_st3_bin    : $(geo_data)/$(st3_rfc)/binary
+geo_st3_ascii  : $(geo_data)/$(st3_rfc)/ascii
+geo_nav_bin    : $(geo_data)/$(nav_rfc)/binary
+geo_nav_ascii  : $(geo_data)/$(nav_rfc)/ascii
+geo_ifp_bin    : $(geo_data)/$(ifp_rfc)/binary
+geo_ifp_ascii  : $(geo_data)/$(ifp_rfc)/ascii
+
+#
+# Added for Rel. 26 - jmb
+# 2005-02-02
+#
+disagg_set_date     : 0
+disagg_set_hour     : 0
+fldview_dir         : $(apps_dir)/rfc/fldview/floodmapdata
+ndfd2rfs_input      : $(ofs_files)/$(ofs_level)/ndfd
+ndfd2rfs_output     : $(my_output)
+ndfd2rfs_log_level  : 0
+ofs_locks_max_pass  : 4
+
+# The syntax needed in the file is:
+#
+#  token : resource
+#
+#  where: token is defined as a string delimited by white space or
+#           the delimiter,
+#         the delimiter between token and resource is the :,
+#         no white space needs to surround the delimiter,
+#         comments are indicated by a #,
+#         neither token nor resource can begin with a # or :,
+#         a # or a : can be embedded within resource,
+#         resource can contain white space if it is bounded by
+#           the ' or " characters,
+#         blank lines are allowed.
+#         referbacks are indicated by $(...). The '...' is resolved
+#          the same way any other token is, and is substituted for
+#          the $(...) string to compose the final resource value.
+#          Multiple referbacks are allowed in a resource, but
+#          embedded referbacks are not allowed  (i.e. no
+#          $($(...)) allowed).
+#  Note that this file is read only if the token can not be resolved
+#    as an environment variable.
+
+

@@ -1,0 +1,130 @@
+# this file is or has been copied from .Apps_defaults.gen
+# it uses data in the nwsrfs directory structure (as opposed to /projects)
+# general changes should be made in that file or they may be temporary
+#  To see syntax rules for this file, see the bottom of the file
+#
+########################################################################
+#
+#  09 Nov 2000   mdk     Changed to set up for Rio Lempa on rogue
+#  03 Jan 2001   mdk     Changed to set up for Rio Lempa on lempa
+#  13 Jan 2001   mdk     Changed to set up for S. Africa on lempa
+#  24 Aug 2001   mdk     Added GUI Properties key and updated 
+#                        tokens for new ENS programs.  
+#  14 Jan 2002   mdk     Changed to set up for S. Africa on rogue
+#  11 Mar 2002   mdk     Changed to set up for PANAMA on lobo5
+#  14 Mar 2002   klg     Changed to set up for ABRFC on lobo5
+#  30 Sep 2002   klg     Changed to set up for lmrfc on atl
+#  04 Nov 2002   mdk     Changed to set up for lmrfc on pamlico (linux)
+#  28 Feb 2003   jpb     Added token for peak flow analysis
+########################################################################
+
+####################### Start User-defined Variables ##########################
+# Use these to export variables defined in this file to the environment.
+#
+my_dir:                 /projects/columbia/devl
+ds_system:              /awips/hydroapps/lx/rfc/devl_sys
+ds_system_levels:       "ofs calb util my "
+ds_system_lvl_dirs:     "src inc ctl mak lib obj rls log"
+#
+ofs_log_output   : off                     # whether to output file r/w info
+ofs_error_output : on                      # whether to output file error info
+fortran_stderr   : 7                       # FORTRAN standard error unit
+
+#Resources for NWSRFSGUI
+#nwsrfsgui_properties    :       /usr/local/bin/NWSRFSGUI_columbia.props
+
+PROJECT_HOME    : /projects/columbia/nwsrfs           # main PROJECT directory
+apps_dir	: /awips/hydroapps/lx_v26
+
+
+rfs_doc         : $(apps_dir)/nwsrfs/doc
+ofs_level       : columbia 
+
+
+ofs_reor_lvl    : columbia_reor
+ofs_inpt_grp    : $(ofs_level)
+
+geo_level       : $(ofs_level)
+
+#ofs_dir         : $(PROJECT_HOME)/ofs
+ofs_fs5files    : $(ofs_files)/$(ofs_level)/fs5files
+ofs_fcinit_flag : 
+ofs_espinit_flag: "-d"
+ofs_fcst_flag   : "-d"
+rfc_dir         : $(PROJECT_HOME)/ofs          # RFC I/O location
+ofs_files       : $(rfc_dir)/files
+ofs_input:              $(rfc_dir)/input/$(ofs_inpt_grp) # OFS input dir
+ofs_input_dflt:         $(rfc_dir)/input/$(ofs_inpt_grp) # OFS input dir
+ofs_output:             $(rfc_dir)/output                # OFS output dir
+#
+ifp_rfc         : $(geo_level)                      # name of RFC to run
+ifp_fs5files    : $(HOME)/ofs_ifp/fs5files   # user copy of fs5files
+ifp_bin_dir     : $(apps_dir)/nwsrfs/ifp/bin/RELEASE
+sys_java_dir    : /opt/jre1.5.0
+ifp_sacco_dir   : $(ofs_files)/$(ofs_level)/sacsnow_clim
+#
+#ESPADP and ICP required stuff
+# FIXME SAM geo_data       	: $(PROJECT_HOME)/geo_data/columbia
+# Test data...
+geo_data       	: test/operational/columbia/geo_data
+espvs_dir       : /projects/ahps/espvs
+#calb_dir        : $(apps_dir)/nwsrfs/calb
+calb_data_dir   : $(calb_sta_ts_dir)               
+calb_area_ts_dir: $(PROJECT_HOME)/calb/data/area_ts
+calb_sta_ts_dir : $(PROJECT_HOME)/calb/data/sta_ts
+calb_input      : $(PROJECT_HOME)/calb/input
+calb_output     : $(PROJECT_HOME)/calb/output
+peakflow_data_dir: $(calb_area_ts_dir)/peaks
+
+# Added Aug 2001 for new ENS directory structure
+# and additional tokens required for NWSRFS R.17.
+#
+ens_dir         : $(apps_dir)/nwsrfs/ens
+ens_files       : $(PROJECT_HOME)/ens/files/$(ofs_level)
+ens_input       : $(PROJECT_HOME)/ens/input/$(ofs_inpt_grp)
+ens_output      : $(PROJECT_HOME)/ens/output
+espts_dir       : $(ens_files)/espts
+preadj_dir      : $(ens_files)/cpc_fcsts
+ens_basin       :   /
+
+# This token defines the interface dir used between icp and mcp3.
+# It should be unique to each user and on a local (i.e. not nfs mounted)
+# disk. Having this directory local greatly increases performance.
+
+mcp3_icp_iface  : /tmp/$(LOGNAME)/mcp3_ntrfc
+
+# The syntax needed in the file is:
+#
+#  token : resource
+#
+#  where: token is defined as a string delimited by white space or
+#           the delimiter,
+#         the delimiter between token and resource is the :,
+#         no white space needs to surround the delimiter,
+#         comments are indicated by a #,
+#         neither token nor resource can begin with a # or :,
+#         a # or a : can be embedded within resource,
+#         resource can contain white space if it is bounded by
+#           the ' or " characters,
+#         blank lines are allowed.
+#         referbacks are indicated by $(...). The '...' is resolved
+#          the same way any other token is, and is substituted for
+#          the $(...) string to compose the final resource value.
+#          Multiple referbacks are allowed in a resource, but
+#          embedded referbacks are not allowed  (i.e. no
+#          $($(...)) allowed).
+#  Note that this file is read only if the token can not be resolved
+#    as an environment variable.
+
+# Note: the following added by amv 010707 to test snow updating system
+swe_update_dir		: $(PROJECT_HOME)/calb/data
+swe_update_histsim_dir	: SnowUpdateSystem/historical 
+swe_update_currobs_dir	: SnowUpdateSystem/real_time
+swe_update_histobs_dir	: SnowUpdateSystem/snotel
+swe_update_use_currsim	: YES
+#swe_update_logs_dir	: SnowUpdateSystem/output
+swe_update_logs_dir	: /home/amv
+swe_update_mods_dir	: SnowUpdateSystem/mods
+swe_update_output_dir	: SnowUpdateSystem/output
+
+
