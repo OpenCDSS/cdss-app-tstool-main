@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry path="src" kind="src"/>
-	<classpathentry path="test/unit/src" kind="src"/>
-	<classpathentry path="test/regression/src/Abbot" kind="src"/>
-	<classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"/>
-	<classpathentry path="/HydroBaseDMI" combineaccessrules="false" kind="src"/>
-	<classpathentry path="externals/junit.jar" kind="lib"/>
-	<classpathentry path="externals/Blowfish_142.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/abbot.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/ant4eclipse.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/bsh.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/example.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/gnu-regexp.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/jdom.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/jgraph.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/MRJToolkitStubs.zip" kind="lib"/>
-	<classpathentry path="externals/Abbot/xerces.jar" kind="lib"/>
-	<classpathentry path="externals/Abbot/xml-apis.jar" kind="lib"/>
-	<classpathentry path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msbase.jar" kind="lib"/>
-	<classpathentry path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/mssqlserver.jar" kind="lib"/>
-	<classpathentry path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msutil.jar" kind="lib"/>
-	<classpathentry path="/NWSRFS_DMI" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/TSCommandProcessor" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/RiversideDB_DMI" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/SatmonSysDMI" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/StateMod" combineaccessrules="false" kind="src"/>
-	<classpathentry path="/RTi_COMMON" combineaccessrules="false" kind="src"/>
-	<classpathentry path="bin" kind="output"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test/unit/src"/>
+	<classpathentry kind="src" path="test/regression/src/Abbot"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/HydroBaseDMI"/>
+	<classpathentry kind="lib" path="externals/junit.jar"/>
+	<classpathentry kind="lib" path="externals/Blowfish_142.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/abbot.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/ant4eclipse.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/bsh.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/example.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/gnu-regexp.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/jdom.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/jgraph.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/MRJToolkitStubs.zip"/>
+	<classpathentry kind="lib" path="externals/Abbot/xerces.jar"/>
+	<classpathentry kind="lib" path="externals/Abbot/xml-apis.jar"/>
+	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msbase.jar"/>
+	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/mssqlserver.jar"/>
+	<classpathentry kind="lib" path="externals/Microsoft_SQL_Server_Java_ODBC_Driver/msutil.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/NWSRFS_DMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/TSCommandProcessor"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/RiversideDB_DMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SatmonSysDMI"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/StateMod"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/RTi_Common"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
