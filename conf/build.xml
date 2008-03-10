@@ -7,17 +7,17 @@
     
     <target name="local-install-RTi" description="RTi local install" depends="-init-RTi,local-install"/>
     
-    <target name="installer-CDSS-nodeps" depends="-init"  description="CDSS nsis installer">
+    <target name="nsis-CDSS" depends="-init"  description="CDSS nsis installer">
         <nsisinstaller dir="installer/CDSS" nsi="TSTool.nsi"/>
     </target>
     
-    <target name="installer-CDSS" description="CDSS nsis installer" depends="local-install-CDSS,installer-CDSS-nodeps"/>
+    <target name="installer-CDSS" description="CDSS nsis installer" depends="local-install-CDSS,nsis-CDSS"/>
     
-    <target name="installer-RTi-nodeps" depends="-init" description="RTi nsis installer">
+    <target name="nsis-RTi" depends="-init" description="RTi nsis installer">
         <nsisinstaller nsi="RTi/TSTool.nsi"/>
     </target>
     
-    <target name="installer-RTi" description="RTi nsis installer" depends="local-install-RTi,installer-RTi-nodeps"/>
+    <target name="installer-RTi" description="RTi nsis installer" depends="local-install-RTi,nsis-RTi"/>
     
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local" depends="-install-local-cdss,-install-local-rti">
@@ -26,6 +26,7 @@
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.ini"/>
     </target>
     
+    <!-- the following two targets perform initialization of properties -->
     <target name="-init-CDSS" depends="-init">
         <!-- set the installer.cdss property to allow the appropriate post-installer-xxx to run-->
         <property name="installer.cdss" value="true"/>
@@ -36,8 +37,13 @@
         <property name="license.file" value="externals/CDSS/system/TSTool.cfg"/>
     </target>
     
+    <target name="-init-RTi" depends="-init">
+        <property name="install.dir" value="${dist.dir}/install-RTi"/>
+        <property name="license.file" value="installer/Rivertrack/License.txt"/>
+    </target>
+    
+    <!-- the following two targets copy additional resources to local install dirs -->
     <target name="-install-local-cdss" if="installer.cdss">
-        <echo>install dir ${install.dir}</echo>
         <copy todir="${install.dir}/bin" file="externals/CDSS/installer/TSTool.exe"/>
         <copy todir="${install.dir}/system">
             <fileset dir="externals/CDSS/system" includes="*"/>
@@ -46,11 +52,6 @@
     
     <target name="-install-local-rti" if="installer.rti">
         
-    </target>
-    
-    <target name="-init-RTi" depends="-init">
-        <property name="install.dir" value="${dist.dir}/install-RTi"/>
-        <property name="license.file" value="installer/Rivertrack/License.txt"/>
     </target>
     
 </project>
