@@ -26,6 +26,7 @@ Name "TSTool"
 !define COMPANY RTi
 !define URL http://www.riverside.com
 !define EXTERNALS_DIR "..\..\externals"
+!define INST_BUILD_DIR "..\..\dist\install-rivertrack\"
 
 # Included files
 !include "UMUI.nsh"
@@ -41,7 +42,7 @@ Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
-OutFile "TSTool_RiverTrak_${VERSION}_Setup.exe"
+OutFile "..\..\dist\TSTool_CDSS_${VERSION}_Setup.exe"
 InstallDir "C:\Program Files\RTi\RiverTrak"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
@@ -152,18 +153,10 @@ Section "TSTool" TSTool
     
     # copy important bat/jar files specific to this product
     SetOverwrite ifnewer
-    SetOutPath $INSTDIR\bin
-    
-    File ..\..\scripts\TSTool.bat
-    File ..\..\dist\TSTool_142.jar
-    File ..\..\externals\NWSRFS_DMI\NWSRFS_DMI_142.jar
-    File ..\..\externals\RiversideDB_DMI\RiversideDB_DMI_142.jar
-    File ..\..\externals\StateMod\StateMod_142.jar
-    File ..\..\externals\StateCU\StateCU_142.jar
-    File ..\..\externals\TSCommandProcessor\TSCommandProcessor_142.jar
-    
-    SetOutPath $INSTDIR\system
-    File ..\licenses\RTiDemo\TSTool.cfg
+    SetOutPath $INSTDIR
+
+    File /r "${INST_BUILD_DIR}\bin"
+    File /r "${INST_BUILD_DIR}\system"
 
     #### Comment out later if README file needs to be installed
     # add README
@@ -174,15 +167,6 @@ Section "TSTool" TSTool
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET JREHOMED=%HOMED%\jre_142" "SET JREHOMED=..\..\jre_142" "" $0
-   
-    # copy the NativeJ executable and config file
-    SetOutPath $INSTDIR\bin
-    File TSTool.exe
-    File TSTool.ini
-    
-    # Replace argument for -home in NativeJ property file
-    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.ini" \
-    "$INSTDIR\bin\TSTool.ini" "-home C:\CDSS" "-home $\"$INSTDIR$\"" "" $0
     
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
@@ -221,7 +205,9 @@ Section "Documentation" Docs
     # copy documentation
     SetOutPath $INSTDIR\doc\TSTool
     SetOverwrite on
-    File /r /x *svn* ..\..\doc\TSTool\Rivertrak\*
+
+    # @Todo Where are the docs?
+    #File /r /x *svn* ..\..\doc\TSTool\Rivertrak\*
 
 SectionEnd
 
