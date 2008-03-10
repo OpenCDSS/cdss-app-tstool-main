@@ -5,7 +5,7 @@
     
     <target name="local-install-CDSS" description="CDSS local install" depends="-init-CDSS,local-install"/>
     
-    <target name="local-install-RTi" description="RTi local install" depends="-init-RTi,local-install"/>
+    <target name="local-install-rivertrack" description="rivertrack local install" depends="-init-rivertrack,local-install"/>
     
     <target name="nsis-CDSS" depends="-init"  description="CDSS nsis installer">
         <nsisinstaller dir="installer/CDSS" nsi="TSTool.nsi"/>
@@ -13,11 +13,11 @@
     
     <target name="installer-CDSS" description="CDSS nsis installer" depends="local-install-CDSS,nsis-CDSS"/>
     
-    <target name="nsis-RTi" depends="-init" description="RTi nsis installer">
-        <nsisinstaller nsi="RTi/TSTool.nsi"/>
+    <target name="nsis-rivertrack" depends="-init" description="rivertrack nsis installer">
+        <nsisinstaller nsi="rivertrack/TSTool.nsi"/>
     </target>
     
-    <target name="installer-RTi" description="RTi nsis installer" depends="local-install-RTi,nsis-RTi"/>
+    <target name="installer-rivertrack" description="rivertrack nsis installer" depends="local-install-rivertrack,nsis-rivertrack"/>
     
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local" depends="-install-local-cdss,-install-local-rti">
@@ -37,9 +37,9 @@
         <property name="license.file" value="externals/CDSS/system/TSTool.cfg"/>
     </target>
     
-    <target name="-init-RTi" depends="-init">
-        <property name="install.dir" value="${dist.dir}/install-RTi"/>
-        <property name="license.file" value="installer/Rivertrack/License.txt"/>
+    <target name="-init-rivertrack" depends="-init">
+        <property name="install.dir" value="${dist.dir}/install-rivertrack"/>
+        <property name="license.file" value="test/operational/RTi/system/TSTool.cfg"/>
     </target>
     
     <!-- the following two targets copy additional resources to local install dirs -->
@@ -51,7 +51,10 @@
     </target>
     
     <target name="-install-local-rti" if="installer.rti">
-        
+        <copy todir="${install.dir}/bin" file="installer/common/TSTool.exe"/>
+        <copy todir="${install.dir}/system">
+            <fileset dir="externals/Rivertrak/system" includes="*"/>
+        </copy>
     </target>
     
 </project>
