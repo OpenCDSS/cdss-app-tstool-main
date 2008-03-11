@@ -7,17 +7,21 @@
     
     <target name="local-install-rivertrack" description="rivertrack local install" depends="-init-rivertrack,local-install"/>
     
-    <target name="nsis-CDSS" depends="-init"  description="CDSS nsis installer">
+    <target name="nsis-CDSS" depends="-init,-clean-logs"  description="CDSS nsis installer">
         <nsisinstaller dir="installer/CDSS" nsi="TSTool.nsi"/>
     </target>
     
     <target name="installer-CDSS" description="CDSS nsis installer" depends="local-install-CDSS,nsis-CDSS"/>
     
-    <target name="nsis-rivertrack" depends="-init" description="rivertrack nsis installer">
+    <target name="nsis-rivertrack" depends="-init,-clean-logs" description="rivertrack nsis installer">
         <nsisinstaller nsi="rivertrack/TSTool.nsi"/>
     </target>
     
     <target name="installer-rivertrack" description="rivertrack nsis installer" depends="local-install-rivertrack,nsis-rivertrack"/>
+    
+    <target name="-clean-logs" description="clean log directories before installer">
+        <delete dir="${install.dir}/logs" includes="*"/>
+    </target>
     
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local" depends="-install-local-cdss,-install-local-rti">
