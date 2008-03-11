@@ -28,6 +28,9 @@
         <copy todir="${install.dir}/bin" file="externals/shellcon/shellcon.exe"/>
         <copy todir="${install.dir}/bin" file="scripts/TSTool.bat"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.ini"/>
+        <!-- this gives an absolute path -->
+        <property name="install.home" location="${install.dir}"/>
+        <replace file="${install.dir}/bin/TSTool.ini" token="@HOME@" value="${install.home}"/>
     	<mkdir dir="${install.dir}/logs"/>
     </target>
     
@@ -43,6 +46,7 @@
     </target>
     
     <target name="-init-rivertrack" depends="-init">
+        <property name="installer.rti" value="true"/>
         <property name="install.dir" value="${dist.dir}/install-rivertrack"/>
         <property name="license.file" value="test/operational/RTi/system/TSTool.cfg"/>
     </target>
