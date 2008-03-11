@@ -24,6 +24,7 @@
         <copy todir="${install.dir}/bin" file="externals/shellcon/shellcon.exe"/>
         <copy todir="${install.dir}/bin" file="scripts/TSTool.bat"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.ini"/>
+    	<mkdir dir="${install.dir}/logs"/>
     </target>
     
     <!-- the following two targets perform initialization of properties -->
