@@ -167,7 +167,13 @@ Section "TSTool" TSTool
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET JREHOMED=%HOMED%\jre_142" "SET JREHOMED=..\..\jre_142" "" $0
-    
+
+    #copy config and replace home tokens
+    SetOutPath $INSTDIR\bin
+    File TSTool.ini
+    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.ini" \
+    "$INSTDIR\bin\TSTool.ini" "@HOME@" "$INSTDIR" "" $0    
+
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     WriteRegStr HKLM "${REGKEY}" StartMenuGroup $StartMenuGroup
