@@ -92,6 +92,7 @@ ReserveFile "..\..\externals\CDSS\installer\server_name.ini"
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 
 !include ..\..\externals\NSIS_Common\PathManipulation.nsh
+!include ..\..\externals\NSIS_Common\RegisterExtension.nsh
 !include ..\..\externals\NSIS_Common\Util.nsh
 !include ..\..\externals\CDSS\installer\BaseComponents.nsh
 !include ..\..\externals\CDSS\installer\server_name.nsh
@@ -192,6 +193,8 @@ Section "TSTool" TSTool
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\Uninstall_$(^Name).exe
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+
+    ${registerExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Commands File"
    
 SectionEnd
 
@@ -331,6 +334,8 @@ Section "Uninstall"
     Delete /REBOOTOK $INSTDIR\bin\TSTool.exe
     Delete /REBOOTOK $INSTDIR\bin\TSTool.ini
     DeleteRegValue HKLM "${REGKEY}\Components" Main
+    
+    ${unregisterExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Commands File"
     
     # uninstall base components
     Call un.BaseComponents
