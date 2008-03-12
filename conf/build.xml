@@ -24,7 +24,7 @@
     </target>
     
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
-    <target name="-install-local" depends="-install-local-cdss,-install-local-rti">
+    <target name="-install-local" depends="-install-local-cdss,-install-local-rti,-exe">
         <copy todir="${install.dir}/bin" file="externals/shellcon/shellcon.exe"/>
         <copy todir="${install.dir}/bin" file="scripts/TSTool.bat"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.ini"/>
@@ -43,17 +43,32 @@
         -->
         <property name="install.dir" value="${dist.dir}/install-CDSS"/>
         <property name="license.file" value="externals/CDSS/system/TSTool.cfg"/>
+        <!-- icon is relative to dist directory, since launch4j xml is created there-->
+        <property name="tstool.icon" value="../externals/CDSS/graphics/waterMark.ico"/>
     </target>
     
     <target name="-init-rivertrack" depends="-init">
         <property name="installer.rti" value="true"/>
         <property name="install.dir" value="${dist.dir}/install-rivertrack"/>
         <property name="license.file" value="test/operational/RTi/system/TSTool.cfg"/>
+        <property name="tstool.icon" value="../externals/Rivertrak/graphics/RTi.ico"/>
+    </target>
+    
+    <target name="cdss-exe" depends="-init-CDSS,-exe" description="a"/>
+    
+    <target name="-exe" depends="-init-deps" description="create tstool.exe">
+        <launch4j-exe exe="TSTool" jreName="142" productIcon="${tstool.icon}" 
+            mainClass="DWR.DMI.tstool.tstool">
+            <opts>
+                <opt>"-Dtstool.home=%EXEDIR%/.."</opt>
+            </opts>
+        </launch4j-exe>
+        <move file="${dist.dir}/TSTool.exe" todir="${install.dir}/bin"/>
     </target>
     
     <!-- the following two targets copy additional resources to local install dirs -->
     <target name="-install-local-cdss" if="installer.cdss">
-        <copy todir="${install.dir}/bin" file="externals/CDSS/installer/TSTool.exe"/>
+        <!--<copy todir="${install.dir}/bin" file="externals/CDSS/installer/TSTool.exe"/>-->
         <copy todir="${install.dir}/system">
             <fileset dir="externals/CDSS/system" includes="*"/>
         </copy>
