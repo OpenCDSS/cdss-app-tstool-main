@@ -335,7 +335,7 @@ Section "Uninstall"
     Delete /REBOOTOK $INSTDIR\bin\TSTool.ini
     DeleteRegValue HKLM "${REGKEY}\Components" Main
     
-    ${unregisterExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Commands File"
+    ${unregisterExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool"
     
     # uninstall base components
     Call un.BaseComponents
