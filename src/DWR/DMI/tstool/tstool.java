@@ -760,6 +760,20 @@ public static void parseArgs ( String[] args )
 throws Exception
 {	String routine = "TSTool.parseArgs";
 	int pos = 0;	// Position in a string.
+
+    // iws-
+    // allow setting of -home via system property "tstool.home". This
+    // can be supplied by passing the -Dtstool.home=HOME option to the java vm.
+    // this little block of code copies the passed values into the front of the 
+    // args array.
+    if (System.getProperty("tstool.home") != null) {
+        String[] extArgs = new String[args.length + 2];
+        System.arraycopy(args, 0, extArgs, 2, args.length);
+        extArgs[0] = "-home";
+        extArgs[1] = System.getProperty("tstool.home");
+        args = extArgs;
+    }
+
 	for (int i = 0; i < args.length; i++) {
 	    // User specified....
 		if (args[i].equalsIgnoreCase("-commands")) {
