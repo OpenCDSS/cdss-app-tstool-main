@@ -21,6 +21,7 @@
 
 Name "TSTool"
 # Define Vars
+!define DISPLAYNAME "TSTool"
 !define REGKEY "Software\State of Colorado\CDSS\$(^Name)"
 !define VERSION 7.00.00
 !define COMPANY RTi
@@ -29,6 +30,10 @@ Name "TSTool"
 !define JRE_VERSION "142"
 !define INSTALL_IS_CDSS "true"
 !define INST_BUILD_DIR "..\..\dist\install-CDSS\"
+
+SetCompressor lzma
+BrandingText "Riverside Technology, inc."
+Name "${DISPLAYNAME}"
 
 # Included files
 !include "UMUI.nsh"
@@ -52,14 +57,14 @@ InstallDir "C:\CDSS"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+!define MUI_ICON "..\..\externals\CDSS\graphics\watermark.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\State of Colorado\CDSS\$(^Name)"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULT_FOLDER CDSS
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_UNICON "..\..\externals\CDSS\graphics\watermark.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
