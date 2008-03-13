@@ -5,7 +5,7 @@
     
     <target name="local-install-CDSS" description="CDSS local install" depends="-init-CDSS,local-install"/>
     
-    <target name="local-install-rivertrack" description="rivertrack local install" depends="-init-rivertrack,local-install"/>
+    <target name="local-install-rti" description="rti local install" depends="-init-rti,local-install"/>
     
     <target name="nsis-CDSS" depends="-init,-clean-logs"  description="CDSS nsis installer">
         <nsisinstaller dir="installer/CDSS" nsi="TSTool.nsi"/>
@@ -13,11 +13,11 @@
     
     <target name="installer-CDSS" description="CDSS nsis installer" depends="local-install-CDSS,nsis-CDSS"/>
     
-    <target name="nsis-rivertrack" depends="-init,-clean-logs" description="rivertrack nsis installer">
+    <target name="nsis-rti" depends="-init,-clean-logs" description="rti nsis installer">
         <nsisinstaller nsi="rivertrack/TSTool.nsi"/>
     </target>
     
-    <target name="installer-rivertrack" description="rivertrack nsis installer" depends="local-install-rivertrack,nsis-rivertrack"/>
+    <target name="installer-rti" description="rti nsis installer" depends="local-install-rti,nsis-rti"/>
     
     <target name="-clean-logs" description="clean log directories before installer">
         <delete dir="${install.dir}/logs" includes="*"/>
@@ -46,9 +46,9 @@
         <property name="tstool.icon" value="../externals/CDSS/graphics/waterMark.ico"/>
     </target>
     
-    <target name="-init-rivertrack" depends="-init">
+    <target name="-init-rti" depends="-init">
         <property name="installer.rti" value="true"/>
-        <property name="install.dir" value="${dist.dir}/install-rivertrack"/>
+        <property name="install.dir" value="${dist.dir}/install-rti"/>
         <property name="license.file" value="test/operational/RTi/system/TSTool.cfg"/>
         <property name="tstool.icon" value="../externals/Rivertrak/graphics/RTi.ico"/>
     </target>
