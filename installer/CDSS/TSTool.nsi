@@ -27,10 +27,14 @@ Name "${DISPLAYNAME}"
 !define REGKEY "Software\State of Colorado\CDSS\${NAMEVERSION}"
 !define COMPANY RTi
 !define URL http://www.riverside.com
-!define EXTERNALS_DIR "..\..\externals"
+!define EXTERNALS_DIR "externals"
 !define JRE_VERSION "142"
 !define INSTALL_IS_CDSS "true"
-!define INST_BUILD_DIR "..\..\dist\install-CDSS\"
+!define INST_BUILD_DIR "dist\install-CDSS"
+# uncomment to skip some sections to allow installer compilation to run faster
+#!define TEST "true"
+# change working directory to product root to make paths more sane!
+!cd "..\..\"
 
 SetCompressor lzma
 BrandingText "Riverside Technology, inc."
@@ -52,19 +56,19 @@ Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
-OutFile "..\..\dist\TSTool_CDSS_${VERSION}_Setup.exe"
+OutFile "dist\TSTool_CDSS_${VERSION}_Setup.exe"
 InstallDir "C:\CDSS\${NAMEVERSION}"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
-!define MUI_ICON "..\..\externals\CDSS\graphics\watermark.ico"
+!define MUI_ICON "externals\CDSS\graphics\watermark.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULT_FOLDER CDSS
-!define MUI_UNICON "..\..\externals\CDSS\graphics\watermark.ico"
+!define MUI_UNICON "externals\CDSS\graphics\watermark.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
@@ -81,7 +85,7 @@ MiscButtonText "Back" "Next" "Cancel" "Done"
 
 ### Pages ###
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "License.txt"
+!insertmacro MUI_PAGE_LICENSE "installer\CDSS\License.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
@@ -93,15 +97,19 @@ Page custom SetCustom
 # Installer language
 !insertmacro MUI_LANGUAGE English
 
-ReserveFile "..\..\externals\CDSS\installer\server_name.ini"
+ReserveFile "externals\CDSS\installer\server_name.ini"
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 
-!include ..\..\externals\NSIS_Common\PathManipulation.nsh
-!include ..\..\externals\NSIS_Common\RegisterExtension.nsh
-!include ..\..\externals\NSIS_Common\Util.nsh
-!include ..\..\externals\CDSS\installer\BaseComponents.nsh
-!include ..\..\externals\CDSS\installer\server_name.nsh
-!include ..\..\externals\NSIS_Common\JRE.nsh
+!addincludedir ..\rtibuild\externals\NSIS_Common
+!include PathManipulation.nsh
+!include RegisterExtension.nsh
+!include Util.nsh
+!ifndef TEST
+    !include JRE.nsh
+!endif
+!addincludedir externals\CDSS\installer
+!include BaseComponents.nsh
+!include server_name.nsh
 
 
 ##################################################################
@@ -166,8 +174,10 @@ Section "TSTool" TSTool
     SetOverwrite ifnewer
     SetOutPath $INSTDIR
 
-    File /r "${INST_BUILD_DIR}\bin"
-    File /r "${INST_BUILD_DIR}\system"
+    !ifndef TEST
+        File /r "${INST_BUILD_DIR}\bin"
+        File /r "${INST_BUILD_DIR}\system"
+    !endif
     
     #### Comment out later if README file needs to be installed
     # add README
@@ -180,9 +190,6 @@ Section "TSTool" TSTool
    
     #copy config and replace home tokens
     SetOutPath $INSTDIR\bin
-    File TSTool.ini
-    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.ini" \
-    "$INSTDIR\bin\TSTool.ini" "@HOME@" "$INSTDIR" "" $0
     
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
@@ -221,10 +228,10 @@ Section "Documentation" Docs
     strcpy $choseDocs "1"
     
     # copy documentation
-    SetOutPath $INSTDIR\doc\TSTool\UserManual
+    SetOutPath $INSTDIR\doc
     SetOverwrite on
     
-    File ..\..\doc\UserManual\dist_CDSS\TSTool.pdf
+    File /r "${INST_BUILD_DIR}\doc"
 
 SectionEnd
 
@@ -410,7 +417,7 @@ Function .onInit
     
     
     InitPluginsDir
-    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "..\..\externals\CDSS\installer\server_name.ini" "server_name.ini"
+    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "externals\CDSS\installer\server_name.ini" "server_name.ini"
     
     # check user privileges and abort if not admin
     ClearErrors
