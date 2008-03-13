@@ -19,11 +19,12 @@
 #
 ##############################################################
 
-Name "TSTool"
 # Define Vars
 !define DISPLAYNAME "TSTool"
-!define REGKEY "Software\State of Colorado\CDSS\$(^Name)"
+Name "${DISPLAYNAME}"
 !define VERSION 7.00.00
+!define NAMEVERSION $(^Name)-${VERSION}
+!define REGKEY "Software\State of Colorado\CDSS\${NAMEVERSION}"
 !define COMPANY RTi
 !define URL http://www.riverside.com
 !define EXTERNALS_DIR "..\..\externals"
@@ -33,7 +34,6 @@ Name "TSTool"
 
 SetCompressor lzma
 BrandingText "Riverside Technology, inc."
-Name "${DISPLAYNAME}"
 
 # Included files
 !include "UMUI.nsh"
@@ -53,7 +53,7 @@ Var choseJRE
 
 # Installer attributes
 OutFile "..\..\dist\TSTool_CDSS_${VERSION}_Setup.exe"
-InstallDir "C:\CDSS"
+InstallDir "C:\CDSS\${NAMEVERSION}"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
@@ -61,7 +61,7 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\State of Colorado\CDSS\$(^Name)"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "${REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULT_FOLDER CDSS
 !define MUI_UNICON "..\..\externals\CDSS\graphics\watermark.ico"
@@ -189,15 +189,15 @@ Section "TSTool" TSTool
     WriteRegStr HKLM "${REGKEY}" StartMenuGroup $StartMenuGroup
     SetOverwrite off
     #CreateDirectory "$INSTDIR\Uninstall"
-    WriteUninstaller $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+    WriteUninstaller $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayName "${NAMEVERSION}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayVersion "${VERSION}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" Publisher "${COMPANY}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" URLInfoAbout "${URL}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayIcon $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" UninstallString $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" NoModify 1
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" NoRepair 1
 
     ${registerExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Commands File"
    
@@ -248,11 +248,11 @@ Section "Start Menu" StartMenu
     # Shortcut added for launch of java program
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk" "$INSTDIR\bin\TSTool.exe"
     
     # Shortcut for uninstall of program
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk" $INSTDIR\Uninstall_TSTool.exe
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk" $INSTDIR\Uninstall_${NAMEVERSION}.exe
     
     skipMenu:
     
@@ -262,7 +262,7 @@ Section "Start Menu" StartMenu
       
     # Shortcut for TSTool documentation
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\$(^Name).lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
       
     !insertmacro MUI_STARTMENU_WRITE_END  
       
@@ -287,7 +287,7 @@ Section /o "Desktop Shortcut" DesktopShortcut
    
     # Installs shortcut on desktop
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"
+    CreateShortCut "$DESKTOP\${NAMEVERSION}.lnk" "$INSTDIR\bin\TSTool.exe"
 
     skipShortcut:
 
@@ -313,15 +313,15 @@ Section "Uninstall"
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
 
     # delete registry and StartMenu stuff
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\$(^Name).lnk"
+    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
-    Delete /REBOOTOK "$INSTDIR\$(^Name).lnk"
-    Delete /REBOOTOK "$DESKTOP\$(^Name).lnk"
-    Delete /REBOOTOK $INSTDIR\Uninstall_$(^Name).exe
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK "$INSTDIR\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK "$DESKTOP\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK $INSTDIR\Uninstall_${NAMEVERSION}.exe
     DeleteRegValue HKLM "${REGKEY}" StartMenuGroup
     DeleteRegValue HKLM "${REGKEY}" Path
     DeleteRegKey /IfEmpty HKLM "${REGKEY}\Components"
@@ -388,7 +388,6 @@ Function .onInstSuccess
     MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
     true:
       Exec '"$INSTDIR\bin\TSTool.exe"'
-      #Exec '"$INSTDIR\jre_142\bin\javaw.exe" -Xmx256m -cp $\"HydroBaseDMI_142.jar;mssqlall.jar;RTi_Common_142.jar;NWSRFS_DMI_142.jar;RiversideDB_DMI_142.jar;StateMod_142.jar;StateCU_142.jar;TSTool_142.jar;Blowfish_142.jar;SatmonSysDMI_142.jar$\" DWR.DMI.tstool.tstool -home ..\'
       Goto next
     false:
       DetailPrint "User chose to not start application"
