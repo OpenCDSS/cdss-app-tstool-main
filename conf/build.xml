@@ -68,6 +68,7 @@
     <!-- the following two targets copy additional resources to local install dirs -->
     <target name="-install-local-cdss" if="installer.cdss">
         <!--<copy todir="${install.dir}/bin" file="externals/CDSS/installer/TSTool.exe"/>-->
+        <copy todir="${install.dir}/doc" file="doc/UserManual/dist_CDSS/TSTool.pdf"/>
         <copy todir="${install.dir}/system">
             <fileset dir="externals/CDSS/system" includes="*"/>
         </copy>
