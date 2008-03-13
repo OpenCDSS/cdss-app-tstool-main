@@ -19,14 +19,25 @@
 #
 ##############################################################
 
-Name "TSTool"
 # Define Vars
-!define REGKEY "Software\RTi\$(^Name)"
+!define DISPLAYNAME "TSTool"
+Name "${DISPLAYNAME}"
 !define VERSION 7.00.00
+!define NAMEVERSION $(^Name)-${VERSION}
+!define REGKEY "Software\RTi\${NAMEVERSION}"
 !define COMPANY RTi
 !define URL http://www.riverside.com
-!define EXTERNALS_DIR "..\..\externals"
-!define INST_BUILD_DIR "..\..\dist\install-rivertrack\"
+!define EXTERNALS_DIR "externals"
+!define JRE_VERSION "142"
+!define INSTALL_IS_CDSS "false"
+!define INST_BUILD_DIR "dist\install-rti"
+# uncomment to skip some sections to allow installer compilation to run faster
+#!define TEST "true"
+# change working directory to product root to make paths more sane!
+!cd "..\..\"
+
+SetCompressor lzma
+BrandingText "Riverside Technology, inc."
 
 # Included files
 !include "UMUI.nsh"
@@ -42,19 +53,19 @@ Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
-OutFile "..\..\dist\TSTool_CDSS_${VERSION}_Setup.exe"
-InstallDir "C:\Program Files\RTi\RiverTrak"
+OutFile "dist\TSTool_CDSS_${VERSION}_Setup.exe"
+InstallDir "C:\Program Files\RTi"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+!define MUI_ICON "externals\Rivertrak\graphics\RTi.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\RTi\$(^Name)"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "${REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULT_FOLDER RTi
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_UNICON "externals\Rivertrak\graphics\RTi.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
@@ -71,7 +82,7 @@ MiscButtonText "Back" "Next" "Cancel" "Done"
 
 ### Pages ###
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "License.txt"
+!insertmacro MUI_PAGE_LICENSE "installer\Rivertrack\License.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
@@ -83,14 +94,20 @@ MiscButtonText "Back" "Next" "Cancel" "Done"
 # Installer language
 !insertmacro MUI_LANGUAGE English
 
-ReserveFile "..\..\externals\Rivertrak\installer\server_name.ini"
+ReserveFile "externals\Rivertrak\installer\server_name.ini"
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 
-!include ..\..\externals\NSIS_Common\PathManipulation.nsh
-!include ..\..\externals\NSIS_Common\Util.nsh
-!include ..\..\externals\Rivertrak\installer\BaseComponents.nsh
-!include ..\..\externals\Rivertrak\installer\server_name.nsh
-!include ..\..\externals\NSIS_Common\JRE.nsh
+!addincludedir ..\rtibuild\externals\NSIS_Common
+!include PathManipulation.nsh
+!include RegisterExtension.nsh
+!include Util.nsh
+!ifndef TEST
+    !include JRE.nsh
+!endif
+!addincludedir externals\Rivertrak\installer
+# @todo - revisit whether BaseComponents needed
+#!include BaseComponents.nsh
+!include server_name.nsh
 
 
 ##################################################################
@@ -155,39 +172,31 @@ Section "TSTool" TSTool
     SetOverwrite ifnewer
     SetOutPath $INSTDIR
 
-    File /r "${INST_BUILD_DIR}\bin"
-    File /r "${INST_BUILD_DIR}\system"
-
-    #### Comment out later if README file needs to be installed
-    # add README
-    #SetOutPath $INSTDIR
-    #File ..\..\conf\TSTool_README.txt
+    !ifndef TEST
+        File /r "${INST_BUILD_DIR}\bin"
+        File /r "${INST_BUILD_DIR}\system"
+    !endif
     
     # Insert the -home Directory into the .bat file
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET JREHOMED=%HOMED%\jre_142" "SET JREHOMED=..\..\jre_142" "" $0
 
-    #copy config and replace home tokens
-    SetOutPath $INSTDIR\bin
-    File TSTool.ini
-    ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.ini" \
-    "$INSTDIR\bin\TSTool.ini" "@HOME@" "$INSTDIR" "" $0    
-
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     WriteRegStr HKLM "${REGKEY}" StartMenuGroup $StartMenuGroup
     SetOverwrite off
-    #CreateDirectory "$INSTDIR\Uninstall"
-    WriteUninstaller $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "Rivertrack $(^Name)"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\Uninstall_$(^Name).exe
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+    WriteUninstaller $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayName "${NAMEVERSION}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayVersion "${VERSION}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" Publisher "${COMPANY}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" URLInfoAbout "${URL}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayIcon $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" UninstallString $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" NoModify 1
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" NoRepair 1
+
+    ${registerExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Commands File"
    
 SectionEnd
 
@@ -209,7 +218,7 @@ Section "Documentation" Docs
     strcpy $choseDocs "1"
     
     # copy documentation
-    SetOutPath $INSTDIR\doc\TSTool
+    SetOutPath $INSTDIR\doc
     SetOverwrite on
 
     # @Todo Where are the docs?
@@ -237,11 +246,11 @@ Section "Start Menu" StartMenu
     # Shortcut added for launch of java program
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" "$INSTDIR\bin\$(^Name).exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk" "$INSTDIR\bin\$(^Name).exe"
     
     # Shortcut for uninstall of program
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk" $INSTDIR\Uninstall_$(^Name).exe
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk" $INSTDIR\Uninstall_${NAMEVERSION}.exe
     
     skipMenu:
     
@@ -251,7 +260,7 @@ Section "Start Menu" StartMenu
       
     # Shortcut for TSTool documentation
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\$(^Name).lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
       
     !insertmacro MUI_STARTMENU_WRITE_END  
       
@@ -276,7 +285,7 @@ Section /o "Desktop Shortcut" DesktopShortcut
    
     # Installs shortcut on desktop
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$DESKTOP\TSTool.lnk" "$INSTDIR\bin\TSTool.exe"
+    CreateShortCut "$DESKTOP\${NAMEVERSION}.lnk" "$INSTDIR\bin\TSTool.exe"
 
     skipShortcut:
 
@@ -296,15 +305,15 @@ Section "Uninstall"
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
 
     # delete registry and StartMenu stuff
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\$(^Name).lnk"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\$(^Name).lnk"
+    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
-    Delete /REBOOTOK "$INSTDIR\$(^Name).lnk"
-    Delete /REBOOTOK "$DESKTOP\$(^Name).lnk"
-    Delete /REBOOTOK $INSTDIR\Uninstall_$(^Name).exe
+    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK "$INSTDIR\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK "$DESKTOP\${NAMEVERSION}.lnk"
+    Delete /REBOOTOK $INSTDIR\Uninstall_${NAMEVERSION}.exe
     DeleteRegValue HKLM "${REGKEY}" StartMenuGroup
     DeleteRegValue HKLM "${REGKEY}" Path
     DeleteRegKey /IfEmpty HKLM "${REGKEY}\Components"
@@ -388,7 +397,7 @@ Function .onInit
     
     
     InitPluginsDir
-    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "..\..\externals\Rivertrak\installer\server_name.ini" "server_name.ini"
+    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "externals\Rivertrak\installer\server_name.ini" "server_name.ini"
     
     # check user privileges and abort if not admin
     ClearErrors
