@@ -179,23 +179,14 @@ Section "TSTool" TSTool
         File /r "${INST_BUILD_DIR}\system"
     !endif
     
-    #### Comment out later if README file needs to be installed
-    # add README
-    #SetOutPath $INSTDIR
-    #File ..\..\conf\TSTool_README.txt
-    
     # Insert the -home Directory into the .bat file
     # according to the user's install location
     ${textreplace::ReplaceInFile} "$INSTDIR\bin\TSTool.bat" "$INSTDIR\bin\TSTool.bat" "SET HOMED=\CDSS" "SET HOMED=$INSTDIR" "" $0
-   
-    #copy config and replace home tokens
-    SetOutPath $INSTDIR\bin
     
     # Write some registry keys for TSTool
     WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
     WriteRegStr HKLM "${REGKEY}" StartMenuGroup $StartMenuGroup
     SetOverwrite off
-    #CreateDirectory "$INSTDIR\Uninstall"
     WriteUninstaller $INSTDIR\Uninstall_${NAMEVERSION}.exe
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayName "${NAMEVERSION}"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" DisplayVersion "${VERSION}"
