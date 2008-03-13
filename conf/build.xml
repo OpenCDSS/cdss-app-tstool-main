@@ -27,10 +27,9 @@
     <target name="-install-local" depends="-install-local-cdss,-install-local-rti,-exe">
         <copy todir="${install.dir}/bin" file="externals/shellcon/shellcon.exe"/>
         <copy todir="${install.dir}/bin" file="scripts/TSTool.bat"/>
-        <copy todir="${install.dir}/bin" file="installer/common/TSTool.ini"/>
+        <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
         <!-- this gives an absolute path -->
         <property name="install.home" location="${install.dir}"/>
-        <replace file="${install.dir}/bin/TSTool.ini" token="@HOME@" value="${install.home}"/>
     	<mkdir dir="${install.dir}/logs"/>
     </target>
     
