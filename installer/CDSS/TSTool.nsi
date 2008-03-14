@@ -222,7 +222,7 @@ Section "Documentation" Docs
     SetOutPath $INSTDIR\doc
     SetOverwrite on
     
-    File /r "${INST_BUILD_DIR}\doc"
+    File /r "${INST_BUILD_DIR}\doc\"
 
 SectionEnd
 
