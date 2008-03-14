@@ -11,13 +11,16 @@
         <nsisinstaller dir="installer/CDSS" nsi="TSTool.nsi"/>
     </target>
     
-    <target name="installer-CDSS" description="CDSS nsis installer" depends="local-install-CDSS,nsis-CDSS"/>
+    <target name="clean-install-CDSS" description="Remove local install CDSS" depends="-init-CDSS,clean-install"/>
+    <target name="clean-install-rti" description="Remove local install rti" depends="-init-rti,clean-install"/>
+    
+    <target name="installer-CDSS" description="CDSS nsis installer" depends="clean-install-CDSS,local-install-CDSS,nsis-CDSS"/>
     
     <target name="nsis-rti" depends="-init,-clean-logs" description="rti nsis installer">
         <nsisinstaller nsi="rivertrack/TSTool.nsi"/>
     </target>
     
-    <target name="installer-rti" description="rti nsis installer" depends="local-install-rti,nsis-rti"/>
+    <target name="installer-rti" description="rti nsis installer" depends="clean-install-rti,local-install-rti,nsis-rti"/>
     
     <target name="-clean-logs" description="clean log directories before installer">
         <delete dir="${install.dir}/logs" includes="*"/>
