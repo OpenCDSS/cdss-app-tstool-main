@@ -510,7 +510,7 @@ private AnnotatedCommandJList __commands_AnnotatedCommandJList;
 Commands JList, to support interaction such as selecting and popup menus.
 This is a reference to the JList managed by AnnotatedList.
 */
-private JList __commands_JList;
+//private JList __commands_JList;
 
 /**
 List model that maps the TSCommandProcessor Command data to the command JList.
@@ -3102,7 +3102,7 @@ private Vector commandList_GetCommands ( boolean get_all )
 		return new Vector();
 	}
 
-	int [] selected = __commands_JList.getSelectedIndices();
+	int [] selected = ui_GetCommandJList().getSelectedIndices();
 	int selected_size = 0;
 	if ( selected != null ) {
 		selected_size = selected.length;
@@ -3179,7 +3179,7 @@ If commands are selected, the insert position is the index of the first selectio
 */
 private int commandList_GetInsertPosition ()
 {
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
 	int selectedSize = selectedIndices.length;
 
 	int insert_pos = 0;
@@ -3228,7 +3228,7 @@ Insert a command at the indicated position.
 private void commandList_InsertCommandAt ( Command command, int pos )
 {
 	__ts_processor.insertCommandAt( command, pos );
-	__commands_JList.ensureIndexIsVisible ( pos );
+	ui_GetCommandJList().ensureIndexIsVisible ( pos );
 	// Since an insert, mark the commands list as dirty...
 	//commandList_SetDirty(true);
 	ui_UpdateStatus ( false );
@@ -3252,7 +3252,7 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 {	String routine = getClass().getName() + ".insertCommand";
 
 	// Get the selected indices from the commands...
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
 	int selectedSize = selectedIndices.length;
 
 	int insert_pos = 0;
@@ -3270,7 +3270,7 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 	// Make sure that the list scrolls to the position that has been
 	// updated...
 	if ( insert_pos >= 0 ) {
-		__commands_JList.ensureIndexIsVisible ( insert_pos );
+	    ui_GetCommandJList().ensureIndexIsVisible ( insert_pos );
 	}
 	// Since an insert, mark the commands list as dirty...
 	//commandList_SetDirty(true);
@@ -3285,7 +3285,7 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 {	String routine = getClass().getName() + ".commandList_InsertCommentsBasedOnUI";
 
 	// Get the selected indices from the commands...
-	int selectedIndices[] = __commands_JList.getSelectedIndices();
+	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
 	int selectedSize = selectedIndices.length;
 	
 	int size = new_comments.size();
@@ -3311,7 +3311,7 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 	// Make sure that the list scrolls to the position that has been
 	// updated...
 	if ( insert_pos >= 0 ) {
-		__commands_JList.ensureIndexIsVisible ( insert_pos );
+	    ui_GetCommandJList().ensureIndexIsVisible ( insert_pos );
 	}
 	// Since an insert, mark the commands list as dirty...
 	//commandList_SetDirty(true);
@@ -3491,7 +3491,7 @@ with Paste.
 */
 private void commandList_RemoveCommandsBasedOnUI ()
 {	int size = 0;
-	int [] selected_indices = __commands_JList.getSelectedIndices();
+	int [] selected_indices = ui_GetCommandJList().getSelectedIndices();
 	if ( selected_indices != null ) {
 		size = selected_indices.length;
 	}
@@ -3618,10 +3618,10 @@ Select the command and optionally position the view at the command.
 This may be undesirable if selecting many items.
 */
 private void commandList_SelectCommand ( int iline, boolean ensure_visible )
-{	__commands_JList.setSelectedIndex ( iline );
+{	ui_GetCommandJList().setSelectedIndex ( iline );
 	if ( ensure_visible ) {
 		// Position the list to make the selected item visible...
-		__commands_JList.ensureIndexIsVisible(iline);
+	    ui_GetCommandJList().ensureIndexIsVisible(iline);
 	}
 	ui_UpdateStatus ( false);
 }
@@ -5024,11 +5024,13 @@ public void goToMessageTag ( String tag )
 			// Get the command number from the second token...
 			command_line = StringUtil.getToken(tag,",",0,1);
 		}
-		else {	// Get the command number from the first token...
+		else {
+		    // Get the command number from the first token...
 			command_line = StringUtil.getToken(tag,",",0,0);
 		}
 	}
-	else {	// Get the command number from the only tag...
+	else {
+	    // Get the command number from the only tag...
 		if ( StringUtil.isInteger(tag) ) {
 			command_line = tag;
 		}
@@ -5037,7 +5039,7 @@ public void goToMessageTag ( String tag )
 		int iline = StringUtil.atoi(command_line) - 1;
 		if ( (iline >= 0) && (iline < __commands_JListModel.size()) ) {
 			// Clear previous selections...
-			__commands_JList.clearSelection();
+		    ui_GetCommandJList().clearSelection();
 			// Select the current tag...
 			commandList_SelectCommand ( iline, true );
 		}
@@ -5189,14 +5191,14 @@ public void keyReleased ( KeyEvent event )
 {	int code = event.getKeyCode();
 
 	if ( code == KeyEvent.VK_ENTER ) {
-		if ( event.getSource() == __commands_JList ) {
+		if ( event.getSource() == ui_GetCommandJList() ) {
 			// Same as the Edit...Command event...
 			uiAction_EditCommand ();
 		}
 	}
 	else if ( code == KeyEvent.VK_DELETE ) {
 		// Clear a command...
-		if ( event.getSource() == __commands_JList ) {
+		if ( event.getSource() == ui_GetCommandJList() ) {
 			commandList_RemoveCommandsBasedOnUI();
 		}
 	}
@@ -5256,7 +5258,7 @@ Handle mouse clicked event.
 */
 public void mouseClicked ( MouseEvent event )
 {	Object source = event.getSource();
-	if ( source == __commands_JList ) {
+	if ( source == ui_GetCommandJList() ) {
 		if ( event.getClickCount() == 2 ) {
 			// Edit the first selected item, unless a comment, in which case all are edited...
 			uiAction_EditCommand ();
@@ -5285,7 +5287,7 @@ public void mousePressed ( MouseEvent event )
 {	int mods = event.getModifiers();
 	Component c = event.getComponent();
     // Popup for commands...
-	if ( (c == __commands_JList) && (__commands_JListModel.size() > 0) &&
+	if ( (c == ui_GetCommandJList()) && (__commands_JListModel.size() > 0) &&
 		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
 		Point pt = JGUIUtil.computeOptimalPosition ( event.getPoint(), c, __Commands_JPopupMenu );
 		__Commands_JPopupMenu.show ( c, pt.x, pt.y );
@@ -5380,7 +5382,7 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 					boolean use_alias )
 {	// Add after the last selected item or at the end if nothing
 	// is selected.
-	int selected_indices[] = __commands_JList.getSelectedIndices();
+	int selected_indices[] = ui_GetCommandJList().getSelectedIndices();
 	int selected_size = 0;
 	if ( selected_indices != null ) {
 		selected_size = selected_indices.length;
@@ -6080,7 +6082,7 @@ private void ui_CheckGUIState ()
 	int selected_commands_size = 0;
 	if ( __commands_JListModel != null ) {
 		command_list_size = __commands_JListModel.size();
-		selected_commands_size = JGUIUtil.selectedSize (__commands_JList );
+		selected_commands_size = JGUIUtil.selectedSize ( ui_GetCommandJList() );
 	}
 
 	int ts_list_size = 0;
@@ -6749,6 +6751,15 @@ private void ui_CheckRiversideDBFeatures ()
 }
 
 /**
+Return the command list component.  Do it this way because the command component
+may evolve.
+*/
+private JList ui_GetCommandJList()
+{
+    return __commands_AnnotatedCommandJList.getJList();
+}
+
+/**
 Return the directory for the last "File...Open Command File".
 */
 private String ui_GetDir_LastCommandFileOpened()
@@ -7060,23 +7071,23 @@ private void ui_InitGUI ( )
 	__commands_JListModel.addListDataListener ( this );
 
 	__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
-	__commands_JList = __commands_AnnotatedCommandJList.getJList();
+	JList command_JList = __commands_AnnotatedCommandJList.getJList();
 	// Set the font to fixed font so that similar command text lines up, especially for comments...
     // This looks like crap on Linux. Try using Lucida Console on windows and Linux to get some feedback.
     if ( IOUtil.isUNIXMachine() ) {
-        __commands_JList.setFont ( new Font(__COMMANDS_FONT, Font.PLAIN, 12 ) );
+        command_JList.setFont ( new Font(__COMMANDS_FONT, Font.PLAIN, 12 ) );
     }
     else {
         // __commands_JList.setFont ( new Font("Courier", Font.PLAIN, 11 ) );
-        __commands_JList.setFont ( new Font(__COMMANDS_FONT, Font.PLAIN, 12 ) );
+        command_JList.setFont ( new Font(__COMMANDS_FONT, Font.PLAIN, 12 ) );
     }
 	// Handling the ellipsis is dealt with in the annotated list...
 	
 	// Listen for events on the list so the GUI can respond to selections.
 	
-	__commands_JList.addListSelectionListener ( this );
-	__commands_JList.addKeyListener ( this );
-	__commands_JList.addMouseListener ( this );
+	command_JList.addListSelectionListener ( this );
+	command_JList.addKeyListener ( this );
+	command_JList.addMouseListener ( this );
 	
 	JGUIUtil.addComponent(__commands_JPanel, __commands_AnnotatedCommandJList,
 		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
@@ -7289,331 +7300,343 @@ enabled input type but only one is set visible at a time.  Later, as an input
 type is selected, the appropriate input filter is made visible.
 @param y Layout position to add the input filters.
 */
-private void ui_InitGUIInputFilters ( int y )
+private void ui_InitGUIInputFilters ( final int y )
 {	// Define and add specific input filters...
-	String routine = "TSTool_JFrame.initGUIInputFilters";
-	int buffer = 3;
-	Insets insets = new Insets(0,buffer,0,0);
-	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
-		// Add input filters for stations...
-
-		try {	__input_filter_HydroBase_station_JPanel = new
-			HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel(
-			__hbdmi);
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_station_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_station_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" stations." );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for structures - there is one panel for
-		// "total" time series and one for water class time series that
-		// can be filtered by SFUT...
-
-		try {	__input_filter_HydroBase_structure_JPanel = new
-				HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
-				__hbdmi, false );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_structure_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_structure_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" structures." );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		try {	__input_filter_HydroBase_structure_sfut_JPanel = new
-			HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
-				__hbdmi, true );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_structure_sfut_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_structure_sfut_JPanel);
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" structures with SFUT." );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for structure irrig_summary_ts,
-
-		try {	__input_filter_HydroBase_irrigts_JPanel = new
-			HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_irrigts_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_irrigts_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" irrigation summary time series - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for CASS agricultural crop statistics,
-		// only available for newer databases.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_CASSCropStats_JPanel = new
-			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CASSCropStats_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_CASSCropStats_JPanel );
-		}
-		catch ( Exception e ) {
-			// Agricultural_CASS_crop_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" CASS crop statistics - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for CASS agricultural livestock statistics,
-		// only available for newer databases.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_CASSLivestockStats_JPanel = new
-			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CASSLivestockStats_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-			__input_filter_HydroBase_CASSLivestockStats_JPanel );
-		}
-		catch ( Exception e ) {
-			// Agricultural_CASS_livestock_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" CASS livestock statistics - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for CU population data, only available for
-		// newer databases.  For now, just catch an exception when not
-		// supported.
-
-		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
-			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_CUPopulation_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-			__input_filter_HydroBase_CUPopulation_JPanel );
-		}
-		catch ( Exception e ) {
-			// CUPopulation probably not in HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" CU population data - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for NASS agricultural statistics, only
-		// available for newer databases.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_NASS_JPanel = new
-			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_NASS_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_NASS_JPanel );
-		}
-		catch ( Exception e ) {
-			// Agricultural_NASS_crop_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" agricultural_NASS_crop_stats - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		// Add input filters for WIS.  For now, just catch an
-		// exception when not supported.
-
-		try {	__input_filter_HydroBase_WIS_JPanel = new
-			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel
-				( __hbdmi );
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_WIS_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_HydroBase_WIS_JPanel );
-		}
-		catch ( Exception e ) {
-			// WIS tables probably not in HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" WIS - data tables not in database?" );
-			Message.printWarning ( 2, routine, e );
-		}
-
-		try {	
-			__input_filter_HydroBase_wells_JPanel =
-				new HydroBase_GUI_GroundWater_InputFilter_JPanel
-				(__hbdmi, null, true);
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_HydroBase_wells_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST);
-			__input_filter_JPanel_Vector.addElement(
-				__input_filter_HydroBase_wells_JPanel);
-		}
-		catch ( Exception e ) {
-			// Agricultural_NASS_crop_stats probably not in
-			// HydroBase...
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for HydroBase" +
-			" agricultural_NASS_crop_stats - old database?" );
-			Message.printWarning ( 2, routine, e );
-		}		
-	}
-
-	PropList filter_props = new PropList ( "InputFilter" );
-	Vector input_filters = null;
-	InputFilter filter = null;
-
-	if ( __source_MexicoCSMN_enabled ) {
-		// Add input filters using text fields...
-		// Later may put this code in the MexicoCSMN package since it
-		// may be used by other interfaces...
-		input_filters = new Vector(2);
-		Vector statenum_Vector = new Vector (32);
-		statenum_Vector.addElement ( "01 - Aguascalientes" );
-		statenum_Vector.addElement ( "02 - Baja California" );
-		statenum_Vector.addElement ( "03 - Baja California Sur" );
-		statenum_Vector.addElement ( "04 - Campeche" );
-		statenum_Vector.addElement ( "05 - Coahuila" );
-		statenum_Vector.addElement ( "06 - Colima" );
-		statenum_Vector.addElement ( "07 - Chiapas" );
-		statenum_Vector.addElement ( "08 - Chihuahua" );
-		statenum_Vector.addElement ( "09 - Distrito Federal" );
-		statenum_Vector.addElement ( "10 - Durango" );
-		statenum_Vector.addElement ( "11 - Guanajuato" );
-		statenum_Vector.addElement ( "12 - Guerrero" );
-		statenum_Vector.addElement ( "13 - Hidalgo" );
-		statenum_Vector.addElement ( "14 - Jalisco" );
-		statenum_Vector.addElement ( "15 - Mexico" );
-		statenum_Vector.addElement ( "16 - Michoacan" );
-		statenum_Vector.addElement ( "17 - Morelos" );
-		statenum_Vector.addElement ( "18 - Nayarit" );
-		statenum_Vector.addElement ( "19 - Nuevo Leon" );
-		statenum_Vector.addElement ( "20 - Oaxaca" );
-		statenum_Vector.addElement ( "21 - Puebla" );
-		statenum_Vector.addElement ( "22 - Queretaro" );
-		statenum_Vector.addElement ( "23 - Quintana Roo" );
-		statenum_Vector.addElement ( "24 - San Luis Potosi" );
-		statenum_Vector.addElement ( "25 - Sinaloa" );
-		statenum_Vector.addElement ( "26 - Sonora" );
-		statenum_Vector.addElement ( "27 - Tabasco" );
-		statenum_Vector.addElement ( "28 - Tamaulipas" );
-		statenum_Vector.addElement ( "29 - Tlaxcala" );
-		statenum_Vector.addElement ( "30 - Veracruz" );
-		statenum_Vector.addElement ( "31 - Yucatan" );
-		statenum_Vector.addElement ( "32 - Zacatecas" );
-		input_filters.addElement ( new InputFilter (
-			"", "",
-			StringUtil.TYPE_STRING,
-			null, null, true ) );	// Blank to disable filter
-		input_filters.addElement ( new InputFilter (
-			"Station Name", "Station Name",
-			StringUtil.TYPE_STRING,
-			null, null, true ) );
-		filter = new InputFilter (
-			"State Number", "Station Number",
-			StringUtil.TYPE_INTEGER,
-			statenum_Vector, statenum_Vector, true );
-		filter.setTokenInfo("-",0);
-		input_filters.addElement ( filter );
-		filter_props.set ( "NumFilterGroups=2" );
-        	JGUIUtil.addComponent(__query_input_JPanel,
-			__input_filter_MexicoCSMN_JPanel =
-			new InputFilter_JPanel ( input_filters, filter_props ), 
-			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.EAST );
-		__input_filter_MexicoCSMN_JPanel.setToolTipText (
-			"<HTML>Mexico CSMN queries can be filtered" +
-			"<BR>based on station data.</HTML>" );
-		__input_filter_JPanel_Vector.addElement (
-			__input_filter_MexicoCSMN_JPanel );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		// Add input filters for structure irrig_summary_ts,
-
-		try {	__input_filter_NWSRFS_FS5Files_JPanel = new
-			NWSRFS_TS_InputFilter_JPanel ();
-        		JGUIUtil.addComponent(__query_input_JPanel,
-				__input_filter_NWSRFS_FS5Files_JPanel,
-				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST );
-			__input_filter_JPanel_Vector.addElement (
-				__input_filter_NWSRFS_FS5Files_JPanel );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to initialize input filter for NWSRFS" +
-			" FS5Files.");
-			Message.printWarning ( 2, routine, e );
-		}
-	}
-
-	// Always add a generic input filter JPanel that is shared by input
-	// types that do not have filter capabilities and when database
-	// connections are not set up...
-
-       	JGUIUtil.addComponent(__query_input_JPanel,
-		__input_filter_generic_JPanel = new InputFilter_JPanel (),
-			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.EAST );
-	__input_filter_generic_JPanel.setToolTipText (
-		"<HTML>The selected input type does not support" +
-			"<BR>input filters.</HTML>" );
-	__input_filter_JPanel_Vector.addElement (
-		__input_filter_generic_JPanel );
-	// The appropriate JPanel will be set visible later based on the input
-	// type that is selected.
-
-	// Because a component is added to the original GUI, need to refresh
-	// the GUI layout...
-
-	ui_SetInputFilters();
-	validate();
-	repaint();
+    Runnable r = new Runnable() {
+        public void run() {
+        	String routine = "TSTool_JFrame.initGUIInputFilters";
+        	int buffer = 3;
+        	Insets insets = new Insets(0,buffer,0,0);
+        	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
+        		// Add input filters for stations...
+        
+        		try {
+        		    __input_filter_HydroBase_station_JPanel = new
+        			HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel(	__hbdmi);
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_station_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_station_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" stations." );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for structures - there is one panel for
+        		// "total" time series and one for water class time series that
+        		// can be filtered by SFUT...
+        
+        		try {	__input_filter_HydroBase_structure_JPanel = new
+        				HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
+        				__hbdmi, false );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_structure_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_structure_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" structures." );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		try {	__input_filter_HydroBase_structure_sfut_JPanel = new
+        			HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
+        				__hbdmi, true );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_structure_sfut_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_structure_sfut_JPanel);
+        		}
+        		catch ( Exception e ) {
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" structures with SFUT." );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for structure irrig_summary_ts,
+        
+        		try {	__input_filter_HydroBase_irrigts_JPanel = new
+        			HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel
+        				( __hbdmi );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_irrigts_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_irrigts_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" irrigation summary time series - old database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for CASS agricultural crop statistics,
+        		// only available for newer databases.  For now, just catch an
+        		// exception when not supported.
+        
+        		try {	__input_filter_HydroBase_CASSCropStats_JPanel = new
+        			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel
+        				( __hbdmi );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_CASSCropStats_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_CASSCropStats_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			// Agricultural_CASS_crop_stats probably not in
+        			// HydroBase...
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" CASS crop statistics - old database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for CASS agricultural livestock statistics,
+        		// only available for newer databases.  For now, just catch an
+        		// exception when not supported.
+        
+        		try {	__input_filter_HydroBase_CASSLivestockStats_JPanel = new
+        			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel
+        				( __hbdmi );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_CASSLivestockStats_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        			__input_filter_HydroBase_CASSLivestockStats_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			// Agricultural_CASS_livestock_stats probably not in
+        			// HydroBase...
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" CASS livestock statistics - old database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for CU population data, only available for
+        		// newer databases.  For now, just catch an exception when not
+        		// supported.
+        
+        		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
+        			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_CUPopulation_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        			__input_filter_HydroBase_CUPopulation_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			// CUPopulation probably not in HydroBase...
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" CU population data - old database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for NASS agricultural statistics, only
+        		// available for newer databases.  For now, just catch an
+        		// exception when not supported.
+        
+        		try {	__input_filter_HydroBase_NASS_JPanel = new
+        			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel
+        				( __hbdmi );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_NASS_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_NASS_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			// Agricultural_NASS_crop_stats probably not in
+        			// HydroBase...
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" agricultural_NASS_crop_stats - old database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		// Add input filters for WIS.  For now, just catch an
+        		// exception when not supported.
+        
+        		try {	__input_filter_HydroBase_WIS_JPanel = new
+        			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel
+        				( __hbdmi );
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_WIS_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_HydroBase_WIS_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			// WIS tables probably not in HydroBase...
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" WIS - data tables not in database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}
+        
+        		try {	
+        			__input_filter_HydroBase_wells_JPanel =
+        				new HydroBase_GUI_GroundWater_InputFilter_JPanel
+        				(__hbdmi, null, true);
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_HydroBase_wells_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST);
+        			__input_filter_JPanel_Vector.addElement(
+        				__input_filter_HydroBase_wells_JPanel);
+        		}
+        		catch ( Exception e ) {
+        			// Agricultural_NASS_crop_stats probably not in
+        			// HydroBase...
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for HydroBase" +
+        			" agricultural_NASS_crop_stats - old database?" );
+        			Message.printWarning ( 2, routine, e );
+        		}		
+        	}
+        
+        	PropList filter_props = new PropList ( "InputFilter" );
+        	Vector input_filters = null;
+        	InputFilter filter = null;
+        
+        	if ( __source_MexicoCSMN_enabled ) {
+        		// Add input filters using text fields...
+        		// Later may put this code in the MexicoCSMN package since it
+        		// may be used by other interfaces...
+        		input_filters = new Vector(2);
+        		Vector statenum_Vector = new Vector (32);
+        		statenum_Vector.addElement ( "01 - Aguascalientes" );
+        		statenum_Vector.addElement ( "02 - Baja California" );
+        		statenum_Vector.addElement ( "03 - Baja California Sur" );
+        		statenum_Vector.addElement ( "04 - Campeche" );
+        		statenum_Vector.addElement ( "05 - Coahuila" );
+        		statenum_Vector.addElement ( "06 - Colima" );
+        		statenum_Vector.addElement ( "07 - Chiapas" );
+        		statenum_Vector.addElement ( "08 - Chihuahua" );
+        		statenum_Vector.addElement ( "09 - Distrito Federal" );
+        		statenum_Vector.addElement ( "10 - Durango" );
+        		statenum_Vector.addElement ( "11 - Guanajuato" );
+        		statenum_Vector.addElement ( "12 - Guerrero" );
+        		statenum_Vector.addElement ( "13 - Hidalgo" );
+        		statenum_Vector.addElement ( "14 - Jalisco" );
+        		statenum_Vector.addElement ( "15 - Mexico" );
+        		statenum_Vector.addElement ( "16 - Michoacan" );
+        		statenum_Vector.addElement ( "17 - Morelos" );
+        		statenum_Vector.addElement ( "18 - Nayarit" );
+        		statenum_Vector.addElement ( "19 - Nuevo Leon" );
+        		statenum_Vector.addElement ( "20 - Oaxaca" );
+        		statenum_Vector.addElement ( "21 - Puebla" );
+        		statenum_Vector.addElement ( "22 - Queretaro" );
+        		statenum_Vector.addElement ( "23 - Quintana Roo" );
+        		statenum_Vector.addElement ( "24 - San Luis Potosi" );
+        		statenum_Vector.addElement ( "25 - Sinaloa" );
+        		statenum_Vector.addElement ( "26 - Sonora" );
+        		statenum_Vector.addElement ( "27 - Tabasco" );
+        		statenum_Vector.addElement ( "28 - Tamaulipas" );
+        		statenum_Vector.addElement ( "29 - Tlaxcala" );
+        		statenum_Vector.addElement ( "30 - Veracruz" );
+        		statenum_Vector.addElement ( "31 - Yucatan" );
+        		statenum_Vector.addElement ( "32 - Zacatecas" );
+        		input_filters.addElement ( new InputFilter (
+        			"", "",
+        			StringUtil.TYPE_STRING,
+        			null, null, true ) );	// Blank to disable filter
+        		input_filters.addElement ( new InputFilter (
+        			"Station Name", "Station Name",
+        			StringUtil.TYPE_STRING,
+        			null, null, true ) );
+        		filter = new InputFilter (
+        			"State Number", "Station Number",
+        			StringUtil.TYPE_INTEGER,
+        			statenum_Vector, statenum_Vector, true );
+        		filter.setTokenInfo("-",0);
+        		input_filters.addElement ( filter );
+        		filter_props.set ( "NumFilterGroups=2" );
+                	JGUIUtil.addComponent(__query_input_JPanel,
+        			__input_filter_MexicoCSMN_JPanel =
+        			new InputFilter_JPanel ( input_filters, filter_props ), 
+        			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        			GridBagConstraints.EAST );
+        		__input_filter_MexicoCSMN_JPanel.setToolTipText (
+        			"<HTML>Mexico CSMN queries can be filtered" +
+        			"<BR>based on station data.</HTML>" );
+        		__input_filter_JPanel_Vector.addElement (
+        			__input_filter_MexicoCSMN_JPanel );
+        	}
+        
+        	if ( __source_NWSRFS_FS5Files_enabled ) {
+        		// Add input filters for structure irrig_summary_ts,
+        
+        		try {	__input_filter_NWSRFS_FS5Files_JPanel = new
+        			NWSRFS_TS_InputFilter_JPanel ();
+                		JGUIUtil.addComponent(__query_input_JPanel,
+        				__input_filter_NWSRFS_FS5Files_JPanel,
+        				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        				GridBagConstraints.EAST );
+        			__input_filter_JPanel_Vector.addElement (
+        				__input_filter_NWSRFS_FS5Files_JPanel );
+        		}
+        		catch ( Exception e ) {
+        			Message.printWarning ( 2, routine,
+        			"Unable to initialize input filter for NWSRFS" +
+        			" FS5Files.");
+        			Message.printWarning ( 2, routine, e );
+        		}
+        	}
+        
+        	// Always add a generic input filter JPanel that is shared by input
+        	// types that do not have filter capabilities and when database
+        	// connections are not set up...
+        
+               	JGUIUtil.addComponent(__query_input_JPanel,
+        		__input_filter_generic_JPanel = new InputFilter_JPanel (),
+        			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        			GridBagConstraints.EAST );
+        	__input_filter_generic_JPanel.setToolTipText (
+        		"<HTML>The selected input type does not support" +
+        			"<BR>input filters.</HTML>" );
+        	__input_filter_JPanel_Vector.addElement (
+        		__input_filter_generic_JPanel );
+        	// The appropriate JPanel will be set visible later based on the input
+        	// type that is selected.
+        
+        	// Because a component is added to the original GUI, need to refresh
+        	// the GUI layout...
+        
+        	ui_SetInputFilters();
+        	validate();
+        	repaint();
+        }
+    };
+    if ( SwingUtilities.isEventDispatchThread() )
+    {
+        r.run();
+    }
+    else 
+    {
+        SwingUtilities.invokeLater ( r );
+    }
 }
 
 /**
@@ -9224,7 +9247,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 	
 	// Commands....
 	
-	int selected_indices[] = __commands_JList.getSelectedIndices();
+	int selected_indices[] = ui_GetCommandJList().getSelectedIndices();
 	selected_size = 0;
 	if ( selected_indices != null ) {
 		selected_size = selected_indices.length;
@@ -9794,7 +9817,7 @@ throws Exception
 	}
 	// Popup only...
 	else if (command.equals(__CommandsPopup_FindCommands_String) ) {
-		new FindInJListJDialog(this,__commands_JList,"Find Command(s)");
+		new FindInJListJDialog(this,ui_GetCommandJList(),"Find Command(s)");
 		ui_UpdateStatus ( true );
 	}
 	else if (command.equals(__CommandsPopup_ShowCommandStatus_String) ) {
@@ -10716,8 +10739,8 @@ is created, the original Command is replaced.
 comments.
 */
 private void uiAction_ConvertCommandsToComments ( boolean to_comment )
-{	int selected_indexes[] = __commands_JList.getSelectedIndices();
-	int selected_size = JGUIUtil.selectedSize ( __commands_JList );
+{	int selected_indexes[] = ui_GetCommandJList().getSelectedIndices();
+	int selected_size = JGUIUtil.selectedSize ( ui_GetCommandJList() );
 	String old_command_string = null;
 	Command old_command = null;
 	Command new_command = null;
@@ -10758,7 +10781,7 @@ commands will remain in the list.
 */
 private void uiAction_CopyFromCommandListToCutBuffer ( boolean remove_original )
 {	int size = 0;
-	int [] selected_indices = __commands_JList.getSelectedIndices();
+	int [] selected_indices = ui_GetCommandJList().getSelectedIndices();
 	if ( selected_indices != null ) {
 		size = selected_indices.length;
 	}
@@ -11031,7 +11054,7 @@ Deselect all commands in the commands list.  This occurs in response to a user
 selecting a menu choice.
 */
 private void uiAction_DeselectAllCommands()
-{	__commands_JList.clearSelection();
+{	ui_GetCommandJList().clearSelection();
 	// TODO SAM 2007-08-31 Should add list seletion listener to handle updateStatus call.
 	ui_UpdateStatus ( false );
 }
@@ -11049,7 +11072,7 @@ a block of # delimited comments.
 */
 private void uiAction_EditCommand ()
 {	int selected_size = 0;
-	int [] selected = __commands_JList.getSelectedIndices();
+	int [] selected = ui_GetCommandJList().getSelectedIndices();
 	if ( selected != null ) {
 		selected_size = selected.length;
 	}
@@ -14141,7 +14164,7 @@ private void uiAction_PasteFromCutBufferToCommandList ()
 	int list_size = __commands_JListModel.size();
 
 	// Get the list of selected items...
-	int [] selected_indices = __commands_JList.getSelectedIndices();
+	int [] selected_indices = ui_GetCommandJList().getSelectedIndices();
 	int selectedsize = 0;
 	if ( selected_indices != null ) {
 		selectedsize = selected_indices.length;
@@ -14630,7 +14653,7 @@ Select all commands in the commands list.  This occurs in response to a user
 selecting a menu choice.
 */
 private void uiAction_SelectAllCommands()
-{	JGUIUtil.selectAll(__commands_JList);
+{	JGUIUtil.selectAll(ui_GetCommandJList());
 	ui_UpdateStatus ( true );
 }
 
