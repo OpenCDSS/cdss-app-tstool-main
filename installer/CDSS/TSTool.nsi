@@ -266,7 +266,7 @@ Section "Start Menu" StartMenu
       
     # Shortcut for TSTool documentation
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION} User Manual.lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
       
     !insertmacro MUI_STARTMENU_WRITE_END  
       
