@@ -317,7 +317,7 @@ Section "Uninstall"
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
 
     # delete registry and StartMenu stuff
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}"
+    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}.lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation"
