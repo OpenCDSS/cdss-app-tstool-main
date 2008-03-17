@@ -58,7 +58,7 @@
     
     <target name="-exe" depends="-init-deps" description="create tstool.exe">
         <launch4j-exe exe="TSTool" jreName="142" productIcon="${tstool.icon}" 
-            mainClass="DWR.DMI.tstool.tstool">
+            mainClass="DWR.DMI.tstool.tstool" exeVersion="${tstool.version}">
             <opts>
                 <opt>"-Dtstool.home=%EXEDIR%/.."</opt>
             </opts>
