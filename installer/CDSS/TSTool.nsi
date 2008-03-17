@@ -23,7 +23,7 @@
 !define DISPLAYNAME "TSTool"
 Name "${DISPLAYNAME}"
 !define VERSION 7.00.00
-!define NAMEVERSION $(^Name)-${VERSION}
+!define NAMEVERSION ${DISPLAYNAME}-${VERSION}
 !define REGKEY "Software\State of Colorado\CDSS\${NAMEVERSION}"
 !define COMPANY RTi
 !define URL http://www.riverside.com
@@ -104,9 +104,7 @@ ReserveFile "externals\CDSS\installer\server_name.ini"
 !include PathManipulation.nsh
 !include RegisterExtension.nsh
 !include Util.nsh
-!ifndef TEST
-    !include JRE.nsh
-!endif
+!include JRE.nsh
 !addincludedir externals\CDSS\installer
 !include BaseComponents.nsh
 !include server_name.nsh
@@ -176,8 +174,11 @@ Section "TSTool" TSTool
 
     !ifndef TEST
         File /r "${INST_BUILD_DIR}\bin"
-        File /r "${INST_BUILD_DIR}\system"
+    !else
+        File /r /x *.jar "${INST_BUILD_DIR}\bin"
     !endif
+
+    File /r "${INST_BUILD_DIR}\system"
     
     # Insert the -home Directory into the .bat file
     # according to the user's install location
@@ -222,7 +223,12 @@ Section "Documentation" Docs
     SetOutPath $INSTDIR\doc
     SetOverwrite on
     
-    File /r "${INST_BUILD_DIR}\doc\"
+    !ifndef TEST
+        File /r "${INST_BUILD_DIR}\doc\"
+    !else
+        FileOpen $0 $INSTDIR\doc\blank.txt" w
+        FileClose $0
+    !endif
 
 SectionEnd
 
@@ -326,16 +332,10 @@ Section "Uninstall"
     DeleteRegKey /IfEmpty HKLM "${REGKEY}"
     RmDir /REBOOTOK $SMPROGRAMS\$StartMenuGroup
     RmDir /REBOOTOK $SMPROGRAMS\CDSS
+    DeleteRegValue HKLM "${REGKEY}\Components" Main
     
     # Remove files from install directory
-    Delete /REBOOTOK $INSTDIR\bin\TSTool.bat
-    Delete /REBOOTOK $INSTDIR\bin\TSTool_142.jar
-    RmDir /r /REBOOTOK $INSTDIR\doc\TSTool
-    RmDir /REBOOTOK $INSTDIR\doc
-    Delete /REBOOTOK $INSTDIR\system\TSTool.cfg
-    Delete /REBOOTOK $INSTDIR\TSTool_README.txt
-    Delete /REBOOTOK $INSTDIR\bin\TSTool.exe
-    DeleteRegValue HKLM "${REGKEY}\Components" Main
+    RmDir /r /REBOOTOK $INSTDIR
     
     ${unregisterExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool"
     
