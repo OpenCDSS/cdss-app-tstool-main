@@ -49,7 +49,6 @@ BrandingText "Riverside Technology, inc."
 
 # Global Variables
 Var StartMenuGroup
-Var myInstDir
 Var choseTSTool
 Var choseDocs
 Var choseJRE
@@ -114,7 +113,6 @@ ReserveFile "externals\CDSS\installer\server_name.ini"
 # SECTION: -setInstallVariables
 # 
 # initializes some global variables
-#   myInstDir - users chosen install directory
 #   choseTSTool, choseDocs 
 #             - Used for dependencies in later sections
 #             0 = user chose not to install TSTool,
@@ -128,10 +126,9 @@ ReserveFile "externals\CDSS\installer\server_name.ini"
 ###################################################################
 Section -setInstallVariables
     
-    strcpy $myInstDir "$INSTDIR"
-    strcpy $choseTSTool "0"
-    strcpy $choseDocs "0"
-    strcpy $choseJRE "0"
+    strcpy $choseTSTool "1"
+    strcpy $choseDocs "1"
+    strcpy $choseJRE "1"
     strcpy $StartMenuGroup "CDSS"
     SetShellVarContext all
     
@@ -372,6 +369,8 @@ Function .onInstSuccess
     # if 0 then user didn't choose to install TSTool
     strcmp $choseTSTool "0" 0 +2
       Goto skipThis
+    IfSilent 0 +2
+      Goto skipThis
       
     ### delete these comments to include a readme
     #MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
@@ -389,7 +388,6 @@ Function .onInstSuccess
     false:
       DetailPrint "User chose to not start application"
     next:
-       
                 
     skipThis:
     
