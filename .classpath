@@ -11,7 +11,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/SatmonSysDMI"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/StateMod"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/RTi_Common"/>
-	<classpathentry kind="lib" path="lib/H2/h2.jar"/>
 	<classpathentry kind="lib" path="/rtibuild/lib/junit-3.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/Blowfish/Blowfish_142.jar"/>
 	<classpathentry kind="output" path="bin"/>
