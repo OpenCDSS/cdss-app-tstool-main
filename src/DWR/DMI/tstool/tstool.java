@@ -443,7 +443,7 @@ or run the TSCommandProcessor in batch mode with a command file.
 public class tstool extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.15.00 (2008-03-13)";
+public static final String PROGRAM_VERSION = "8.15.00 beta (2008-04-04)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -764,8 +764,7 @@ throws Exception
     // iws-
     // allow setting of -home via system property "tstool.home". This
     // can be supplied by passing the -Dtstool.home=HOME option to the java vm.
-    // this little block of code copies the passed values into the front of the 
-    // args array.
+    // this little block of code copies the passed values into the front of the args array.
     if (System.getProperty("tstool.home") != null) {
         String[] extArgs = new String[args.length + 2];
         System.arraycopy(args, 0, extArgs, 2, args.length);
@@ -799,14 +798,12 @@ throws Exception
 				String token = StringUtil.getToken(args[i],",",0,0);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
-					Message.setDebugLevel (	Message.TERM_OUTPUT,
-					StringUtil.atoi(token) );
+					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(token) );
 				}
 				token=StringUtil.getToken(args[i],",",0,1);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
-					Message.setDebugLevel (	Message.LOG_OUTPUT,
-					StringUtil.atoi(token) );
+					Message.setDebugLevel (	Message.LOG_OUTPUT, StringUtil.atoi(token) );
 				}
 			}
 			else if ( (i + 1) == args.length ) {	// No comma.  Turn screen and log file debug on
@@ -865,20 +862,16 @@ throws Exception
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if ( (pos = args[i].indexOf("=")) > 0 ) {
-			// A command line argument of the form:
-			// Property=Value
-			// For example, specify a database login for batch
-			// mode.  The properties can be interpreted by the
-			// GUI or other code.
+			// A command line argument of the form:  Property=Value
+			// For example, specify a database login for batch mode.
+		    // The properties can be interpreted by the GUI or other code.
 			String propname = args[i].substring(0,pos);
 			String propval = args[i].substring((pos+1), args[i].length());
 			Prop prop = new Prop ( propname, propval );
-			Message.printStatus ( 1, routine,
-				"Using run-time parameter " + propname + "=\"" + propval + "\"" );
+			Message.printStatus ( 1, routine, "Using run-time parameter " + propname + "=\"" + propval + "\"" );
 			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 			if ( __tstool_props == null ) {
-				// Create a PropList.  This should not normally
-				// happen because a PropList should have been
+				// Create a PropList.  This should not normally happen because a PropList should have been
 				// read when -home was encountered.
 				__tstool_props = new PropList ( "TSTool" );
 			}
@@ -900,8 +893,7 @@ Parse the command-line arguments for the applet, determined from the applet data
 public static void parseArgs ( JApplet a )
 throws Exception
 {	
-    // Convert the applet parameters to an array of strings and call the
-    // other parse method.
+    // Convert the applet parameters to an array of strings and call the other parse method.
 	Vector args = new Vector();
 	if ( a.getParameter("-home") != null ) {
 	    args.addElement ( "-home" );
@@ -961,8 +953,7 @@ public static void quitProgram ( int status )
 }
 
 /**
-Read the configuration file.  This should be done as soon as the application
-home is known.
+Read the configuration file.  This should be done as soon as the application home is known.
 */
 private static void readConfiguration ()
 {	String config_file = __home + File.separator + "system" + File.separator + "TSTool.cfg",
@@ -976,8 +967,7 @@ private static void readConfiguration ()
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
-			"Error reading TSTool configuration file \"" +
-			config_file + "\".  TSTool may not start." );
+			"Error reading TSTool configuration file \"" + config_file + "\".  TSTool may not start." );
 		}
 	}
 }

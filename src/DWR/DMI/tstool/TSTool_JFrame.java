@@ -6893,7 +6893,7 @@ private void ui_InitGUI ( )
 		Message.printWarning ( 2, routine, e );
 	}
 
-	// Need this even if no main GUI...
+	// Need this even if no main GUI (why? secondary windows?)...
 
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 
