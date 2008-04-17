@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/TSTool/src/DWR/DMI/tstool/tstool.java"/>
+<listEntry value="/TSTool/src/cdss/app/tstool/TSTool.java"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -15,7 +15,7 @@
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre_142"/>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="DWR.DMI.tstool.tstool"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="cdss.app.tstool.TSTool"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-home test/operational/CDSS"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TSTool"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx768m"/>
