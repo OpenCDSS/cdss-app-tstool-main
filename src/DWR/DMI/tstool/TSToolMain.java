@@ -438,12 +438,13 @@ import RTi.Util.String.StringUtil;
 
 /**
 Main (application startup) class for TSTool.  This class will start the TSTool GUI
-or run the TSCommandProcessor in batch mode with a command file.
+or run the TSCommandProcessor in batch mode with a command file.  The methods in
+this file are called by the startup TSTool and CDSS versions of TSTool.
 */
-public class tstool extends JApplet
+public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.15.00 beta (2008-04-04)";
+public static final String PROGRAM_VERSION = "8.15.00 beta (2008-04-16)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -454,6 +455,12 @@ private static TSTool_JFrame __tstool_JFrame;
 Home directory for system install.
 */
 private static String __home = null;
+
+/**
+Path to the configuration file.  This cannot be defaulted until the -home command line
+parameter is processed.
+*/
+private static String __configFile = "";
 
 /**
 List of properties to control the software from the configuration file and passed
@@ -480,7 +487,7 @@ private static boolean __show_main_gui = true;
 /**
 Command file being processed when run in batch mode with -commands File.
 */
-private static String __command_file = null;
+private static String __commandFile = null;
 
 /**
 Return the command file that is being processed, or null if not being run in batch mode.
@@ -488,7 +495,19 @@ Return the command file that is being processed, or null if not being run in bat
 */
 private static String getCommandFile ()
 {
-	return __command_file;
+	return __commandFile;
+}
+
+/**
+Return the name of the configuration file for the session.  This file will be determined
+from the -home command line parameter during command line parsing (default) and can be
+specified with -config File on the command line (typically used to test different
+configurations).
+@return the full path to the configuration file.
+*/
+private static String getConfigFile ()
+{
+    return __configFile;
 }
 
 /**
@@ -501,7 +520,8 @@ public static JFrame getJFrame ()
 }
 
 /**
-Return a TSTool property.
+Return a TSTool property.  The properties are defined in the TSTool configuration
+file.
 @param property name of property to look up.
 @return the value for a TSTool configuration property, or null if a properties
 file does not exist.  Return null if the property is not found (or if no
@@ -528,7 +548,7 @@ public static boolean getRunOnLoad ()
 Instantiates the application instance as an applet.
 */
 public void init()
-{	String routine = "TSTool.init";
+{	String routine = "TSToolMain.init";
 	IOUtil.setApplet ( this );
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null );
     try {
@@ -594,7 +614,7 @@ private static void initializeLoggingLevelsBeforeLogOpened ()
 Initialize important data relative to the installation home.
 */
 private static void initializeAfterHomeIsKnown ()
-{	String routine = "tstool.initialize2";
+{	String routine = "TSToolMain.initializeAfterHomeIsKnown";
 
     // Rest some message levels now that the log file should b
 
@@ -615,8 +635,7 @@ private static void initializeAfterHomeIsKnown ()
 }
 
 /**
-Indicate whether TSTool is running in server mode.  This feature is under
-development.
+Indicate whether TSTool is running in server mode.  This feature is under development.
 @return true if running in server mode.
 */
 public static boolean isServer()
@@ -628,7 +647,7 @@ Start the main application instance.
 @param args Command line arguments.
 */
 public static void main ( String args[] )
-{	String routine = "TSTool.main";
+{	String routine = "TSToolMain.main";
 
 	try {
 	// Main try...
@@ -723,7 +742,7 @@ Open the log file.  This should be done as soon as the application home
 directory is known so that remaining information can be captured in the log file.
 */
 private static void openLogFile ()
-{	String routine = "TSTool.openLogFile", __logfile = "";
+{	String routine = "TSToolMain.openLogFile", __logfile = "";
 	String user = IOUtil.getProgramUser();
 
 	if ( IOUtil.isApplet() ) {
@@ -758,13 +777,13 @@ Parse command line arguments.
 */
 public static void parseArgs ( String[] args )
 throws Exception
-{	String routine = "TSTool.parseArgs";
+{	String routine = "TSToolMain.parseArgs";
 	int pos = 0;	// Position in a string.
 
-    // iws-
-    // allow setting of -home via system property "tstool.home". This
+    // Allow setting of -home via system property "tstool.home". This
     // can be supplied by passing the -Dtstool.home=HOME option to the java vm.
-    // this little block of code copies the passed values into the front of the args array.
+    // The following inserts the passed values into the front of the args array to
+	// make sure that the install home can be considered by following parameters.
     if (System.getProperty("tstool.home") != null) {
         String[] extArgs = new String[args.length + 2];
         System.arraycopy(args, 0, extArgs, 2, args.length);
@@ -774,8 +793,8 @@ throws Exception
     }
 
 	for (int i = 0; i < args.length; i++) {
-	    // User specified....
 		if (args[i].equalsIgnoreCase("-commands")) {
+		    // Command file name
 			if ((i + 1)== args.length) {
 				Message.printWarning(1,routine, "No argument provided to '-commands'");
 				throw new Exception("No argument provided to '-commands'");
@@ -783,7 +802,19 @@ throws Exception
 			i++;
 			setupUsingCommandFile ( args[i], true );
 		}
-		// User specified...
+		else if (args[i].equalsIgnoreCase("-config")) {
+		    // Configuration file name
+            if ((i + 1)== args.length) {
+                Message.printWarning(1,routine, "No argument provided to '-config'");
+                throw new Exception("No argument provided to '-config'");
+            }
+            i++;
+            setConfigFile ( IOUtil.verifyPathForOS(IOUtil.getPathUsingWorkingDir(args[i])) );
+            Message.printStatus(1 , routine, "Using configuration file \"" + getConfigFile() + "\"" );
+            // Read the configuration file specified here.  Defaults read immediately after -home was
+            // parsed will be reset if in both files.
+            readConfigFile(getConfigFile());
+	    }
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
 			// Set debug information...
 			if ((i + 1)== args.length) {
@@ -806,8 +837,8 @@ throws Exception
 					Message.setDebugLevel (	Message.LOG_OUTPUT, StringUtil.atoi(token) );
 				}
 			}
-			else if ( (i + 1) == args.length ) {	// No comma.  Turn screen and log file debug on
-				// to the requested level...
+			else if ( (i + 1) == args.length ) {
+			    // No comma.  Turn screen and log file debug on to the requested level...
 				if ( StringUtil.isInteger(args[i]) ) {
 					Message.isDebugOn = true;
 					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(args[i]) );
@@ -815,10 +846,10 @@ throws Exception
 				}
 			}
 		}
-		// Should be specified in batch file or script that runs TSTool, or in properties for
-		// a executable launcher.  Therefore this should be processed before any user command line
-		// parameters and the log file should open up before much else is done.
 		else if (args[i].equalsIgnoreCase("-home")) {
+		    // Should be specified in batch file or script that runs TSTool, or in properties for
+	        // a executable launcher.  Therefore this should be processed before any user command line
+	        // parameters and the log file should open up before much else is done.
 			if ((i + 1)== args.length) {
 				Message.printWarning(1,routine, "No argument provided to '-home'");
 				throw new Exception("No argument provided to '-home'");
@@ -830,14 +861,17 @@ throws Exception
            
 			// Open the log file so that remaining messages will be seen in the log file...
 			openLogFile();
-			// Read the configuration file to get TSTool properties,
-			// so that later command-line parameters can override them...
-			readConfiguration();
 			Message.printStatus ( 1, routine, "Home directory for TSTool is \"" + __home + "\"" );
+			// The default configuration file location is relative to the install home.  This works
+			// as long as the -home argument is first in the command line.
+			setConfigFile ( __home + File.separator + "system" + File.separator + "TSTool.cfg" );
 			// Don't call setProgramWorkingDir or setLastFileDialogDirectory this since we set to user.dir at startup
 			//IOUtil.setProgramWorkingDir(__home);
 			//JGUIUtil.setLastFileDialogDirectory(__home);
 			IOUtil.setApplicationHomeDir(__home);
+	        // Read the configuration file to get default TSTool properties,
+            // so that later command-line parameters can override them...
+            readConfigFile(getConfigFile());
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
@@ -855,7 +889,7 @@ throws Exception
 			Message.printStatus ( 1, routine, "Starting TSTool in server mode" );
 			__is_server = true;
 		}
-		// User specified (generally by deverlopers)
+		// User specified (generally by developers)
 		else if (args[i].equalsIgnoreCase("-test")) {
 			IOUtil.testing(true);
 			Message.printStatus ( 1, routine, "Running in test mode." );
@@ -910,7 +944,7 @@ Print the program usage to the log file.
 */
 public static void printUsage ( )
 {	String nl = System.getProperty ( "line.separator" );
-	String routine = "tstool.printUsage";
+	String routine = "TSToolMain.printUsage";
 	String usage =  nl +
 	"Usage:  " + PROGRAM_NAME + " [options] [[-commands CommandFile] | CommandFile]" + nl + nl +
 	"TSTool displays, analyzes, and manipulates time series." + nl+
@@ -943,7 +977,7 @@ Clean up and quit the program.
 @param status Program exit status.
 */
 public static void quitProgram ( int status )
-{	String	routine="tstool.quitProgram";
+{	String	routine = "TSToolMain.quitProgram";
 
 	Message.printStatus ( 1, routine, "Exiting with status " + status + "." );
 
@@ -954,33 +988,45 @@ public static void quitProgram ( int status )
 
 /**
 Read the configuration file.  This should be done as soon as the application home is known.
+@param configFile Name of the configuration file.
 */
-private static void readConfiguration ()
-{	String config_file = __home + File.separator + "system" + File.separator + "TSTool.cfg",
-	routine = "TSTool.readConfiguration";
-	
-	if ( IOUtil.fileReadable(config_file) ) {
-		__tstool_props = new PropList ( config_file );
-		__tstool_props.setPersistentName ( config_file );
+private static void readConfigFile ( String configFile )
+{	String routine = "TSToolMain.readConfigFile";
+	if ( IOUtil.fileReadable(configFile) ) {
+		__tstool_props = new PropList ( configFile );
+		__tstool_props.setPersistentName ( configFile );
 		try {
             __tstool_props.readPersistent ();
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
-			"Error reading TSTool configuration file \"" + config_file + "\".  TSTool may not start." );
+			"Error reading TSTool configuration file \"" + configFile + "\".  TSTool may not start." );
 		}
 	}
 }
 
 /**
 Set the command file that is being used with TSTool.
-@param command_file Command file being processed, when started with
+@param configFile Command file being processed, when started with
 -commands File parameter.  This indicates that a batch run should be done, with
 no main TSTool GUI, although windows may display for graphical products.
 */
-private static void setCommandFile ( String command_file )
+private static void setCommandFile ( String configFile )
 {
-	__command_file = command_file;
+	__commandFile = configFile;
+}
+
+/**
+Set the configuration file that is being used with TSTool.  If a relative path is
+given, then the file is made into an absolute path by using the working directory.
+Typically an absolute path is provided when the -home command line parameter is parsed
+at startup, and a relative path may be provided if -config is specified on the command
+line.
+@param configFile Configuration file.
+*/
+private static void setConfigFile ( String configFile )
+{
+    __configFile = configFile;
 }
 
 /**
@@ -1015,7 +1061,7 @@ before this call).
 indicating that a batch run is requested.
 */
 private static void setupUsingCommandFile ( String command_file_arg, boolean is_batch )
-{   String routine = "tstool.setupUsingCommandFile";
+{   String routine = "TSToolMain.setupUsingCommandFile";
 
     // Make sure that the command file is an absolute path because it indicates the working
     // directory for all other processing.
@@ -1082,7 +1128,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
 Set the working directory as the system "user.dir" property.
 */
 private static void setWorkingDirInitial()
-{String routine = "tstool.setWorkingDirInitial";
+{String routine = "TSToolMain.setWorkingDirInitial";
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
     // Set the dialog because if the running in batch mode and interaction with the graph
@@ -1097,8 +1143,7 @@ private static void setWorkingDirInitial()
 Set the working directory as the parent of the command file.
 */
 private static void setWorkingDirUsingCommandFile ( String command_file_full )
-{   String routine = "tstool.setWorkingDirUsingCommandFile";
-    File command_file_full_File = new File ( command_file_full );
+{   File command_file_full_File = new File ( command_file_full );
     String working_dir = command_file_full_File.getParent();
     IOUtil.setProgramWorkingDir ( working_dir );
     // Set the dialog because if the running in batch mode and interaction with the graph

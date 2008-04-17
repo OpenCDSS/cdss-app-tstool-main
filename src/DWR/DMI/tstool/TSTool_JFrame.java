@@ -214,9 +214,15 @@ CommandProcessorListener// To handle command processor progress updates
 //================================
 
 /**
-The license manager to verify the license, etc. 
+The license manager to verify the license, etc.  Use the license_set/getLicenseManager() methods
+to access this data member.
 */
-private LicenseManager __license_manager = null;
+private LicenseManager __licenseManager = null;
+
+/**
+Support email when contacting RTi.
+*/
+private final String __RTiSupportEmail = "support@riverside.com";
 
 /**
 Map interface.
@@ -1569,7 +1575,7 @@ private String
 
 	__InputName_BrowseStateModB_String = "Browse for a StateMod binary file...",
 
-	__DATA_TYPE_AUTO	= "Auto",
+	__DATA_TYPE_AUTO = "Auto",
 
 	// Input types for the __input_type_JComboBox...
 
@@ -1591,38 +1597,33 @@ private String
 
 	// Time steps for __time_step_JComboBox...
 
-	__TIMESTEP_AUTO		= "Auto",
-	__TIMESTEP_MINUTE	= "Minute",
-	__TIMESTEP_HOUR		= "Hour",
-	__TIMESTEP_DAY		= "Day",
-	__TIMESTEP_MONTH	= "Month",
-	//__TIMESTEP_YEAR		= "Year",
-	//__TIMESTEP_REALTIME	= "Real-time",
-	__TIMESTEP_IRREGULAR	= "Irregular";
+	__TIMESTEP_AUTO = "Auto",
+	__TIMESTEP_MINUTE = "Minute",
+	__TIMESTEP_HOUR = "Hour",
+	__TIMESTEP_DAY = "Day",
+	__TIMESTEP_MONTH = "Month",
+	__TIMESTEP_IRREGULAR = "Irregular"; // Use for real-time where interval is not known
 
 // Columns in the time series list.
 
 private final static int
 	//__DIADvisor_COL_ROW_COUNT	= 0,
-	__DIADvisor_COL_ID		= 1,	// Sensor ID
-	__DIADvisor_COL_NAME		= 2,	// Sensor Name
-	__DIADvisor_COL_DATA_SOURCE	= 3,	// blank
-	__DIADvisor_COL_DATA_TYPE	= 4,	// "Data Value" and
-						// "Data Value 2"
-	__DIADvisor_COL_TIMESTEP	= 5,
-	__DIADvisor_COL_SCENARIO	= 6,	// Blank or Archive
-	__DIADvisor_COL_UNITS		= 7,	// "Display Units" and
-						// "Display Units 2"
-	__DIADvisor_COL_START		= 8,
-	__DIADvisor_COL_END		= 9,
-	__DIADvisor_COL_INPUT_TYPE	= 10;	// DIADvisor
+	__DIADvisor_COL_ID = 1,	// Sensor ID
+	__DIADvisor_COL_NAME = 2,	// Sensor Name
+	__DIADvisor_COL_DATA_SOURCE = 3,	// blank
+	__DIADvisor_COL_DATA_TYPE = 4,	// "Data Value" and "Data Value 2"
+	__DIADvisor_COL_TIMESTEP = 5,
+	__DIADvisor_COL_SCENARIO = 6,	// Blank or Archive
+	__DIADvisor_COL_UNITS = 7,	// "Display Units" and "Display Units 2"
+	__DIADvisor_COL_START = 8,
+	__DIADvisor_COL_END = 9,
+	__DIADvisor_COL_INPUT_TYPE = 10;	// DIADvisor
 
 /**
 TSTool_JFrame constructor.
 @param command_file Name of the command file to load at initialization.
 @param run_on_load If true, a successful load of a command file will be followed by
-running the commands.  If false, the command file will be loaded but not automatically
-run.
+running the commands.  If false, the command file will be loaded but not automatically run.
 */
 public TSTool_JFrame ( String command_file, boolean run_on_load )
 {	super();
@@ -1655,7 +1656,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// ColoradoSMS disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.ColoradoSMSEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_ColoradoSMS_enabled = false;
@@ -1667,7 +1668,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// DIADvisor not enabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.DIADvisorEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_DIADvisor_enabled = false;
@@ -1679,7 +1680,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// NWSRFS_ESPTraceEnsemble not enabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_NWSRFS_ESPTraceEnsemble_enabled = false;
@@ -1695,7 +1696,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// NWSRFS_FS5Files not enabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_NWSRFS_FS5Files_enabled = false;
@@ -1708,10 +1709,10 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// State of Colorado HydroBase enabled by default...
 
 	// Newer...
-	prop_value = tstool.getPropValue ( "TSTool.HydroBaseEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.HydroBaseEnabled" );
 	if ( prop_value == null ) {
 		// Older...
-		prop_value = tstool.getPropValue ("TSTool.HydroBaseCOEnabled" );
+		prop_value = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
 	}
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_HydroBase_enabled = false;
@@ -1719,7 +1720,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	if ( __source_HydroBase_enabled ) {
 		// Use newer notation...
 		__props.set ( "TSTool.HydroBaseEnabled", "true" );
-		prop_value = tstool.getPropValue ( "HydroBase.WDIDLength" );
+		prop_value = TSToolMain.getPropValue ( "HydroBase.WDIDLength" );
 		if ( (prop_value != null) && StringUtil.isInteger(prop_value)){
 			__props.set ( "HydroBase.WDIDLength", prop_value );
 			// Also set in global location.
@@ -1729,7 +1730,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		    // Default...
 			__props.set ( "HydroBase.WDIDLength", "7" );
 		}
-		prop_value = tstool.getPropValue ( "HydroBase.OdbcDsn" );
+		prop_value = TSToolMain.getPropValue ( "HydroBase.OdbcDsn" );
 		if ( prop_value != null ) {
 			__props.set ( "HydroBase.OdbcDsn", prop_value );
 		}
@@ -1740,7 +1741,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// Mexico CSMN disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.MexicoCSMNEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.MexicoCSMNEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_MexicoCSMN_enabled = false;
@@ -1753,34 +1754,34 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// MODSIM always enabled by default...
 
 	__source_MODSIM_enabled = true;
-	prop_value = tstool.getPropValue ( "TSTool.MODSIMEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_MODSIM_enabled = false;
 	}
 
 	// NDFD enabled for RTi, disabled for CDSS by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.NDFDEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.NDFDEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_NDFD_enabled = false;
 	}
 
 	// NWS Card disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.NWSCardEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_NWSCard_enabled = false;
 	}
 
 	// NWSRFS FS5Files disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_NWSRFS_FS5Files_enabled = false;
 	}
 	else if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ){
 		__source_NWSRFS_FS5Files_enabled = true;
-		prop_value = tstool.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
+		prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
 		if ( prop_value != null ) {
 			__props.set( "NWSRFSFS5Files.UseAppsDefaults",prop_value );
 		}
@@ -1789,7 +1790,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 			// Defaults configured, this property can be changed.
 			__props.set ( "NWSRFSFS5Files.UseAppsDefaults","false");
 		}
-		prop_value = tstool.getPropValue ( "NWSRFSFS5Files.InputName" );
+		prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.InputName" );
 		if ( prop_value != null ) {
 			__props.set( "NWSRFSFS5Files.InputName",prop_value );
 		}
@@ -1797,7 +1798,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// RiversideDB disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.RiversideDBEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
 
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
@@ -1810,7 +1811,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// RiverWare disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.RiverWareEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_RiverWare_enabled = false;
@@ -1822,7 +1823,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// SHEF disabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.SHEFEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_SHEF_enabled = false;
@@ -1834,28 +1835,28 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// StateMod enabled by default (no config file)...
 
-	prop_value = tstool.getPropValue ( "TSTool.StateModEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_StateMod_enabled = false;
 	}
 
 	// StateCU enabled by default (no config file)...
 
-	prop_value = tstool.getPropValue ( "TSTool.StateCUEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_StateCU_enabled = false;
 	}
 
 	// StateModB enabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.StateModBEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_StateModB_enabled = false;
 	}
 
 	// USGSNWIS enabled by default...
 
-	prop_value = tstool.getPropValue ( "TSTool.USGSNWISEnabled" );
+	prop_value = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_USGSNWIS_enabled = false;
 	}
@@ -1871,22 +1872,24 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// Read the license information and disable/enable input types based on the license...
 
-	ui_ReadLicense ();
-	ui_CheckInputTypesForLicense ();
+	license_InitializeLicenseFromTSToolProperties ();
+	ui_CheckInputTypesForLicense ( license_GetLicenseManager() );
 	// If the license type is CDSS, the icon will be set to the CDSS icon.
 	// Otherwise, the icon will be set to the RTi icon...
-	tstool.setIcon ( __license_manager.getLicenseType() );
+	TSToolMain.setIcon ( license_GetLicenseManager().getLicenseType() );
 
 	// create the GUI ...
 	StopWatch in = new StopWatch();
 	in.start();
 	ui_InitGUI ();
 	in.stop();
-	Message.printDebug(1, "", "JTS - InitGUI: " + in.getSeconds());
+	if ( Message.isDebugOn ) {
+	    Message.printDebug(1, "", "JTS - InitGUI: " + in.getSeconds());
+	}
 
 	// Check the license.  Do this after GUI is initialized so that a dialog can be shown...
 
-	ui_CheckLicense ();
+	license_CheckLicense ( license_GetLicenseManager() );
 
     // Get database connection information.  Force a login if the
 	// database connection cannot be made.  The login is interactive and
@@ -4520,7 +4523,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 
 	// Read the time series to layer lookup file...
 
-	String filename = tstool.getPropValue ( "TSTool.MapLayerLookupFile" );
+	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
 	if ( filename == null ) {
 		Message.printWarning ( 1, routine,
 		"The TSTool.MapLayerLookupFile is not defined - " +
@@ -5210,12 +5213,117 @@ public void keyTyped ( KeyEvent event )
 }
 
 /**
+Check the license information to make sure that TSTool has a valid license.
+If not print a warning and exit.  The data member __license_manager is created
+for use elsewhere (e.g., in Help About).
+@param licenseManager the license manager for the session.
+*/
+private void license_CheckLicense ( LicenseManager licenseManager )
+{   String routine = "TSTool.checkLicense";
+    try {
+        if ( (licenseManager == null) || !licenseManager.isLicenseValid() ) {
+            Message.printWarning ( 1, routine, "The license is invalid.  TSTool will exit." );
+            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            setVisible(false);
+            dispose();
+            Message.closeLogFile();
+            System.exit(0);
+        }
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error checking the license.  TSTool will exit." );
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setVisible(false);
+        dispose();
+        Message.closeLogFile();
+        System.exit(0);
+    }
+    if ( licenseManager.isLicenseExpired() ) {
+        Message.printWarning ( 1, routine, "The demonstration license expired on " +
+                licenseManager.getLicenseExpires() + ".  TSTool will exit.  Contact " +
+                __RTiSupportEmail + " to renew the license.");
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setVisible(false);
+        dispose();
+        Message.closeLogFile();
+        System.exit(0);
+    }
+    if ( licenseManager.isLicenseDemo() ) {
+        Message.printWarning ( 1, routine,
+        "This is a demonstration version of TSTool and will expire on " + licenseManager.getLicenseExpires() +
+        ".  Contact " + __RTiSupportEmail + " to renew the license.");
+    }
+}
+
+/**
+Get the license manager that is in effect for the session.
+*/
+private LicenseManager license_GetLicenseManager ()
+{
+    return __licenseManager;
+}
+
+/**
+Read the license file.  If not found, the license manager will be null and
+result in an invalid license error.  The license is read before the GUI is
+initialized to allow the GUI to be configured according to the license type.
+For example, the on-line help will be searched for differently if an RTi
+general license or a CDSS license.
+*/
+private void license_InitializeLicenseFromTSToolProperties ()
+{   String license_owner, license_type, license_count, license_expires, license_key;
+    String routine = "TSTool_JFrame.readLicense";
+    String warning = "";
+
+    Message.printStatus ( 1, "TSTool.checkLicense", "Checking license" );
+    license_owner = TSToolMain.getPropValue ( "TSTool.LicenseOwner" );
+    if ( license_owner == null ) {
+        warning += "\nLicenseOwner is not specified in the TSTool license information.";
+    }
+    license_type = TSToolMain.getPropValue ( "TSTool.LicenseType" );
+    if ( license_type == null ) {
+        warning += "\nLicenseType is not specified in the TSTool license information.";
+    }
+    license_count = TSToolMain.getPropValue ( "TSTool.LicenseCount" );
+    if ( license_count == null ) {
+        warning += "\nLicenseCount is not specified in the TSTool license information.";
+    }
+    license_expires = TSToolMain.getPropValue ( "TSTool.LicenseExpires" );
+    if ( license_expires == null ) {
+        warning += "\nLicenseExpires is not specified in the TSTool license information.";
+    }
+    license_key = TSToolMain.getPropValue ( "TSTool.LicenseKey" );
+    if ( license_key == null ) {
+        warning += "\nLicenseKey is not specified in the TSTool license information.";
+    }
+    if ( warning.length() > 0 ) {
+        warning += "\nTSTool will not run.";
+        Message.printWarning ( 1, routine, warning );
+        license_SetLicenseManager ( null );
+        return;
+    }
+
+    try {
+        // The following allows null fields so check above...
+        //Message.printStatus ( 2, routine, "Input to license manager is " + license_owner + " " + license_type +
+        //       " " + license_count + " " + license_expires + " " + license_key );
+        license_SetLicenseManager ( new LicenseManager ( "TSTool",
+            license_owner, license_type, license_count, license_expires, license_key ) );
+        //Message.printStatus ( 2, routine, "License manager after initialization:  " + license_GetLicenseManager() );
+    }
+    catch ( Exception e ) {
+        license_SetLicenseManager ( null );
+    }
+}
+
+/**
 Indicate if the software install is for CDSS, in which case certain non-CDSS
 features should be turned off.
+@param licenseManager the license manager for the session.
 */
-private boolean license_IsInstallCDSS()
+private boolean license_IsInstallCDSS( LicenseManager licenseManager )
 {
-    if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
+    if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
         return true;
     }
     else {
@@ -5227,10 +5335,14 @@ private boolean license_IsInstallCDSS()
 Indicate if the software install is for RTi, in which case all features are
 typically on (although there may also be checks to see which input types are
 enabled - no reason to show HydroBase features if not enabled).
+@param licenseManager the license manager for the session.
 */
-private boolean license_IsInstallRTi()
+private boolean license_IsInstallRTi(LicenseManager licenseManager)
 {
-    if ( __license_manager.getLicenseType().equalsIgnoreCase("RTi") ) {
+    // The install type can normally be "Demo", "Site", etc. but the special value
+    // "CDSS" is used for unlimited CDSS installs.  Therefore, if it is not a CDSS
+    // type, it is an RTi type and therefore an RTi install.
+    if ( !license_IsInstallCDSS( licenseManager) ) {
         return true;
     }
     else {
@@ -5239,18 +5351,12 @@ private boolean license_IsInstallRTi()
 }
 
 /**
-Indicate if the software license owner is RTi, in which case it is an RTi
-install AND RTi is the owner, resulting in only internal features being
-enabled.
+Set the license manager for the session.
+@param licenseManager license manager for the session.
 */
-private boolean license_IsOwnerRTi()
+private void license_SetLicenseManager ( LicenseManager licenseManager )
 {
-    if ( __license_manager.getLicenseOwner().equalsIgnoreCase("RTi") ) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    __licenseManager = licenseManager;
 }
 
 /**
@@ -6595,13 +6701,14 @@ Disable input types depending on the license.  For example, if the license type
 is "CDSS", then RTi-developed input types like RiversideDB and DIADvisor are
 disabled.  For the most part, the RTi license should be the default and only
 CDSS turns input types off in this method.
+@param licenseManager license manager for the session.
 */
-private void ui_CheckInputTypesForLicense ()
-{	if ( __license_manager == null ) {
+private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
+{	if ( licenseManager == null ) {
 		return;
 	}
 	String routine = "TSTool_JFrame.checkInputTypesForLicense";
-	if ( __license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
+	if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
 		if ( !__source_StateCU_enabled ) {
 			// Might not be in older config files...
 			Message.printStatus ( 1, routine, "StateCU input type being enabled for CDSS." );
@@ -6630,46 +6737,6 @@ private void ui_CheckInputTypesForLicense ()
 		__source_RiversideDB_enabled = false;
 		Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
 		__source_SHEF_enabled = false;
-	}
-}
-
-/**
-Check the license information to make sure that TSTool has a valid license.
-If not print a warning and exit.  The data member __license_manager is created
-for use elsewhere (e.g., in Help About).
-*/
-private void ui_CheckLicense ()
-{	try {
-        if ( (__license_manager == null) ||	!__license_manager.isLicenseValid() ) {
-			Message.printWarning ( 1, "TSTool.checkLicense", "The license is invalid.  TSTool will exit." );
-			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-			setVisible(false);
-			dispose();
-			Message.closeLogFile();
-			System.exit(0);
-		}
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, "TSTool.checkLicense", "Error checking the license.  TSTool will exit." );
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setVisible(false);
-		dispose();
-		Message.closeLogFile();
-		System.exit(0);
-	}
-	if ( __license_manager.getLicenseType().equalsIgnoreCase("Demo") ) {
-		if ( __license_manager.isLicenseExpired() ) {
-			Message.printWarning ( 1, "TSTool.checkLicense", "The demonstration license has expired.  TSTool will exit." );
-			setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-			setVisible(false);
-			dispose();
-			Message.closeLogFile();
-			System.exit(0);
-		}
-		else {
-            Message.printWarning ( 1, "TSTool.checkLicense",
-			"This is a demonstration version of TSTool and will expire on " + __license_manager.getLicenseExpires() );
-		}
 	}
 }
 
@@ -7272,7 +7339,7 @@ private void ui_InitGUI ( )
 	setSize ( 800, 600 );
 	JGUIUtil.center ( this );
 	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
-	if ( !tstool.isServer() ) {
+	if ( !TSToolMain.isServer() ) {
        	setVisible ( true );
 	}
 	}
@@ -8211,7 +8278,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunProgram_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunProgram_String,this));
-    if ( license_IsInstallRTi() ) {
+    if ( license_IsInstallRTi(license_GetLicenseManager()) ) {
         __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
     }
@@ -8863,58 +8930,6 @@ private boolean ui_Property_RunCommandProcessorInThread()
 	else {
 		// Default.
 		return true;
-	}
-}
-
-/**
-Read the license file.  If not found, the license manager will be null and
-result in an invalid license error.  The license is read before the GUI is
-initialized to allow the GUI to be configured according to the license type.
-For example, the on-line help will be searched for differently if an RTi
-general license or a CDSS license.
-*/
-private void ui_ReadLicense ()
-{	String	license_owner, license_type, license_count, license_expires,
-		license_key;
-	String	routine = "TSTool_JFrame.readLicense";
-	String	warning = "";
-
-	Message.printStatus ( 1, "TSTool.checkLicense", "Checking license" );
-	license_owner = tstool.getPropValue ( "TSTool.LicenseOwner" );
-	if ( license_owner == null ) {
-		warning += "\nLicenseOwner is not specified in the TSTool license information.";
-	}
-	license_type = tstool.getPropValue ( "TSTool.LicenseType" );
-	if ( license_type == null ) {
-		warning += "\nLicenseType is not specified in the TSTool license information.";
-	}
-	license_count = tstool.getPropValue ( "TSTool.LicenseCount" );
-	if ( license_count == null ) {
-		warning += "\nLicenseCount is not specified in the TSTool license information.";
-	}
-	license_expires = tstool.getPropValue ( "TSTool.LicenseExpires" );
-	if ( license_expires == null ) {
-		warning += "\nLicenseExpires is not specified in the TSTool license information.";
-	}
-	license_key = tstool.getPropValue ( "TSTool.LicenseKey" );
-	if ( license_key == null ) {
-		warning += "\nLicenseKey is not specified in the TSTool license information.";
-	}
-	if ( warning.length() > 0 ) {
-		warning += "\nTSTool will not run.";
-		Message.printWarning ( 1, routine, warning );
-		__license_manager = null;
-		return;
-	}
-
-	try {	// The following allows null fields so check above...
-		__license_manager = new LicenseManager ( "TSTool",
-						license_owner,
-						license_type, license_count,
-						license_expires, license_key );
-	}
-	catch ( Exception e ) {
-		__license_manager = null;
 	}
 }
 
@@ -10725,7 +10740,7 @@ throws Exception
 	// Help menu (order of GUI)...
 
 	if ( command.equals ( __Help_AboutTSTool_String )) {
-		uiAction_ShowHelpAbout ();
+		uiAction_ShowHelpAbout ( license_GetLicenseManager() );
 	}
 }
 
@@ -11186,7 +11201,7 @@ private void uiAction_FileExitClicked ()
 	// This code is also in openCommandFile - might be able to remove
 	// copy once all actions are implemented...
 	int x = ResponseJDialog.YES;	// Default for batch mode
-	if ( !tstool.isServer() && !IOUtil.isBatch() ) {
+	if ( !TSToolMain.isServer() && !IOUtil.isBatch() ) {
 		if ( __commands_dirty ) {
 			if ( __command_file_name == null ) {
 				// Have not been saved before...
@@ -13577,7 +13592,7 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 			}
 		}
 		// Override with any TSTool command-line arguments, in particular the user login...
-		String propval = tstool.getPropValue("ColoradoSMS.UserLogin" );
+		String propval = TSToolMain.getPropValue("ColoradoSMS.UserLogin" );
 		if ( propval != null ) {
 			props.set ( "ColoradoSMS.UserLogin", propval );
 			Message.printStatus ( 1, routine, "Using batch login ColoradoSMS.UserLogin=\"" + propval + "\"" );
@@ -13882,14 +13897,14 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 		// Get the database connect information...
 
 		if ( props == null ) {
-			UseAppsDefaults = tstool.getPropValue("NWSRFSFS5Files.UseAppsDefaults");
+			UseAppsDefaults = TSToolMain.getPropValue("NWSRFSFS5Files.UseAppsDefaults");
 		}
 		else {
             UseAppsDefaults = props.getValue( "NWSRFSFS5Files.UseAppsDefaults");
 		}
 
 		if ( props == null ) {
-			InputName = tstool.getPropValue("NWSRFSFS5Files.InputName");
+			InputName = TSToolMain.getPropValue("NWSRFSFS5Files.InputName");
 		}
 		else {
             InputName = props.getValue(	"NWSRFSFS5Files.InputName");
@@ -13982,7 +13997,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// Get the database connect method (optional - will default)...
 
 		if ( props == null ) {
-			connect_method = tstool.getPropValue("RiversideDB.JavaConnectMethod");
+			connect_method = TSToolMain.getPropValue("RiversideDB.JavaConnectMethod");
 		}
 		else {	// Newer...
 			connect_method = props.getValue("RiversideDB.JavaConnectMethod");
@@ -13994,7 +14009,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// First get the database engine (required)...
 
 		if ( props == null ) {
-			database_engine = tstool.getPropValue("RiversideDB.DatabaseEngine" );
+			database_engine = TSToolMain.getPropValue("RiversideDB.DatabaseEngine" );
 		}
 		else {
             database_engine = props.getValue("RiversideDB.DatabaseEngine");
@@ -14012,7 +14027,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		if ( connect_method.equalsIgnoreCase ( "JDBCODBC" ) ) {
 			// Database server name (required)...
 			if ( props == null ) {
-				database_server = tstool.getPropValue( "RiversideDB.JavaDatabaseServer" );
+				database_server = TSToolMain.getPropValue( "RiversideDB.JavaDatabaseServer" );
 			}
 			else {
                 database_server = props.getValue( "RiversideDB.JavaDatabaseServer");
@@ -14030,7 +14045,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// connect methods (required)...
 
 		if ( props == null ) {
-			database_name = tstool.getPropValue("RiversideDB.JavaDatabase" );
+			database_name = TSToolMain.getPropValue("RiversideDB.JavaDatabase" );
 		}
 		else {
             database_name = props.getValue(	"RiversideDB.JavaDatabase" );
@@ -14048,10 +14063,10 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 
 		if ( props == null ) {
 			// Newer...
-			system_login = tstool.getPropValue(	"RiversideDB.SystemLogin");
+			system_login = TSToolMain.getPropValue(	"RiversideDB.SystemLogin");
 			if ( system_login == null ) {
 				// Older...
-				system_login = tstool.getPropValue("RiversideDB.Login");
+				system_login = TSToolMain.getPropValue("RiversideDB.Login");
 			}
 		}
 		else {	// Newer...
@@ -14063,10 +14078,10 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		}
 		if ( props == null ) {
 			// Newer...
-			system_password = tstool.getPropValue("RiversideDB.SystemPassword");
+			system_password = TSToolMain.getPropValue("RiversideDB.SystemPassword");
 			if ( system_password == null ) {
 				// Older...
-				system_password = tstool.getPropValue("RiversideDB.Password");
+				system_password = TSToolMain.getPropValue("RiversideDB.Password");
 			}
 		}
 		else {	// Newer...
@@ -15164,7 +15179,7 @@ throws Exception
 	// helps in development to not restart.  However, in the future, change
 	// so that the file is read once.
 
-	String filename = tstool.getPropValue ( "TSTool.MapLayerLookupFile" );
+	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
 	if ( filename == null ) {
 		Message.printWarning ( 1, routine, "The TSTool.MapLayerLookupFile is not defined - cannot link map and time series." );
 		return;
@@ -15538,8 +15553,8 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
 /**
 Show the Help About dialog in response to a user selecting a menu.
 */
-private void uiAction_ShowHelpAbout ()
-{   String license_type = __license_manager.getLicenseType();
+private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
+{   String license_type = licenseManager.getLicenseType();
     if ( license_type.equalsIgnoreCase("CDSS") ) {
         // CDSS installation...
         new HelpAboutJDialog ( this, "About TSTool",
@@ -15553,18 +15568,20 @@ private void uiAction_ShowHelpAbout ()
         "Colorado Water Conservation Board\n" +
         "Send comments about this interface to:\n" +
         "cdss@state.co.us (CDSS)\n" +
-        "support@riverside.com (general)\n" );
+        __RTiSupportEmail + " (general)\n" );
     }
     else {
-        // An RTi installation...
+        // A non-CDSS (RTi customer) installation...
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
         "Copyright 1997-2008\n" +
         "Developed by Riverside Technology, inc.\n" +
-        "Licensed to: " + __license_manager.getLicenseOwner() + "\n" +
-        "Contact support at:\n" +
-        "support@riverside.com\n" );
+        "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
+        "License type: " + licenseManager.getLicenseType() + "\n" +
+        "License expires: " + licenseManager.getLicenseExpires() + "\n" +
+        "Contact support at:  " +
+        __RTiSupportEmail + "\n" );
     }
 }
 
