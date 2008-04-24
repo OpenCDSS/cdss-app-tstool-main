@@ -10,7 +10,7 @@ package DWR.DMI.tstool;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import junit.framework.Test;
-import DWR.DMI.tstool.tstool;
+import DWR.DMI.tstool.TSToolMain;
 
 public class tstoolTest extends TestCase {
 
@@ -36,17 +36,17 @@ public class tstoolTest extends TestCase {
     ********************************************************************/
     public void testisServer()
     {
-       assertEquals(false, tstool.isServer());
+       assertEquals(false, TSToolMain.isServer());
     }
     
     public void testgetJFrame()
     {
-       tstool.getJFrame();
+       TSToolMain.getJFrame();
     }
     
     public void testgetPropValue()
     {
-       assertNull(tstool.getPropValue("blah"));  
+       assertNull(TSToolMain.getPropValue("blah"));  
     }
     
     // Quick Unit test suite
