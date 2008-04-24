@@ -1345,7 +1345,7 @@ private String
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()...  <read 1(+) time series from a DateValue file>",
-    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file>",
+    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file (under development)>",
 	__Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
@@ -1432,7 +1432,7 @@ private String
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()...  <write NWS Card file>",
 	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write RiverWare file>",
-    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write SHEF (Standard Hydrologic Exchange Format) file>",
+    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write SHEF (Standard Hydrologic Exchange Format) file (under development)>",
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()...  <write StateCU file>",
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write Summary file>",
@@ -1478,7 +1478,7 @@ private String
     // Table Commands...
 
     __Commands_Table_String = "Table Processing",
-    __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
+    __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file (under development)>",
 
 	// General Commands...
 
@@ -2569,19 +2569,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Ensemble_TS_WeightTraces_String)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"weightTraces(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"weightTraces (",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = weightTraces()" );
-		}
-		edited_cv = new weightTraces_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 
 	// Convert time series...
 
@@ -2739,28 +2726,23 @@ private boolean commandList_EditCommandOldStyle (
 				"() ", StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			if ( (tokens != null) && (tokens.size() == 2) ) {
-				__fill_pattern_files.addElement (
-				((String)tokens.elementAt(1)).trim() );
+				__fill_pattern_files.addElement ( ((String)tokens.elementAt(1)).trim() );
 			}
 		}
-		// Now get a list of the patterns so that they can be used in
-		// the dialog to make selections...
+		// Now get a list of the patterns so that they can be used in the dialog to make selections...
 		if ( __fill_pattern_ids.size() == 0 ) {
-			// Read the pattern information so it can be passed
-			// to the dialog.
+			// Read the pattern information so it can be passed to the dialog.
 			readPatternTS ();
 		}
 		edited_cv = new fillPattern_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			__fill_pattern_files, cv,
 			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit), __fill_pattern_ids
-			).getText();
+					__ts_processor, command_to_edit), __fill_pattern_ids ).getText();
 	}
 	else if (action.equals( __Commands_Fill_FillProrate_String)||
 		command.regionMatches( true,0,"fillProrate",0,11)){
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillProrate()" );
+			Message.printDebug ( dl, routine, "Opening dialog for fillProrate()" );
 		}
 		edited_cv = new fillProrate_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -2769,8 +2751,7 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals(__Commands_Fill_SetAutoExtendPeriod_String)||
 		command.regionMatches(true,0,"setAutoExtendPeriod",0,19) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setAutoExtendPeriod()" );
+			Message.printDebug ( dl, routine, "Opening dialog for setAutoExtendPeriod()" );
 		}
 		edited_cv = new setAutoExtendPeriod_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -5238,20 +5219,44 @@ private void license_CheckLicense ( LicenseManager licenseManager )
         Message.closeLogFile();
         System.exit(0);
     }
-    if ( licenseManager.isLicenseExpired() ) {
-        Message.printWarning ( 1, routine, "The demonstration license expired on " +
-                licenseManager.getLicenseExpires() + ".  TSTool will exit.  Contact " +
-                __RTiSupportEmail + " to renew the license.");
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setVisible(false);
-        dispose();
-        Message.closeLogFile();
-        System.exit(0);
-    }
+    // Demo version always warns at startup.
     if ( licenseManager.isLicenseDemo() ) {
-        Message.printWarning ( 1, routine,
-        "This is a demonstration version of TSTool and will expire on " + licenseManager.getLicenseExpires() +
-        ".  Contact " + __RTiSupportEmail + " to renew the license.");
+        if ( licenseManager.isLicenseExpired() ) {
+            Message.printWarning ( 1, routine, "The demonstration license expired on " +
+                    licenseManager.getLicenseExpires() + ".  TSTool will exit.  Contact " +
+                    __RTiSupportEmail + " to obtain a new license.");
+            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            setVisible(false);
+            dispose();
+            Message.closeLogFile();
+            System.exit(0);
+        }
+        else {
+            // Not expired yet but a demo so warn the user every time they run TSTool
+            Message.printWarning ( 1, routine,
+            "This is a demonstration version of TSTool and will expire on " + licenseManager.getLicenseExpires() +
+            ".  Contact " + __RTiSupportEmail + " to obtain a full license.");
+        }
+    }
+    else {
+        // Not a demonstration license.
+        // Warn if within 30 days of the expiration
+        int daysToExpiration = licenseManager.getDaysToExpiration();
+        if ( daysToExpiration >= 0 && (daysToExpiration < 30) ) {
+            Message.printWarning ( 1, routine, "The license expires in " +
+                    daysToExpiration + " days.  Contact " + __RTiSupportEmail + " to renew the license.");
+        }
+        // Do not allow running with expired license
+        else if ( licenseManager.isLicenseExpired() ) {
+            Message.printWarning ( 1, routine, "The license expired on " +
+                    licenseManager.getLicenseExpires() + ".  TSTool will exit.  Contact " +
+                    __RTiSupportEmail + " to renew the license.");
+            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            setVisible(false);
+            dispose();
+            Message.closeLogFile();
+            System.exit(0);
+        }
     }
 }
 
@@ -14563,8 +14568,7 @@ Save the current time series to the selected format.  The user picks the file
 and the format, via the chooser filter.
 */
 private void uiAction_SaveTimeSeries ()
-{	JFileChooser fc = JFileChooserFactory.createJFileChooser(
-		JGUIUtil.getLastFileDialogDirectory() );
+{	JFileChooser fc = JFileChooserFactory.createJFileChooser( JGUIUtil.getLastFileDialogDirectory() );
 	fc.setDialogTitle("Save Time Series (full period)");
 	// Default, and always enabled...
 	SimpleFileFilter datevalue_sff = null;
@@ -14574,8 +14578,7 @@ private void uiAction_SaveTimeSeries ()
 	// Add ESP Trace Ensemble only if enabled in the configuration... 
 	SimpleFileFilter esp_cs_sff = null;
 	if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-		esp_cs_sff = new SimpleFileFilter(
-			"CS","ESP Conditional Trace Ensemble File");
+		esp_cs_sff = new SimpleFileFilter( "CS","ESP Conditional Trace Ensemble File");
 		fc.addChoosableFileFilter ( esp_cs_sff );
 	}
 	// Add NWS Card only if enabled in the configuration... 
@@ -14587,8 +14590,7 @@ private void uiAction_SaveTimeSeries ()
 			fc.addChoosableFileFilter(nwscardFilters[i]);
 		}
 /*
-		nwscard_sff = new SimpleFileFilter(
-				"nwscard", "NWS Card Time Series File" );
+		nwscard_sff = new SimpleFileFilter( "nwscard", "NWS Card Time Series File" );
 		fc.addChoosableFileFilter( nwscard_sff );
 */
 	}
@@ -14612,7 +14614,7 @@ private void uiAction_SaveTimeSeries ()
 	}
 	// Add Summary always...
 	SimpleFileFilter summary_sff=new SimpleFileFilter("txt","Summary File");
-		fc.addChoosableFileFilter( summary_sff );
+	fc.addChoosableFileFilter( summary_sff );
 	if ( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION ) {
 		// Did not approve...
 		return;
