@@ -1,6 +1,6 @@
 @echo off
 rem ---------------------------------------------------------------------------
-rem Batch Program to run the TSTool as a stand alone application using JRE 142
+rem Batch Program to run the TSTool
 rem ---------------------------------------------------------------------------
 rem Notes:	(1)	This batch file is updated during the installation
 rem			process, with the environment settings taken from
@@ -10,8 +10,14 @@ rem		(2)	Because tstool can be executed in batch mode, java must
 rem			be used (instead of javaw) so that the batch screen
 rem			output is visible.  However, this will cause a DOS
 rem			window to appear when running the GUI.
+rem
+rem		(3)	It is recommended that the TSTool.exe launcher be used
+rem			instead of this batch file.  However, this batch file
+rem			can be used during troubleshooting.
 rem ---------------------------------------------------------------------------
-rem The HOMED and JREHOMED variables are set during the installation process.
+rem The HOMED variable is set during the installation process to indicate
+rem the software installation home, under which will be bin, doc, logs,
+rem jre_142, system, etc.
 rem The names are hopefully unique enough that they do not conflict with other
 rem software settings.
 rem 
@@ -48,8 +54,12 @@ rem
 rem 3)If the software is installed on a local drive (e.g., C:) but may be run
 rem   from a different drive, use approach (1).
 
+rem Install home (replaced at install using user selection)
 SET HOMED=\CDSS
 SET JREHOMED=%HOMED%\jre_142
+SET MAIN_CLASS=cdss.app.tstool.TSTool
+rem Class path (replaced at software build usin current software dependencies).
+SET TSTOOL_CP="%HOMED%\bin\batik-awt-util.jar;%HOMED%\bin\batik-dom.jar;%HOMED%\bin\batik-ext.jar;%HOMED%\bin\batik-svggen.jar;%HOMED%\bin\batik-util.jar;%HOMED%\bin\batik-xml.jar;%HOMED%\bin\cdss.domain_142.jar;%HOMED%\bin\jcommon.jar;%HOMED%\bin\jfreechart.jar;%HOMED%\bin\jsr173_1.0_api.jar;%HOMED%\bin\jython.jar;%HOMED%\bin\libXMLJava.jar;%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\xbean.jar;%HOMED%\bin\xerces.jar;%HOMED%\bin\h2.jar"
 
 rem Run the Java Runtime Environment (JRE), which runs the TSTool software.
 rem If there is an error, try using "java" instead of "javaw" below.  Using
@@ -63,16 +73,22 @@ rem the console output from the interactive session.
 if "%1" == "-commands" goto batch
 if "%2" == "-commands" goto batch
 if "%3" == "-commands" goto batch
+if "%4" == "-commands" goto batch
+if "%5" == "-commands" goto batch
+if "%6" == "-commands" goto batch
+if "%7" == "-commands" goto batch
+if "%8" == "-commands" goto batch
+if "%9" == "-commands" goto batch
 goto interactive
 
 rem Run in batch mode with output to console...
 :batch
-"%JREHOMED%\bin\java" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\TS_Services.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\java" -Xmx256m -cp %TSTOOL_CP% %MAIN_CLASS% -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Run in interactive mode with no output to console...
 :interactive
-"%JREHOMED%\bin\javaw" -Xmx256m -cp "%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\StateCU_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\TS_Services.jar" DWR.DMI.tstool.tstool -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\javaw" -Xmx256m -cp %TSTOOL_CP% %MAIN_CLASS% -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Clean up the temporary environment variables so that memory is freed for
@@ -81,3 +97,5 @@ rem other applications...
 :end
 set HOMED=
 set JREHOMED=
+set MAIN_CLASS=
+set TSTOOL_CP=

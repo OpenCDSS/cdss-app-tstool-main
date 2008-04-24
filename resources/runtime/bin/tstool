@@ -4,38 +4,57 @@
 #
 # Script to run TSTool on UNIX
 #
-# History:
-#
-# 2001-06-01	Steven A. Malers, RTi	Initial version.
-# 2002-01-18	SAM, RTi		Clean up script.
-# 2002-02-15	Morgan Sheedy, RTi	Changed JRE paths to reflect
-#					location on Mexico machines.
-# 2003-01-13	Morgan Sheedy, RTi	Updated for standard Linux install.
-#		SAM, RTi		
-# 2004-01-14	SAM, RTi		Updated for Java 1.4.2.
-# 2007-07-12	SAM, RTi		Update to use new jar files consistent
-#					with other development.
 
-# Indicate what program (JRE) to run with.  Currently we use the java program,
-# which should be the same one used by the NWSRFS GUI.
-#
-# If TSTool is running out of memory, increase the -mx option below (megabytes
-# of memory allowed for TSTool).
+# Indicate what program (JRE) to run with.
 
-# The following two variables are all that is needed to configure the install
-# location.
-
-RTI_HOME=/opt/RTi
-TSTOOL_HOME="$RTI_HOME/TSTool-08.14.02"
-
-JRE_HOME="$TSTOOL_HOME/jre_142"
-JRE="$JRE_HOME/bin/java -Xmx768m"
-JRE_LIB="$JRE_HOME/lib"
-
+# Installation home for TSTool, under which will be bin, logs, system, etc.
+INSTALL_HOME="/opt/RTi/TSTool-08.14.02"
 # Indicate where the JAR files live.  Point this to the place where all the
 # RTi jar files live.
-JAR_HOME="$TSTOOL_HOME/bin"
+JAR_HOME="$INSTALL_HOME/bin"
+# Classpath for TSTool, including all Jar files needed for runtime features
+# List core files first for rapid access with less used features later.
+TSTOOL_CP="\
+$JAR_HOME/TSTool_142.jar:\
+$JAR_HOME/cdss.domain_142.jar:\
+$JAR_HOME/HydroBaseDMI_142.jar:\
+$JAR_HOME/NWSRFS_DMI_142.jar:\
+$JAR_HOME/RiversideDB_DMI_142.jar:\
+$JAR_HOME/RTi_Common_142.jar:\
+$JAR_HOME/SatmonSysDMI_142.jar:\
+$JAR_HOME/StateMod_142.jar:\
+$JAR_HOME/TSCommandProcessor_142.jar:\
+$JAR_HOME/Blowfish_142.jar:\
+$JAR_HOME/h2.jar:\
+$JAR_HOME/jcommon.jar:\
+$JAR_HOME/jfreechart.jar:\
+$JAR_HOME/jsr173_1.0_api.jar:\
+$JAR_HOME/jython.jar:\
+$JAR_HOME/libXMLJava.jar:\
+$JAR_HOME/msbase.jar:\
+$JAR_HOME/mssqlserver.jar:\
+$JAR_HOME/msutil.jar:\
+$JAR_HOME/batik-awt-util.jar:\
+$JAR_HOME/batik-dom.jar:\
+$JAR_HOME/batik-ext.jar:\
+$JAR_HOME/batik-svggen.jar:\
+$JAR_HOME/batik-util.jar:\
+$JAR_HOME/xbean.jar:\
+$JAR_HOME/xerces.jar:\
+"
+
+# JRE to run (currently must be less than 1.5 due to worksheet display issues in 1.5)
+# TODO SAM 2008-04-18 Need to do "java -version" and check for " 1.4".  If not found,
+# complain and exit.  Remove this comment/check when TSTool is updated to 1.5+ (mid 2008).
+#
+# If TSTool is running out of memory, increase the -Xmx option below (maximum megabytes
+# of memory allowed for TSTool).
+#
+JRE_HOME="$INSTALL_HOME/jre_142"
+JRE="$JRE_HOME/bin/java -Xmx768m"
 
 # Run TSTool, passing up to 9 command line parameters.
-
-$JRE -classpath $JAR_HOME/TSTool_142.jar:$JAR_HOME/HydroBaseDMI_142.jar:$JAR_HOME/RiversideDB_DMI_142.jar:$JAR_HOME/NWSRFS_DMI_142_Extended.jar:$JAR_HOME/NWSRFS_DMI_142.jar:$JAR_HOME/jython.jar:$JAR_HOME/msbase.jar:$JAR_HOME/mssqlserver.jar:$JAR_HOME/msutil.jar:$JAR_HOME/RTi_Common_142.jar:$JAR_HOME/StateMod_142.jar:$JAR_HOME/StateCU_142.jar:$JAR_HOME/Blowfish_142.jar:$JAR_HOME/SatmonSysDMI_142.jar:$JAR_HOME/TS_Services.jar:$JAR_HOME/TSCommandProcessor_142.jar DWR.DMI.tstool.tstool -home $TSTOOL_HOME $1 $2 $3 $4 $5 $6 $7 $8 $9
+command="$JRE -classpath $TSTOOL_CP rti.app.tstool.TSTool -home $INSTALL_HOME $1 $2 $3 $4 $5 $6 $7 $8 $9"
+# Uncomment for troubleshooting...
+# echo $command
+$command
