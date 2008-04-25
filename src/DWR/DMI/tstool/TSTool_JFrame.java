@@ -1384,8 +1384,7 @@ private String
 	__Commands_Fill_FillRepeat_String = TAB + "FillRepeat()...  <fill TS by repeating values>",
 	__Commands_Fill_FillUsingDiversionComments_String = TAB + "FillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
 	// TODO SAM - need to add later...
-	//MENU_INTERMEDIATE_FILL_WEIGHTS_String =
-	//	"Fill Using Weights...",
+	//MENU_INTERMEDIATE_FILL_WEIGHTS_String = "Fill Using Weights...",
 
 	__Commands_Fill_SetAutoExtendPeriod_String = TAB + "SetAutoExtendPeriod()... <for data filling and manipulation>",
 	__Commands_Fill_SetAveragePeriod_String = TAB +	"SetAveragePeriod()... <for data filling>",
@@ -2208,8 +2207,7 @@ Edit a command in the command list.
 @param action the string containing the event's action value.  This is checked
 for new commands.  When editing existing commands, command_Vector will contain
 a list of Command class instances.  Normally only the first command will be edited as
-a single-line command.  However, multiple # comment lines can be selected and edited
-at once.
+a single-line command.  However, multiple # comment lines can be selected and edited at once.
 @param command_Vector If an update, this contains the current Command instances
 to edit.  If a new command, this is null and the action string will be consulted
 to construct the appropriate command.  The only time that multiple commands will
@@ -2271,8 +2269,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		// Get the command from the processor...
 		if ( is_comment_block ) {
 			// Use the string-based editor dialog and then convert each
-			// comment line into a command.  Don't do anything to the command
-			// list yet
+			// comment line into a command.  Don't do anything to the command list yet
 		}
 		else if ( is_exit ) {
 			// Don't do anything.
@@ -2316,11 +2313,10 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			command_to_edit = commandList_NewCommand( command_string, true );
 			Message.printStatus(2, routine, "Created new command to insert:  \"" + command_to_edit + "\"" );
         
-			// Add it to the processor at the insert point of the edit (before the
-			// first selected command...
+			// Add it to the processor at the insert point of the edit (before the first selected command...
         
 			commandList_InsertCommandBasedOnUI ( command_to_edit );
-			Message.printStatus(2, routine, "Inserted command.");
+			Message.printStatus(2, routine, "Inserted command for editing.");
 		}
 	}
 
@@ -2336,7 +2332,8 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		// No need to edit - just insert.
 		edit_completed = true;
 	}
-	else {	// Editing a single one-line command...
+	else {
+	    // Editing a single one-line command...
         try {
     		if ( command_to_edit instanceof GenericCommand ) {
     			// Edit with the old style editors.
@@ -2405,6 +2402,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			else {
 				// A temporary new command was inserted so remove it.
 				commandList_RemoveCommand(command_to_edit);
+				Message.printStatus(2, routine, "Edit was cancelled.  Removing from command list." );
 			}
 		}
 		else if ( mode == __UPDATE_COMMAND ) {
@@ -2413,6 +2411,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			}
 			else {
 				// Else was an update so restore the original command...
+			    Message.printStatus(2, routine, "Edit was cancelled.  Restoring pre-edit command." );
 				int pos = commandList_IndexOf(command_to_edit);
 				commandList_RemoveCommand(command_to_edit);
 				commandList_InsertCommandAt(command_to_edit_original, pos);
@@ -2487,8 +2486,8 @@ private boolean commandList_EditCommandOldStyle (
 		command = ((GenericCommand)command_Vector.elementAt(0)).getCommandString();
 		cv.addElement ( command );
 	}
-	else {	// Inserting a new command.  Just pass empty data to be
-		// edited (will be checked for in editors).
+	else {
+	    // Inserting a new command.  Just pass empty data to be edited (will be checked for in editors).
 		cv = new Vector(1);
 		command = "";
 		cv.addElement ( command );
@@ -2510,8 +2509,7 @@ private boolean commandList_EditCommandOldStyle (
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate(",0) >= 0)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate (",0) >=0)){
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = disaggregate()" );
+			Message.printDebug ( dl, routine, "Opening dialog for TS Alias = disaggregate()" );
 		}
 		edited_cv = new disaggregate_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
@@ -3400,8 +3398,7 @@ private Command commandList_NewCommand ( String command_string,
 	String routine = getClass().getName() + ".newCommand";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Using command factory to create a new"+
-		" command for \"" + command_string + "\"" );
+		"Using command factory to create a new command for \"" + command_string + "\"" );
 	}
 	Command c = null;
 	try {
@@ -3417,26 +3414,19 @@ private Command commandList_NewCommand ( String command_string,
 	// TODO SAM 2007-08-31 This is essentially validation.
 	// Need to evaluate for old-style commands, impacts on error-handling.
 	// New is command from the processor
-	try {	c.initializeCommand ( command_string,
-		__ts_processor,
-		true );	// Full initialization
+	try {
+	    c.initializeCommand ( command_string, __ts_processor, true );	// Full initialization
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl,
-			routine,
-			"Initialized command " +
-			"for \"" + command_string + "\"" );
+			Message.printDebug ( dl, routine, "Initialized command for \"" + command_string + "\"" );
 		}
 	}
 	catch ( Exception e ) {
-		// Absorb the warning and make the user
-		// try to deal with it in the editor
+		// Absorb the warning and make the user try to deal with it in the editor
 		// dialog.  They can always cancel out.
 
-		// TODO SAM 2005-05-09 Need to handle
-		// parse error.  Should the editor come
+		// TODO SAM 2005-05-09 Need to handle parse error.  Should the editor come
 		// up with limited information?
-		Message.printWarning ( 3, routine,
-		"Unexpected error initializing command \"" + command_string + "\"." );
+		Message.printWarning ( 3, routine, "Unexpected error initializing command \"" + command_string + "\"." );
 		Message.printWarning ( 3, routine, e );
 	}
 	return c;
