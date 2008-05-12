@@ -23,10 +23,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -150,6 +152,8 @@ import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
 import RTi.Util.IO.CommandDiscoverable;
+import RTi.Util.IO.CommandLogRecord;
+import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandProcessor;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
@@ -1495,9 +1499,9 @@ private String
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
 	
     __Commands_General_Running_String = "General - Running",
-    __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a property>",
+    __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a time series processor property>",
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
-        TAB + "SetPropertyFromNwsrfsAppDefault()... <set a property from an NWSRFS App Default>",
+        TAB + "SetPropertyFromNwsrfsAppDefault()... <set a time series processor property from an NWSRFS App Default>",
 	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
@@ -2879,17 +2883,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Manipulate_Blend_String)||
-		command.regionMatches(true,0,"blend(",0,6) ||
-		command.regionMatches(true,0,"blend (",0,7) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for blend()" );
-		}
-		edited_cv = new blend_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals(__Commands_Manipulate_Divide_String) ||
 		command.regionMatches(true,0,"divide",0,6) ) {
 		if ( Message.isDebugOn ) {
@@ -4188,20 +4181,69 @@ private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, Pro
 /**
 Read and load a command file into the processor.
 @param path Absolute path to the command file to read.
+@return the number of lines that are automatically changed during the read (1 if the size is
+different after read).
 @exception IOException if there is an error reading the command file.
 */
-private void commandProcessor_ReadCommandFile ( String path )
+private int commandProcessor_ReadCommandFile ( String path )
 throws IOException
-{	// Set the command file for use with output...
+{	String routine = "TSTool_JFrame.commandProcessor_ReadCommandFile";
+    // Set the command file for use with output...
 	IOUtil.setProgramCommandFile ( path );
 	__ts_processor.readCommandFile ( path,
 			true,	// Create GenericCommand instances for unrecognized commands
 			false );// Do not append to the current processor contents
     // Refresh the GUI list to show the status done in call to this method
+	
+	// TODO SAM 2008-05-11 Evaluate whether to move this to the readCommandFile() method.
+	// If any lines in the file are different from the commands, mark the file as dirty.
+	// Changes may automatically occur during the load because of automated updates to
+	// commands.
+	BufferedReader in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( path )) );
+	Vector strings = new Vector();
+	String line;
+	while ( true ) {
+	    line = in.readLine();
+	    if ( line == null ) {
+	        break;
+	    }
+	    strings.add ( line );
+	}
+	in.close();
+	int size_orig = strings.size();
+	if ( size_orig != __ts_processor.size() ) {
+	    Message.printStatus( 2, routine, "Command list was modified during load (different length)." );
+	    commandList_SetDirty ( true );
+	    return 1;
+	}
+	// Go through all the commands.
+	Command command = null;
+	CommandStatusProvider csp = null;
+	int numAutoChanges = 0;
+	for ( int i = 0; i < size_orig; i++ ) {
+	    line = (String)strings.get(i);
+	    command = __ts_processor.get(i);
+	    if ( !line.equals(command.toString()) ) {
+	        Message.printStatus( 2, routine, "Command " + (i + 1) +
+	                " was automatically updated during load (usually due to software update)." );
+	        commandList_SetDirty ( true );
+	        ++numAutoChanges;
+	        if ( command instanceof CommandStatusProvider ) {
+	            csp = (CommandStatusProvider)command;
+	            // FIXME SAM 2008-05-11 This message gets clobbered by reinitialization before running
+	            // Add a message that the command was updated during load.
+	            csp.getCommandStatus().addToLog ( CommandPhaseType.INITIALIZATION,
+	                    new CommandLogRecord(CommandStatusType.UNKNOWN,
+	                            "Command was automatically updated during load (usually due to software update).",
+	                            "Should not need to do anything." ) );
+	        }
+	    }
+	}
+	return numAutoChanges;
 }
 
 /**
-Run the commands through the processor.  Curently this supplies the list of
+Run the commands through the processor.  Currently this supplies the list of
 Command instances to run because the user can select the commands in the
 interface.  In the future the command processor may put together the list without
 being passed from the GUI.
@@ -8867,8 +8909,9 @@ Load a command file and display in the command list.
 */
 private void ui_LoadCommandFile ( String command_file, boolean run_on_load )
 {   String routine = "TSTool_JFrame.ui_LoadCommandFile";
+    int numAutoChanges = 0; // Number of lines automatically changed during load
     try {
-        commandProcessor_ReadCommandFile ( command_file );
+        numAutoChanges = commandProcessor_ReadCommandFile ( command_file );
         // Repaint the list to reflect the status of the commands...
         ui_ShowCurrentCommandListStatus();
     }
@@ -8899,7 +8942,9 @@ private void ui_LoadCommandFile ( String command_file, boolean run_on_load )
     // If successful the TSCommandProcessor, as the data model, will
     // have fired actions to make the JList update.
     commandList_SetCommandFileName(command_file);
-    commandList_SetDirty(false);
+    if ( numAutoChanges == 0 ) {
+        commandList_SetDirty(false);
+    }
     // Clear the old results...
     results_Clear();
     // If requested, run the commands.
@@ -12289,13 +12334,11 @@ throws IOException
 		String datatype = StringUtil.getToken ( __data_type_JComboBox.getSelected().trim(), " ",0, 0);
 		// Parse the interval into the integer hour...
 		String selected_input_name=__input_name_JComboBox.getSelected();
-		try {	String tsident_string = id_input + ".NWSRFS." +
-				datatype + "." +
-				__selected_time_step + "~NWSRFS_FS5Files~" +
-				selected_input_name;
+		try {
+		    String tsident_string = id_input + ".NWSRFS." + datatype + "." +
+				__selected_time_step + "~NWSRFS_FS5Files~" + selected_input_name;
 			Message.printStatus ( 2, routine, "Reading NWSRFS FS5Files time series for \"" + tsident_string + "\"..." );
-			tslist = __nwsrfs_dmi.readTimeSeriesList (
-				tsident_string, (DateTime)null,
+			tslist = __nwsrfs_dmi.readTimeSeriesList ( tsident_string, (DateTime)null,
 				(DateTime)null, (String)null, false );
 		}
 		catch ( Exception e ) {
@@ -13044,19 +13087,16 @@ private void uiAction_InputNameChoiceClicked()
 
 	// List alphabetically...
 	try {
-	if ( __selected_input_type.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ) {
-		// Reset the data types...
-		__data_type_JComboBox.setEnabled ( true );
-		__data_type_JComboBox.removeAll ();
-		// TODO SAM 2004-09-01 need to find a way to not re-read the data types file.
-		Vector data_types = NWSRFS_Util.getTimeSeriesDataTypes (
-			__nwsrfs_dmi,
-			true );		// Include description
-		__data_type_JComboBox.setData ( data_types );
-		__data_type_JComboBox.select ( null );
-		__data_type_JComboBox.select ( 0 );
-	
-	}
+    	if ( __selected_input_type.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ) {
+    		// Reset the data types...
+    		__data_type_JComboBox.setEnabled ( true );
+    		__data_type_JComboBox.removeAll ();
+    		// TODO SAM 2004-09-01 need to find a way to not re-read the data types file.
+    		Vector data_types = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description
+    		__data_type_JComboBox.setData ( data_types );
+    		__data_type_JComboBox.select ( null );
+    		__data_type_JComboBox.select ( 0 );
+    	}
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
@@ -13066,8 +13106,7 @@ private void uiAction_InputNameChoiceClicked()
 /**
 Reset the query options choices based on the selected input type.  Other
 method calls are cascaded to fully reset the choices.  This method also
-shows/hides columns in the query results multilist to be appropriate for the
-data input source.
+shows/hides columns in the query results multilist to be appropriate for the data input source.
 */
 private void uiAction_InputTypeChoiceClicked()
 {	String routine = "TSTool_JFrame.inputTypeChoiceClicked";
@@ -13094,8 +13133,7 @@ private void uiAction_InputTypeChoiceClicked()
 	// List alphabetically...
 	try {
 	if ( __selected_input_type.equals ( __INPUT_TYPE_DateValue ) ) {
-		// Most information is determined from the file so set the other
-		// choices to be inactive...
+		// Most information is determined from the file so set the other choices to be inactive...
 		__input_name_JComboBox.removeAll();
 		__input_name_JComboBox.setEnabled ( false );
 
@@ -13127,20 +13165,18 @@ private void uiAction_InputTypeChoiceClicked()
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_DIADvisor ) ) {
 		__data_type_JComboBox.setEnabled ( true );
 		__data_type_JComboBox.removeAll ();
-		// Get the data types from the GroupDef table.  Because two
-		// values may be available, append "-DataValue" and
+		// Get the data types from the GroupDef table.  Because two values may be available, append "-DataValue" and
 		// "-DataValue2" to each group.
 		Vector sensordef_Vector = null;
-		try {	sensordef_Vector =
-			__DIADvisor_dmi.readSensorDefListForDistinctGroup();
+		try {
+		    sensordef_Vector = __DIADvisor_dmi.readSensorDefListForDistinctGroup();
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, routine, e );
 			Message.printWarning ( 2, routine, __DIADvisor_dmi.getLastSQLString() );
 		}
 		// For now always list a DataValue and DataValue2, even though
-		// DataValue2 may not be available - need to get more info from
-		// DIAD to know how to limit...
+		// DataValue2 may not be available - need to get more info from DIAD to know how to limit...
 
 		int size = 0;
 		if ( sensordef_Vector != null ) {
@@ -13231,7 +13267,8 @@ private void uiAction_InputTypeChoiceClicked()
 
 		// Initialize with blank data vector...
 
-		try {	__query_TableModel = new TSTool_HydroBase_TableModel(
+		try {
+		    __query_TableModel = new TSTool_HydroBase_TableModel(
 			__query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null);
 			TSTool_HydroBase_CellRenderer cr =
 			new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
@@ -13250,8 +13287,7 @@ private void uiAction_InputTypeChoiceClicked()
 	}
 	}
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_MEXICO_CSMN ) ) {
-		// Most information is determined from the file but let the
-		// user limit the time series that will be liste...
+		// Most information is determined from the file but let the user limit the time series that will be liste...
 		__input_name_JComboBox.removeAll();
 		__input_name_JComboBox.setEnabled ( false );
 
@@ -13352,8 +13388,7 @@ private void uiAction_InputTypeChoiceClicked()
 
 		if ( (__input_name_JComboBox.getItemCount() == 1) && (__input_name_JComboBox.getSelected().equals(__BROWSE))){
 			// Only Browse is in the list so if the user picks, the
-			// component does not generate an event because the
-			// choice has not changed.
+			// component does not generate an event because the choice has not changed.
 			try {
                 uiAction_SelectInputName_NWSRFS_FS5Files ( false );
 			}
@@ -13363,8 +13398,7 @@ private void uiAction_InputTypeChoiceClicked()
 			}
 		}
 		else if ( choice_ok ) {
-			// The current open DMI was able to be selected above.
-			// Need to force the data types to cascade...
+			// The current open DMI was able to be selected above. Need to force the data types to cascade...
 			uiAction_InputNameChoiceClicked();
 		}
 
@@ -15889,12 +15923,10 @@ throws Exception
 			date_output = NWSRFS_Util.mdyh1 ( jday, inthr );
 
 			jul = NWSRFS_Util.julda (
-				date_input.getMonth(), date_input.getDay(),
-				date_input.getYear(), date_input.getHour() );
+			        date_input.getMonth(), date_input.getDay(), date_input.getYear(), date_input.getHour() );
 			jhour2 = (jul[0] - 1)*24 + jul[1];
 			Message.printStatus ( 2, routine,
-			"Hour " + i + " -> " + date_output +
-			"  Date " + date_input + " -> " + jhour2 );
+			        "Hour " + i + " -> " + date_output + "  Date " + date_input + " -> " + jhour2 );
 		}
 	}
 	else if ( test_num == 3 ) {
