@@ -11,6 +11,7 @@
 	 description="Merges PDF documentation into doc/dist_CDSS folder" >
 		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_CDSS_fileList.txt" />
 		<property name="pdfsrc.dir" location="doc/UserManual/Word" />
+        <mkdir dir="doc/UserManual/dist_CDSS/"/>
 		<property name="pdf_file" location="doc/UserManual/dist_CDSS/TSTool.pdf" />
 		<antcall target="mergePDF" inheritall="true"></antcall>
 	</target>
