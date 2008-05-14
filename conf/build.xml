@@ -12,6 +12,18 @@
 		<property name="pdf_file" location="doc/UserManual/dist_RTi/TSTool.pdf" />
 		<antcall target="mergePDF" inheritall="true"></antcall>
 	</target>
+	
+	<!-- Override the license install since it is interfering with the basic TSTool.cfg file copy above -->
+	<target name="-install-license">
+		<!-- Do nothing -->
+	</target>
+	
+	<!-- Build demo installer that has 60-day license - for now require pre-generated config file
+	TODO SAM 2008-05-14 Work with Ian to auto-generate the license file
+	-->
+	<target name="installer-demo" depends="installer">
+		<copy tofile="${install.dir}/system/TSTool.cfg" file="resources/runtime/system-RTi/TSTool-demo.cfg"/>
+	</target>
     
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local">
