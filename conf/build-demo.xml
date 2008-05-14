@@ -24,7 +24,7 @@
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
-        <copy todir="${install.dir}/system" file="resources/runtime/system-RTi/TSTool.cfg"/>
+    	<copy tofile="${install.dir}/system/TSTool.cfg" file="resources/runtime/system-RTi/TSTool-demo.cfg"/>
         <!-- Also copy the CDSS.cfg because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<mkdir dir="${install.dir}/logs"/>
