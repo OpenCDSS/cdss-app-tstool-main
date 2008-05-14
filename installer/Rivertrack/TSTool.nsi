@@ -22,7 +22,7 @@
 # Define Vars
 !define DISPLAYNAME "TSTool"
 Name "${DISPLAYNAME}"
-!define VERSION 7.00.00
+!define VERSION 08.15.01beta
 !define NAMEVERSION $(^Name)-${VERSION}
 !define REGKEY "Software\RTi\${NAMEVERSION}"
 !define COMPANY RTi
@@ -53,8 +53,8 @@ Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
-OutFile "dist\TSTool_CDSS_${VERSION}_Setup.exe"
-InstallDir "C:\Program Files\RTi"
+OutFile "dist\TSTool_${VERSION}_Setup.exe"
+InstallDir "C:\Program Files\RTi\TSTool_${VERSION}"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines

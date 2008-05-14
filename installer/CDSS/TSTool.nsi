@@ -3,9 +3,9 @@
 # DATE: Mar 17 2008
 
 !define DISPLAYNAME "TSTool"
-!define VERSION 7.00.00
+!define VERSION 08.15.01beta
 !define FILE_EXT ".TSTool"
-!define FILE_DESC "TSTool commands file"
+!define FILE_DESC "TSTool command file"
 !define CONFIGURE_HYDROBASE "true"
 !define INST_BUILD_DIR "dist\install-CDSS"
 
