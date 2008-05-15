@@ -22,8 +22,11 @@
 # Define Vars
 !define DISPLAYNAME "TSTool"
 Name "${DISPLAYNAME}"
-!define VERSION 08.15.01beta
-!define NAMEVERSION $(^Name)-${VERSION}
+!ifndef VERSION
+    !error "VERSION must be defined"
+!endif
+
+!define NAMEVERSION ${DISPLAYNAME}-${VERSION}
 !define REGKEY "Software\RTi\${NAMEVERSION}"
 !define COMPANY RTi
 !define URL http://www.riverside.com
@@ -31,10 +34,10 @@ Name "${DISPLAYNAME}"
 !define JRE_VERSION "142"
 !define INSTALL_IS_CDSS "false"
 !define INST_BUILD_DIR "dist\install-rti"
+!define USER_MANUAL "doc\UserManual\${DISPLAYNAME}.pdf"
 # uncomment to skip some sections to allow installer compilation to run faster
 #!define TEST "true"
 # change working directory to product root to make paths more sane!
-!cd "..\..\"
 
 SetCompressor lzma
 BrandingText "Riverside Technology, inc."
@@ -53,7 +56,11 @@ Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
-OutFile "dist\TSTool_${VERSION}_Setup.exe"
+!ifdef VERSIONPREFIX
+    OutFile "dist\${DISPLAYNAME}_${VERSIONPREFIX}_${VERSION}_Setup.exe"
+!else
+    OutFile "dist\${DISPLAYNAME}_${VERSION}_Setup.exe"
+!endif
 InstallDir "C:\Program Files\RTi\TSTool_${VERSION}"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
@@ -70,7 +77,7 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 !define MUI_ABORTWARNING
 
 # MUI Overrides for Text
-!define MUI_PAGE_HEADER_SUBTEXT "This wizard will guide you through the installation of $(^Name)"
+!define MUI_PAGE_HEADER_SUBTEXT "This wizard will guide you through the installation of ${DISPLAYNAME}"
 !define MUI_WELCOMEPAGE_TEXT "It is recommended that you close all other RiverTrak® System applications before starting this Setup. This will make it possible to update relevant RiverTrak® System files without any conflicts.  Please close all RiverTrak® System specific applications, files and folders and click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install by checking the corresponding boxes.  Click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO "Position the mouse over a component to view its description."
@@ -221,8 +228,7 @@ Section "Documentation" Docs
     SetOutPath $INSTDIR\doc
     SetOverwrite on
 
-    # @Todo Where are the docs?
-    #File /r /x *svn* ..\..\doc\TSTool\Rivertrak\*
+    File /r /x *svn* ${INST_BUILD_DIR}\doc
 
 SectionEnd
 
@@ -246,7 +252,7 @@ Section "Start Menu" StartMenu
     # Shortcut added for launch of java program
     SetOutPath $SMPROGRAMS\$StartMenuGroup
     SetOutPath $INSTDIR\bin
-    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk" "$INSTDIR\bin\$(^Name).exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk" "$INSTDIR\bin\${DISPLAYNAME}.exe"
     
     # Shortcut for uninstall of program
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
@@ -260,7 +266,7 @@ Section "Start Menu" StartMenu
       
     # Shortcut for TSTool documentation
     SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk" $INSTDIR\doc\$(^Name)\UserManual\$(^Name).pdf
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION}.lnk" $INSTDIR\${USER_MANUAL}
       
     !insertmacro MUI_STARTMENU_WRITE_END  
       
@@ -321,15 +327,25 @@ Section "Uninstall"
     RmDir /REBOOTOK $SMPROGRAMS\$StartMenuGroup
     RmDir /REBOOTOK $SMPROGRAMS\RTi
     
+    DetailPrint "Removing ${CODENAME}"
     # Remove files from install directory
-    Delete /REBOOTOK $INSTDIR\bin\TSTool.bat
-    Delete /REBOOTOK $INSTDIR\bin\TSTool_142.jar
-    RmDir /r /REBOOTOK $INSTDIR\doc\TSTool
-    RmDir /REBOOTOK $INSTDIR\doc
-    Delete /REBOOTOK $INSTDIR\system\TSTool.cfg
-    Delete /REBOOTOK $INSTDIR\TSTool_README.txt
-    Delete /REBOOTOK $INSTDIR\bin\TSTool.exe
-    Delete /REBOOTOK $INSTDIR\bin\TSTool.ini
+    RmDir /r /REBOOTOK $INSTDIR\doc
+    RmDir /r /REBOOTOK $INSTDIR\system
+    RmDir /r /REBOOTOK $INSTDIR\bin
+    RmDir /r /REBOOTOK $INSTDIR\logs
+    
+    !ifdef FILE_EXT
+        DetailPrint "Unregister file extensions"
+        ${unregisterExtension} "$INSTDIR\bin\${CODENAME}.exe" "${FILE_EXT}"
+    !endif
+    
+    # uninstall base components
+    Call un.JRE
+
+    # DON'T DO /r HERE!!!
+    RmDir /REBOOTOK $INSTDIR
+    RmDir /REBOOTOK $INSTDIR\..
+
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 
 SectionEnd
