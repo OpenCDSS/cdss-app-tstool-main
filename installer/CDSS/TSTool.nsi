@@ -12,7 +12,4 @@
 # uncomment to skip some sections to allow installer compilation to run faster
 #!define TEST "true"
 
-# change working directory to product root to make paths more sane!
-!cd "..\..\"
-
 !include externals\CDSS\installer\cdss.nsh
