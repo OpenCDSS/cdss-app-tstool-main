@@ -8,8 +8,6 @@
     <property name="nsis.defines" value="/DVERSIONPREFIX=Demo"/>
     <!-- specify the license file to use for the local-install-->
     <property name="license.file" value="resources/runtime/system-RTi/TSTool-demo.cfg"/>
-    <property name="nsis.version" value="08.15.01beta"/>
-	
 	<!-- Create the TSTool RTi PDF user manual -->
 	<target name="create-user-manual-rti"
 	 description="Merges PDF documentation into doc/dist_RTi folder" >
