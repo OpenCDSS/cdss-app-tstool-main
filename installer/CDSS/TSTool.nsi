@@ -3,7 +3,6 @@
 # DATE: Mar 17 2008
 
 !define DISPLAYNAME "TSTool"
-!define VERSION 08.15.01beta
 !define FILE_EXT ".TSTool"
 !define FILE_DESC "TSTool command file"
 !define CONFIGURE_HYDROBASE "true"
