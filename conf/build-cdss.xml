@@ -33,12 +33,4 @@
 		<!-- Do nothing -->
 	</target>
     
-    <target name="-standard-exe" depends="-init-installer" description="create launch4j installer">
-        <launch4j-exe>
-            <opts>
-                <opt>"-Dtstool.home=%EXEDIR%/.."</opt>
-            </opts>
-        </launch4j-exe>
-    </target>
-    
 </project>
