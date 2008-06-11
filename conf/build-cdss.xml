@@ -1,7 +1,7 @@
 <project name="CDSS" default="compile" basedir="../">
     
     <import file="../../rtibuild/common-build.xml"/>
-	<import file="../../rtibuild/common-doc.xml"/>
+    <import file="../../rtibuild/common-doc.xml"/>
     <import file="../../rtibuild/common-installer.xml"/>
     
     <property file="conf/product-cdss.properties"/>
@@ -21,16 +21,11 @@
         <copy todir="${install.dir}/bin" file="resources/runtime/bin/TSTool.bat"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
-        <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/TSTool.cfg" verbose="true"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<mkdir dir="${install.dir}/logs"/>
     	<mkdir dir="${install.dir}/doc/UserManual"/>
         <copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_CDSS/TSTool.pdf"/>
     </target>
 	
-	<!-- Override the license install since it is interfering with the basic TSTool.cfg file copy above -->
-	<target name="-install-license">
-		<!-- Do nothing -->
-	</target>
     
 </project>
