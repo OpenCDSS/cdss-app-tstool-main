@@ -1316,18 +1316,18 @@ private String
 
 	__Commands_String = "Commands",
 
-	__Commands_ConvertTSIDToReadCommand_String = "Convert TS identifier to read command",
-	__Commands_ConvertTSIDTo_ReadTimeSeries_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadTimeSeries()",
-	__Commands_ConvertTSIDTo_ReadDateValue_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadDateValue()",
-    __Commands_ConvertTSIDTo_ReadDelimitedFile_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadDelimitedFile()",
-	__Commands_ConvertTSIDTo_ReadHydroBase_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadHydroBase()",
-	__Commands_ConvertTSIDTo_ReadMODSIM_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadMODSIM()",
-	__Commands_ConvertTSIDTo_ReadNwsCard_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadNwsCard()",
-	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadNWSRFSFS5Files()",
-	__Commands_ConvertTSIDTo_ReadRiverWare_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadRiverWare()",
-	__Commands_ConvertTSIDTo_ReadStateMod_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadStateMod()",
-	__Commands_ConvertTSIDTo_ReadStateModB_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadStateModB()",
-	__Commands_ConvertTSIDTo_ReadUsgsNwis_String = TAB + "Convert TS identifier (X.X.X.X.X) to TS Alias = ReadUsgsNwis()",
+	__Commands_ConvertTSIDToReadCommand_String = "Convert TS Identifier to Read Command",
+	__Commands_ConvertTSIDTo_ReadTimeSeries_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadTimeSeries()",
+	__Commands_ConvertTSIDTo_ReadDateValue_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadDateValue()",
+    __Commands_ConvertTSIDTo_ReadDelimitedFile_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadDelimitedFile()",
+	__Commands_ConvertTSIDTo_ReadHydroBase_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadHydroBase()",
+	__Commands_ConvertTSIDTo_ReadMODSIM_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadMODSIM()",
+	__Commands_ConvertTSIDTo_ReadNwsCard_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadNwsCard()",
+	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadNWSRFSFS5Files()",
+	__Commands_ConvertTSIDTo_ReadRiverWare_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadRiverWare()",
+	__Commands_ConvertTSIDTo_ReadStateMod_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadStateMod()",
+	__Commands_ConvertTSIDTo_ReadStateModB_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadStateModB()",
+	__Commands_ConvertTSIDTo_ReadUsgsNwis_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadUsgsNwis()",
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()...  <read 1(+) time series from a list of identifiers>",
@@ -13809,10 +13809,7 @@ private void uiAction_OpenDIADvisor ()
 }
 
 /**
-Open a connection to the HydroBase database.  If running in batch mode, the
-CDSS configuration file is used to determine HydroBase server and database name
-properties to use for the initial connection.  If no configuration file
-exists, then a default connection is attempted.
+Open a connection to the HydroBase database.
 @param startup If true, indicates that the database connection is being made
 at startup.  This is the case, for example, when multiple HydroBase databases
 may be available and there is no reason to automatically connect to one of them
@@ -13821,74 +13818,37 @@ for all users.
 private void uiAction_OpenHydroBase ( boolean startup )
 {	String routine = "TSTool_JFrame.uiAction_OpenHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
-	/* Does not apply since only in GUI mode here
-	if ( IOUtil.isBatch() || !__show_main ) {
-		// Running in batch mode or without a main GUI so automatically
-		// open HydroBase from the TSTool.cfg file information...
-		// Get the input needed to process the file...
-		String hbcfg = HydroBase_Util.getConfigurationFile();
-		PropList props = null;
-		if ( IOUtil.fileExists(hbcfg) ) {
-			// Use the configuration file to get HydroBase properties...
-			try {
-                props = HydroBase_Util.readConfiguration(hbcfg);
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Error reading HydroBase configuration file \""+ hbcfg + "\".  Using defaults for HydroBase." );
-				Message.printWarning ( 3, routine, e );
-				props = null;
-			}
-		}
-		
-		try {
-            // Now open the database...
-			// This uses the guest login.  If properties were not
-			// found, then default HydroBase information will be used.
-			__hbdmi = new HydroBaseDMI ( props );
-			__hbdmi.open();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
-			Message.printWarning ( 3, routine, e );
-			__hbdmi = null;
+
+    // Running interactively so prompt the user to select and login to HydroBase.
+	// This is a modal dialog that will not allow anything else to occur until the
+	// information is entered.  Use a PropList to pass information because there are many
+	// parameters that may change in the future.
+
+	PropList hb_props = new PropList ( "SelectHydroBase" );
+	hb_props.set ( "ValidateLogin", "false" );
+	hb_props.set ( "ShowWaterDivisions", "false" );
+
+	// Pass in the previous HydroBaseDMI so that its information
+	// can be displayed as the initial values...
+
+	SelectHydroBaseJDialog selectHydroBaseJDialog = null;
+	try {
+        // Let the dialog check HydroBase properties in the CDSS configuration file...
+		selectHydroBaseJDialog = new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
+		// After getting to here, the dialog has been closed.
+		// The HydroBaseDMI from the dialog can be retrieved and used...
+		__hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
+		if ( __hbdmi == null ) {
+			Message.printWarning ( 1, routine, "HydroBase features will be disabled." );
 		}
 	}
-	else { */
-        // Running interactively so prompt the user to login...
-		// Display the dialog to select the database.  This is a modal
-		// dialog that will not allow anything else to occur until the
-		// information is entered.  Use a PropList to pass information
-		// because there are a lot of parameters and the list may change
-		// in the future.
-	
-		PropList hb_props = new PropList ( "SelectHydroBase" );
-		hb_props.set ( "ValidateLogin", "false" );
-		hb_props.set ( "ShowWaterDivisions", "false" );
-
-		// Pass in the previous HydroBaseDMI so that its information
-		// can be displayed as the initial values...
-
-		SelectHydroBaseJDialog selectHydroBaseJDialog = null;
-		try {
-            // Let the dialog check HydroBase properties in the CDSS configuration file...
-			selectHydroBaseJDialog = new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
-			// After getting to here, the dialog has been closed.
-			// The HydroBaseDMI from the dialog can be retrieved and used...
-			__hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
-			if ( __hbdmi == null ) {
-				Message.printWarning ( 1, routine, "HydroBase features will be disabled." );
-			}
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-                    "Error opening HydroBase connection.  HydroBase features will be disabled." );
-			Message.printWarning ( 3, routine, e );
-			__hbdmi = null;
-		}
-		/*
+	catch ( Exception e ) {
+		Message.printWarning ( 1, routine,
+                "Error opening HydroBase connection.  HydroBase features will be disabled." );
+		Message.printWarning ( 3, routine, e );
+		__hbdmi = null;
 	}
-	*/
+
 	// Set the HydroBaseDMI for the command processor...
 	commandProcessor_SetHydroBaseDMI ( __hbdmi );
 	// Enable/disable HydroBase features as necessary...

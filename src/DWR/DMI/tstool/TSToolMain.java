@@ -423,10 +423,18 @@ package DWR.DMI.tstool;
 import java.io.File;
 import java.util.Vector;
 
+import java.awt.Frame;
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 
 import rti.tscommandprocessor.core.TSCommandFileRunner;
+
+import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
+import DWR.DMI.HydroBaseDMI.HydroBase_Util;
+
+import RTi.GRTS.TSViewGraphJFrame;
+import RTi.GRTS.TSViewSummaryJFrame;
+import RTi.GRTS.TSViewTableJFrame;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.IO.DataUnits;
@@ -444,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.15.02 beta (2008-05-15)";
+public static final String PROGRAM_VERSION = "8.15.03 (2008-06-11)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -480,9 +488,10 @@ private static boolean __run_commands_on_load = false;
 
 /**
 Indicates whether the main GUI is shown, for cases where TSTool is run in
-in limited interactive mode, with only the plot window shown.
+in batch mode, with only the plot window shown.  If running in interactive mode the
+GUI is always shown.
 */
-private static boolean __show_main_gui = true;	
+private static boolean __showMainGUI = true;	
 
 /**
 Command file being processed when run in batch mode with -commands File.
@@ -682,12 +691,10 @@ public static void main ( String args[] )
 	initializeAfterHomeIsKnown ();
 
 	Message.printStatus ( 1, routine,
-	        "Setup completed.  showmain = " + __show_main_gui + " isbatch=" + IOUtil.isBatch() );
+	        "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
 	
 	if ( IOUtil.isBatch() ) {
-	    // FIXME SAM 2008-01-11 determine whether batch mode works with TS Products (no main GUI)
-	    // Maybe -nomaingui is no longer needed.
-		// Running like "tstool -commands file"
+		// Running like "tstool -commands file" (possibly with -nomaingui)
 		TSCommandFileRunner runner = new TSCommandFileRunner();
 		try {
 		    String command_file_full = getCommandFile();
@@ -700,9 +707,51 @@ public static void main ( String args[] )
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
+		// Open the HydroBase connection if the configuration file specifies the information.
+		openHydroBase ( runner );
+		// If running with -nomaingui, then plot windows should be displayed and when closed cause the
+		// run to end - this should be used with external applications that use TSTool as a plotting tool
+		if ( !__showMainGUI ) {
+		    // Create a hidden JFrame to handle close-out of the application when a plot window is closed.
+		    TSToolBatchWindowListener windowListener = new TSToolBatchWindowListener();
+		    runner.getProcessor().setPropContents("TSViewListener",windowListener);
+		}
 		try {
             runner.runCommands();
-			quitProgram ( 0 );
+            if ( __showMainGUI ) {
+                // No special handling of windows since -nomaingui was not not specified.  just exit.
+                quitProgram ( 0 );
+            }
+            else {
+                // Not showing the main GUI.  Exit here if there are no plot windows - otherwise
+                // will hang.  If windows are found, let the GUI WindowListener handle when to close the
+                // application.
+                Frame [] frameArray = Frame.getFrames();
+                int size = 0;
+                if ( frameArray != null ) {
+                    size = frameArray.length;
+                }
+                boolean openWindowFound = false;    // Are any windows open?  If no, exit
+                // Check for windows that could be open as part of visualization, including
+                // the graph, summary, and table windows.  If any are visible, then need to wait
+                // until the user closes all.  Then WindowClosing will be called since no more
+                // windows are shown.
+                for ( int i = 0; i < size; i++ ) {
+                    if ( frameArray[i] instanceof TSViewGraphJFrame ||
+                            frameArray[i] instanceof TSViewSummaryJFrame ||
+                            frameArray[i] instanceof TSViewTableJFrame ) {
+                        if ( frameArray[i].isVisible() ) {
+                            openWindowFound = true;
+                            break;
+                        }
+                    }
+                }
+                // If no open window was found quit.  Otherwise let the TSToolBatchWindowListener
+                // handle the close.
+                if ( !openWindowFound ) {
+                    quitProgram ( 0 );
+                }
+            }
 		}
 		catch ( Exception e ) {
 			// Some type of error
@@ -735,6 +784,50 @@ public static void main ( String args[] )
 		Message.printWarning ( 1, routine, e2 );
 		quitProgram ( 1 );
 	}
+}
+
+/**
+Open the HydroBase connection using the CDSS configuration file information, when running
+in batch mode.  The CDSS configuration file is used to determine HydroBase server and
+database name properties to use for the initial connection.  If no configuration file
+exists, then a default connection is attempted.
+*/
+private static void openHydroBase ( TSCommandFileRunner runner )
+{   String routine = "TSToolMain.openHydroBase";
+    if ( IOUtil.isBatch() ) {
+        // Running in batch mode or without a main GUI so automatically
+        // open HydroBase from the CDSS.cfg file information...
+        // Get the input needed to process the file...
+        String hbcfg = HydroBase_Util.getConfigurationFile();
+        PropList props = null;
+        if ( IOUtil.fileExists(hbcfg) ) {
+            // Use the configuration file to get HydroBase properties...
+            try {
+                props = HydroBase_Util.readConfiguration(hbcfg);
+            }
+            catch ( Exception e ) {
+                Message.printWarning ( 1, routine,
+                "Error reading CDSS configuration file \""+ hbcfg + "\".  Using defaults for HydroBase." );
+                Message.printWarning ( 3, routine, e );
+                props = null;
+            }
+        }
+        
+        try {
+            // Now open the database...
+            // This uses the guest login.  If properties were not
+            // found, then default HydroBase information will be used.
+            HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
+            hbdmi.open();
+            Vector hbdmi_Vector = new Vector(1);
+            hbdmi_Vector.add ( hbdmi );
+            runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
+            Message.printWarning ( 3, routine, e );
+        }
+    }
 }
 
 /**
@@ -876,8 +969,8 @@ throws Exception
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
 			// Don't make the main GUI visible...
-			Message.printStatus ( 1, routine, "Will process command file using hidden main GUI." );
-			__show_main_gui = false;
+			Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
+			__showMainGUI = false;
 		}
 	    // User specified or specified by a script/system call to the normal TSTool script/launcher.
         else if (args[i].equalsIgnoreCase("-runcommandsonload")) {
