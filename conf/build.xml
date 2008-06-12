@@ -13,10 +13,6 @@
 		<antcall target="mergePDF" inheritall="true"></antcall>
 	</target>
 	
-	<!-- Override the license install since it is interfering with the basic TSTool.cfg file copy above -->
-	<target name="-install-license">
-		<!-- Do nothing -->
-	</target>
 	
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local">
@@ -24,12 +20,16 @@
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
-        <copy todir="${install.dir}/system" file="resources/runtime/system-RTi/TSTool.cfg"/>
         <!-- Also copy the CDSS.cfg because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<mkdir dir="${install.dir}/logs"/>
     	<mkdir dir="${install.dir}/doc/UserManual"/>
         <copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_RTi/TSTool.pdf"/>
+    </target>
+
+    <target name="local-install-demo">
+        <property name="license.file" value="resources/runtime/system-RTi/TSTool-demo.cfg"/>
+        <antcall target="local-install" inheritall="true"/>
     </target>
     
 </project>
