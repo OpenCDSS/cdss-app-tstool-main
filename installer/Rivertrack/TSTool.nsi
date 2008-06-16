@@ -81,7 +81,7 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 !define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of ${DISPLAYNAME}."
 !define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install by checking the corresponding boxes.  Click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO "Position the mouse over a component to view its description."
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install TSTool in the following folder.  It is recommended that the main RTi folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install TSTool in the following folder.  It is recommended that a versioned folder under the main RTi folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "RTi"
 
 ### Use custom button text
@@ -225,7 +225,7 @@ Section "Documentation" Docs
     strcpy $choseDocs "1"
     
     # copy documentation
-    SetOutPath $INSTDIR\doc
+    SetOutPath $INSTDIR
     SetOverwrite on
 
     File /r /x *svn* ${INST_BUILD_DIR}\doc
