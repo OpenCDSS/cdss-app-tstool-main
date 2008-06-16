@@ -712,9 +712,10 @@ public static void main ( String args[] )
 		// If running with -nomaingui, then plot windows should be displayed and when closed cause the
 		// run to end - this should be used with external applications that use TSTool as a plotting tool
 		if ( !__showMainGUI ) {
-		    // Create a hidden JFrame to handle close-out of the application when a plot window is closed.
+		    // Create a hidden listener to handle close-out of the application when a plot window is closed.
+		    Message.printStatus(2,routine, "Displaying plots with no main GUI.");
 		    TSToolBatchWindowListener windowListener = new TSToolBatchWindowListener();
-		    runner.getProcessor().setPropContents("TSViewListener",windowListener);
+		    runner.getProcessor().setPropContents("TSViewWindowListener",windowListener);
 		}
 		try {
             runner.runCommands();
@@ -742,6 +743,8 @@ public static void main ( String args[] )
                             frameArray[i] instanceof TSViewTableJFrame ) {
                         if ( frameArray[i].isVisible() ) {
                             openWindowFound = true;
+                            Message.printStatus(2,routine,
+                                    "Open, visible window detected.  Waiting for close of window to exit.");
                             break;
                         }
                     }
@@ -749,6 +752,8 @@ public static void main ( String args[] )
                 // If no open window was found quit.  Otherwise let the TSToolBatchWindowListener
                 // handle the close.
                 if ( !openWindowFound ) {
+                    Message.printStatus(2,routine,
+                    "No open, visible windows detected.  Exiting.");
                     quitProgram ( 0 );
                 }
             }
@@ -800,6 +805,7 @@ private static void openHydroBase ( TSCommandFileRunner runner )
         // Get the input needed to process the file...
         String hbcfg = HydroBase_Util.getConfigurationFile();
         PropList props = null;
+        boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in config file
         if ( IOUtil.fileExists(hbcfg) ) {
             // Use the configuration file to get HydroBase properties...
             try {
@@ -812,20 +818,26 @@ private static void openHydroBase ( TSCommandFileRunner runner )
                 props = null;
             }
         }
-        
-        try {
-            // Now open the database...
-            // This uses the guest login.  If properties were not
-            // found, then default HydroBase information will be used.
-            HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
-            hbdmi.open();
-            Vector hbdmi_Vector = new Vector(1);
-            hbdmi_Vector.add ( hbdmi );
-            runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+        String propval = props.getValue ( "HydroBaseEnabled");
+        if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
+            HydroBase_enabled = true;
         }
-        catch ( Exception e ) {
-            Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
-            Message.printWarning ( 3, routine, e );
+        
+        if ( HydroBase_enabled ) {
+            try {
+                // Now open the database...
+                // This uses the guest login.  If properties were not
+                // found, then default HydroBase information will be used.
+                HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
+                hbdmi.open();
+                Vector hbdmi_Vector = new Vector(1);
+                hbdmi_Vector.add ( hbdmi );
+                runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+            }
+            catch ( Exception e ) {
+                Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
+                Message.printWarning ( 3, routine, e );
+            }
         }
     }
 }
