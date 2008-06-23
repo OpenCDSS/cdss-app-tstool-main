@@ -4,7 +4,7 @@
 	<import file="../../rtibuild/common-doc.xml"/>
     <import file="../../rtibuild/common-installer.xml"/>
     
-    <!-- pass defines to nsis script. currently only Rivertrack/TSTool.nsi accepts this-->
+    <!-- pass defines to nsis script. currently only RTi/TSTool.nsi accepts this-->
     <property name="nsis.defines" value="/DVERSIONPREFIX=Demo"/>
     <!-- specify the license file to use for the local-install-->
     <property name="license.file" value="resources/runtime/system-RTi/TSTool-demo.cfg"/>
