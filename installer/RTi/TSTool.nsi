@@ -1,20 +1,12 @@
 #############################################################
-# AUTHOR: Kurt Tometich
-# DATE: Aug 26, 2006
-#
 # BRIEF:
-#  This NSIS script creates an executable
-#  install file:"TsTool_Rivertrak_version_setup.exe"
-#  This .exe install file will setup TsTool
-#  programs and allow the user to choose
-#  from certain components to install
+#  This NSIS script creates an executable install file:  "TSTool_*_setup.exe"
 #
 # COMPONENTS:
 #  BaseComponents - base jar files in bin
 #  Documentation  - pdf's and text files for this release
-#  TsTool - installs TsTool specific files (jars, bats, etc)
-#  Start Menu Shortcuts - installs shortcuts to run TsTool
-#                          and uninstall TsTool
+#  TSTool - installs TSTool specific files (jars, bats, etc)
+#  Start Menu Shortcuts - installs shortcuts to run TSTool and uninstall TSTool
 #  DesktopShortcut - should be self explanatory
 #
 ##############################################################
@@ -56,23 +48,25 @@ Var choseJRE
 #Var numInstComponents
 
 # Installer attributes
+# Name of setup.exe file that is created.  The VERSIONPREFIX might be "Demo"
 !ifdef VERSIONPREFIX
-    OutFile "dist\${DISPLAYNAME}_${VERSIONPREFIX}_${VERSION}_Setup.exe"
+    OutFile "dist\${DISPLAYNAME}-${VERSIONPREFIX}-${VERSION}-Setup.exe"
 !else
-    OutFile "dist\${DISPLAYNAME}_${VERSION}_Setup.exe"
+    OutFile "dist\${DISPLAYNAME}-${VERSION}-Setup.exe"
 !endif
-InstallDir "C:\Program Files\RTi\TSTool_${VERSION}"
+# Default installation folder
+InstallDir "C:\Program Files\RTi\TSTool-${VERSION}"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
-!define MUI_ICON "externals\Rivertrak\graphics\RTi.ico"
+!define MUI_ICON "..\rtibuild\resources\RTi.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULT_FOLDER RTi
-!define MUI_UNICON "externals\Rivertrak\graphics\RTi.ico"
+!define MUI_UNICON "..\rtibuild\resources\RTi.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
@@ -101,9 +95,6 @@ MiscButtonText "Back" "Next" "Cancel" "Done"
 # Installer language
 !insertmacro MUI_LANGUAGE English
 
-ReserveFile "externals\Rivertrak\installer\server_name.ini"
-!insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
-
 !addincludedir ..\rtibuild\externals\NSIS_Common
 !include PathManipulation.nsh
 !include RegisterExtension.nsh
@@ -111,11 +102,6 @@ ReserveFile "externals\Rivertrak\installer\server_name.ini"
 !ifndef TEST
     !include JRE.nsh
 !endif
-!addincludedir externals\Rivertrak\installer
-# @todo - revisit whether BaseComponents needed
-#!include BaseComponents.nsh
-!include server_name.nsh
-
 
 ##################################################################
 # SECTION: -setInstallVariables
@@ -357,7 +343,6 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${TSTool} "Enabling this component will install TSTool software files under the main folder"
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders"
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the TSTool software"
-  !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the RiverTrak® System base components"
   !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java Runtime Environment (JRE) for TSTool under the main folder"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
@@ -413,7 +398,6 @@ Function .onInit
     
     
     InitPluginsDir
-    !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "externals\Rivertrak\installer\server_name.ini" "server_name.ini"
     
     # check user privileges and abort if not admin
     ClearErrors
