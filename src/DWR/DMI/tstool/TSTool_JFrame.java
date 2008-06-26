@@ -2960,16 +2960,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_General_Logging_SetWarningLevel_String) ||
-		command.regionMatches(true,0,"setWarningLevel",0,15) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setWarningLevel()" );
-		}
-		edited_cv = new setWarningLevel_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_General_Running_SetWorkingDir_String) ||
 		command.regionMatches(true,0,"setWorkingDir",0,13) ) {
 		if ( Message.isDebugOn ) {
@@ -6893,8 +6883,7 @@ Return the last directory for "Run Command File", which runs an external command
 but does not show the results.
 */
 private String ui_GetDir_LastExternalCommandFileRun()
-{   String routine = "TSTool_JFrame.ui_GetDir_LastExternalCommandFileRun";
-	
+{
     if ( __Dir_LastExternalCommandFileRun != null ) {
         return __Dir_LastExternalCommandFileRun;
     }
@@ -8315,10 +8304,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunProgram_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunProgram_String,this));
-    if ( license_IsInstallRTi(license_GetLicenseManager()) ) {
-        __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
-    }
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
