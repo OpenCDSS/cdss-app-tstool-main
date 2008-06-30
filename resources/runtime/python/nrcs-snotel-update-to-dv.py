@@ -129,6 +129,41 @@ def main ():
 	#runTSTool()
 	return
 
+def appendToDateValueHeaderStrings( TSID, description, units, missingVal,
+	dataFlags, dateLine, delim, locName, dataType ):
+	"""
+	Append to the DateValue header strings.
+	This can be called with basin or station time series data.
+
+	TSID - the TSID data for the DateValue file, from previous time series
+	description - the description data for the DateValue file, from previous time series
+	units - the units data for the DateValue file, from previous time series
+	missingVal - the missing value data for the DateValue file, from previous time series
+	dataFlags - the data flags for the DateValue file, from previous time series
+	dateLine - the "Date" line at the end of the header, from previous time series
+	delim - the delimiter to use
+	locName - location (basin or station) name
+	dataType - data type for time series
+
+	Return a tuple having the header strings:
+	TSID, description, units, missingVal, dataFlags, dateLine
+	"""
+	delim2 = delim
+	if ( len(TSID) == 0 ):
+		delim2 = ""
+	TSID = TSID + delim2 + "\"" + locName + ".SNOTEL." + dataType + ".Day\""
+	description = description + delim2 + "\"" + dataType + "\""
+	if ( dataType.find("Percent") > 0 ):
+		units = units + delim2 + "\"Percent\""
+	else:
+		units = units + delim2 + "\"IN\""
+	missingVal = missingVal + delim2 + "-999"
+	dataFlags = dataFlags + delim2 + "true"
+	if ( len(dateLine) == 0 ):
+		dateLine = "Date"
+	dateLine = dateLine + delim + "\"" + locName + ", " + dataType + "\"" + delim + "DataFlag"
+	return TSID, description, units, missingVal, dataFlags, dateLine
+
 def convertDictToDateValueFile ( dict, dvFile, dataDate ):
 	"""
 	Convert the dictionary of time series data values and flags to a
@@ -138,7 +173,9 @@ def convertDictToDateValueFile ( dict, dvFile, dataDate ):
 	dvFile - DateValue file to write
 	"""
 	f = open ( dvFile, 'w' )
-	writeDateValueHeader ( f, dict, dataDate )
+	delim = ','
+	writeDateValueHeader ( f, dict, dataDate, delim )
+	writeDateValueData ( f, dict, dataDate, delim )
 	f.close()
 	return
 
@@ -151,14 +188,30 @@ def convertNrcsSnotelUpdateFileToDict ( updateFile ):
 	Return a tuple of the dictionary and the date for the data (from the file header).
 	The dictionary has the form:
 
-		key = Basin/Station Name
-		object = dict {
-			
+		fileDict {
+			key = "BasinName", oject = basinDict {
+				key = "DataDict", object = dict {
+					key = dataType, object = string flag or number value
+					...
+				}
+				key = "StationName", object = dict {
+					key = "DataDict", object = dict valueDict {
+						key = dataType, object = string flag or number value
+						...
+					}
+				}
 			}
 	"""
+	# Get logger
+	logger = logging.getLogger()
+	# Dictionary for file (top of the data model)
+	basinCount = 0
+	stationCount = 0
+	fileDict = dict()
 	infp = open( updateFile)
 	# Find the "COLORADO" line
 	for line in infp:
+		logger.info ( 'Reading line "' + line.rstrip() + '"' )
 		if ( line.startswith("COLORADO") ):
 			# Done with header
 			break
@@ -204,53 +257,72 @@ def convertNrcsSnotelUpdateFileToDict ( updateFile ):
 	# Lines that don't start with a space are the basin name.
 	# Lines that start with space and have the second character non-space are the station name.
 	# Lines that start with spaces and "Basin wide" are the basin percent of average
-	# Data values are managed using a dictionary for each station, where the object is another dictionary
-	# that includes (type in parenthesis):
-	#	Basin (string)
+	# Data values are managed using a dictionary, where the key is a data parameter name and
+	# the object is the data value:
 	#	SWE (number)
 	#	SWEFlag (string)
 	#	SWEAverage (number)
 	#	SWEPercentOfAverage (number)
 	#	SWEPercentOfAverageFlag (string)
-	# Missing values are indicated by -999 and the character flags are taken from the report:
+	# Missing values are indicated by -999 and the character flags are taken from the report
+	# (see above for explanation):
+	#	M
+	#	*
 	#
-	updateDict = dict()
+	fileDict = dict()
 	for line in infp:
+		lineStripped = line.strip()
+		logger.info ( 'Reading line "' + line.rstrip() + '"' )
 		if ( line.startswith("-") ):
 			# No more data.
 			break
-		elif ( (len(line.strip()) == 0) or (line.strip().startswith("-----  ")) ):
+		elif ( (len(lineStripped) == 0) or lineStripped.startswith("-----  ") ):
 			# Blank line or other non-data
 			continue
-		elif ( line.strip().startswith("Basin wide") ):
-			# Basin totals.  Get from the specific columns, possibly with data flags
-			basinSWEAverage, basinSWEAverageFlag = parseDataValue ( line[47:53].strip() )
+		elif ( lineStripped.startswith("Basin wide") ):
+			# Basin totals - end of this basin.
+			# Get from the specific columns, possibly with data flags
+			basinCount = basinCount + 1
+			basinSWEPercentOfAverage, basinSWEPercentOfAverageFlag = parseDataValue ( line[47:53].strip() )
 			# Add an entry for the basin
-			basinDict = dict()
-			basinDict["BasinSWEAverage"] = basinSWEAverage
-			basinDict["BasinSWEAverageFlag"] = basinSWEAverageFlag
-			updateDict[basinName] = basinDict
-		elif ( (line[0:1] == ' ') and (line[1:2] != ' ') ):
-			# Basin name
+			basinDataDict = dict()
+			basinDict["DataDict"] = basinDataDict
+			basinDataDict["BasinSWEPercentOfAverage"] = basinSWEPercentOfAverage
+			basinDataDict["BasinSWEPercentOfAverageFlag"] = basinSWEPercentOfAverageFlag
+		elif ( line[0:1] != ' ' ):
+			# Basin name - start of this basin.
 			basinName = line.strip()
-		elif ( (line[0:2] == '  ') and (line[2:3] != ' ') ):
+			logger.info('Initializing dictionary for basin "' + basinName + '"' )
+			basinDict = dict()
+			# Create a new station dictionary for the basin to hole station data
+			stationsForBasinDict = dict()
+			basinDict["StationsForBasinDict"] = stationsForBasinDict
+			fileDict[basinName] = basinDict
+		elif ( (line[0:1] == ' ') and (line[1:2] != ' ') ):
 			# Station name
 			stationName = line[1:24].strip()
+			# Remove any periods in the name because this interferes with time series identifiers
+			if ( stationName.find(".") >= 0 ):
+				logger.warn ( "Removing period from station name: \"" + stationName + "\"" )
+				stationName = stationName.replace(".","")
+			stationCount = stationCount + 1
 			stationSWE, stationSWEFlag = parseDataValue ( line[32:38].strip() )
 			stationSWEAverage, stationSWEAverageFlag = parseDataValue ( line[39:46].strip() )
 			stationSWEPercentOfAverage, stationSWEPercentOfAverageFlag = parseDataValue ( line[47:53].strip() )
-			# Add an entry for the station
-			stationDict = dict()
-			stationDict["Basin"] = basinName
-			stationDict["StationSWE"] = stationSWE
-			stationDict["StationSWEFlag"] = stationSWEFlag
-			stationDict["StationSWEAverage"] = stationSWEAverage
-			stationDict["StationSWEAverageFlag"] = stationSWEAverageFlag
-			stationDict["StationSWEPercentOfAverage"] = stationSWEPercentOfAverage
-			stationDict["StationSWEPercentOfAverageFlag"] = stationSWEPercentOfAverageFlag
-			updateDict[stationName] = stationDict
+			# Add entries for the station
+			valueDict = dict()
+			stationsForBasinDict[stationName] = valueDict
+			valueDict["StationSWE"] = stationSWE
+			valueDict["StationSWEFlag"] = stationSWEFlag
+			valueDict["StationSWEAverage"] = stationSWEAverage
+			valueDict["StationSWEAverageFlag"] = stationSWEAverageFlag
+			valueDict["StationSWEPercentOfAverage"] = stationSWEPercentOfAverage
+			valueDict["StationSWEPercentOfAverageFlag"] = stationSWEPercentOfAverageFlag
 	infp.close()
-	return updateDict, dataDate
+	logger.info ( "Read " + str(basinCount) + " basins, with a total of " + str(stationCount) + " stations" )
+	logger.info ( "The number of time series is " + str(basinCount) + "+3*" + str(stationCount) + "=" +
+		str(basinCount + 3*stationCount) )
+	return fileDict, dataDate
 
 def getUser ():
         """
@@ -272,72 +344,88 @@ def getUser ():
 
 
 def initializeLogging ( user, appname ):
-        """
-        Initialize logging for the script.
-        Currently a log file is created in /tmp with the user name and date.
+	"""
+	Initialize logging for the script.
+	Currently a log file is created in /tmp with the user name and date.
 
-        user - user running the software
-        appname - the application (script) name, to use in the log file name
+	user - user running the software
+	appname - the application (script) name, to use in the log file name
 
-        Return a tuple with the logger and the log file for this application (script).
-        """
-        # TODO SAM Discuss with IPC naming convention and location of log
+	Return a tuple with the logger and the log file for this application (script).
+	"""
+	# TODO SAM Discuss with IPC naming convention and location of log
 	today = datetime.date.today()
 	tmp = tempfile.gettempdir()
-        if ( (user == None) or (user.strip() == "") ):
-                # No user name
-                logfile = tmp + "/" + appname + "." + today.strftime("%Y%m%d") + ".txt"
-        else:
-                # Have user name
-                logfile = tmp + "/" + appname + "." + user + "." + today.strftime("%Y%m%d") + ".txt"
-        is_python24 = False
-        version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
-        if ( float(version) >= 2.4 ):
-                is_python24 = True
-        if ( is_python24 == True ):
-                # Use the newer function to configure logging
-                logging.basicConfig ( format = '%(asctime)s %(levelname)8s %(message)s', filename=logfile, filemode = 'w' )
+	if ( (user == None) or (user.strip() == "") ):
+		# No user name
+		logfile = tmp + "/" + appname + "." + today.strftime("%Y%m%d") + ".txt"
+	else:
+		# Have user name
+		logfile = tmp + "/" + appname + "." + user + "." + today.strftime("%Y%m%d") + ".txt"
+	is_python24 = False
+	version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
+	if ( float(version) >= 2.4 ):
+		is_python24 = True
+	if ( is_python24 == True ):
+		# Use the newer function to configure logging
+		logging.basicConfig ( format = '%(asctime)s %(levelname)8s %(message)s', filename=logfile, filemode = 'w' )
 		logger = logging.getLogger()
-        else:
-                # Use the following for Python older than 2.4
-                # For now use the root logger
-                logger = logging.getLogger ()
-                #logger = logging.getLogger(appname)
-                # Open a file with mode ? so as to NOT append
-                hdlr = logging.FileHandler(logfile,'w')
-                formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-                hdlr.setFormatter(formatter)
-                logger.addHandler(hdlr)
-                # For now log everything above info but may need to see what low level code puts out
-                logger.setLevel(logging.INFO)
-        # TODO SAM 2008-03-03 Evaluate putting in more header information similar to Java ioutil.printCreatorHeader()
-        logger.info ( "Running as user:  " + user )
-        return logger, logfile
+	else:
+		# Use the following for Python older than 2.4
+		# For now use the root logger
+		logger = logging.getLogger ()
+		#logger = logging.getLogger(appname)
+		# Open a file with mode ? so as to NOT append
+		hdlr = logging.FileHandler(logfile,'w')
+		formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+		hdlr.setFormatter(formatter)
+		logger.addHandler(hdlr)
+	# For now log everything above info but may need to see what low level code puts out
+	logger.setLevel(logging.INFO)
+	# TODO SAM 2008-03-03 Evaluate putting in more header information similar to Java ioutil.printCreatorHeader()
+	logger.info ( "Running as user:  " + user )
+	return logger, logfile
 
 def parseDataValue ( dataString ):
 	"""
 	Parse a data string and return a tuple of data value and flag.
 
-	dataString - the string to parse, with data value and/or flag
+	dataString - the string to parse, with data value and/or flag (number, -M, or Number*)
 
 	Return the data vale, flag (flag can be "").
 	"""
 	missingValue = -999.0
 	nrcsMissing = "-M"
+	nrcsMissingShort = "M"
 	nrcsUncertain = "*"
-	if ( dataString == "" ):
-		value = missingValue
-		flag = ""
-	if ( dataString == nrcsMissing ):
-		value = missingValue
-		# Don't use the dash for the flag
-		flag = nrcsMissing[1:]
-	elif ( dataString == nrcsUncertain ):
-		value = missingValue
+	dataString = dataString.strip()
+	if ( dataString.endswith(nrcsUncertain) ):
+		# Seems to be basin percent average only?
+		# The value will be blank or can be a number
 		flag = nrcsUncertain
+		if ( len(dataString) == 1 ):
+			# No number
+			value = missingValue
+		else:
+			value = dataString[:len(dataString) - 1]
 	else:
-		value = dataString
-		flag = ""
+		# The value can be a number or a flag
+		if ( dataString == "" ):
+			value = missingValue
+			flag = ""
+		elif ( dataString == nrcsMissing ):
+			value = missingValue
+			# Don't use the dash for the flag
+			flag = nrcsMissingShort
+		elif ( dataString == nrcsUncertain ):
+			value = missingValue
+			flag = nrcsUncertain
+		else:
+			value = dataString
+			flag = ""
+	logger = logging.getLogger()
+	logger.info("parsing \"" + dataString + "\" gives value \"" +
+		str(value) + "\" flag \"" + flag + "\"" )
 	return value, flag
 
 #-------------------------------------------------------------------------------
@@ -350,45 +438,143 @@ def printUsage():
         print ""
         print os.path.basename(sys.argv[0]) + " usage:"
         print ""
-        print os.path.basename(sys.argv[0]) + " updateFile dvFile"
+        print os.path.basename(sys.argv[0]) + " in=updateFile OR startdate=YYYYMMDD [enddate=YYYYMMDD]"
         print ""
-        print "updateFile - NRCS SNOTEL update file name (input)"
-        print "dvFile - DateValue file name (output)"
+        print "in=updateFile - NRCS SNOTEL update file name (input)"
+        print "  DateValue file will have same name with .dv extension"
+        print "startdate=YYYYMMDD - ending date to process (default=today - 7)"
+        print "enddate=YYYYMMDD - ending date to process (default=today)"
         print ""
         return
 
 #-------------------------------------------------------------------------------
-def writeDateValueHeader ( f, dict, dataDate ):
+def writeDateValueData ( f, dict, dataDate, delim ):
+	"""
+	Write the data for the DateValue file.
+
+	f - file descriptor
+	dict - dictionary of time series data
+	dataDate - the date associated with the SNOTEL data file
+	delim - the delimiter to use between data values
+	"""
+	logger = logging.getLogger()
+	# Write the date (no delimiter)
+	f.write ( dataDate.strftime("%Y-%m-%d") )
+	# Iterate through the basins in the main dictionary
+	basinNames = dict.keys()
+	basinNames.sort()
+	for basinName in basinNames:
+		# Iterate through the stations in the basin
+		logger.info ( 'Writing data for basin "' + basinName + '"' )
+		# Get the dictionary that contains the list of stations
+		basinDict = dict[basinName]
+		stationsForBasinDict = basinDict["StationsForBasinDict"]
+		# Data values for the basin
+		basinDataDict = basinDict["DataDict"]
+		# Time series for the basin
+		for dataType in basinDataDict.keys():
+			if ( dataType.find("Flag") >= 0 ):
+				# Process the data value and look up the correcponding flag below
+				continue
+			# Write the value
+			f.write ( delim + str(basinDataDict[dataType]) )
+			# Write the flag
+			f.write ( delim + "\"" + basinDataDict[dataType + "Flag"] + "\"" )
+		# Stations in the basin, each with data values.
+		stationNames = stationsForBasinDict.keys()
+		stationNames.sort()
+		for stationName in stationNames:
+			logger.info ( 'Writing data for station "' + stationName +
+				'" in basin "' + basinName + '"' )
+			stationDataDict = stationsForBasinDict[stationName]
+			# Time series for the station
+			for dataType in stationDataDict.keys():
+				if ( dataType.find("Flag") >= 0 ):
+					# Process the data value and look up the correcponding flag below
+					continue
+				# Write the value
+				f.write ( delim + str(stationDataDict[dataType]) )
+				# Write the flag
+				f.write ( delim + "\"" + stationDataDict[dataType + "Flag"] + "\"" )
+	# print a newline to finish the line after all basin and station time series
+	f.write("\n")
+	return
+
+#-------------------------------------------------------------------------------
+def writeDateValueHeader ( f, dict, dataDate, delim ):
 	"""
 	Write the header for the DateValue file.
 
 	f - file descriptor
 	dict - dictionary of time series data
 	dataDate - the date associated with the SNOTEL data file
+	delim - the delimiter to use between data values
 	"""
+	logger = logging.getLogger()
 	# Loop through the basins and then the stations for each basin, appending
-	# to the strings in the header
-	numBasins = 0
-	for key in dict.keys():
-		basinForStation = None
-		stationName = None
-		dataDict = dict[key]
-		try:
-			basinForStation = dataDict["BasinName"]
-		except KeyError:
-			# Ignore because the time series may be for a basin (no station)
-			pass
-		if ( basinForStation == None ):
-			# This is a basin
-			print "Processing basin " + key 
+	# to the strings in the header, which are initialized here...
+	numTS = 0
+	TSID = ""
+	description = ""
+	units = ""
+	missingVal = ""
+	dataFlags = ""
+	dateLine = ""
+	# Iterate through the basins in the main dictionary
+	basinNames = dict.keys()
+	basinNames.sort()
+	logger.info("There are " + str(len(basinNames)) + " basins to process.")
+	for basinName in basinNames:
+		# Iterate through the stations in the basin
+		logger.info ( 'Processing header for basin "' + basinName + '"' )
+		# Get the dictionary that contains the list of stations
+		basinDict = dict[basinName]
+		stationsForBasinDict = basinDict["StationsForBasinDict"]
+		# Data values for the basin
+		basinDataDict = basinDict["DataDict"]
+		# Time series for the basin
+		for dataType in basinDataDict.keys():
+			if ( dataType.find("Flag") >= 0 ):
+				# Skip the flag since it does not figure into the
+				# count
+				continue
+			numTS = numTS + 1
+			TSID, description, units, missingVal, dataFlags, dateLine = \
+				appendToDateValueHeaderStrings(TSID, description, units, missingVal, dataFlags, dateLine,
+				delim, basinName, dataType )
+		# Stations in the basin, each with data values.
+		stationNames = stationsForBasinDict.keys()
+		stationNames.sort()
+		i = 0
+		for stationName in stationNames:
+			i = i + 1
+			logger.info ( 'Processing station "' + stationName +
+				'" in basin "' + basinName + '" (' + str(i) + " of " + str(len(stationNames)) + ")" )
+			stationDataDict = stationsForBasinDict[stationName]
+			# Time series for the station
+			for dataType in stationDataDict.keys():
+				if ( dataType.find("Flag") >= 0 ):
+					# Skip the flag since it does not figure into the count
+					continue
+				numTS = numTS + 1
+				TSID, description, units, missingVal, dataFlags, dateLine = \
+				appendToDateValueHeaderStrings(TSID, description, units, missingVal, dataFlags, dateLine,
+				delim, stationName, dataType )
 	# Now write the header
 	delim = ","
 	f.write ( "# DateValueTS 1.4 file\n" )
 	# Only one day of data in the file
 	f.write ( "Delimiter = \"" + delim + "\"\n" )
-	f.write ( "NumTS     = " + str(len(dict)) + "\n" )
-	f.write ( "Start     = " + dataDate.strftime("%Y-%m-%d") + "\n" )
-	f.write ( "End       = " + dataDate.strftime("%Y-%m-%d") + "\n" )
+	f.write ( "NumTS       = " + str(numTS) + "\n" )
+	# Write the lists
+	f.write ( "TSID        = " + TSID + "\n" )
+	f.write ( "Description = " + description + "\n" )
+	f.write ( "DataFlags   = " + dataFlags + "\n" )
+	f.write ( "Units       = " + units + "\n" )
+	f.write ( "MissingVal  = " + missingVal + "\n" )
+	f.write ( "Start       = " + dataDate.strftime("%Y-%m-%d") + "\n" )
+	f.write ( "End         = " + dataDate.strftime("%Y-%m-%d") + "\n" )
+	f.write ( dateLine + "\n" )
 	return
 
 #-------------------------------------------------------------------------------
@@ -397,7 +583,9 @@ def writeDateValueHeader ( f, dict, dataDate ):
 # be defined before they can be called.
 
 try:
-        main ()
+	# Run the main program if this is a main script
+	if __name__ == "__main__":
+        	main ()
 
 except SystemExit:
         # This exception is raised when system.exit() is called.
