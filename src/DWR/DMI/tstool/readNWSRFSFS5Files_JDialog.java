@@ -125,34 +125,21 @@ public void actionPerformed( ActionEvent event )
 		if ( last_directory_selected != null ) {
 			fc = JFileChooserFactory.createJFileChooser(
 				last_directory_selected );
-			fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
 		}
 		else {	fc = JFileChooserFactory.createJFileChooser(
 				__working_dir );
 		}
-		fc.setDialogTitle( "Select NWSRFS ESP Trace Ensemble File");
-		SimpleFileFilter
-		sff = new SimpleFileFilter("CS",
-			"Conditional Simulation Trace File");
-		fc.addChoosableFileFilter(sff);
-		/* TODO later when tested.
-		sff = new SimpleFileFilter("HS",
-			"Historical Simulation Trace File");
-		fc.addChoosableFileFilter(sff);
-		*/
+        fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
+		fc.setDialogTitle( "Select NWSRFS FS5Files Directory");
 		
 		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-			String directory = fc.getSelectedFile().getParent();
-			String filename = fc.getSelectedFile().getName(); 
 			String path = fc.getSelectedFile().getPath(); 
-	
-			if (filename == null || filename.equals("")) {
+			if (path == null || path.equals("")) {
 				return;
 			}
-	
 			if (path != null) {
 				__InputName_JTextField.setText(path );
-				JGUIUtil.setLastFileDialogDirectory(directory );
+				JGUIUtil.setLastFileDialogDirectory(path );
 				refresh();
 			}
 		}
@@ -281,11 +268,12 @@ private void checkInput ()
 	// Adjust the working directory that was passed in by the specified
 	// directory.  If the directory does not exist, warn the user...
 	if ( __read_one && (InputName.length() > 0) ) {
-	try {	String adjusted_path = IOUtil.adjustPath ( __working_dir, InputName );
+	try {
+	    String adjusted_path = IOUtil.adjustPath ( __working_dir, InputName );
 		File f = new File ( adjusted_path );
 		if ( !f.exists() ) {
 			Message.printWarning ( 1, routine,
-			"The NWSRFS ESP Trace Ensemble file does not exist:\n" +
+			"The NWSRFS FS5 files directory does not exist:\n" +
 			"    " + adjusted_path + "\n" +
 		  	"Correct or Cancel." );
 			__error_wait = true;
