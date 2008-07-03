@@ -77,6 +77,7 @@ Reference period for average conditions is 1961-90.
 import datetime
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 import traceback
@@ -91,42 +92,135 @@ def main ():
 	"""
 	Main program to control the processing.
 	"""
-        # Script name as typed on the command line, for messages, without path
-        scriptname = os.path.basename(sys.argv[0])
+	# Script name as typed on the command line, for messages, without path
+	scriptname = os.path.basename(sys.argv[0])
 
-        # The script version, to allow tracking changes over time
-        version = "1.00 (2008-06-26)"
+	# The script version, to allow tracking changes over time
+	version = "1.00 (2008-06-26)"
 
-        # Set the user to be used for NWSRFS output/log files (default to current login)
-	# FIXME SAM 2008-06-27
-	user = ""
-        #user = getUser ()
+	# The main location of the files.
+	# Project at RTi
+	snotelHomeDir = "K:/PROJECTS/1015_Bureau of Reclamation-Phase 3 SNODAS/SnowDataTools/SNOTEL"
+	# FIXME SAM 2008-07-02 Home at CWCB to be determined
+	#
+	# The directory structure is then:
+	#	${snotelHomeDir}\
+	#		bydate\
+	#			coYYMMDD.txt
+	#			coYYMMDD.dv
+	#		current\
+	#			cosnotel.csv
+	#		history\
+	#			cosnotel.dv
+	snotelArchiveDir = snotelHomeDir + "/alldays"
+	snotelHistoryFile = snotelArchiveDir + "/cosnotel.dv"
+	snotelByDateDir = snotelHomeDir + "/bydate"
+	snotelCurrentDir = snotelHomeDir + "/current"
+	snotelCurrentFile = snotelCurrentDir + "/cosnotel.csv"
 
-        # Initialize logging to capture messages
-        logger, log = initializeLogging ( user, scriptname )
-        # Set the global variable for logfile
-        logfile = log
-        print ""
-        print "Opened log file " + logfile
+	# The SNOTEL history period to maintain, to allow graphs of longterm data
+	# Change this when new years are needed and the history file will be extended
+	historyStart = datetime.datetime(1998,10,1)
+	historyEnd = datetime.datetime(2008,9,30)
 
+	# The number of days to process if dates are not provided
+	daysToProcessDefault = 14
+
+	# TSTool executable to use.  This should be set to a version that has been tested
+	# out with this process.  Use the following for development on CYGWIN
+	#tstool = "/cygdrive/c/CDSS/TSTool-08.15.03/bin/tstool.exe"
+	# Use the following for Windows.  It will need to be set for the system.
+	tstool = "C:/CDSS/TSTool-08.15.03/bin/tstool.exe"
+
+	# Set the user to be used for log files (default to current login)
+	user = getUser ()
+
+	# The command file to be run by TSTool
+	#tstoolCommandFile = tempfile.gettempdir() + "/snotel-" + user + "TSTool"
+	tstoolCommandFile = snotelHomeDir + "/TSTool/snotel-" + user + ".TSTool"
+
+	# Initialize logging to capture messages
+	logger, log = initializeLogging ( user, scriptname )
+	# Set the global variable for logfile
+	logfile = log
+	print ""
+	print "Opened log file " + logfile
+
+	# Check the command line parameters
+	if ( not checkCommandLineParameters ( version, daysToProcessDefault ) ):
+		printUsage(daysToProcessDefault)
+		exit ( 1 )
+
+	# By default FTP is not done
+	doFTP = False
+
+	# List of SNOTEL files to convert
+	snotelFiles = []
 	# Get the input and output files from the command line (argv[0] is script name)
-	if ( len(sys.argv) < 3 ):
-		printUsage()
-		exit(1)
-
 	# Input file to processs
-	updateFile = sys.argv[1]
-	# Output file to create
-	dvFile = sys.argv[2]
+	snotelFiles = getSnotelFilesFromCommandLine ( snotelFiles )
+	if ( len(snotelFiles) == 0 ):
+		# A file to process has not been specified so retrieve files for the
+		# specified dates and then process
+		logger.info ( "No SNOTEL file was specified so download from FTP site using dates..." )
+		# Default dates
+		snotelStart = datetime.date.today()
+		snotelEnd = snotelStart + datetime.timedelta(days=-(daysToProcessDefault - 1))
+		# Reset to command line, if specified
+		snotelStart, snotelEnd = getDatesFromCommandLine ( snotelStart, snotelEnd )
+		# Get the SNOTEL files from the FTP site and return a list to be processed locally
+		snotelFiles = ftpGetSnotelFiles ( snotelStart, snotelEnd )
+		doFTP = True
+	else:
+		logger.info ( "Processing SNOTEL files specified on the command line..." )
 
-	# Read the NRCS file
-	dict, dataDate = convertNrcsSnotelUpdateFileToDict ( updateFile )
+	if ( len(snotelFiles) == 0 ):
+		logger.error ( "Unable to determine list of SNOTEL files to process from command line." )
+		printUsage(daysToProcessDefault)
+		exit ( 1 )
 
-	# Create the DateValue file
-	convertDictToDateValueFile ( dict, dvFile, dataDate )
+	# Process the files.  Commands are dynamically added to a TSTool command file for
+	# each SNOTEL file, and then TSTool is run once to process the files.
+	logger.info ( "Temporary TSTool command file to run is \"" + tstoolCommandFile + "\"" )
+	f = initializeTSToolCommandFile ( tstoolCommandFile, snotelHistoryFile, historyStart, historyEnd )
+	for snotelFile in snotelFiles:
+		print "Processing file \"" + snotelFile + "\"..."
+		logger.info ( "Processing file \"" + snotelFile + "\"" )
+		# Read the NRCS file into a dictionary
+		dict, dataDate = convertNrcsSnotelUpdateFileToDict ( snotelFile )
 
-	# Call TSTool to process into historical DateValue files
-	#runTSTool()
+		# Change the extension on the DateValue output file
+		dvFile = snotelFile.replace ("txt", "dv")
+
+		# Convert the dictionary to DateValue format
+		convertDictToDateValueFile ( dict, dvFile, dataDate )
+
+		# Append to the TSTool file the commands needed to process the file.
+		appendToTSToolCommandFile ( f, dvFile )
+
+	# Add ending commands to write out the history file
+	finalizeTSToolCommandFile ( f, snotelHistoryFile )
+	# Call TSTool to process into historical DateValue files.  Do this once so
+	# that TSTool starts once and the log file will contain all processing.
+	processDataUsingTSTool ( tstool, tstoolCommandFile )
+
+	return
+
+def appendToTSToolCommandFile ( f, dvFile ):
+	"""
+	Append TSTool commands to the command file to process the commands.
+
+	f - open file to write to
+	dvFile - DateValue file containing single day of data to process
+	"""
+	f.write ( "#\n" )
+	f.write ( "##\n" )
+	f.write ( "### Commands to process file \"" + dvFile + "\"\n" )
+	f.write ( "###\n" )
+	f.write ( "##\n" )
+	f.write ( "#\n" )
+	f.write ( "# Read the DateValue file to process\n" )
+	f.write ( "ReadDateValue(InputFile=\"" + dvFile + "\")\n" )
 	return
 
 def appendToDateValueHeaderStrings( TSID, description, units, missingVal,
@@ -163,6 +257,42 @@ def appendToDateValueHeaderStrings( TSID, description, units, missingVal,
 		dateLine = "Date"
 	dateLine = dateLine + delim + "\"" + locName + ", " + dataType + "\"" + delim + "DataFlag"
 	return TSID, description, units, missingVal, dataFlags, dateLine
+
+def checkCommandLineParameters ( version, daysToProcessDefault ):
+	"""
+	Verify that the specified command line parameters are recognized.
+	Do not parse.  Just do simple checks and print version or usage if requested.
+
+	version - the script version
+	daysToProcessDefault - the number of days to process, inclusive of today if
+		dates are not provided
+
+	Return False if there were errors, True if everything checked out.
+	"""
+	numErrors = 0
+	for arg in sys.argv[1:]:
+		arg_lower = arg.lower()
+		if ( arg_lower.startswith("end=") ):
+			pass
+		elif ( arg_lower == "-h" ):
+			printUsage(daysToProcessDefault)
+			exit(0)
+		elif ( arg_lower.startswith("in=") ):
+			pass
+		elif ( arg_lower.startswith("start=") ):
+			pass
+		elif ( arg_lower == "-v" ):
+			printVersion(version)
+			exit(0)
+		else:
+			print ( 'Unrecognized command parameter "' + arg + '"' )
+			logger = logging.getLogger()
+			logger.warning ( 'Unrecognized command parameter "' + arg + '"' )
+			numErrors = numErrors + 1
+	if ( numErrors > 0 ):
+		return False
+	else:
+		return True
 
 def convertDictToDateValueFile ( dict, dvFile, dataDate ):
 	"""
@@ -324,24 +454,116 @@ def convertNrcsSnotelUpdateFileToDict ( updateFile ):
 		str(basinCount + 3*stationCount) )
 	return fileDict, dataDate
 
+def finalizeTSToolCommandFile ( f, historyFile ):
+	"""
+	Finalize the TSTool command file by adding commands to rewrite the
+	history DateValue file.  Also close the command file.
+
+	f - open command file
+	"""
+	f.write ( "WriteDateValue(OutputFile=\"" + historyFile + "\")" )
+	f.close()
+	return
+
+def ftpGet ( server, login, password, remoteDirectory, remoteFilename, localFilename, transferMode ):
+	"""
+	Retrieve a single file from the remote server.
+	"""
+	ftp = ftplib.FTP(server)
+	ftp.login ( login, password )
+	ftp.cwc ( remoteDirectory )
+	if ( transferMode == "ASCII" ):
+		f = open(localFilename,'w')
+		ftp.retrlines('RETR ' + remoteFilename, f.write)
+		f.close()
+	else:
+		f = open(localFilename,'wb')
+		ftp.retrbinary('RETR ' + remoteFilename, f.write)
+		f.close()
+	ftp.close()
+	return
+
+def ftpGetSnotelFile ( snotelDate ):
+	"""
+	Download a single Snotel file from the NRCS FTP site.
+	"""
+	# Need to get the file from the NRCS site
+	ftpGet ( server, login, password, remoteDirectory, remoteFilename, localFilename, transferMode )
+	return
+
+def ftpGetSnotelFiles ( snotelStart, snotelEnd ):
+	"""
+	Download a series of files from the NRCS web site for the specified dates.
+	Only one FTP connection is made to increase performance and potential problems
+	with the FTP site rejecting multiple connections.
+	"""
+	logger = logging.getLogger()
+	logger.info ( "Retrieving SNOTEL update files from NRCS site for period " +
+		str(snotelStart) + " to " + str(snotelEnd) )
+	# Define the NRCS server information
+	server = "ftp.wcc.nrcs.usda.gov"
+	login = "anonymous"
+	password = "anonymous"
+	remoteDirectory = "/data/snow/update/co"
+	testing = True
+	if ( testing == True ):
+		server = "ftp.riverside.com"
+		password = "ok2ftp2"
+	snotelFiles = []
+	return snotelFiles
+
+def ftpOpenConnection ( server, login, password, remoteDirectory ):
+	"""
+	Open a connection on the remote server.
+	"""
+	ftp = ftplib.FTP(server)
+	ftp.login ( login, password )
+	ftp.cwc ( remoteDirectory )
+	return
+
+def getDatesFromCommandLine ( snotelStart, snotelEnd ):
+	"""
+	Get the SNOTEL dates to process from the command line.
+
+	snotelStart - default starting date if not found in the command line.
+	snotelEnd - default ending date if not found in the command line.
+	"""
+	for arg in sys.argv:
+		if ( arg.lower().startswith("in=") ):
+			snotelFile = arg[3:]
+			break
+	return snotelStart, snotelEnd
+
+def getSnotelFilesFromCommandLine ( snotelFiles ):
+	"""
+	Get the SNOTEL files to process from the command line.
+
+	snotelFiles - default value if not found in the command line.
+	"""
+	for arg in sys.argv:
+		# Allow more thanone file
+		if ( arg.lower().startswith("in=") ):
+			snotelFiles.append ( arg[3:] )
+	return snotelFiles
+
 def getUser ():
-        """
-        Return the current user, taken from the LOGNAME environment variable.
-        The script will exit if this information is not available.
-        """
+	"""
+	Return the current user, taken from the LOGNAME environment variable.
+	The script will exit if this information is not available.
+	"""
 	user = None
 	if ( os.name == "posix" ):
 		# Linux
-        	user = os.getenv ( "LOGNAME" )
+		user = os.getenv ( "LOGNAME" )
+		if ( user == None ):
+			user = os.getenv ( "USER" )
 	elif ( os.name == 'nt' ):
 		# Windows
-		# FIXME SAM 2008-06-27 Need to figure out how to get this
-		user = None
-        if ( user == None ):
-                print 'Environment variable LOGNAME is not defined.  Cannot determine user.'
-                exit ( 1 )
-        return user
-
+		user = os.environ["USERNAME"]
+	if ( user == None ):
+	        print 'Environment variable LOGNAME is not defined.  Cannot determine user.'
+	        exit ( 1 )
+	return user
 
 def initializeLogging ( user, appname ):
 	"""
@@ -368,7 +590,8 @@ def initializeLogging ( user, appname ):
 		is_python24 = True
 	if ( is_python24 == True ):
 		# Use the newer function to configure logging
-		logging.basicConfig ( format = '%(asctime)s %(levelname)8s %(message)s', filename=logfile, filemode = 'w' )
+		logging.basicConfig ( format = '%(asctime)s %(levelname)8s %(message)s',
+			filename=logfile, filemode = 'w' )
 		logger = logging.getLogger()
 	else:
 		# Use the following for Python older than 2.4
@@ -385,6 +608,44 @@ def initializeLogging ( user, appname ):
 	# TODO SAM 2008-03-03 Evaluate putting in more header information similar to Java ioutil.printCreatorHeader()
 	logger.info ( "Running as user:  " + user )
 	return logger, logfile
+
+def initializeTSToolCommandFile ( tstoolCommandFile, historyFile, historyStart, historyEnd ):
+	"""
+	Initialize the TSTool command file.
+
+	tstoolCommandFile - name of the TSTool command file
+	historyFile - SNOTEL history file
+	historyStart - the starting datetime of the SNOTEL history file
+	historyEnd - the ending datetime of the SNOTEL history file
+
+	Return an open file object.
+	"""
+	f = open ( tstoolCommandFile, "w" )
+	f.write ( "StartLog(Logfile=\"" + tstoolCommandFile + ".log\"\n" )
+	f.write ( "# Read the archive file containing the historical period.\n" )
+	f.write ( "ReadDateValue(InputFile=\"" + historyFile + "\")\n" )
+	f.write ( "# Ensure that the historical period is as desired.\n" )
+	f.write ( "ChangePeriod(TSList=AllTS,NewStart=\"" +
+		historyStart.strftime("%Y-%m-%d") + "\",NewEnd=\"" +
+		historyEnd.strftime("%Y-%m-%d") + "\")\n" )
+	return f
+
+def processDataUsingTSTool ( tstool, tstoolCommandFile ):
+	"""
+	Merge the individual DateValue time series files for a date into the full
+	period file.
+
+	tstool - path to TSTool program
+	tstoolCommandFile - command file to run
+	"""
+	syscall = tstool + " -commands \"" + tstoolCommandFile + "\""
+	excludePatterns = None
+	if ( runProgram( syscall,runProgramLogger,excludePatterns ) != 0 ):             
+		logger = logging.getLogger()
+		logger.error ( "Error running TSTool with: " + syscall )             
+		exit ( 1 )
+
+	return
 
 def parseDataValue ( dataString ):
 	"""
@@ -429,23 +690,89 @@ def parseDataValue ( dataString ):
 	return value, flag
 
 #-------------------------------------------------------------------------------
-def printUsage():
-        """
-        Print the script usage.
-        """
-        print ""
-	print "Convert an NRCS SNOTEL update file to a DateValue file."
-        print ""
-        print os.path.basename(sys.argv[0]) + " usage:"
-        print ""
-        print os.path.basename(sys.argv[0]) + " in=updateFile OR startdate=YYYYMMDD [enddate=YYYYMMDD]"
-        print ""
-        print "in=updateFile - NRCS SNOTEL update file name (input)"
-        print "  DateValue file will have same name with .dv extension"
-        print "startdate=YYYYMMDD - ending date to process (default=today - 7)"
-        print "enddate=YYYYMMDD - ending date to process (default=today)"
-        print ""
-        return
+def printUsage(daysToProcessDefault):
+	"""
+	Print the script usage.
+	"""
+	print ""
+	print "Optionally download, convert an NRCS SNOTEL update file to a DateValue file,"
+	print "and merge the file into the archive DateValue file."
+	print ""
+	print os.path.basename(sys.argv[0]) + " in=updateFile OR start=YYYYMMDD [end=YYYYMMDD]"
+	print ""
+	print "If a filename is specified, it is converted."
+	print "If start and end dates are specified, files are FTPed and then converted."
+	print "If end date is specified, start is defaulted and files are FTPed and then converted."
+	print ""
+	print "in=updateFile - NRCS SNOTEL update file name (input)"
+	print "  DateValue file will have same name with .dv extension"
+	print "start=YYYYMMDD - starting date to process (default=today - " + \
+		str(daysToProcessDefault - 1) + " days)"
+	print "end=YYYYMMDD - starting date to process (default=today)"
+	print ""
+	return
+
+#-------------------------------------------------------------------------------
+def runProgram ( cmd, outputHandler, excludePatterns ):
+	"""
+	Run a program and capture its standard error and output.
+
+	cmd - the command to run
+	outputHandler - a function to call to handle the output
+	excludePatterns - a list of regular expression patterns to exclude, for
+		example to avoid echoing all the SHEF data records to the
+		main log file
+
+	Return the exit status of the program being run as an integer.
+	"""
+	# Run the command redirecting standard error to standard output to the pipe
+	o = os.popen(cmd + " 2>&1")
+	# Open the pipe
+	fd = o.fileno()
+	# Log file that is indicated in program terminal output
+	logger = logging.getLogger()
+	programLogfile = None
+	while 1:
+		# Read 100 bytes of output at a time - problem, line breaks are not
+		# regular so logging does not look good
+		#s = os.read(fd,100)
+		# Read a line of output.  This may block but since we are not doing
+		# any thread interrupts that is OK.
+		s = o.readline()
+		if len(s) == 0:
+			# No more to read
+			break
+		# Log the output line
+		if ( outputHandler != None ):
+			# Pass the output to a handler, removing trailing newlines
+			outputHandler(s.rstrip())
+	exitCode = o.close()
+	if ( exitCode == None ):
+		exitCode = 0
+	logger.info("Exit code from program is " + str(exitCode) )
+	return exitCode
+
+#-------------------------------------------------------------------------------
+def runProgramLogger ( s ):
+	"""
+	Log the standard output and error from running a program.
+
+	s - a line of output from running the program
+	"""
+	logger = logging.getLogger()
+	logger.info ( "term: " + s )
+	return
+
+#-------------------------------------------------------------------------------
+def runProgramStdoutLogger ( s ):
+	"""
+	Log the standard output from running a program.
+
+	s - a line of output from running the program
+	"""
+	logger = logging.getLogger()
+	logger.info ( "stdout: " + s )
+	return
 
 #-------------------------------------------------------------------------------
 def writeDateValueData ( f, dict, dataDate, delim ):
@@ -585,20 +912,22 @@ def writeDateValueHeader ( f, dict, dataDate, delim ):
 try:
 	# Run the main program if this is a main script
 	if __name__ == "__main__":
-        	main ()
+		main ()
 
-except SystemExit:
-        # This exception is raised when system.exit() is called.
-        # Just let normal exit happen to shut down this script.
-        print 'Exiting...' + str(SystemExit)
+except SystemExit, error:
+	# This exception is raised when system.exit() is called.
+	# Just let normal exit happen to shut down this script.
+	#print 'Exiting...' + str(error)
+	exit(int(str(error)))
+
 except:
-        # Using the logger here assumes that basic logging setup was successful
-        # in the main function.
-        logger = logging.getLogger()
-        logger.exception ( "Unexpected exception" )
-        print 'Unexpected error.  See the detail in \"' + logfile + '"'
-        traceback.print_exc()
-        exit(1)
+	# Using the logger here assumes that basic logging setup was successful
+	# in the main function.
+	logger = logging.getLogger()
+	logger.exception ( "Unexpected exception" )
+	print 'Unexpected error.  See the details in \"' + logfile + '"'
+	traceback.print_exc()
+	exit(1)
 
 # Done - exit with success status (no exception handled because script is done)
 exit(0)
