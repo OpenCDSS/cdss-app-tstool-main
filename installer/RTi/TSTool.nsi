@@ -189,7 +189,7 @@ Section "TSTool" TSTool
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" NoModify 1
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}" NoRepair 1
 
-    ${registerExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Commands File"
+    ${registerExtension} "$INSTDIR\bin\TSTool.exe" ".TSTool" "TSTool Command File"
    
 SectionEnd
 
