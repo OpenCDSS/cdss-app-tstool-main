@@ -1007,9 +1007,7 @@ JMenuItem
 	__Commands_Fill_SetAutoExtendPeriod_JMenuItem,
 	__Commands_Fill_SetAveragePeriod_JMenuItem,
 	__Commands_Fill_SetIgnoreLEZero_JMenuItem,
-	__Commands_Fill_SetMissingDataValue_JMenuItem,
-	__Commands_Fill_SetPatternFile_JMenuItem,
-	__Commands_Fill_SetRegressionPeriod_JMenuItem;
+	__Commands_Fill_SetPatternFile_JMenuItem;
 
 	// Commands...Set Time Series....
 JMenu
@@ -1122,6 +1120,7 @@ JMenuItem
 JMenu
     __Commands_General_FileHandling_JMenu = null;
 JMenuItem
+    __Commands_General_FileHandling_FTPGet_JMenuItem = null,
     __Commands_General_FileHandling_RemoveFile_JMenuItem = null;
 
 JMenu
@@ -1393,9 +1392,7 @@ private String
 	__Commands_Fill_SetAutoExtendPeriod_String = TAB + "SetAutoExtendPeriod()... <for data filling and manipulation>",
 	__Commands_Fill_SetAveragePeriod_String = TAB +	"SetAveragePeriod()... <for data filling>",
 	__Commands_Fill_SetIgnoreLEZero_String = TAB + "SetIgnoreLEZero()... <ignore values <= 0 in historical averages>",
-	__Commands_Fill_SetMissingDataValue_String = TAB + "SetMissingDataValue()... <for data filling>",
 	__Commands_Fill_SetPatternFile_String = TAB + "SetPatternFile()... <for use with fillPattern() >",
-	__Commands_Fill_SetRegressionPeriod_String = TAB + "SetRegressionPeriod()... <for fillRegression()>",
 	__Commands_SetTimeSeries_String = "Set Time Series Contents",
 	__Commands_Set_ReplaceValue_String = TAB + "ReplaceValue()...  <replace value (range) with constant in TS>",
 	__Commands_Set_SetConstant_String = TAB + "SetConstant()...  <set all values to constant in TS>",
@@ -1426,8 +1423,8 @@ private String
 	// Commands...Output Series menu...
 
 	__Commands_OutputTimeSeries_String = "Output Time Series",
-	__Commands_Output_DeselectTimeSeries_String = TAB +	"DeselectTimeSeries()...  <deselect time series for output>",
-	__Commands_Output_SelectTimeSeries_String = TAB + "SelectTimeSeries()...  <select time series for output>",
+	__Commands_Output_DeselectTimeSeries_String = TAB +	"DeselectTimeSeries()...  <deselect time series for output/processing>",
+	__Commands_Output_SelectTimeSeries_String = TAB + "SelectTimeSeries()...  <select time series for output/processing>",
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Water, Calendar>",
@@ -1496,6 +1493,7 @@ private String
 	__Commands_General_Comments_EndComment_String = TAB + "*/   <end comment>",
     
     __Commands_General_FileHandling_String = "General - File Handling",
+    __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
 	
     __Commands_General_Running_String = "General - Running",
@@ -2779,18 +2777,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-/*
-	else if ( action.equals(__Commands_Fill_setMissingDataValue_String)||
-		command.regionMatches(true,0,"setMissingDataValue",0,19) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setMissingDataValue()" );
-		}
-		edited_cv = new setMissingDataValue_JDialog ( this, cv,
-			TSEngine.getTSIdentifiersFromCommands(
-			getCommandsAboveSelected ())).getText();
-	}
-*/
 	else if ( action.equals( __Commands_Fill_SetPatternFile_String) ||
 		command.regionMatches(true,0,"setPatternFile",0,14) ) {
 		if ( Message.isDebugOn ) {
@@ -2912,25 +2898,6 @@ private boolean commandList_EditCommandOldStyle (
     
 	// Output Time Series...
 
-	else if ( action.equals(__Commands_Output_DeselectTimeSeries_String) ||
-		command.regionMatches(true,0,"deselectTimeSeries",0,18)){
-		// Re-use the selectTimeSeries() command dialog...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for deselectTimeSeries()" );
-		}
-		edited_cv = new selectTimeSeries_JDialog (this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit), false ).getText();
-	}
-	else if ( action.equals(__Commands_Output_SelectTimeSeries_String) ||
-		command.regionMatches(true,0,"selectTimeSeries",0,16)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,"Opening dialog for selectTimeSeries()" );
-		}
-		edited_cv = new selectTimeSeries_JDialog (this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit), true ).getText();
-	}
 	else if ( action.equals( __Commands_Output_SetOutputYearType_String) ||
 		command.regionMatches(true,0,"setOutputYearType",0,17) ) {
 		if ( Message.isDebugOn ) {
@@ -2950,16 +2917,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// General...
 
-	else if ( action.equals( __Commands_General_Logging_SetDebugLevel_String) ||
-		command.regionMatches(true,0,"setDebugLevel",0,13) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setDebugLevel()" );
-		}
-		edited_cv = new setDebugLevel_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_General_Running_SetWorkingDir_String) ||
 		command.regionMatches(true,0,"setWorkingDir",0,13) ) {
 		if ( Message.isDebugOn ) {
@@ -6605,12 +6562,6 @@ private void ui_CheckGUIState ()
 	// TODO Not available as a command yet - logic not coded...
 	JGUIUtil.setEnabled(__Commands_Fill_FillMOVE1_JMenuItem,false);
 
-	// TODO - make sure this is doing what it should
-	JGUIUtil.setEnabled( __Commands_Fill_SetMissingDataValue_JMenuItem,false);
-
-	// TODO - should not need this since fillRegression() does this
-	JGUIUtil.setEnabled(__Commands_Fill_SetRegressionPeriod_JMenuItem,false);
-
 	// TODO - can this be phased out?
 	JGUIUtil.setEnabled(__Commands_Output_SetOutputDetailedHeaders_JMenuItem,false);
 }
@@ -8048,15 +7999,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_SetIgnoreLEZero_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_SetIgnoreLEZero_String, this ) );
 
-	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetMissingDataValue_JMenuItem =
-		new SimpleJMenuItem(__Commands_Fill_SetMissingDataValue_String, this ) );
-
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetPatternFile_JMenuItem=
         new SimpleJMenuItem(__Commands_Fill_SetPatternFile_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetRegressionPeriod_JMenuItem =
-		new SimpleJMenuItem(__Commands_Fill_SetRegressionPeriod_String, this ) );
-
 
 	// "Commands...Set Time Series"...
 
@@ -8281,6 +8225,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Comments_EndComment_String, this ) );
     
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_FTPGet_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_FTPGet_String, this ) );
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
     
@@ -10160,14 +10106,8 @@ throws Exception
 	else if (command.equals( __Commands_Fill_SetIgnoreLEZero_String) ) {
 		commandList_EditCommand ( __Commands_Fill_SetIgnoreLEZero_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals(__Commands_Fill_SetMissingDataValue_String)){
-		commandList_EditCommand ( __Commands_Fill_SetMissingDataValue_String, null, __INSERT_COMMAND );
-	}
 	else if (command.equals( __Commands_Fill_SetPatternFile_String) ) {
 		commandList_EditCommand ( __Commands_Fill_SetPatternFile_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Fill_SetRegressionPeriod_String)){
-		commandList_EditCommand ( __Commands_Fill_SetRegressionPeriod_String, null, __INSERT_COMMAND );
 	}
 	else {
 		// Chain to other menus
@@ -10478,6 +10418,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_General_Running_RunPython_String) ) {
         commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_General_FileHandling_FTPGet_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_FTPGet_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, __INSERT_COMMAND );
@@ -14420,7 +14363,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	TS ts = null;
 	String desc = null;
 	String alias = null;
-	boolean [] selected_boolean = new boolean[size];
+	boolean [] selected_boolean = new boolean[size];   // Size to results list
 	for ( int i = 0; i < size; i++ ) {
 		selected_boolean[i] = false;
 		try {
@@ -14453,9 +14396,9 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 			selected_boolean[i] = ts.isSelected();
 		}
 	}
-	// If no time series are selected in the data, then visually select all.
+	// If no time series are selected programatically, then visually select all.
 	// If any are selected, then visually select only the ones that are
-	// selected.  First determine the number that have been selected.
+	// selected.  First determine the number that have been selected programatically.
 	int num_selected = 0;
 	for ( int i = 0; i < size; i++ ) {
 		if ( selected_boolean[i] ) {
@@ -14474,9 +14417,10 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	else {
         // Select the time series of interest.
 		selected = new int[num_selected];	// Whether visually selected
-		for ( int i = 0; i < num_selected; i++ ) {
+		int selectedCount = 0;
+		for ( int i = 0; i < size; i++ ) {
 			if ( selected_boolean[i] ) {
-				selected[i] = i;
+				selected[selectedCount++] = i;
 			}
 		}
 	}
