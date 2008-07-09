@@ -452,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.16.00 beta (2008-06-23)";
+public static final String PROGRAM_VERSION = "8.16.00 beta (2008-07-09)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -752,8 +752,7 @@ public static void main ( String args[] )
                 // If no open window was found quit.  Otherwise let the TSToolBatchWindowListener
                 // handle the close.
                 if ( !openWindowFound ) {
-                    Message.printStatus(2,routine,
-                    "No open, visible windows detected.  Exiting.");
+                    Message.printStatus(2,routine, "No open, visible windows detected.  Exiting.");
                     quitProgram ( 0 );
                 }
             }

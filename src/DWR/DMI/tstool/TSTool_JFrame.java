@@ -2898,13 +2898,6 @@ private boolean commandList_EditCommandOldStyle (
     
 	// Output Time Series...
 
-	else if ( action.equals( __Commands_Output_SetOutputYearType_String) ||
-		command.regionMatches(true,0,"setOutputYearType",0,17) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for setOutputYearType()" );
-		}
-		edited_cv = new setOutputYearType_JDialog ( this, cv, null).getText();
-	}
 	else if ( action.equals( __Commands_Output_WriteStateCU_String)||
             command.regionMatches(true,0,"writeStateCU",0,12) ) {
 		if ( Message.isDebugOn ) {
