@@ -2767,16 +2767,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Fill_SetIgnoreLEZero_String) ||
-		command.regionMatches(true,0,"setIgnoreLEZero",0,15) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setIgnoreLEZero()" );
-		}
-		edited_cv = new setIgnoreLEZero_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Fill_SetPatternFile_String) ||
 		command.regionMatches(true,0,"setPatternFile",0,14) ) {
 		if ( Message.isDebugOn ) {
