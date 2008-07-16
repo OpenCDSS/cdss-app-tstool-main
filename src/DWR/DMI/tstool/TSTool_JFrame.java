@@ -2663,16 +2663,6 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new TSreadUsgsNwis_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null, command_to_edit ).getText();
 	}
-	else if ( action.equals(__Commands_Read_SetIncludeMissingTS_String)||
-		command.regionMatches(true,0,"setIncludeMissingTS",0,19) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setIncludeMissingTS()" );
-		}
-		edited_cv = new setIncludeMissingTS_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 
 	// Fill Time Series Data...
 
