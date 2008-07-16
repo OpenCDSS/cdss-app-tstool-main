@@ -8,7 +8,7 @@
 # Indicate what program (JRE) to run with.
 
 # Installation home for TSTool, under which will be bin, logs, system, etc.
-INSTALL_HOME="/opt/RTi/TSTool-08.15.03"
+INSTALL_HOME="/opt/RTi/TSTool-08.16beta"
 # Indicate where the JAR files live.  Point this to the place where all the
 # RTi jar files live.
 JAR_HOME="$INSTALL_HOME/bin"
@@ -41,6 +41,8 @@ $JAR_HOME/batik-svggen.jar:\
 $JAR_HOME/batik-util.jar:\
 $JAR_HOME/xbean.jar:\
 $JAR_HOME/xerces.jar:\
+$JAR_HOME/commons-net-1.2.2.jar:\
+$JAR_HOME/jakarta-oro-2.0.8.jar:\
 "
 
 # JRE to run (currently must be less than 1.5 due to worksheet display issues in 1.5)
