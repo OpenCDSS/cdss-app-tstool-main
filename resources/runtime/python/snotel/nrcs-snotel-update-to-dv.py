@@ -82,6 +82,8 @@ import sys
 import tempfile
 import traceback
 
+import TSlite
+
 # Log file is global in module because it is used to print a message
 # at the end of this script     
 logfile = "unknown"
@@ -112,15 +114,17 @@ def main ():
 	#			cosnotel.csv
 	#		history\
 	#			cosnotel.dv
-	snotelArchiveDir = snotelHomeDir + "/alldays"
-	snotelHistoryFile = snotelArchiveDir + "/cosnotel.dv"
+	snotelHistoryDir = snotelHomeDir + "/history"
+	snotelHistoryFile = snotelHistoryDir + "/cosnotel.dv"
 	snotelByDateDir = snotelHomeDir + "/bydate"
 	snotelCurrentDir = snotelHomeDir + "/current"
 	snotelCurrentFile = snotelCurrentDir + "/cosnotel.csv"
 
 	# The SNOTEL history period to maintain, to allow graphs of longterm data
 	# Change this when new years are needed and the history file will be extended
-	historyStart = datetime.datetime(1998,10,1)
+	# The data at the following address start in 1997-11-06:
+	#  ftp://ftp.wcc.nrcs.usda.gov/data/snow/update/co
+	historyStart = datetime.datetime(1997,11,1)
 	historyEnd = datetime.datetime(2008,9,30)
 
 	# The number of days to process if dates are not provided
@@ -158,7 +162,7 @@ def main ():
 	snotelFiles = []
 	# Get the input and output files from the command line (argv[0] is script name)
 	# Input file to processs
-	snotelFiles = getSnotelFilesFromCommandLine ( snotelFiles )
+	snotelFiles = getSnotelFilesFromCommandLine ( snotelFiles, snotelByDateDir )
 	if ( len(snotelFiles) == 0 ):
 		# A file to process has not been specified so retrieve files for the
 		# specified dates and then process
@@ -187,7 +191,7 @@ def main ():
 		print "Processing file \"" + snotelFile + "\"..."
 		logger.info ( "Processing file \"" + snotelFile + "\"" )
 		# Read the NRCS file into a dictionary
-		dict, dataDate = convertNrcsSnotelUpdateFileToDict ( snotelFile )
+		dict, tslist, dataDate = convertNrcsSnotelUpdateFileToDict ( snotelFile )
 
 		# Change the extension on the DateValue output file
 		dvFile = snotelFile.replace ("txt", "dv")
@@ -196,19 +200,26 @@ def main ():
 		convertDictToDateValueFile ( dict, dvFile, dataDate )
 
 		# Append to the TSTool file the commands needed to process the file.
-		appendToTSToolCommandFile ( f, dvFile )
+		appendToTSToolCommandFile ( f, dvFile, tslist )
 
 	# Add ending commands to write out the history file
 	finalizeTSToolCommandFile ( f, snotelHistoryFile )
+
+	# Backup the history file just in case there is a problem
+	# FIXME SAM 2008-07-03 Add this
+
 	# Call TSTool to process into historical DateValue files.  Do this once so
 	# that TSTool starts once and the log file will contain all processing.
 	processDataUsingTSTool ( tstool, tstoolCommandFile )
 
 	return
 
-def appendToTSToolCommandFile ( f, dvFile ):
+def appendToTSToolCommandFile ( f, dvFile, tslist ):
 	"""
 	Append TSTool commands to the command file to process the commands.
+	The history DateValue file will already have been read.  The identifiers
+	in both time series files will be the same so it is important to use the
+	proper TSList parameter value.
 
 	f - open file to write to
 	dvFile - DateValue file containing single day of data to process
@@ -221,6 +232,11 @@ def appendToTSToolCommandFile ( f, dvFile ):
 	f.write ( "#\n" )
 	f.write ( "# Read the DateValue file to process\n" )
 	f.write ( "ReadDateValue(InputFile=\"" + dvFile + "\")\n" )
+	# Loop through all of the time series in the file and set in the history
+	for ts in tslist:
+		tsid = ts.getTSID()
+		f.write ( "# Set the individual DateValue file contents on the history\n" )
+		f.write ( "SetFromTS(TSList=LastMatchingTSID,TSID=\"" + tsid + "\"TransferHow=ByDateTime)\n" )
 	return
 
 def appendToDateValueHeaderStrings( TSID, description, units, missingVal,
@@ -315,7 +331,8 @@ def convertNrcsSnotelUpdateFileToDict ( updateFile ):
 
 	updateFile - NRCS SNOTEL file to convert
 
-	Return a tuple of the dictionary and the date for the data (from the file header).
+	Return a tuple of the dictionary of data values, list of time series,
+	and the date for the data (from the file header).
 	The dictionary has the form:
 
 		fileDict {
@@ -338,6 +355,7 @@ def convertNrcsSnotelUpdateFileToDict ( updateFile ):
 	basinCount = 0
 	stationCount = 0
 	fileDict = dict()
+	tslist = []
 	infp = open( updateFile)
 	# Find the "COLORADO" line
 	for line in infp:
@@ -452,7 +470,25 @@ def convertNrcsSnotelUpdateFileToDict ( updateFile ):
 	logger.info ( "Read " + str(basinCount) + " basins, with a total of " + str(stationCount) + " stations" )
 	logger.info ( "The number of time series is " + str(basinCount) + "+3*" + str(stationCount) + "=" +
 		str(basinCount + 3*stationCount) )
-	return fileDict, dataDate
+	return fileDict, tslist, dataDate
+
+def exit ( exitCode ):
+	"""
+	Exit the script.  This will throw a SystemExit exception that needs to
+	be handled.
+
+	exitCode - exit status integer to pass to the parent program, generally
+		0 for success, 1 for failure
+	"""
+	logger = logging.getLogger()
+	if ( exitCode != 0 ):
+		print "Exiting with status " + str(exitCode) + \
+		".  See the log file for explanation."
+		logger.error ( "Exiting with status " + str(exitCode) )
+	else:
+		logger.info ( "Exiting with status " + str(exitCode) )
+	sys.exit ( exitCode )
+	return
 
 def finalizeTSToolCommandFile ( f, historyFile ):
 	"""
@@ -534,16 +570,36 @@ def getDatesFromCommandLine ( snotelStart, snotelEnd ):
 			break
 	return snotelStart, snotelEnd
 
-def getSnotelFilesFromCommandLine ( snotelFiles ):
+def getSnotelFilesFromCommandLine ( snotelFiles, snotelByDateDir ):
 	"""
 	Get the SNOTEL files to process from the command line.
 
 	snotelFiles - default value if not found in the command line.
+	snotelByDateDir - directory where dated SNOTEL files live
+
+	Return a list of SNOTEL files to process, with leading path.
 	"""
+	logger = logging.getLogger()
+	errorCount = 0
 	for arg in sys.argv:
 		# Allow more thanone file
 		if ( arg.lower().startswith("in=") ):
-			snotelFiles.append ( arg[3:] )
+			snotelFile = arg[3:]
+			# Do not want path.
+			if ( snotelFile != os.path.basename(snotelFile) ):
+				logger.error ( "The file to process must not contain a leading path:  " +
+					snotelFile )
+				errorCount = errorCount + 1
+				continue
+			snotelFileWithPath = snotelByDateDir + "/" + snotelFile
+			if ( not os.path.exists(snotelFileWithPath) ):
+				logger.error ( "The SNOTEL file to process (after adding folder) does not exist:  " +
+				snotelFileWithPath )
+				errorCount = errorCount + 1
+				continue
+			snotelFiles.append ( snotelFileWithPath )
+	if ( errorCount > 0 ):
+		exit ( 1 )
 	return snotelFiles
 
 def getUser ():
@@ -704,7 +760,7 @@ def printUsage(daysToProcessDefault):
 	print "If start and end dates are specified, files are FTPed and then converted."
 	print "If end date is specified, start is defaulted and files are FTPed and then converted."
 	print ""
-	print "in=updateFile - NRCS SNOTEL update file name (input)"
+	print "in=updateFile - NRCS SNOTEL update file name (input), filename only with no path"
 	print "  DateValue file will have same name with .dv extension"
 	print "start=YYYYMMDD - starting date to process (default=today - " + \
 		str(daysToProcessDefault - 1) + " days)"
@@ -915,10 +971,12 @@ try:
 		main ()
 
 except SystemExit, error:
-	# This exception is raised when system.exit() is called.
+	# This exception is raised when system.exit() is called, as from
+	# the exit() function.
 	# Just let normal exit happen to shut down this script.
 	#print 'Exiting...' + str(error)
-	exit(int(str(error)))
+	# Don't re-catch the exception that will be generated.
+	pass
 
 except:
 	# Using the logger here assumes that basic logging setup was successful
