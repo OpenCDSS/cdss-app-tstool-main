@@ -226,7 +226,7 @@ def main ():
 		print "Processing file \"" + snotelFile + "\"..."
 		logger.info ( "Processing file \"" + snotelFile + "\"" )
 		# Read the NRCS file into a list of time series
-		tslist, tslocList, dataDate = readNrcsSnotelUpdateFile ( snotelFile )
+		tslist, tslocList, tslocTypeList, dataDate = readNrcsSnotelUpdateFile ( snotelFile )
 
 		# Change the extension on the DateValue output file
 		dvFile = snotelFile.replace ("txt", "dv")
@@ -236,12 +236,12 @@ def main ():
 
 		# Write the data to the CSV file used to link with the GIS
 		csvFile = snotelFile.replace ("txt", "csv")
-		writeSnotelDataToCsvFile ( tslist, csv, dataDate )
+		writeSnotelDataToCsvFile ( tslist, tslocList, tslocTypeList, csvFile, dataDate )
 		# If the last file being processed, copy to the current file
 		if ( snotelFile == snotelFiles[len(snotelFiles) - 1] ):
 			logger.info ( "Copying the last CSV file created (\"" + csvFile +
 				"\") to current (\"" + snotelCurrentFile + "\")." )
-			shutil.copy ( csfFile, snotelCurrentFile )
+			shutil.copy ( csvFile, snotelCurrentFile )
 
 		# Verify that there is a history file.  If not use this DateValue file to initialize.
 		if ( not os.path.exists(snotelHistoryFile) ):
@@ -288,7 +288,9 @@ def appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist ):
 	for ts in tslist:
 		tsid = ts.getTSID()
 		f.write ( "# Set the individual DateValue file contents on the history\n" )
-		f.write ( "SetFromTS(TSList=LastMatchingTSID,TSID=\"" + tsid + "\",TransferHow=ByDateTime)\n" )
+		f.write ( "SetFromTS(TSList=FirstMatchingTSID,TSID=\"" + tsid +
+			"\",IndependentTSList=LastMatchingTSID,IndependentTSID=\"" + tsid +
+			"\",TransferHow=ByDateTime)\n" )
 	return
 
 def appendToDateValueHeaderStrings( TSIDAll, TSID, descriptionAll, description,
@@ -309,7 +311,8 @@ def appendToDateValueHeaderStrings( TSIDAll, TSID, descriptionAll, description,
 	TSID, description, units, missingVal, dataFlags, dateLine
 	"""
 	delim2 = delim
-	if ( len(TSID) == 0 ):
+	if ( len(TSIDAll) == 0 ):
+		# Don't need a delimiter yet
 		delim2 = ""
 	TSIDAll = TSIDAll + delim2 + "\"" + TSID + "\""
 	descriptionAll = descriptionAll + delim2 + "\"" + description + "\""
@@ -743,7 +746,8 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 
 	Return a tuple of the list of time series, a list of the actual names used in the file
 	(needed because some have periods that interfere with time series identifiers)
-	and the date for the data (from the file header).
+	and the date for the data (from the file header), and a list of location type as "basin"
+	or "station" (needed to filter out basins for CSV file).
 	"""
 	# Get logger
 	logger = logging.getLogger()
@@ -751,6 +755,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 	stationCount = 0
 	tslist = []
 	tslocList = []
+	tslocTypeList = []
 	infp = open( updateFile)
 	# Loop over unused header information, finding the date as lines are read
 	# Find the "COLORADO" line
@@ -797,6 +802,9 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			year = parts[3]
 			dataDate = datetime.date ( int(year), int(month), int(day) )
 
+	# Get the data type strings for time series data types
+	dataTypeSWE, dataTypeSWEAvg, dataTypeSWEPctAvg = getDataTypeStrings()
+
 	# Now read until a dash is encountered, indicating the end of all data
 	# Lines that don't start with a space are the basin name.
 	# Lines that start with space and have the second character non-space are the station name.
@@ -830,7 +838,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			basinName = line.strip()
 			logger.info('Initializing basin time series for "' + basinName + '"' )
 			# Initialize a new time series for basin data...
-			dataType = "SWEPercentOfAverage"
+			dataType = dataTypeSWEPctAvg
 			tsid = basinName + ".NRCS." + dataType + ".Day"
 			description = basinName + " " + dataType
 			interval = "Day"
@@ -840,6 +848,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			# Append the time series to the list here so that it is at the head of stations in the basin
 			tslist.append ( tsBasinSWEPercentOfAverage )
 			tslocList.append ( basinName )
+			tslocTypeList.append ( "basin" )
 		elif ( lineStripped.startswith("Basin wide") ):
 			# Basin totals - end of this basin.
 			# Get from the specific columns, possibly with data flags
@@ -856,7 +865,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 		elif ( (line[0:1] == ' ') and (line[1:2] != ' ') ):
 			# Station name
 			stationName0 = line[1:24].strip()	# Retain exact name from file
-			stationName = stationName
+			stationName = stationName0
 			# Remove any periods in the name because this interferes with time series identifiers
 			if ( stationName.find(".") >= 0 ):
 				logger.warn ( "Removing period from station name: \"" + stationName + "\"" )
@@ -869,7 +878,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			#
 			# SWE
 			#
-			dataType = "SWE"
+			dataType = dataTypeSWE
 			tsid = stationName + ".NRCS." + dataType + ".Day"
 			description = basinName + " " + dataType
 			interval = "Day"
@@ -879,10 +888,11 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			tsStationSWE.setDataValue ( dataDate, stationSWE, stationSWEFlag )
 			tslist.append ( tsStationSWE )
 			tslocList.append ( stationName0 )
+			tslocTypeList.append ( "station" )
 			#
 			# SWEAverage
 			#
-			dataType = "SWEAverage"
+			dataType = dataTypeSWEAvg
 			tsid = stationName + ".NRCS." + dataType + ".Day"
 			description = basinName + " " + dataType
 			interval = "Day"
@@ -892,10 +902,11 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			tsStationSWEAverage.setDataValue ( dataDate, stationSWEAverage, stationSWEAverageFlag )
 			tslist.append ( tsStationSWEAverage )
 			tslocList.append ( stationName0 )
+			tslocTypeList.append ( "station" )
 			#
 			# SWEPercentOfAverage
 			#
-			dataType = "SWEPercentOfAverage"
+			dataType = dataTypeSWEPctAvg
 			tsid = stationName + ".NRCS." + dataType + ".Day"
 			description = basinName + " " + dataType
 			interval = "Day"
@@ -906,6 +917,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 				stationSWEPercentOfAverage, stationSWEPercentOfAverageFlag )
 			tslist.append ( tsStationSWEPercentOfAverage )
 			tslocList.append ( stationName0 )
+			tslocTypeList.append ( "station" )
 		#
 		# ...end lines to handle station data.
 		#
@@ -913,7 +925,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 	logger.info ( "Read " + str(basinCount) + " basins, with a total of " + str(stationCount) + " stations" )
 	logger.info ( "The number of time series is " + str(basinCount) + "+3*" + str(stationCount) + "=" +
 		str(basinCount + 3*stationCount) )
-	return tslist, tslocList, dataDate
+	return tslist, tslocList, tslocTypeList, dataDate
 
 #-------------------------------------------------------------------------------
 def runProgram ( cmd, outputHandler, excludePatterns ):
@@ -1049,7 +1061,7 @@ def writeDateValueHeader ( f, tslist, dataDate, delim ):
 	f.write ( dateLine + "\n" )
 	return
 
-def writeSnotelDataToCsvFile ( tslist, tsLocList, csvFile ):
+def writeSnotelDataToCsvFile ( tslist, tslocList, tslocTypeList, csvFile, dataDate ):
 	"""
 	Write the time series data to the CSV file to be joined with GIS.
 
@@ -1057,28 +1069,43 @@ def writeSnotelDataToCsvFile ( tslist, tsLocList, csvFile ):
 	tslocList - list of locations from the original SNOTEL file, which may
 		contain "." that cause problems in time series IDs.  The order of
 		tslist and tslocList are the same
+	tslocTypeList - list of location types for time series as "basin" or "station"
+		(only stations are written to the CSV file)
 	csvFile - the name of the CSV file to write
+	dataDate - datetime for the data being processed
 	"""
 	logger = logging.getLogger()
+	logger.info("Writing data to CSV file \"" + csvFile + "\"" )
 	delim = ","
 	f = open(csvFile,'w')
 	# Write the header
-	f.write ( "\"Location\",\"SWE\",SWEFlag\",\"SWEAverage\",\"SWEAverageFlag\",\"SWEPercentOfAverage\"
+	# Get the data type strings for time series data types
+	dataTypeSWE, dataTypeSWEAvg, dataTypeSWEPctAvg = getDataTypeStrings()
+	f.write ( "Location" + delim + dataTypeSWE + delim + dataTypeSWE + "Flag" + delim +
+		dataTypeSWEAvg + delim + dataTypeSWEAvg + "Flag" + delim +
+		dataTypeSWEPctAvg + delim + dataTypeSWEPctAvg + "Flag\n" )
 	i = -1
 	# Iterate through the time series.  Multiple time series are written to one
 	# line and the order depends on the original insertion into the list.
 	for ts in tslist:
 		i = i + 1
+		if ( tslocTypeList[i] == "basin" ):
+			# No need to process
+			continue
 		theDate, theValue, theFlag = ts.getDataValue(dataDate)
 		dataType = ts.getDataType()
-		f.write ( "\"" + tslocList[i] + "\"" )
-		if ( dataType == "SWE" ):
-			f.write( delim + theValue )
-		if ( dataType == "SWEAverage" ):
-			f.write( delim + theValue )
-		if ( dataType == "SWEPercentOfAverage" ):
-			# write a newline to finish the line for the station
+		# No need for quotes if basins are excluded
+		#f.write ( "\"" + tslocList[i] + "\"" )
+		if ( dataType == dataTypeSWE ):
+			# First time series in a group so write the location
+			f.write ( tslocList[i] )
+		f.write( delim + str(theValue) )
+		if ( ts.getHasDataFlags() == True ):
+			f.write( delim + theFlag )
+		if ( dataType == dataTypeSWEPctAvg ):
+			# Also write a newline to finish the line for the station
 			f.write("\n")
+	f.close()
 	return
 
 def writeSnotelDataToDateValueFile ( tslist, dvFile, dataDate ):

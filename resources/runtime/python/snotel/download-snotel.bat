@@ -32,13 +32,17 @@ if "%1"=="in" set arg1="in=%2"
 if "%1"=="start" set arg1="start=%2"
 if "%1"=="end" set arg1="end=%2"
 
-if "%3"=="in" set arg1="in=%4"
-if "%3"=="start" set arg1="start=%4"
-if "%3"=="end" set arg1="end=%4"
+if "%3"=="-v" set arg2="-v"
+if "%3"=="-h" set arg2="-h"
+if "%3"=="in" set arg2="in=%4"
+if "%3"=="start" set arg2="start=%4"
+if "%3"=="end" set arg2="end=%4"
 
-if "%5"=="in" set arg1="in=%6"
-if "%5"=="start" set arg1="start=%6"
-if "%5"=="end" set arg1="end=%6"
+if "%5"=="-v" set arg3="-v"
+if "%5"=="-h" set arg3="-h"
+if "%5"=="in" set arg3="in=%6"
+if "%5"=="start" set arg3="start=%6"
+if "%5"=="end" set arg3="end=%6"
 
 rem Now run
 %python% %scriptHome%\download-snotel.py "snotelHome=%snotelHome%" %arg1% %arg2% %arg3%
