@@ -75,6 +75,7 @@ Reference period for average conditions is 1961-90.
 """
 
 import datetime
+import ftplib
 import logging
 import os
 import re
@@ -110,9 +111,9 @@ def main ():
 	snotelHomeDir = getSnotelHomeDirFromCommandLine ( snotelHomeDirDefault )
 
 	# Initialize logging to capture messages
-	logger, log = initializeLogging ( user, scriptname, snotelHomeDir )
-	# Set the global variable for logfile
-	logfile = log
+	logger, theLogFile = initializeLogging ( user, scriptname, snotelHomeDir )
+	# Set the global module variable for logfile
+	logfile = theLogFile
 	print ""
 	print "Opened log file " + logfile
 
@@ -191,7 +192,6 @@ def main ():
 		exit ( 1 )
 
 	# By default FTP is not done
-	doFTP = False
 
 	# List of SNOTEL files to convert
 	snotelFiles = []
@@ -207,9 +207,9 @@ def main ():
 		snotelEnd = snotelStart + datetime.timedelta(days=-(daysToProcessDefault - 1))
 		# Reset to command line, if specified
 		snotelStart, snotelEnd = getDatesFromCommandLine ( snotelStart, snotelEnd )
+		logger.info("Processing dates " + str(snotelStart) + " to " + str(snotelEnd) )
 		# Get the SNOTEL files from the FTP site and return a list to be processed locally
-		snotelFiles = ftpGetSnotelFiles ( snotelStart, snotelEnd )
-		doFTP = True
+		snotelFiles = ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir )
 	else:
 		logger.info ( "Processing SNOTEL files specified on the command line..." )
 
@@ -257,10 +257,11 @@ def main ():
 	finalizeTSToolCommandFile ( f, snotelHistoryFile )
 
 	# Backup the history file just in case there is a problem
-	# FIXME SAM 2008-07-03 Add this
+	# FIXME SAM 2008-07-03 Add this?
 
 	# Call TSTool to process into historical DateValue files.  Do this once so
 	# that TSTool starts once and the log file will contain all processing.
+	print "Merging recent data with history..."
 	processDataUsingTSTool ( tstool, tstoolCommandFile )
 
 	return
@@ -291,6 +292,10 @@ def appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist ):
 		f.write ( "SetFromTS(TSList=FirstMatchingTSID,TSID=\"" + tsid +
 			"\",IndependentTSList=LastMatchingTSID,IndependentTSID=\"" + tsid +
 			"\",TransferHow=ByDateTime)\n" )
+	f.write ( "# Now free the data for a date so that a file for another date can be processed.\n" )
+	f.write ( "# This is necessary because the time series for each date have the same identifiers.\n" )
+	f.write ( "Free(TSList=TSPosition,TSPosition=\"" + str(numHistoryTS + 1) + "-" +
+		str(numHistoryTS + len(tslist)) + "\")\n" )
 	return
 
 def appendToDateValueHeaderStrings( TSIDAll, TSID, descriptionAll, description,
@@ -406,37 +411,35 @@ def finalizeTSToolCommandsForFile ( f, historyFile ):
 		str(numHistoryTS + len(tslist)) + "\")\n" )
 	return
 
-def ftpGet ( server, login, password, remoteDirectory, remoteFilename, localFilename, transferMode ):
+def ftpGet ( ftp, remoteFilename, localFilename, transferMode ):
 	"""
 	Retrieve a single file from the remote server.
+
+	ftp - open FTP connection
 	"""
-	ftp = ftplib.FTP(server)
-	ftp.login ( login, password )
-	ftp.cwc ( remoteDirectory )
+	logger = logging.getLogger()
+	logger.info("Retrieving remote file \"" + remoteFilename +
+		"\" to local \"" + localFilename + "\"" )
 	if ( transferMode == "ASCII" ):
 		f = open(localFilename,'w')
-		ftp.retrlines('RETR ' + remoteFilename, f.write)
+		# Need to do the following so the CRLF characters are not stripped
+		ftp.retrlines('RETR ' + remoteFilename, lambda line: f.write('%s\n' % line))
 		f.close()
 	else:
 		f = open(localFilename,'wb')
 		ftp.retrbinary('RETR ' + remoteFilename, f.write)
 		f.close()
-	ftp.close()
 	return
 
-def ftpGetSnotelFile ( snotelDate ):
-	"""
-	Download a single Snotel file from the NRCS FTP site.
-	"""
-	# Need to get the file from the NRCS site
-	ftpGet ( server, login, password, remoteDirectory, remoteFilename, localFilename, transferMode )
-	return
-
-def ftpGetSnotelFiles ( snotelStart, snotelEnd ):
+def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 	"""
 	Download a series of files from the NRCS web site for the specified dates.
 	Only one FTP connection is made to increase performance and potential problems
 	with the FTP site rejecting multiple connections.
+
+	snotelStart - datetime to start download
+	snotelEnd - datetime to end download
+	snotelByDateDir - directory into which to save SNOTEL files
 	"""
 	logger = logging.getLogger()
 	logger.info ( "Retrieving SNOTEL update files from NRCS site for period " +
@@ -446,21 +449,63 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd ):
 	login = "anonymous"
 	password = "anonymous"
 	remoteDirectory = "/data/snow/update/co"
-	testing = True
+	# Test on RTi's FTP site
+	#testing = True
+	testing = False
 	if ( testing == True ):
 		server = "ftp.riverside.com"
 		password = "ok2ftp2"
+		remoteDirectory = "/outgoing/sam/co"
+	# Valid file names relative to the current directory
 	snotelFiles = []
+	# Open the connection...
+	ftp = ftpOpenConnection ( server, login, password, remoteDirectory )
+	# Loop though the dates to process and pull back
+	snotelDate = snotelStart
+	while ( True ):
+		# Figure out the water year for the folder...
+		month = snotelDate.month
+		if ( (month >= 10) and (month <= 12) ):
+			folder = "wy" + str(snotelDate.year + 1)
+		else:
+			folder = "wy" + str(snotelDate.year)
+		remoteFile = folder + "/co" + snotelDate.strftime("%y%m%d") + ".txt"
+		localFile = snotelByDateDir + "/co" + snotelDate.strftime("%y%m%d") + ".txt"
+		logger.info ( "FTP get remote file \"" + remoteFile +
+			"\" to local file \"" + localFile + "\"" )
+		try:
+			ftpGet ( ftp, remoteFile, localFile, 'ASCII' )
+			snotelFiles.append ( localFile )
+		except ftplib.all_errors, error:
+			logger.exception ( "Error getting file.  Skipping." )
+			traceback.print_exc()
+		# Increment the date by one day for the next file
+		if ( snotelDate.toordinal() == snotelEnd.toordinal() ):
+			# Done processing
+			break
+		snotelDate = snotelDate + datetime.timedelta(days=1)
+	# Close the connection and return
+	ftp.close()
 	return snotelFiles
 
 def ftpOpenConnection ( server, login, password, remoteDirectory ):
 	"""
 	Open a connection on the remote server.
+
+	server - server to connect to
+	login - login name to use
+	password - password to use
+	remoteDirectory - starting remote directory
+
+	Return the ftp object.
 	"""
 	ftp = ftplib.FTP(server)
 	ftp.login ( login, password )
-	ftp.cwc ( remoteDirectory )
-	return
+	ftp.cwd ( remoteDirectory )
+	logger = logging.getLogger()
+	logger.info("Opened FTP connection to server \"" + server +
+		"\" and changed to directory \"" + remoteDirectory + "\"" )
+	return ftp
 
 def getDatesFromCommandLine ( snotelStart, snotelEnd ):
 	"""
@@ -471,9 +516,9 @@ def getDatesFromCommandLine ( snotelStart, snotelEnd ):
 	"""
 	for arg in sys.argv:
 		if ( arg.lower().startswith("start=") ):
-			snotelStart = arg[6:]
+			snotelStart = datetime.datetime(int(arg[6:10]),int(arg[10:12]),int(arg[12:]))
 		elif ( arg.lower().startswith("end=") ):
-			snotelEnd = arg[4:]
+			snotelEnd = datetime.datetime(int(arg[4:8]),int(arg[8:10]),int(arg[10:]))
 	return snotelStart, snotelEnd
 
 def getDataTypeStrings ():
@@ -584,13 +629,13 @@ def initializeLogging ( user, appname, snotelHomeDir ):
 	loc = snotelHomeDir + "/logs"
 	if ( (user == None) or (user.strip() == "") ):
 		# No user name
-		logfile = loc + "/" + appname + "." + today.strftime("%Y%m%d") + ".log"
+		theLogfile = loc + "/" + appname + "." + today.strftime("%Y%m%d") + ".log"
 	else:
 		# Have user name
-		logfile = loc + "/" + appname + "." + user + "." + today.strftime("%Y%m%d") + ".log"
+		theLogfile = loc + "/" + appname + "." + user + "." + today.strftime("%Y%m%d") + ".log"
 	# Make sure that the log file directory exists
-	if ( not os.path.exists(os.path.dirname(logfile) ) ):
-		os.makedirs ( os.path.dirname(logfile) )
+	if ( not os.path.exists(os.path.dirname(theLogfile) ) ):
+		os.makedirs ( os.path.dirname(theLogfile) )
 	is_python24 = False
 	version = str(sys.version_info[0]) + "." + str(sys.version_info[1])
 	if ( float(version) >= 2.4 ):
@@ -598,7 +643,7 @@ def initializeLogging ( user, appname, snotelHomeDir ):
 	if ( is_python24 == True ):
 		# Use the newer function to configure logging
 		logging.basicConfig ( format = '%(asctime)s %(levelname)8s %(message)s',
-			filename=logfile, filemode = 'w' )
+			filename=theLogfile, filemode = 'w' )
 		logger = logging.getLogger()
 	else:
 		# Use the following for Python older than 2.4
@@ -606,7 +651,7 @@ def initializeLogging ( user, appname, snotelHomeDir ):
 		logger = logging.getLogger ()
 		#logger = logging.getLogger(appname)
 		# Open a file with mode ? so as to NOT append
-		hdlr = logging.FileHandler(logfile,'w')
+		hdlr = logging.FileHandler(theLogfile,'w')
 		formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 		hdlr.setFormatter(formatter)
 		logger.addHandler(hdlr)
@@ -614,7 +659,7 @@ def initializeLogging ( user, appname, snotelHomeDir ):
 	logger.setLevel(logging.INFO)
 	# TODO SAM 2008-03-03 Evaluate putting in more header information similar to Java ioutil.printCreatorHeader()
 	logger.info ( "Running as user:  " + user )
-	return logger, logfile
+	return logger, theLogfile
 
 def initializeTSToolCommandFile ( tstoolCommandFile, historyFile, historyStart, historyEnd ):
 	"""

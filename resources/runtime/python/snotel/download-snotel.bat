@@ -9,15 +9,14 @@ rem Pass the command line parameters to the script.
 rem See the script usage for options
 
 rem Python to use (in case need to pick between different versions on system)
-rem By default configure to use what is in the PATH
-set python=python
+set python=C:\python24\python
 
 rem Development version at RTi...
-set scriptHome=C:\develop\TSTool_SourceBuild\TSTool\resources\runtime\python\snotel
+rem set scriptHome=C:\develop\TSTool_SourceBuild\TSTool\resources\runtime\python\snotel
 set snotelHome=K:/PROJECTS/1015_Bureau of Reclamation-Phase 3 SNODAS/SnowDataTools/SNOTEL
 
 rem Installed version (uncomment for delivery - confirm with CWCB)...
-rem set scriptHome=C:\CDSS\TSTool=08.16.01\python\snotel
+set scriptHome=C:\CDSS\TSTool=08.16.00\python\snotel
 rem set snotelHome=C:\CDSS\snotel
 
 rem DOS/Windows command line replaces = with space so need to do some work to pass the
