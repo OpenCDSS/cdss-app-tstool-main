@@ -83,7 +83,7 @@ MiscButtonText "Back" "Next" "Cancel" "Done"
 
 ### Pages ###
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "installer\Rivertrack\License.txt"
+!insertmacro MUI_PAGE_LICENSE "installer\RTi\License.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
