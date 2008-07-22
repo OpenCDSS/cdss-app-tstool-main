@@ -56,6 +56,16 @@ class TSlite ( object ):
 		"""
 		return self.__hasDataFlags
 
+	def getLocation ( self ):
+		"""
+		Return the location part of the time series identifier or an empty string
+		if not initialized.
+		"""
+		if ( len(self.__tsid) == 0 ):
+			return ""
+		else:
+			return re.split("[.]",self.__tsid)[0]
+
 	def getMissing ( self ):
 		"""
 		Return the time series missing data value.

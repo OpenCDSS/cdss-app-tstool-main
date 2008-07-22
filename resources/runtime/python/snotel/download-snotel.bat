@@ -1,26 +1,35 @@
 @echo off
-rem This batch file runs a Python script to download SNOTEL "update" files
-rem for today and the past 21 days, updating a local database and creating
-rem a CSV file for linking to GIS maps.
+rem This batch file runs the Python script "download-snotel.py" to download SNOTEL
+rem "update" files for today and the past several days (as configured in the Python
+rem script), and creates:
+rem 
+rem 1) a CSV file for each SNOTEL file, for linking to GIS maps
+rem 2) a DateValue file for use with TSTool to merge into...
+rem 3) an updated local history database containing the full SNOTEL period of record,
+rem    using DateValue files that are compatible with TSTool.
 rem
-rem Script created by Steve Malers, RTi
+rem This script was created by Steve Malers, Riverside Technology, inc. (RTi)
 
 rem Pass the command line parameters to the script.
 rem See the script usage for options
 
 rem Python to use (in case need to pick between different versions on system)
 set python=C:\python24\python
+rem The following commented line is more generic and can be used if it points to
+rem a version that tests out with this script.
+rem set python="python"
 
-rem Development version at RTi...
-rem set scriptHome=C:\develop\TSTool_SourceBuild\TSTool\resources\runtime\python\snotel
-set snotelHome=K:/PROJECTS/1015_Bureau of Reclamation-Phase 3 SNODAS/SnowDataTools/SNOTEL
+rem Configuration information for installed operational version
+rem snotelHome default is in the rem snow-update.py script.
+rem Update the following location if using a different version of TSTool.
+rem set scriptHome=C:\CDSS\TSTool-08.16.02\python\snotel
 
-rem Installed version (uncomment for delivery - confirm with CWCB)...
-set scriptHome=C:\CDSS\TSTool=08.16.00\python\snotel
-rem set snotelHome=C:\CDSS\snotel
+rem Configuration information for Development version at RTi (comment out for operational system)
+set scriptHome=C:\develop\TSTool_SourceBuild\TSTool\resources\runtime\python\snotel
+rem set snotelHome=K:/PROJECTS/1015_Bureau of Reclamation-Phase 3 SNODAS/SnowDataTools/SNOTEL
 
 rem DOS/Windows command line replaces = with space so need to do some work to pass the
-rem desired in=X, start=X, end=X to python
+rem desired in=X, start=X, end=X to the Python script.
 
 set arg1=
 set arg2=
@@ -44,7 +53,8 @@ if "%5"=="start" set arg3="start=%6"
 if "%5"=="end" set arg3="end=%6"
 
 rem Now run
-%python% %scriptHome%\download-snotel.py "snotelHome=%snotelHome%" %arg1% %arg2% %arg3%
+if "%snotelHome%"=="" %python% %scriptHome%\download-snotel.py %arg1% %arg2% %arg3%
+if not "%snotelHome%"=="" %python% %scriptHome%\download-snotel.py "snotelHome=%snotelHome%" %arg1% %arg2% %arg3%
 
 rem Clear variables
 

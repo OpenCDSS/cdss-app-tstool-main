@@ -76,6 +76,7 @@ Reference period for average conditions is 1961-90.
 
 import datetime
 import ftplib
+import glob
 import logging
 import os
 import re
@@ -104,11 +105,21 @@ def main ():
 	user = getUser ()
 
 	# The script version, to allow tracking changes over time
-	version = "1.00 (2008-06-26)"
+	version = "1.01 (2008-07-21)"
 
 	# The main location of the files.
 	snotelHomeDirDefault = "C:/CDSS/snotel"
+	# Check for override on the command line
 	snotelHomeDir = getSnotelHomeDirFromCommandLine ( snotelHomeDirDefault )
+	print "Home for SNOTEL data files: \"" + snotelHomeDir + "\""
+	if ( snotelHomeDir == "" ):
+		# Most likely a problem in the calling batch file.
+		print 'Home folder for SNOTEL data is blank - check the download-snotel.bat file.'
+		exit ( 1 )
+	if ( not os.path.exists(snotelHomeDir) ):
+		print 'Creating folder for SNOTEL data "' + snotelHomeDir + '"'
+		# logger.info('Creating folder for SNOTEL data "' + snotelHomeDir + '"' )
+		os.makedirs ( snotelHomeDir )
 
 	# Initialize logging to capture messages
 	logger, theLogFile = initializeLogging ( user, scriptname, snotelHomeDir )
@@ -116,12 +127,8 @@ def main ():
 	logfile = theLogFile
 	print ""
 	print "Opened log file " + logfile
-
 	logger.info ( "Home for SNOTEL data files: \"" + snotelHomeDir + "\"" )
-	if ( not os.path.exists(snotelHomeDir) ):
-		logger.info('Creating folder for SNOTEL data "' +
-			snotelHomeDir + '"' )
-		os.makedirs ( snotelHomeDir )
+
 	# FIXME SAM 2008-07-02 Home at CWCB to be determined
 	#
 	# The directory structure is then:
@@ -132,7 +139,7 @@ def main ():
 	#		current\
 	#			cosnotel.csv
 	#		history\
-	#			cosnotel.dv
+	#			StationName.dv
 	#		logs\
 	#			download-snotel.sam.YYYYMMDD.log
 	snotelHistoryDir = snotelHomeDir + "/history"
@@ -140,13 +147,7 @@ def main ():
 		logger.info('Creating folder for SNOTEL history "' +
 			snotelHistoryDir + '"' )
 		os.makedirs ( snotelHistoryDir )
-	snotelHistoryFile = snotelHistoryDir + "/cosnotel.dv"
-	logger.info ( "SNOTEL history file: \"" + snotelHistoryFile + "\"" )
-	# Get the number of time series in the history file, needed for
-	# TSTool processing below.
-	if ( os.path.exists(snotelHistoryFile) ):
-		numHistoryTS = getNumHistoryTS ( snotelHistoryFile )
-		logger.info ( "The number of time series in the history is " + str(numHistoryTS) )
+	logger.info ( "SNOTEL history folder: \"" + snotelHistoryDir + "\"" )
 
 	snotelByDateDir = snotelHomeDir + "/bydate"
 	logger.info ( "SNOTEL data by date folder: \"" + snotelByDateDir + "\"" )
@@ -161,7 +162,7 @@ def main ():
 			snotelCurrentDir + '"' )
 		os.makedirs ( snotelCurrentDir )
 	snotelCurrentFile = snotelCurrentDir + "/cosnotel.csv"
-	logger.info ( "SNOTEL current file: \"" + snotelHistoryFile + "\"" )
+	logger.info ( "SNOTEL current file: \"" + snotelCurrentFile + "\"" )
 
 	snotelTstoolDir = snotelHomeDir + "/tstool"
 	if ( not os.path.exists(snotelTstoolDir) ):
@@ -181,7 +182,11 @@ def main ():
 
 	# TSTool executable to use.  This should be set to a version that has been tested
 	# out with this process.
-	tstool = "C:/CDSS/TSTool-08.16.00/bin/tstool.exe"
+	tstool = "C:/CDSS/TSTool-08.16.02/bin/tstool.exe"
+	if ( not os.path.exists(snotelHomeDir) ):
+		logger.error ( "The TSTool program to use does not exist: \"" + tstool + "\"" )
+		logger.error ( "Verify the configuration in " + sys.argv[0] )
+		exit ( 1 )
 
 	# The command file to be run by TSTool
 	tstoolCommandFile = snotelTstoolDir + "/snotel-" + user + ".TSTool"
@@ -203,11 +208,12 @@ def main ():
 		# specified dates and then process
 		logger.info ( "No SNOTEL file was specified so download from FTP site using dates..." )
 		# Default dates
-		snotelStart = datetime.date.today()
-		snotelEnd = snotelStart + datetime.timedelta(days=-(daysToProcessDefault - 1))
+		snotelEnd = datetime.date.today()
+		snotelStart = snotelEnd - datetime.timedelta(days=(daysToProcessDefault - 1))
+		logger.info("Default dates to process: " + str(snotelStart) + " to " + str(snotelEnd) )
 		# Reset to command line, if specified
 		snotelStart, snotelEnd = getDatesFromCommandLine ( snotelStart, snotelEnd )
-		logger.info("Processing dates " + str(snotelStart) + " to " + str(snotelEnd) )
+		logger.info("Processing dates: " + str(snotelStart) + " to " + str(snotelEnd) )
 		# Get the SNOTEL files from the FTP site and return a list to be processed locally
 		snotelFiles = ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir )
 	else:
@@ -221,7 +227,11 @@ def main ():
 	# Process the files.  Commands are dynamically added to a TSTool command file for
 	# each SNOTEL file, and then TSTool is run once to process the files.
 	logger.info ( "Temporary TSTool command file to run is \"" + tstoolCommandFile + "\"" )
-	f = initializeTSToolCommandFile ( tstoolCommandFile, snotelHistoryFile, historyStart, historyEnd )
+	# Initialize the command file
+	f, numHistoryTS = initializeTSToolCommandFile ( tstoolCommandFile, snotelHistoryDir,
+		historyStart, historyEnd )
+	# List of time series identifiers with history information
+	tsidsHistory = []
 	for snotelFile in snotelFiles:
 		print "Processing file \"" + snotelFile + "\"..."
 		logger.info ( "Processing file \"" + snotelFile + "\"" )
@@ -243,60 +253,70 @@ def main ():
 				"\") to current (\"" + snotelCurrentFile + "\")." )
 			shutil.copy ( csvFile, snotelCurrentFile )
 
-		# Verify that there is a history file.  If not use this DateValue file to initialize.
-		if ( not os.path.exists(snotelHistoryFile) ):
-			logger.info ( "Initializing the history file as a copy of \"" + dvFile + "\"" )
-			shutil.copy ( dvFile, snotelHistoryFile )
-			numHistoryTS = len(tslist)
-			logger.info ( "The number of time series in the history is " + str(numHistoryTS) )
-
 		# Append to the TSTool file the commands needed to process the file.
-		appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist )
+		appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist, tsidsHistory )
 
 	# Add ending commands to write out the history file
-	finalizeTSToolCommandFile ( f, snotelHistoryFile )
-
-	# Backup the history file just in case there is a problem
-	# FIXME SAM 2008-07-03 Add this?
+	finalizeTSToolCommandFile ( f, tslist, snotelHistoryDir )
 
 	# Call TSTool to process into historical DateValue files.  Do this once so
 	# that TSTool starts once and the log file will contain all processing.
-	print "Merging recent data with history..."
+	print "Merging SNOTEL data from files with history using TSTool..."
+	logger.info( "Merging SNOTEL data from files with history using TSTool...")
 	processDataUsingTSTool ( tstool, tstoolCommandFile )
-
 	return
 
-def appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist ):
+def appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist, tsidsHistory ):
 	"""
-	Append TSTool commands to the command file to process the commands.
-	The history DateValue file will already have been read.  The identifiers
+	Append TSTool commands to the command file to process the time series.
+	The history DateValue files will already have been read.  The identifiers
 	in both time series files will be the same so it is important to use the
-	proper TSList parameter value.
+	proper TSList parameter value to match the first and last time series.
 
 	f - open file to write to
-	numHistoryTS - number of time series in the history
+	numHistoryTS - number of total time series in the history (read from
+		multiple DateValue files)
 	dvFile - DateValue file containing single day of data to process
 	tslist - the list of time series to process for a specific date
+	tsidsHistory - the list of time series with histories (files or in memory)
+
+	return the updated list of time series identifiers with histories (new items may
+		be added if initialization of the histories is occurring)
 	"""
 	f.write ( "#\n" )
 	f.write ( "##\n" )
 	f.write ( "### Commands to process file \"" + dvFile + "\"\n" )
 	f.write ( "##\n" )
 	f.write ( "#\n" )
-	f.write ( "# Read the DateValue file to process\n" )
+	f.write ( "# Read the DateValue file to process, containing all time series for a date\n" )
 	f.write ( "ReadDateValue(InputFile=\"" + dvFile + "\")\n" )
 	# Loop through all of the time series in the file and set in the history
+	# Only include the command if the station in the TS matches a history file
+	# (otherwise this is the first time and just need to write out the results).
 	for ts in tslist:
 		tsid = ts.getTSID()
-		f.write ( "# Set the individual DateValue file contents on the history\n" )
-		f.write ( "SetFromTS(TSList=FirstMatchingTSID,TSID=\"" + tsid +
-			"\",IndependentTSList=LastMatchingTSID,IndependentTSID=\"" + tsid +
-			"\",TransferHow=ByDateTime)\n" )
-	f.write ( "# Now free the data for a date so that a file for another date can be processed.\n" )
-	f.write ( "# This is necessary because the time series for each date have the same identifiers.\n" )
-	f.write ( "Free(TSList=TSPosition,TSPosition=\"" + str(numHistoryTS + 1) + "-" +
-		str(numHistoryTS + len(tslist)) + "\")\n" )
-	return
+		# Determine if the time series has a history time series, either read
+		# from the history files or initialized in memory from another file
+		historyFound = False
+		for tsidHistory in tsidsHistory:
+			if ( tsid == tsidHistory ):
+				historyFound = True
+				break
+		if ( historyFound == True ):
+			f.write ( "# Set the individual DateValue file contents on the history\n" )
+			f.write ( "SetFromTS(TSList=FirstMatchingTSID,TSID=\"" + tsid +
+				"\",IndependentTSList=LastMatchingTSID,IndependentTSID=\"" + tsid +
+				"\",TransferHow=ByDateTime)\n" )
+			f.write ( "# Now free the data for a date so that a file for another date can be processed.\n" )
+			f.write ( "# This is necessary because the time series for each date have the same identifiers.\n" )
+			f.write ( "Free(TSList=LastMatchingTSID,TSID=\"" + tsid + "\")\n" )
+		else:
+			# Allow the time series to exist in memory to be added to by other data files
+			# Don't free because there was no history file to begin with
+			f.write ( "# Time series \"" + tsid +
+				"\" history will be initialized from the above file (first occurance in data files).\n" )
+			tsidsHistory.append ( tsid )
+	return tsidsHistory
 
 def appendToDateValueHeaderStrings( TSIDAll, TSID, descriptionAll, description,
 	unitsAll, units, missingValAll, missingVal, dataFlagsAll, dataFlags,
@@ -392,24 +412,62 @@ def exit ( exitCode ):
 	sys.exit ( exitCode )
 	return
 
-def finalizeTSToolCommandFile ( f, historyFile ):
+def finalizeTSToolCommandFile ( f, tslist, historyDir ):
 	"""
 	Finalize the TSTool command file by adding commands to rewrite the
-	history DateValue file.  Also close the command file.
+	history DateValue file.  Also close the command file.  Only history files for
+	time series being processed need to be written (otherwise no change to history).
 
 	f - open command file
+	tslist - list of time series to write
+	historyDir - directory where SNOTEL history files exist
 	"""
-	f.write ( "# Re-write the history file with the merged data.\n" )
-	f.write ( "WriteDateValue(OutputFile=\"" + historyFile + "\",Precision=1)\n" )
+	f.write ( "# Re-write the history files with the merged data.\n" )
+	historyFilePrev = ""
+	# Time series at the same location are written to the same file
+	for ts in tslist:
+		historyFile = historyDir + "/" + ts.getLocation() + ".dv"
+		if ( historyFile != historyFilePrev ):
+			f.write ( "WriteDateValue(OutputFile=\"" + historyFile +
+			"\",TSList=AllMatchingTSID,TSID=\"" + ts.getLocation() + "*\",Precision=1)\n" )
+		historyFilePrev = historyFile
 	f.close()
 	return
 
-def finalizeTSToolCommandsForFile ( f, historyFile ):
-	f.write ( "# Now free the data for a date so that a file for another date can be processed.\n" )
-	f.write ( "# This is necessary because the time series for each date have the same identifiers.\n" )
-	f.write ( "Free(TSList=TSPosition,TSPosition=\"" + str(numHistoryTS + 1) + "-" +
-		str(numHistoryTS + len(tslist)) + "\")\n" )
-	return
+def ftpFileExists ( ftp, remoteFilenameRequested, cacheDict ):
+	"""
+	Determine whether a file exists on a remote FTP site.
+
+	ftp - open FTP connection
+	remoteFilenameRequested - name of the remote filename to check
+	cacheDict - if not None, use as a dictionary to cache remote directory listing,
+		to improve performance (only specify if remote directory contents are
+		not expected to change frequently)
+
+	Return True if the file exists, False if not.
+	"""
+	pwd = ftp.pwd()
+	remoteFilenamesCached = None
+	if ( cacheDict != None ):
+		# See if a dictionary item is available (a list for the directory)
+		try:
+			remoteFilenamesCached = cacheDict[pwd]
+			remoteFilenames = remoteFilenamesCached
+		except KeyError, error:
+			remoteFilenamesCached = None
+	if ( remoteFilenamesCached == None ):
+		# Need to get the list
+		remoteFilenames = ftp.nlst()
+		cacheDict[pwd] = remoteFilenames
+	logger = logging.getLogger()
+	#logger.info ( "Remote filename (requested) is \"" + remoteFilenameRequested +
+	#	"\" in dir \"" + pwd + "\"" )
+	for remoteFilename in remoteFilenames:
+		# Check to see if the remote filename matches the requested filename (exact case)
+		#logger.info ( "Remote filename is \"" + remoteFilename + "\" in \"" + pwd + "\"" )
+		if ( remoteFilename == remoteFilenameRequested ):
+			return True
+	return False
 
 def ftpGet ( ftp, remoteFilename, localFilename, transferMode ):
 	"""
@@ -448,7 +506,8 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 	server = "ftp.wcc.nrcs.usda.gov"
 	login = "anonymous"
 	password = "anonymous"
-	remoteDirectory = "/data/snow/update/co"
+	# Main remote directory, below which are wy2008, etc.
+	remoteMainDirectory = "/data/snow/update/co"
 	# Test on RTi's FTP site
 	#testing = True
 	testing = False
@@ -459,31 +518,45 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 	# Valid file names relative to the current directory
 	snotelFiles = []
 	# Open the connection...
-	ftp = ftpOpenConnection ( server, login, password, remoteDirectory )
+	ftp = ftpOpenConnection ( server, login, password, remoteMainDirectory )
 	# Loop though the dates to process and pull back
-	snotelDate = snotelStart
-	while ( True ):
+	# Start one day before start because it gets incremented at start of loop
+	snotelDate = snotelStart - datetime.timedelta(days=1)
+	remoteDirPrev = ""	# Previosu remote directory, to increase performance
+	cacheDict = dict()
+	while ( snotelDate.toordinal() < snotelEnd.toordinal() ):
+		# Increment the date once here instead of multiple places below 
+		snotelDate = snotelDate + datetime.timedelta(days=1)
 		# Figure out the water year for the folder...
 		month = snotelDate.month
 		if ( (month >= 10) and (month <= 12) ):
-			folder = "wy" + str(snotelDate.year + 1)
+			wyFolder = "wy" + str(snotelDate.year - 1)
 		else:
-			folder = "wy" + str(snotelDate.year)
-		remoteFile = folder + "/co" + snotelDate.strftime("%y%m%d") + ".txt"
+			wyFolder = "wy" + str(snotelDate.year)
+		remoteDir = remoteMainDirectory + "/" + wyFolder
+		remoteFile = "co" + snotelDate.strftime("%y%m%d") + ".txt"
 		localFile = snotelByDateDir + "/co" + snotelDate.strftime("%y%m%d") + ".txt"
+		# Change to the remote directory so that files can be listed
+		if ( not remoteDir == remoteDirPrev ):
+			ftp.cwd ( remoteDir )
+			remoteDirPrev = remoteDir
+		# Verify that the file exists before retrieving to avoid exceptions
+		if ( not ftpFileExists(ftp, remoteFile, cacheDict) ):
+			logger.info ( "Remote file \"" + remoteFile + "\" in \"" + remoteDir +
+			"\" does not exist.  Skipping." )
+			continue
 		logger.info ( "FTP get remote file \"" + remoteFile +
 			"\" to local file \"" + localFile + "\"" )
 		try:
 			ftpGet ( ftp, remoteFile, localFile, 'ASCII' )
 			snotelFiles.append ( localFile )
 		except ftplib.all_errors, error:
-			logger.exception ( "Error getting file.  Skipping." )
-			traceback.print_exc()
-		# Increment the date by one day for the next file
-		if ( snotelDate.toordinal() == snotelEnd.toordinal() ):
-			# Done processing
-			break
-		snotelDate = snotelDate + datetime.timedelta(days=1)
+			logger.exception ( "Error getting file \"" + remoteFile +
+				"\" from \"" + remoteDir + "\" (" + str(error) + ").  Skipping." )
+			# Comment out so as to not print to the console in operations
+			#traceback.print_exc()
+			# Don't add to the list
+			continue
 	# Close the connection and return
 	ftp.close()
 	return snotelFiles
@@ -661,26 +734,39 @@ def initializeLogging ( user, appname, snotelHomeDir ):
 	logger.info ( "Running as user:  " + user )
 	return logger, theLogfile
 
-def initializeTSToolCommandFile ( tstoolCommandFile, historyFile, historyStart, historyEnd ):
+def initializeTSToolCommandFile ( tstoolCommandFile, historyDir, historyStart, historyEnd ):
 	"""
-	Initialize the TSTool command file.
+	Initialize the TSTool command file.  This consists of reading all of the
+	history files, regardless of the stations being processed.
 
 	tstoolCommandFile - name of the TSTool command file
-	historyFile - SNOTEL history file
+	historyDir - folder where SNOTEL history files exist
 	historyStart - the starting datetime of the SNOTEL history file
 	historyEnd - the ending datetime of the SNOTEL history file
 
-	Return an open file object.
+	Return a touple of an open file object (to allow additional commands to be added)
+	and the number of historical time series total that are read.
 	"""
+	numHistoryTS = 0
 	f = open ( tstoolCommandFile, "w" )
 	f.write ( "StartLog(Logfile=\"" + tstoolCommandFile + ".log\"\n" )
-	f.write ( "# Read the archive file containing the historical period.\n" )
-	f.write ( "ReadDateValue(InputFile=\"" + historyFile + "\")\n" )
-	f.write ( "# Ensure that the historical period is as desired (change in Python script if not).\n" )
-	f.write ( "ChangePeriod(TSList=AllTS,NewStart=\"" +
-		historyStart.strftime("%Y-%m-%d") + "\",NewEnd=\"" +
-		historyEnd.strftime("%Y-%m-%d") + "\")\n" )
-	return f
+	historyFiles = glob.glob ( historyDir + "/*.dv" )
+	if ( len(historyFiles) == 0 ):
+		f.write ( "# No history files exist - they will be initialized below.\n" )
+	else:
+		f.write ( "# Read the archive files containing the historical " +
+		"period (one file per basin/station).\n" )
+		for historyFile in historyFiles:
+			f.write ( "ReadDateValue(InputFile=\"" + historyFile + "\")\n" )
+			numHistoryTS = numHistoryTS + getNumHistoryTS ( historyFile )
+		f.write ( "# Ensure that the historical period is as desired (change in Python script if not).\n" )
+		f.write ( "ChangePeriod(TSList=AllTS,NewStart=\"" +
+			historyStart.strftime("%Y-%m-%d") + "\",NewEnd=\"" +
+			historyEnd.strftime("%Y-%m-%d") + "\")\n" )
+	logger = logging.getLogger()
+	logging.info ( "The total number of time series from the history files is " +
+		str(numHistoryTS) )
+	return f, numHistoryTS
 
 def processDataUsingTSTool ( tstool, tstoolCommandFile ):
 	"""
@@ -749,24 +835,44 @@ def printUsage(daysToProcessDefault, snotelHomeDirDefault):
 	daysToProcessDefault - default days to process, will be subtraced from end
 	snotelHomeDirDefault - default home folder for SNOTEL data files
 	"""
+	# Get the script name without the .py since this script is called by a batch file.
+	scriptName=os.path.basename(sys.argv[0]).replace(".py","")
 	print ""
-	print "Optionally download, convert NRCS SNOTEL update file(s) to a DateValue file,"
-	print "and merge the file into the archive DateValue file."
+	print "Command line usage:"
 	print ""
-	print os.path.basename(sys.argv[0]) + " snotelHome=folder in=updateFile OR [[start=YYYYMMDD] end=YYYYMMDD]"
+	print scriptName + " snotelHome=folder in=updateFile OR [[start=YYYYMMDD] end=YYYYMMDD]"
+	print ""
+	print "Download (if requested) and process NRCS SNOTEL \"update\" format files."
+	print "Each file is processed to create:"
+	print " 1) A CSV file suitable for linking to GIS maps."
+	print " 2) A DateValue file suitable for use with TSTool."
+	print " 3) DateValue files containing the cumulative period of record"
+	print "    for processed files." 
 	print ""
 	print "If a filename is specified, it is converted and merged into the archive."
-	print "If start and end dates are specified, files are FTPed and then converted."
+	print "If start and end dates are specified, files are FTPed and then converted/merged."
 	print "If only end date is specified, start is defaulted to process " + str(daysToProcessDefault)
-	print "   and files are FTPed and then converted."
+	print "   days of data and files are FTPed and then converted/merged."
 	print ""
-	print "in=updateFile - NRCS SNOTEL update file name (input), filename only with no path"
-	print "  DateValue file will have same name with .dv extension"
-	print "snotelHome=folder - specify the path to the SNOTEL data location"
-	print "  (default=\"" + snotelHomeDirDefault + "\")"
 	print "start=YYYYMMDD - starting date to process (default=today - " + \
 		str(daysToProcessDefault - 1) + " days)"
 	print "end=YYYYMMDD - ending date to process (default=today)"
+	print "in=updateFile - specify path to NRCS SNOTEL update file to process"
+	print "  (use for testing or to process old data)"
+	print "snotelHome=folder - specify the path to the SNOTEL data location"
+	print "  (default=\"" + snotelHomeDirDefault + "\" - use to override default for testing)"
+	print ""
+	print "Example to download and process 14 days of data including today:"
+	print ""
+	print " " + scriptName
+	print ""
+	print "Example to download and process a range of dates:"
+	print ""
+	print " " + scriptName + " start=20071001 end=20071031"
+	print ""
+	print "Example to process a previously downloaded data file:"
+	print ""
+	print " " + scriptName + " in=co20071001.txt"
 	print ""
 	return
 
@@ -911,6 +1017,18 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			# Station name
 			stationName0 = line[1:24].strip()	# Retain exact name from file
 			stationName = stationName0
+			# Determine if the station has already been encountered in the file.  In this case
+			# avoid adding again
+			tsaddedPreviously = False
+			for tsadded in tslist:
+				if ( tsadded.getLocation() == stationName ):
+					logger.info ( "Station \"" + stationName +
+					"\" time series have already been added in another basin - not adding again." )
+					tsaddedPreviously = True
+					break
+			if ( tsaddedPreviously ):
+				# No need to add
+				continue
 			# Remove any periods in the name because this interferes with time series identifiers
 			if ( stationName.find(".") >= 0 ):
 				logger.warn ( "Removing period from station name: \"" + stationName + "\"" )
@@ -1191,7 +1309,10 @@ except:
 	# in the main function.
 	logger = logging.getLogger()
 	logger.exception ( "Unexpected exception" )
-	print 'Unexpected error.  See the details in \"' + logfile + '"'
+	if ( not logger == "unknown" ):
+		print 'Unexpected error.  See the details in \"' + logfile + '"'
+	else:
+		print 'Unexpected error.'
 	traceback.print_exc()
 	exit(1)
 
