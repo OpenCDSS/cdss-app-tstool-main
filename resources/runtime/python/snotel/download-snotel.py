@@ -105,7 +105,7 @@ def main ():
 	user = getUser ()
 
 	# The script version, to allow tracking changes over time
-	version = "1.01 (2008-07-21)"
+	version = "1.02 (2008-07-22)"
 
 	# The main location of the files.
 	snotelHomeDirDefault = "C:/CDSS/snotel"
@@ -129,8 +129,6 @@ def main ():
 	print "Opened log file " + logfile
 	logger.info ( "Home for SNOTEL data files: \"" + snotelHomeDir + "\"" )
 
-	# FIXME SAM 2008-07-02 Home at CWCB to be determined
-	#
 	# The directory structure is then:
 	#	${snotelHomeDir}\
 	#		bydate\
@@ -174,6 +172,8 @@ def main ():
 	# Change this when new years are needed and the history file will be extended
 	# The data at the following address start in 1997-11-06:
 	#  ftp://ftp.wcc.nrcs.usda.gov/data/snow/update/co
+	doHistoryDefault = False
+	doHistory = getDoHistoryFromCommandLine ( doHistoryDefault )
 	historyStart = datetime.datetime(1997,11,1)
 	historyEnd = datetime.datetime(2008,9,30)
 
@@ -192,7 +192,7 @@ def main ():
 	tstoolCommandFile = snotelTstoolDir + "/snotel-" + user + ".TSTool"
 
 	# Check the command line parameters
-	if ( not checkCommandLineParameters ( version, daysToProcessDefault, snotelHomeDir ) ):
+	if ( not checkCommandLineParameters ( version, daysToProcessDefault, snotelHomeDir, doHistoryDefault ) ):
 		printUsage(daysToProcessDefault, snotelHomeDirDefault)
 		exit ( 1 )
 
@@ -224,14 +224,15 @@ def main ():
 		printUsage(daysToProcessDefault, snotelHomeDirDefault)
 		exit ( 1 )
 
-	# Process the files.  Commands are dynamically added to a TSTool command file for
-	# each SNOTEL file, and then TSTool is run once to process the files.
-	logger.info ( "Temporary TSTool command file to run is \"" + tstoolCommandFile + "\"" )
-	# Initialize the command file
-	f, numHistoryTS = initializeTSToolCommandFile ( tstoolCommandFile, snotelHistoryDir,
-		historyStart, historyEnd )
-	# List of time series identifiers with history information
-	tsidsHistory = []
+	if ( doHistory == True ):
+		# Commands are dynamically added to a TSTool command file for
+		# each SNOTEL file, and then TSTool is run once to process the files.
+		logger.info ( "Temporary TSTool command file to run is \"" + tstoolCommandFile + "\"" )
+		# Initialize the command file
+		f, numHistoryTS = initializeTSToolCommandFile ( tstoolCommandFile, snotelHistoryDir,
+			historyStart, historyEnd )
+		# List of time series identifiers with history information
+		tsidsHistory = []
 	for snotelFile in snotelFiles:
 		print "Processing file \"" + snotelFile + "\"..."
 		logger.info ( "Processing file \"" + snotelFile + "\"" )
@@ -253,17 +254,19 @@ def main ():
 				"\") to current (\"" + snotelCurrentFile + "\")." )
 			shutil.copy ( csvFile, snotelCurrentFile )
 
-		# Append to the TSTool file the commands needed to process the file.
-		appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist, tsidsHistory )
+		if ( doHistory == True ):
+			# Append to the TSTool file the commands needed to process the file.
+			appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist, tsidsHistory )
 
-	# Add ending commands to write out the history file
-	finalizeTSToolCommandFile ( f, tslist, snotelHistoryDir )
+	if ( doHistory == True ):
+		# Add ending commands to write out the history file
+		finalizeTSToolCommandFile ( f, tslist, snotelHistoryDir )
 
-	# Call TSTool to process into historical DateValue files.  Do this once so
-	# that TSTool starts once and the log file will contain all processing.
-	print "Merging SNOTEL data from files with history using TSTool..."
-	logger.info( "Merging SNOTEL data from files with history using TSTool...")
-	processDataUsingTSTool ( tstool, tstoolCommandFile )
+		# Call TSTool to process into historical DateValue files.  Do this once so
+		# that TSTool starts once and the log file will contain all processing.
+		print "Merging SNOTEL data from files with history using TSTool..."
+		logger.info( "Merging SNOTEL data from files with history using TSTool...")
+		processDataUsingTSTool ( tstool, tstoolCommandFile )
 	return
 
 def appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist, tsidsHistory ):
@@ -288,7 +291,7 @@ def appendToTSToolCommandFile ( f, numHistoryTS, dvFile, tslist, tsidsHistory ):
 	f.write ( "### Commands to process file \"" + dvFile + "\"\n" )
 	f.write ( "##\n" )
 	f.write ( "#\n" )
-	f.write ( "# Read the DateValue file to process, containing all time series for a date\n" )
+	f.write ( "# Read the DateValue file to process, containing all time series for a date.\n" )
 	f.write ( "ReadDateValue(InputFile=\"" + dvFile + "\")\n" )
 	# Loop through all of the time series in the file and set in the history
 	# Only include the command if the station in the TS matches a history file
@@ -354,7 +357,7 @@ def appendToDateValueHeaderStrings( TSIDAll, TSID, descriptionAll, description,
 		dateLineAll = dateLineAll + delim + "\"" + locName + ", " + dataType + "\""
 	return TSIDAll, descriptionAll, unitsAll, missingValAll, dataFlagsAll, dateLineAll
 
-def checkCommandLineParameters ( version, daysToProcessDefault, snotelHomeDirDefault ):
+def checkCommandLineParameters ( version, daysToProcessDefault, snotelHomeDirDefault, doHistoryDefault ):
 	"""
 	Verify that the specified command line parameters are recognized.
 	Do not parse.  Just do simple checks and print version or usage if requested.
@@ -363,6 +366,7 @@ def checkCommandLineParameters ( version, daysToProcessDefault, snotelHomeDirDef
 	daysToProcessDefault - the number of days to process, inclusive of today if
 		dates are not provided
 	snotelHomeDirDefault - the home folder for SNOTEL data files
+	doHistoryDefault - default doHistory value if not found in the command line.
 
 	Return False if there were errors, True if everything checked out.
 	"""
@@ -372,8 +376,10 @@ def checkCommandLineParameters ( version, daysToProcessDefault, snotelHomeDirDef
 		if ( arg_lower.startswith("end=") ):
 			pass
 		elif ( arg_lower == "-h" ):
-			printUsage(daysToProcessDefault, snotelHomeDirDefault)
+			printUsage(daysToProcessDefault, snotelHomeDirDefault, doHistoryDefault)
 			exit(0)
+		elif ( arg_lower.startswith("history=") ):
+			pass
 		elif ( arg_lower.startswith("in=") ):
 			pass
 		elif ( arg_lower.startswith("snotelhome=") ):
@@ -429,7 +435,7 @@ def finalizeTSToolCommandFile ( f, tslist, historyDir ):
 		historyFile = historyDir + "/" + ts.getLocation() + ".dv"
 		if ( historyFile != historyFilePrev ):
 			f.write ( "WriteDateValue(OutputFile=\"" + historyFile +
-			"\",TSList=AllMatchingTSID,TSID=\"" + ts.getLocation() + "*\",Precision=1)\n" )
+			"\",TSList=AllMatchingTSID,TSID=\"" + ts.getLocation() + "*\",Precision=1,Delimiter=",")\n" )
 		historyFilePrev = historyFile
 	f.close()
 	return
@@ -476,8 +482,9 @@ def ftpGet ( ftp, remoteFilename, localFilename, transferMode ):
 	ftp - open FTP connection
 	"""
 	logger = logging.getLogger()
-	logger.info("Retrieving remote file \"" + remoteFilename +
-		"\" to local \"" + localFilename + "\"" )
+	message = "Retrieving remote file \"" + remoteFilename + "\" to \"" + localFilename + "\""
+	print message
+	logger.info(message)
 	if ( transferMode == "ASCII" ):
 		f = open(localFilename,'w')
 		# Need to do the following so the CRLF characters are not stripped
@@ -601,6 +608,19 @@ def getDataTypeStrings ():
 	returned.
 	"""
 	return "SWE", "SWEAvg", "SWEPctAvg"
+
+def getDoHistoryFromCommandLine ( doHistoryDefault ):
+	"""
+	Get value of the history command line option.
+
+	doHistoryDefault - default doHistory value if not found in the command line.
+	"""
+	doHistory = doHistoryDefault
+	for arg in sys.argv:
+		if ( arg.lower().startswith("history=") ):
+			doHistory = arg[8:]
+			break
+	return doHistory
 
 def getNumHistoryTS ( snotelHistoryFile ):
 	"""
@@ -750,6 +770,8 @@ def initializeTSToolCommandFile ( tstoolCommandFile, historyDir, historyStart, h
 	numHistoryTS = 0
 	f = open ( tstoolCommandFile, "w" )
 	f.write ( "StartLog(Logfile=\"" + tstoolCommandFile + ".log\"\n" )
+	f.write ( "# This TSTool command file will read SNOTEL data in DateValue files\n" )
+	f.write ( "# and merge them into the history files.\n" )
 	historyFiles = glob.glob ( historyDir + "/*.dv" )
 	if ( len(historyFiles) == 0 ):
 		f.write ( "# No history files exist - they will be initialized below.\n" )
@@ -828,28 +850,30 @@ def parseDataValue ( dataString ):
 	return value, flag
 
 #-------------------------------------------------------------------------------
-def printUsage(daysToProcessDefault, snotelHomeDirDefault):
+def printUsage(daysToProcessDefault, snotelHomeDirDefault, doHistoryDefault):
 	"""
 	Print the script usage.
 
 	daysToProcessDefault - default days to process, will be subtraced from end
 	snotelHomeDirDefault - default home folder for SNOTEL data files
+	doHistoryDefault - default for whether the history should be processed
 	"""
 	# Get the script name without the .py since this script is called by a batch file.
 	scriptName=os.path.basename(sys.argv[0]).replace(".py","")
 	print ""
 	print "Command line usage:"
 	print ""
-	print scriptName + " snotelHome=folder in=updateFile OR [[start=YYYYMMDD] end=YYYYMMDD]"
+	print scriptName + " [[[start=YYYYMMDD] end=YYYYMMDD] OR in=updateFile] [snotelHome=folder] [history=true|false]"
 	print ""
+	print "Brackets indicate optional parameters and grouping of parameters."
 	print "Download (if requested) and process NRCS SNOTEL \"update\" format files."
 	print "Each file is processed to create:"
 	print " 1) A CSV file suitable for linking to GIS maps."
 	print " 2) A DateValue file suitable for use with TSTool."
-	print " 3) DateValue files containing the cumulative period of record"
+	print " 3) (optionally) DateValue files containing the cumulative history"
 	print "    for processed files." 
 	print ""
-	print "If a filename is specified, it is converted and merged into the archive."
+	print "If a filename is specified, it is converted and optionlly merged into the history archive."
 	print "If start and end dates are specified, files are FTPed and then converted/merged."
 	print "If only end date is specified, start is defaulted to process " + str(daysToProcessDefault)
 	print "   days of data and files are FTPed and then converted/merged."
@@ -857,10 +881,12 @@ def printUsage(daysToProcessDefault, snotelHomeDirDefault):
 	print "start=YYYYMMDD - starting date to process (default=today - " + \
 		str(daysToProcessDefault - 1) + " days)"
 	print "end=YYYYMMDD - ending date to process (default=today)"
-	print "in=updateFile - specify path to NRCS SNOTEL update file to process"
+	print "in=updateFile - specify the NRCS SNOTEL update file (no leading path) to process"
 	print "  (use for testing or to process old data)"
 	print "snotelHome=folder - specify the path to the SNOTEL data location"
 	print "  (default=\"" + snotelHomeDirDefault + "\" - use to override default for testing)"
+	print "history=true|false - indicate whether the history should be updated,"
+	print "  slower and under development (default=" + str(doHistoryDefault) + ")"
 	print ""
 	print "Example to download and process 14 days of data including today:"
 	print ""
