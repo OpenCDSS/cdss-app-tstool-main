@@ -531,9 +531,11 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 	snotelDate = snotelStart - datetime.timedelta(days=1)
 	remoteDirPrev = ""	# Previosu remote directory, to increase performance
 	cacheDict = dict()
-	while ( snotelDate.toordinal() < snotelEnd.toordinal() ):
-		# Increment the date once here instead of multiple places below 
+	while ( True ):
 		snotelDate = snotelDate + datetime.timedelta(days=1)
+		if ( snotelDate.toordinal() > snotelEnd.toordinal() ):
+			break
+		# Increment the date once here instead of multiple places below 
 		# Figure out the water year for the folder...
 		month = snotelDate.month
 		if ( (month >= 10) and (month <= 12) ):
