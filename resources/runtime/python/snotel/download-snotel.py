@@ -105,7 +105,7 @@ def main ():
 	user = getUser ()
 
 	# The script version, to allow tracking changes over time
-	version = "1.02 (2008-07-22)"
+	version = "1.04 (2008-07-23)"
 
 	# The main location of the files.
 	snotelHomeDirDefault = "C:/CDSS/snotel"
@@ -241,6 +241,7 @@ def main ():
 
 		# Change the extension on the DateValue output file
 		dvFile = snotelFile.replace ("txt", "dv")
+		snotelFileNoExt = re.split("[.]",snotelFile)[0]
 
 		# Write the list of time series objects to DateValue format
 		writeSnotelDataToDateValueFile ( tslist, dvFile, dataDate )
@@ -250,8 +251,15 @@ def main ():
 		writeSnotelDataToCsvFile ( tslist, tslocList, tslocTypeList, csvFile, dataDate )
 		# If the last file being processed, copy to the current file
 		if ( snotelFile == snotelFiles[len(snotelFiles) - 1] ):
-			logger.info ( "Copying the last CSV file created (\"" + csvFile +
-				"\") to current (\"" + snotelCurrentFile + "\")." )
+			message = "Copying the last CSV file created (\"" + csvFile + \
+				"\") to current (\"" + snotelCurrentFile + "\")."
+			print message
+			logger.info ( message )
+			dataDateString = "%04d%02d%02d" % (dataDate.year, dataDate.month, dataDate.day)
+			if ( snotelFileNoExt != dataDateString ):
+				message = "Filename date is not the same as the date in the file - provisional data"
+				print message
+				logger.info ( message )
 			shutil.copy ( csvFile, snotelCurrentFile )
 
 		if ( doHistory == True ):
@@ -1021,7 +1029,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			tsid = basinName + ".NRCS." + dataType + ".Day"
 			description = basinName + " " + dataType
 			interval = "Day"
-			units = "IN"
+			units = "PCT"
 			missing = -999
 			tsBasinSWEPercentOfAverage = TSlite.TSlite ( tsid, description, interval, units, missing )
 			# Append the time series to the list here so that it is at the head of stations in the basin
@@ -1101,7 +1109,7 @@ def readNrcsSnotelUpdateFile ( updateFile ):
 			tsid = stationName + ".NRCS." + dataType + ".Day"
 			description = basinName + " " + dataType
 			interval = "Day"
-			units = "IN"
+			units = "PCT"
 			missing = -999
 			tsStationSWEPercentOfAverage = TSlite.TSlite ( tsid, description, interval, units, missing )
 			tsStationSWEPercentOfAverage.setDataValue ( dataDate,
@@ -1271,8 +1279,10 @@ def writeSnotelDataToCsvFile ( tslist, tslocList, tslocTypeList, csvFile, dataDa
 	f = open(csvFile,'w')
 	# Write the header
 	# Get the data type strings for time series data types
+	dataDateString = "%04d%02d%02d" % (dataDate.year, dataDate.month, dataDate.day)
 	dataTypeSWE, dataTypeSWEAvg, dataTypeSWEPctAvg = getDataTypeStrings()
-	f.write ( "Location" + delim + dataTypeSWE + delim + dataTypeSWE + "Flag" + delim +
+	f.write ( "Location" + delim + "Date" + delim + dataTypeSWE + delim +
+		dataTypeSWE + "Flag" + delim +
 		dataTypeSWEAvg + delim + dataTypeSWEAvg + "Flag" + delim +
 		dataTypeSWEPctAvg + delim + dataTypeSWEPctAvg + "Flag\n" )
 	i = -1
@@ -1288,8 +1298,8 @@ def writeSnotelDataToCsvFile ( tslist, tslocList, tslocTypeList, csvFile, dataDa
 		# No need for quotes if basins are excluded
 		#f.write ( "\"" + tslocList[i] + "\"" )
 		if ( dataType == dataTypeSWE ):
-			# First time series in a group so write the location
-			f.write ( tslocList[i] )
+			# First time series in a group so write the location and date
+			f.write ( tslocList[i] + delim + dataDateString )
 		f.write( delim + str(theValue) )
 		if ( ts.getHasDataFlags() == True ):
 			f.write( delim + theFlag )
