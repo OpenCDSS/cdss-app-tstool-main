@@ -289,9 +289,6 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 	JGUIUtil.addComponent(main_JPanel, __command_JTextField,
 		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-	// Refresh the contents...
-	refresh ();
-
 	// South Panel: North
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -314,10 +311,10 @@ private void initialize ( JFrame parent, String title, PropList app_PropList,
 		setTitle ( title );
 	}
 	setResizable ( true );
-        pack();
-        JGUIUtil.center( this );
+    pack();
+    JGUIUtil.center( this );
 	refresh();	// Sets the __path_JButton status
-        super.setVisible( true );
+    super.setVisible( true );
 }
 
 /**
