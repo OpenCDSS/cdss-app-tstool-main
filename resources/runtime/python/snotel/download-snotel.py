@@ -105,7 +105,7 @@ def main ():
 	user = getUser ()
 
 	# The script version, to allow tracking changes over time
-	version = "1.04 (2008-07-23)"
+	version = "1.05 (2008-07-24)"
 
 	# The main location of the files.
 	snotelHomeDirDefault = "C:/CDSS/snotel"
@@ -241,7 +241,6 @@ def main ():
 
 		# Change the extension on the DateValue output file
 		dvFile = snotelFile.replace ("txt", "dv")
-		snotelFileNoExt = re.split("[.]",snotelFile)[0]
 
 		# Write the list of time series objects to DateValue format
 		writeSnotelDataToDateValueFile ( tslist, dvFile, dataDate )
@@ -256,8 +255,23 @@ def main ():
 			print message
 			logger.info ( message )
 			dataDateString = "%04d%02d%02d" % (dataDate.year, dataDate.month, dataDate.day)
-			if ( snotelFileNoExt != dataDateString ):
-				message = "Filename date is not the same as the date in the file - provisional data"
+			# Get the date from the filename, no extension, no leading "co"
+			snotelFileDate = re.split("[.]",os.path.basename(snotelFile))[0][2:]
+			fileyear = snotelFileDate[0:2]
+			# Assume data since 1970 are listed as 70+ as first 2 digits
+			if ( int(fileyear) < 70 ):
+				snotelFileDate = "20" + snotelFileDate
+			else:
+				snotelFileDate = "19" + snotelFileDate
+			if ( snotelFileDate != dataDateString ):
+				# Print a warning about provisional data
+				message = "Filename date is: " + snotelFileDate
+				print message
+				logger.info ( message )
+				message = "Date in file is:  " + dataDateString
+				print message
+				logger.info ( message )
+				message = "Data in the file are provisional and may change later."
 				print message
 				logger.info ( message )
 			shutil.copy ( csvFile, snotelCurrentFile )
@@ -523,17 +537,23 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 	password = "anonymous"
 	# Main remote directory, below which are wy2008, etc.
 	remoteMainDirectory = "/data/snow/update/co"
-	# Test on RTi's FTP site
-	#testing = True
-	testing = False
-	if ( testing == True ):
-		server = "ftp.riverside.com"
-		password = "ok2ftp2"
-		remoteDirectory = "/outgoing/sam/co"
 	# Valid file names relative to the current directory
 	snotelFiles = []
-	# Open the connection...
-	ftp = ftpOpenConnection ( server, login, password, remoteMainDirectory )
+	# Open the connection (retry if there is a problem)...
+	retries = 5
+	ftptry = 0
+	while ( True ):
+		ftptry = ftptry + 1
+		try:
+			ftp = ftpOpenConnection ( server, login, password, remoteMainDirectory )
+			break
+		except ftplib.all_errors, error:
+			logger.exception ( "Error opening FTP connection, try " + str(ftptry) )
+			if ( ftptry == retries ):
+				message = "Unable to open FTP connection to \"" + server + "\".  Try again later."
+				print message
+				logger.error ( message )
+				exit(1)
 	# Loop though the dates to process and pull back
 	# Start one day before start because it gets incremented at start of loop
 	snotelDate = snotelStart - datetime.timedelta(days=1)
