@@ -1114,6 +1114,7 @@ JMenu
     __Commands_General_Comments_JMenu = null;
 JMenuItem
 	__Commands_General_Comments_Comment_JMenuItem = null,
+	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
 	__Commands_General_Comments_StartComment_JMenuItem = null,
 	__Commands_General_Comments_EndComment_JMenuItem = null;
 
@@ -1489,6 +1490,7 @@ private String
    
     __Commands_General_Comments_String = "General - Comments",
 	__Commands_General_Comments_Comment_String = TAB + "# comment(s)...",
+	__Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <insert read-only comment>",
 	__Commands_General_Comments_StartComment_String = TAB + "/*   <start comment>",
 	__Commands_General_Comments_EndComment_String = TAB + "*/   <end comment>",
     
@@ -2738,25 +2740,6 @@ private boolean commandList_EditCommandOldStyle (
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals(__Commands_Fill_SetAutoExtendPeriod_String)||
-		command.regionMatches(true,0,"setAutoExtendPeriod",0,19) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for setAutoExtendPeriod()" );
-		}
-		edited_cv = new setAutoExtendPeriod_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Fill_SetAveragePeriod_String) ||
-		command.regionMatches(true,0,"setAveragePeriod",0,16) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setAveragePeriod()" );
-		}
-		edited_cv = new setAveragePeriod_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Fill_SetPatternFile_String) ||
 		command.regionMatches(true,0,"setPatternFile",0,14) ) {
 		if ( Message.isDebugOn ) {
@@ -2890,21 +2873,18 @@ private boolean commandList_EditCommandOldStyle (
 
 	// General...
 
-	else if ( action.equals( __Commands_General_Running_SetWorkingDir_String) ||
-		command.regionMatches(true,0,"setWorkingDir",0,13) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setWorkingDir()" );
-		}
-		edited_cv = new setWorkingDir_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ), cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit), command_to_edit).getText();
-	}
+    else if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
+        // edited_cv is just a new comment...
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( dl, routine, "Adding @readOnly comment." );
+        }
+        edited_cv = new Vector(1);
+        edited_cv.addElement( "#@readOnly" );
+    }
 	else if ( action.equals(__Commands_General_Comments_StartComment_String) ) {
 		// edited_cv is just a new comment...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Adding start of comment block." );
+			Message.printDebug ( dl, routine, "Adding start of comment block." );
 		}
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "/*" );
@@ -2912,8 +2892,7 @@ private boolean commandList_EditCommandOldStyle (
 	else if ( action.equals(__Commands_General_Comments_EndComment_String) ) {
 		// edited_cv is just a new comment...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Adding end of comment block." );
+			Message.printDebug ( dl, routine, "Adding end of comment block." );
 		}
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
@@ -8192,6 +8171,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
     __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Comment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_StartComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_StartComment_String, this ) );
     __Commands_General_Comments_JMenu.add( __Commands_General_Comments_EndComment_JMenuItem =
@@ -9381,10 +9362,19 @@ throws Exception
 		try {
             if ( __command_file_name != null ) {
 				// Use the existing name...
-				uiAction_WriteCommandFile ( __command_file_name,false);
+                int x = ResponseJDialog.OK;
+                if ( __ts_processor.getReadOnly() ) {
+                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                        "The commands are marked read-only.\n" +
+                        "Press Cancel and save to a new name if desired.  Press OK to update the read-only file.",
+                        ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
+                }
+                if ( x == ResponseJDialog.OK ) {
+                    uiAction_WriteCommandFile ( __command_file_name,false);
+                }
 			}
 			else {
-                // Prompt for the name...
+                // No command file has been saved - prompt for the name...
 				uiAction_WriteCommandFile ( __command_file_name, true);
 			}
 		}
@@ -10365,6 +10355,9 @@ throws Exception
 	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
+        commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals(__Commands_General_Comments_StartComment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, __INSERT_COMMAND );
 	}
@@ -11150,10 +11143,19 @@ private void uiAction_FileExitClicked ()
 				// Have not been saved before...
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
-					x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
-					"Do you want to save the changes you made?",
-					ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
-				}
+	                if ( __ts_processor.getReadOnly() ) {
+	                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+	                            "The command file is marked read-only.\n" +
+	                            "Press Cancel and then save to a new name if desired." +
+	                            "Press YES to update the read-only file.",
+	                            ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+	                }
+	                else {
+	                     x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
+                             "Do you want to save the changes you made?",
+                             ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+	                }
+	            }
 				if ( x == ResponseJDialog.CANCEL ) {
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
@@ -11168,10 +11170,18 @@ private void uiAction_FileExitClicked ()
 				// can cancel and File...Save As... to a different name.  Have not been saved before...
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
-					x = new ResponseJDialog ( this,
-					IOUtil.getProgramName(), "Do you want to save the changes you made to\n\""
-					+ __command_file_name + "\"?",
-					ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+				    if ( __ts_processor.getReadOnly() ) {
+                        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                                "The command file is marked read-only.  Changes cannot be saved.\n" +
+                                "Press Cancel and then save to a new name if desired.",
+                                ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
+                    }
+                    else {
+                        x = new ResponseJDialog ( this,
+                                IOUtil.getProgramName(), "Do you want to save the changes you made to\n\""
+                                + __command_file_name + "\"?",
+                                ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+                    }
 				}
 				if ( x == ResponseJDialog.CANCEL ) {
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -13596,7 +13606,8 @@ private void uiAction_OpenCommandFile ()
 	// See whether the old commands need to be cleared...
 	if ( __commands_dirty ) {
 		if ( __command_file_name == null ) {
-			// Have not been saved before...
+			// Have not been saved before.
+		    // Always allow save, even if read-only comment is set (since first save).
 			int x = ResponseJDialog.NO;
 			if ( __commands_JListModel.size() > 0 ) {
 				x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
@@ -13618,10 +13629,22 @@ private void uiAction_OpenCommandFile ()
 			// Have not been saved before...
 			int x = ResponseJDialog.NO;
 			if ( __commands_JListModel.size() > 0 ) {
-				x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
-				"Do you want to save the changes you made to:\n"
-				+ "\"" + __command_file_name + "\"?",
-				ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+			    if ( __ts_processor.getReadOnly() ) {
+                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                        "Do you want to save the changes you made to:\n"
+                        + "\"" + __command_file_name + "\"?\n\n" +
+                        "The commands are marked read-only.\n" +
+                        "Press Yes to update the read-only file before opening a new file.\n" +
+                        "Press No to discard edits before opening a new file.\n" +
+                        "Press Cancel and then save to a new name if desired.\n",
+                        ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+			    }
+			    else {
+    				x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
+    				"Do you want to save the changes you made to:\n"
+    				+ "\"" + __command_file_name + "\"?",
+    				ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+			    }
 			}
 			if ( x == ResponseJDialog.CANCEL ) {
 				return;
@@ -13629,7 +13652,7 @@ private void uiAction_OpenCommandFile ()
 			else if ( x == ResponseJDialog.YES ) {
 				uiAction_WriteCommandFile ( __command_file_name,false);
 			}
-			// Else if No will clear below before opening the other file...
+			// Else if No or OK will clear below before opening the other file...
 		}
 	}
 
@@ -15500,7 +15523,12 @@ private void uiAction_ShowProperties_CommandsRun ()
 	String s1 = "", s2 = "";
 	// Initial and current working directory...
 	v.addElement ( "Initial working directory:  " + __ts_processor.getInitialWorkingDir() );
-	v.addElement ( "Current working directory:  " + __ts_processor.getWorkingDir() );
+	try {
+	    v.addElement ( "Current working directory:  " + __ts_processor.getPropContents("WorkingDir") );
+	}
+	catch ( Exception e ) {
+	    v.addElement ( "Current working directory:  Unknown" );
+	}
 	// Whether running and cancel requested...
 	v.addElement ( "Are commands running:  " + __ts_processor.getIsRunning() );
 	v.addElement ( "Has cancel been requested (and is pending):  " + __ts_processor.getCancelProcessingRequested() );
@@ -16407,8 +16435,7 @@ value that is passed.  An extension of .TSTool is enforced.
 private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
 {	String directory = null;
 	if ( prompt_for_file ) {
-		JFileChooser fc = JFileChooserFactory.createJFileChooser(
-				ui_GetDir_LastCommandFileOpened() );
+		JFileChooser fc = JFileChooserFactory.createJFileChooser(ui_GetDir_LastCommandFileOpened() );
 		fc.setDialogTitle("Save Command File");
 		// Default name...
 		File default_file = new File("commands.TSTool");
@@ -16421,13 +16448,14 @@ private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
 			IOUtil.enforceFileExtension ( file, "TSTool" );
 			ui_SetDir_LastCommandFileOpened( directory );
 		}		
-		else {	// Did not approve...
+		else {
+		    // Did not approve...
 			return;
 		}
 	}
 	// Now write the file...
-	try {	PrintWriter out = new PrintWriter(new FileOutputStream(file));
-		
+	try {
+	    PrintWriter out = new PrintWriter(new FileOutputStream(file));
 		int size = __commands_JListModel.size();
 		for (int i = 0; i < size; i++) {
 			out.println(((Command)__commands_JListModel.get(i)).toString());
