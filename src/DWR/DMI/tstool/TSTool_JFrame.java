@@ -1141,6 +1141,7 @@ JMenu
 JMenuItem
     __Commands_General_TestProcessing_CompareFiles_JMenuItem = null,
     __Commands_General_TestProcessing_WriteProperty_JMenuItem = null,
+    __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem = null,
     //-- separator ---
     __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem = null,
     __Commands_General_TestProcessing_StartRegressionTestResultsReport_JMenuItem = null,
@@ -1298,7 +1299,7 @@ private String
 	__Edit_String = "Edit",
 		__Edit_CutCommands_String = "Cut Command(s)",
 		__Edit_CopyCommands_String = "Copy Command(s)",
-		__Edit_PasteCommands_String = "Paste Command(s)",
+		__Edit_PasteCommands_String = "Paste Command(s) (After Selected)",
 		__Edit_DeleteCommands_String = "Delete Command(s)",
 		__Edit_SelectAllCommands_String ="Select All Commands",
 		__Edit_DeselectAllCommands_String = "Deselect All Commands",
@@ -1511,7 +1512,8 @@ private String
     __Commands_General_TestProcessing_String = "General - Test Processing",
     __Commands_General_TestProcessing_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
 	__Commands_General_TestProcessing_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
-	__Commands_General_TestProcessing_WriteProperty_String = TAB + "WriteProperty()... <used to test software>",
+	__Commands_General_TestProcessing_WriteProperty_String = TAB + "WriteProperty()... <write processor property, to test software>",
+	__Commands_General_TestProcessing_WriteTimeSeriesProperty_String = TAB + "WriteTimeSeriesProperty()... <write time series property, to test software>",
 	__Commands_General_TestProcessing_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to test software>",
     __Commands_General_TestProcessing_TestCommand_String = TAB + "TestCommand()... <to test software>",
     
@@ -8215,6 +8217,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteProperty_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteProperty_String, this ) );
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesProperty_String, this ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareFiles_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_CompareFiles_String, this ) );
     __Commands_General_TestProcessing_JMenu.addSeparator();
@@ -8245,7 +8249,7 @@ private void ui_InitGUIMenus_CommandsPopup ()
 	__Commands_JPopupMenu.add( __CommandsPopup_Copy_JMenuItem =
         new SimpleJMenuItem ( "Copy", __Edit_CopyCommands_String,this));
 	__Commands_JPopupMenu.add( __CommandsPopup_Paste_JMenuItem=
-        new SimpleJMenuItem("Paste", __Edit_PasteCommands_String,this));
+        new SimpleJMenuItem("Paste (After Selected)", __Edit_PasteCommands_String,this));
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add(__CommandsPopup_Delete_JMenuItem=
 		new SimpleJMenuItem( __Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
@@ -10397,6 +10401,9 @@ throws Exception
 	else if (command.equals( __Commands_General_TestProcessing_WriteProperty_String)){
 		commandList_EditCommand ( __Commands_General_TestProcessing_WriteProperty_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String)){
+        commandList_EditCommand ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_General_TestProcessing_TestCommand_String) ) {
 		commandList_EditCommand ( __Commands_General_TestProcessing_TestCommand_String, null, __INSERT_COMMAND );
 	}
