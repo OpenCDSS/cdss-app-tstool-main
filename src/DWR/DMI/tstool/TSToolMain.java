@@ -452,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.16.03 (2008-08-18)";
+public static final String PROGRAM_VERSION = "8.16.03beta (2008-08-19)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -491,7 +491,13 @@ Indicates whether the main GUI is shown, for cases where TSTool is run in
 in batch mode, with only the plot window shown.  If running in interactive mode the
 GUI is always shown.
 */
-private static boolean __showMainGUI = true;	
+private static boolean __showMainGUI = true;
+
+/**
+Indicates whether the -nomaingui command line argument is set.  This is used instead of
+just the above to know for sure the combination of command line parameters.
+*/
+private static boolean __noMainGUIArgSpecified = false;    
 
 /**
 Command file being processed when run in batch mode with -commands File.
@@ -666,11 +672,6 @@ public static void main ( String args[] )
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args );
 	JGUIUtil.setAppNameForWindows("TSTool");
 
-	// Set the icon to RTi's logo by default.  This may be reset later after
-	// the license is checked in the GUI.
-
-	setIcon ( "RTi" );
-
 	// Note that messages will not be printed to the log file until the log file is opened below.
 
 	initializeLoggingLevelsAfterLogOpened();
@@ -684,6 +685,16 @@ public static void main ( String args[] )
         Message.printWarning ( 1, routine, 
             "Error parsing command line arguments.  Using default behavior if necessary." );
 		Message.printWarning ( 3, routine, e );
+	}
+	
+	// Set the icon to RTi's logo by default.  This may be reset later after
+    // the license is checked in the GUI.  Do not do this in pure batch mode because it is not
+	// needed and may cause problems with X-Windows on UNIX.
+	// Do need to load it when -nomaingui is used because the windows that are shown will need
+	// to look nice with the icon.
+
+	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified ) { // Not "pure" batch
+	    setIcon ( "RTi" );
 	}
 
 	// Read the data units...
@@ -982,6 +993,7 @@ throws Exception
 			// Don't make the main GUI visible...
 			Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
 			__showMainGUI = false;
+			__noMainGUIArgSpecified = true;
 		}
 	    // User specified or specified by a script/system call to the normal TSTool script/launcher.
         else if (args[i].equalsIgnoreCase("-runcommandsonload")) {
