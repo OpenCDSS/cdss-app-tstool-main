@@ -82,9 +82,12 @@ import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
 import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
 import DWR.DMI.SatMonSysDMI.SatMonSys_Util;
+import DWR.StateCU.StateCU_BTS;
 import DWR.StateCU.StateCU_CropPatternTS;
+import DWR.StateCU.StateCU_DataSet;
 import DWR.StateCU.StateCU_IrrigationPracticeTS;
 import DWR.StateCU.StateCU_TS;
+import DWR.StateCU.StateCU_Util;
 import DWR.StateMod.StateMod_BTS;
 import DWR.StateMod.StateMod_DataSet;
 import DWR.StateMod.StateMod_DiversionRight;
@@ -93,6 +96,8 @@ import DWR.StateMod.StateMod_ReservoirRight;
 import DWR.StateMod.StateMod_TS;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
+// FIXME SAM 2008-08-25 Plug in if moving forward
+//import hec.*;
 import RTi.DMI.DMIUtil;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
 import RTi.DMI.DIADvisorDMI.DIADvisor_SensorDef;
@@ -403,15 +408,26 @@ The last StateCU file that was selected, to reset after cancelling a browse.
 private String		__input_name_StateCU_last = null;
 
 /**
+The StateCUB files that have been selected during the session, to allow switching
+between input types but not losing the list of files.
+*/
+private Vector __input_name_StateCUB = new Vector();
+
+/**
+The last StateCUB file that was selected, to reset after cancelling a browse.
+*/
+private String __input_name_StateCUB_last = null;
+
+/**
 The StateModB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private Vector		__input_name_StateModB = new Vector();
+private Vector __input_name_StateModB = new Vector();
 
 /**
 The last StateModB file that was selected, to reset after cancelling a browse.
 */
-private String		__input_name_StateModB_last = null;
+private String __input_name_StateModB_last = null;
 
 //TODO Evaluate usability - does not seem to work! - popup on popup
 /**
@@ -472,7 +488,7 @@ private JPanel __commands_JPanel;
 /**
 Query results.
 */
-private JWorksheet	__query_JWorksheet;
+private JWorksheet __query_JWorksheet;
 
 /**
 Table model for query results.
@@ -767,6 +783,7 @@ private boolean	__source_ColoradoSMS_enabled = false,
 		__source_RiverWare_enabled = true,
 		__source_SHEF_enabled = true,
 		__source_StateCU_enabled = true,
+		__source_StateCUB_enabled = true,
 		__source_StateMod_enabled = true,
 		__source_StateModB_enabled = true,
 		__source_USGSNWIS_enabled = true;
@@ -967,6 +984,7 @@ JMenuItem
 	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_ReadNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
+	__Commands_Read_ReadStateCUB_JMenuItem,
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
 	__Commands_Read_StateModMax_JMenuItem,
@@ -978,8 +996,9 @@ JMenuItem
 	__Commands_Read_TS_ReadNwsCard_JMenuItem,
 	__Commands_Read_TS_ReadNWSRFSFS5Files_JMenuItem,
 	__Commands_Read_TS_ReadRiverWare_JMenuItem,
-	__Commands_Read_TS_ReadStateMod_JMenuItem,
-	__Commands_Read_TS_ReadStateModB_JMenuItem,
+	// FIXME SAM 2008-08-21 Enable when read but no need to show users now
+	//__Commands_Read_TS_ReadStateMod_JMenuItem,
+	//__Commands_Read_TS_ReadStateModB_JMenuItem,
 	__Commands_Read_TS_ReadUsgsNwis_JMenuItem,
 
 	__Commands_Read_SetIncludeMissingTS_JMenuItem,
@@ -1361,6 +1380,7 @@ private String
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
 	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()...  <read 1(+) time series from a StateCU file>",
+	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()...  <read 1(+) time series from a StateCU binary output file>",
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()...  <read 1(+) time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()...  <read 1(+) time series from a StateMod binary output file>",
 	__Commands_Read_StateModMax_String = TAB + "StateModMax()...  <generate 1(+) time series as Max() of TS in two StateMod files>",
@@ -1587,6 +1607,7 @@ private String
 	// Strings used in popup menu for other components...
 
 	__InputName_BrowseStateModB_String = "Browse for a StateMod binary file...",
+	__InputName_BrowseStateCUB_String = "Browse for a StateCU binary file...",
 
 	__DATA_TYPE_AUTO = "Auto",
 
@@ -1604,6 +1625,7 @@ private String
 	__INPUT_TYPE_RiversideDB = "RiversideDB",
 	__INPUT_TYPE_RiverWare = "RiverWare",
 	__INPUT_TYPE_StateCU = "StateCU",
+	__INPUT_TYPE_StateCUB = "StateCUB",
 	__INPUT_TYPE_StateMod = "StateMod",
 	__INPUT_TYPE_StateModB = "StateModB",
 	__INPUT_TYPE_USGSNWIS = "USGSNWIS",
@@ -1859,6 +1881,13 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__source_StateCU_enabled = false;
 	}
+	
+	// StateCUB enabled by default...
+
+    prop_value = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_StateCUB_enabled = false;
+    }
 
 	// StateModB enabled by default...
 
@@ -5044,6 +5073,9 @@ public void itemStateChanged ( ItemEvent evt )
     		else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU ) ){
     			uiAction_SelectInputName_StateCU ( false );
     		}
+            else if(__selected_input_type.equals(__INPUT_TYPE_StateCUB )) {
+                uiAction_SelectInputName_StateCUB ( false );
+            }
     		else if(__selected_input_type.equals(__INPUT_TYPE_StateModB )) {
     			uiAction_SelectInputName_StateModB ( false );
     		}
@@ -5357,6 +5389,13 @@ public void mousePressed ( MouseEvent event )
         __results_tsensembles_JPopupMenu.show ( c, pt.x, pt.y );
     }
 	// Popup for input name...
+    else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+            __selected_input_type.equals(__INPUT_TYPE_StateCUB) ) {
+            Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
+            __input_name_JPopupMenu.removeAll();
+            __input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseStateCUB_String, this ) );
+            __input_name_JPopupMenu.show ( c, pt.x, pt.y );
+        }
 	else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
 		__selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
@@ -5815,35 +5854,24 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		__selected_input_type.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ||
 		__selected_input_type.equals ( __INPUT_TYPE_RiverWare ) ||
 		__selected_input_type.equals ( __INPUT_TYPE_StateCU ) ||
+		__selected_input_type.equals ( __INPUT_TYPE_StateCUB ) ||
 		__selected_input_type.equals ( __INPUT_TYPE_StateMod ) ||
 		__selected_input_type.equals ( __INPUT_TYPE_StateModB ) ||
 		__selected_input_type.equals(__INPUT_TYPE_USGSNWIS) ) {
-		// The location (id), type, and time step uniquely
-		// identify the time series...
-		TSTool_TS_TableModel model =
-			(TSTool_TS_TableModel)__query_TableModel;
-		String seqnum = (String)__query_TableModel.getValueAt(
-					row, model.COL_SEQUENCE );
+		// The location (id), type, and time step uniquely identify the time series...
+		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
+		String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
 		if ( seqnum.length() == 0 ) {
 			seqnum = null;
 		}
 		queryResultsList_AppendTSIDToCommandList (
-		(String)__query_TableModel.getValueAt (
-					row, model.COL_ID ),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_DATA_SOURCE),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_DATA_TYPE),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_TIME_STEP ),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_SCENARIO ),
-		seqnum,	// Optional sequence number
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-		(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_NAME),
-		"", false );
+		(String)__query_TableModel.getValueAt (	row, model.COL_ID ),
+		(String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
+		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
+		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false );
 	}
 	// Check the GUI...
 	if ( update_status ) {
@@ -6521,8 +6549,8 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem,false);
 
 	// TODO SAM 2005-09-02 Proposed new commands
-	JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateModB_JMenuItem,false);
-	JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateMod_JMenuItem,false);
+	//JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateModB_JMenuItem,false);
+	//JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateMod_JMenuItem,false);
 
 	// TODO Not available as a command yet - logic not coded...
 	JGUIUtil.setEnabled(__Commands_Fill_FillMOVE1_JMenuItem,false);
@@ -7825,6 +7853,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCU_JMenuItem =
 			new SimpleJMenuItem( __Commands_Read_ReadStateCU_String, this) );
 	}
+	
+    if ( __source_StateCUB_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCUB_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadStateCUB_String, this) );
+    }
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateMod_JMenuItem =
@@ -7879,6 +7912,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			new SimpleJMenuItem(__Commands_Read_TS_ReadRiverWare_String, this) );
 	}
 
+	/* FIXME SAM 2008-08-21 Enable when functionality is added
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadStateMod_String, this) );
@@ -7888,6 +7922,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadStateModB_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadStateModB_String, this) );
 	}
+	*/
 
 	if ( __source_USGSNWIS_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadUsgsNwis_JMenuItem =
@@ -9103,6 +9138,9 @@ private void ui_SetInputTypeChoices ()
 	if ( __source_StateCU_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_StateCU );
 	}
+    if ( __source_StateCUB_enabled ) {
+        __input_type_JComboBox.add( __INPUT_TYPE_StateCUB );
+    }
 	if ( __source_StateMod_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_StateMod );
 	}
@@ -9562,6 +9600,12 @@ throws Exception
 		else {
             v.addElement ( "StateCU input type is not enabled");
 		}
+       if ( __source_StateCUB_enabled ) {
+            v.addElement ( "StateCUB input type is enabled" );
+        }
+        else {
+            v.addElement ( "StateCUB input type is not enabled");
+        }
 		if ( __source_StateMod_enabled ) {
 			v.addElement ( "StateMod input type is enabled" );
 		}
@@ -9976,6 +10020,9 @@ throws Exception
 	else if (command.equals( __Commands_Read_ReadStateCU_String)){
 		commandList_EditCommand ( __Commands_Read_ReadStateCU_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Read_ReadStateCUB_String)){
+        commandList_EditCommand ( __Commands_Read_ReadStateCUB_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Read_ReadStateModB_String)){
 		commandList_EditCommand ( __Commands_Read_ReadStateModB_String,	null, __INSERT_COMMAND );
 	}
@@ -10805,6 +10852,7 @@ private void uiAction_DataTypeChoiceClicked()
 	// For some input types, data types have additional label-only information...
 	if ( __selected_data_type_full.indexOf('-') >= 0 ) {
 		if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ||
+		        __selected_input_type.equals(__INPUT_TYPE_StateCUB) ||
 			__selected_input_type.equals(__INPUT_TYPE_StateModB)) {
 			// Data type group is first and data type second...
 			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 1).trim();
@@ -10818,12 +10866,10 @@ private void uiAction_DataTypeChoiceClicked()
         __selected_data_type = __selected_data_type_full;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, rtn, "Data type has been selected:  \""
-		+ __selected_data_type + "\"" );
+		Message.printDebug ( 1, rtn, "Data type has been selected:  \"" + __selected_data_type + "\"" );
 	}
 
-	// Set the appropriate settings for the current data input type and
-	// data type...
+	// Set the appropriate settings for the current data input type and data type...
 
 	if ( __selected_input_type.equals(__INPUT_TYPE_DateValue) ) {
 		// DateValue file...
@@ -10999,6 +11045,10 @@ private void uiAction_DataTypeChoiceClicked()
 		__time_step_JComboBox.add ( __TIMESTEP_AUTO );
 		__time_step_JComboBox.setEnabled ( false );
 	}
+    else if ( __selected_input_type.equals(__INPUT_TYPE_StateCUB) ) {
+        // StateCU binary output file - the time step is set when the
+        // input name is selected so do nothing here.
+    }
 	else if ( __selected_input_type.equals(__INPUT_TYPE_StateMod) ) {
 		__time_step_JComboBox.removeAll ();
 		__time_step_JComboBox.add ( __TIMESTEP_DAY );
@@ -11384,6 +11434,17 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
+   else if ( __selected_input_type.equals (__INPUT_TYPE_StateCUB)) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ();
+        }
+        catch ( Exception e ) {
+            message = "Error reading StateCU binary file.  Cannot display time series list.";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 2, routine, e );
+            return;
+        }
+    }
 	else if ( __selected_input_type.equals (__INPUT_TYPE_StateMod)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
@@ -12470,9 +12531,9 @@ throws Exception
 {	String message, routine = "TSTool_JFrame.readStateCUHeaders";
 
 	try {
-        Vector tslist = null;			// Time series to display.
-		TS ts = null;				// Single time series.
-		int size = 0;				// Number of time series.
+        Vector tslist = null; // Time series to display.
+		TS ts = null; // Single time series.
+		int size = 0; // Number of time series.
 		String path = __input_name_JComboBox.getSelected();
 		Message.printStatus ( 1, routine, "Reading StateCU file \"" + path + "\"" );
 		if (	(__input_name_FileFilter ==	__input_name_StateCU_iwrrep_FileFilter) ||
@@ -12591,6 +12652,59 @@ throws Exception
 		JGUIUtil.setWaitCursor ( this, false );
 		throw new Exception ( message );
 	}
+}
+
+/**
+Read the list of time series from a StateCU binary file and list in the GUI.
+The binary file is taken from the selected item in the __input_name_JComboBox.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ()
+throws IOException
+{   String routine = "TSTool_JFrame.readStateCUdBHeaders";
+
+    try {
+        String path = __input_name_JComboBox.getSelected();
+        Message.printStatus ( 1, routine, "Reading StateCU binary output file \"" + path + "\"" );
+        Vector tslist = null;
+        JGUIUtil.setWaitCursor ( this, true );
+        StateCU_BTS bin = new StateCU_BTS ( path );
+        tslist = bin.readTimeSeriesList ( "*.*." + __selected_data_type + ".*.*", null, null, null, false );
+        bin.close();
+        int size = 0;
+        if ( tslist != null ) {
+            size = tslist.size();
+            __query_TableModel = new TSTool_TS_TableModel ( tslist );
+            TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            // Turn off columns in the table model that do not apply...
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+            //__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (tslist == null) || (size == 0) ) {
+            Message.printStatus ( 1, routine, "No StateCU binary time series were read." );
+            queryResultsList_Clear ();
+        }
+        else {
+            Message.printStatus ( 1, routine, "" + size + " StateCU binary TS were read." );
+        }
+
+        ui_UpdateStatus ( false );
+        tslist = null;
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        String message = "Error reading StateCU binary file.";
+        Message.printWarning ( 2, routine, message );
+        Message.printWarning ( 2, routine, e );
+        JGUIUtil.setWaitCursor ( this, false );
+        throw new IOException ( message );
+    }
 }
 
 /**
@@ -13459,6 +13573,10 @@ private void uiAction_InputTypeChoiceClicked()
 		// Prompt for a StateCU file and update choices...
 		uiAction_SelectInputName_StateCU ( true );
 	}
+    else if ( __selected_input_type.equals ( __INPUT_TYPE_StateCUB ) ) {
+        // Prompt for a StateCU binary file and update choices...
+        uiAction_SelectInputName_StateCUB ( true );
+    }
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_StateMod ) ) {
 		// We disable all but the time step so the user can pick from appropriate files...
 		__input_name_JComboBox.removeAll();
@@ -14921,8 +15039,153 @@ throws Exception
 }
 
 /**
-Prompt for a StateModB input name (binary file name).  When selected, update
-the choices.
+Prompt for a StateCUB input name (binary file name).  When selected, update the choices.
+@param reset_input_names If true, the input names will be repopulated with
+values from __input_name_StateModB.
+@exception Exception if there is an error.
+*/
+private void uiAction_SelectInputName_StateCUB ( boolean reset_input_names )
+throws Exception
+{   String routine = "TSTool_JFrame.selectInputName_StateCUB";
+    if ( reset_input_names ) {
+        // The StateCUB input type has been selected as a change from
+        // another type.  Repopululate the list if previous choices exist...
+        // TODO - probably not needed...
+        //__input_name_JComboBox.removeAll();
+        __input_name_JComboBox.setData ( __input_name_StateCUB );
+    }
+    // Check the item that is selected...
+    String input_name = __input_name_JComboBox.getSelected();
+    if ( (input_name == null) || input_name.equals(__BROWSE) ) {
+        // Prompt for the name of a StateCU binary file...
+        // Based on the file extension, set the data types and other information...
+        JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
+        fc.setDialogTitle("Select StateCU Binary Output File");
+        SimpleFileFilter sff = new SimpleFileFilter("bd1","CU (Monthly)");
+        fc.addChoosableFileFilter( sff );
+        //fc.addChoosableFileFilter( new SimpleFileFilter("b49","Diversion, Stream, Instream stations (Daily)") );
+        fc.setFileFilter(sff);
+        // Only allow recognized extensions...
+        fc.setAcceptAllFileFilterUsed ( false );
+        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            // User cancelled - set the file name back to the original and disable other choices...
+            if ( input_name != null ) {
+                ui_SetIgnoreItemEvent ( true );
+                __input_name_JComboBox.select(null);
+                if ( __input_name_StateCUB_last != null ) {
+                    __input_name_JComboBox.select ( __input_name_StateCUB_last );
+                }
+                ui_SetIgnoreItemEvent ( false );
+            }
+            return;
+        }
+        // User has chosen a file...
+
+        input_name = fc.getSelectedFile().getPath(); 
+        // Save as last selection...
+        __input_name_StateCUB_last = input_name;
+        JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
+
+        // Set the input name...
+
+        ui_SetIgnoreItemEvent ( true );
+        if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
+            // Not already in so add it at the beginning...
+            __input_name_StateCUB.addElement ( __BROWSE );
+            __input_name_JComboBox.add ( __BROWSE );
+        }
+        if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
+            // Not already in so add after the browse string (files
+            // are listed chronologically by select with most recent at the top...
+            if ( __input_name_JComboBox.getItemCount() > 1 ) {
+                __input_name_JComboBox.addAt ( input_name, 1 );
+                __input_name_StateCUB.insertElementAt ( input_name, 1 );
+            }
+            else {
+                __input_name_JComboBox.add ( input_name );
+                __input_name_StateCUB.addElement(input_name);
+            }
+        }
+        ui_SetIgnoreItemEvent ( false );
+        // Select the file in the input name because leaving it on
+        // browse will disable the user's ability to reselect browse...
+        __input_name_JComboBox.select ( null );
+        __input_name_JComboBox.select ( input_name );
+    }
+
+    __input_name_JComboBox.setEnabled ( true );
+
+    // Set the data types and time step based on the file extension...
+
+    __data_type_JComboBox.setEnabled ( true );
+    __data_type_JComboBox.removeAll ();
+    String extension = IOUtil.getFileExtension ( input_name );
+
+    Vector data_types = null;
+    int interval_base = TimeInterval.MONTH; // Default
+    int comp = StateCU_DataSet.COMP_UNKNOWN;
+    if ( extension.equalsIgnoreCase("bd1" ) ) {
+        // CU Locations
+        comp = StateCU_DataSet.COMP_CU_LOCATIONS;
+    }
+     // TODO SAM 2006-01-15
+    // The following is not overly efficient because of a transition in
+    // StateMod versions.  The version of the format is determined from the
+    // file.  For older versions, this is used to return hard-coded
+    // parameter lists.  For newer formats, the binary file is reopened and
+    // the parameters are determined from the file.
+    data_types = StateCU_Util.getTimeSeriesDataTypes (
+            input_name, // Name of binary file
+            comp,   // Component from above, from file extension
+            null,   // ID
+            null,   // dataset
+            StateCU_BTS.determineFileVersion(input_name),
+            interval_base,
+            false,  // Include input (only output here)
+            false,  // Include input, estimated (only output here)
+            true,   // Include output (what the binaries contain)
+            false,  // Check availability
+            true,   // Add group (if available)
+            false );// add note
+
+    // Fill data types choice...
+
+    Message.printStatus ( 2, routine, "Setting StateCUB data types..." );
+    __data_type_JComboBox.setData ( data_types );
+    Message.printStatus ( 2, routine, "Selecting the first StateCUB data type..." );
+    __data_type_JComboBox.select ( null );
+    if ( data_types.size() > 0 ) {
+        __data_type_JComboBox.select ( 0 );
+    }
+
+    // Set time step appropriately...
+
+    __time_step_JComboBox.removeAll ();
+    if ( interval_base == TimeInterval.MONTH ) {
+        __time_step_JComboBox.add ( __TIMESTEP_MONTH );
+    }
+    else if ( interval_base == TimeInterval.DAY ) {
+        __time_step_JComboBox.add ( __TIMESTEP_DAY );
+    }
+    __time_step_JComboBox.setEnabled ( true ); // Enabled, but one visible
+    __time_step_JComboBox.select ( null );
+    __time_step_JComboBox.select ( 0 );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Turn off columns in the table model that do not apply...
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE);
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Prompt for a StateModB input name (binary file name).  When selected, update the choices.
 @param reset_input_names If true, the input names will be repopulated with
 values from __input_name_StateModB.
 @exception Exception if there is an error.
@@ -14932,8 +15195,7 @@ throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_StateModB";
 	if ( reset_input_names ) {
 		// The StateModB input type has been selected as a change from
-		// another type.  Repopululate the list if previous choices
-		// exist...
+		// another type.  Repopululate the list if previous choices exist...
 		// TODO - probably not needed...
 		//__input_name_JComboBox.removeAll();
 		__input_name_JComboBox.setData ( __input_name_StateModB );
@@ -14943,8 +15205,7 @@ throws Exception
 	if ( (input_name == null) || input_name.equals(__BROWSE) ) {
 		// Prompt for the name of a StateMod binary file...
 		// Based on the file extension, set the data types and other information...
-		JFileChooser fc = JFileChooserFactory.createJFileChooser (
-				JGUIUtil.getLastFileDialogDirectory() );
+		JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
 		fc.setDialogTitle("Select StateMod Binary Output File");
 		SimpleFileFilter sff = new SimpleFileFilter("b43","Diversion, Stream, Instream stations (Monthly)");
 		fc.addChoosableFileFilter( sff );
@@ -14962,8 +15223,7 @@ throws Exception
 				ui_SetIgnoreItemEvent ( true );
 				__input_name_JComboBox.select(null);
 				if ( __input_name_StateModB_last != null ) {
-					__input_name_JComboBox.select (
-					__input_name_StateModB_last );
+					__input_name_JComboBox.select (	__input_name_StateModB_last );
 				}
 				ui_SetIgnoreItemEvent ( false );
 			}
