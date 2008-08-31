@@ -452,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.16.03beta (2008-08-19)";
+public static final String PROGRAM_VERSION = "8.16.03beta (2008-08-29)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -693,8 +693,19 @@ public static void main ( String args[] )
 	// Do need to load it when -nomaingui is used because the windows that are shown will need
 	// to look nice with the icon.
 
-	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified ) { // Not "pure" batch
-	    setIcon ( "RTi" );
+	Message.printStatus( 2, routine, "isBatch=" + IOUtil.isBatch() +
+	        " -nomaingui specified = " + __noMainGUIArgSpecified );
+	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified ) {
+	    // Not "pure" batch so need to have the icon initialized
+	    try {
+	        setIcon ( "RTi" );
+	    }
+	    catch ( Exception e ) {
+	        // FIXME SAM 2008-08-29 Why doesn't the above work on Linux in batch mode
+	        // to avoid trying?
+	        Message.printWarning( 2, routine, "Error setting icon graphic." );
+	        Message.printWarning( 3, routine, e );
+	    }
 	}
 
 	// Read the data units...
