@@ -452,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.16.03beta (2008-08-29)";
+public static final String PROGRAM_VERSION = "8.16.04beta (2008-09-02)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -995,6 +995,13 @@ throws Exception
 			//IOUtil.setProgramWorkingDir(__home);
 			//JGUIUtil.setLastFileDialogDirectory(__home);
 			IOUtil.setApplicationHomeDir(__home);
+			// Also reset the java.library.path system property to include the application
+			// home + "/bin" so that DLLs installed with TSTool are found
+			String javaLibraryPath = System.getProperty ( "java.library.path" );
+			System.setProperty( "java.library.path",
+			         __home + "/bin" + System.getProperty("path.separator") + javaLibraryPath );
+			Message.printStatus( 2, routine, "Reset java.library.path to \"" +
+			        System.getProperty ( "java.library.path" ) + "\"" );
 	        // Read the configuration file to get default TSTool properties,
             // so that later command-line parameters can override them...
             readConfigFile(getConfigFile());

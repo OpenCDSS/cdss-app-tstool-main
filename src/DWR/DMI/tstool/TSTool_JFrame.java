@@ -67,6 +67,9 @@ import rti.tscommandprocessor.core.TSCommandProcessor;
 import rti.tscommandprocessor.core.TSCommandProcessorListModel;
 import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+
+import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
+
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel;
@@ -96,8 +99,6 @@ import DWR.StateMod.StateMod_ReservoirRight;
 import DWR.StateMod.StateMod_TS;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
-// FIXME SAM 2008-08-25 Plug in if moving forward
-//import hec.*;
 import RTi.DMI.DMIUtil;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
 import RTi.DMI.DIADvisorDMI.DIADvisor_SensorDef;
@@ -389,6 +390,17 @@ Used to keep track of the layout position for the input filter panels because th
 panel cannot be initialized until after database connections are made.
 */
 private int __input_filter_y = 0;
+
+/**
+The HEC-DSS files that have been selected during the session, to allow switching
+between input types but not losing the list of files.
+*/
+private Vector __input_name_HECDSS = new Vector();
+
+/**
+The last HEC-DSS file that was selected, to reset after cancelling a browse.
+*/
+private String __input_name_HECDSS_last = null;
 
 /**
 The NWSFFS FS5Files directories that have been selected during the
@@ -772,6 +784,7 @@ Indicates which data sources are enabled, initialized to defaults.
 private boolean	__source_ColoradoSMS_enabled = false,
 		__source_DateValue_enabled = true,
 		__source_DIADvisor_enabled = false,
+		__source_HECDSS_enabled = true,
 		__source_HydroBase_enabled = true,
 		__source_MexicoCSMN_enabled = false,
 		__source_MODSIM_enabled = true,
@@ -979,6 +992,7 @@ JMenuItem
 	// NOT TS Alias = commands...
 	__Commands_Read_ReadDateValue_JMenuItem,
     __Commands_Read_ReadDelimitedFile_JMenuItem,
+    __Commands_Read_ReadHECDSS_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
@@ -1375,7 +1389,8 @@ private String
 	__Commands_ReadTimeSeries_String = "Read Time Series",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()...  <read 1(+) time series from a DateValue file>",
     __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file (under development)>",
-	__Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
+    __Commands_Read_ReadHECDSS_String = TAB + "ReadHECDSS()...  <read 1(+) time series from a HEC-DSS database file>",
+    __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
 	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
@@ -1606,6 +1621,7 @@ private String
 
 	// Strings used in popup menu for other components...
 
+	__InputName_BrowseHECDSS_String = "Browse for a HEC-DSS file...",
 	__InputName_BrowseStateModB_String = "Browse for a StateMod binary file...",
 	__InputName_BrowseStateCUB_String = "Browse for a StateCU binary file...",
 
@@ -1616,6 +1632,7 @@ private String
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
+	__INPUT_TYPE_HECDSS = "HEC-DSS",
 	__INPUT_TYPE_HydroBase = "HydroBase",
 	__INPUT_TYPE_MEXICO_CSMN = "MexicoCSMN",
 	__INPUT_TYPE_MODSIM = "MODSIM",
@@ -1712,6 +1729,18 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 			__source_DIADvisor_enabled = true;
 		}
 	}
+	
+    // HEC-DSS not enabled by default...
+
+    prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_HECDSS_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_HECDSS_enabled = true;
+        }
+    }
 
 	// NWSRFS_ESPTraceEnsemble not enabled by default...
 
@@ -5070,6 +5099,9 @@ public void itemStateChanged ( ItemEvent evt )
     				Message.printWarning ( 2, routine, e );
     			}
     		}
+            else if(__selected_input_type.equals(__INPUT_TYPE_HECDSS )) {
+                uiAction_SelectInputName_HECDSS ( false );
+            }
     		else if ( __selected_input_type.equals(__INPUT_TYPE_StateCU ) ){
     			uiAction_SelectInputName_StateCU ( false );
     		}
@@ -5390,12 +5422,19 @@ public void mousePressed ( MouseEvent event )
     }
 	// Popup for input name...
     else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
-            __selected_input_type.equals(__INPUT_TYPE_StateCUB) ) {
-            Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
-            __input_name_JPopupMenu.removeAll();
-            __input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseStateCUB_String, this ) );
-            __input_name_JPopupMenu.show ( c, pt.x, pt.y );
-        }
+        __selected_input_type.equals(__INPUT_TYPE_HECDSS) ) {
+        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
+        __input_name_JPopupMenu.removeAll();
+        __input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseHECDSS_String, this ) );
+        __input_name_JPopupMenu.show ( c, pt.x, pt.y );
+    }
+    else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+        __selected_input_type.equals(__INPUT_TYPE_StateCUB) ) {
+        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
+        __input_name_JPopupMenu.removeAll();
+        __input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseStateCUB_String, this ) );
+        __input_name_JPopupMenu.show ( c, pt.x, pt.y );
+    }
 	else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
 		__selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
@@ -5848,6 +5887,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 	// no special considerations.  If the sequence number is non-blank in
 	// the worksheet, it will be transferred.
 	else if ( __selected_input_type.equals(__INPUT_TYPE_DIADvisor) ||
+	    __selected_input_type.equals ( __INPUT_TYPE_HECDSS ) ||
 		__selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ||
 		__selected_input_type.equals(__INPUT_TYPE_MODSIM) ||
 		__selected_input_type.equals ( __INPUT_TYPE_NWSCARD ) ||
@@ -6692,6 +6732,8 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 		}
 		Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
 		__source_DIADvisor_enabled = false;
+	    Message.printStatus ( 2, routine, "HEC-DSS input type being disabled for CDSS." );
+	    __source_HECDSS_enabled = false;
 		Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
 		__source_MexicoCSMN_enabled = false;
 		Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
@@ -7824,6 +7866,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelimitedFile_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadDelimitedFile_String, this) );
     //}
+        
+    if ( __source_HECDSS_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHECDSS_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadHECDSS_String, this) );
+    }
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHydroBase_JMenuItem =
@@ -9106,6 +9153,9 @@ private void ui_SetInputTypeChoices ()
 		(__DIADvisor_archive_dmi != null) ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_DIADvisor );
 	}
+    if ( __source_HECDSS_enabled ) {
+        __input_type_JComboBox.add( __INPUT_TYPE_HECDSS );
+    }
 	if ( __source_HydroBase_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_HydroBase );
 	}
@@ -9534,6 +9584,12 @@ throws Exception
 		else {
             v.addElement ( "DIADvisor input type is not enabled" );
 		}
+        if ( __source_HECDSS_enabled ) {
+            v.addElement ( "HEC-DSS input type is enabled" );
+        }
+        else {
+            v.addElement ( "HEC-DSS input type is not enabled");
+        }
 		if ( __source_HydroBase_enabled ) {
 			v.addElement ( "HydroBase input type is enabled" );
 		}
@@ -9600,7 +9656,7 @@ throws Exception
 		else {
             v.addElement ( "StateCU input type is not enabled");
 		}
-       if ( __source_StateCUB_enabled ) {
+        if ( __source_StateCUB_enabled ) {
             v.addElement ( "StateCUB input type is enabled" );
         }
         else {
@@ -10004,6 +10060,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_Read_ReadDelimitedFile_String)){
         commandList_EditCommand ( __Commands_Read_ReadDelimitedFile_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Read_ReadHECDSS_String)){
+        commandList_EditCommand ( __Commands_Read_ReadHECDSS_String, null, __INSERT_COMMAND );
     }
 	else if (command.equals( __Commands_Read_ReadHydroBase_String)){
 		commandList_EditCommand ( __Commands_Read_ReadHydroBase_String,	null, __INSERT_COMMAND );
@@ -10905,6 +10964,10 @@ private void uiAction_DataTypeChoiceClicked()
 		__time_step_JComboBox.select ( null );
 		__time_step_JComboBox.select ( 0 );
 	}
+    else if ( __selected_input_type.equals(__INPUT_TYPE_HECDSS) ) {
+        // HEC-DSS database file - the time step is set when the
+        // input name is selected so do nothing here.
+    }
 	else if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ) {
 		Vector time_steps =	HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
 			__selected_data_type,
@@ -11333,6 +11396,17 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
+    else if ( __selected_input_type.equals (__INPUT_TYPE_HECDSS)) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadHECDSSHeaders ();
+        }
+        catch ( Exception e ) {
+            message = "Error reading HEC-DSS file.  Cannot display time series list.";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 2, routine, e );
+            return;
+        }
+    }
 	else if ( __selected_input_type.equals (__INPUT_TYPE_HydroBase)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( null ); 
@@ -11695,6 +11769,58 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 		Message.printWarning ( 2, rtn, e );
         JGUIUtil.setWaitCursor ( this, false );
 	}
+}
+
+/**
+Read the list of time series from a HEC-DSS database file and list in the GUI.
+The filename is taken from the selected item in the __input_name_JComboBox.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadHECDSSHeaders ()
+throws IOException
+{   String routine = "TSTool_JFrame.readHECDSSHeaders";
+
+    try {
+        String path = __input_name_JComboBox.getSelected();
+        Message.printStatus ( 1, routine, "Reading HEC-DSS file \"" + path + "\"" );
+        Vector tslist = null;
+        JGUIUtil.setWaitCursor ( this, true );
+        // TODO SAM 2008-09-03 Enable searchable fields
+        tslist = HecDssAPI.readTimeSeriesList ( "*.*.*.*.*~HEC-DSS~" + path, null, null, null, false );
+        int size = 0;
+        if ( tslist != null ) {
+            size = tslist.size();
+            __query_TableModel = new TSTool_TS_TableModel ( tslist );
+            TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            // Turn off columns in the table model that do not apply...
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+            //__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+            __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+            //__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (tslist == null) || (size == 0) ) {
+            Message.printStatus ( 1, routine, "No HEC-DSS time series were read." );
+            queryResultsList_Clear ();
+        }
+        else {
+            Message.printStatus ( 1, routine, "" + size + " HEC-DSS time series were read." );
+        }
+
+        ui_UpdateStatus ( false );
+        tslist = null;
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        String message = "Error reading HEC-DSS file.";
+        Message.printWarning ( 2, routine, message );
+        Message.printWarning ( 2, routine, e );
+        JGUIUtil.setWaitCursor ( this, false );
+        throw new IOException ( message );
+    }
 }
 
 /**
@@ -13294,6 +13420,10 @@ private void uiAction_InputTypeChoiceClicked()
         width_array = null;
         heading_array = null;
 	}
+    else if ( __selected_input_type.equals ( __INPUT_TYPE_HECDSS ) ) {
+        // Prompt for a HEC-DSS file and update choices...
+        uiAction_SelectInputName_HECDSS ( true );
+    }
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
 		// Input name cleared and disabled...
 		__input_name_JComboBox.removeAll();
@@ -14726,6 +14856,147 @@ selecting a menu choice.
 private void uiAction_SelectAllCommands()
 {	JGUIUtil.selectAll(ui_GetCommandJList());
 	ui_UpdateStatus ( true );
+}
+
+/**
+Prompt for a HECDSS input name (binary file name).  When selected, update the choices.
+@param reset_input_names If true, the input names will be repopulated with
+values from __input_name_HECDSS.
+@exception Exception if there is an error.
+*/
+private void uiAction_SelectInputName_HECDSS ( boolean reset_input_names )
+throws Exception
+{   String routine = "TSTool_JFrame.selectInputName_HECDSS";
+    if ( reset_input_names ) {
+        // The HEC-DSS input type has been selected as a change from
+        // another type.  Repopululate the list if previous choices exist...
+        // TODO - probably not needed...
+        //__input_name_JComboBox.removeAll();
+        __input_name_JComboBox.setData ( __input_name_HECDSS );
+    }
+    // Check the item that is selected...
+    String input_name = __input_name_JComboBox.getSelected();
+    if ( (input_name == null) || input_name.equals(__BROWSE) ) {
+        // Prompt for the name of a StateCU binary file...
+        // Based on the file extension, set the data types and other information...
+        JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
+        fc.setDialogTitle("Select HEC-DSS Database File");
+        SimpleFileFilter sff = new SimpleFileFilter("dss","HEC-DSS Database File");
+        fc.addChoosableFileFilter( sff );
+        // Only allow recognized extensions...
+        fc.setAcceptAllFileFilterUsed ( false );
+        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            // User cancelled - set the file name back to the original and disable other choices...
+            if ( input_name != null ) {
+                ui_SetIgnoreItemEvent ( true );
+                __input_name_JComboBox.select(null);
+                if ( __input_name_StateCUB_last != null ) {
+                    __input_name_JComboBox.select ( __input_name_HECDSS_last );
+                }
+                ui_SetIgnoreItemEvent ( false );
+            }
+            return;
+        }
+        // User has chosen a file...
+
+        input_name = fc.getSelectedFile().getPath(); 
+        // Save as last selection...
+        __input_name_HECDSS_last = input_name;
+        JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
+
+        // Set the input name...
+
+        ui_SetIgnoreItemEvent ( true );
+        if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
+            // Not already in so add it at the beginning...
+            __input_name_HECDSS.addElement ( __BROWSE );
+            __input_name_JComboBox.add ( __BROWSE );
+        }
+        if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
+            // Not already in so add after the browse string (files
+            // are listed chronologically by select with most recent at the top...
+            if ( __input_name_JComboBox.getItemCount() > 1 ) {
+                __input_name_JComboBox.addAt ( input_name, 1 );
+                __input_name_StateCUB.insertElementAt ( input_name, 1 );
+            }
+            else {
+                __input_name_JComboBox.add ( input_name );
+                __input_name_StateCUB.addElement(input_name);
+            }
+        }
+        ui_SetIgnoreItemEvent ( false );
+        // Select the file in the input name because leaving it on
+        // browse will disable the user's ability to reselect browse...
+        __input_name_JComboBox.select ( null );
+        __input_name_JComboBox.select ( input_name );
+    }
+
+    __input_name_JComboBox.setEnabled ( true );
+
+    // Set the data types and time step based on the file extension...
+
+    __data_type_JComboBox.setEnabled ( true );
+    __data_type_JComboBox.removeAll ();
+    String extension = IOUtil.getFileExtension ( input_name );
+
+    Vector data_types = new Vector();
+    int interval_base = TimeInterval.MONTH; // Default
+    /* FIXME
+    // TODO SAM 2006-01-15
+    // The following is not overly efficient because of a transition in
+    // StateMod versions.  The version of the format is determined from the
+    // file.  For older versions, this is used to return hard-coded
+    // parameter lists.  For newer formats, the binary file is reopened and
+    // the parameters are determined from the file.
+    data_types = StateCU_Util.getTimeSeriesDataTypes (
+            input_name, // Name of binary file
+            comp,   // Component from above, from file extension
+            null,   // ID
+            null,   // dataset
+            StateCU_BTS.determineFileVersion(input_name),
+            interval_base,
+            false,  // Include input (only output here)
+            false,  // Include input, estimated (only output here)
+            true,   // Include output (what the binaries contain)
+            false,  // Check availability
+            true,   // Add group (if available)
+            false );// add note
+            */
+
+    // Fill data types choice...
+
+    Message.printStatus ( 2, routine, "Setting HEC-DSS data types..." );
+    __data_type_JComboBox.setData ( data_types );
+    Message.printStatus ( 2, routine, "Selecting the first HEC-DSS data type..." );
+    __data_type_JComboBox.select ( null );
+    if ( data_types.size() > 0 ) {
+        __data_type_JComboBox.select ( 0 );
+    }
+
+    // Set time step appropriately...
+
+    __time_step_JComboBox.removeAll ();
+    if ( interval_base == TimeInterval.MONTH ) {
+        __time_step_JComboBox.add ( __TIMESTEP_MONTH );
+    }
+    else if ( interval_base == TimeInterval.DAY ) {
+        __time_step_JComboBox.add ( __TIMESTEP_DAY );
+    }
+    __time_step_JComboBox.setEnabled ( true ); // Enabled, but one visible
+    __time_step_JComboBox.select ( null );
+    __time_step_JComboBox.select ( 0 );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Turn off columns in the table model that do not apply...
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE);
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
 /**
