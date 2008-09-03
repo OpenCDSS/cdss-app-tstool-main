@@ -2748,16 +2748,6 @@ private boolean commandList_EditCommandOldStyle (
 			this, cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Fill_FillInterpolate_String)||
-		command.regionMatches(true,0,"fillInterpolate",0,15) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillInterpolate()" );
-		}
-		edited_cv = new fillInterpolate_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals(__Commands_Fill_FillPattern_String) ||
 		command.regionMatches(true,0,"fillPattern",0,11) ) {
 		if ( Message.isDebugOn ) {
