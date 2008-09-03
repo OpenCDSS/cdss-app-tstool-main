@@ -13,6 +13,5 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/RTi_Common"/>
 	<classpathentry kind="lib" path="/rtibuild/lib/junit-3.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/Blowfish/Blowfish_142.jar"/>
-	<classpathentry kind="lib" path="lib/heclib/heclib.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
