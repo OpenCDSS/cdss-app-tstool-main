@@ -1234,7 +1234,8 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     // TODO SAM 2007-09-09 Evaluate phasing global command file out - needs to be handled in
     // the command processor.
     Message.printStatus ( 1, routine, "Command file is \"" + command_file_full + "\"" );
-    IOUtil.setProgramCommandFile ( command_file_full );
+    // FIXME SAM 2008-09-04 Confirm no negative effects from taking this out
+    //IOUtil.setProgramCommandFile ( command_file_full );
     setCommandFile ( command_file_full );
     
     setWorkingDirUsingCommandFile ( command_file_full );
