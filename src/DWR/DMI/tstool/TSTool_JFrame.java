@@ -2911,24 +2911,6 @@ private boolean commandList_EditCommandOldStyle (
 						__ts_processor, command_to_edit)).getText();
 	}
 
-	// Analyze Time Series...
-
-	// Models (all handled by the TSCommandFactory)...
-    
-    // Ensemble
-    
-	// Output Time Series...
-
-	else if ( action.equals( __Commands_Output_WriteStateCU_String)||
-            command.regionMatches(true,0,"writeStateCU",0,12) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for writeStateCU()" );
-		}
-		edited_cv = new writeStateCU_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit), command_to_edit).getText();
-	}
-
 	// General...
 
     else if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
@@ -4146,7 +4128,8 @@ private int commandProcessor_ReadCommandFile ( String path )
 throws IOException
 {	String routine = "TSTool_JFrame.commandProcessor_ReadCommandFile";
     // Set the command file for use with output...
-	IOUtil.setProgramCommandFile ( path );
+    // FIXME SAM 2008-09-04 Confirm no negative effects from taking this out
+	//IOUtil.setProgramCommandFile ( path );
 	__ts_processor.readCommandFile ( path,
 			true,	// Create GenericCommand instances for unrecognized commands
 			false );// Do not append to the current processor contents
@@ -14464,7 +14447,8 @@ private void uiAction_RunCommands ( boolean run_all_commands, boolean create_out
 	Vector commands = commandList_GetCommands ( run_all_commands );
 	// The limits of the command progress bar are handled in commandStarted().
 	// Save the commands in case any output calls IOUtil.printCreatorHeader...
-	IOUtil.setProgramCommandList ( commandList_ToStringVector(commands) );
+	// FIXME SAM 2008-09-04 Confirm no negative effects from taking this out
+	//IOUtil.setProgramCommandList ( commandList_ToStringVector(commands) );
 	// Run the commands in the processor instance.
 	if ( ui_Property_RunCommandProcessorInThread() ) {
 		// Run the commands in a thread.
