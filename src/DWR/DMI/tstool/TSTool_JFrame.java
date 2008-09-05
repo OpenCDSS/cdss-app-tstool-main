@@ -2721,18 +2721,6 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new TSreadRiverWare_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null, command_to_edit ).getText();
 	}
-	else if ( action.equals( __Commands_Read_TS_ReadUsgsNwis_String)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readUsgsNwis(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readUsgsNwis (",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = readUsgsNwis()" );
-		}
-		edited_cv = new TSreadUsgsNwis_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
 
 	// Fill Time Series Data...
 
