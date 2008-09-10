@@ -2656,32 +2656,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Read Time Series...
 
-	// Put this in front of the shorter version...
-	else if ( action.equals( __Commands_Read_TS_ReadNWSRFSFS5Files_String)||
-		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		((StringUtil.indexOfIgnoreCase(
-		command,"readNWSRFSFS5Files(",0) >= 0)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readNWSRFSFS5Files(",0) >=0)))){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = readNWSRFSFS5Files()" );
-		}
-		edited_cv = new readNWSRFSFS5Files_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, true, __nwsrfs_dmi, command_to_edit ).getText();
-	}
-	else if ( action.equals( __Commands_Read_ReadNWSRFSFS5Files_String)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readNWSRFSFS5Files(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readNWSRFSFS5Files (",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for readNWSRFSFS5Files()" );
-		}
-		edited_cv = new readNWSRFSFS5Files_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, false, __nwsrfs_dmi, command_to_edit ).getText();
-	}
 	else if ( action.equals( __Commands_Read_StateModMax_String)||
 		StringUtil.startsWithIgnoreCase(command,"StateModMax") ) {
 		edited_cv = new statemodMax_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
@@ -7829,8 +7803,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_NWSRFS_FS5Files_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(
 			__Commands_Read_readNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(
-			__Commands_Read_readNWSRFSFS5Files_String, this) );
+			new SimpleJMenuItem(__Commands_Read_readNWSRFSFS5Files_String, this) );
 	}
 	*/
 
