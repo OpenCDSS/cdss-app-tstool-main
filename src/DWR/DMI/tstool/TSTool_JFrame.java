@@ -2656,19 +2656,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Read Time Series...
 
-	else if ( action.equals( __Commands_Read_ReadMODSIM_String)||
-		(!command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		(StringUtil.indexOfIgnoreCase(
-		command,"readMODSIM(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"readMODSIM (",0) >= 0)) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for readMODSIM()" );
-		}
-		edited_cv = new readMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
 	// Put this in front of the shorter version...
 	else if ( action.equals( __Commands_Read_TS_ReadNWSRFSFS5Files_String)||
 		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
@@ -2701,16 +2688,6 @@ private boolean commandList_EditCommandOldStyle (
 			cv, null, command_to_edit ).getText();
 	}
 	// These commands are "TS Alias" commands...
-	else if ( action.equals( __Commands_Read_TS_ReadMODSIM_String)||
-		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		((StringUtil.indexOfIgnoreCase(
-		command,"readMODSIM(",0) >= 0) || (StringUtil.indexOfIgnoreCase( command,"readMODSIM (",0) >= 0)) ) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for TS Alias = readMODSIM()" );
-		}
-		edited_cv = new TSreadMODSIM_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
 	else if ( action.equals( __Commands_Read_TS_ReadRiverWare_String)||
 		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
 		((StringUtil.indexOfIgnoreCase(	command,"readRiverWare(",0) >= 0)||
