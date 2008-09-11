@@ -2661,17 +2661,6 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new statemodMax_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null, command_to_edit ).getText();
 	}
-	// These commands are "TS Alias" commands...
-	else if ( action.equals( __Commands_Read_TS_ReadRiverWare_String)||
-		(command_trimmed.regionMatches(true,0,"TS",0,2) &&
-		((StringUtil.indexOfIgnoreCase(	command,"readRiverWare(",0) >= 0)||
-		(StringUtil.indexOfIgnoreCase(command,"readRiverWare(",0) >=0)))){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,"Opening dialog for TS Alias = readRiverWare()" );
-		}
-		edited_cv = new TSreadRiverWare_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
 
 	// Fill Time Series Data...
 
