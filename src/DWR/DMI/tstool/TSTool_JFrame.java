@@ -2755,16 +2755,6 @@ private boolean commandList_EditCommandOldStyle (
 	
 	// Set time series contents...
 
-	else if ( action.equals( __Commands_Set_ReplaceValue_String)||
-		command.regionMatches(true,0,"replaceValue",0,12) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for replaceValue()" );
-		}
-		edited_cv = new replaceValue_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Set_SetDataValue_String)||
 		command.regionMatches(true,0,"setDataValue",0,12) ) {
 		if ( Message.isDebugOn ) {
