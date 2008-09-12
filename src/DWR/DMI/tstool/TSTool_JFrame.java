@@ -1091,9 +1091,9 @@ JMenuItem
 
 // Commands...Models....
 JMenu
-	__Commands_Models_JMenu = null;
+	__Commands_Models_Routing_JMenu = null;
 JMenuItem
-	__Commands_Models_LagK_JMenuItem = null;
+	__Commands_Models_Routing_LagK_JMenuItem = null;
 
 // Commands...Output Time Series....
 JMenu
@@ -1494,8 +1494,8 @@ private String
 
 	// Commands...Models...
 
-	__Commands_Models_String = "Models",
-	__Commands_Models_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route) (under development)>",
+	__Commands_Models_Routing_String = "Models - Routing",
+	__Commands_Models_Routing_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route) (under development)>",
     
 	// HydroBase commands...
 
@@ -2755,16 +2755,6 @@ private boolean commandList_EditCommandOldStyle (
 	
 	// Set time series contents...
 
-	else if ( action.equals( __Commands_Set_SetDataValue_String)||
-		command.regionMatches(true,0,"setDataValue",0,12) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setDataValue()" );
-		}
-		edited_cv = new setDataValue_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Set_SetMax_String)||
 		command.regionMatches(true,0,"setMax",0,6) ) {
 		if ( Message.isDebugOn ) {
@@ -6284,7 +6274,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
 
-		JGUIUtil.setEnabled ( __Commands_Models_JMenu, true);
+		JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, true);
         
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
@@ -6383,7 +6373,7 @@ private void ui_CheckGUIState ()
 
 		// TODO SAM 2005-07-11 For now enable because models can
 		// create time series...
-		//JGUIUtil.setEnabled ( __Commands_Models_JMenu, false );
+		//JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, false );
         
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
@@ -8042,9 +8032,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	// "Commands...Models"...
 
-	__Commands_JMenu.add ( __Commands_Models_JMenu = new JMenu(__Commands_Models_String) );
-	__Commands_Models_JMenu.add ( __Commands_Models_LagK_JMenuItem =
-        new SimpleJMenuItem( __Commands_Models_LagK_String, this ) );
+	__Commands_JMenu.add ( __Commands_Models_Routing_JMenu = new JMenu(__Commands_Models_Routing_String) );
+	__Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_LagK_JMenuItem =
+        new SimpleJMenuItem( __Commands_Models_Routing_LagK_String, this ) );
 
 	// "Commands...Output Time Series"...
 
@@ -10222,15 +10212,15 @@ throws Exception
 }
 
 /**
-Handle a group of actions for the Commands...Models... menu.
+Handle a group of actions for the Commands...Models*... menus.
 @param event Event to handle.
 */
 private void uiAction_ActionPerformed11_CommandsModelsMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	if (command.equals( __Commands_Models_LagK_String)){
-		commandList_EditCommand ( __Commands_Models_LagK_String, null, __INSERT_COMMAND );
+	if (command.equals( __Commands_Models_Routing_LagK_String)){
+		commandList_EditCommand ( __Commands_Models_Routing_LagK_String, null, __INSERT_COMMAND );
 	}
 	else {
 		// Chain to other actions
