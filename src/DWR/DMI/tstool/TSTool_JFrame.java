@@ -2567,17 +2567,8 @@ private boolean commandList_EditCommandOldStyle (
 	String command_trimmed = command.trim();
 	Vector edited_cv = null;
 	// The following are listed in the order of the menus.
-	if ( action.equals( __Commands_Create_CreateFromList_String)||
-		(StringUtil.indexOfIgnoreCase(command,"createFromList(",0)>=0)||
-		(StringUtil.indexOfIgnoreCase(command,"createFromList (",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for createFromList()" );
-		}
-		edited_cv = new createFromList_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit), command_to_edit).getText();
-	}
-	else if ( action.equals( __Commands_Create_TS_Disaggregate_String)||
+
+	if ( action.equals( __Commands_Create_TS_Disaggregate_String)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate(",0) >= 0)||
 		(StringUtil.indexOfIgnoreCase(command,"disaggregate (",0) >=0)){
 		if ( Message.isDebugOn ) {
