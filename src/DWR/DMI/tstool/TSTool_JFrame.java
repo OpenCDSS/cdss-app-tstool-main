@@ -2778,16 +2778,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Manipulate time series...
 
-	else if ( action.equals( __Commands_Manipulate_AdjustExtremes_String)||
-		command.regionMatches(true,0,"adjustExtremes",0,14) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for adjustExtremes()" );
-		}
-		edited_cv = new adjustExtremes_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Manipulate_ARMA_String)||
 		command.regionMatches(true,0,"ARMA",0,4) ) {
 		if ( Message.isDebugOn ) {
