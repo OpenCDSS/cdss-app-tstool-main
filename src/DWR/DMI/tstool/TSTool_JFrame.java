@@ -2778,16 +2778,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Manipulate time series...
 
-	else if ( action.equals( __Commands_Manipulate_ARMA_String)||
-		command.regionMatches(true,0,"ARMA",0,4) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for ARMA()" );
-		}
-		edited_cv = new ARMA_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals(__Commands_Manipulate_Divide_String) ||
 		command.regionMatches(true,0,"divide",0,6) ) {
 		if ( Message.isDebugOn ) {
