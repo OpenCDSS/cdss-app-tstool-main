@@ -575,16 +575,6 @@ The Vector of Command that is used with cut/copy/paste user actions.
 */
 private Vector __commands_cut_buffer = new Vector(100,100);
 
-/**
-Paths to pattern files.
-*/
-private Vector __fill_pattern_files = 	new Vector (10,10);
-
-/**
-Time series with pattern data.
-*/
-private Vector __fill_pattern_ids = new Vector ( 10, 10 );
-
 // TODO SAM 2007-11-02 Evaluate putting in the processor
 /**
 Indicates whether the commands have been edited without being saved.
@@ -1032,6 +1022,7 @@ JMenuItem
 	__Commands_Fill_FillMOVE1_JMenuItem,
 	__Commands_Fill_FillMOVE2_JMenuItem,
 	__Commands_Fill_FillPattern_JMenuItem,
+    __Commands_Fill_ReadPatternFile_JMenuItem,
 	__Commands_Fill_FillProrate_JMenuItem,
 	__Commands_Fill_FillRegression_JMenuItem,
 	__Commands_Fill_FillRepeat_JMenuItem,
@@ -1039,8 +1030,7 @@ JMenuItem
 
 	__Commands_Fill_SetAutoExtendPeriod_JMenuItem,
 	__Commands_Fill_SetAveragePeriod_JMenuItem,
-	__Commands_Fill_SetIgnoreLEZero_JMenuItem,
-	__Commands_Fill_SetPatternFile_JMenuItem;
+	__Commands_Fill_SetIgnoreLEZero_JMenuItem;
 
 	// Commands...Set Time Series....
 JMenu
@@ -1424,6 +1414,7 @@ private String
 	__Commands_Fill_FillMOVE1_String = TAB + "FillMOVE1()...  <fill TS using MOVE1 method>",
 	__Commands_Fill_FillMOVE2_String = TAB + "FillMOVE2()...  <fill TS using MOVE2 method>",
 	__Commands_Fill_FillPattern_String = TAB + "FillPattern()...  <fill TS using WET/DRY/AVG pattern>",
+	__Commands_Fill_ReadPatternFile_String = TAB + "  ReadPatternFile()... <for use with FillPattern() >",
 	__Commands_Fill_FillProrate_String = TAB + "FillProrate()...  <fill TS by prorating another time series>",
 	__Commands_Fill_FillRegression_String = TAB + "FillRegression()...  <fill TS using regression>",
 	__Commands_Fill_FillRepeat_String = TAB + "FillRepeat()...  <fill TS by repeating values>",
@@ -1434,7 +1425,6 @@ private String
 	__Commands_Fill_SetAutoExtendPeriod_String = TAB + "SetAutoExtendPeriod()... <for data filling and manipulation>",
 	__Commands_Fill_SetAveragePeriod_String = TAB +	"SetAveragePeriod()... <for data filling>",
 	__Commands_Fill_SetIgnoreLEZero_String = TAB + "SetIgnoreLEZero()... <ignore values <= 0 in historical averages>",
-	__Commands_Fill_SetPatternFile_String = TAB + "SetPatternFile()... <for use with fillPattern() >",
 	__Commands_SetTimeSeries_String = "Set Time Series Contents",
 	__Commands_Set_ReplaceValue_String = TAB + "ReplaceValue()...  <replace value (range) with constant in TS>",
 	__Commands_Set_SetConstant_String = TAB + "SetConstant()...  <set all values to constant in TS>",
@@ -2667,47 +2657,6 @@ private boolean commandList_EditCommandOldStyle (
 			this, cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals(__Commands_Fill_FillPattern_String) ||
-		command.regionMatches(true,0,"fillPattern",0,11) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillPattern()" );
-		}
-		// Get the pattern time series from the previous commands...
-		Vector needed_commands_Vector = new Vector();
-		needed_commands_Vector.addElement ( "setPatternFile" );
-		Vector found_commands_Vector =
-			TSCommandProcessorUtil.getCommandsBeforeIndex(
-			commandList_GetInsertPosition(),
-			__ts_processor,
-			needed_commands_Vector,
-			true );
-		// Transfer the file names to the data vector...
-		__fill_pattern_files.removeAllElements();
-		int psize = 0;
-		if ( found_commands_Vector != null ) {
-			psize = found_commands_Vector.size();
-		}
-		Vector tokens;
-		for ( int ip = 0; ip < psize; ip++ ) {
-			tokens = StringUtil.breakStringList (
-				found_commands_Vector.elementAt(ip).toString(),
-				"() ", StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
-			if ( (tokens != null) && (tokens.size() == 2) ) {
-				__fill_pattern_files.addElement ( ((String)tokens.elementAt(1)).trim() );
-			}
-		}
-		// Now get a list of the patterns so that they can be used in the dialog to make selections...
-		if ( __fill_pattern_ids.size() == 0 ) {
-			// Read the pattern information so it can be passed to the dialog.
-			readPatternTS ();
-		}
-		edited_cv = new fillPattern_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			__fill_pattern_files, cv,
-			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit), __fill_pattern_ids ).getText();
-	}
 	else if (action.equals( __Commands_Fill_FillProrate_String)||
 		command.regionMatches( true,0,"fillProrate",0,11)){
 		if ( Message.isDebugOn ) {
@@ -2716,32 +2665,6 @@ private boolean commandList_EditCommandOldStyle (
 		edited_cv = new fillProrate_JDialog ( this, cv,
 				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Fill_SetPatternFile_String) ||
-		command.regionMatches(true,0,"setPatternFile",0,14) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setPatternFile()" );
-		}
-		edited_cv = new setPatternFile_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit), command_to_edit).getText();
-		if ( edited_cv != null ) {
-			// Read the pattern file information, at least enough
-			// to get a list of the identifiers that are available
-			// as reference gages.
-			Vector tokens = StringUtil.breakStringList (
-				(String)edited_cv.elementAt(0),
-				" (,)", StringUtil.DELIM_SKIP_BLANKS |
-				StringUtil.DELIM_ALLOW_STRINGS );
-			if ( tokens.size() == 2 ) {
-				// Save the name of the pattern file.  It will
-				// be read if we actually edit
-				// fillPattern() commands...
-				__fill_pattern_files.addElement (
-				((String)tokens.elementAt(1)).trim() );
-			}
-		}
 	}
 	
 	// Set time series contents...
@@ -5808,40 +5731,6 @@ throws Exception
 }
 */
 
-//TODO SAM 2007-09-02 Need to isolate this code outside the GUI.
-/**
-Read the pattern time series corresponding to the pattern file names.
-Only read the headers.  Then the identifiers are saved for use in the
-fillPattern_Dialog.
-*/
-public void readPatternTS ()
-{	// Empty the list...
-	__fill_pattern_ids.removeAllElements();
-	Vector fill_pattern_ts = null;
-	TS ts = null;
-	for ( int ifile = 0; ifile < __fill_pattern_files.size(); ifile++ ) {
-		// TODO - need this to be more generic.  If a statemod
-		// pattern file is specified, read it, else, allow for other
-		// formats.  For now always read a StateMod file.
-		//
-		// Read the header but not the actual data since only a list of identifiers is needed.
-		fill_pattern_ts = StateMod_TS.readPatternTimeSeriesList (
-			IOUtil.getPathUsingWorkingDir((String)__fill_pattern_files.elementAt(ifile)), false );
-		if ( fill_pattern_ts != null ) {
-			int listsize = fill_pattern_ts.size();
-			for ( int j = 0; j < listsize; j++ ) {
-				ts = (TS)fill_pattern_ts.elementAt(j);
-				if ( ts == null ) {
-					continue;
-				}
-				__fill_pattern_ids.addElement (	ts.getLocation() );
-			}
-		}
-	}
-	ts = null;
-	fill_pattern_ts = null;
-}
-
 /**
 Clear the results displays.
 */
@@ -7864,6 +7753,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillPattern_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillPattern_String, this ) );
+	
+    __Commands_FillTimeSeries_JMenu.add (__Commands_Fill_ReadPatternFile_JMenuItem=
+        new SimpleJMenuItem(__Commands_Fill_ReadPatternFile_String, this ) );
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillProrate_JMenuItem =
         new SimpleJMenuItem( __Commands_Fill_FillProrate_String, this ) );
@@ -7896,9 +7788,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_SetIgnoreLEZero_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_SetIgnoreLEZero_String, this ) );
-
-	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetPatternFile_JMenuItem=
-        new SimpleJMenuItem(__Commands_Fill_SetPatternFile_String, this ) );
 
 	// "Commands...Set Time Series"...
 
@@ -10024,6 +9913,9 @@ throws Exception
 	else if (command.equals( __Commands_Fill_FillPattern_String) ) {
 		commandList_EditCommand ( __Commands_Fill_FillPattern_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Fill_ReadPatternFile_String) ) {
+        commandList_EditCommand ( __Commands_Fill_ReadPatternFile_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Fill_FillProrate_String) ) {
 		commandList_EditCommand ( __Commands_Fill_FillProrate_String, null, __INSERT_COMMAND );
 	}
@@ -10044,9 +9936,6 @@ throws Exception
 	}
 	else if (command.equals( __Commands_Fill_SetIgnoreLEZero_String) ) {
 		commandList_EditCommand ( __Commands_Fill_SetIgnoreLEZero_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Fill_SetPatternFile_String) ) {
-		commandList_EditCommand ( __Commands_Fill_SetPatternFile_String, null, __INSERT_COMMAND );
 	}
 	else {
 		// Chain to other menus
