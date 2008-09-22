@@ -2645,18 +2645,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Fill Time Series Data...
 
-	else if ( action.equals(
-		__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String)||
-		command.regionMatches(
-			true,0,"fillDayTSFrom2MonthTSAnd1DayTS",0,30) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for fillDayTSFrom2MonthTSAnd1DayTS()" );
-		}
-		edited_cv = new fillDayTSFrom2MonthTSAnd1DayTS_JDialog ( 
-			this, cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
-	}
 	else if (action.equals( __Commands_Fill_FillProrate_String)||
 		command.regionMatches( true,0,"fillProrate",0,11)){
 		if ( Message.isDebugOn ) {
