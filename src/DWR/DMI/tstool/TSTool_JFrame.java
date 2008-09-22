@@ -2554,21 +2554,10 @@ private boolean commandList_EditCommandOldStyle (
 		command = "";
 		cv.addElement ( command );
 	}
-	String command_trimmed = command.trim();
 	Vector edited_cv = null;
 	// The following are listed in the order of the menus.
 
-	if ( action.equals( __Commands_Create_TS_Disaggregate_String)||
-		(StringUtil.indexOfIgnoreCase(command,"disaggregate(",0) >= 0)||
-		(StringUtil.indexOfIgnoreCase(command,"disaggregate (",0) >=0)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for TS Alias = disaggregate()" );
-		}
-		edited_cv = new disaggregate_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals(
+	if ( action.equals(
 		__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String)||
 		(StringUtil.indexOfIgnoreCase(
 		command,"newDayTSFromMonthAndDayTS(",0) >= 0) ||
