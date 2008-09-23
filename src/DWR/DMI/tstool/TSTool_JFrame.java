@@ -2557,23 +2557,9 @@ private boolean commandList_EditCommandOldStyle (
 	Vector edited_cv = null;
 	// The following are listed in the order of the menus.
 
-	if ( action.equals(
-		__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"NewEndOfMonthTSFromDayTS",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias =" +
-			"newEndOfMonthTSFromDayTS()" );
-		}
-		edited_cv = new newEndOfMonthTSFromDayTS_JDialog (this,cv,
-			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
-	}
-
 	// Convert time series...
 
-	else if (action.equals(__Commands_ConvertTSIDTo_ReadTimeSeries_String)||
+	if (action.equals(__Commands_ConvertTSIDTo_ReadTimeSeries_String)||
 		StringUtil.indexOfIgnoreCase(command,"readTimeSeries",0)>5 ) {
 		// TS Alias = ...
 		if ( Message.isDebugOn ) {
