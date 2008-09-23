@@ -2585,17 +2585,6 @@ private boolean commandList_EditCommandOldStyle (
 			TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
-	else if ( action.equals( __Commands_Create_TS_Normalize_String)||
-		(StringUtil.indexOfIgnoreCase(command,"normalize(",0) >= 0)||
-		(StringUtil.indexOfIgnoreCase(command,"normalize (",0)>= 0)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = normalize()" );
-		}
-		edited_cv = new normalize_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals( __Commands_Create_TS_RelativeDiff_String)||
 		(StringUtil.indexOfIgnoreCase(
 		command,"relativeDiff(",0)>=0)||
