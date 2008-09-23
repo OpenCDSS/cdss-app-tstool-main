@@ -2558,21 +2558,6 @@ private boolean commandList_EditCommandOldStyle (
 	// The following are listed in the order of the menus.
 
 	if ( action.equals(
-		__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String)||
-		(StringUtil.indexOfIgnoreCase(
-		command,"newDayTSFromMonthAndDayTS(",0) >= 0) ||
-		(StringUtil.indexOfIgnoreCase(
-		command,"newDayTSFromMonthAndDayTS (",0) >= 0) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias =" +
-			"newDayTSFromMonthAndDayTS()");
-		}
-		edited_cv = new newDayTSFromMonthAndDayTS_JDialog (this,cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals(
 		__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String)||
 		(StringUtil.indexOfIgnoreCase(
 		command,"NewEndOfMonthTSFromDayTS",0) >= 0) ) {
