@@ -2612,16 +2612,6 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Manipulate time series...
 
-	else if ( action.equals(__Commands_Manipulate_Divide_String) ||
-		command.regionMatches(true,0,"divide",0,6) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for divide()" );
-		}
-		edited_cv = new divide_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	else if ( action.equals(__Commands_Manipulate_Multiply_String) ||
 		command.regionMatches(true,0,"multiply",0,8) ) {
 		if ( Message.isDebugOn ) {
