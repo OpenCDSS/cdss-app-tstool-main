@@ -2575,17 +2575,9 @@ private boolean commandList_EditCommandOldStyle (
 	}
 	*/
 
-	// Read Time Series...
-
-	if ( action.equals( __Commands_Read_StateModMax_String)||
-		StringUtil.startsWithIgnoreCase(command,"StateModMax") ) {
-		edited_cv = new statemodMax_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, null, command_to_edit ).getText();
-	}
-
 	// Fill Time Series Data...
 
-	else if (action.equals( __Commands_Fill_FillProrate_String)||
+	if (action.equals( __Commands_Fill_FillProrate_String)||
 		command.regionMatches( true,0,"fillProrate",0,11)){
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Opening dialog for fillProrate()" );
