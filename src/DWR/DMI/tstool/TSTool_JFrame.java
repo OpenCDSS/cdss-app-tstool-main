@@ -1003,6 +1003,7 @@ JMenuItem
 	// FIXME SAM 2008-08-21 Enable when read but no need to show users now
 	//__Commands_Read_TS_ReadStateMod_JMenuItem,
 	//__Commands_Read_TS_ReadStateModB_JMenuItem,
+	__Commands_Read_TS_ReadTimeSeries_JMenuItem,
 	__Commands_Read_TS_ReadUsgsNwis_JMenuItem,
 
 	__Commands_Read_SetIncludeMissingTS_JMenuItem,
@@ -1383,7 +1384,7 @@ private String
     __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
-	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()...  <read 1(+) time series from an NWSRFS FS5 Files>",
+	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()...  <read 1(+) time series from NWSRFS FS5 files>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()...  <read 1(+) time series from a StateCU file>",
 	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()...  <read 1(+) time series from a StateCU binary output file>",
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()...  <read 1(+) time series from a StateMod file>",
@@ -1395,10 +1396,11 @@ private String
 	__Commands_Read_TS_ReadMODSIM_String = TAB + "TS Alias = ReadMODSIM()...  <read 1 time series from a MODSIM output file>",
 	__Commands_Read_TS_ReadNDFD_String = TAB + "TS Alias = ReadNDFD()...  <read 1 time series from NDFD web service>",
 	__Commands_Read_TS_ReadNwsCard_String = TAB + "TS Alias = ReadNwsCard()...  <read 1 time series from an NWS CARD file>",
-	__Commands_Read_TS_ReadNWSRFSFS5Files_String = TAB + "TS Alias = ReadNWSRFSFS5Files()...  <read 1 time series from an NWSRFS FS5 Files>",
+	__Commands_Read_TS_ReadNWSRFSFS5Files_String = TAB + "TS Alias = ReadNWSRFSFS5Files()...  <read 1 time series from NWSRFS FS5 files>",
 	__Commands_Read_TS_ReadRiverWare_String = TAB +	"TS Alias = ReadRiverWare()...  <read 1 time series from a RiverWare file>",
 	__Commands_Read_TS_ReadStateMod_String = TAB + "TS Alias = ReadStateMod()...  <read 1 time series from a StateMod file>",
 	__Commands_Read_TS_ReadStateModB_String = TAB + "TS Alias = ReadStateModB()...  <read 1 time series from a StateMod binary file>",
+	__Commands_Read_TS_ReadTimeSeries_String = TAB + "TS Alias = ReadTimeSeries()...  <read 1 time series given a full TSID>",
 	__Commands_Read_TS_ReadUsgsNwis_String = TAB + "TS Alias = ReadUsgsNwis()...  <read 1 time series from a USGS NWIS file>",
 
 	// Commands... Fill Time Series...
@@ -2559,6 +2561,7 @@ private boolean commandList_EditCommandOldStyle (
 
 	// Convert time series...
 
+	/* FIXME SAM 2008-09-23 Figure out how to deal with this.
 	if (action.equals(__Commands_ConvertTSIDTo_ReadTimeSeries_String)||
 		StringUtil.indexOfIgnoreCase(command,"readTimeSeries",0)>5 ) {
 		// TS Alias = ...
@@ -2566,14 +2569,15 @@ private boolean commandList_EditCommandOldStyle (
 			Message.printDebug ( dl, routine,
 			"Opening dialog for TS Alias = readTimeSeries()" );
 		}
-		edited_cv = new readTimeSeries_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
+		edited_cv = new ReadTimeSeries_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
 					__ts_processor, command_to_edit)).getText();
 	}
+	*/
 
 	// Read Time Series...
 
-	else if ( action.equals( __Commands_Read_StateModMax_String)||
+	if ( action.equals( __Commands_Read_StateModMax_String)||
 		StringUtil.startsWithIgnoreCase(command,"StateModMax") ) {
 		edited_cv = new statemodMax_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
 			cv, null, command_to_edit ).getText();
@@ -7635,6 +7639,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	}
 	*/
 
+    __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Read_TS_ReadTimeSeries_String, this) );
 	if ( __source_USGSNWIS_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadUsgsNwis_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_TS_ReadUsgsNwis_String, this) );
@@ -9784,6 +9790,9 @@ throws Exception
 	else if (command.equals( __Commands_Read_TS_ReadStateMod_String)){
 		commandList_EditCommand ( __Commands_Read_TS_ReadStateMod_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Read_TS_ReadTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Read_TS_ReadTimeSeries_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Read_TS_ReadUsgsNwis_String)){
 		commandList_EditCommand ( __Commands_Read_TS_ReadUsgsNwis_String, null, __INSERT_COMMAND );
 	}
