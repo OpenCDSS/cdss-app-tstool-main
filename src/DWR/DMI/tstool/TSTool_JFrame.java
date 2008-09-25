@@ -2587,29 +2587,6 @@ private boolean commandList_EditCommandOldStyle (
 						__ts_processor, command_to_edit)).getText();
 	}
 	
-	// Set time series contents...
-
-	else if ( action.equals( __Commands_Set_SetMax_String)||
-		command.regionMatches(true,0,"setMax",0,6) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for setMax()" );
-		}
-		edited_cv = new setMax_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	else if ( action.equals( __Commands_Set_SetToMin_String)||
-			command.regionMatches(true,0,"setToMin",0,8) ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Opening dialog for setToMin()" );
-			}
-			edited_cv = new setToMin_JDialog ( this, cv,
-					TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-							__ts_processor, command_to_edit)).getText();
-		}
-
 	// General...
 
     else if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
