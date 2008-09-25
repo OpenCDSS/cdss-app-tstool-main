@@ -2610,19 +2610,6 @@ private boolean commandList_EditCommandOldStyle (
 							__ts_processor, command_to_edit)).getText();
 		}
 
-	// Manipulate time series...
-
-	else if ( action.equals(__Commands_Manipulate_Multiply_String) ||
-		command.regionMatches(true,0,"multiply",0,8) ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for multiply()" );
-		}
-		edited_cv = new multiply_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-
 	// General...
 
     else if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
