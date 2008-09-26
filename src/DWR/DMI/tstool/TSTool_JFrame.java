@@ -1043,7 +1043,7 @@ JMenuItem
 	__Commands_Set_SetConstant_JMenuItem,
 	__Commands_Set_SetDataValue_JMenuItem,
     __Commands_Set_SetFromTS_JMenuItem,
-	__Commands_Set_SetMax_JMenuItem,
+	__Commands_Set_SetToMax_JMenuItem,
 	__Commands_Set_SetToMin_JMenuItem,
     __Commands_Set_SetTimeSeriesProperty_JMenuItem;
 
@@ -1432,7 +1432,7 @@ private String
 	__Commands_Set_SetConstant_String = TAB + "SetConstant()...  <set all values to constant in TS>",
 	__Commands_Set_SetDataValue_String = TAB + "SetDataValue()...  <set a single data value in a TS>",
 	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()...  <set time series values from another time series>",
-	__Commands_Set_SetMax_String = TAB + "SetMax()...  <set values to maximum of time series>",
+	__Commands_Set_SetToMax_String = TAB + "SetToMax()...  <set values to maximum of time series>",
 	__Commands_Set_SetToMin_String = TAB + "SetToMin()...  <set values to minimum of time series>",
     __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()...  <set time series properties>",
 
@@ -2291,22 +2291,16 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	// Indicate whether the commands are a block of # comments.
 	// If so then need to use a special editor rather than typical one-line editors.
 	boolean is_comment_block = false;
-	// Indicate whether an exit command, in which case editing is not needed
-	boolean is_exit = false;
 	if ( mode == __UPDATE_COMMAND ) {
 		is_comment_block = commandList_IsCommentBlock ( __ts_processor,
 			command_Vector,
 			true,	// All must be comments
 			true );	// Comments must be contiguous
-		is_exit = commandList_IsExitCommand ( command_Vector );
 	}
 	else {
 		// New command, so look for comment actions.
 		if ( action.equals(__Commands_General_Comments_Comment_String) ) {
 			is_comment_block = true;
-		}
-		if ( action.equals(__Commands_General_Running_Exit_String) ) {
-			is_exit = true;
 		}
 	}
 	if ( is_comment_block ) {
@@ -2334,9 +2328,6 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 		if ( is_comment_block ) {
 			// Use the string-based editor dialog and then convert each
 			// comment line into a command.  Don't do anything to the command list yet
-		}
-		else if ( is_exit ) {
-			// Don't do anything.
 		}
 		else {
 			// Get the original command...
@@ -2391,10 +2382,6 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 	if ( is_comment_block ) {
 		// Edit using the old-style editor...
 		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, command_Vector, new_comments );
-	}
-	else if ( is_exit ) {
-		// No need to edit - just insert.
-		edit_completed = true;
 	}
 	else {
 	    // Editing a single one-line command...
@@ -2612,11 +2599,6 @@ private boolean commandList_EditCommandOldStyle (
 		}
 		edited_cv = new Vector(1);
 		edited_cv.addElement( "*/" );
-	}
-	else if ( action.equals(__Commands_General_Running_Exit_String) ) {
-		// No need to edit.  Just return "exit".
-		edited_cv = new Vector(1);
-		edited_cv.addElement( "Exit" );
 	}
 	else {
 		// A time series identifier or other command that for whatever reason
@@ -2974,24 +2956,6 @@ private boolean commandList_IsCommentLine ( String line )
 	return false;
 }
 
-/**
-Determine whether a command line is an exit command.
-@param command_Vector Vector of Command - only the first one will be checked.
-@return true if an exit command, false if not.
-*/
-private boolean commandList_IsExitCommand ( Vector command_Vector )
-{	if ( command_Vector == null ) {
-		return false;
-	}
-	if ( command_Vector.size() < 1 ) {
-		return false;
-	}
-	Command command = (Command)command_Vector.elementAt(0);
-	if ( StringUtil.startsWithIgnoreCase(command.toString(),"exit") ) {
-		return true;
-	}
-	return false;
-}
 /**
 Create a new Command instance given a command string.  This may be called when
 loading commands from a file or adding new commands while editing.
@@ -5569,43 +5533,6 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 }
 
 /**
-Quits the program with the correct exit status
-@param status
- */
-/*
-private void quitProgram( int status )
-{	// Call the application startup to quit...
-   tstool.quitProgram(status);
-}
-*/
-
-/**
-Run with a hidden main gui but process the specified command file.
-If also in batch mode because commands were specified on the command line, the
-a true batch run will be made.
-@param command_file Command file to process.
-@exception Exception if there is an error processing the file, for example
-no data to graph.
-*/
-/* FIXME SAM 2007-08-20 Need to enable.
-private void runNoMainGUI ( String command_file )
-throws Exception
-{	String routine = "TSTool_JFrame.runNoMainGUI";
-	// Run similar to the Run...Commands menu
-	TSEngine engine = null;
-	// Process as if in batch mode...
-	engine = new TSEngine ( __hbdmi, __rdmi, __DIADvisor_dmi,
-				__DIADvisor_archive_dmi, __nwsrfs_dmi,
-				__smsdmi );
-	engine.addTSViewWindowListener ( this );
-	engine.processCommands ( __hbdmi, command_file, IOUtil.isBatch() );
-	engine = null;
-	Message.printStatus ( 1, routine,
-	"Successfully processed command file \"" + command_file + "\"" );
-}
-*/
-
-/**
 Clear the results displays.
 */
 private void results_Clear()
@@ -5981,7 +5908,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Set_SetConstant_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetMax_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, true );
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
@@ -6078,7 +6005,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Set_ReplaceValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetMax_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, false );
 		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
@@ -7682,8 +7609,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetFromTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetFromTS_String, this ) );
 
-	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetMax_JMenuItem =
-        new SimpleJMenuItem(__Commands_Set_SetMax_String, this ) );
+	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMax_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetToMax_String, this ) );
 	
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMin_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetToMin_String, this ) );
@@ -9842,8 +9769,8 @@ throws Exception
 	else if (command.equals( __Commands_Set_SetFromTS_String)){
 		commandList_EditCommand ( __Commands_Set_SetFromTS_String, null, __INSERT_COMMAND );
 	}
-	else if (command.equals( __Commands_Set_SetMax_String)){
-		commandList_EditCommand ( __Commands_Set_SetMax_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Set_SetToMax_String)){
+		commandList_EditCommand ( __Commands_Set_SetToMax_String, null, __INSERT_COMMAND );
 	}
 	else if (command.equals( __Commands_Set_SetToMin_String)){
 		commandList_EditCommand ( __Commands_Set_SetToMin_String, null, __INSERT_COMMAND );
@@ -10131,6 +10058,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_General_Running_RunPython_String) ) {
         commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_General_Running_Exit_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_Exit_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_General_FileHandling_FTPGet_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_FTPGet_String, null, __INSERT_COMMAND );
