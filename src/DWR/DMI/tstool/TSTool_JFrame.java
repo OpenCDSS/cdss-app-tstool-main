@@ -2562,21 +2562,9 @@ private boolean commandList_EditCommandOldStyle (
 	}
 	*/
 
-	// Fill Time Series Data...
-
-	if (action.equals( __Commands_Fill_FillProrate_String)||
-		command.regionMatches( true,0,"fillProrate",0,11)){
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Opening dialog for fillProrate()" );
-		}
-		edited_cv = new fillProrate_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
-	
 	// General...
 
-    else if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
+    if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
         // edited_cv is just a new comment...
         if ( Message.isDebugOn ) {
             Message.printDebug ( dl, routine, "Adding @readOnly comment." );
