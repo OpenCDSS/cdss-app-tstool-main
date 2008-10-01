@@ -69,7 +69,6 @@ import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
-import rti.tscommandprocessor.commands.ts.TSID_Command;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.comment_JDialog;
 
@@ -173,7 +172,6 @@ import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.EndianRandomAccessFile;
 import RTi.Util.IO.FileGenerator;
-import RTi.Util.IO.GenericCommand;
 import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.LicenseManager;
@@ -1425,8 +1423,6 @@ private String
 	__Commands_Fill_FillRegression_String = TAB + "FillRegression()...  <fill TS using regression>",
 	__Commands_Fill_FillRepeat_String = TAB + "FillRepeat()...  <fill TS by repeating values>",
 	__Commands_Fill_FillUsingDiversionComments_String = TAB + "FillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
-	// TODO SAM - need to add later...
-	//MENU_INTERMEDIATE_FILL_WEIGHTS_String = "Fill Using Weights...",
 
 	__Commands_Fill_SetAutoExtendPeriod_String = TAB + "SetAutoExtendPeriod()... <for data filling and manipulation>",
 	__Commands_Fill_SetAveragePeriod_String = TAB +	"SetAveragePeriod()... <for data filling>",
@@ -1500,8 +1496,8 @@ private String
 
 	// NDFD commands...
 
-	__Commands_NDFD_String = "NDFD",
-	__Commands_NDFD_openNDFD_String = TAB +	"OpenNDFD()... <open NDFD web site connection>",
+	//__Commands_NDFD_String = "NDFD",
+	//__Commands_NDFD_openNDFD_String = TAB +	"OpenNDFD()... <open NDFD web site connection>",
     
     // Commands...Ensemble processing...
     
@@ -9880,9 +9876,11 @@ throws Exception
 
 	// NDFD commands...
 
+	/* TODO SAM 2008-10-01 Enable later
 	else if (command.equals(__Commands_NDFD_openNDFD_String)){
 		commandList_EditCommand ( __Commands_NDFD_openNDFD_String, null, __INSERT_COMMAND );
 	}
+	*/
     
     // Table commands...
     
