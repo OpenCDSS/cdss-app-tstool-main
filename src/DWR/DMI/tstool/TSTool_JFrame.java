@@ -69,8 +69,9 @@ import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
-
 import rti.tscommandprocessor.commands.ts.TSID_Command;
+import rti.tscommandprocessor.commands.util.Comment_Command;
+import rti.tscommandprocessor.commands.util.comment_JDialog;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -2302,7 +2303,8 @@ private void commandList_EditCommand ( String action, Vector command_Vector, int
 	}
 	else {
 		// New command, so look for comment actions.
-		if ( action.equals(__Commands_General_Comments_Comment_String) ) {
+		if ( action.equals(__Commands_General_Comments_Comment_String) ||
+		        action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
 			is_comment_block = true;
 		}
 	}
@@ -2389,16 +2391,18 @@ private void commandList_EditCommand ( String action, Vector command_Vector, int
 	else {
 	    // Editing a single one-line command...
         try {
+            /*
     		if ( command_to_edit instanceof GenericCommand ) {
     			// Edit with the old style editors.
     			Message.printStatus(2, routine, "Editing GenericCommand with old-style editor.");
     			edit_completed = commandList_EditCommandOldStyle ( mode, action, command_Vector, (GenericCommand)command_to_edit );
     		}
     		else {
+    		*/
     			// Edit with the new style editors...
     			Message.printStatus(2, routine, "Editing Command with new-style editor.");
     			edit_completed = commandList_EditCommandNewStyle ( command_to_edit );
-    		}
+    		//}
         }
         catch ( Exception e ) {
             Message.printWarning (1 , routine, "Unexpected error editing command - refer to log and report to software support." );
@@ -2528,6 +2532,7 @@ the legacy code.
 @param command_to_edit The Command instance to edit.
 @return true if the command edits were committed, false if cancelled.
 */
+/*
 private boolean commandList_EditCommandOldStyle (
 		int mode, String action, Vector command_Vector, GenericCommand command_to_edit )
 {	String routine = getClass().getName() + ".editCommandOldStyle";
@@ -2573,6 +2578,7 @@ private boolean commandList_EditCommandOldStyle (
 		return true;
 	}
 }
+*/
 
 /**
 Edit comments using an old-style editor.
@@ -2596,7 +2602,7 @@ private boolean commandList_EditCommandOldStyleComments (
 		command = (Command)command_Vector.elementAt(i);
 		cv.addElement( command.toString() );
 	}
-	Vector edited_cv = new Vector();//new comment_JDialog ( this, cv, null ).getText();
+	Vector edited_cv = new comment_JDialog ( this, cv ).getText();
 	if ( edited_cv == null ) {
 		return false;
 	}
@@ -2865,7 +2871,7 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 	int pos_prev = -1;
 	for ( int i = 0; i < size_commands; i++ ) {
 		command = (Command)commands.elementAt(i);
-		if ( commandList_IsCommentLine(command.toString()) ) {
+		if ( command instanceof Comment_Command ) {
 			++comment_count;
 		}
 		// Get the index position in the commands processor and
@@ -2891,6 +2897,7 @@ Determine whether a command line is a comment that starts with #.
 @param line String command line.
 @return true if a comment line, false if not.
 */
+/*
 private boolean commandList_IsCommentLine ( String line )
 {	if ( line == null ) {
 		// Blank line...
@@ -2904,6 +2911,7 @@ private boolean commandList_IsCommentLine ( String line )
 	}
 	return false;
 }
+*/
 
 /**
 Create a new Command instance given a command string.  This may be called when
@@ -5106,9 +5114,11 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 	}
 	
 	int i = 0;	// Leave this in case we add looping.
-	int offset = 0;	// Handles cases where a comment is inserted.
+	int offset = 0;	// Handles cases where a comment is inserted prior to the command.
 	if ( (comment != null) && !comment.equals("") ) {
-		__commands_JListModel.insertElementAt ( "# " + comment,	(insert_pos + i*2));
+	    // Insert a comment prior to the command, for example to include the station description.
+	    Command commentCommand = commandList_NewCommand ( "# " + comment, true );
+		__commands_JListModel.insertElementAt ( commentCommand, (insert_pos + i*2));
 		offset = 1;
 	}
 	String tsident_string = null;
@@ -9901,7 +9911,12 @@ throws Exception
 		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, __INSERT_COMMAND );
 	}
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
-        commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, null, __INSERT_COMMAND );
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        Vector comments = new Vector(1);
+        comments.add ( commandList_NewCommand("#@readOnly",true) );
+        commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, __INSERT_COMMAND );
     }
 	else if (command.equals(__Commands_General_Comments_StartComment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, __INSERT_COMMAND );
@@ -10259,7 +10274,8 @@ private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 					true );	// Create the command even if not recognized.
 			commandList_ReplaceCommand ( old_command, new_command );
 		}
-		else {	// Remove comment...
+		else {
+		    // Remove comment...
 			if ( old_command_string.startsWith("#") ) {
 				new_command = commandList_NewCommand(
 					old_command_string.substring(1).trim(),	// New command as comment
@@ -10588,7 +10604,7 @@ private void uiAction_EditCommand ()
 	if ( selected_size > 0 ) {
 		Command command = (Command)__commands_JListModel.get(selected[0]);
 		Vector v = null;
-		if ( command.toString().startsWith("#") ) {
+		if ( command instanceof Comment_Command ) {
 			// Allow multiple lines to be edited in a comment...
 			// This is handled in the called method, which brings up a multi-line editor for comments.
             // Only edit the contiguous # block. The first one is a # but stop adding when lines no longer
@@ -10596,7 +10612,7 @@ private void uiAction_EditCommand ()
 			v = new Vector ( selected_size );
 			for ( int i = 0; i < selected_size; i++ ) {
 				command = (Command)__commands_JListModel.get(selected[i]);
-				if ( !command.toString().startsWith("#")) {
+				if ( !(command instanceof Comment_Command) ) {
 					break;
 				}
 				// Else add command to the list.
