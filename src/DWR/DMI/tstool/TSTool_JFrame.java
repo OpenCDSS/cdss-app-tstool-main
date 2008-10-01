@@ -70,6 +70,8 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 
+import rti.tscommandprocessor.commands.ts.TSID_Command;
+
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel;
@@ -179,6 +181,7 @@ import RTi.Util.IO.ProcessManager;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.IO.SHEFType;
+import RTi.Util.IO.UnknownCommand;
 import RTi.Util.IO.UnknownCommandException;
 import RTi.Util.Message.DiagnosticsJFrame;
 import RTi.Util.Message.Message;
@@ -1522,8 +1525,8 @@ private String
     __Commands_General_Comments_String = "General - Comments",
     __Commands_General_Comments_Comment_String = TAB + "# comment(s)...",
     __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <insert read-only comment>",
-    __Commands_General_Comments_StartComment_String = TAB + "/*   <start comment>",
-    __Commands_General_Comments_EndComment_String = TAB + "*/   <end comment>",
+    __Commands_General_Comments_StartComment_String = TAB + "/* <start comment block>",
+    __Commands_General_Comments_EndComment_String = TAB + "*/ <end comment block>",
     
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
@@ -2279,7 +2282,7 @@ be edited are when they are in a {# delimited comment block).
 @param mode the action to take when editing the command (__INSERT_COMMAND for a
 new command or __UPDATE_COMMAND for an existing command).
 */
-private void commandList_EditCommand (	String action, Vector command_Vector, int mode )
+private void commandList_EditCommand ( String action, Vector command_Vector, int mode )
 {	String routine = getClass().getName() + ".editCommand";
 	int dl = 1;		// Debug level
 	
@@ -2349,7 +2352,7 @@ private void commandList_EditCommand (	String action, Vector command_Vector, int
 			// Don't do anything here.  New comments will be inserted in code below.
 		}
 		else {
-			// New command so create a command as a placeholder for
+			// New command so create a command as a place-holder for
 			// editing (filled out during the editing).
 			// Get everything before the ) in the command and then re-add the ").
 			// TODO SAM 2007-08-31 Why is this done?
@@ -2546,22 +2549,6 @@ private boolean commandList_EditCommandOldStyle (
 	Vector edited_cv = null;
 	// The following are listed in the order of the menus.
 
-	// Convert time series...
-
-	/* FIXME SAM 2008-09-23 Figure out how to deal with this.
-	if (action.equals(__Commands_ConvertTSIDTo_ReadTimeSeries_String)||
-		StringUtil.indexOfIgnoreCase(command,"readTimeSeries",0)>5 ) {
-		// TS Alias = ...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Opening dialog for TS Alias = readTimeSeries()" );
-		}
-		edited_cv = new ReadTimeSeries_JDialog ( this, ui_GetPropertiesForOldStyleEditor ( command_to_edit ),
-			cv, TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-					__ts_processor, command_to_edit)).getText();
-	}
-	*/
-
 	// General...
 
     if ( action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
@@ -2572,32 +2559,9 @@ private boolean commandList_EditCommandOldStyle (
         edited_cv = new Vector(1);
         edited_cv.addElement( "#@readOnly" );
     }
-	else if ( action.equals(__Commands_General_Comments_StartComment_String) ) {
-		// edited_cv is just a new comment...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Adding start of comment block." );
-		}
-		edited_cv = new Vector(1);
-		edited_cv.addElement( "/*" );
-	}
-	else if ( action.equals(__Commands_General_Comments_EndComment_String) ) {
-		// edited_cv is just a new comment...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Adding end of comment block." );
-		}
-		edited_cv = new Vector(1);
-		edited_cv.addElement( "*/" );
-	}
-	else {
-		// A time series identifier or other command that for whatever reason
-		// does not have a custom dialog...
-		edited_cv = new commandString_JDialog ( this, cv,
-				TSCommandProcessorUtil.getTSIdentifiersNoInputFromCommandsBeforeCommand(
-						__ts_processor, command_to_edit)).getText();
-	}
 	
 	if ( edited_cv == null ) {
-		// The edit was cancelled...
+		// The edit was canceled...
 		Message.printStatus(2, routine, "Edit was cancelled.");
 		return false;
 	}
@@ -2614,15 +2578,12 @@ private boolean commandList_EditCommandOldStyle (
 Edit comments using an old-style editor.
 @param mode Mode of editing, whether updating or inserting.
 @param action If not null, then the comments are new (insert).
-@param command_Vector Comments being edited as a Vector of GenericCommand, as passed from
-the legacy code.
-@param new_comments The new comments as a Vector of String, to be inserted
-into the command list.
-@return true if the command edits were committed, false if cancelled.
+@param command_Vector Comments being edited as a Vector of GenericCommand, as passed from the legacy code.
+@param new_comments The new comments as a Vector of String, to be inserted into the command list.
+@return true if the command edits were committed, false if canceled.
 */
 private boolean commandList_EditCommandOldStyleComments (
-		int mode, String action,
-		Vector command_Vector, Vector new_comments )
+		int mode, String action, Vector command_Vector, Vector new_comments )
 {	//else if ( action.equals(__Commands_General_Comment_String) ||
 	//	command.startsWith("#") ) {
 	Vector cv = new Vector();
@@ -2635,7 +2596,7 @@ private boolean commandList_EditCommandOldStyleComments (
 		command = (Command)command_Vector.elementAt(i);
 		cv.addElement( command.toString() );
 	}
-	Vector edited_cv = new comment_JDialog ( this, cv, null ).getText();
+	Vector edited_cv = new Vector();//new comment_JDialog ( this, cv, null ).getText();
 	if ( edited_cv == null ) {
 		return false;
 	}
@@ -2878,7 +2839,7 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 }
 
 /**
-Determine whether a list of commands is a comment block.
+Determine whether a list of commands is a comment block consisting of multiple # comments.
 @param processor The TSCommandProcessor that is processing the results,
 used to check for positions of commands.
 @param commands Vector of Command instances to check.
@@ -2967,9 +2928,9 @@ private Command commandList_NewCommand ( String command_string,
 		Message.printStatus ( 2, routine, "Created command from factory for \"" + command_string + "\"");
 	}
 	catch ( UnknownCommandException e ) {
-		// Processor does not know the command so create a GenericCommand.
-		c = new GenericCommand();
-		Message.printStatus ( 2, routine, "Created generic command for \"" + command_string + "\"");
+		// Processor does not know the command so create an UnknownCommand.
+		c = new UnknownCommand();
+		Message.printStatus ( 2, routine, "Created unknown command for \"" + command_string + "\"");
 	}
 	// TODO SAM 2007-08-31 This is essentially validation.
 	// Need to evaluate for old-style commands, impacts on error-handling.
@@ -5111,8 +5072,7 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 					String input_name,
 					String comment,
 					boolean use_alias )
-{	// Add after the last selected item or at the end if nothing
-	// is selected.
+{	// Add after the last selected item or at the end if nothing is selected.
 	int selected_indices[] = ui_GetCommandJList().getSelectedIndices();
 	int selected_size = 0;
 	if ( selected_indices != null ) {
@@ -5140,15 +5100,15 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 		// Insert after the last item.
 		insert_pos = selected_indices[selected_size - 1] + 1;
 	}
-	else {	// Insert at the end...
+	else {
+	    // Insert at the end...
 		insert_pos = __commands_JListModel.size();
 	}
 	
 	int i = 0;	// Leave this in case we add looping.
 	int offset = 0;	// Handles cases where a comment is inserted.
 	if ( (comment != null) && !comment.equals("") ) {
-		__commands_JListModel.insertElementAt ( "# " + comment,
-			(insert_pos + i*2));
+		__commands_JListModel.insertElementAt ( "# " + comment,	(insert_pos + i*2));
 		offset = 1;
 	}
 	String tsident_string = null;
@@ -5156,7 +5116,8 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 		// Just use the short alias...
 		tsident_string = location + input;
 	}
-	else {	// Use a full time series identifier...
+	else {
+	    // Use a full time series identifier...
 		tsident_string = location + "." + source + "." + type + "." +
 			interval + scenario2 + sequence_number2 + input;
 	}
@@ -5164,10 +5125,16 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 		Message.printDebug ( 1, "", "Inserting \"" + tsident_string +
 		"\" at " + (insert_pos + i*2 + offset) );
 	}
-	__commands_JListModel.insertElementAt ( tsident_string,
-		(insert_pos + i*2 + offset));
-	commandList_SetDirty ( true );
-	ui_UpdateStatus ( false );
+	//__commands_JListModel.insertElementAt ( tsident_string, (insert_pos + i*2 + offset));
+	Command tsid_command = commandList_NewCommand ( tsident_string, true );
+	__commands_JListModel.insertElementAt ( tsid_command, (insert_pos + i*2 + offset));
+	//commandList_SetDirty ( true );
+	//ui_UpdateStatus ( false );
+    if ( tsid_command instanceof CommandDiscoverable ) {
+        commandList_EditCommand_RunDiscovery ( tsid_command );
+    }
+    ui_ShowCurrentCommandListStatus();
+    commandList_SetDirty ( true );
 }
 
 /**
@@ -5201,8 +5168,7 @@ private void queryResultsList_Clear ()
 }
 
 /**
-Select a station from the query list and create a time series indentifier in the
-command list.
+Select a station from the query list and create a time series indentifier in the command list.
 @param row Row that is selected in the query list.  This method can be
 called once for a single event or multiple times from transferAll().
 @param update_status If true, then the GUI state is checked after the
@@ -5216,10 +5182,8 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		// time series, but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used
 		// instead of the normal TSID.
-		TSTool_TS_TableModel model =
-			(TSTool_TS_TableModel)__query_TableModel;
-		String alias = ((String)model.getValueAt (
-			row, model.COL_ALIAS )).trim();
+		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
+		String alias = ((String)model.getValueAt ( row, model.COL_ALIAS )).trim();
 		if ( !alias.equals("") ) {
 			// Alias is available so use it...
 			use_alias = true;
@@ -5230,257 +5194,176 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		use_alias = false;
 		if ( use_alias ) {
 			// Use the alias instead of the identifier...
-			try {
-			queryResultsList_AppendTSIDToCommandList ( alias,
-			null,
-			null,
-			null,
-			null,
-			null,	// No sequence number
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_TYPE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_NAME), "",
-			use_alias );
+		    try {
+    			queryResultsList_AppendTSIDToCommandList ( alias,
+    			null,
+    			null,
+    			null,
+    			null,
+    			null,	// No sequence number
+    			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+    			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", use_alias );
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 2, "", e );
 			}
 		}
-		else {	// Use full ID and all other fields...
-			Message.printStatus ( 1, "",
-			"Calling append (no alias)..." );
+		else {
+		    // Use full ID and all other fields...
+			Message.printStatus ( 1, "", "Calling append (no alias)..." );
 			queryResultsList_AppendTSIDToCommandList ( 
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_ID ),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_SOURCE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_TYPE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_TIME_STEP),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SCENARIO),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SEQUENCE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_TYPE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_NAME), "",
+			(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+			(String)__query_TableModel.getValueAt ( row, model.COL_SCENARIO),
+			(String)__query_TableModel.getValueAt ( row, model.COL_SEQUENCE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_NAME), "",
 			use_alias );
 		}
 	}
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
-			TSTool_HydroBase_TableModel model =
-				(TSTool_HydroBase_TableModel)__query_TableModel;
+			TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
 				"",	// No scenario
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID) + " - " +
-					(String)__query_TableModel.getValueAt (
-					row, model.COL_NAME),
+				(String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+				(String)__query_TableModel.getValueAt (	row, model.COL_NAME),
 				false );
 		}
-		else if (__query_TableModel instanceof
-			TSTool_HydroBase_WellLevel_Day_TableModel) {
+		else if (__query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel) {
 			TSTool_HydroBase_WellLevel_Day_TableModel model =
-				(TSTool_HydroBase_WellLevel_Day_TableModel)
-				__query_TableModel;
+			    (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList(
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_TIME_STEP),
 				"",	// No scenario
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID) + " - " +
-					(String)__query_TableModel.getValueAt (
-					row, model.COL_NAME),
+				(String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+				(String)__query_TableModel.getValueAt ( row, model.COL_NAME),
 				false );			
 		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_Ag_TableModel){
-			TSTool_HydroBase_Ag_TableModel model =
-				(TSTool_HydroBase_Ag_TableModel)
-				__query_TableModel;
+		else if ( __query_TableModel instanceof	TSTool_HydroBase_Ag_TableModel){
+			TSTool_HydroBase_Ag_TableModel model = (TSTool_HydroBase_Ag_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_TIME_STEP),
 				"",	// No scenario
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
 				false );
 		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_AgGIS_TableModel){
-			TSTool_HydroBase_AgGIS_TableModel model =
-				(TSTool_HydroBase_AgGIS_TableModel)
-				__query_TableModel;
+		else if ( __query_TableModel instanceof	TSTool_HydroBase_AgGIS_TableModel){
+			TSTool_HydroBase_AgGIS_TableModel model = (TSTool_HydroBase_AgGIS_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
 				"",	// No scenario
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
 				false );
 		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_CASSLivestockStats_TableModel){
+		else if ( __query_TableModel instanceof TSTool_HydroBase_CASSLivestockStats_TableModel){
 			TSTool_HydroBase_CASSLivestockStats_TableModel model =
-				(TSTool_HydroBase_CASSLivestockStats_TableModel)
-				__query_TableModel;
+				(TSTool_HydroBase_CASSLivestockStats_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_TIME_STEP),
 				"",	// No scenario
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
 				false );
 		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_CUPopulation_TableModel){
+		else if ( __query_TableModel instanceof TSTool_HydroBase_CUPopulation_TableModel){
 			TSTool_HydroBase_CUPopulation_TableModel model =
-				(TSTool_HydroBase_CUPopulation_TableModel)
-				__query_TableModel;
+				(TSTool_HydroBase_CUPopulation_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
 				"",	// No scenario
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
 				false );
 		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_WIS_TableModel){
-			TSTool_HydroBase_WIS_TableModel model =
-				(TSTool_HydroBase_WIS_TableModel)
-				__query_TableModel;
+		else if ( __query_TableModel instanceof TSTool_HydroBase_WIS_TableModel){
+			TSTool_HydroBase_WIS_TableModel model =	(TSTool_HydroBase_WIS_TableModel)__query_TableModel;
 			queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_SHEET_NAME),
+				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+				(String)__query_TableModel.getValueAt ( row, model.COL_SHEET_NAME),
 				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
+				(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
 				false );
 		}
 	}
-	else if ( __selected_input_type.equals(
-		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+	else if ( __selected_input_type.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used
 		// instead of the normal TSID.
-		TSTool_ESPTraceEnsemble_TableModel model =
-			(TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
-		//String alias = ((String)__query_TableModel.getValueAt ( row,
-			//model.COL_ALIAS )).trim();
+		TSTool_ESPTraceEnsemble_TableModel model = (TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
+		//String alias = ((String)__query_TableModel.getValueAt ( row, model.COL_ALIAS )).trim();
 		boolean use_alias_in_id = false;
 		if ( use_alias_in_id ) {
 			// Need to figure out what to do here...
 		}
 		else {	// Use full ID and all other fields...
 			queryResultsList_AppendTSIDToCommandList ( 
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_ID ),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_SOURCE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_DATA_TYPE),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_TIME_STEP),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SCENARIO),
-			(String)__query_TableModel.getValueAt (
-				row, model.COL_SEQUENCE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_TYPE),
-			(String)__query_TableModel.getValueAt(
-				row, model.COL_INPUT_NAME), "",
+			(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
+			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+			(String)__query_TableModel.getValueAt ( row, model.COL_SCENARIO),
+			(String)__query_TableModel.getValueAt ( row, model.COL_SEQUENCE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
+			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_NAME), "",
 			false );
 		}
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
 		// The location (id), type, and time step uniquely
-		// identify the time series, but the input_name is needed
-		// to indicate the database.
-		TSTool_RiversideDB_TableModel model =
-			(TSTool_RiversideDB_TableModel)__query_TableModel;
-		queryResultsList_AppendTSIDToCommandList ( 
+		// identify the time series, but the input_name is needed to indicate the database.
+		TSTool_RiversideDB_TableModel model = (TSTool_RiversideDB_TableModel)__query_TableModel;
+		queryResultsList_AppendTSIDToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
-		(String)__query_TableModel.getValueAt(row,
-						model.COL_DATA_SOURCE),
-		(String)__query_TableModel.getValueAt( row,model.COL_DATA_TYPE),
-		(String)__query_TableModel.getValueAt( row,model.COL_TIME_STEP),
+		(String)__query_TableModel.getValueAt( row,	model.COL_DATA_SOURCE),
+		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
 		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
 		null,	// No sequence number
-		(String)__query_TableModel.getValueAt(row,model.COL_INPUT_TYPE),
+		(String)__query_TableModel.getValueAt( row,model.COL_INPUT_TYPE),
 		"",
 		"", false );
 	}
@@ -5506,7 +5389,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 			seqnum = null;
 		}
 		queryResultsList_AppendTSIDToCommandList (
-		(String)__query_TableModel.getValueAt (	row, model.COL_ID ),
+		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
 		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
