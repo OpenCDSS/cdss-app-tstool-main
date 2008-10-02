@@ -1969,7 +1969,11 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	Message.printDebug(1, "", "JTS - OpenColoradoSMS: " + sms.getSeconds());
 	swMain.stop();
 	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " + swMain.getSeconds());
-	if ( __source_HydroBase_enabled ) {
+	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
+	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration
+	// file.
+	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file
+	if ( __source_HydroBase_enabled && license_IsInstallCDSS(__licenseManager) ) {
 		// Login to HydroBase using information in the TSTool configuration file...
 		uiAction_OpenHydroBase ( true );
 		// Force the choices to refresh...
@@ -1997,7 +2001,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// Add GUI features that depend on the databases...
 	// The appropriate panel will be set visible as input types and data
-	// types are chosen.  The panels are currently only intialized once so
+	// types are chosen.  The panels are currently only initialized once so
 	// changing databases or enabling new databases after setup may require
 	// some code changes.  Set the wait cursor because queries are done during setup.
 
@@ -6151,12 +6155,15 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 		}
 		Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
 		__source_DIADvisor_enabled = false;
-	    Message.printStatus ( 2, routine, "HEC-DSS input type being disabled for CDSS." );
+	    Message.printStatus ( 2, routine, "HECDSS input type being disabled for CDSS." );
 	    __source_HECDSS_enabled = false;
 		Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
 		__source_MexicoCSMN_enabled = false;
-		Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
-		__source_MODSIM_enabled = false;
+		// TODO SAM 2008-10-02 Evaluate whether to permanently make this change in defaults
+		// Allow MODSIM to be turned on for CDSS since it appears to be a model that might be used
+		// in some parts of the State.
+		//Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
+		//__source_MODSIM_enabled = false;
 		Message.printStatus ( 2, routine, "NDFD input type being disabled for CDSS." );
 		__source_NDFD_enabled = false;
 		Message.printStatus ( 2, routine, "NWSCard input type being disabled for CDSS." );
@@ -6805,6 +6812,9 @@ private void ui_InitGUIInputFilters ( final int y )
         	String routine = "TSTool_JFrame.initGUIInputFilters";
         	int buffer = 3;
         	Insets insets = new Insets(0,buffer,0,0);
+        	// Remove all the current input filters...
+        	__input_filter_JPanel_Vector.removeAllElements();
+        	// Now add the input filters for input types that are active.
         	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
         		// Add input filters for stations...
         
@@ -6815,13 +6825,11 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_station_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_station_JPanel );
+        			__input_filter_JPanel_Vector.addElement (__input_filter_HydroBase_station_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" stations." );
+        			    "Unable to initialize input filter for HydroBase stations." );
         			Message.printWarning ( 2, routine, e );
         		}
         
@@ -6829,51 +6837,45 @@ private void ui_InitGUIInputFilters ( final int y )
         		// "total" time series and one for water class time series that
         		// can be filtered by SFUT...
         
-        		try {	__input_filter_HydroBase_structure_JPanel = new
-        				HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
-        				__hbdmi, false );
+        		try {
+        		    __input_filter_HydroBase_structure_JPanel = new
+        				HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(	__hbdmi, false );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_structure_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_structure_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_structure_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" structures." );
+        			"Unable to initialize input filter for HydroBase structures." );
         			Message.printWarning ( 2, routine, e );
         		}
         
         		try {	__input_filter_HydroBase_structure_sfut_JPanel = new
-        			HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(
-        				__hbdmi, true );
+        			HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel(	__hbdmi, true );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_structure_sfut_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_structure_sfut_JPanel);
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_structure_sfut_JPanel);
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" structures with SFUT." );
+        			"Unable to initialize input filter for HydroBase structures with SFUT." );
         			Message.printWarning ( 2, routine, e );
         		}
         
         		// Add input filters for structure irrig_summary_ts,
         
-        		try {	__input_filter_HydroBase_irrigts_JPanel = new
-        			HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel
-        				( __hbdmi );
+        		try {
+        		    __input_filter_HydroBase_irrigts_JPanel = new
+        			HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_irrigts_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_irrigts_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_irrigts_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
@@ -6886,19 +6888,17 @@ private void ui_InitGUIInputFilters ( final int y )
         		// only available for newer databases.  For now, just catch an
         		// exception when not supported.
         
-        		try {	__input_filter_HydroBase_CASSCropStats_JPanel = new
-        			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel
-        				( __hbdmi );
+        		try {
+        		    __input_filter_HydroBase_CASSCropStats_JPanel = new
+        			HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel ( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_CASSCropStats_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_CASSCropStats_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_CASSCropStats_JPanel );
         		}
         		catch ( Exception e ) {
-        			// Agricultural_CASS_crop_stats probably not in
-        			// HydroBase...
+        			// Agricultural_CASS_crop_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
         			"Unable to initialize input filter for HydroBase" +
         			" CASS crop statistics - old database?" );
@@ -6909,19 +6909,17 @@ private void ui_InitGUIInputFilters ( final int y )
         		// only available for newer databases.  For now, just catch an
         		// exception when not supported.
         
-        		try {	__input_filter_HydroBase_CASSLivestockStats_JPanel = new
-        			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel
-        				( __hbdmi );
+        		try {
+        		    __input_filter_HydroBase_CASSLivestockStats_JPanel = new
+        			HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel ( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_CASSLivestockStats_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        			__input_filter_HydroBase_CASSLivestockStats_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_CASSLivestockStats_JPanel );
         		}
         		catch ( Exception e ) {
-        			// Agricultural_CASS_livestock_stats probably not in
-        			// HydroBase...
+        			// Agricultural_CASS_livestock_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
         			"Unable to initialize input filter for HydroBase" +
         			" CASS livestock statistics - old database?" );
@@ -6929,8 +6927,7 @@ private void ui_InitGUIInputFilters ( final int y )
         		}
         
         		// Add input filters for CU population data, only available for
-        		// newer databases.  For now, just catch an exception when not
-        		// supported.
+        		// newer databases.  For now, just catch an exception when not supported.
         
         		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
         			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
@@ -6938,14 +6935,12 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_CUPopulation_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        			__input_filter_HydroBase_CUPopulation_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_CUPopulation_JPanel );
         		}
         		catch ( Exception e ) {
         			// CUPopulation probably not in HydroBase...
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" CU population data - old database?" );
+        			"Unable to initialize input filter for HydroBase CU population data - old database?" );
         			Message.printWarning ( 2, routine, e );
         		}
         
@@ -6954,18 +6949,15 @@ private void ui_InitGUIInputFilters ( final int y )
         		// exception when not supported.
         
         		try {	__input_filter_HydroBase_NASS_JPanel = new
-        			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel
-        				( __hbdmi );
+        			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel ( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_NASS_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_NASS_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_NASS_JPanel );
         		}
         		catch ( Exception e ) {
-        			// Agricultural_NASS_crop_stats probably not in
-        			// HydroBase...
+        			// Agricultural_NASS_crop_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
         			"Unable to initialize input filter for HydroBase" +
         			" agricultural_NASS_crop_stats - old database?" );
@@ -6976,37 +6968,31 @@ private void ui_InitGUIInputFilters ( final int y )
         		// exception when not supported.
         
         		try {	__input_filter_HydroBase_WIS_JPanel = new
-        			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel
-        				( __hbdmi );
+        			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel ( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_WIS_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_HydroBase_WIS_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_WIS_JPanel );
         		}
         		catch ( Exception e ) {
         			// WIS tables probably not in HydroBase...
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" WIS - data tables not in database?" );
+        			"Unable to initialize input filter for HydroBase WIS - data tables not in database?" );
         			Message.printWarning ( 2, routine, e );
         		}
         
         		try {	
         			__input_filter_HydroBase_wells_JPanel =
-        				new HydroBase_GUI_GroundWater_InputFilter_JPanel
-        				(__hbdmi, null, true);
+        				new HydroBase_GUI_GroundWater_InputFilter_JPanel (__hbdmi, null, true);
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_wells_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST);
-        			__input_filter_JPanel_Vector.addElement(
-        				__input_filter_HydroBase_wells_JPanel);
+        			__input_filter_JPanel_Vector.addElement( __input_filter_HydroBase_wells_JPanel);
         		}
         		catch ( Exception e ) {
-        			// Agricultural_NASS_crop_stats probably not in
-        			// HydroBase...
+        			// Agricultural_NASS_crop_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
         			"Unable to initialize input filter for HydroBase" +
         			" agricultural_NASS_crop_stats - old database?" );
@@ -7077,28 +7063,23 @@ private void ui_InitGUIInputFilters ( final int y )
         			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         			GridBagConstraints.EAST );
         		__input_filter_MexicoCSMN_JPanel.setToolTipText (
-        			"<HTML>Mexico CSMN queries can be filtered" +
-        			"<BR>based on station data.</HTML>" );
-        		__input_filter_JPanel_Vector.addElement (
-        			__input_filter_MexicoCSMN_JPanel );
+        			"<HTML>Mexico CSMN queries can be filtered <BR>based on station data.</HTML>" );
+        		__input_filter_JPanel_Vector.addElement ( __input_filter_MexicoCSMN_JPanel );
         	}
         
         	if ( __source_NWSRFS_FS5Files_enabled ) {
-        		// Add input filters for structure irrig_summary_ts,
-        
-        		try {	__input_filter_NWSRFS_FS5Files_JPanel = new
-        			NWSRFS_TS_InputFilter_JPanel ();
+        		// Add input filters for NWSRFS FS5 files.
+        		try {
+        		    __input_filter_NWSRFS_FS5Files_JPanel = new	NWSRFS_TS_InputFilter_JPanel ();
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_NWSRFS_FS5Files_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (
-        				__input_filter_NWSRFS_FS5Files_JPanel );
+        			__input_filter_JPanel_Vector.addElement ( __input_filter_NWSRFS_FS5Files_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for NWSRFS" +
-        			" FS5Files.");
+        			"Unable to initialize input filter for NWSRFS FS5Files.");
         			Message.printWarning ( 2, routine, e );
         		}
         	}
@@ -7107,21 +7088,15 @@ private void ui_InitGUIInputFilters ( final int y )
         	// types that do not have filter capabilities and when database
         	// connections are not set up...
         
-               	JGUIUtil.addComponent(__query_input_JPanel,
+           	JGUIUtil.addComponent(__query_input_JPanel,
         		__input_filter_generic_JPanel = new InputFilter_JPanel (),
         			0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         			GridBagConstraints.EAST );
         	__input_filter_generic_JPanel.setToolTipText (
-        		"<HTML>The selected input type does not support" +
-        			"<BR>input filters.</HTML>" );
-        	__input_filter_JPanel_Vector.addElement (
-        		__input_filter_generic_JPanel );
-        	// The appropriate JPanel will be set visible later based on the input
-        	// type that is selected.
-        
-        	// Because a component is added to the original GUI, need to refresh
-        	// the GUI layout...
-        
+        		"<HTML>The selected input type does not support <BR>input filters.</HTML>" );
+        	__input_filter_JPanel_Vector.addElement ( __input_filter_generic_JPanel );
+        	// The appropriate JPanel will be set visible later based on the input type that is selected.
+        	// Because a component is added to the original GUI, need to refresh the GUI layout...
         	ui_SetInputFilters();
         	validate();
         	repaint();
@@ -8856,6 +8831,8 @@ throws Exception
 	}
 	else if ( command.equals ( __File_Open_HydroBase_String )) {
 		uiAction_OpenHydroBase ( false );
+		// Update the input filters
+		ui_InitGUIInputFilters ( __input_filter_y );
 		// Force the choices to refresh...
 		if ( __hbdmi != null ) {
 			__input_type_JComboBox.select ( null );
@@ -10342,24 +10319,36 @@ private void uiAction_DataTypeChoiceClicked()
 		}
 		return;
 	}
-	// For some input types, data types have additional label-only information...
+	// For some input types, data types have additional label-only information because the types
+	// are grouped in the GUI due to the list length.
+	// StateCUB has a lot of types but currently they are not grouped (AND THEY MAY INCLUDE - so
+	// don't do anything special below).
+	// First set the default for no special handling of data type in GUI.  This applies to many of
+	// the data types, including DateValue, HEC-DSS, MODSIM, NWSCard, NWSRFS ESP trace ensemble,
+	// RiverWare, StateCU, StateCUB, StateMod, StateModB (New - just use data types in files), USGS NWIS
+    __selected_data_type = __selected_data_type_full;  
+    // Override handling for specific data types...
 	if ( __selected_data_type_full.indexOf('-') >= 0 ) {
-		if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ||
-		        __selected_input_type.equals(__INPUT_TYPE_StateCUB) ||
-			__selected_input_type.equals(__INPUT_TYPE_StateModB)) {
-			// Data type group is first and data type second...
+	    // The displayed data type may not be the actual due to some annotation.  Check some specific
+	    // input types.
+		if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase)
+			|| __selected_input_type.equals(__INPUT_TYPE_StateModB) ) {
+			// Data type group is first and data type second.
+		    // HydroBase:  "Climate - Precip"
+		    // StateModB (old, group the types to help user):  "Water Supply - Total_Supply"
 			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 1).trim();
 		}
-		else {
-            // Data type is first and explanation second...
+		else if ( __selected_input_type.equals(__INPUT_TYPE_MEXICO_CSMN) ||
+		        __selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files)) {
+            // Data type is first and explanation second, for example...
+		    // Mexico CSMN:   "EV - Evaporation"
+		    // NWSRFS FS5 Files: "MAP - Mean Areal Precipitation"
 			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 0).trim();
 		}
 	}
-	else {
-        __selected_data_type = __selected_data_type_full;
-	}
+
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, rtn, "Data type has been selected:  \"" + __selected_data_type + "\"" );
+		Message.printDebug ( 1, rtn, "Data type has been selected for read:  \"" + __selected_data_type + "\"" );
 	}
 
 	// Set the appropriate settings for the current data input type and data type...
@@ -10418,7 +10407,8 @@ private void uiAction_DataTypeChoiceClicked()
 		if ( JGUIUtil.isSimpleJComboBoxItem(__time_step_JComboBox,"Month", JGUIUtil.NONE, null, null ) ) {
 			__time_step_JComboBox.select ( "Month" );
 		}
-		else {	// Select the first item...
+		else {
+		    // Select the first item...
 			try {
                 __time_step_JComboBox.select ( 0 );
 			}
