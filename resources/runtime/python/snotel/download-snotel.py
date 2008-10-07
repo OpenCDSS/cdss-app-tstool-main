@@ -182,7 +182,7 @@ def main ():
 
 	# TSTool executable to use.  This should be set to a version that has been tested
 	# out with this process.
-	tstool = "C:/CDSS/TSTool-08.16.02/bin/tstool.exe"
+	tstool = "C:/CDSS/TSTool-08.17.00/bin/tstool.exe"
 	if ( not os.path.exists(snotelHomeDir) ):
 		logger.error ( "The TSTool program to use does not exist: \"" + tstool + "\"" )
 		logger.error ( "Verify the configuration in " + sys.argv[0] )
