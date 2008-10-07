@@ -55,9 +55,9 @@ rem 3)If the software is installed on a local drive (e.g., C:) but may be run
 rem   from a different drive, use approach (1).
 
 rem Install home (replaced at install using user selection)
-SET HOMED=\CDSS
+SET HOMED=C:\Program Files\RTi\TSTool-08.17.00
 SET JREHOMED=%HOMED%\jre_142
-SET MAIN_CLASS=cdss.app.tstool.TSTool
+SET MAIN_CLASS=rti.app.tstool.TSTool
 rem Class path (replaced at software build usin current software dependencies).
 SET TSTOOL_CP="%HOMED%\bin\batik-awt-util.jar;%HOMED%\bin\batik-dom.jar;%HOMED%\bin\batik-ext.jar;%HOMED%\bin\batik-svggen.jar;%HOMED%\bin\batik-util.jar;%HOMED%\bin\batik-xml.jar;%HOMED%\bin\cdss.domain_142.jar;%HOMED%\bin\jcommon.jar;%HOMED%\bin\jfreechart.jar;%HOMED%\bin\jsr173_1.0_api.jar;%HOMED%\bin\jython.jar;%HOMED%\bin\libXMLJava.jar;%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\TSCommandProcessor_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\RiversideDB_DMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\xbean.jar;%HOMED%\bin\xerces.jar;%HOMED%\bin\h2.jar"
 
@@ -83,12 +83,12 @@ goto interactive
 
 rem Run in batch mode with output to console...
 :batch
-"%JREHOMED%\bin\java" -Xmx256m -cp %TSTOOL_CP% %MAIN_CLASS% -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\java" -Xmx768m -cp %TSTOOL_CP% %MAIN_CLASS% -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Run in interactive mode with no output to console...
 :interactive
-"%JREHOMED%\bin\javaw" -Xmx256m -cp %TSTOOL_CP% %MAIN_CLASS% -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JREHOMED%\bin\javaw" -Xmx768m -cp %TSTOOL_CP% %MAIN_CLASS% -home "%HOMED%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto end
 
 rem Clean up the temporary environment variables so that memory is freed for
