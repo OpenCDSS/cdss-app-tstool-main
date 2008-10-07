@@ -8,7 +8,7 @@
 # Indicate what program (JRE) to run with.
 
 # Installation home for TSTool, under which will be bin, logs, system, etc.
-INSTALL_HOME="/opt/RTi/TSTool-08.16beta"
+INSTALL_HOME="/opt/RTi/TSTool-08.17.00"
 # Indicate where the JAR files live.  Point this to the place where all the
 # RTi jar files live.
 JAR_HOME="$INSTALL_HOME/bin"
