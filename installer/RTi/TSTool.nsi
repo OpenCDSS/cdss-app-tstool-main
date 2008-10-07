@@ -165,6 +165,8 @@ Section "TSTool" TSTool
     SetOverwrite ifnewer
     SetOutPath $INSTDIR
 
+    CreateDirectory $INSTDIR\logs
+
     !ifndef TEST
         File /r "${INST_BUILD_DIR}\bin"
         File /r "${INST_BUILD_DIR}\system"
