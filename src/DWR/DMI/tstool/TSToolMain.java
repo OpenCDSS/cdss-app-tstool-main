@@ -452,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.17.00 (2008-10-06)";
+public static final String PROGRAM_VERSION = "8.17.01 (2008-10-09)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -718,6 +718,9 @@ public static void main ( String args[] )
 	if ( IOUtil.isBatch() ) {
 		// Running like "tstool -commands file" (possibly with -nomaingui)
 		TSCommandFileRunner runner = new TSCommandFileRunner();
+	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
+		// reading the command file because commands may try to run discovery during load.
+        openHydroBase ( runner );
 		try {
 		    String command_file_full = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + command_file_full + "\"" );
@@ -729,8 +732,6 @@ public static void main ( String args[] )
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
-		// Open the HydroBase connection if the configuration file specifies the information.
-		openHydroBase ( runner );
 		// If running with -nomaingui, then plot windows should be displayed and when closed cause the
 		// run to end - this should be used with external applications that use TSTool as a plotting tool
 		if ( !__showMainGUI ) {
@@ -740,6 +741,7 @@ public static void main ( String args[] )
 		    runner.getProcessor().setPropContents("TSViewWindowListener",windowListener);
 		}
 		try {
+		    // The following will throw an exception if there are any errors running.
             runner.runCommands();
             if ( __showMainGUI ) {
                 // No special handling of windows since -nomaingui was not not specified.  just exit.
@@ -820,15 +822,26 @@ exists, then a default connection is attempted.
 */
 private static void openHydroBase ( TSCommandFileRunner runner )
 {   String routine = "TSToolMain.openHydroBase";
+    boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool config file
+    String propval = __tstool_props.getValue ( "TSTool.HydroBaseEnabled");
+    if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
+        HydroBase_enabled = true;
+    }
+    if ( !HydroBase_enabled ) {
+        Message.printStatus ( 2, routine, "HydroBase is not enabled in TSTool configuation so not opening connection." );
+        return; 
+    }
     if ( IOUtil.isBatch() ) {
         // Running in batch mode or without a main GUI so automatically
         // open HydroBase from the CDSS.cfg file information...
         // Get the input needed to process the file...
         String hbcfg = HydroBase_Util.getConfigurationFile();
         PropList props = null;
-        boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in config file
+        
         if ( IOUtil.fileExists(hbcfg) ) {
             // Use the configuration file to get HydroBase properties...
+            Message.printStatus(2, routine, "HydroBase configuration file \"" + hbcfg +
+            "\" is being used to open HydroBase connection at startup." );
             try {
                 props = HydroBase_Util.readConfiguration(hbcfg);
             }
@@ -839,26 +852,24 @@ private static void openHydroBase ( TSCommandFileRunner runner )
                 props = null;
             }
         }
-        String propval = props.getValue ( "HydroBaseEnabled");
-        if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
-            HydroBase_enabled = true;
+        else {
+            Message.printStatus(2, routine, "HydroBase configuration file \"" + hbcfg +
+                "\" does not exist - not opening HydroBase connection at startup." );
         }
         
-        if ( HydroBase_enabled ) {
-            try {
-                // Now open the database...
-                // This uses the guest login.  If properties were not
-                // found, then default HydroBase information will be used.
-                HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
-                hbdmi.open();
-                Vector hbdmi_Vector = new Vector(1);
-                hbdmi_Vector.add ( hbdmi );
-                runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
-            }
-            catch ( Exception e ) {
-                Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
-                Message.printWarning ( 3, routine, e );
-            }
+        try {
+            // Now open the database...
+            // This uses the guest login.  If properties were not
+            // found, then default HydroBase information will be used.
+            HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
+            hbdmi.open();
+            Vector hbdmi_Vector = new Vector(1);
+            hbdmi_Vector.add ( hbdmi );
+            runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
+            Message.printWarning ( 3, routine, e );
         }
     }
 }
@@ -1126,11 +1137,18 @@ Read the configuration file.  This should be done as soon as the application hom
 */
 private static void readConfigFile ( String configFile )
 {	String routine = "TSToolMain.readConfigFile";
+    Message.printStatus ( 2, routine, "Reading TSTool configuration informtion from \"" + configFile + "\"." );
 	if ( IOUtil.fileReadable(configFile) ) {
 		__tstool_props = new PropList ( configFile );
 		__tstool_props.setPersistentName ( configFile );
 		try {
             __tstool_props.readPersistent ();
+            // Print out the configuration information since it is useful in troubleshooting.
+            int size = __tstool_props.size();
+            for ( int i = 0; i < size; i++ ) {
+                Prop prop = __tstool_props.elementAt(i);
+                Message.printStatus( 2, routine, prop.getKey() + "=" + prop.getValue() );
+            }
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,

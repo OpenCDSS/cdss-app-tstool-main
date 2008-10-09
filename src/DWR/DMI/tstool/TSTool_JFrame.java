@@ -70,7 +70,7 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.util.Comment_Command;
-import rti.tscommandprocessor.commands.util.comment_JDialog;
+import rti.tscommandprocessor.commands.util.Comment_JDialog;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -2602,7 +2602,7 @@ private boolean commandList_EditCommandOldStyleComments (
 		command = (Command)command_Vector.elementAt(i);
 		cv.addElement( command.toString() );
 	}
-	Vector edited_cv = new comment_JDialog ( this, cv ).getText();
+	Vector edited_cv = new Comment_JDialog ( this, cv ).getText();
 	if ( edited_cv == null ) {
 		return false;
 	}
