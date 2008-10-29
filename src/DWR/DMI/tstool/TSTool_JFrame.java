@@ -242,7 +242,7 @@ Map interface.
 private GeoViewJFrame __geoview_JFrame = null;
 
 /**
-Path to icons/graphics in classpath.
+Path to icons/graphics in class path.
 */
 private String __TOOL_ICON_PATH = "/DWR/DMI/tstool";
 
@@ -408,18 +408,18 @@ private String __input_name_HECDSS_last = null;
 The NWSFFS FS5Files directories that have been selected during the
 session, to allow switching between input types but not losing the list of files.
 */
-private Vector		__input_name_NWSRFS_FS5Files = new Vector();
+private Vector __input_name_NWSRFS_FS5Files = new Vector();
 
 /**
 The StateCU files that have been selected during the session, to allow switching
 between input types but not losing the list of files. 
 */
-private Vector		__input_name_StateCU = new Vector();
+private Vector __input_name_StateCU = new Vector();
 
 /**
 The last StateCU file that was selected, to reset after cancelling a browse. 
 */
-private String		__input_name_StateCU_last = null;
+private String __input_name_StateCU_last = null;
 
 /**
 The StateCUB files that have been selected during the session, to allow switching
@@ -1979,7 +1979,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file
 	if ( __source_HydroBase_enabled && license_IsInstallCDSS(__licenseManager) ) {
 		// Login to HydroBase using information in the TSTool configuration file...
-		uiAction_OpenHydroBase ( true );
+		uiAction_OpenHydroBase ();
 		// Force the choices to refresh...
 		if ( __hbdmi != null ) {
 			__input_type_JComboBox.select ( null );
@@ -6060,8 +6060,7 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 }
 
 /**
-Enable/disable the HydroBase input type features depending on whether a
-HydroBaseDMI connection has been made.
+Enable/disable the HydroBase input type features depending on whether a HydroBaseDMI connection has been made.
 */
 private void ui_CheckHydroBaseFeatures ()
 {	if ( (__hbdmi != null) && __hbdmi.isOpen() ) {
@@ -6758,12 +6757,13 @@ private void ui_InitGUI ( )
 	}
 }
 
-// TODO - is this code also called when a new database connection is made
-// dynamically or assume that the filters will not change?
 /**
 Initialize the input filters.  An input filter is defined and added for each
 enabled input type but only one is set visible at a time.  Later, as an input
 type is selected, the appropriate input filter is made visible.
+This method is called at GUI startup and also when a new HydroBase connection is made - this is a
+bit inefficient because non-HydroBase input filters will also get reset but HydroBase is the
+main performance hit.
 @param y Layout position to add the input filters.
 */
 private void ui_InitGUIInputFilters ( final int y )
@@ -6774,6 +6774,9 @@ private void ui_InitGUIInputFilters ( final int y )
         	int buffer = 3;
         	Insets insets = new Insets(0,buffer,0,0);
         	// Remove all the current input filters...
+        	for ( int i = 0; i < __input_filter_JPanel_Vector.size(); i++ ) {
+                __query_input_JPanel.remove( (Component)__input_filter_JPanel_Vector.get(i));
+        	}
         	__input_filter_JPanel_Vector.removeAllElements();
         	// Now add the input filters for input types that are active.
         	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
@@ -6789,14 +6792,12 @@ private void ui_InitGUIInputFilters ( final int y )
         			__input_filter_JPanel_Vector.addElement (__input_filter_HydroBase_station_JPanel );
         		}
         		catch ( Exception e ) {
-        			Message.printWarning ( 2, routine,
-        			    "Unable to initialize input filter for HydroBase stations." );
+        			Message.printWarning ( 2, routine, "Unable to initialize input filter for HydroBase stations." );
         			Message.printWarning ( 2, routine, e );
         		}
         
         		// Add input filters for structures - there is one panel for
-        		// "total" time series and one for water class time series that
-        		// can be filtered by SFUT...
+        		// "total" time series and one for water class time series that can be filtered by SFUT...
         
         		try {
         		    __input_filter_HydroBase_structure_JPanel = new
@@ -6808,8 +6809,7 @@ private void ui_InitGUIInputFilters ( final int y )
         			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_structure_JPanel );
         		}
         		catch ( Exception e ) {
-        			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase structures." );
+        			Message.printWarning ( 2, routine, "Unable to initialize input filter for HydroBase structures." );
         			Message.printWarning ( 2, routine, e );
         		}
         
@@ -6840,14 +6840,12 @@ private void ui_InitGUIInputFilters ( final int y )
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" irrigation summary time series - old database?" );
+        			"Unable to initialize input filter for HydroBase irrigation summary time series - old database?" );
         			Message.printWarning ( 2, routine, e );
         		}
         
         		// Add input filters for CASS agricultural crop statistics,
-        		// only available for newer databases.  For now, just catch an
-        		// exception when not supported.
+        		// only available for newer databases.  For now, just catch an exception when not supported.
         
         		try {
         		    __input_filter_HydroBase_CASSCropStats_JPanel = new
@@ -6861,8 +6859,7 @@ private void ui_InitGUIInputFilters ( final int y )
         		catch ( Exception e ) {
         			// Agricultural_CASS_crop_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" CASS crop statistics - old database?" );
+        			"Unable to initialize input filter for HydroBase CASS crop statistics - old database?" );
         			Message.printWarning ( 2, routine, e );
         		}
         
@@ -6882,15 +6879,15 @@ private void ui_InitGUIInputFilters ( final int y )
         		catch ( Exception e ) {
         			// Agricultural_CASS_livestock_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" CASS livestock statistics - old database?" );
+        			"Unable to initialize input filter for HydroBase CASS livestock statistics - old database?" );
         			Message.printWarning ( 2, routine, e );
         		}
         
         		// Add input filters for CU population data, only available for
         		// newer databases.  For now, just catch an exception when not supported.
         
-        		try {	__input_filter_HydroBase_CUPopulation_JPanel = new
+        		try {
+        		    __input_filter_HydroBase_CUPopulation_JPanel = new
         			HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_CUPopulation_JPanel,
@@ -6906,10 +6903,10 @@ private void ui_InitGUIInputFilters ( final int y )
         		}
         
         		// Add input filters for NASS agricultural statistics, only
-        		// available for newer databases.  For now, just catch an
-        		// exception when not supported.
+        		// available for newer databases.  For now, just catch an exception when not supported.
         
-        		try {	__input_filter_HydroBase_NASS_JPanel = new
+        		try {
+        		    __input_filter_HydroBase_NASS_JPanel = new
         			HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel ( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_NASS_JPanel,
@@ -6920,15 +6917,14 @@ private void ui_InitGUIInputFilters ( final int y )
         		catch ( Exception e ) {
         			// Agricultural_NASS_crop_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" agricultural_NASS_crop_stats - old database?" );
+        			"Unable to initialize input filter for HydroBase agricultural_NASS_crop_stats - old database?" );
         			Message.printWarning ( 2, routine, e );
         		}
         
-        		// Add input filters for WIS.  For now, just catch an
-        		// exception when not supported.
+        		// Add input filters for WIS.  For now, just catch an exception when not supported.
         
-        		try {	__input_filter_HydroBase_WIS_JPanel = new
+        		try {
+        		    __input_filter_HydroBase_WIS_JPanel = new
         			HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel ( __hbdmi );
                 		JGUIUtil.addComponent(__query_input_JPanel,
         				__input_filter_HydroBase_WIS_JPanel,
@@ -6955,8 +6951,7 @@ private void ui_InitGUIInputFilters ( final int y )
         		catch ( Exception e ) {
         			// Agricultural_NASS_crop_stats probably not in HydroBase...
         			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for HydroBase" +
-        			" agricultural_NASS_crop_stats - old database?" );
+        			"Unable to initialize input filter for HydroBase agricultural_NASS_crop_stats - old database?" );
         			Message.printWarning ( 2, routine, e );
         		}		
         	}
@@ -7007,12 +7002,10 @@ private void ui_InitGUIInputFilters ( final int y )
         			"", "",
         			StringUtil.TYPE_STRING,
         			null, null, true ) );	// Blank to disable filter
-        		input_filters.addElement ( new InputFilter (
-        			"Station Name", "Station Name",
+        		input_filters.addElement ( new InputFilter ( "Station Name", "Station Name",
         			StringUtil.TYPE_STRING,
         			null, null, true ) );
-        		filter = new InputFilter (
-        			"State Number", "Station Number",
+        		filter = new InputFilter ( "State Number", "Station Number",
         			StringUtil.TYPE_INTEGER,
         			statenum_Vector, statenum_Vector, true );
         		filter.setTokenInfo("-",0);
@@ -7039,15 +7032,13 @@ private void ui_InitGUIInputFilters ( final int y )
         			__input_filter_JPanel_Vector.addElement ( __input_filter_NWSRFS_FS5Files_JPanel );
         		}
         		catch ( Exception e ) {
-        			Message.printWarning ( 2, routine,
-        			"Unable to initialize input filter for NWSRFS FS5Files.");
+        			Message.printWarning ( 2, routine, "Unable to initialize input filter for NWSRFS FS5Files.");
         			Message.printWarning ( 2, routine, e );
         		}
         	}
         
         	// Always add a generic input filter JPanel that is shared by input
-        	// types that do not have filter capabilities and when database
-        	// connections are not set up...
+        	// types that do not have filter capabilities and when database connections are not set up...
         
            	JGUIUtil.addComponent(__query_input_JPanel,
         		__input_filter_generic_JPanel = new InputFilter_JPanel (),
@@ -8252,25 +8243,25 @@ private void ui_InitToolbar ()
 
 /**
 Load a command file and display in the command list.
-@param command_file Full path to command file to load.
-@param run_on_load If true, the commands will be run after loading.
+@param commandFile Full path to command file to load.
+@param runOnLoad If true, the commands will be run after loading.
 */
-private void ui_LoadCommandFile ( String command_file, boolean run_on_load )
+private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad )
 {   String routine = "TSTool_JFrame.ui_LoadCommandFile";
     int numAutoChanges = 0; // Number of lines automatically changed during load
     try {
-        numAutoChanges = commandProcessor_ReadCommandFile ( command_file );
+        numAutoChanges = commandProcessor_ReadCommandFile ( commandFile );
         // Repaint the list to reflect the status of the commands...
         ui_ShowCurrentCommandListStatus();
     }
     catch ( FileNotFoundException e ) {
-        Message.printWarning ( 1, routine, "Command file \"" + command_file + "\" does not exist." );
+        Message.printWarning ( 1, routine, "Command file \"" + commandFile + "\" does not exist." );
         Message.printWarning ( 3, routine, e );
         // Previous contents will remain.
         return;
     }
     catch ( IOException e ) {
-        Message.printWarning ( 1, routine, "Error reading command file \"" + command_file +
+        Message.printWarning ( 1, routine, "Error reading command file \"" + commandFile +
                 "\".  List of commands may be incomplete." );
         Message.printWarning ( 3, routine, e );
         // Previous contents will remain.
@@ -8282,22 +8273,26 @@ private void ui_LoadCommandFile ( String command_file, boolean run_on_load )
         //
         // Error opening the file (should not happen but maybe a read permissions problem)...
         Message.printWarning ( 1, routine,
-        "Unexpected error reading command file \"" + command_file +
+        "Unexpected error reading command file \"" + commandFile +
         "\".  Displaying commands that could be read." );
         Message.printWarning ( 3, routine, e );
     }
     // If successful the TSCommandProcessor, as the data model, will
     // have fired actions to make the JList update.
-    commandList_SetCommandFileName(command_file);
+    commandList_SetCommandFileName(commandFile);
     if ( numAutoChanges == 0 ) {
         commandList_SetDirty(false);
     }
     // Clear the old results...
     results_Clear();
+    ui_UpdateStatusTextFields ( 2, null, null, "Use the Run menu/buttons to run the commands.", __STATUS_READY );
+    __processor_JProgressBar.setValue ( 0 );
+    __command_JProgressBar.setValue ( 0 );
     // If requested, run the commands.
-    if ( run_on_load ) {
+    if ( runOnLoad ) {
         // Run all commands and create output.
         uiAction_RunCommands ( true, true );
+        // This will update the status text fields
     }
 }
 
@@ -8341,6 +8336,15 @@ private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalComma
 	__Dir_LastExternalCommandFileRun = Dir_LastExternalCommandFileRun;
 	// Also set the last directory opened by a dialog...
 	JGUIUtil.setLastFileDialogDirectory(Dir_LastExternalCommandFileRun);
+}
+
+/**
+Set the HydroBaseDMI instance used by the GUI.
+@param hbdmi the HydroBaseDMI instance used by the GUI.
+*/
+private void ui_SetHydroBaseDMI ( HydroBaseDMI hbdmi )
+{
+    __hbdmi = hbdmi;
 }
 
 /**
@@ -8793,7 +8797,7 @@ throws Exception
 		}
 	}
 	else if ( command.equals ( __File_Open_HydroBase_String )) {
-		uiAction_OpenHydroBase ( false );
+		uiAction_OpenHydroBase ();
 		// Update the input filters
 		ui_InitGUIInputFilters ( __input_filter_y );
 		// Force the choices to refresh...
@@ -9057,6 +9061,7 @@ throws Exception
 		reportProp.set ( "Title", "Colorado SMS Properties" );
 		Vector v = null;
 		if ( __hbdmi == null ) {
+		    v = new Vector(3);
 			v.addElement ( "Colorado SMS Properties" );
 			v.addElement ( "" );
 			v.addElement("No Colorado SMS database is available." );
@@ -9104,6 +9109,7 @@ throws Exception
 		reportProp.set ( "Title", "HydroBase Properties" );
 		Vector v = null;
 		if ( __hbdmi == null ) {
+		    v = new Vector(3);
 			v.addElement ( "HydroBase Properties" );
 			v.addElement ( "" );
 			v.addElement ( "No HydroBase database is available." );
@@ -13042,51 +13048,22 @@ user has the option of saving.  Then, the existing commands are cleared and the
 commands file name is reset to null.
 */
 private void uiAction_NewCommandFile ()
-{   // See whether the old commands need to be cleared...
-    // This same code is in OpenCommandFile() - may be able to combine once all actions are in place.
-    if ( __commandsDirty ) {
-        if ( __commandFileName == null ) {
-            // Have not been saved before...
-            int x = ResponseJDialog.NO;
-            if ( __commands_JListModel.size() > 0 ) {
-                x = new ResponseJDialog ( this, IOUtil.getProgramName(), "Do you want to save the commands?",
-                ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
-            }
-            if ( x == ResponseJDialog.CANCEL ) {
-                return;
-            }
-            else if ( x == ResponseJDialog.YES ) {
-                // Prompt for the name and then save...
-                uiAction_WriteCommandFile ( __commandFileName, true);
-            }
-        }
-        else {
-            // A command file exists...  Warn the user.  They can save to the existing file name or
-            // can cancel and File...Save As... to a different name.
-            // Have not been saved before...
-            int x = ResponseJDialog.NO;
-            if ( __commands_JListModel.size() > 0 ) {
-                x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                "Do you want to save the changes you made to\n\"" + __commandFileName + "\"?",
-                ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
-            }
-            if ( x == ResponseJDialog.CANCEL ) {
-                return;
-            }
-            else if ( x == ResponseJDialog.YES ) {
-                uiAction_WriteCommandFile ( __commandFileName,false);
-            }
-            // Else if No will clear below...
-        }
+{   // See whether the old commands need to be saved/cleared...
+    if ( !uiAction_OpenCommandFile_CheckForSavingCommands() ) {
+        return;
     }
 
-    // Now clear the commands and reset the name to null...
+    // Clear the commands reset the name to null...
 
     commandList_RemoveAllCommands ();
     commandList_SetDirty ( false ); // deleteCommands() sets to true but
-                    // since we are clearing the name, the
-                    // commands re not dirty
+                    // since we are clearing the name, the commands are not dirty
     commandList_SetCommandFileName ( null );
+    // Clear the old results...
+    results_Clear();
+    ui_UpdateStatusTextFields ( 2, null, null, "Use Commands menu to insert commands", __STATUS_READY );
+    __processor_JProgressBar.setValue ( 0 );
+    __command_JProgressBar.setValue ( 0 );
 }
 
 /**
@@ -13102,8 +13079,7 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 {	String routine = "TSTool_JFrame.openColoradoSMS";
 	Message.printStatus ( 1, routine, "Opening ColoradoSMS connection..." );
 	// TODO SAM 2005-10-18
-	// Always connect, whether in batch mode or not.  Might need a way to
-	// configure this.
+	// Always connect, whether in batch mode or not.  Might need a way to configure this.
 	//if ( IOUtil.isBatch() || !__show_main ) {
 		// Running in batch mode or without a main GUI so automatically
 		// open HydroBase from the CDSS.cfg file information...
@@ -13141,46 +13117,6 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 			Message.printWarning ( 3, routine, e );
 			__smsdmi = null;
 		}
-	//}
-	// TODO SAM 2005 Currently don't support an interactive login.
-	/*
-	else {	// Running interactively so prompt the user to login...
-		// Display the dialog to select the database.  This is a modal
-		// dialog that will not allow anything else to occur until the
-		// information is entered.  Use a PropList to pass information
-		// because there are a lot of parameters and the list may change
-		// in the future.
-	
-		PropList hb_props = new PropList ( "SelectHydroBase" );
-		hb_props.set ( "ValidateLogin", "false" );
-		hb_props.set ( "ShowWaterDivisions", "false" );
-
-		// Pass in the previous HydroBaseDMI so that its information
-		// can be displayed as the initial values...
-
-		SelectHydroBaseJDialog selectHydroBaseJDialog = null;
-		try {	// Let the dialog check HydroBase properties in the 
-			// CDSS configuration file...
-			selectHydroBaseJDialog =
-			new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
-			// After getting to here, the dialog has been closed.
-			// The HydroBaseDMI from the dialog can be retrieved and
-			// used...
-			__hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
-			if ( __hbdmi == null ) {
-				Message.printWarning ( 1, routine,
-				"HydroBase features will be disabled." );
-			}
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error opening HydroBase connection.  " +
-			"HydroBase features will be disabled." );
-			Message.printWarning ( 3, routine, e );
-			__smsdmi = null;
-		}
-	}
-	*/
 	// Enable/disable ColoradoSMS features as necessary...
 	ui_CheckColoradoSMSFeatures();
 }
@@ -13192,56 +13128,10 @@ whether need to save the previous commands.
 */
 private void uiAction_OpenCommandFile ()
 {	String routine = getClass().getName() + ".openCommandFile";
-	// See whether the old commands need to be cleared...
-	if ( __commandsDirty ) {
-		if ( __commandFileName == null ) {
-			// Have not been saved before.
-		    // Always allow save, even if read-only comment is set (since first save).
-			int x = ResponseJDialog.NO;
-			if ( __commands_JListModel.size() > 0 ) {
-				x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
-				"Do you want to save the changes you made?",
-				ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
-			}
-			if ( x == ResponseJDialog.CANCEL ) {
-				return;
-			}
-			else if ( x == ResponseJDialog.YES ) {
-				// Prompt for the name and then save...
-				uiAction_WriteCommandFile ( __commandFileName, true);
-			}
-		}
-		else {
-			// A command file exists...  Warn the user.  They can save to the existing file name or can cancel and
-			// File...Save As... to a different name.
-			int x = ResponseJDialog.NO;
-			if ( __commands_JListModel.size() > 0 ) {
-			    if ( __tsProcessor.getReadOnly() ) {
-                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                        "Do you want to save the changes you made to:\n"
-                        + "\"" + __commandFileName + "\"?\n\n" +
-                        "The commands are marked read-only.\n" +
-                        "Press Yes to update the read-only file before opening a new file.\n" +
-                        "Press No to discard edits before opening a new file.\n" +
-                        "Press Cancel and then save to a new name if desired.\n",
-                        ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
-			    }
-			    else {
-    				x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
-    				"Do you want to save the changes you made to:\n"
-    				+ "\"" + __commandFileName + "\"?",
-    				ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
-			    }
-			}
-			if ( x == ResponseJDialog.CANCEL ) {
-				return;
-			}
-			else if ( x == ResponseJDialog.YES ) {
-				uiAction_WriteCommandFile ( __commandFileName,false);
-			}
-			// Else if No or OK will clear below before opening the other file...
-		}
-	}
+	// See whether the old commands need to be saved/cleared...
+    if ( !uiAction_OpenCommandFile_CheckForSavingCommands() ) {
+        return;
+    }
 
 	// Get the file.  Do not clear the list until the file has been chosen and is readable...
 
@@ -13263,8 +13153,7 @@ private void uiAction_OpenCommandFile ()
 		ui_SetDir_LastCommandFileOpened(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		Message.printStatus(2, routine, "Working directory from command file is \"" +
-			IOUtil.getProgramWorkingDir() );
+		Message.printStatus(2, routine, "Working directory from command file is \"" + IOUtil.getProgramWorkingDir() );
 		// Load but do not automatically run.
 		ui_LoadCommandFile ( path, false );
 	}
@@ -13272,6 +13161,66 @@ private void uiAction_OpenCommandFile ()
 	Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
 	ui_UpdateStatus ( true );
 	Message.printStatus ( 2, routine, "Back from update status." );
+}
+
+/**
+Check whether existing commands need to be saved (called when loading or creating a new command file).
+@return true if the operation (open or new) should continue, or false if user has cancelled.
+*/
+private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
+{
+    if ( !__commandsDirty ) {
+        // No need to do anything so return true that it is OK to continue with operation
+        return true;
+    }
+    if ( __commandFileName == null ) {
+        // Have not been saved before.
+        // Always allow save, even if read-only comment is set (since first save).
+        int x = ResponseJDialog.NO;
+        if ( __commands_JListModel.size() > 0 ) {
+            x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+            "Do you want to save the changes you made?",
+            ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+        }
+        if ( x == ResponseJDialog.CANCEL ) {
+            return false;
+        }
+        else if ( x == ResponseJDialog.YES ) {
+            // Prompt for the name and then save...
+            uiAction_WriteCommandFile ( __commandFileName, true);
+        }
+    }
+    else {
+        // A command file exists...  Warn the user.  They can save to the existing file name or can cancel and
+        // File...Save As... to a different name.
+        int x = ResponseJDialog.NO;
+        if ( __commands_JListModel.size() > 0 ) {
+            if ( __tsProcessor.getReadOnly() ) {
+                x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                    "Do you want to save the changes you made to:\n"
+                    + "\"" + __commandFileName + "\"?\n\n" +
+                    "The commands are marked read-only.\n" +
+                    "Press Yes to update the read-only file before opening a new file.\n" +
+                    "Press No to discard edits before opening a new file.\n" +
+                    "Press Cancel and then save to a new name if desired.\n",
+                    ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+            }
+            else {
+                x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                "Do you want to save the changes you made to:\n"
+                + "\"" + __commandFileName + "\"?",
+                ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+            }
+        }
+        if ( x == ResponseJDialog.CANCEL ) {
+            return false;
+        }
+        else if ( x == ResponseJDialog.YES ) {
+            uiAction_WriteCommandFile ( __commandFileName,false);
+        }
+        // Else if No or OK will clear before opening the other file...
+    }
+    return true;
 }
 
 /**
@@ -13323,12 +13272,8 @@ private void uiAction_OpenDIADvisor ()
 
 /**
 Open a connection to the HydroBase database.
-@param startup If true, indicates that the database connection is being made
-at startup.  This is the case, for example, when multiple HydroBase databases
-may be available and there is no reason to automatically connect to one of them
-for all users.
 */
-private void uiAction_OpenHydroBase ( boolean startup )
+private void uiAction_OpenHydroBase ()
 {	String routine = "TSTool_JFrame.uiAction_OpenHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
 
@@ -13345,27 +13290,41 @@ private void uiAction_OpenHydroBase ( boolean startup )
 	// can be displayed as the initial values...
 
 	SelectHydroBaseJDialog selectHydroBaseJDialog = null;
+	HydroBaseDMI hbdmi = null; // DMI that is opened by the dialog - null if cancel or error
+	String error = ""; // Message for whether there was an unexpected error opening HydroBase.
 	try {
         // Let the dialog check HydroBase properties in the CDSS configuration file...
 		selectHydroBaseJDialog = new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
 		// After getting to here, the dialog has been closed.
 		// The HydroBaseDMI from the dialog can be retrieved and used...
-		__hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
-		if ( __hbdmi == null ) {
-			Message.printWarning ( 1, routine, "HydroBase features will be disabled." );
-		}
+		hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 1, routine,
-                "Error opening HydroBase connection.  HydroBase features will be disabled." );
+		error = "Error opening HydroBase connection.  ";
 		Message.printWarning ( 3, routine, e );
-		__hbdmi = null;
+		hbdmi = null;
 	}
-
-	// Set the HydroBaseDMI for the command processor...
-	commandProcessor_SetHydroBaseDMI ( __hbdmi );
-	// Enable/disable HydroBase features as necessary...
-	ui_CheckHydroBaseFeatures();
+	
+	// If no HydroBase connection was opened, print an appropriate message...
+	if ( hbdmi == null ) {
+	    if ( ui_GetHydroBaseDMI() == null ) {
+	        Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
+	    }
+        else {
+            Message.printWarning ( 1, routine, error + "The previous HydroBase connection will be used." );
+        }
+	}
+	else if ( hbdmi == ui_GetHydroBaseDMI() ) {
+	    // Same instance was returned as original (user cancelled) - no need to do anything
+	    // TODO SAM 2008-10-23 If this step is not ignored, the GUI removes HydroBase from the interface?
+	}
+	else {
+    	// Set the HydroBaseDMI for the GUI and command processor...
+	    ui_SetHydroBaseDMI( hbdmi );
+    	commandProcessor_SetHydroBaseDMI ( hbdmi );
+    	// Enable/disable HydroBase features as necessary...
+    	ui_CheckHydroBaseFeatures();
+	}
 }
 
 /**
@@ -14767,14 +14726,14 @@ throws Exception
 
 /**
 Prompt for a StateModB input name (binary file name).  When selected, update the choices.
-@param reset_input_names If true, the input names will be repopulated with
+@param resetInputNames If true, the input names will be repopulated with
 values from __input_name_StateModB.
 @exception Exception if there is an error.
 */
-private void uiAction_SelectInputName_StateModB ( boolean reset_input_names )
+private void uiAction_SelectInputName_StateModB ( boolean resetInputNames )
 throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_StateModB";
-	if ( reset_input_names ) {
+	if ( resetInputNames ) {
 		// The StateModB input type has been selected as a change from
 		// another type.  Repopululate the list if previous choices exist...
 		// TODO - probably not needed...
@@ -14782,8 +14741,8 @@ throws Exception
 		__input_name_JComboBox.setData ( __input_name_StateModB );
 	}
 	// Check the item that is selected...
-	String input_name = __input_name_JComboBox.getSelected();
-	if ( (input_name == null) || input_name.equals(__BROWSE) ) {
+	String inputName = __input_name_JComboBox.getSelected();
+	if ( (inputName == null) || inputName.equals(__BROWSE) ) {
 		// Prompt for the name of a StateMod binary file...
 		// Based on the file extension, set the data types and other information...
 		JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -14800,7 +14759,7 @@ throws Exception
 		fc.setAcceptAllFileFilterUsed ( false );
 		if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
 			// User cancelled - set the file name back to the original and disable other choices...
-			if ( input_name != null ) {
+			if ( inputName != null ) {
 				ui_SetIgnoreItemEvent ( true );
 				__input_name_JComboBox.select(null);
 				if ( __input_name_StateModB_last != null ) {
@@ -14812,9 +14771,9 @@ throws Exception
 		}
 		// User has chosen a file...
 
-		input_name = fc.getSelectedFile().getPath(); 
+		inputName = fc.getSelectedFile().getPath(); 
 		// Save as last selection...
-		__input_name_StateModB_last = input_name;
+		__input_name_StateModB_last = inputName;
 		JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
 
 		// Set the input name...
@@ -14825,23 +14784,23 @@ throws Exception
 			__input_name_StateModB.addElement ( __BROWSE );
 			__input_name_JComboBox.add ( __BROWSE );
 		}
-		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
+		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,inputName, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add after the browse string (files
 			// are listed chronologically by select with most recent at the top...
 			if ( __input_name_JComboBox.getItemCount() > 1 ) {
-				__input_name_JComboBox.addAt ( input_name, 1 );
-				__input_name_StateModB.insertElementAt ( input_name, 1 );
+				__input_name_JComboBox.addAt ( inputName, 1 );
+				__input_name_StateModB.insertElementAt ( inputName, 1 );
 			}
 			else {
-                __input_name_JComboBox.add ( input_name );
-				__input_name_StateModB.addElement(input_name);
+                __input_name_JComboBox.add ( inputName );
+				__input_name_StateModB.addElement(inputName);
 			}
 		}
 		ui_SetIgnoreItemEvent ( false );
 		// Select the file in the input name because leaving it on
 		// browse will disable the user's ability to reselect browse...
 		__input_name_JComboBox.select ( null );
-		__input_name_JComboBox.select ( input_name );
+		__input_name_JComboBox.select ( inputName );
 	}
 
 	__input_name_JComboBox.setEnabled ( true );
@@ -14850,9 +14809,9 @@ throws Exception
 
 	__data_type_JComboBox.setEnabled ( true );
 	__data_type_JComboBox.removeAll ();
-	String extension = IOUtil.getFileExtension ( input_name );
+	String extension = IOUtil.getFileExtension ( inputName );
 
-	Vector data_types = null;
+	Vector dataTypes = null;
 	int interval_base = TimeInterval.MONTH;	// Default
 	int comp = StateMod_DataSet.COMP_UNKNOWN;
 	if ( extension.equalsIgnoreCase("b42" ) ) {
@@ -14888,12 +14847,12 @@ throws Exception
 	// file.  For older versions, this is used to return hard-coded
 	// parameter lists.  For newer formats, the binary file is reopened and
 	// the parameters are determined from the file.
-	data_types = StateMod_Util.getTimeSeriesDataTypes (
-			input_name,	// Name of binary file
+	dataTypes = StateMod_Util.getTimeSeriesDataTypes (
+			inputName,	// Name of binary file
 			comp,	// Component from above, from file extension
 			null,	// ID
 			null,	// dataset
-			StateMod_BTS.determineFileVersion(input_name),
+			StateMod_BTS.determineFileVersion(inputName),
 			interval_base,
 			false,	// Include input (only output here)
 			false,	// Include input, estimated (only output here)
@@ -14904,8 +14863,8 @@ throws Exception
 
 	// Fill data types choice...
 
-	Message.printStatus ( 2, routine, "Setting StateModB data types..." );
-	__data_type_JComboBox.setData ( data_types );
+	Message.printStatus ( 2, routine, "Setting StateModB data types (" + dataTypes.size() + " types)..." );
+	__data_type_JComboBox.setData ( dataTypes );
 	Message.printStatus ( 2, routine, "Selecting the first StateModB data type..." );
 	__data_type_JComboBox.select ( null );
 	__data_type_JComboBox.select ( 0 );

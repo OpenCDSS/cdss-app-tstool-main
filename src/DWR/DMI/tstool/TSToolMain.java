@@ -452,7 +452,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.17.01 (2008-10-20)";
+public static final String PROGRAM_VERSION = "8.17.02 (2008-10-29)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -465,14 +465,12 @@ Home directory for system install.
 private static String __home = null;
 
 /**
-Path to the configuration file.  This cannot be defaulted until the -home command line
-parameter is processed.
+Path to the configuration file.  This cannot be defaulted until the -home command line parameter is processed.
 */
 private static String __configFile = "";
 
 /**
-List of properties to control the software from the configuration file and passed
-in on the command line.
+List of properties to control the software from the configuration file and passed in on the command line.
 */
 private static PropList __tstool_props = null;
 
@@ -487,9 +485,8 @@ Indicates whether the command file should run after loading, when used in GUI mo
 private static boolean __run_commands_on_load = false;  
 
 /**
-Indicates whether the main GUI is shown, for cases where TSTool is run in
-in batch mode, with only the plot window shown.  If running in interactive mode the
-GUI is always shown.
+Indicates whether the main GUI is shown, for cases where TSTool is run in in batch mode,
+with only the plot window shown.  If running in interactive mode the GUI is always shown.
 */
 private static boolean __showMainGUI = true;
 
@@ -516,8 +513,7 @@ private static String getCommandFile ()
 /**
 Return the name of the configuration file for the session.  This file will be determined
 from the -home command line parameter during command line parsing (default) and can be
-specified with -config File on the command line (typically used to test different
-configurations).
+specified with -config File on the command line (typically used to test different configurations).
 @return the full path to the configuration file.
 */
 private static String getConfigFile ()
@@ -527,20 +523,17 @@ private static String getConfigFile ()
 
 /**
 Return the JFrame for the main TSTool GUI.
-@return the JFrame instance for use with low-level code that needs to pop up
-dialogs, etc.
+@return the JFrame instance for use with low-level code that needs to pop up dialogs, etc.
 */
 public static JFrame getJFrame ()
 {	return (JFrame)__tstool_JFrame;
 }
 
 /**
-Return a TSTool property.  The properties are defined in the TSTool configuration
-file.
+Return a TSTool property.  The properties are defined in the TSTool configuration file.
 @param property name of property to look up.
-@return the value for a TSTool configuration property, or null if a properties
-file does not exist.  Return null if the property is not found (or if no
-configuration file exists for TSTool).
+@return the value for a TSTool configuration property, or null if a properties file does not exist.
+Return null if the property is not found (or if no configuration file exists for TSTool).
 */
 public static String getPropValue ( String property )
 {	if ( __tstool_props == null ) {
@@ -630,8 +623,6 @@ Initialize important data relative to the installation home.
 */
 private static void initializeAfterHomeIsKnown ()
 {	String routine = "TSToolMain.initializeAfterHomeIsKnown";
-
-    // Rest some message levels now that the log file should b
 
 	// Initialize the system data...
 
@@ -762,9 +753,8 @@ public static void main ( String args[] )
                 // until the user closes all.  Then WindowClosing will be called since no more
                 // windows are shown.
                 for ( int i = 0; i < size; i++ ) {
-                    if ( frameArray[i] instanceof TSViewGraphJFrame ||
-                            frameArray[i] instanceof TSViewSummaryJFrame ||
-                            frameArray[i] instanceof TSViewTableJFrame ) {
+                    if ( frameArray[i] instanceof TSViewGraphJFrame || frameArray[i] instanceof TSViewSummaryJFrame ||
+                        frameArray[i] instanceof TSViewTableJFrame ) {
                         if ( frameArray[i].isVisible() ) {
                             openWindowFound = true;
                             Message.printStatus(2,routine,
@@ -859,8 +849,8 @@ private static void openHydroBase ( TSCommandFileRunner runner )
         
         try {
             // Now open the database...
-            // This uses the guest login.  If properties were not
-            // found, then default HydroBase information will be used.
+            // This uses the guest login.  If properties were not found,
+            // then default HydroBase information will be used.
             HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
             hbdmi.open();
             Vector hbdmi_Vector = new Vector(1);
