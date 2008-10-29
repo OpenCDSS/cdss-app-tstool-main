@@ -22,7 +22,7 @@ rem set python="python"
 rem Configuration information for installed operational version
 rem snotelHome default is in the rem snow-update.py script.
 rem Update the following location to correspond to the installed version of TSTool.
-set scriptHome=C:\CDSS\TSTool-08.17.00\python\snotel
+set scriptHome=C:\CDSS\TSTool-08.17.02\python\snotel
 
 rem Configuration information for Development version at RTi (comment out for operational system)
 rem set scriptHome=C:\develop\TSTool_SourceBuild\TSTool\resources\runtime\python\snotel
