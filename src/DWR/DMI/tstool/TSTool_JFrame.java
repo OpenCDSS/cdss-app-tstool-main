@@ -986,7 +986,7 @@ JMenuItem
 	// NOT TS Alias = commands...
 	__Commands_Read_ReadDateValue_JMenuItem,
     __Commands_Read_ReadDelimitedFile_JMenuItem,
-    __Commands_Read_ReadHECDSS_JMenuItem,
+    __Commands_Read_ReadHecDss_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
@@ -1386,7 +1386,7 @@ private String
 	__Commands_ReadTimeSeries_String = "Read Time Series",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()...  <read 1(+) time series from a DateValue file>",
     __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file (under development)>",
-    __Commands_Read_ReadHECDSS_String = TAB + "ReadHECDSS()...  <read 1(+) time series from a HEC-DSS database file>",
+    __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()...  <read 1(+) time series from a HEC-DSS database file>",
     __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
@@ -1726,8 +1726,9 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		}
 	}
 	
-    // HEC-DSS not enabled by default...
+    // HEC-DSS enabled by default...
 
+	__source_HECDSS_enabled = true;
     prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
     if ( prop_value != null ) {
         if ( prop_value.equalsIgnoreCase("false") ) {
@@ -5026,11 +5027,9 @@ of strings already found in the __commands_JList.
 @param type Data type part of TSIdent.
 @param interval Interval part of TSIdent.
 @param scenario Scenario part of TSIdent (null or empty for no scenario).
-@param sequence_number Sequence number part of TSIdent (null or empty for no
-sequence number).
+@param sequence_number Sequence number part of TSIdent (null or empty for no sequence number).
 @param input_type The type of input (e.g., DateValue, NWSCard, USGSNWIS).
-@param input_name The input location for the data (a database connection or
-file name).
+@param input_name The input location for the data (a database connection or file name).
 @param comment Comment for time series (null or empty for no comment).
 @param use_alias If true, then the location contains the alias and the other
 TSID fields are ignored when putting together the TSID command.
@@ -7214,8 +7213,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     //}
         
     if ( __source_HECDSS_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHECDSS_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_ReadHECDSS_String, this) );
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHecDss_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadHecDss_String, this) );
     }
 
 	if ( __source_HydroBase_enabled ) {
@@ -9424,8 +9423,8 @@ throws Exception
     else if (command.equals( __Commands_Read_ReadDelimitedFile_String)){
         commandList_EditCommand ( __Commands_Read_ReadDelimitedFile_String, null, __INSERT_COMMAND );
     }
-    else if (command.equals( __Commands_Read_ReadHECDSS_String)){
-        commandList_EditCommand ( __Commands_Read_ReadHECDSS_String, null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_Read_ReadHecDss_String)){
+        commandList_EditCommand ( __Commands_Read_ReadHecDss_String, null, __INSERT_COMMAND );
     }
 	else if (command.equals( __Commands_Read_ReadHydroBase_String)){
 		commandList_EditCommand ( __Commands_Read_ReadHydroBase_String,	null, __INSERT_COMMAND );
@@ -11162,7 +11161,7 @@ throws IOException
         Vector tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
         // TODO SAM 2008-09-03 Enable searchable fields
-        tslist = HecDssAPI.readTimeSeriesList ( "*.*.*.*.*~HEC-DSS~" + path, null, null, null, false );
+        tslist = HecDssAPI.readTimeSeriesList ( new File(path), "*.*.*.*.*~HEC-DSS~" + path, null, null, null, false );
         int size = 0;
         if ( tslist != null ) {
             size = tslist.size();
@@ -14137,10 +14136,8 @@ private void uiAction_SelectInputName_HECDSS ( boolean reset_input_names )
 throws Exception
 {   String routine = "TSTool_JFrame.selectInputName_HECDSS";
     if ( reset_input_names ) {
-        // The HEC-DSS input type has been selected as a change from
+        // The  input type has been selected as a change from
         // another type.  Repopululate the list if previous choices exist...
-        // TODO - probably not needed...
-        //__input_name_JComboBox.removeAll();
         __input_name_JComboBox.setData ( __input_name_HECDSS );
     }
     // Check the item that is selected...
