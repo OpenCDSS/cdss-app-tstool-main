@@ -1491,7 +1491,7 @@ private String
 	// Commands...Models...
 
 	__Commands_Models_Routing_String = "Models - Routing",
-	__Commands_Models_Routing_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route) (under development)>",
+	__Commands_Models_Routing_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route)>",
     
 	// HydroBase commands...
 
