@@ -5,7 +5,7 @@
             <!-- Do not use Project Properties customizer when editing this file manually. -->
             <name>TSTool</name>
             <properties>
-                <property name="ant.script">conf/build.xml</property>
+                <property name="ant.script">nbproject/build.xml</property>
                 <property-file>conf/product-user.properties</property-file>
                 <property-file>conf/product.properties</property-file>
             </properties>
@@ -18,7 +18,7 @@
                 <source-folder>
                     <label>tests</label>
                     <type>java</type>
-                    <location>test/src</location>
+                    <location>test/regression/src</location>
                 </source-folder>
             </folders>
             <ide-actions>
@@ -163,7 +163,7 @@
                     </source-folder>
                     <source-folder style="packages">
                         <label>tests</label>
-                        <location>test/src</location>
+                        <location>test/regression/src</location>
                     </source-folder>
                     <source-file>
                         <location>${ant.script}</location>
@@ -189,14 +189,14 @@
                 <classpath mode="compile">${build.classpath}</classpath>
                 <built-to>${build.dir}</built-to>
                 <built-to>${jar.file}</built-to>
-                <source-level>1.5</source-level>
+                <source-level>1.4</source-level>
             </compilation-unit>
             <compilation-unit>
-                <package-root>test/src</package-root>
+                <package-root>test/regression/src</package-root>
                 <unit-tests/>
                 <classpath mode="compile">${test.classpath}</classpath>
                 <built-to>${test.build.dir}</built-to>
-                <source-level>1.5</source-level>
+                <source-level>1.4</source-level>
             </compilation-unit>
         </java-data>
         <junit-version xmlns="http://www.netbeans.org/ns/junit/1" value="junit4"/>
