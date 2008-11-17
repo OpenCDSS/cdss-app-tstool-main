@@ -321,6 +321,7 @@ Section "Uninstall"
     RmDir /r /REBOOTOK $INSTDIR\system
     RmDir /r /REBOOTOK $INSTDIR\bin
     RmDir /r /REBOOTOK $INSTDIR\logs
+    RmDir /r /REBOOTOK $INSTDIR\python
     
     !ifdef FILE_EXT
         DetailPrint "Unregister file extensions"
