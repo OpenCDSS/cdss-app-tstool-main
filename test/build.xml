@@ -4,5 +4,8 @@
     <import file="../../rtibuild/common-test.xml"/>
     
     <property name="emma.filter" value="rti.*, RTi.*, DWR.*, cdss.*"/>
-    
+
+    <target name="build-all-tests" depends="-init-tests">
+        <build-tests type="operational"/>
+    </target>
 </project>
