@@ -603,39 +603,39 @@ private JTabbedPane __results_JTabbedPane;
 /**
 Panel for TSEnsemble results.
 */
-private JPanel __results_tsensembles_JPanel; 
+private JPanel __resultsTSEnsembles_JPanel; 
 
 /**
 Final list showing in-memory time series ensemble results.
 */
-private JList __results_tsensembles_JList;
+private JList __resultsTSEnsembles_JList;
 
 /**
 JList data model for final time series ensembles (basically a Vector of
 time series associated with __results_tsensembles_JList).
 */
-private DefaultListModel __results_tsensembles_JListModel;
+private DefaultListModel __resultsTSEnsembles_JListModel;
 
 /**
 Popup menu for ensemble results.
 */
-private JPopupMenu __results_tsensembles_JPopupMenu = null;
+private JPopupMenu __resultsTSEnsembles_JPopupMenu = null;
 
 /**
 Panel for TS results.
 */
-private JPanel __results_ts_JPanel; 
+private JPanel __resultsTS_JPanel; 
 
 /**
 Final list showing in-memory time series results.
 */
-private JList __results_ts_JList;
+private JList __resultsTS_JList;
 
 /**
 JList data model for final time series (basically a Vector of
 time series associated with __results_ts_JList).
 */
-private DefaultListModel __results_ts_JListModel;	
+private DefaultListModel __resultsTS_JListModel;	
 
 /**
 The command processor, which maintains a list of command objects, process
@@ -649,29 +649,29 @@ private TSCommandProcessor __tsProcessor = new TSCommandProcessor();
 /**
 Popup menu for time series results.
 */
-private JPopupMenu __results_ts_JPopupMenu = null;
+private JPopupMenu __resultsTS_JPopupMenu = null;
 
 /**
 List of results tables for viewing with an editor.
 */
-private JList __results_tables_JList = null;
+private JList __resultsTables_JList = null;
 
 /**
 JList data model for final time series (basically a Vector of
 table identifiers associated with __results_tables_JList).
 */
-private DefaultListModel __results_tables_JListModel;
+private DefaultListModel __resultsTables_JListModel;
 
 /**
 List of results output files for viewing with an editor.
 */
-private JList __results_files_JList = null;
+private JList __resultsOutputFiles_JList = null;
 
 /**
 JList data model for final time series (basically a Vector of
-filenames associated with __results_files_JList).
+filenames associated with __resultsOutputFiles_JList).
 */
-private DefaultListModel __results_files_JListModel;
+private DefaultListModel __resultsOutputFiles_JListModel;
 
 //================================
 // Status-area related...
@@ -737,7 +737,7 @@ result in an inaccurate initial state.
 private String __initialWorkingDir = "";
 
 /**
-The last directory selected with Run...Command File, to run an external commands file.
+The last directory selected with Run...Command File, to run an external command file.
 */
 private String __Dir_LastExternalCommandFileRun = null;
 
@@ -2127,19 +2127,6 @@ public void commandCompleted ( int icommand, int ncommand, Command command,
 }
 
 /**
-Determine whether commands are equal, for single-line commands.
-@param original_command Original command as a string.
-@param edited_command Edited command as a string.
-*/
-private boolean commandList_CommandsAreEqual (String original_command, String edited_command)
-{	Vector original_command_Vector = new Vector(1);
-	original_command_Vector.addElement ( original_command );
-	Vector edited_command_Vector = new Vector(1);
-	edited_command_Vector.addElement ( edited_command );
-	return commandList_CommandsAreEqual(original_command_Vector,edited_command_Vector);
-}
-
-/**
 Determine whether commands are equal.  To allow for multi-line commands, each
 command is stored in a Vector (but typically only the first String is used.
 @param original_command Original command as a Vector of String or Command.
@@ -2179,7 +2166,7 @@ private boolean commandList_CommandsAreEqual(Vector original_command, Vector edi
 			edited_String = ((Command)edited_Object).toString();
 		}
 		// Must be an exact match...
-		if (	(original_String == null) && (edited_String != null) ) {
+		if ( (original_String == null) && (edited_String != null) ) {
 			return false;
 		}
 		else if ((original_String != null) && (edited_String == null)) {
@@ -2694,28 +2681,6 @@ private int commandList_GetFailureCount()
 }
 
 /**
-Get the insert position for a command based on current selections.
-If no commands are selected, the insert position is the end of the list (size),
-and an add at the end should occur..
-If commands are selected, the insert position is the index of the first selection.
-*/
-private int commandList_GetInsertPosition ()
-{
-	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
-	int selectedSize = selectedIndices.length;
-
-	int insert_pos = 0;
-	if (selectedSize > 0) {
-		// Insert before the first selected item...
-		insert_pos = selectedIndices[0];
-	}
-	else {	// Insert at end of commands list.
-		insert_pos = __commands_JListModel.size();
-	}
-	return insert_pos;
-}
-
-/**
 Return the number of commands with warnings as maximum severity.
 */
 private int commandList_GetWarningCount()
@@ -2886,37 +2851,36 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 /**
 Create a new Command instance given a command string.  This may be called when
 loading commands from a file or adding new commands while editing.
-@param command_string Command as a string, to parse and create a Command instance.
-@param create_generic_command_if_not_recognized Indicate if a generic command should
+@param commandString Command as a string, to parse and create a Command instance.
+@param createUnknownCommandIfNotRecognized Indicate if a generic command should
 be created if not recognized.  For now this should generally be true, until all
 commands are recognized by the TSCommandFactory.
 */
-private Command commandList_NewCommand ( String command_string,
-		boolean create_generic_command_if_not_recognized )
+private Command commandList_NewCommand ( String commandString, boolean createUnknownCommandIfNotRecognized )
 {	int dl = 1;
 	String routine = getClass().getName() + ".newCommand";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Using command factory to create a new command for \"" + command_string + "\"" );
+		"Using command factory to create a new command for \"" + commandString + "\"" );
 	}
 	Command c = null;
 	try {
 		TSCommandFactory cf = new TSCommandFactory();
-		c = cf.newCommand(command_string);
-		Message.printStatus ( 2, routine, "Created command from factory for \"" + command_string + "\"");
+		c = cf.newCommand(commandString);
+		Message.printStatus ( 2, routine, "Created command from factory for \"" + commandString + "\"");
 	}
 	catch ( UnknownCommandException e ) {
 		// Processor does not know the command so create an UnknownCommand.
 		c = new UnknownCommand();
-		Message.printStatus ( 2, routine, "Created unknown command for \"" + command_string + "\"");
+		Message.printStatus ( 2, routine, "Created unknown command for \"" + commandString + "\"");
 	}
 	// TODO SAM 2007-08-31 This is essentially validation.
 	// Need to evaluate for old-style commands, impacts on error-handling.
 	// New is command from the processor
 	try {
-	    c.initializeCommand ( command_string, __tsProcessor, true );	// Full initialization
+	    c.initializeCommand ( commandString, __tsProcessor, true );	// Full initialization
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Initialized command for \"" + command_string + "\"" );
+			Message.printDebug ( dl, routine, "Initialized command for \"" + commandString + "\"" );
 		}
 	}
 	catch ( Exception e ) {
@@ -2925,7 +2889,7 @@ private Command commandList_NewCommand ( String command_string,
 
 		// TODO SAM 2005-05-09 Need to handle parse error.  Should the editor come
 		// up with limited information?
-		Message.printWarning ( 3, routine, "Unexpected error initializing command \"" + command_string + "\"." );
+		Message.printWarning ( 3, routine, "Unexpected error initializing command \"" + commandString + "\"." );
 		Message.printWarning ( 3, routine, e );
 	}
 	return c;
@@ -3129,20 +3093,6 @@ private void commandList_SetDirty ( boolean dirty )
 }
 
 /**
-Convert the specified commands to a Vector of String.  This may not be
-the best place for this method but ok for now.
-@param commands Vector of Command.
-*/
-private Vector commandList_ToStringVector ( Vector commands )
-{	Vector strings = new Vector();
-	int size = commands.size();
-	for ( int i = 0; i < size; i++ ) {
-		strings.addElement ( "" + commands.elementAt(i) );
-	}
-	return strings;
-}
-
-/**
 Indicate the progress that is occurring within a command.  This may be a chained call
 from a CommandProcessor that implements CommandListener to listen to a command.  This
 level of monitoring is useful if more than one progress indicator is present in an
@@ -3170,15 +3120,6 @@ public void commandProgress ( int istep, int nstep, Command command,
 
 // All of the following methods perform and interaction with the command processor,
 // beyond basic command list insert/delete/update.
-
-/**
-Clear the time series results in the command processor.
-*/
-private void commandProcessor_ClearResults()
-{
-	// Clear the time series in the processor...
-	__tsProcessor.clearResults();
-}
 
 /**
 Get the command processor AutoExtendPeriod.  This method is meant for simple
@@ -3561,14 +3502,6 @@ private int commandProcessor_GetTimeSeriesResultsListSize()
 	return results.size();
 }
 
-/**
-Get the working directory for a command (e.g., for editing).
-*/
-private String commandProcessor_GetWorkingDirForCommand ( Command command )
-{	
-	return TSCommandProcessorUtil.getWorkingDirForCommand( __tsProcessor, command );
-}
-
 // TODO SAM 2008-01-05 Evaluate whether this should live in the processor.
 /**
 Process ensembles from the results list into a product (graph, etc).
@@ -3611,7 +3544,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
     for ( int i = 0; i < indices.length; i++ ) {
         PropList request_params = new PropList ( "" );
         // String is of format 1) EnsembleID - EnsembleName
-        String EnsembleID = StringUtil.getToken((String)__results_tsensembles_JListModel.elementAt(indices[i]),
+        String EnsembleID = StringUtil.getToken((String)__resultsTSEnsembles_JListModel.elementAt(indices[i]),
                 " -",StringUtil.DELIM_SKIP_BLANKS,1);
         Message.printStatus ( 2, routine, "Getting processor ensemble results for \"" + EnsembleID + "\"" );
         request_params.setUsingObject ( "EnsembleID", EnsembleID );
@@ -3697,7 +3630,7 @@ throws IOException
 {	String routine = "TSTool_JFrame.commandProcessor_ReadCommandFile";
     // Set the command file for use with output...
 	__tsProcessor.readCommandFile ( path,
-			true,	// Create GenericCommand instances for unrecognized commands
+			true,	// Create UnknownCommand instances for unrecognized commands
 			false );// Do not append to the current processor contents
     // Refresh the GUI list to show the status done in call to this method
 	
@@ -3735,7 +3668,7 @@ throws IOException
 	        ++numAutoChanges;
 	        if ( command instanceof CommandStatusProvider ) {
 	            csp = (CommandStatusProvider)command;
-	            // FIXME SAM 2008-05-11 This message gets clobbered by reinitialization before running
+	            // FIXME SAM 2008-05-11 This message gets clobbered by re-initialization before running
 	            // Add a message that the command was updated during load.
 	            csp.getCommandStatus().addToLog ( CommandPhaseType.INITIALIZATION,
 	                new CommandLogRecord(CommandStatusType.UNKNOWN,
@@ -3745,37 +3678,6 @@ throws IOException
 	    }
 	}
 	return numAutoChanges;
-}
-
-/**
-Run the commands through the processor, NOT-THREADED (threaded is the default).
-Currently this supplies the list of Command instances to run because the user can select the
-commands in the interface.  In the future the command processor may put together the list without
-being passed from the GUI.
-@param tsProcessor The TSCommandProcessor to run.  Typically this will be the
-main processor but it will be a temporary instance when processing the
-working directory for edit dialogs.
-@param commands The list of commands to process.
-@param createOutput Indicate whether output files should be created.  Doing so results
-in some performance degradation.
-*/
-private void commandProcessor_RunCommands ( TSCommandProcessor tsProcessor, Vector commands, boolean createOutput )
-{	String routine = "TSTool_JFrame.commandProcessorRunCommands";
-	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "CommandList", commands );
-	// FIXME SAM 2007-10-13 Remove when test out.  The initial directory needs to be set
-	// when a command file is initialized.
-	//request_params.setUsingObject ( "InitialWorkingDir", getInitialWorkingDir() );
-	request_params.setUsingObject ( "CreateOutput", new Boolean(createOutput) );
-	Message.printStatus ( 2, routine, "Running commands in GUI thread.");
-	try { 
-		tsProcessor.processRequest( "RunCommands", request_params );
-	}
-	catch ( Exception e ) {
-		String message = "Error requesting RunCommands(CommandList=...) from processor.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 3,routine, e );
-	}
 }
 
 /**
@@ -4586,8 +4488,7 @@ public void intervalRemoved ( ListDataEvent e )
 }
 
 /**
-Respond to ItemEvents.  If in the final list, the behavior is similar to
-Microsoft tools:
+Respond to ItemEvents.  If in the final list, the behavior is similar to Microsoft tools:
 <ol>
 <li>	Click selects on item.</li>
 <li>	Shift-click selects forward or backward to nearest selection.</li>
@@ -4945,16 +4846,16 @@ public void mousePressed ( MouseEvent event )
 		__Commands_JPopupMenu.show ( c, pt.x, pt.y );
 	}
     // Popup for time series results list...
-	else if ( (c == __results_ts_JList) && (__results_ts_JListModel.size() > 0) &&
+	else if ( (c == __resultsTS_JList) && (__resultsTS_JListModel.size() > 0) &&
 		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
-		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __results_ts_JPopupMenu );
-		__results_ts_JPopupMenu.show ( c, pt.x, pt.y );
+		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __resultsTS_JPopupMenu );
+		__resultsTS_JPopupMenu.show ( c, pt.x, pt.y );
 	}
     // Popup for ensemble results list...
-    else if ( (c == __results_tsensembles_JList) && (__results_tsensembles_JListModel.size() > 0) &&
+    else if ( (c == __resultsTSEnsembles_JList) && (__resultsTSEnsembles_JListModel.size() > 0) &&
         ((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
-        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __results_tsensembles_JPopupMenu );
-        __results_tsensembles_JPopupMenu.show ( c, pt.x, pt.y );
+        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __resultsTSEnsembles_JPopupMenu );
+        __resultsTSEnsembles_JPopupMenu.show ( c, pt.x, pt.y );
     }
 	// Popup for input name...
     else if ( (c == __input_name_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
@@ -4997,27 +4898,6 @@ Handle mouse released event.  If the object is a results file, display the selec
 public void mouseReleased ( MouseEvent event )
 {
 }
-
-/**
-Print a status message to the status bar, etc.  This method is called by the
-Message class for status messages.
-@param level Status message level.
-@param rtn Routine name.
-@param message Message to print.
-*/
-/*
-public void printStatusMessages ( int level, String rtn, String message )
-{	if ( level <= 1 ) {
-		__message_JTextField.setText ( message );
-		// TODO SAM 2007-11-02 Probably not needed - check on threading issues
-		// This does not seem to be redrawing, not matter what is done!
-		//__message_JTextField.validate ();
-		//__message_JTextField.repaint ();
-		//validate ();
-		//invalidate ();
-		//repaint ();
-	}
-}*/
 
 /**
 Display the time series list query results in a string format.  These results are APPENDED to the list
@@ -5395,7 +5275,7 @@ The ensembles are still accessed by the positions in the list.
 @param tsensemble_info Time series ensemble information to add at the end of the list.
 */
 private void results_Ensembles_AddEnsembleToResults ( final String tsensemble_info )
-{   __results_tsensembles_JListModel.addElement ( tsensemble_info );
+{   __resultsTSEnsembles_JListModel.addElement ( tsensemble_info );
 }
 
 /**
@@ -5403,7 +5283,7 @@ Clear the results ensemble List.  Updates to the label are also done.
 */
 private void results_Ensembles_Clear()
 {   // Clear the visible list of results...
-    __results_tsensembles_JListModel.removeAllElements();
+    __resultsTSEnsembles_JListModel.removeAllElements();
     ui_UpdateStatus ( false );
 }
 
@@ -5425,8 +5305,8 @@ private void results_OutputFiles_AddOutputFile ( File file )
         // File does not exist so don't show in the list of output files
         return;
     }
-    if ( JGUIUtil.indexOf(__results_files_JList, filePathString, false, true) < 0 ) {
-            __results_files_JListModel.addElement( filePathString );
+    if ( JGUIUtil.indexOf(__resultsOutputFiles_JList, filePathString, false, true) < 0 ) {
+        __resultsOutputFiles_JListModel.addElement( filePathString );
     }
 }
 
@@ -5435,7 +5315,7 @@ Clear the list of output files.  This is normally called before the commands are
 */
 private void results_OutputFiles_Clear()
 {
-	__results_files_JListModel.removeAllElements();
+	__resultsOutputFiles_JListModel.removeAllElements();
     ui_UpdateStatus ( false );
 }
 
@@ -5445,8 +5325,8 @@ Add the specified table to the list of tables that can be selected for viewing.
 */
 private void results_Tables_AddTable ( DataTable table )
 {   String tableid = table.getTableID();
-    if ( JGUIUtil.indexOf(__results_tables_JList, tableid, false, true) < 0 ) {
-            __results_tables_JListModel.addElement( tableid );
+    if ( JGUIUtil.indexOf(__resultsTables_JList, tableid, false, true) < 0 ) {
+         __resultsTables_JListModel.addElement( tableid );
     }
 }
 
@@ -5455,7 +5335,7 @@ Clear the list of results tables.  This is normally called before the commands a
 */
 private void results_Tables_Clear()
 {
-    __results_tables_JListModel.removeAllElements();
+    __resultsTables_JListModel.removeAllElements();
 }
 
 /**
@@ -5465,7 +5345,7 @@ The time series are still accessed by the positions in the list.
 @param ts_info Time series information to add at the end of the list.
 */
 private void results_TimeSeries_AddTimeSeriesToResults ( final String ts_info )
-{	__results_ts_JListModel.addElement ( ts_info );
+{	__resultsTS_JListModel.addElement ( ts_info );
 }
 
 /**
@@ -5474,7 +5354,7 @@ Also set the engine to null.
 */
 private void results_TimeSeries_Clear()
 {	// Clear the visible list of results...
-	__results_ts_JListModel.removeAllElements();
+	__resultsTS_JListModel.removeAllElements();
 	ui_UpdateStatus ( false );
 }
 
@@ -5572,9 +5452,7 @@ This is a more primitive call than ui_UpdateStatus(), which should
 generally be used rather than directly calling this method.
 */
 private void ui_CheckGUIState ()
-{	// Early on the GUI may not be initialized and some of the components
-	// seem to still be null...
-
+{	// Early on the GUI may not be initialized and some of the components seem to still be null...
 	if ( !__gui_initialized ) {
 		return;
 	}
@@ -5596,8 +5474,8 @@ private void ui_CheckGUIState ()
 	}
 
 	int ts_list_size = 0;
-	if ( __results_ts_JListModel != null ) {
-		ts_list_size = __results_ts_JListModel.size();
+	if ( __resultsTS_JListModel != null ) {
+		ts_list_size = __resultsTS_JListModel.size();
 	}
 
 	// List in the order of the GUI.  Popup menu items are checked as needed mixed in below...
@@ -6325,23 +6203,6 @@ private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
 }
 
 /**
-Get a PropList with properties needed for an old-style editor.  Mainly this is
-the WorkingDir property, with a value determined from the initial working directory
-and subsequent setWorkingDir() commands prior to the command being edited.
-This is needed because old style editors get the information from a PropList that
-is passed to the editor.
-@param command_to_edit Command that is being edited.
-@return the PropList containing a valid WorkingDir value, accurate at for the context
-of the command being edited.
-*/
-private PropList ui_GetPropertiesForOldStyleEditor ( Command command_to_edit )
-{
-	PropList props = new PropList ( "" );
-	props.set ( "WorkingDir", commandProcessor_GetWorkingDirForCommand ( command_to_edit ) );
-	return props;
-}
-
-/**
 Initialize the GUI.
 @param show_main Indicates if the main interface should be shown.
 */
@@ -6599,46 +6460,40 @@ private void ui_InitGUI ( )
     
     // Results: Ensembles...
 
-    __results_tsensembles_JPanel = new JPanel();
-    __results_tsensembles_JPanel.setLayout(gbl);
+    __resultsTSEnsembles_JPanel = new JPanel();
+    __resultsTSEnsembles_JPanel.setLayout(gbl);
     /*
     __results_tsensembles_JPanel.setBorder(
         BorderFactory.createTitledBorder (
         BorderFactory.createLineBorder(Color.black),
         "Results: Ensembles of Time Series" ));
         */
-    __results_tsensembles_JListModel = new DefaultListModel();
-    __results_tsensembles_JList = new JList ( __results_tsensembles_JListModel );
-    __results_tsensembles_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
-    __results_tsensembles_JList.addKeyListener ( this );
-    __results_tsensembles_JList.addListSelectionListener ( this );
-    __results_tsensembles_JList.addMouseListener ( this );
-    JScrollPane results_tsensembles_JScrollPane = new JScrollPane ( __results_tsensembles_JList );
-    JGUIUtil.addComponent(__results_tsensembles_JPanel, results_tsensembles_JScrollPane, 
+    __resultsTSEnsembles_JListModel = new DefaultListModel();
+    __resultsTSEnsembles_JList = new JList ( __resultsTSEnsembles_JListModel );
+    __resultsTSEnsembles_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
+    __resultsTSEnsembles_JList.addKeyListener ( this );
+    __resultsTSEnsembles_JList.addListSelectionListener ( this );
+    __resultsTSEnsembles_JList.addMouseListener ( this );
+    JScrollPane results_tsensembles_JScrollPane = new JScrollPane ( __resultsTSEnsembles_JList );
+    JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, results_tsensembles_JScrollPane, 
         0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-    __results_JTabbedPane.addTab ( "Ensembles", __results_tsensembles_JPanel );
+    __results_JTabbedPane.addTab ( "Ensembles", __resultsTSEnsembles_JPanel );
     
     // Results: output files...
 
     JPanel results_files_JPanel = new JPanel();
     results_files_JPanel.setLayout(gbl);
-    /*
-    results_files_JPanel.setBorder(
-        BorderFactory.createTitledBorder (
-        BorderFactory.createLineBorder(Color.black),
-        "Results: Output Files" ));
-        */
     JGUIUtil.addComponent(center_JPanel, results_files_JPanel,
         0, 3, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
     JGUIUtil.addComponent(results_files_JPanel, new JLabel ("Output files:"),
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    __results_files_JListModel = new DefaultListModel();
-    __results_files_JList = new JList ( __results_files_JListModel );
-    __results_files_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
-    __results_files_JList.addKeyListener ( this );
-    __results_files_JList.addListSelectionListener ( this );
-    __results_files_JList.addMouseListener ( this );
-    JGUIUtil.addComponent(results_files_JPanel, new JScrollPane ( __results_files_JList ), 
+    __resultsOutputFiles_JListModel = new DefaultListModel();
+    __resultsOutputFiles_JList = new JList ( __resultsOutputFiles_JListModel );
+    __resultsOutputFiles_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
+    __resultsOutputFiles_JList.addKeyListener ( this );
+    __resultsOutputFiles_JList.addListSelectionListener ( this );
+    __resultsOutputFiles_JList.addMouseListener ( this );
+    JGUIUtil.addComponent(results_files_JPanel, new JScrollPane ( __resultsOutputFiles_JList ), 
         0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Output Files", results_files_JPanel );
     
@@ -6656,20 +6511,20 @@ private void ui_InitGUI ( )
     //    0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
     JGUIUtil.addComponent(results_tables_JPanel, new JLabel ("Tables:"),
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    __results_tables_JListModel = new DefaultListModel();
-    __results_tables_JList = new JList ( __results_tables_JListModel );
-    __results_tables_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
-    __results_tables_JList.addKeyListener ( this );
-    __results_tables_JList.addListSelectionListener ( this );
-    __results_tables_JList.addMouseListener ( this );
-    JGUIUtil.addComponent(results_tables_JPanel, new JScrollPane ( __results_tables_JList ), 
+    __resultsTables_JListModel = new DefaultListModel();
+    __resultsTables_JList = new JList ( __resultsTables_JListModel );
+    __resultsTables_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
+    __resultsTables_JList.addKeyListener ( this );
+    __resultsTables_JList.addListSelectionListener ( this );
+    __resultsTables_JList.addMouseListener ( this );
+    JGUIUtil.addComponent(results_tables_JPanel, new JScrollPane ( __resultsTables_JList ), 
         0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Tables", results_tables_JPanel );
     
 	// Results: time series...
 
-    __results_ts_JPanel = new JPanel();
-    __results_ts_JPanel.setLayout(gbl);
+    __resultsTS_JPanel = new JPanel();
+    __resultsTS_JPanel.setLayout(gbl);
     /*
 	__results_ts_JPanel.setBorder(
 		BorderFactory.createTitledBorder (
@@ -6679,20 +6534,20 @@ private void ui_InitGUI ( )
 	//JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
 	//	0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
-	__results_ts_JListModel = new DefaultListModel();
-	__results_ts_JList = new JList ( __results_ts_JListModel );
-	__results_ts_JList.addKeyListener ( this );
-	__results_ts_JList.addListSelectionListener ( this );
-	__results_ts_JList.addMouseListener ( this );
-	JScrollPane results_ts_JScrollPane = new JScrollPane ( __results_ts_JList );
-	JGUIUtil.addComponent(__results_ts_JPanel, results_ts_JScrollPane, 
+	__resultsTS_JListModel = new DefaultListModel();
+	__resultsTS_JList = new JList ( __resultsTS_JListModel );
+	__resultsTS_JList.addKeyListener ( this );
+	__resultsTS_JList.addListSelectionListener ( this );
+	__resultsTS_JList.addMouseListener ( this );
+	JScrollPane results_ts_JScrollPane = new JScrollPane ( __resultsTS_JList );
+	JGUIUtil.addComponent(__resultsTS_JPanel, results_ts_JScrollPane, 
 		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-    __results_JTabbedPane.addTab ( "Time Series", __results_ts_JPanel );
+    __results_JTabbedPane.addTab ( "Time Series", __resultsTS_JPanel );
     
     // Default to time series selected since that is what most people have seen with previous
     // TSTool versions...
     
-    __results_JTabbedPane.setSelectedComponent ( __results_ts_JPanel );
+    __results_JTabbedPane.setSelectedComponent ( __resultsTS_JPanel );
 	
 	// Popup menu for the time series results list...
 	ui_InitGUIMenus_ResultsPopup ();
@@ -7748,9 +7603,10 @@ private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar )
 
 	__Edit_JMenu.addSeparator( );
 
-	__Edit_JMenu.add( __Edit_CommandFile_JMenuItem = new SimpleJMenuItem (__Edit_CommandFile_String, this ) );
 	__Edit_JMenu.add(
-		__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(__Edit_CommandWithErrorChecking_String, this ) );
+	    __Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(__Edit_CommandWithErrorChecking_String, this ) );
+	__Edit_JMenu.add( __Edit_CommandFile_JMenuItem = new SimpleJMenuItem (__Edit_CommandFile_String, this ) );
+
 	__Edit_JMenu.addSeparator( );
 	__Edit_JMenu.add(__Edit_ConvertSelectedCommandsToComments_JMenuItem=
 		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsToComments_String, this ) );
@@ -8021,38 +7877,38 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 Define the popup menus for results.
 */
 private void ui_InitGUIMenus_ResultsPopup ()
-{	__results_ts_JPopupMenu = new JPopupMenu("TS Results Actions");
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsLeft_String, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsCenter_String,this));
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsRight_String, this ));
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Duration_String, this ));
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_LineLogY_String, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PeriodOfRecord_String, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Point_String, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValue_String, this));
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValueResidual_String, this));
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_XYScatter_String, this));
-	__results_ts_JPopupMenu.addSeparator();
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Table_String, this ) );
-	__results_ts_JPopupMenu.addSeparator();
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_Report_Summary_String, this ) );
-	__results_ts_JPopupMenu.addSeparator();
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_FindTimeSeries_String, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_SELECT_ALL, this ) );
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_DESELECT_ALL, this ) );
-	__results_ts_JPopupMenu.addSeparator();
-	__results_ts_JPopupMenu.add( new SimpleJMenuItem ( __Results_TimeSeriesProperties_String, this ) );
+{	__resultsTS_JPopupMenu = new JPopupMenu("TS Results Actions");
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsLeft_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsCenter_String,this));
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsRight_String, this ));
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Duration_String, this ));
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_LineLogY_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PeriodOfRecord_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Point_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValue_String, this));
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValueResidual_String, this));
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_XYScatter_String, this));
+	__resultsTS_JPopupMenu.addSeparator();
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Table_String, this ) );
+	__resultsTS_JPopupMenu.addSeparator();
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Report_Summary_String, this ) );
+	__resultsTS_JPopupMenu.addSeparator();
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_FindTimeSeries_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_SELECT_ALL, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_DESELECT_ALL, this ) );
+	__resultsTS_JPopupMenu.addSeparator();
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_TimeSeriesProperties_String, this ) );
     
     ActionListener_ResultsEnsembles ens_l = new ActionListener_ResultsEnsembles();
-    __results_tsensembles_JPopupMenu = new JPopupMenu("Ensembles Results Actions");
+    __resultsTSEnsembles_JPopupMenu = new JPopupMenu("Ensembles Results Actions");
     /* TODO SAM 2008-01-05 Evaluate what to enable, maybe add exceedance plot, etc.
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsLeft_String, this ) );
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsCenter_String,this));
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsRight_String, this ));
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Duration_String, this ));
     */
-    __results_tsensembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, ens_l ) );
+    __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, ens_l ) );
     /*
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_LineLogY_String, this ) );
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PeriodOfRecord_String, this ) );
@@ -8261,7 +8117,7 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad )
     }
     catch ( IOException e ) {
         Message.printWarning ( 1, routine, "Error reading command file \"" + commandFile +
-                "\".  List of commands may be incomplete." );
+            "\".  List of commands may be incomplete." );
         Message.printWarning ( 3, routine, e );
         // Previous contents will remain.
         return;
@@ -8673,21 +8529,22 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 	
 	// Results (currently only update title for time series tab...
 	
-	selected_indices = __results_ts_JList.getSelectedIndices();
+	selected_indices = __resultsTS_JList.getSelectedIndices();
 	selected_size = 0;
 	if ( selected_indices != null ) {
 		selected_size = selected_indices.length;
 	}
-	if ( __results_ts_JPanel != null ) {
-        	__results_ts_JPanel.setBorder(
+	if ( __resultsTS_JPanel != null ) {
+        	__resultsTS_JPanel.setBorder(
 			BorderFactory.createTitledBorder (
 			BorderFactory.createLineBorder(Color.black),
 			//"Results: Time Series (" +	
-            "" + __results_ts_JListModel.size() + " time series, " + selected_size + " selected") );
+            "" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
 	}
 	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
 	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null,
 	//			__STATUS_READY );
+	// FIXME SAM 2008-11-11 Why is this called no matter what is passed in for the parameter?
 	ui_CheckGUIState ();
 }
 
@@ -8750,10 +8607,10 @@ throws Exception
 		commandList_RemoveCommandsBasedOnUI();
 	}
 	else if (command.equals(BUTTON_TS_SELECT_ALL) ) {
-		JGUIUtil.selectAll ( __results_ts_JList );
+		JGUIUtil.selectAll ( __resultsTS_JList );
 	}
 	else if (command.equals(BUTTON_TS_DESELECT_ALL) ) {
-		__results_ts_JList.clearSelection();
+		__resultsTS_JList.clearSelection();
 	}
 	else {
         // Chain to the next method...
@@ -9162,7 +9019,7 @@ throws Exception
 	}
     else if ( o == __File_SetWorkingDirectory_JMenuItem ) {
 		JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle( "Set the Working Directory (normally only use if a commands file was not opened or saved)");
+		fc.setDialogTitle( "Set the Working Directory (normally only use if a command file was not opened or saved)");
 		fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
 		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			String directory = fc.getSelectedFile().getPath();
@@ -9998,17 +9855,17 @@ throws Exception
 	// Only on View pop-up...
 
 	else if (command.equals(__Results_FindTimeSeries_String) ) {
-		new FindInJListJDialog ( this, false, __results_ts_JList, "Find Time Series" );
+		new FindInJListJDialog ( this, false, __resultsTS_JList, "Find Time Series" );
 	}
     else if ( command.equals(__Results_TimeSeriesProperties_String) ) {
 		// Get the first time series selected in the view window...
 		if ( __tsProcessor != null ) {
 			int pos = 0;
-			if ( JGUIUtil.selectedSize(__results_ts_JList) == 0 ) {
+			if ( JGUIUtil.selectedSize(__resultsTS_JList) == 0 ) {
 				pos = 0;
 			}
 			else {
-                pos = JGUIUtil.selectedIndex(__results_ts_JList,0);
+                pos = JGUIUtil.selectedIndex(__resultsTS_JList,0);
 			}
 			// Now display the properties...
 			if ( pos >= 0 ) {
@@ -10641,12 +10498,12 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 	// Final list is selected...
 	 if ( __tsProcessor != null ) {
 		try {
-            int selected_ts = JGUIUtil.selectedSize(__results_ts_JList);
+            int selected_ts = JGUIUtil.selectedSize(__resultsTS_JList);
 			if ( selected_ts == 0 ) {
 				commandProcessor_ProcessTimeSeriesResultsList(null,props);
 			}
 			else {
-                commandProcessor_ProcessTimeSeriesResultsList (	__results_ts_JList.getSelectedIndices(), props );
+                commandProcessor_ProcessTimeSeriesResultsList (	__resultsTS_JList.getSelectedIndices(), props );
 			}
 		}
 		catch ( Exception e ) {
@@ -12450,12 +12307,12 @@ private void uiAction_GraphEnsembleResults ( String graph_type )
         // Final list is selected...
         if ( __tsProcessor != null ) {
             try {
-                int selected_tsensembles = JGUIUtil.selectedSize(__results_tsensembles_JList);
+                int selected_tsensembles = JGUIUtil.selectedSize(__resultsTSEnsembles_JList);
                 if ( selected_tsensembles == 0 ) {
                     commandProcessor_ProcessEnsembleResultsList ( null, props );
                 }
                 else {
-                    commandProcessor_ProcessEnsembleResultsList ( __results_tsensembles_JList.getSelectedIndices(), props );
+                    commandProcessor_ProcessEnsembleResultsList ( __resultsTSEnsembles_JList.getSelectedIndices(), props );
                 }
             }
             catch ( Exception e ) {
@@ -12496,12 +12353,12 @@ private void uiAction_GraphTimeSeriesResults ( String graph_type, String params 
 		// Final list is selected...
 		if ( __tsProcessor != null ) {
 			try {
-                int selected_ts=JGUIUtil.selectedSize(__results_ts_JList);
+                int selected_ts=JGUIUtil.selectedSize(__resultsTS_JList);
 				if ( selected_ts == 0 ) {
 					commandProcessor_ProcessTimeSeriesResultsList (	null, props );
 				}
 				else {
-                    commandProcessor_ProcessTimeSeriesResultsList (	__results_ts_JList.getSelectedIndices(), props );
+                    commandProcessor_ProcessTimeSeriesResultsList (	__resultsTS_JList.getSelectedIndices(), props );
 				}
 			}
 			catch ( Exception e ) {
@@ -12692,6 +12549,19 @@ private void uiAction_InputTypeChoiceClicked()
     else if ( __selected_input_type.equals ( __INPUT_TYPE_HECDSS ) ) {
         // Prompt for a HEC-DSS file and update choices...
         uiAction_SelectInputName_HECDSS ( true );
+        // TODO SAM 2008-11-18 Empty and disable the data type and time step for now
+        // Later need to add a filter with choices from the file.
+        __data_type_JComboBox.setEnabled ( false );
+        __data_type_JComboBox.removeAll ();
+        __time_step_JComboBox.setEnabled ( false );
+        __time_step_JComboBox.removeAll ();
+        // Initialize with blank data vector...
+
+        __query_TableModel = new TSTool_TS_TableModel ( null, true );
+        TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+        __query_JWorksheet.setCellRenderer ( cr );
+        __query_JWorksheet.setModel ( __query_TableModel );
+        __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
     }
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
 		// Input name cleared and disabled...
@@ -12728,8 +12598,7 @@ private void uiAction_InputTypeChoiceClicked()
 			__query_JWorksheet.setColumnWidths (cr.getColumnWidths() );
 		}
 		catch ( Exception e ) {
-			// Absorb the exception in most cases - print if
-			// developing to see if this issue can be resolved.
+			// Absorb the exception in most cases - print if developing to see if this issue can be resolved.
 			if ( Message.isDebugOn && IOUtil.testing()  ) {
 				Message.printWarning ( 3, routine,
 				"For developers:  caught exception blanking HydroBase JWorksheet at setup." );
@@ -13042,9 +12911,9 @@ private void uiAction_InputTypeChoiceClicked()
 }
 
 /**
-Create a new commands file.  If any existing commands have been modified the
+Create a new command file.  If any existing commands have been modified the
 user has the option of saving.  Then, the existing commands are cleared and the
-commands file name is reset to null.
+command file name is reset to null.
 */
 private void uiAction_NewCommandFile ()
 {   // See whether the old commands need to be saved/cleared...
@@ -13745,21 +13614,10 @@ private void uiAction_RunCommands ( boolean runAllCommands, boolean createOutput
 	// Get commands to run (all or selected)...
 	Vector commands = commandList_GetCommands ( runAllCommands );
 	// The limits of the command progress bar are handled in commandStarted().
-	// Run the commands in the processor instance.
-	if ( ui_Property_RunCommandProcessorInThread() ) {
-		// Run the commands in a thread.
-		commandProcessor_RunCommandsThreaded ( commands, createOutput );
-		// List of time series is displayed when CommandProcessorListener
-		// detects that the last command is complete.
-	}
-	else {
-		// Run the commands in the current thread (the GUI will be unresponsive during this time).
-		JGUIUtil.setWaitCursor ( this, true );
-		commandProcessor_RunCommands ( __tsProcessor, commands, createOutput );
-		// Display the list of time series...
-		uiAction_RunCommands_ShowResults ();
-		JGUIUtil.setWaitCursor ( this, false );
-	}
+	// Run the commands in a thread.
+	commandProcessor_RunCommandsThreaded ( commands, createOutput );
+	// List of time series is displayed when CommandProcessorListener
+	// detects that the last command is complete.
 }
 
 /**
@@ -13776,13 +13634,13 @@ private void uiAction_RunCommands_ShowResults()
 	Runnable r = new Runnable() {
 		public void run() {
             // Close the regression results report if it is open (have to do here because
-            // layers of recursion can occur when running a commands file)...
+            // layers of recursion can occur when running a command file)...
             TSCommandProcessorUtil.closeRegressionTestReportFile();
 			results_Clear();
-			uiAction_RunCommands_ShowResultsTimeSeries(); // JList
-            uiAction_RunCommands_ShowResultsTables(); // JComboBox
-			uiAction_RunCommands_ShowResultsOutputFiles(); // JComboBox
-            uiAction_RunCommands_ShowResultsEnsembles(); // JList
+			uiAction_RunCommands_ShowResultsTimeSeries();
+            uiAction_RunCommands_ShowResultsTables();
+			uiAction_RunCommands_ShowResultsOutputFiles();
+            uiAction_RunCommands_ShowResultsEnsembles();
             
             // Repaint the list to reflect the status of the commands...
             ui_ShowCurrentCommandListStatus ();
@@ -13964,7 +13822,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 		}
 	}
 	// Now actually select the time series in the visual output...
-	__results_ts_JList.setSelectedIndices ( selected );
+	__resultsTS_JList.setSelectedIndices ( selected );
 	ui_UpdateStatus ( false );
 	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
 			__STATUS_READY );
@@ -14203,7 +14061,6 @@ throws Exception
 
     __data_type_JComboBox.setEnabled ( true );
     __data_type_JComboBox.removeAll ();
-    String extension = IOUtil.getFileExtension ( input_name );
 
     Vector data_types = new Vector();
     int interval_base = TimeInterval.MONTH; // Default
@@ -15423,7 +15280,7 @@ Show an output file using the appropriate display software/editor.
 @param selected Path to selected output file.
 */
 private void uiAction_ShowResultsOutputFile ( String selected )
-{   String routine = getClass().getName() + ".uiAction_ShowOutputFile";
+{   String routine = getClass().getName() + ".uiAction_ShowResultsOutputFile";
     if ( selected == null ) {
         // May be the result of some UI event...
         return;
@@ -16204,13 +16061,12 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 	"Transferring all time series to commands (" + nrows + " in list)..." );
 	JGUIUtil.setWaitCursor ( this, true );
 	int iend = nrows - 1;
-	ui_SetIgnoreListSelectionEvent ( true );	// To increase performance
-						// during transfer...
+	ui_SetIgnoreListSelectionEvent ( true ); // To increase performance during transfer...
 	ui_SetIgnoreItemEvent ( true );	// To increase performance
 	for ( int i = 0; i < nrows; i++ ) {
 		// Only force the GUI state to be updated if the last item.
 		if ( i == iend ) {
-			__ignore_ListSelectionEvent = false;
+			ui_SetIgnoreListSelectionEvent ( false );
 			__ignore_ItemEvent = false;
 			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, true );
 		}
@@ -16255,7 +16111,8 @@ value that is passed.  An extension of .TSTool is enforced.
 @param file Command file to write.
 */
 private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
-{	String directory = null;
+{	String routine = "TSTool_JFrame.uiAction_WriteCommandFile";
+    String directory = null;
 	if ( prompt_for_file ) {
 		JFileChooser fc = JFileChooserFactory.createJFileChooser(ui_GetDir_LastCommandFileOpened() );
 		fc.setDialogTitle("Save Command File");
@@ -16297,7 +16154,7 @@ private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
 		}
 	}
 	catch ( Exception e ) {
-		Message.printWarning (1, "writeCommandFile", "Error writing file:\n\"" + file + "\"");
+		Message.printWarning (1, routine, "Error writing file:\n\"" + file + "\"");
 		// Leave the dirty flag the previous value.
 	}
 	// Update the status information...
@@ -16308,38 +16165,37 @@ private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
 Handle ListSelectionListener events.
 */
 public void valueChanged ( ListSelectionEvent e )
-{	// For now just want to know when something changes so the GUI state can be checked...
-	// e.getSource() apparently does not return __commands_JList - it must
+{	// e.getSource() apparently does not return __commands_JList - it must
 	// return a different component so don't check the object address...
-	if ( __ignore_ListSelectionEvent ) {
+	if ( ui_GetIgnoreListSelectionEvent() ) {
 		return;
 	}
     Object component = e.getSource();
-    if ( component == __results_tsensembles_JList ) {
+    if ( component == __resultsTSEnsembles_JList ) {
         //Message.printStatus(2, "", "Ensemble selected in list");
     }
-    else if ( component == __results_files_JList ) {
+    else if ( component == __resultsOutputFiles_JList ) {
         if ( !e.getValueIsAdjusting() ) {
             // User is done adjusting selection so do the display...
-            ListSelectionModel lsm = __results_files_JList.getSelectionModel();
+            ListSelectionModel lsm = __resultsOutputFiles_JList.getSelectionModel();
             int minIndex = lsm.getMinSelectionIndex();
             int maxIndex = lsm.getMaxSelectionIndex();
             for (int i = minIndex; i <= maxIndex; i++) {
                 if (lsm.isSelectedIndex(i)) {
-                    uiAction_ShowResultsOutputFile( (String)__results_files_JListModel.elementAt(i) );
+                    uiAction_ShowResultsOutputFile( (String)__resultsOutputFiles_JListModel.elementAt(i) );
                 }
             }
         }
     }
-    else if ( component == __results_tables_JList ) {
+    else if ( component == __resultsTables_JList ) {
         if ( !e.getValueIsAdjusting() ) {
             // User is done adjusting selection so do the display...
-            ListSelectionModel lsm = __results_tables_JList.getSelectionModel();
+            ListSelectionModel lsm = __resultsTables_JList.getSelectionModel();
             int minIndex = lsm.getMinSelectionIndex();
             int maxIndex = lsm.getMaxSelectionIndex();
             for (int i = minIndex; i <= maxIndex; i++) {
                 if (lsm.isSelectedIndex(i)) {
-                    uiAction_ShowResultsTable( (String)__results_tables_JListModel.elementAt(i) );
+                    uiAction_ShowResultsTable( (String)__resultsTables_JListModel.elementAt(i) );
                 }
             }
         }
