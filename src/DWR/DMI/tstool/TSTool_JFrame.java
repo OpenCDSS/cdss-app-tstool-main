@@ -8352,8 +8352,7 @@ private void ui_SetInputFilters()
 /**
 Set the __input_type_JComboBox contents based on the configuration information.
 If an input type is a database, only add if a non-null connection is available.
-Later, database connections may also be named, in which case more checks will
-need to be done.
+Later, database connections may also be named, in which case more checks will need to be done.
 */
 private void ui_SetInputTypeChoices ()
 {	//Message.printStatus ( 1, "", "SAMX - setting input type choices..." );
@@ -8423,8 +8422,13 @@ private void ui_SetInputTypeChoices ()
 
 	ui_SetIgnoreItemEvent ( false );
 
-	if ( __source_HydroBase_enabled ) {
-		// If enabled, select it because the users probably want it as the choice...
+    if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
+        // If enabled and available, select it because the users probably want it as the choice...
+        __input_type_JComboBox.select( null );
+        __input_type_JComboBox.select( __INPUT_TYPE_RiversideDB );
+    }
+    else if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
+		// If enabled and available, select it because the users probably want it as the choice...
 		__input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
 	}
@@ -8663,8 +8667,7 @@ throws Exception
 		}
 	}
 	else if ( command.equals ( __File_Open_RiversideDB_String )) {
-		// Read a RiverTrak config file, get the RiversideDB properties,
-		// and open the database...
+		// Read a RiverTrak config file, get the RiversideDB properties, and open the database...
 		JFileChooser fc = JFileChooserFactory.createJFileChooser( JGUIUtil.getLastFileDialogDirectory() );
 		fc.setDialogTitle( "Select a RiverTrak or TSTool Configuration File" );
 		SimpleFileFilter sff = new SimpleFileFilter ( "cfg", "RiverTrak/TSTool Configuration File" );
@@ -8673,8 +8676,7 @@ throws Exception
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
 			return;
 		}
-		// Don't save the directory because it is probably a one-off
-		// selection and won't be picked again.
+		// Don't save the directory because it is probably a one-off selection and won't be picked again.
 		String path = fc.getSelectedFile().getPath();
 		// Read into a PropList...
 		PropList rprops = new PropList("");
@@ -13309,6 +13311,9 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 			// Ignore - any reason not to?
 		}
 	}
+	
+    boolean ShowLoginDialog_boolean = true; // Default is to ask user to login
+    
 	try {
         String	connect_method = null,
 			database_engine = null,
@@ -13318,20 +13323,19 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 			system_login = null,
 			system_password = null;
 		int error_count = 0;
-		int needed_prop_count = 0;		// For a connection
-							// method, how many
-							// needed props are
-							// found
+		int needed_prop_count = 0; // For a connection method, how many needed props are found
 
 		// Get the database connect method (optional - will default)...
 
 		if ( props == null ) {
 			connect_method = TSToolMain.getPropValue("RiversideDB.JavaConnectMethod");
 		}
-		else {	// Newer...
+		else {
+		    // Newer...
 			connect_method = props.getValue("RiversideDB.JavaConnectMethod");
 		}
 		if ( connect_method == null ) {
+		    // Default should work in most cases because phasing out ODBC DSN specification.
 			connect_method = "JDBCODBC";
 		}
 
@@ -13344,7 +13348,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
             database_engine = props.getValue("RiversideDB.DatabaseEngine");
 		}
 		if ( database_engine == null ) {
-			errors += "\nRiversideDB.DatabaseEngine is not defined.";
+			errors += "\nRiversideDB.DatabaseEngine is not defined in configuration information.";
 			++error_count;
 		}
 		else {
@@ -13362,7 +13366,16 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
                 database_server = props.getValue( "RiversideDB.JavaDatabaseServer");
 			}
 			if ( database_server == null ) {
-				errors += "\nRiversideDB.JavaDatabaseServer is not defined.";
+			    // Try more generic properties (should work for most configurations)
+	            if ( props == null ) {
+	                database_server = TSToolMain.getPropValue( "RiversideDB.DatabaseServer" );
+	            }
+	            else {
+	                database_server = props.getValue( "RiversideDB.DatabaseServer");
+	            }
+			}
+			if ( database_server == null ) {
+				errors += "\nRiversideDB.DatabaseServer is not defined in configuration information.";
 				++error_count;
 			}
 			else {
@@ -13370,8 +13383,7 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 			}
 		}
 
-		// The database name is used for both "ODBC" and "JDBCODBC"
-		// connect methods (required)...
+		// The database name is used for both "ODBC" and "JDBCODBC" connect methods (required)...
 
 		if ( props == null ) {
 			database_name = TSToolMain.getPropValue("RiversideDB.JavaDatabase" );
@@ -13379,16 +13391,24 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		else {
             database_name = props.getValue(	"RiversideDB.JavaDatabase" );
 		}
+        if ( database_name == null ) {
+            // Try more generic properties (should work for most configurations)
+            if ( props == null ) {
+                database_name = TSToolMain.getPropValue( "RiversideDB.Database" );
+            }
+            else {
+                database_name = props.getValue( "RiversideDB.Database");
+            }
+        }
 		if ( database_name == null ) {
-			errors += "\nRiversideDB.JavaDatabase is not defined.";
+			errors += "\nRiversideDB.Database is not defined in configuration information.";
 			++error_count;
 		}
 		else {
             ++needed_prop_count;
 		}
 
-		// Now get the system login and password to use
-		// (optional - will default)...
+		// Now get the system login and password to use (optional - will default)...
 
 		if ( props == null ) {
 			// Newer...
@@ -13398,7 +13418,8 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 				system_login = TSToolMain.getPropValue("RiversideDB.Login");
 			}
 		}
-		else {	// Newer...
+		else {
+		    // Newer...
 			system_login=props.getValue("RiversideDB.SystemLogin");
 			if ( system_login == null ) {
 				// Older...
@@ -13413,25 +13434,34 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 				system_password = TSToolMain.getPropValue("RiversideDB.Password");
 			}
 		}
-		else {	// Newer...
+		else {
+		    // Newer...
 			system_password = props.getValue("RiversideDB.SystemPassword");
 			if ( system_password == null ) {
 				// Older...
 				system_password = props.getValue("RiversideDB.Password");
 			}
 		}
+		
+		// Determine whether a login dialog should be shown
+		String ShowLoginDialog = null;
+        if ( props == null ) {
+            ShowLoginDialog = TSToolMain.getPropValue("RiversideDB.ShowLoginDialog" );
+        }
+        else {
+            ShowLoginDialog = props.getValue("RiversideDB.DShowLoginDialog");
+        }
+        if ( (ShowLoginDialog != null) && ShowLoginDialog.equalsIgnoreCase("false") ) {
+            ShowLoginDialog_boolean = false;
+        }
 
 		// Check for configuration errors...
 
 		if ( error_count > 0 ) {
 			if ( !startup || (startup && (needed_prop_count > 0) ) ) {
-				// A startup condition where RiversideDB
-				// properties have been given that are incorrect
-				// and should be corrected... OR...
-				// A startup condition where RiversideDB
-				// properties are not given - no error because
-				// we expect the user to specify connection
-				// information later.
+				// A startup condition where RiversideDB properties have been given that are incorrect
+				// and should be corrected... OR... A startup condition where RiversideDB properties
+				// are not given - no error because expect the user to specify connection information later.
 				errors += "\n\nError in RiversideDB configuration properties.";
 				errors += "\nUnable to open RiversideDB database.";
 				Message.printWarning ( 1, routine, errors );
@@ -13443,13 +13473,10 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 		// Construct a new DMI...
 
 		if ( connect_method.equalsIgnoreCase("ODBC") ) {
-			__rdmi = new RiversideDB_DMI ( database_engine,
-					database_name, system_login,
-					system_password );
+			__rdmi = new RiversideDB_DMI ( database_engine, database_name, system_login, system_password );
 		}
 		else {
-            __rdmi = new RiversideDB_DMI ( database_engine,
-					database_server, database_name,
+            __rdmi = new RiversideDB_DMI ( database_engine, database_server, database_name,
 					-1, system_login, system_password );
 		}
 
@@ -13459,9 +13486,8 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 	catch ( Exception e ) {
 		Message.printWarning ( 1, routine, "Unable to open RiversideDB database. ");
 		Message.printWarning( 2, routine, e );
-		// Set the DMI to null so that features will be turned on but
-		// still allow the RiversideDB input type to be enabled so that
-		// it can be tried again.
+		// Set the DMI to null so that features will be turned on but still allow the RiversideDB
+		// input type to be enabled so that it can be tried again.
 		__rdmi = null;
 	}
 
@@ -13469,32 +13495,32 @@ private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
 
 	ui_CheckRiversideDBFeatures ();
 
-	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
-	try {
-		while (login != LoginJDialog.LOGIN_CANCELLED 
-		    && login != LoginJDialog.LOGIN_OK) {
-			login = new LoginJDialog(this, "Riverside Login", 
-				__rdmi).response();
-		}
-	}
-	catch (Exception e) {
-		Message.printWarning(2, routine, "Error opening login dialog.");
-		Message.printWarning(2, routine, e);
-		login = LoginJDialog.LOGIN_CANCELLED;
-	}
-
-	if (login == LoginJDialog.LOGIN_CANCELLED) {
-		new ResponseJDialog(this, "Login Cancelled",
-			"RiversideDB login was cancelled.  Some capabilities "
-			+ "(such as\nsaving and editing TSProducts) will be "
-			+ "disabled.  However,\nthe connection to the "
-			+ "database was still established.", 
-			ResponseJDialog.OK);
-	}
+    if ( !startup || (startup && ShowLoginDialog_boolean) ) {
+        // Need to show the login dialog to let the user specify the RiversideDB login
+    	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
+    	try {
+    		while (login != LoginJDialog.LOGIN_CANCELLED 
+    		    && login != LoginJDialog.LOGIN_OK) {
+    			login = new LoginJDialog(this, "RiversideDB Login", __rdmi).response();
+    		}
+    	}
+    	catch (Exception e) {
+    		Message.printWarning(2, routine, "Error opening login dialog.");
+    		Message.printWarning(2, routine, e);
+    		login = LoginJDialog.LOGIN_CANCELLED;
+    	}
+    
+    	if (login == LoginJDialog.LOGIN_CANCELLED) {
+    		new ResponseJDialog(this, "Login Cancelled",
+    			"RiversideDB login was cancelled.  Editing and saving capabilities will be disabled.\n" +
+    			"However, the connection to the database was still established for reading data.", 
+    			ResponseJDialog.OK);
+    	}
+    }
     
     // Set the HydroBaseDMI for the command processor...
     commandProcessor_SetRiversideDB_DMI ( __rdmi );
-    // Enable/disable HydroBase features as necessary...
+    // Enable/disable RiversideDB features as necessary...
     ui_CheckRiversideDBFeatures();
 }
 
