@@ -169,6 +169,7 @@ Section "TSTool" TSTool
 
     !ifndef TEST
         File /r "${INST_BUILD_DIR}\bin"
+        File /r "${INST_BUILD_DIR}\examples"
         File /r "${INST_BUILD_DIR}\system"
     !endif
     
@@ -317,11 +318,12 @@ Section "Uninstall"
     
     DetailPrint "Removing ${CODENAME}"
     # Remove files from install directory
-    RmDir /r /REBOOTOK $INSTDIR\doc
-    RmDir /r /REBOOTOK $INSTDIR\system
     RmDir /r /REBOOTOK $INSTDIR\bin
+    RmDir /r /REBOOTOK $INSTDIR\doc
+    RmDir /r /REBOOTOK $INSTDIR\examples
     RmDir /r /REBOOTOK $INSTDIR\logs
     RmDir /r /REBOOTOK $INSTDIR\python
+    RmDir /r /REBOOTOK $INSTDIR\system
     
     !ifdef FILE_EXT
         DetailPrint "Unregister file extensions"
