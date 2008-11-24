@@ -1,0 +1,37 @@
+# Command file to generate example DateValue time series files from the State of
+# Colorado's HydroBase database.
+#
+# Monthly data
+SetOutputPeriod(OutputStart="2000-01",OutputEnd="2004-12")
+# 06754000 - SOUTH PLATTE RIVER NEAR KERSEY, CO
+06754000.DWR.Streamflow.Month~HydroBase
+# 0100501 - EMPIRE DITCH
+0100501.DWR.DivTotal.Month~HydroBase
+WriteDateValue(OutputFile="ExampleMonth.dv",Precision=2,TSList=AllMatchingTSID,TSID="*Month*")
+#
+# Daily data - note diversions have data flags
+SetOutputPeriod(OutputStart="2000-01-01",OutputEnd="2000-03-15")
+# 06754000 - SOUTH PLATTE RIVER NEAR KERSEY, CO
+06754000.DWR.Streamflow.Day~HydroBase
+# 0100501 - EMPIRE DITCH
+0100501.DWR.DivTotal.Day~HydroBase
+WriteDateValue(OutputFile="ExampleDay.dv",Precision=2,TSList=AllMatchingTSID,TSID="*Day*")
+#
+# Yearly data
+SetOutputPeriod(OutputStart="1995",OutputEnd="2005")
+# 06754000 - SOUTH PLATTE RIVER NEAR KERSEY, CO
+TS 06754000_Year = ChangeInterval(TSID="06754000.DWR.Streamflow.Month",NewInterval=Year,OldTimeScale=ACCM,NewTimeScale=ACCM)
+# 0100501 - EMPIRE DITCH
+TS 0100501_Year = ChangeInterval(TSID="0100501.DWR.DivTotal.Month",NewInterval=Year,OldTimeScale=ACCM,NewTimeScale=ACCM)
+WriteDateValue(OutputFile="ExampleYear.dv",Precision=2,TSList=AllMatchingTSID,TSID="*Year*")
+#
+# Irregular data to show hour and minute in dates
+# Actually in HydroBase all real-time data are treated as irregular because
+# a regular interval cannot be determined from the current design.
+# Set the output period to empty because it will cause an error for irregular
+# time series but do set the input period to limit the query.
+SetOutputPeriod()
+SetInputPeriod(InputStart="2004-01-01 00:00",InputEnd="2004-01-15 12:00")
+# 06754000 - SOUTH PLATTE RIVER NEAR KERSEY, CO
+06754000.DWR.Streamflow-DISCHRG.Irregular~HydroBase
+WriteDateValue(OutputFile="ExampleIrregular.dv",Precision=2,TSList=AllMatchingTSID,TSID="*Irregular*")
