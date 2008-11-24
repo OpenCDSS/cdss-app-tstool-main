@@ -1265,7 +1265,8 @@ private JMenuItem
 private JMenu		
 	__Help_JMenu = null;
 private JMenuItem
-	__Help_AboutTSTool_JMenuItem = null;
+	__Help_AboutTSTool_JMenuItem = null,
+	__Help_ImportConfiguration_JMenuItem = null;
 
 private final static int
 			__UPDATE_COMMAND = 1,	// Update command.
@@ -1614,6 +1615,7 @@ private String
 
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
+		__Help_ImportConfiguration_String = "Import Configuration...",
 
 	// Strings used in popup menu for other components...
 
@@ -2020,8 +2022,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		Message.printWarning ( 3, rtn, e );
 	}
 	// TODO SAM 2007-01-23 Evaluate use.
-	// Force everything to refresh based on the current GUI layout.
-	// Still evaluating this.
+	// Force everything to refresh based on the current GUI layout.  Still evaluating this.
 	this.invalidate ();
 	JGUIUtil.setWaitCursor ( this, false );
 
@@ -2032,8 +2033,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// If running with a command file from the command line, we don't
 	// normally want to see the main window so handle with a special case...
 
-	// TSTool has been started with a command file so try to open and display
-	// It should already be absolute
+	// TSTool has been started with a command file so try to open and display.  It should already be absolute.
 	if ( (command_file != null) && (command_file.length() > 0) ) {
 	    ui_LoadCommandFile ( command_file, run_on_load );
 	}
@@ -2061,7 +2061,7 @@ public void actionPerformed (ActionEvent event)
 	catch ( Exception e ) {
 		// Unexpected exception - user will likely see no result from their action.
 		String routine = getClass().getName() + ".actionPerformed";
-			Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 2, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 }
@@ -2093,8 +2093,7 @@ public void commandCancelled ( int icommand, int ncommand, Command command,
 }
 
 /**
-Indicate that a command has completed.  The success/failure of the command
-is not indicated (see CommandStatusProvider).
+Indicate that a command has completed.  The success/failure of the command is not indicated (see CommandStatusProvider).
 @param icommand The command index (0+).
 @param ncommand The total number of commands to process
 @param command The reference to the command that is starting to run,
@@ -2105,8 +2104,7 @@ no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandCompleted ( int icommand, int ncommand, Command command,
-		float percent_complete, String message )
+public void commandCompleted ( int icommand, int ncommand, Command command, float percent_complete, String message )
 {	String routine = "TSTool_JFrame.commandCompleted";
 	// Update the progress bar to indicate progress (1 to number of commands... completed).
 	__processor_JProgressBar.setValue ( icommand + 1 );
@@ -2186,8 +2184,7 @@ private boolean commandList_CommandsAreEqual(Vector original_command, Vector edi
 /**
 Return the command(s) that are currently selected in the final list.
 If the command contains only comments, they are all returned.  If it contains
-commands and time series identifiers, only the first command (or time series
-identifier) is returned.
+commands and time series identifiers, only the first command (or time series identifier) is returned.
 @return selected commands in final list or null if none are selected.
 Also return null if more than one command is selected.
 */
@@ -2310,12 +2307,9 @@ private void commandList_EditCommand ( String action, Vector command_Vector, int
 	// First make sure we have a Command object to edit.  If an old-style command
 	// then it will be stored in a GenericCommand.
 	// The Command object is inserted in the processor in any case, to take advantage
-	// of processor information (such as being able to get the time series identifiers
-	// from previous commands.
-	// If a new command is being inserted and a cancel occurs, the command will simply
-	// be removed from the list.
-	// If an existing command is being updated and a cancel occurs, the changes need to
-	// be ignored.
+	// of processor information (such as being able to get the time series identifiers from previous commands.
+	// If a new command is being inserted and a cancel occurs, the command will simply be removed from the list.
+	// If an existing command is being updated and a cancel occurs, the changes need to be ignored.
 	
 	Command command_to_edit_original = null;	// Command being edited (original).
 	Command command_to_edit = null;	// Command being edited (clone).
@@ -2345,8 +2339,7 @@ private void commandList_EditCommand ( String action, Vector command_Vector, int
 			// Don't do anything here.  New comments will be inserted in code below.
 		}
 		else {
-			// New command so create a command as a place-holder for
-			// editing (filled out during the editing).
+			// New command so create a command as a place-holder for editing (filled out during the editing).
 			// Get everything before the ) in the command and then re-add the ").
 			// TODO SAM 2007-08-31 Why is this done?
 			// Need to handle:
@@ -4794,6 +4787,69 @@ private boolean license_IsInstallRTi(LicenseManager licenseManager)
     }
     else {
         return false;
+    }
+}
+
+/**
+Merge a new configuration file with the old configuration file.  It is assumed that the current configuration file
+is the most complete, likely being distributed with a demo or new version of the software.  Therefore the merge will
+accomplish the following cases:
+<ol>
+<li>    If the user is merging with a complete old configuration file, the old license and settings will be
+    applied to the new software.  New settings will still be in effect.</li>
+<li>    If the user is applying a new license, for example to a demo installation, then only the license
+    properties will be applied.<li>
+</ol>
+@param currentConfigFile Current configuration file that was distributed with the current software.
+@param configFileToMerge The configuration file to merge with the current configuration file.
+@exception IOException if there is an error writing the file.
+*/
+private void license_MergeConfigFiles ( File currentConfigFile, File configFileToMerge )
+throws IOException
+{   String routine = "TSTool_JFrame.license_MergeConfigFiles";
+    int updatedPropCount = 0;
+    // Read the current configuration...
+    PropList currentProps = new PropList ( "current" );
+    currentProps.setPersistentName ( currentConfigFile.getPath() );
+    try {
+        // Read and save literals as properties so that comments can be output similar to the original file.
+        currentProps.readPersistent( true, true );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine,
+            "Error reading current configuration file - cannot merge configuration properties." );
+        return;
+    }
+    // Read the configuration to merge
+    PropList configToMergeProps = new PropList ( "current" );
+    configToMergeProps.setPersistentName ( configFileToMerge.getPath() );
+    try {
+        configToMergeProps.readPersistent();
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine,
+            "Error reading configuration file to merge - cannot merge configuration properties." );
+        return;
+    }
+    // Loop through he properties in the current file and reset to those in the file to merge
+    Vector props = currentProps.getList();
+    int size = props.size();
+    for ( int i = 0; i < size; i++ ) {
+        // Get out of the current list
+        Prop prop = (Prop)props.get(i);
+        String currentPropName = prop.getKey();
+        String currentPropValue = prop.getValue();
+        // See if there is a match in the properties to be merged
+        String matchPropValue = configToMergeProps.getValue(currentPropName);
+        if ( (matchPropValue != null) && !currentPropValue.equals(matchPropValue) ) {
+            // Property names match and values are different so reset in the current properties
+            prop.setValue ( matchPropValue );
+            ++updatedPropCount;
+        }
+    }
+    if ( updatedPropCount > 0 ) {
+        // Had at least one match so rewrite the property file to the same name.
+        currentProps.writePersistent();
     }
 }
 
@@ -7756,7 +7812,9 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	menu_bar.add ( __Help_JMenu );
 	// TODO - not implemented by Java?
 	//menu_bar.setHelpMenu ( _help_JMenu );
-	__Help_JMenu.add ( new SimpleJMenuItem(__Help_AboutTSTool_String,this));
+	__Help_JMenu.add ( __Help_AboutTSTool_JMenuItem = new SimpleJMenuItem(__Help_AboutTSTool_String,this));
+	__Help_JMenu.addSeparator();
+    __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
 	/* TODO SAM 2004-05-24 Help index features are not working as well now that
 	documentation is huge and PDF is available.  Rely on tool tips and PDF
 	and not extensive on-line help.
@@ -10043,6 +10101,10 @@ throws Exception
 	if ( command.equals ( __Help_AboutTSTool_String )) {
 		uiAction_ShowHelpAbout ( license_GetLicenseManager() );
 	}
+    if ( command.equals ( __Help_ImportConfiguration_String )) {
+        uiAction_ImportConfiguration ( IOUtil.getApplicationHomeDir() + File.separator + "system" +
+            File.separator + "TSTool.cfg");
+    }
 }
 
 /**
@@ -12376,6 +12438,61 @@ private void uiAction_GraphTimeSeriesResults ( String graph_type, String params 
 }
 
 /**
+Import a configuration file and merge with the existing configuration file.
+@param configFilePath Path to the current configuration file.
+*/
+private void uiAction_ImportConfiguration ( String configFilePath )
+{   String routine = "TSTool_JFrame.uiAction_ImportConfiguration";
+    // Print an explanation before continuing
+    int x = ResponseJDialog.NO;
+    if ( license_IsInstallRTi(license_GetLicenseManager()) ) {
+        // Mention the license below...
+        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+        "The current TSTool configuration information will be updated as follows:\n\n" +
+        "1) You will select a configuration file to merge (e.g., containing new license information).\n" +
+        "2) The properties in the current configuration file will be updated to matching properties in the selected file.\n" +
+        "3) You will need to restart the software in order for the new information to take effect.\n\n" +
+        "Continue?",
+        ResponseJDialog.YES| ResponseJDialog.NO).response();
+    }
+    else {
+        // Don't mention the license
+        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+            "The current TSTool configuration information will be updated as follows:\n\n" +
+            "1) You will select a configuration file to merge (e.g., containing old preferences).\n" +
+            "2) The properties in the current configuration file will be updated to matching properties in the selected file.\n" +
+            "3) You will need to restart the software in order for the new information to take effect.\n\n" +
+            "Continue?",
+            ResponseJDialog.YES| ResponseJDialog.NO).response();
+    }
+    if ( x == ResponseJDialog.NO ) {
+        return;
+    }
+    // Else continue the process.
+    // Pick the configuration file.
+    File currentConfigFile = new File ( configFilePath );
+    JFileChooser fc = JFileChooserFactory.createJFileChooser ( currentConfigFile.getParent() );
+    fc.setDialogTitle("Select New " + IOUtil.getProgramName() + " Configuration File");
+    SimpleFileFilter sff = new SimpleFileFilter("cfg", "TSTool Configuration File");
+    fc.addChoosableFileFilter(sff);
+    fc.setFileFilter(sff);
+    if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+        return;
+    }
+    // Else, continue and do the merge
+    try {
+        license_MergeConfigFiles ( currentConfigFile, new File(fc.getSelectedFile().getPath()));
+        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+            "You must restart the software in order for the new configuration information to take effect.",
+            ResponseJDialog.OK).response();
+    }
+    catch ( Exception e ) {
+        Message.printWarning( 1, routine, "There was an error updating the configuration file.  Check permissions." );
+        Message.printWarning(3, routine, e);
+    }
+}
+
+/**
 Reset the query options choices based on the selected input name.  Other
 method calls are cascaded to fully reset the choices.
 */
@@ -13028,9 +13145,9 @@ private void uiAction_OpenCommandFile ()
 		ui_LoadCommandFile ( path, false );
 	}
 	// New file has been opened or there was a cancel/error and the old list remains.
-	Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
+	//Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
 	ui_UpdateStatus ( true );
-	Message.printStatus ( 2, routine, "Back from update status." );
+	//Message.printStatus ( 2, routine, "Back from update status." );
 }
 
 /**
