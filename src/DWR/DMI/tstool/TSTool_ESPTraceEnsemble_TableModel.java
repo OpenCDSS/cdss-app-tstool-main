@@ -1,37 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSTool_ESPTraceEnsemble_TableModel - Table model for ESPTraceEnsemble to be
-//					displayed as time series headers
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-07-29	Steven A. Malers, RTi	Initial version.
-// 2003-12-03	SAM, RTi		* Remove far-right columns - internal
-//					  data are included in time series
-//					  headers, if needed.
-//					* Define column numbers as data members
-//					  to make code more readable.
-// 2004-01-22	SAM, RTi		* Update to use new JWorksheet row
-//					  heading standard.
-// 2004-04-13	SAM, RTi		* Change ESPTraceEnsemble to
-//					  NWSRFS_ESPTraceEnsemble.
-// 2004-05-11	SAM, RTi		* Change NWSRFS to NWSRFS_DMI package.
-// 2004-05-27	SAM, RTi		* Minor adjustments to headings and
-//					  column widths.
-//					* The scenario column is now "Scenario"
-//					  and the segment is not displayed.
-//					  Users can look at the input name if
-//					  necesary or look at the time series
-//					  comments, which have segment at the
-//					  start of the trace file name.
-// 2004-12-01	SAM, RTi		* Move the trace number column to after
-//					  the scenario, consistent with the
-//					  time series identifier conventions.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package DWR.DMI.tstool;
 
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
@@ -42,8 +8,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for NWSRFS_ESPTraceEnsemble header information for
 TS instances.  By default the sheet will contain row and column numbers.
 */
-public class TSTool_ESPTraceEnsemble_TableModel extends
-					JWorksheet_AbstractRowTableModel
+public class TSTool_ESPTraceEnsemble_TableModel extends JWorksheet_AbstractRowTableModel
 {
 
 /**
@@ -76,8 +41,7 @@ Local reference to NWSRFS_ESPTraceEnsemble.
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param ensemble the NWSRFS_ESPTraceEnsemble that will be displayed in the table
-(null is allowed).
+@param ensemble the NWSRFS_ESPTraceEnsemble that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
 public TSTool_ESPTraceEnsemble_TableModel ( NWSRFS_ESPTraceEnsemble ensemble )
@@ -87,30 +51,26 @@ throws Exception
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param ensemble the NWSRFS_ESPTraceEnsemble that will be displayed in the table
-(null is allowed).
-@param include_alias If true, an alias column will be included after the
-location column.
+@param ensemble the NWSRFS_ESPTraceEnsemble that will be displayed in the table (null is allowed).
+@param include_alias If true, an alias column will be included after the location column.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_ESPTraceEnsemble_TableModel (	NWSRFS_ESPTraceEnsemble
-						ensemble,
-						boolean include_alias )
+public TSTool_ESPTraceEnsemble_TableModel (	NWSRFS_ESPTraceEnsemble ensemble, boolean include_alias )
 throws Exception
 {	//TODO SAM
 	//__ensemble = ensemble;
 	if ( (ensemble == null) || (ensemble.getTimeSeriesVector() == null) ) {
 		_rows = 0;
 	}
-	else {	_rows = ensemble.getTimeSeriesVector().size();
+	else {
+	    _rows = ensemble.getTimeSeriesVector().size();
 	}
-	// REVISIT - should _data be set to "ensemble"?
+	// TODO - should _data be set to "ensemble"?
 	_data = ensemble.getTimeSeriesVector();
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -186,7 +146,7 @@ From AbstractTableMode.  Returns the data that should be placed in the JTable
 at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col) {
 	// make sure the row numbers are never sorted ...
@@ -194,7 +154,7 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	TS ts = (TS)_data.elementAt(row);
+	TS ts = (TS)_data.get(row);
 	switch (col) {
 		case COL_ID:		return ts.getIdentifier().getLocation();
 		case COL_ALIAS:		return ts.getAlias();
@@ -207,10 +167,8 @@ public Object getValueAt(int row, int col) {
 		case COL_UNITS:		return ts.getDataUnits();
 		case COL_START:		return ts.getDate1();
 		case COL_END:		return ts.getDate2();
-		case COL_INPUT_TYPE:	return ts.getIdentifier().
-						getInputType();
-		case COL_INPUT_NAME:	return ts.getIdentifier().
-						getInputName();
+		case COL_INPUT_TYPE:	return ts.getIdentifier().getInputType();
+		case COL_INPUT_NAME:	return ts.getIdentifier().getInputName();
 		default:	return "";
 	}
 }
@@ -237,4 +195,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_ESPTraceEnsemble_TableModel
+}

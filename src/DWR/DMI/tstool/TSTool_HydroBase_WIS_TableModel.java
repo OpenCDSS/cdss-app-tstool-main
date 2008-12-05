@@ -1,22 +1,6 @@
-// ----------------------------------------------------------------------------
-// TSTool_HydroBase_WIS_TableModel - Table Model for a Vector of
-//					HydroBase_WISSheetNameWISFormat.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2004-05-20	Steven A. Malers, RTi	Initial version. Copy and modify
-//					TSTool_HydroBase_Ag_TableModel class.
-// 2005-05-22	SAM, RTi		Change HydroBase_SheetNameWISFormat to
-//					HydroBase_WISSheetNameWISFormat, as per
-//					HydroBaseDMI package changes.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_WISSheetNameWISFormat;
 
@@ -50,28 +34,26 @@ public final int COL_INPUT_TYPE = 8;		// HydroBase
 private String __data_type;	// From TSTool, constant for all records
 
 /**
-Constructor.  This builds the model for displaying the given HydroBase WIS time
-series data.
+Constructor.  This builds the model for displaying the given HydroBase WIS time series data.
 @param data the Vector of HydroBase_WISSheetNameRowFormat.
 that will be displayed in the table (null is allowed - see setData()).
 @param data_type Data type to be used with all records.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_WIS_TableModel ( JWorksheet worksheet, Vector data,
-					String data_type )
+public TSTool_HydroBase_WIS_TableModel ( JWorksheet worksheet, List data, String data_type )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+	    _rows = data.size();
 	}
 	_data = data;
 	__data_type = data_type;
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -126,11 +108,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableModel.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableModel.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
 {	// make sure the row numbers are never sorted ...
@@ -138,19 +119,16 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	HydroBase_WISSheetNameWISFormat wis =
-		(HydroBase_WISSheetNameWISFormat)_data.elementAt(row);
+	HydroBase_WISSheetNameWISFormat wis = (HydroBase_WISSheetNameWISFormat)_data.get(row);
 	switch (col) {
 		case COL_ID:		return wis.getIdentifier();
 		case COL_DATA_SOURCE:	// Not stored in the database...
 					return "DWR";
-		case COL_DATA_TYPE:	// Use the data type passed in from
-					// TSTool...
+		case COL_DATA_TYPE:	// Use the data type passed in from TSTool...
 					return __data_type;
 		case COL_TIME_STEP:	return "Day";
 		case COL_UNITS:		return "CFS";
-		case COL_START:		// For now ignore since difficult to
-					// determine if WIS format changes...
+		case COL_START:		// For now ignore since difficult to determine if WIS format changes...
 					return "";
 		case COL_END:		// See previous comment...
 					return "";
@@ -178,4 +156,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_HydroBase_WIS_TableModel
+}

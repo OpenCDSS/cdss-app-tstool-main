@@ -23,7 +23,7 @@
 
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
@@ -33,9 +33,8 @@ import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
-This class is a table model for time series header information for HydroBase
-agricultural statistics time series.  By default the
-sheet will contain row and column numbers.
+This class is a table model for time series header information for HydroBase agricultural statistics time series.
+By default the sheet will contain row and column numbers.
 */
 public class TSTool_HydroBase_Ag_TableModel
 extends JWorksheet_AbstractRowTableModel
@@ -48,8 +47,7 @@ private final int __COLUMNS = 9;
 
 public final int COL_ID = 0;			// County
 public final int COL_DATA_SOURCE = 1;		// CASS
-public final int COL_DATA_TYPE = 2;		// Combination of commodity
-						// and practice
+public final int COL_DATA_TYPE = 2;		// Combination of commodity and practice
 public final int COL_TIME_STEP = 3;		// Year
 public final int COL_UNITS = 4;			// Acre
 public final int COL_START = 5;
@@ -62,23 +60,17 @@ private final int __RECORD_TYPE_AGRICULTURAL_CASS_CROP_STATS = 1;
 private final int __RECORD_TYPE_AGSTATS = 2;
 private final int __RECORD_TYPE_AGRICULTURAL_NASS_CROP_STATS = 3;
 
-private int __record_type = __RECORD_TYPE_UNKNOWN;	// Type of records being
-							// listed, for use with
-							// getValueAt().
+private int __record_type = __RECORD_TYPE_UNKNOWN;	// Type of records being listed, for use with getValueAt().
 private String __data_type_prefix = "";	// Prefix for data type.
 
 /**
-Constructor.  This builds the model for displaying the given HydroBase Ag time
-series data.
-@param data the Vector of HydroBase_Agstats,
-HydroBase_AgriculturalCASSCropStats, or HydroBase_AgriculturalNASSCropStats
+Constructor.  This builds the model for displaying the given HydroBase Ag time series data.
+@param data the list of HydroBase_Agstats, HydroBase_AgriculturalCASSCropStats, or HydroBase_AgriculturalNASSCropStats
 that will be displayed in the table (null is allowed - see setData()).
-@param data_type_prefix The data type prefix for the data type (e.g.,
-"CropAreaHarvested", "CropAreaPlanted").
+@param data_type_prefix The data type prefix for the data type (e.g., "CropAreaHarvested", "CropAreaPlanted").
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_Ag_TableModel ( JWorksheet worksheet, Vector data,
-					String data_type_prefix )
+public TSTool_HydroBase_Ag_TableModel ( JWorksheet worksheet, List data, String data_type_prefix )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -86,19 +78,17 @@ throws Exception
 	else {	_rows = data.size();
 		// Figure out what types of data are listed...
 		if ( _rows > 0 ) {
-			Object o = (Object)data.elementAt(0);
+			Object o = (Object)data.get(0);
 			if ( o instanceof HydroBase_Agstats ) {
 				__record_type = __RECORD_TYPE_AGSTATS;
 			}
 			else if ( o instanceof
 				HydroBase_AgriculturalCASSCropStats ) {
-				__record_type =
-				__RECORD_TYPE_AGRICULTURAL_CASS_CROP_STATS;
+				__record_type = __RECORD_TYPE_AGRICULTURAL_CASS_CROP_STATS;
 			}
 			else if ( o instanceof
 				HydroBase_AgriculturalNASSCropStats ) {
-				__record_type =
-				__RECORD_TYPE_AGRICULTURAL_NASS_CROP_STATS;
+				__record_type = __RECORD_TYPE_AGRICULTURAL_NASS_CROP_STATS;
 			}
 		}
 	}
@@ -107,8 +97,7 @@ throws Exception
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -134,9 +123,7 @@ public String getColumnName(int columnIndex) {
 		switch (columnIndex) {
 			case COL_ID:		return "ID\n(County)";
 			case COL_DATA_SOURCE:	return "Data\nSource";
-			case COL_DATA_TYPE:	return "Data Type\n" + "(" +
-							__data_type_prefix +
-							"-Commodity_Practice)";
+			case COL_DATA_TYPE:	return "Data Type\n" + "(" + __data_type_prefix + "-Commodity_Practice)";
 			case COL_TIME_STEP:	return "Time\nStep";
 			case COL_UNITS:		return "Units";
 			case COL_START:		return "Start";
@@ -150,8 +137,7 @@ public String getColumnName(int columnIndex) {
 		switch (columnIndex) {
 			case COL_ID:		return "ID\n(County)";
 			case COL_DATA_SOURCE:	return "Data\nSource";
-			case COL_DATA_TYPE:	return "Data Type\n" +
-							"(CropArea-Commodity)";
+			case COL_DATA_TYPE:	return "Data Type\n" + "(CropArea-Commodity)";
 			case COL_TIME_STEP:	return "Time\nStep";
 			case COL_UNITS:		return "Units";
 			case COL_START:		return "Start";
@@ -164,7 +150,6 @@ public String getColumnName(int columnIndex) {
 	else {	return "";
 	}
 }
-
 
 /**
 Returns the format to display the specified column.
@@ -185,11 +170,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableModel.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableModel.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
 {	// make sure the row numbers are never sorted ...
@@ -198,29 +182,20 @@ public Object getValueAt(int row, int col)
 	}
 
 	if ( __record_type == __RECORD_TYPE_AGRICULTURAL_CASS_CROP_STATS ) {
-		HydroBase_AgriculturalCASSCropStats ag =
-			(HydroBase_AgriculturalCASSCropStats)
-			_data.elementAt(row);
+		HydroBase_AgriculturalCASSCropStats ag = (HydroBase_AgriculturalCASSCropStats)_data.get(row);
 		switch (col) {
 			// case 0 handled above.
 			case COL_ID:		return ag.getCounty();
-			case COL_DATA_SOURCE:	// Station also has source but
-						// we want the meas_type source.
+			case COL_DATA_SOURCE:	// Station also has source but want the meas_type source.
 						return "CASS";
-			case COL_DATA_TYPE:	// TSTool translates to values
-						// from the TSTool interface...
-						return __data_type_prefix +"-" +
-							ag.getCommodity() + "_"+
-							ag.getPractice();
-			case COL_TIME_STEP:	// TSTool translates HydroBase
-						// values to nicer values...
+			case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
+						return __data_type_prefix +"-" + ag.getCommodity() + "_"+ ag.getPractice();
+			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 						return "Year";
 			case COL_UNITS:		return "ACRE";
-			case COL_START:		// For now ignore since full TS
-						// is not available...
+			case COL_START:		// For now ignore since full TS is not available...
 						return "";
-			case COL_END:		// For now ignore since full TS
-						// is not available...
+			case COL_END:		// For now ignore since full TS is not available...
 						return "";
 			case COL_STATE:		return ag.getSt();
 			case COL_INPUT_TYPE:	return "HydroBase";
@@ -228,28 +203,20 @@ public Object getValueAt(int row, int col)
 		}
 	}
 	else if ( __record_type == __RECORD_TYPE_AGRICULTURAL_NASS_CROP_STATS){
-		HydroBase_AgriculturalNASSCropStats ag =
-			(HydroBase_AgriculturalNASSCropStats)
-			_data.elementAt(row);
+		HydroBase_AgriculturalNASSCropStats ag = (HydroBase_AgriculturalNASSCropStats)_data.get(row);
 		switch (col) {
 			// case 0 handled above.
 			case COL_ID:		return ag.getCounty();
-			case COL_DATA_SOURCE:	// Station also has source but
-						// we want the meas_type source.
+			case COL_DATA_SOURCE:	// Station also has source but we want the meas_type source.
 						return "NASS";
-			case COL_DATA_TYPE:	// TSTool translates to values
-						// from the TSTool interface...
-						return __data_type_prefix +"-" +
-							ag.getCommodity();
-			case COL_TIME_STEP:	// TSTool translates HydroBase
-						// values to nicer values...
+			case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
+						return __data_type_prefix +"-" + ag.getCommodity();
+			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 						return "Year";
 			case COL_UNITS:		return "ACRE";
-			case COL_START:		// For now ignore since full TS
-						// is not available...
+			case COL_START:		// For now ignore since full TS is not available...
 						return "";
-			case COL_END:		// For now ignore since full TS
-						// is not available...
+			case COL_END:		// For now ignore since full TS is not available...
 						return "";
 			case COL_STATE:		return ag.getSt();
 			case COL_INPUT_TYPE:	return "HydroBase";
@@ -257,19 +224,15 @@ public Object getValueAt(int row, int col)
 		}
 	}
 	else if ( __record_type == __RECORD_TYPE_AGSTATS ) {
-		HydroBase_Agstats ag =
-			(HydroBase_Agstats)_data.elementAt(row);
+		HydroBase_Agstats ag = (HydroBase_Agstats)_data.get(row);
 		switch (col) {
 			// case 0 handled above.
 			case COL_ID:		return ag.getCounty();
-			case COL_DATA_SOURCE:	// Station also has source but
-						// we want the meas_type source.
+			case COL_DATA_SOURCE:	// Station also has source but we want the meas_type source.
 						return "CASS";
-			case COL_DATA_TYPE:	// TSTool translates to values
-						// from the TSTool interface...
+			case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
 						return "AgStats-" +ag.getType();
-			case COL_TIME_STEP:	// TSTool translates HydroBase
-						// values to nicer values...
+			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 						return "Year";
 			case COL_UNITS:		// For now ignore...
 						return "";
@@ -305,4 +268,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_HydroBase_Ag_TableModel
+}

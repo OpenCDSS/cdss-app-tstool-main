@@ -1,19 +1,6 @@
-// ----------------------------------------------------------------------------
-// TSTool_HydroBase_CASSLivestockStats_TableModel - Table Model for a Vector of
-//			HydroBase_CASSLivestockStats
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2006-11-01	Steven A. Malers, RTi	Initial version. Copy and modify
-//					TSTool_HydroBase_Ag_TableModel class.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSLivestockStats;
 
@@ -22,8 +9,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
 This class is a table model for time series header information for HydroBase
-livestock agricultural statistics time series.  By default the
-sheet will contain row and column numbers.
+livestock agricultural statistics time series.  By default the sheet will contain row and column numbers.
 */
 public class TSTool_HydroBase_CASSLivestockStats_TableModel
 extends JWorksheet_AbstractRowTableModel
@@ -36,8 +22,7 @@ private final int __COLUMNS = 9;
 
 public final int COL_ID = 0;			// County
 public final int COL_DATA_SOURCE = 1;		// CASS
-public final int COL_DATA_TYPE = 2;		// Combination of commodity
-						// and type
+public final int COL_DATA_TYPE = 2;		// Combination of commodity and type
 public final int COL_TIME_STEP = 3;		// Year
 public final int COL_UNITS = 4;			// Head
 public final int COL_START = 5;
@@ -48,30 +33,26 @@ public final int COL_INPUT_TYPE = 8;		// HydroBase
 private String __data_type_prefix = "";	// Prefix for data type.
 
 /**
-Constructor.  This builds the model for displaying the given HydroBase
-livestock series data.
+Constructor.  This builds the model for displaying the given HydroBase livestock series data.
 @param data the Vector of HydroBase_AgriculturalCASSLivestockStats
 that will be displayed in the table (null is allowed - see setData()).
-@param data_type_prefix The data type prefix for the data type (e.g.,
-"LivestockHead").
+@param data_type_prefix The data type prefix for the data type (e.g., "LivestockHead").
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_CASSLivestockStats_TableModel ( JWorksheet worksheet,
-					Vector data,
-					String data_type_prefix )
+public TSTool_HydroBase_CASSLivestockStats_TableModel ( JWorksheet worksheet, List data, String data_type_prefix )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+	    _rows = data.size();
 	}
 	_data = data;
 	__data_type_prefix = data_type_prefix;
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -96,9 +77,7 @@ public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID:		return "ID\n(County)";
 		case COL_DATA_SOURCE:	return "Data\nSource";
-		case COL_DATA_TYPE:	return "Data Type\n" + "(" +
-						__data_type_prefix +
-						"-Commodity_Type)";
+		case COL_DATA_TYPE:	return "Data Type\n" + "(" + __data_type_prefix + "-Commodity_Type)";
 		case COL_TIME_STEP:	return "Time\nStep";
 		case COL_UNITS:		return "Units";
 		case COL_START:		return "Start";
@@ -128,11 +107,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableModel.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableModel.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
 {	// make sure the row numbers are never sorted ...
@@ -140,27 +118,19 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	HydroBase_AgriculturalCASSLivestockStats ag =
-		(HydroBase_AgriculturalCASSLivestockStats)
-		_data.elementAt(row);
+	HydroBase_AgriculturalCASSLivestockStats ag = (HydroBase_AgriculturalCASSLivestockStats)_data.get(row);
 	switch (col) {
 		// case 0 handled above.
 		case COL_ID:		return ag.getCounty();
 		case COL_DATA_SOURCE:	return "CASS";
-		case COL_DATA_TYPE:	// TSTool translates to values
-					// from the TSTool interface...
-					return __data_type_prefix +"-" +
-						ag.getCommodity() + "_"+
-						ag.getType();
-		case COL_TIME_STEP:	// TSTool translates HydroBase
-					// values to nicer values...
+		case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
+					return __data_type_prefix +"-" + ag.getCommodity() + "_" + ag.getType();
+		case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 					return "Year";
 		case COL_UNITS:		return "HEAD";
-		case COL_START:		// For now ignore since full TS
-					// is not available...
+		case COL_START:		// For now ignore since full TS is not available...
 					return "";
-		case COL_END:		// For now ignore since full TS
-					// is not available...
+		case COL_END:		// For now ignore since full TS is not available...
 					return "";
 		case COL_STATE:		return ag.getSt();
 		case COL_INPUT_TYPE:	return "HydroBase";
@@ -186,4 +156,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_HydroBase_CASSLivestockStats_TableModel
+}

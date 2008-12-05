@@ -1,24 +1,6 @@
-// ----------------------------------------------------------------------------
-// TSTool_RiversideDB_TableModel - Table Model for a Vector of
-//					RiversideDB_MeasType to be
-//					displayed as time series headers
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-06-16	Steven A. Malers, RTi	Initial version.  Copy some HydroBase
-//					code and modify.
-// 2003-11-26	SAM, RTi		Define column positions as final ints,
-//					for use in other code if necessary.
-// 2004-01-22	SAM, RTi		Update to new JWorksheet row heading
-//					standard.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.DMI.DMIUtil;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
@@ -52,25 +34,24 @@ public final int COL_STATE = 10;
 public final int COL_INPUT_TYPE	= 11;
 
 /**
-Constructor.  This builds the model for displaying the given RiversideDB time
-series data.
+Constructor.  This builds the model for displaying the given RiversideDB time series data.
 @param data the Vector of RiversideDB_MeasType that will be displayed in the
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_RiversideDB_TableModel ( Vector data )
+public TSTool_RiversideDB_TableModel ( List data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+	    _rows = data.size();
 	}
 	_data = data;
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -121,7 +102,6 @@ public String getColumnName(int columnIndex) {
 	}
 }
 
-
 /**
 Returns the format to display the specified column.
 @param column column for which to return the format.
@@ -141,11 +121,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableMode.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableMode.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col) {
 	// make sure the row numbers are never sorted ...
@@ -153,7 +132,7 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	RiversideDB_MeasType mt = (RiversideDB_MeasType)_data.elementAt(row);
+	RiversideDB_MeasType mt = (RiversideDB_MeasType)_data.get(row);
 	switch (col) {
 		// case 0 handled above.
 		case COL_ID:	return mt.getIdentifier();
@@ -175,13 +154,11 @@ public Object getValueAt(int row, int col) {
 				int interval_mult = (int)mt.getTime_step_mult();
 				String interval_base = mt.getTime_step_base();
 				String timestep = "";
-				if (	DMIUtil.isMissing(interval_mult) ||
-					StringUtil.startsWithIgnoreCase(
-					interval_base,"IRR") ) {
+				if ( DMIUtil.isMissing(interval_mult) || StringUtil.startsWithIgnoreCase( interval_base,"IRR") ) {
 					timestep = mt.getTime_step_base();
 				}
-				else {	timestep = "" + interval_mult +
-						interval_base;
+				else {
+				    timestep = "" + interval_mult + interval_base;
 				}
 				return timestep;
 		case COL_SCENARIO:
@@ -218,4 +195,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_RiversideDB_TableModel
+}

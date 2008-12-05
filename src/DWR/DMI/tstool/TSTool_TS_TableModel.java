@@ -1,34 +1,13 @@
-// ----------------------------------------------------------------------------
-// TSTool_TS_TableModel - Table Model for a Vector of TS to be displayed
-//					as time series headers
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-06-20	Steven A. Malers, RTi	Initial version.
-// 2003-06-20	SAM, RTi		* Update to new row heading standard.
-//					* Define column positions as named
-//					  data to make code more readable.
-// 2004-09-15	SAM, RTi		* Change so the column heading is
-//					  "Input Name" instead of "Input File".
-// 2004-12-01	SAM, RTi		* Add sequence number since this is now
-//					  part of the time series identifier.
-// 2005-05-18	SAM, RTi		* If a time series is null, return an
-//					  empty string in getValueAt().
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.TS;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
-This class is a table model for time series header information for TS
-instances.  By default the sheet will contain row and column numbers.
+This class is a table model for time series header information for TS instances.
+By default the sheet will contain row and column numbers.
 The alias can be treated as a hidden column.
 This class may eventually be moved to the RTi.TS package.
 */
@@ -59,30 +38,28 @@ public final int COL_INPUT_NAME	= 12;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is
-allowed).
+@param data the Vector of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_TS_TableModel ( Vector data )
+public TSTool_TS_TableModel ( List data )
 throws Exception
 {	this ( data, false );
 }
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is
-allowed).
+@param data the Vector of TS that will be displayed in the table (null is allowed).
 @param include_alias If true, an alias column will be included after the
-location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be
-called.
+location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_TS_TableModel ( Vector data, boolean include_alias )
+public TSTool_TS_TableModel ( List data, boolean include_alias )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+	    _rows = data.size();
 	}
 	_data = data;
 }
@@ -161,11 +138,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableMode.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableMode.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the absolute column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
 {	// make sure the row numbers are never sorted ...
@@ -174,7 +150,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	TS ts = (TS)_data.elementAt(row);
+	TS ts = (TS)_data.get(row);
 	if ( ts == null ) {
 		return "";
 	}
@@ -189,16 +165,14 @@ public Object getValueAt(int row, int col)
 		case COL_SEQUENCE:	if ( ts.getSequenceNumber() < 0 ) {
 						return "";
 					}
-					else {	return "" +
-						ts.getSequenceNumber();
+					else {
+					    return "" + ts.getSequenceNumber();
 					}
 		case COL_UNITS:		return ts.getDataUnits();
 		case COL_START:		return ts.getDate1();
 		case COL_END:		return ts.getDate2();
-		case COL_INPUT_TYPE:	return ts.getIdentifier().
-						getInputType();
-		case COL_INPUT_NAME:	return ts.getIdentifier().
-						getInputName();
+		case COL_INPUT_TYPE:	return ts.getIdentifier().getInputType();
+		case COL_INPUT_NAME:	return ts.getIdentifier().getInputName();
 		default:	return "";
 	}
 }
@@ -225,4 +199,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_TS_TableModel
+}

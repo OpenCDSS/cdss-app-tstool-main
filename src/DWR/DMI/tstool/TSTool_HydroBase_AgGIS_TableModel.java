@@ -1,24 +1,6 @@
-// ----------------------------------------------------------------------------
-// TSTool_HydroBase_AgGIS_TableModel - Table Model for a Vector of
-//					HydroBase_StructureIrrigSummaryTS
-//					to be displayed as time series headers
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-11-25	Steven A. Malers, RTi	Initial version. Copy and modify
-//					TSTool_HydroBase_TableModel class.
-// 2004-01-22	SAM, RTi		Update for new JWorksheet row heading
-//					standard.
-// 2004-02-08	SAM, RTi		Split out code from the "Ag" version to
-//					avoid confusion.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureIrrigSummaryTS;
 import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
@@ -52,38 +34,31 @@ public final int COL_DIST = 8;
 public final int COL_DIV = 9;
 public final int COL_INPUT_TYPE = 10;
 
-String __data_type = "";			// Data type to display - can
-						// be one of a number of fields.
-private int __wdid_length = 7;				// The length to use
-							// when formatting
-							// WDIDs in IDs.
+String __data_type = ""; // Data type to display - can be one of a number of fields.
+private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
 /**
-Constructor.  This builds the model for displaying the given HydroBase
-irrigation summary time series data.
+Constructor.  This builds the model for displaying the given HydroBase irrigation summary time series data.
 @param data the Vector of 
-HydroBase_StructureIrrigSummaryTS that will be displayed in the
-table (null is allowed - see setData()).
-@param data_type Data type to list - can be any of a number of fields in the
-data records.
+HydroBase_StructureIrrigSummaryTS that will be displayed in the table (null is allowed - see setData()).
+@param data_type Data type to list - can be any of a number of fields in the data records.
 @param wdid_length The length to format WDIDs.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_AgGIS_TableModel ( JWorksheet worksheet, Vector data,
-		String data_type, int wdid_length )
+public TSTool_HydroBase_AgGIS_TableModel ( JWorksheet worksheet, List data, String data_type, int wdid_length )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+	    _rows = data.size();
 	}
 	_data = data;
 	__data_type = data_type;
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -140,11 +115,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableModel.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableModel.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
 {	// make sure the row numbers are never sorted ...
@@ -153,22 +127,16 @@ public Object getValueAt(int row, int col)
 	}
 
 	HydroBase_StructureIrrigSummaryTS ag =
-		(HydroBase_StructureIrrigSummaryTS)_data.elementAt(row);
+		(HydroBase_StructureIrrigSummaryTS)_data.get(row);
 	switch (col) {
 		// case 0 handled above.
-		case COL_ID:		return HydroBase_WaterDistrict.
-					formWDID(__wdid_length,
-					ag.getWD(),ag.getID());
+		case COL_ID:		return HydroBase_WaterDistrict.formWDID(__wdid_length, ag.getWD(),ag.getID());
 		case COL_NAME: 		return ag.getStr_name();
-		case COL_DATA_SOURCE:	// Station also has source but
-					// we want the meas_type source.
+		case COL_DATA_SOURCE:	// Station also has source but want the meas_type source.
 					return "CDSSGIS";
-		case COL_DATA_TYPE:	// TSTool translates to values
-					// from the TSTool interface...
-					return __data_type + "-" +
-						ag.getLand_use();
-		case COL_TIME_STEP:	// TSTool translates HydroBase
-					// values to nicer values...
+		case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
+					return __data_type + "-" + ag.getLand_use();
+		case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 					return "Year";
 		case COL_UNITS:		// For now ignore...
 					return "ACFT";
@@ -203,4 +171,4 @@ public int[] getColumnWidths() {
 	return widths;
 }
 
-} // End TSTool_HydroBase_AgGIS_TableModel
+}

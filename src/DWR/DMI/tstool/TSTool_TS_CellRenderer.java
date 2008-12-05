@@ -1,14 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSTool_TS_CellRenderer - class to render cells for TS list
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-06-20	Steven A. Malers, RTi	Initial version.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package DWR.DMI.tstool;
 
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
@@ -30,7 +19,7 @@ public TSTool_TS_CellRenderer ( TSTool_TS_TableModel table_model )
 
 /**
 Returns the format for a given column.
-@param column the colum for which to return the format.
+@param column the column for which to return the format.
 @return the column format as used by StringUtil.formatString().
 */
 public String getFormat(int column) {
@@ -45,4 +34,4 @@ public int[] getColumnWidths() {
 	return __table_model.getColumnWidths();
 }
 
-} // End TSTool_TS_CellRenderer
+}

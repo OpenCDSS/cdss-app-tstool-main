@@ -421,6 +421,7 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.util.List;
 import java.util.Vector;
 
 import java.awt.Frame;
@@ -452,7 +453,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "8.18.02 (2008-11-24)";
+public static final String PROGRAM_VERSION = "9.00.00 beta (2008-12-05)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -853,7 +854,7 @@ private static void openHydroBase ( TSCommandFileRunner runner )
             // then default HydroBase information will be used.
             HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
             hbdmi.open();
-            Vector hbdmi_Vector = new Vector(1);
+            List hbdmi_Vector = new Vector(1);
             hbdmi_Vector.add ( hbdmi );
             runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
         }
@@ -1063,13 +1064,13 @@ public static void parseArgs ( JApplet a )
 throws Exception
 {	
     // Convert the applet parameters to an array of strings and call the other parse method.
-	Vector args = new Vector();
+    List args = new Vector();
 	if ( a.getParameter("-home") != null ) {
-	    args.addElement ( "-home" );
-	    args.addElement ( a.getParameter("-home") );
+	    args.add ( "-home" );
+	    args.add ( a.getParameter("-home") );
 	}
     if ( a.getParameter("-test") != null ) {
-        args.addElement ( "-test" );
+        args.add ( "-test" );
     }
     parseArgs ( (String [])args.toArray() );
 }

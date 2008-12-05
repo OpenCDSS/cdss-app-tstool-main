@@ -307,15 +307,13 @@ private SimpleFileFilter
 	__input_name_StateCU_wsl_FileFilter = null;
 
 /**
-Vector of InputFilter_JPanel or JPanel (for input types
-that do not support input filters).  One of these will
-be visible at any time.
+Vector of InputFilter_JPanel or JPanel (for input types that do not support input filters).
+One of these will be visible at any time.
 */
-private Vector __input_filter_JPanel_Vector = new Vector(5);
+private List __input_filter_JPanel_Vector = new Vector(5);
 
 /**
-The currently selected input filter JPanel, used to check
-input and get the filter information for queries.
+The currently selected input filter JPanel, used to check input and get the filter information for queries.
 Not an InputFilter_JPanel because of the generic case.
 */
 private JPanel __selected_input_filter_JPanel = null;
@@ -397,7 +395,7 @@ private int __input_filter_y = 0;
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private Vector __input_name_HECDSS = new Vector();
+private List __input_name_HECDSS = new Vector();
 
 /**
 The last HEC-DSS file that was selected, to reset after cancelling a browse.
@@ -408,13 +406,13 @@ private String __input_name_HECDSS_last = null;
 The NWSFFS FS5Files directories that have been selected during the
 session, to allow switching between input types but not losing the list of files.
 */
-private Vector __input_name_NWSRFS_FS5Files = new Vector();
+private List __input_name_NWSRFS_FS5Files = new Vector();
 
 /**
 The StateCU files that have been selected during the session, to allow switching
 between input types but not losing the list of files. 
 */
-private Vector __input_name_StateCU = new Vector();
+private List __input_name_StateCU = new Vector();
 
 /**
 The last StateCU file that was selected, to reset after cancelling a browse. 
@@ -425,7 +423,7 @@ private String __input_name_StateCU_last = null;
 The StateCUB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private Vector __input_name_StateCUB = new Vector();
+private List __input_name_StateCUB = new Vector();
 
 /**
 The last StateCUB file that was selected, to reset after cancelling a browse.
@@ -436,7 +434,7 @@ private String __input_name_StateCUB_last = null;
 The StateModB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private Vector __input_name_StateModB = new Vector();
+private List __input_name_StateModB = new Vector();
 
 /**
 The last StateModB file that was selected, to reset after cancelling a browse.
@@ -575,7 +573,7 @@ private SimpleJButton __ClearCommands_JButton;
 /**
 The Vector of Command that is used with cut/copy/paste user actions.
 */
-private Vector __commands_cut_buffer = new Vector(100,100);
+private List __commands_cut_buffer = new Vector(100,100);
 
 // TODO SAM 2007-11-02 Evaluate putting in the processor
 /**
@@ -1977,8 +1975,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	swMain.stop();
 	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " + swMain.getSeconds());
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
-	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration
-	// file.
+	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration file.
 	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file
 	if ( __source_HydroBase_enabled && license_IsInstallCDSS(__licenseManager) ) {
 		// Login to HydroBase using information in the TSTool configuration file...
@@ -2130,7 +2127,7 @@ command is stored in a Vector (but typically only the first String is used.
 @param original_command Original command as a Vector of String or Command.
 @param edited_command Edited command as a Vector of String or Command.
 */
-private boolean commandList_CommandsAreEqual(Vector original_command, Vector edited_command)
+private boolean commandList_CommandsAreEqual(List original_command, List edited_command)
 {	if ( (original_command == null) && (edited_command != null) ) {
 		return false;
 	}
@@ -2149,8 +2146,8 @@ private boolean commandList_CommandsAreEqual(Vector original_command, Vector edi
 	Object original_Object, edited_Object;
 	String original_String = null, edited_String = null;
 	for ( int i = 0; i < original_size; i++ ) {
-		original_Object = original_command.elementAt(i);
-		edited_Object = edited_command.elementAt(i);
+		original_Object = original_command.get(i);
+		edited_Object = edited_command.get(i);
 		if ( original_Object instanceof String ) {
 			original_String = (String)original_Object;
 		}
@@ -2271,7 +2268,7 @@ be edited are when they are in a {# delimited comment block).
 @param mode the action to take when editing the command (__INSERT_COMMAND for a
 new command or __UPDATE_COMMAND for an existing command).
 */
-private void commandList_EditCommand ( String action, Vector command_Vector, int mode )
+private void commandList_EditCommand ( String action, List command_Vector, int mode )
 {	String routine = getClass().getName() + ".editCommand";
 	int dl = 1;		// Debug level
 	
@@ -2321,7 +2318,7 @@ private void commandList_EditCommand ( String action, Vector command_Vector, int
 		}
 		else {
 			// Get the original command...
-			command_to_edit_original = (Command)command_Vector.elementAt(0);
+			command_to_edit_original = (Command)command_Vector.get(0);
 			// Clone it so that the edit occurs on the copy...
 			command_to_edit = (Command)command_to_edit_original.clone();
 			Message.printStatus(2, routine, "Cloned command to edit: \"" + command_to_edit + "\"" );
@@ -2367,7 +2364,7 @@ private void commandList_EditCommand ( String action, Vector command_Vector, int
 	// Second, edit the command, whether an update or an insert...
 
 	boolean edit_completed = false;
-	Vector new_comments = new Vector();	// Used if comments are edited.
+	List new_comments = new Vector();	// Used if comments are edited.
 	if ( is_comment_block ) {
 		// Edit using the old-style editor...
 		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, command_Vector, new_comments );
@@ -2564,20 +2561,20 @@ Edit comments using an old-style editor.
 @return true if the command edits were committed, false if canceled.
 */
 private boolean commandList_EditCommandOldStyleComments (
-		int mode, String action, Vector command_Vector, Vector new_comments )
+		int mode, String action, List command_Vector, List new_comments )
 {	//else if ( action.equals(__Commands_General_Comment_String) ||
 	//	command.startsWith("#") ) {
-	Vector cv = new Vector();
+    List cv = new Vector();
 	int size = 0;
 	if ( command_Vector != null ) {
 		size = command_Vector.size();
 	}
 	Command command = null;
 	for ( int i = 0; i < size; i++ ) {
-		command = (Command)command_Vector.elementAt(i);
-		cv.addElement( command.toString() );
+		command = (Command)command_Vector.get(i);
+		cv.add( command.toString() );
 	}
-	Vector edited_cv = new Comment_JDialog ( this, cv ).getText();
+	List edited_cv = new Comment_JDialog ( this, cv ).getText();
 	if ( edited_cv == null ) {
 		return false;
 	}
@@ -2585,7 +2582,7 @@ private boolean commandList_EditCommandOldStyleComments (
 		// Transfer to the Vector that was passed in...
 		int size2 = edited_cv.size();
 		for ( int i = 0; i < size2; i++ ) {
-			new_comments.addElement ( edited_cv.elementAt(i) );
+			new_comments.add ( edited_cv.get(i) );
 		}
 		return true;
 	}
@@ -2599,7 +2596,7 @@ to be non-null but may be zero length.
 unless none are selected, in which case all are returned.  If true, all are
 returned, regardless of which are selected.
 */
-private Vector commandList_GetCommands ( boolean get_all )
+private List commandList_GetCommands ( boolean get_all )
 {	if ( __commands_JListModel.size() == 0 ) {
 		return new Vector();
 	}
@@ -2613,16 +2610,16 @@ private Vector commandList_GetCommands ( boolean get_all )
 	if ( (selected_size == 0) || get_all ) {
 		// Nothing selected or want to get all, get all...
 		selected_size = __commands_JListModel.size();
-		Vector itemVector = new Vector(selected_size);
+		List itemVector = new Vector(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.addElement ( __commands_JListModel.get(i) );
+			itemVector.add ( __commands_JListModel.get(i) );
 		}
 		return itemVector;
 	}
 	else {	// Else something selected so get them...
-		Vector itemVector = new Vector(selected_size);
+	    List itemVector = new Vector(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.addElement ( __commands_JListModel.get(selected[i]) );
+			itemVector.add ( __commands_JListModel.get(selected[i]) );
 		}
 		return itemVector;
 	}
@@ -2633,7 +2630,7 @@ Get the list of commands to process.  If any are selected, only they will be
 returned.  If none are selected, all will be returned.
 @return the commands as a Vector of String.
 */
-private Vector commandList_GetCommandsBasedOnUI ( )
+private List commandList_GetCommandsBasedOnUI ( )
 {	return commandList_GetCommands ( false );
 }
 
@@ -2644,14 +2641,14 @@ Get the list of commands to process, as a Vector of String.
 unless none are selected, in which case all are returned.  If true, all are
 returned, regardless of which are selected.
 */
-private Vector commandList_GetCommandStrings ( boolean get_all )
+private List commandList_GetCommandStrings ( boolean get_all )
 {	// Get the Command list, will not be non-null
-	Vector commands = commandList_GetCommands ( get_all );
+    List commands = commandList_GetCommands ( get_all );
 	// Convert to String instances
 	int size = commands.size();
-	Vector strings = new Vector(size);
+	List strings = new Vector(size);
 	for ( int i = 0; i < size; i++ ) {
-		strings.addElement ( ((Command)commands.elementAt(i)).toString() );
+		strings.add ( ((Command)commands.get(i)).toString() );
 	}
 	return strings;
 }
@@ -2761,7 +2758,7 @@ Insert comments into the command list, utilizing the selected commands in the di
 list to determine the insert position.
 @param new_comments The comments to insert, as a Vector of String.
 */
-private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
+private void commandList_InsertCommentsBasedOnUI ( List new_comments )
 {	String routine = getClass().getName() + ".commandList_InsertCommentsBasedOnUI";
 
 	// Get the selected indices from the commands...
@@ -2773,8 +2770,7 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 	int insert_pos = 0;
 	Command inserted_command = null;	// New comment line as Command
 	for ( int i = 0; i < size; i++ ) {
-		inserted_command = commandList_NewCommand (
-				(String)new_comments.elementAt(i), true );
+		inserted_command = commandList_NewCommand ( (String)new_comments.get(i), true );
 		if (selectedSize > 0) {
 			// Insert before the first selected item...
 			int insert_pos0 = selectedIndices[0];
@@ -2783,13 +2779,13 @@ private void commandList_InsertCommentsBasedOnUI ( Vector new_comments )
 			Message.printStatus(2, routine, "Inserting comment \"" +
 				inserted_command + "\" at [" + insert_pos + "]" );
 		}
-		else {	// Insert at end of commands list.
+		else {
+		    // Insert at end of commands list.
 			__commands_JListModel.addElement ( inserted_command );
 			insert_pos = __commands_JListModel.size() - 1;
 		}
 	}
-	// Make sure that the list scrolls to the position that has been
-	// updated...
+	// Make sure that the list scrolls to the position that has been updated...
 	if ( insert_pos >= 0 ) {
 	    ui_GetCommandJList().ensureIndexIsVisible ( insert_pos );
 	}
@@ -2809,7 +2805,7 @@ This allows a warning to be printed that only a block of ALL comments can be edi
 for true to be returned.  The GUI code should check this and disallow comment edits if not contiguous.
 */
 private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
-		Vector commands, boolean allMustBeComments, boolean mustBeContiguous )
+        List commands, boolean allMustBeComments, boolean mustBeContiguous )
 {
 	int size_commands = commands.size();
 	boolean is_comment_block = true;
@@ -2819,7 +2815,7 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 	int comment_count = 0;
 	int pos_prev = -1;
 	for ( int i = 0; i < size_commands; i++ ) {
-		command = (Command)commands.elementAt(i);
+		command = (Command)commands.get(i);
 		if ( command instanceof Comment_Command ) {
 			++comment_count;
 		}
@@ -2998,17 +2994,16 @@ Replace a contiguous block of # comments with another block.
 @param old_comments Vector of old comments (as Command) to remove.
 @param new_comments Vector of new comments (as String) to insert in its place.
 */
-private void commandList_ReplaceComments ( Vector old_comments, Vector new_comments )
+private void commandList_ReplaceComments ( List old_comments, List new_comments )
 {	//String routine = getClass().getName() + ".commandList_ReplaceComments";
 	// Probably could get the index passed in from list operations but
 	// do the lookup through the data model to be more independent.
-	int pos_old = __tsProcessor.indexOf((Command)old_comments.elementAt(0));
+	int pos_old = __tsProcessor.indexOf((Command)old_comments.get(0));
 	if ( pos_old < 0 ) {
 		// Can't find the old command so return.
 		return;
 	}
-	// Remove the old commands.  They will shift so OK to keep removing at
-	// the single index.
+	// Remove the old commands.  They will shift so OK to keep removing at the single index.
 	int size = old_comments.size();
 	for ( int i = 0; i < size; i++ ) {
 		__tsProcessor.removeCommandAt ( pos_old );
@@ -3019,20 +3014,16 @@ private void commandList_ReplaceComments ( Vector old_comments, Vector new_comme
 	if ( pos_old < __tsProcessor.size() ) {
 		// Have enough elements to add at the requested position...
 		for ( int i = 0; i < size_new; i++ ) {
-			Command new_command = commandList_NewCommand (
-					(String)new_comments.elementAt(i), true );
-			//Message.printStatus ( 2, routine, "Inserting " + new_command +
-			//		" at " + (pos_old + 1));
+			Command new_command = commandList_NewCommand ( (String)new_comments.get(i), true );
+			//Message.printStatus ( 2, routine, "Inserting " + new_command + " at " + (pos_old + 1));
 			__tsProcessor.insertCommandAt( new_command, (pos_old + i) );
 		}
 	}
 	else {
 		// Add at the end...
 		for ( int i = 0; i < size_new; i++ ) {
-			Command new_command = commandList_NewCommand (
-					(String)new_comments.elementAt(i), true );
-			//Message.printStatus ( 2, routine, "Adding " + new_command +
-			//		" at end" );
+			Command new_command = commandList_NewCommand ( (String)new_comments.get(i), true );
+			//Message.printStatus ( 2, routine, "Adding " + new_command + " at end" );
 			__tsProcessor.addCommand ( new_command );
 		}
 	}
@@ -3223,17 +3214,17 @@ private int commandProcessor_GetEnsembleResultsListSize()
 
 /**
 Get the command processor HydroBaseDMIList.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
+reporting.  Any errors in the processor should be detected during command initialization and processing.
 @return The HydroBaseDMIList as a Vector from the command processor or null if
 not yet determined or no connections.
 */
-private Vector commandProcessor_GetHydroBaseDMIList()
+private List commandProcessor_GetHydroBaseDMIList()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "HydroBaseDMIList" );
+	try {
+	    o = __tsProcessor.getPropContents ( "HydroBaseDMIList" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3241,16 +3232,15 @@ private Vector commandProcessor_GetHydroBaseDMIList()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (Vector)o;
+	else {
+	    return (List)o;
 	}
 }
 
 /**
 Get the command processor IncludeMissingTS.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global IncludeMissingTS as a Boolean from the command processor or null if
-not yet determined.
+reporting.  Any errors in the processor should be detected during command initialization and processing.
+@return The global IncludeMissingTS as a Boolean from the command processor or null if not yet determined.
 */
 private Boolean commandProcessor_GetIncludeMissingTS()
 {	if ( __tsProcessor == null ) {
@@ -3465,10 +3455,11 @@ Get the command processor time series results list.
 @return The time series results list or null
 if the processor is not available.
 */
-private Vector commandProcessor_GetTimeSeriesResultsList()
+private List commandProcessor_GetTimeSeriesResultsList()
 {	String routine = "TSTool_JFrame.commandProcessorGetTimeSeriesResultsList";
 	Object o = null;
-	try { o = __tsProcessor.getPropContents ( "TSResultsList" );
+	try {
+	    o = __tsProcessor.getPropContents ( "TSResultsList" );
 	}
 	catch ( Exception e ) {
 		String message = "Error requesting TSResultsList from processor.";
@@ -3478,7 +3469,7 @@ private Vector commandProcessor_GetTimeSeriesResultsList()
 		return null;
 	}
 	else {
-		return (Vector)o;
+		return (List)o;
 	}
 }
 
@@ -3488,7 +3479,7 @@ Get the size of the command processor time series results list.
 */
 private int commandProcessor_GetTimeSeriesResultsListSize()
 {
-	Vector results = commandProcessor_GetTimeSeriesResultsList();
+    List results = commandProcessor_GetTimeSeriesResultsList();
 	if ( results == null ) {
 		return 0;
 	}
@@ -3525,7 +3516,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
         Message.printWarning(1, routine, message );
         return;
     }
-    Vector tslist = (Vector)o_tslist;
+    List tslist = (List)o_tslist;
     int tslist_size = tslist.size();
     if ( tslist_size == 0 ) {
         String message = "No time series are available from processor.";
@@ -3533,7 +3524,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
         return;
     }
     // Get the list of ensembles...
-    Vector match_index_Vector = new Vector();   // List of matching time series indices
+    List match_index_Vector = new Vector();   // List of matching time series indices
     for ( int i = 0; i < indices.length; i++ ) {
         PropList request_params = new PropList ( "" );
         // String is of format 1) EnsembleID - EnsembleName
@@ -3564,10 +3555,10 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
         for ( int iens = 0; iens < ensemble_size; iens++ ) {
             ens_ts = (TS)ensemble.get(iens);
             for ( int its = 0; its < tslist_size; its++ ) {
-                ts = (TS)tslist.elementAt(its);
+                ts = (TS)tslist.get(its);
                 if ( ens_ts == ts ) {
                     // Have a matching time series
-                    match_index_Vector.addElement ( new Integer(its));
+                    match_index_Vector.add ( new Integer(its));
                 }
             }
         }
@@ -3575,7 +3566,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
     // Convert the indices to an array
     int [] indices2 = new int[match_index_Vector.size()];
     for ( int i = 0; i < indices2.length; i++ ) {
-        indices2[i] = ((Integer)match_index_Vector.elementAt(i)).intValue();
+        indices2[i] = ((Integer)match_index_Vector.get(i)).intValue();
     }
     // Now display the list of time series
     PropList request_params = new PropList ( "" );
@@ -3631,7 +3622,7 @@ throws IOException
 	// If any lines in the file are different from the commands, mark the file as dirty.
 	// Changes may automatically occur during the load because of automated updates to commands.
 	BufferedReader in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( path )) );
-	Vector strings = new Vector();
+	List strings = new Vector();
 	String line;
 	while ( true ) {
 	    line = in.readLine();
@@ -3676,12 +3667,11 @@ throws IOException
 /**
 Run the commands through the processor.  Currently this supplies the list of
 Command instances to run because the user can select the commands in the
-interface.  In the future the command processor may put together the list without
-being passed from the GUI.
+interface.  In the future the command processor may put together the list without being passed from the GUI.
 @param commands List of commands to run.
 @param createOutput whether to create output (slower) or skip those commands.
 */
-private void commandProcessor_RunCommandsThreaded ( Vector commands, boolean createOutput )
+private void commandProcessor_RunCommandsThreaded ( List commands, boolean createOutput )
 {	String routine = "TSTool_JFrame.commandProcessor_RunCommandsThreaded";
 
 	PropList requestParams = new PropList ( "" );
@@ -3876,30 +3866,26 @@ Do nothing.
 @param datalimits Limits of select in data coordinates.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo(GRShape devlimits, GRShape datalimits,
-Vector selected)
+public void geoViewInfo(GRShape devlimits, GRShape datalimits, List selected)
 {
 }
 
 /**
 Do nothing.
 */
-public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, 
-Vector selected)
+public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, List selected)
 {
 }
 
 /**
 Do nothing.
 */
-public void geoViewInfo(GRLimits devlimits, GRLimits datalimits,
-Vector selected)
+public void geoViewInfo(GRLimits devlimits, GRLimits datalimits, List selected)
 {
 }
 
 /**
-Handle the mouse motion event from another GeoView (likely a ReferenceGeoView).
-Does nothing.
+Handle the mouse motion event from another GeoView (likely a ReferenceGeoView).  Does nothing.
 @param devpt Coordinates of mouse in device coordinates(pixels).
 @param datapt Coordinates of mouse in data coordinates.
 */
@@ -3908,8 +3894,7 @@ public void geoViewMouseMotion(GRPoint devpt, GRPoint datapt)
 }
 
 // TODO SAM 2006-03-02 Evaluate code
-// Should the select use the coordinates?  Not all time series have this
-// information available
+// Should the select use the coordinates?  Not all time series have this information available
 /**
 If a selection is made from the map, use the attributes specified in the lookup
 table file to match the attributes in the layer with time series in the query
@@ -3919,16 +3904,13 @@ list.  The coordinates of the select ARE NOT used in the selection.
 @param selected Vector of selected GeoRecord.  This is used to match the
 attributes for the selected feature with the time series query list.
 */
-public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
-				Vector selected, boolean append )
+public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List selected, boolean append )
 {	String routine = "TSTool_JFrame.geoViewSelect";
 
 	try {	// Main try, for development and troubleshooting
-	Message.printStatus ( 1, routine,
-	"Selecting time series that match map selection." );
+	Message.printStatus ( 1, routine, "Selecting time series that match map selection." );
 
-	// Select from the time series query list matching the attributes in
-	// the selected layer.
+	// Select from the time series query list matching the attributes in the selected layer.
 
 	// TODO SAM 2006-03-02 Need to evaluate how to best read this file once.
 
@@ -3937,15 +3919,13 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
 	if ( filename == null ) {
 		Message.printWarning ( 1, routine,
-		"The TSTool.MapLayerLookupFile is not defined - " +
-		"cannot link map and time series." );
+		"The TSTool.MapLayerLookupFile is not defined - cannot link map and time series." );
 		return;
 	}
 
 	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileExists(full_filename) ) {
-		Message.printWarning ( 1, routine,
-		"The map layer lookup file \"" + full_filename +
+		Message.printWarning ( 1, routine, "The map layer lookup file \"" + full_filename +
 		"\" does not exist.  Cannot link map and time series." );
 		return;
 	}
@@ -4092,47 +4072,32 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 					// georecord data source
 	String georec_location = null;	// The georec location value.
 	String georec_datasource = null;// The georec data source value.
-	String tslist_id = null;	// The time series location ID from the
-					// time series list.
-	String tslist_datasource = null;// The time series data source from the
-					// time series list.
-	String tslist_datatype = null;	// The time series data type from the
-					// time series list.
-	String tslist_interval = null;	// The time series interval from the
-					// time series list.
+	String tslist_id = null;	// The time series location ID from the time series list.
+	String tslist_datasource = null;// The time series data source from the time series list.
+	String tslist_datatype = null;	// The time series data type from the time series list.
+	String tslist_interval = null;	// The time series interval from the time series list.
 	for ( int igeo = 0; igeo < ngeo; igeo++ ) {
 		// Get the GeoRecord that was selected...
-		georec = (GeoRecord)selected.elementAt(igeo);
+		georec = (GeoRecord)selected.get(igeo);
 		// Get the name of the layer that corresponds to the GeoRecord,
 		// which is used to locate the record in the lookup file...
 		geolayerview = georec.getLayerView();
 		geolayer_name = geolayerview.getName();
 		// Find layer that matches the record, using the layer name in
 		// the lookup table.  More than one visible layer may be
-		// searched.  The data interval is also used to find a layer
-		// to match.
+		// searched.  The data interval is also used to find a layer to match.
 		for ( int ilook = 0; ilook < tsize; ilook++ ) {
-			Message.printStatus ( 2, routine,
-			"Searching lookup file for the layer named \"" +
-			geolayer_name + "\"" );
+			Message.printStatus ( 2, routine, "Searching lookup file for the layer named \"" + geolayer_name + "\"" );
 			try {	rec = table.getRecord(ilook);
-				ts_inputtype = (String)rec.getFieldValue(
-						TS_InputTypeCol_int);
-				ts_datatype = (String)rec.getFieldValue(
-						TS_DataTypeCol_int);
-				ts_interval = (String)rec.getFieldValue(
-						TS_IntervalCol_int);
-				layer_name = (String)rec.getFieldValue(
-						Layer_NameCol_int);
-				layer_location = (String)rec.getFieldValue(
-						Layer_LocationCol_int);
-				layer_datasource = (String)rec.getFieldValue(
-						Layer_DataSourceCol_int);
+				ts_inputtype = (String)rec.getFieldValue(TS_InputTypeCol_int);
+				ts_datatype = (String)rec.getFieldValue(TS_DataTypeCol_int);
+				ts_interval = (String)rec.getFieldValue(TS_IntervalCol_int);
+				layer_name = (String)rec.getFieldValue(Layer_NameCol_int);
+				layer_location = (String)rec.getFieldValue(Layer_LocationCol_int);
+				layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
 				// TODO SAM 2006-03-02 Evaluate code
-				// Add layer_interval if such an attribute
-				// exists, and use this in addition to the
-				// layer name to find an appropriate layer in
-				// the lookup table.
+				// Add layer_interval if such an attribute exists, and use this in addition to the
+				// layer name to find an appropriate layer in the lookup table.
 				Message.printStatus ( 2, routine,
 				"Lookup file [" + ilook + "] " +
 				"TS_InputType=\"" + ts_inputtype + "\" " +
@@ -4390,23 +4355,18 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits,
 	}
 	catch ( Exception e ) {
 		// Unexpected error...
-		Message.printWarning ( 1, routine,
-		"Unable to link map and TSTool.  See log file." );
+		Message.printWarning ( 1, routine, "Unable to link map and TSTool.  See log file." );
 		Message.printWarning ( 3, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 }
 
-public void geoViewSelect(GRPoint devlimits, GRPoint datalimits, 
-Vector selected, boolean append) {
-	geoViewSelect((GRShape)devlimits, (GRShape)datalimits, selected, 
-		append);
+public void geoViewSelect(GRPoint devlimits, GRPoint datalimits, List selected, boolean append) {
+	geoViewSelect((GRShape)devlimits, (GRShape)datalimits, selected, append);
 }
 
-public void geoViewSelect(GRLimits devlimits, GRLimits datalimits,
-Vector selected, boolean append) {
-	geoViewSelect((GRShape)devlimits, (GRShape)datalimits, selected, 
-		append);
+public void geoViewSelect(GRLimits devlimits, GRLimits datalimits, List selected, boolean append) {
+	geoViewSelect((GRShape)devlimits, (GRShape)datalimits, selected, append);
 }
 
 /**
@@ -4658,13 +4618,11 @@ private void license_CheckLicense ( LicenseManager licenseManager )
     if ( licenseManager.isLicenseDemo() ) {
         if ( licenseManager.isLicenseExpired() ) {
             Message.printWarning ( 1, routine, "The demonstration license expired on " +
-                    licenseManager.getLicenseExpires() + ".  TSTool will exit.  Contact " +
+                    licenseManager.getLicenseExpires() + ".  TSTool features will be disabled.  Contact " +
                     __RTiSupportEmail + " to obtain a new license.");
-            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            setVisible(false);
-            dispose();
-            Message.closeLogFile();
-            System.exit(0);
+            // Refresh the menus - everything will be disabled but Help, which will allow the license/configuration
+            // to be updated.
+            ui_CheckGUIState();
         }
         else {
             // Not expired yet but a demo so warn the user every time they run TSTool
@@ -4684,13 +4642,11 @@ private void license_CheckLicense ( LicenseManager licenseManager )
         // Do not allow running with expired license
         else if ( licenseManager.isLicenseExpired() ) {
             Message.printWarning ( 1, routine, "The license expired on " +
-                    licenseManager.getLicenseExpires() + ".  TSTool will exit.  Contact " +
+                    licenseManager.getLicenseExpires() + ".  TSTool features will be disabled.  Contact " +
                     __RTiSupportEmail + " to renew the license.");
-            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            setVisible(false);
-            dispose();
-            Message.closeLogFile();
-            System.exit(0);
+            // Refresh the menus - everything will be disabled but Help, which will allow the license/configuration
+            // to be updated.
+            ui_CheckGUIState();
         }
     }
 }
@@ -4754,6 +4710,15 @@ private void license_InitializeLicenseFromTSToolProperties ()
     catch ( Exception e ) {
         license_SetLicenseManager ( null );
     }
+}
+
+/**
+Indicate if the license is expired.
+@param licenseManager the license manager for the session.
+*/
+private boolean license_IsLicenseExpired( LicenseManager licenseManager )
+{
+    return licenseManager.isLicenseExpired();
 }
 
 /**
@@ -4832,7 +4797,7 @@ throws IOException
         return;
     }
     // Loop through he properties in the current file and reset to those in the file to merge
-    Vector props = currentProps.getList();
+    List props = currentProps.getList();
     int size = props.size();
     for ( int i = 0; i < size; i++ ) {
         // Get out of the current list
@@ -5512,6 +5477,12 @@ private void ui_CheckGUIState ()
 	if ( !__gui_initialized ) {
 		return;
 	}
+	
+	// For the case where the license has expired, disable top-level menus except File...Exit and Help and return
+	if ( license_IsLicenseExpired(license_GetLicenseManager()) ) {
+	    ui_CheckGUIState_LicenseExpired();
+	    return;
+	}
 
 	boolean enabled = true;		// Used to enable/disable main menus based on submenus.
 
@@ -5918,6 +5889,43 @@ private void ui_CheckGUIState ()
 
 	// TODO - can this be phased out?
 	JGUIUtil.setEnabled(__Commands_Output_SetOutputDetailedHeaders_JMenuItem,false);
+}
+
+/**
+Disable GUI features based on an expired license.
+*/
+private void ui_CheckGUIState_LicenseExpired () {
+    Runnable r = new Runnable() {
+        public void run() {
+            JGUIUtil.setEnabled ( __File_New_JMenu, false );
+            JGUIUtil.setEnabled ( __File_Open_JMenu, false );
+            JGUIUtil.setEnabled ( __File_Save_JMenu, false );
+            JGUIUtil.setEnabled ( __File_Print_JMenu, false );
+            JGUIUtil.setEnabled ( __File_Properties_JMenu, false );
+            JGUIUtil.setEnabled ( __File_SetWorkingDirectory_JMenuItem, false );
+            JGUIUtil.setEnabled ( __Edit_JMenu, false );
+            JGUIUtil.setEnabled ( __View_JMenu, false );
+            JGUIUtil.setEnabled ( __Commands_JMenu, false );
+            JGUIUtil.setEnabled ( __Run_JMenu, false );
+            JGUIUtil.setEnabled ( __Results_JMenu, false );
+            JGUIUtil.setEnabled ( __Tools_JMenu, false );
+            // Buttons
+            JGUIUtil.setEnabled ( __get_ts_list_JButton, false );
+            JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
+            JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
+            JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
+            JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
+            JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
+        }
+    };
+    if ( SwingUtilities.isEventDispatchThread() )
+    {
+        r.run();
+    }
+    else 
+    {
+        SwingUtilities.invokeLater ( r );
+    }    
 }
 
 /**
@@ -6687,7 +6695,7 @@ private void ui_InitGUIInputFilters ( final int y )
         	for ( int i = 0; i < __input_filter_JPanel_Vector.size(); i++ ) {
                 __query_input_JPanel.remove( (Component)__input_filter_JPanel_Vector.get(i));
         	}
-        	__input_filter_JPanel_Vector.removeAllElements();
+        	__input_filter_JPanel_Vector.clear();
         	// Now add the input filters for input types that are active.
         	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
         		// Add input filters for stations...
@@ -6699,7 +6707,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_station_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement (__input_filter_HydroBase_station_JPanel );
+        			__input_filter_JPanel_Vector.add (__input_filter_HydroBase_station_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine, "Unable to initialize input filter for HydroBase stations." );
@@ -6716,7 +6724,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_structure_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_structure_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_structure_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine, "Unable to initialize input filter for HydroBase structures." );
@@ -6729,7 +6737,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_structure_sfut_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_structure_sfut_JPanel);
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_structure_sfut_JPanel);
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
@@ -6746,7 +6754,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_irrigts_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_irrigts_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_irrigts_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine,
@@ -6764,7 +6772,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_CASSCropStats_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_CASSCropStats_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_CASSCropStats_JPanel );
         		}
         		catch ( Exception e ) {
         			// Agricultural_CASS_crop_stats probably not in HydroBase...
@@ -6784,7 +6792,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_CASSLivestockStats_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_CASSLivestockStats_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_CASSLivestockStats_JPanel );
         		}
         		catch ( Exception e ) {
         			// Agricultural_CASS_livestock_stats probably not in HydroBase...
@@ -6803,7 +6811,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_CUPopulation_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_CUPopulation_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_CUPopulation_JPanel );
         		}
         		catch ( Exception e ) {
         			// CUPopulation probably not in HydroBase...
@@ -6822,7 +6830,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_NASS_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_NASS_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_NASS_JPanel );
         		}
         		catch ( Exception e ) {
         			// Agricultural_NASS_crop_stats probably not in HydroBase...
@@ -6840,7 +6848,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_WIS_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_HydroBase_WIS_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_HydroBase_WIS_JPanel );
         		}
         		catch ( Exception e ) {
         			// WIS tables probably not in HydroBase...
@@ -6856,7 +6864,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_HydroBase_wells_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST);
-        			__input_filter_JPanel_Vector.addElement( __input_filter_HydroBase_wells_JPanel);
+        			__input_filter_JPanel_Vector.add( __input_filter_HydroBase_wells_JPanel);
         		}
         		catch ( Exception e ) {
         			// Agricultural_NASS_crop_stats probably not in HydroBase...
@@ -6867,59 +6875,58 @@ private void ui_InitGUIInputFilters ( final int y )
         	}
         
         	PropList filter_props = new PropList ( "InputFilter" );
-        	Vector input_filters = null;
+        	List input_filters = null;
         	InputFilter filter = null;
         
         	if ( __source_MexicoCSMN_enabled ) {
         		// Add input filters using text fields...
-        		// Later may put this code in the MexicoCSMN package since it
-        		// may be used by other interfaces...
+        		// Later may put this code in the MexicoCSMN package since it may be used by other interfaces...
         		input_filters = new Vector(2);
-        		Vector statenum_Vector = new Vector (32);
-        		statenum_Vector.addElement ( "01 - Aguascalientes" );
-        		statenum_Vector.addElement ( "02 - Baja California" );
-        		statenum_Vector.addElement ( "03 - Baja California Sur" );
-        		statenum_Vector.addElement ( "04 - Campeche" );
-        		statenum_Vector.addElement ( "05 - Coahuila" );
-        		statenum_Vector.addElement ( "06 - Colima" );
-        		statenum_Vector.addElement ( "07 - Chiapas" );
-        		statenum_Vector.addElement ( "08 - Chihuahua" );
-        		statenum_Vector.addElement ( "09 - Distrito Federal" );
-        		statenum_Vector.addElement ( "10 - Durango" );
-        		statenum_Vector.addElement ( "11 - Guanajuato" );
-        		statenum_Vector.addElement ( "12 - Guerrero" );
-        		statenum_Vector.addElement ( "13 - Hidalgo" );
-        		statenum_Vector.addElement ( "14 - Jalisco" );
-        		statenum_Vector.addElement ( "15 - Mexico" );
-        		statenum_Vector.addElement ( "16 - Michoacan" );
-        		statenum_Vector.addElement ( "17 - Morelos" );
-        		statenum_Vector.addElement ( "18 - Nayarit" );
-        		statenum_Vector.addElement ( "19 - Nuevo Leon" );
-        		statenum_Vector.addElement ( "20 - Oaxaca" );
-        		statenum_Vector.addElement ( "21 - Puebla" );
-        		statenum_Vector.addElement ( "22 - Queretaro" );
-        		statenum_Vector.addElement ( "23 - Quintana Roo" );
-        		statenum_Vector.addElement ( "24 - San Luis Potosi" );
-        		statenum_Vector.addElement ( "25 - Sinaloa" );
-        		statenum_Vector.addElement ( "26 - Sonora" );
-        		statenum_Vector.addElement ( "27 - Tabasco" );
-        		statenum_Vector.addElement ( "28 - Tamaulipas" );
-        		statenum_Vector.addElement ( "29 - Tlaxcala" );
-        		statenum_Vector.addElement ( "30 - Veracruz" );
-        		statenum_Vector.addElement ( "31 - Yucatan" );
-        		statenum_Vector.addElement ( "32 - Zacatecas" );
-        		input_filters.addElement ( new InputFilter (
+        		List statenum_Vector = new Vector (32);
+        		statenum_Vector.add ( "01 - Aguascalientes" );
+        		statenum_Vector.add ( "02 - Baja California" );
+        		statenum_Vector.add ( "03 - Baja California Sur" );
+        		statenum_Vector.add ( "04 - Campeche" );
+        		statenum_Vector.add ( "05 - Coahuila" );
+        		statenum_Vector.add ( "06 - Colima" );
+        		statenum_Vector.add ( "07 - Chiapas" );
+        		statenum_Vector.add ( "08 - Chihuahua" );
+        		statenum_Vector.add ( "09 - Distrito Federal" );
+        		statenum_Vector.add ( "10 - Durango" );
+        		statenum_Vector.add ( "11 - Guanajuato" );
+        		statenum_Vector.add ( "12 - Guerrero" );
+        		statenum_Vector.add ( "13 - Hidalgo" );
+        		statenum_Vector.add ( "14 - Jalisco" );
+        		statenum_Vector.add ( "15 - Mexico" );
+        		statenum_Vector.add ( "16 - Michoacan" );
+        		statenum_Vector.add ( "17 - Morelos" );
+        		statenum_Vector.add ( "18 - Nayarit" );
+        		statenum_Vector.add ( "19 - Nuevo Leon" );
+        		statenum_Vector.add ( "20 - Oaxaca" );
+        		statenum_Vector.add ( "21 - Puebla" );
+        		statenum_Vector.add ( "22 - Queretaro" );
+        		statenum_Vector.add ( "23 - Quintana Roo" );
+        		statenum_Vector.add ( "24 - San Luis Potosi" );
+        		statenum_Vector.add ( "25 - Sinaloa" );
+        		statenum_Vector.add ( "26 - Sonora" );
+        		statenum_Vector.add ( "27 - Tabasco" );
+        		statenum_Vector.add ( "28 - Tamaulipas" );
+        		statenum_Vector.add ( "29 - Tlaxcala" );
+        		statenum_Vector.add ( "30 - Veracruz" );
+        		statenum_Vector.add ( "31 - Yucatan" );
+        		statenum_Vector.add ( "32 - Zacatecas" );
+        		input_filters.add ( new InputFilter (
         			"", "",
         			StringUtil.TYPE_STRING,
         			null, null, true ) );	// Blank to disable filter
-        		input_filters.addElement ( new InputFilter ( "Station Name", "Station Name",
+        		input_filters.add ( new InputFilter ( "Station Name", "Station Name",
         			StringUtil.TYPE_STRING,
         			null, null, true ) );
         		filter = new InputFilter ( "State Number", "Station Number",
         			StringUtil.TYPE_INTEGER,
         			statenum_Vector, statenum_Vector, true );
         		filter.setTokenInfo("-",0);
-        		input_filters.addElement ( filter );
+        		input_filters.add ( filter );
         		filter_props.set ( "NumFilterGroups=2" );
                 	JGUIUtil.addComponent(__query_input_JPanel,
         			__input_filter_MexicoCSMN_JPanel =
@@ -6928,7 +6935,7 @@ private void ui_InitGUIInputFilters ( final int y )
         			GridBagConstraints.EAST );
         		__input_filter_MexicoCSMN_JPanel.setToolTipText (
         			"<HTML>Mexico CSMN queries can be filtered <BR>based on station data.</HTML>" );
-        		__input_filter_JPanel_Vector.addElement ( __input_filter_MexicoCSMN_JPanel );
+        		__input_filter_JPanel_Vector.add ( __input_filter_MexicoCSMN_JPanel );
         	}
         
         	if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -6939,7 +6946,7 @@ private void ui_InitGUIInputFilters ( final int y )
         				__input_filter_NWSRFS_FS5Files_JPanel,
         				0, y, 3, 1, 0.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.EAST );
-        			__input_filter_JPanel_Vector.addElement ( __input_filter_NWSRFS_FS5Files_JPanel );
+        			__input_filter_JPanel_Vector.add ( __input_filter_NWSRFS_FS5Files_JPanel );
         		}
         		catch ( Exception e ) {
         			Message.printWarning ( 2, routine, "Unable to initialize input filter for NWSRFS FS5Files.");
@@ -6956,7 +6963,7 @@ private void ui_InitGUIInputFilters ( final int y )
         			GridBagConstraints.EAST );
         	__input_filter_generic_JPanel.setToolTipText (
         		"<HTML>The selected input type does not support <BR>input filters.</HTML>" );
-        	__input_filter_JPanel_Vector.addElement ( __input_filter_generic_JPanel );
+        	__input_filter_JPanel_Vector.add ( __input_filter_generic_JPanel );
         	// The appropriate JPanel will be set visible later based on the input type that is selected.
         	// Because a component is added to the original GUI, need to refresh the GUI layout...
         	ui_SetInputFilters();
@@ -8398,11 +8405,12 @@ private void ui_SetInputFilters()
 	int size = __input_filter_JPanel_Vector.size();
 	JPanel input_filter_JPanel;
 	for ( int i = 0; i < size; i++ ) {
-		input_filter_JPanel = (JPanel)__input_filter_JPanel_Vector.elementAt(i);
+		input_filter_JPanel = (JPanel)__input_filter_JPanel_Vector.get(i);
 		if ( input_filter_JPanel == __selected_input_filter_JPanel ) {
 			input_filter_JPanel.setVisible ( true );
 		}
-		else {	input_filter_JPanel.setVisible ( false );
+		else {
+		    input_filter_JPanel.setVisible ( false );
 		}
 	}
 }
@@ -8811,154 +8819,154 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "TSTool Session Properties" );
-		Vector v = new Vector ( 4 );
-		v.addElement ( "TSTool Session Properties" );
-		v.addElement ( "" );
+		List v = new Vector ( 4 );
+		v.add ( "TSTool Session Properties" );
+		v.add ( "" );
 		if ( __commandFileName == null ) {
-			v.addElement ( "No command file has been read or saved." );
+			v.add ( "No command file has been read or saved." );
 		}
 		else {
-            v.addElement ( "Last command file read/saved: \"" + __commandFileName + "\"" );
+            v.add ( "Last command file read/saved: \"" + __commandFileName + "\"" );
 		}
-		v.addElement ( "Current working directory = " + IOUtil.getProgramWorkingDir() );
-		v.addElement ( "Run commands in thread = " + ui_Property_RunCommandProcessorInThread() );
+		v.add ( "Current working directory = " + IOUtil.getProgramWorkingDir() );
+		v.add ( "Run commands in thread = " + ui_Property_RunCommandProcessorInThread() );
 		// List open database information...
 		if ( __source_ColoradoSMS_enabled ) {
-			v.addElement ( "" );
+			v.add ( "" );
 			if ( __smsdmi == null ) {
-				v.addElement ( "GUI ColoradoSMS connection not defined.");
+				v.add ( "GUI ColoradoSMS connection not defined.");
 			}
 			else {
-                v.addElement ( "GUI ColoradoSMS connection information:" );
-				StringUtil.addListToStringList ( v,	StringUtil.toVector( __smsdmi.getVersionComments() ) );
+                v.add ( "GUI ColoradoSMS connection information:" );
+				StringUtil.addListToStringList ( v,	StringUtil.toList( __smsdmi.getVersionComments() ) );
 			}
 		}
 		if ( __source_HydroBase_enabled ) {
-			v.addElement ( "" );
+			v.add ( "" );
 			if ( __hbdmi == null ) {
-				v.addElement ( "GUI HydroBase connection not defined.");
+				v.add ( "GUI HydroBase connection not defined.");
 			}
 			else {
-                v.addElement ( "GUI HydroBase connection information:" );
-				StringUtil.addListToStringList ( v, StringUtil.toVector( __hbdmi.getVersionComments() ) );
+                v.add ( "GUI HydroBase connection information:" );
+				StringUtil.addListToStringList ( v, StringUtil.toList( __hbdmi.getVersionComments() ) );
 			}
 		}
 		// List enabled data types...
-		v.addElement ( "Input types and whether enabled:" );
-		v.addElement ( "" );
+		v.add ( "Input types and whether enabled:" );
+		v.add ( "" );
 		if ( __source_HydroBase_enabled ) {
-			v.addElement ( "ColoradoSMS input type is enabled" );
+			v.add ( "ColoradoSMS input type is enabled" );
 		}
 		else {
-            v.addElement ( "ColoradoSMS input type is not enabled");
+            v.add ( "ColoradoSMS input type is not enabled");
 		}
 		if ( __source_DateValue_enabled ) {
-			v.addElement ( "DateValue input type is enabled" );
+			v.add ( "DateValue input type is enabled" );
 		}
 		else {
-            v.addElement ( "DateValue input type is not enabled" );
+            v.add ( "DateValue input type is not enabled" );
 		}
 		if ( __source_DIADvisor_enabled ) {
-			v.addElement ( "DIADvisor input type is enabled" );
+			v.add ( "DIADvisor input type is enabled" );
 		}
 		else {
-            v.addElement ( "DIADvisor input type is not enabled" );
+            v.add ( "DIADvisor input type is not enabled" );
 		}
         if ( __source_HECDSS_enabled ) {
-            v.addElement ( "HEC-DSS input type is enabled" );
+            v.add ( "HEC-DSS input type is enabled" );
         }
         else {
-            v.addElement ( "HEC-DSS input type is not enabled");
+            v.add ( "HEC-DSS input type is not enabled");
         }
 		if ( __source_HydroBase_enabled ) {
-			v.addElement ( "HydroBase input type is enabled" );
+			v.add ( "HydroBase input type is enabled" );
 		}
 		else {
-            v.addElement ( "HydroBase input type is not enabled" );
+            v.add ( "HydroBase input type is not enabled" );
 		}
 		if ( __source_MexicoCSMN_enabled ) {
-			v.addElement ( "MexicoCSMN input type is enabled" );
+			v.add ( "MexicoCSMN input type is enabled" );
 		}
 		else {
-            v.addElement ( "MexicoCSMN input type is not enabled" );
+            v.add ( "MexicoCSMN input type is not enabled" );
 		}
 		if ( __source_MODSIM_enabled ) {
-			v.addElement ( "MODSIM input type is enabled" );
+			v.add ( "MODSIM input type is enabled" );
 		}
 		else {
-            v.addElement ( "MODSIM input type is not enabled" );
+            v.add ( "MODSIM input type is not enabled" );
 		}
 		if ( __source_NDFD_enabled  ) {
-			v.addElement ( "NDFD input type is enabled" );
+			v.add ( "NDFD input type is enabled" );
 		}
 		else {
-            v.addElement ( "NDFD input type is not enabled" );
+            v.add ( "NDFD input type is not enabled" );
 		}
 		if ( __source_NWSCard_enabled  ) {
-			v.addElement ( "NWSCARD input type is enabled" );
+			v.add ( "NWSCARD input type is enabled" );
 		}
 		else {
-            v.addElement ( "NWSCARD input type is not enabled" );
+            v.add ( "NWSCARD input type is not enabled" );
 		}
 		if ( __source_NWSRFS_FS5Files_enabled ) {
-			v.addElement ( "NWSRFS FS5Files input type is enabled");
+			v.add ( "NWSRFS FS5Files input type is enabled");
 		}
 		else {
-            v.addElement ( "NWSRFS FS5Files input type is not enabled" );
+            v.add ( "NWSRFS FS5Files input type is not enabled" );
 		}
 		if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-			v.addElement ( "NWSRFS_ESPTraceEnsemble input type is enabled" );
+			v.add ( "NWSRFS_ESPTraceEnsemble input type is enabled" );
 		}
 		else {
-            v.addElement ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
+            v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
 		}
 		if ( __source_RiversideDB_enabled ) {
-			v.addElement ( "RiversideDB input type is enabled" );
+			v.add ( "RiversideDB input type is enabled" );
 		}
 		else {
-            v.addElement ( "RiversideDB input type is not enabled");
+            v.add ( "RiversideDB input type is not enabled");
 		}
 		if ( __source_RiverWare_enabled ) {
-			v.addElement ( "RiverWare input type is enabled" );
+			v.add ( "RiverWare input type is enabled" );
 		}
 		else {
-            v.addElement ( "RiverWare input type is not enabled");
+            v.add ( "RiverWare input type is not enabled");
 		}
 		if ( __source_SHEF_enabled ) {
-			v.addElement ( "SHEF input type is enabled" );
+			v.add ( "SHEF input type is enabled" );
 		}
 		else {
-            v.addElement ( "SHEF input type is not enabled");
+            v.add ( "SHEF input type is not enabled");
 		}
 		if ( __source_StateCU_enabled ) {
-			v.addElement ( "StateCU input type is enabled" );
+			v.add ( "StateCU input type is enabled" );
 		}
 		else {
-            v.addElement ( "StateCU input type is not enabled");
+            v.add ( "StateCU input type is not enabled");
 		}
         if ( __source_StateCUB_enabled ) {
-            v.addElement ( "StateCUB input type is enabled" );
+            v.add ( "StateCUB input type is enabled" );
         }
         else {
-            v.addElement ( "StateCUB input type is not enabled");
+            v.add ( "StateCUB input type is not enabled");
         }
 		if ( __source_StateMod_enabled ) {
-			v.addElement ( "StateMod input type is enabled" );
+			v.add ( "StateMod input type is enabled" );
 		}
 		else {
-            v.addElement ( "StateMod input type is not enabled");
+            v.add ( "StateMod input type is not enabled");
 		}
 		if ( __source_StateModB_enabled ) {
-			v.addElement ( "StateModB input type is enabled" );
+			v.add ( "StateModB input type is enabled" );
 		}
 		else {
-            v.addElement ( "StateModB input type is not enabled");
+            v.add ( "StateModB input type is not enabled");
 		}
 		if ( __source_USGSNWIS_enabled ) {
-			v.addElement ( "USGSNWIS input type is enabled" );
+			v.add ( "USGSNWIS input type is enabled" );
 		}
 		else {
-            v.addElement ( "USGSNWIS input type is not enabled");
+            v.add ( "USGSNWIS input type is not enabled");
 		}
 		new ReportJFrame ( v, reportProp );
 		// Clean up...
@@ -8975,12 +8983,12 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "Colorado SMS Properties" );
-		Vector v = null;
+		List v = null;
 		if ( __hbdmi == null ) {
 		    v = new Vector(3);
-			v.addElement ( "Colorado SMS Properties" );
-			v.addElement ( "" );
-			v.addElement("No Colorado SMS database is available." );
+			v.add ( "Colorado SMS Properties" );
+			v.add ( "" );
+			v.add("No Colorado SMS database is available." );
 		}
 		else {
             v = __smsdmi.getDatabaseProperties();
@@ -9000,13 +9008,13 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "DIADvisor Properties" );
-		Vector v = new Vector();
-		v.addElement ( "DIADvisor Operational Database:" );
-		v.addElement ( "" );
+		List v = new Vector();
+		v.add ( "DIADvisor Operational Database:" );
+		v.add ( "" );
 		StringUtil.addListToStringList ( v, __DIADvisor_dmi.getDatabaseProperties ( 3 ) );
-		v.addElement ( "" );
-		v.addElement ( "DIADvisor Archive Database:" );
-		v.addElement ( "" );
+		v.add ( "" );
+		v.add ( "DIADvisor Archive Database:" );
+		v.add ( "" );
 		StringUtil.addListToStringList ( v, __DIADvisor_archive_dmi.getDatabaseProperties ( 3 ) );
 		new ReportJFrame ( v, reportProp );
 		// Clean up...
@@ -9023,12 +9031,12 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "HydroBase Properties" );
-		Vector v = null;
+		List v = null;
 		if ( __hbdmi == null ) {
 		    v = new Vector(3);
-			v.addElement ( "HydroBase Properties" );
-			v.addElement ( "" );
-			v.addElement ( "No HydroBase database is available." );
+			v.add ( "HydroBase Properties" );
+			v.add ( "" );
+			v.add ( "No HydroBase database is available." );
 		}
 		else {
             v = __hbdmi.getDatabaseProperties();
@@ -9048,10 +9056,10 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "NWSRFS FS5Files Properties" );
-		Vector v = null;
+		List v = null;
 		if ( __nwsrfs_dmi == null ) {
 			v = new Vector ( 1 );
-			v.addElement ( "The NWSRFS FS5Files connection is not open." );
+			v.add ( "The NWSRFS FS5Files connection is not open." );
 		}
 		else {
             v = __nwsrfs_dmi.getDatabaseProperties ( 3 );
@@ -9071,7 +9079,7 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "RiversideDB Properties" );
-		Vector v = __rdmi.getDatabaseProperties ( 3 );
+		List v = __rdmi.getDatabaseProperties ( 3 );
 		new ReportJFrame ( v, reportProp );
 		// Clean up...
 		v = null;
@@ -9771,7 +9779,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        Vector comments = new Vector(1);
+        List comments = new Vector(1);
         comments.add ( commandList_NewCommand("#@readOnly",true) );
         commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, __INSERT_COMMAND );
     }
@@ -10053,9 +10061,9 @@ throws Exception
 		new NWSRFS_ConvertJulianHour_JDialog(this);
 	}
 	else if ( o == __Tools_RiversideDB_TSProductManager_JMenuItem ) {
-		Vector rdmi_Vector = new Vector();
+	    List rdmi_Vector = new Vector();
 		if ( __rdmi != null ) {
-			rdmi_Vector.addElement ( __rdmi );
+			rdmi_Vector.add ( __rdmi );
 		}
 		new RiversideDB_TSProductManager_JFrame ( rdmi_Vector, null );
 	}
@@ -10168,13 +10176,13 @@ private void uiAction_CopyFromCommandListToCutBuffer ( boolean remove_original )
 	}
 
 	// Clear what may previously have been in the cut buffer...
-	__commands_cut_buffer.removeAllElements();
+	__commands_cut_buffer.clear();
 
 	// Transfer Command instances to the cut buffer...
 	Command command = null;	// Command instance to process
 	for ( int i = 0; i < size; i++ ) {
 		command = (Command)__commands_JListModel.get(selected_indices[i]);
-		__commands_cut_buffer.addElement ( (Command)command.clone() );
+		__commands_cut_buffer.add ( (Command)command.clone() );
 	}
 	
 	if ( remove_original ) {
@@ -10277,7 +10285,7 @@ private void uiAction_DataTypeChoiceClicked()
         // input name is selected so do nothing here.
     }
 	else if ( __selected_input_type.equals(__INPUT_TYPE_HydroBase) ) {
-		Vector time_steps =	HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
+	    List time_steps =	HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
 			__selected_data_type,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
@@ -10331,7 +10339,7 @@ private void uiAction_DataTypeChoiceClicked()
 	}
 	else if ( __selected_input_type.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
 		// Time steps are determined from the system...
-		Vector time_steps = NWSRFS_Util.getDataTypeIntervals ( __nwsrfs_dmi, __selected_data_type );
+	    List time_steps = NWSRFS_Util.getDataTypeIntervals ( __nwsrfs_dmi, __selected_data_type );
 		__time_step_JComboBox.setData ( time_steps );
 		__time_step_JComboBox.select ( null );
 		__time_step_JComboBox.setEnabled ( true );
@@ -10361,7 +10369,7 @@ private void uiAction_DataTypeChoiceClicked()
 	else if ( __selected_input_type.equals(__INPUT_TYPE_RiversideDB) ) {
 		// Time steps are determined from the database based on the data type that is selected...
 		String data_type = StringUtil.getToken(__data_type_JComboBox.getSelected()," ",0,0).trim();
-		Vector v = null;
+		List v = null;
 		try {
             v = __rdmi.readMeasTypeListForTSIdent (	".." + data_type + ".." );
 		}
@@ -10381,7 +10389,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__time_step_JComboBox.removeAll ();
 		if ( size > 0 ) {
 			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)v.elementAt(i);
+				mt = (RiversideDB_MeasType)v.get(i);
 				// Only add if not already listed. Alternatively - add a "distinct" query
 				time_step_base = mt.getTime_step_base();
 				time_step_mult = mt.getTime_step_mult();
@@ -10476,7 +10484,7 @@ private void uiAction_EditCommand ()
 	}
 	if ( selected_size > 0 ) {
 		Command command = (Command)__commands_JListModel.get(selected[0]);
-		Vector v = null;
+		List v = null;
 		if ( command instanceof Comment_Command ) {
 			// Allow multiple lines to be edited in a comment...
 			// This is handled in the called method, which brings up a multi-line editor for comments.
@@ -10489,13 +10497,13 @@ private void uiAction_EditCommand ()
 					break;
 				}
 				// Else add command to the list.
-				v.addElement ( command );
+				v.add ( command );
 			}
 		}
 		else {
             // Commands are one line...
 			v = new Vector ( 1 );
-			v.addElement ( command );
+			v.add ( command );
 		}
 		commandList_EditCommand ( "", v, __UPDATE_COMMAND ); // No action event from menus
 	}
@@ -10892,7 +10900,7 @@ throws IOException
 
 		Message.printStatus ( 1, routine, "Reading DateValue file \"" + path + "\"" );
 		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
+		List tslist = null;
 		try {
 		    tslist = DateValueTS.readTimeSeriesList ( path, null, null, null, false );
 		}
@@ -10963,7 +10971,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 		}
 */
 
-		Vector results = null;
+		List results = null;
 		
 		try {
 		    results = __DIADvisor_dmi.readSensorDefList();
@@ -10984,7 +10992,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
             Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
         }
 
-		Vector tslist_data_Vector = new Vector(size*2);
+        List tslist_data_Vector = new Vector(size*2);
 		DIADvisor_SensorDef data;
 		String start_date_time = "";
 		String end_date_time = "";
@@ -11001,7 +11009,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 			is_datavalue1 = false;
 		}
 		for ( int i = 0; i < size; i++ ) {
-			data = (DIADvisor_SensorDef)results.elementAt(i);  
+			data = (DIADvisor_SensorDef)results.get(i);  
 			if ( !data.getGroup().equalsIgnoreCase(selected_group)){
 				// Sensor is not in the requested group...
 				continue;
@@ -11025,7 +11033,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 				else {
 				    units = data.getDisplayUnits2();
 				}
-				tslist_data_Vector.addElement(
+				tslist_data_Vector.add(
 						data.getSensorID() + ";"
             					+ description + ";"
             					+ ";"
@@ -11043,7 +11051,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 				(!is_datavalue1 && sensor_type.equalsIgnoreCase("RAIN") ||
 				!rating_type.equalsIgnoreCase("NONE") && interval.equals(__TIMESTEP_IRREGULAR))) ) {
 				// Also add an archive time series...
-				tslist_data_Vector.addElement(	
+				tslist_data_Vector.add(	
 						data.getSensorID() + ";"
             					+ description + ";"
             					+ ";"
@@ -11079,7 +11087,7 @@ throws IOException
     try {
         String path = __input_name_JComboBox.getSelected();
         Message.printStatus ( 1, routine, "Reading HEC-DSS file \"" + path + "\"" );
-        Vector tslist = null;
+        List tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
         // TODO SAM 2008-09-03 Enable searchable fields
         tslist = HecDssAPI.readTimeSeriesList ( new File(path), "*.*.*.*.*~HEC-DSS~" + path, null, null, null, false );
@@ -11130,10 +11138,10 @@ private void uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( GRLimits g
 throws Exception
 {	String message, routine = "TSTool_JFrame.readHydroBaseHeaders";
 
-        JGUIUtil.setWaitCursor ( this, true );
-        Message.printStatus ( 1, routine, "Please wait... retrieving data");
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, routine, "Please wait... retrieving data");
 
-	Vector tslist = null;
+    List tslist = null;
 	int size = 0;
 	try {	
 		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( __hbdmi, __selected_data_type, __selected_time_step,
@@ -11236,7 +11244,7 @@ throws Exception
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				// Turn off columns in the table model that do not apply...
-				if ( !(tslist.elementAt(0) instanceof HydroBase_StationGeolocMeasType) ) {
+				if ( !(tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
 					__query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
 				}
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
@@ -11267,7 +11275,7 @@ throws IOException
 {	String message, routine = "TSTool_JFrame.readMexicoCSMNHeaders";
 
 	try {
-	    Vector allts = MexicoCsmnTS.getCatalogTSList();
+	    List allts = MexicoCsmnTS.getCatalogTSList();
 		if ( allts == null ) {
 			// Have not read the catalog yet so read it...
 			JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -11307,7 +11315,7 @@ throws IOException
 		int nallts = allts.size();
 		Message.printStatus ( 1, routine, "Read " + nallts + " time series listings from catalog file." );
 		TS ts;
-		Vector tslist = null;
+		List tslist = null;
 		// Limit the output to the matching information - there are 2 filter groups...
 		InputFilter filter = __input_filter_MexicoCSMN_JPanel.getInputFilter(0);
 		InputFilter station_filter = null;
@@ -11343,17 +11351,17 @@ throws IOException
 		int state_num;	// State number for specific time series.
 		File f;		// Used to update file name for time series file
 		for ( int i = 0; i < nallts; i++ ) {
-			ts = (TS)allts.elementAt(i);
+			ts = (TS)allts.get(i);
 			if ( Message.isDebugOn ) {
-			Message.printStatus ( 1, "",
-				"station=" + station +
-				" station_operator=" + station_operator +
-				" state=" + state +
-				" location=" + ts.getLocation() +
-				" prefix=" + prefix  +
-				" matchresult=" +
-				station_filter.matches ( station,
-				station_operator, true ) );
+    			Message.printStatus ( 2, "",
+    				"station=" + station +
+    				" station_operator=" + station_operator +
+    				" state=" + state +
+    				" location=" + ts.getLocation() +
+    				" prefix=" + prefix  +
+    				" matchresult=" +
+    				station_filter.matches ( station,
+    				station_operator, true ) );
 			}
 			if ( ((station == null) || station_filter.matches ( ts.getDescription(),
 				station_operator, true )) && ((state == null) || ts.getLocation().startsWith(prefix)) ) {
@@ -11363,7 +11371,7 @@ throws IOException
 				f = new File(ts.getIdentifier().getInputName());
 				ts.getIdentifier().setInputName ( f.getParent() + File.separator +
 					MexicoCsmnTS.getStateAbbreviation( state_num) + "_" +	__selected_data_type + ".CSV" );
-				tslist.addElement ( ts );
+				tslist.add ( ts );
 			}
 		}
 		// There should not be any non-null time series so use the Vector size...
@@ -11427,7 +11435,7 @@ throws IOException
 
 		Message.printStatus ( 1, routine, "Reading MODSIM file \"" + path + "\"" );
 		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
+		List tslist = null;
 		try {
 		    tslist = ModsimTS.readTimeSeriesList ( path, null, null, null, false );
 		}
@@ -11510,7 +11518,7 @@ throws IOException
 
 		Message.printStatus ( 1, routine, "Reading NWS CARD file \"" + path + "\"" );
 		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
+		List tslist = null;
 		try {
 		    tslist = NWSCardTS.readTimeSeriesList (
 				(TS)null,	// No requested time series
@@ -11580,7 +11588,7 @@ throws IOException
 		String path = fc.getSelectedFile().getPath();
 		Message.printStatus ( 1, routine, "Reading NWSRFS ESPTraceEnsemble file \"" + path + "\"" );
 		JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
+		List tslist = null;
 		NWSRFS_ESPTraceEnsemble ensemble = null;
 		try {
             ensemble = new NWSRFS_ESPTraceEnsemble ( path, false );
@@ -11634,11 +11642,11 @@ throws IOException
 
 	try {
         JGUIUtil.setWaitCursor ( this, true );
-		Vector tslist = null;
+        List tslist = null;
 		// Default is to return all IDs...
 		String id_input = "*";
 		// Get the ID from the input filter...
-		Vector input_Vector = __input_filter_NWSRFS_FS5Files_JPanel.getInput ( "ID", true, null );
+		List input_Vector = __input_filter_NWSRFS_FS5Files_JPanel.getInput ( "ID", true, null );
 		int isize = input_Vector.size();
 		if ( isize > 1 ) {
 			Message.printWarning ( 1, routine, "Only one input filter for ID can be specified." );
@@ -11646,7 +11654,7 @@ throws IOException
 		}
 		if ( isize > 0 ) {
 			// Use the first matching filter...
-			id_input = (String)input_Vector.elementAt(0);
+			id_input = (String)input_Vector.get(0);
 		}
 		String datatype = StringUtil.getToken ( __data_type_JComboBox.getSelected().trim(), " ",0, 0);
 		// Parse the interval into the integer hour...
@@ -11746,7 +11754,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 		Message.printStatus ( 2, "", "Datatype = \"" + ident.getType() + "\" main = \"" +
 		ident.getMainType() + "\" sub = \"" + ident.getSubType() +"\"");
 
-		Vector results = null;
+		List results = null;
 
 		try {
             results = __rdmi.readMeasTypeListForTSIdent (
@@ -11819,8 +11827,8 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		Vector tslist = new Vector ( 1 );
-		tslist.addElement ( ts );
+		List tslist = new Vector ( 1 );
+		tslist.add ( ts );
 		__query_TableModel = new TSTool_TS_TableModel ( tslist );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
 
@@ -11850,7 +11858,7 @@ throws Exception
 {	String message, routine = "TSTool_JFrame.readStateCUHeaders";
 
 	try {
-        Vector tslist = null; // Time series to display.
+	    List tslist = null; // Time series to display.
 		TS ts = null; // Single time series.
 		int size = 0; // Number of time series.
 		String path = __input_name_JComboBox.getSelected();
@@ -11930,7 +11938,7 @@ throws Exception
 			if ( tslist != null ) {
 				size = tslist.size();
 				for ( int i = 0; i < size; i++ ) {
-					ts = (TS)tslist.elementAt(i);
+					ts = (TS)tslist.get(i);
 					if ( ts == null ) {
 						continue;
 					}
@@ -11983,7 +11991,7 @@ throws IOException
     try {
         String path = __input_name_JComboBox.getSelected();
         Message.printStatus ( 1, routine, "Reading StateCU binary output file \"" + path + "\"" );
-        Vector tslist = null;
+        List tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
         StateCU_BTS bin = new StateCU_BTS ( path );
         tslist = bin.readTimeSeriesList ( "*.*." + __selected_data_type + ".*.*", null, null, null, false );
@@ -12129,7 +12137,7 @@ throws Exception
 		String path = fc.getSelectedFile().getPath();
 		Message.printStatus ( 1, routine, "Reading StateMod file \"" + path + "\"" );
 		// Normal daily or monthly format file...
-		Vector tslist = null;
+		List tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
 		FileFilter ff = fc.getFileFilter();
 		int interval_base = TimeInterval.MONTH;
@@ -12146,7 +12154,7 @@ throws Exception
 		*/
 		if ( ff == ddr_filter ) {
 			// First read the diversion rights...
-			Vector ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
+		    List ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					ddr_Vector,        // raw water rights
@@ -12163,7 +12171,7 @@ throws Exception
 		}
 		else if ( ff == ifr_filter ) {
 			// First read the instream flow rights...
-			Vector ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
+		    List ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					ifr_Vector,        // raw water rights
@@ -12180,7 +12188,7 @@ throws Exception
 		}
 		else if ( ff == rer_filter ) {
 			// First read the reservoir rights...
-			Vector rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
+		    List rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					rer_Vector,        // raw water rights
@@ -12197,7 +12205,7 @@ throws Exception
 		}
 		else if ( ff == wer_filter ) {
 			// First read the well rights...
-			Vector wer_Vector = StateMod_WellRight.readStateModFile ( path );
+		    List wer_Vector = StateMod_WellRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					wer_Vector,        // raw water rights
@@ -12264,7 +12272,7 @@ throws IOException
 	try {
         String path = __input_name_JComboBox.getSelected();
 		Message.printStatus ( 1, routine, "Reading StateMod binary output file \"" + path + "\"" );
-		Vector tslist = null;
+		List tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
 		StateMod_BTS bin = new StateMod_BTS ( path );
 		tslist = bin.readTimeSeriesList ( "*.*." + __selected_data_type + ".*.*", null, null, null, false );
@@ -12334,8 +12342,8 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		Vector tslist = new Vector ( 1 );
-		tslist.addElement ( ts );
+		List tslist = new Vector ( 1 );
+		tslist.add ( ts );
 		__query_TableModel = new TSTool_TS_TableModel ( tslist );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
 
@@ -12515,7 +12523,7 @@ private void uiAction_InputNameChoiceClicked()
     		__data_type_JComboBox.setEnabled ( true );
     		__data_type_JComboBox.removeAll ();
     		// TODO SAM 2004-09-01 need to find a way to not re-read the data types file.
-    		Vector data_types = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description
+    		List data_types = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description
     		__data_type_JComboBox.setData ( data_types );
     		__data_type_JComboBox.select ( null );
     		__data_type_JComboBox.select ( 0 );
@@ -12590,7 +12598,7 @@ private void uiAction_InputTypeChoiceClicked()
 		__data_type_JComboBox.removeAll ();
 		// Get the data types from the GroupDef table.  Because two values may be available, append "-DataValue" and
 		// "-DataValue2" to each group.
-		Vector sensordef_Vector = null;
+		List sensordef_Vector = null;
 		try {
 		    sensordef_Vector = __DIADvisor_dmi.readSensorDefListForDistinctGroup();
 		}
@@ -12607,7 +12615,7 @@ private void uiAction_InputTypeChoiceClicked()
 		}
 		DIADvisor_SensorDef sensordef = null;
 		for ( int i = 0; i < size; i++ ) {
-			sensordef = (DIADvisor_SensorDef)sensordef_Vector.elementAt(i);
+			sensordef = (DIADvisor_SensorDef)sensordef_Vector.get(i);
 			__data_type_JComboBox.add( sensordef.getGroup() + "-DataValue" );
 			__data_type_JComboBox.add( sensordef.getGroup() + "-DataValue2" );
 		}
@@ -12689,7 +12697,7 @@ private void uiAction_InputTypeChoiceClicked()
 		// Data type - get the time series choices from the HydroBase_Util code...
 		__data_type_JComboBox.setEnabled ( true );
 		__data_type_JComboBox.removeAll ();
-		Vector data_types =
+		List data_types =
 			HydroBase_Util.getTimeSeriesDataTypes (__hbdmi,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
@@ -12795,7 +12803,7 @@ private void uiAction_InputTypeChoiceClicked()
 		// If previous choices were selected, show them...
 		int size = __input_name_NWSRFS_FS5Files.size();
 		for ( int i = 0; i < size; i++ ) {
-			__input_name_JComboBox.add ( (String)__input_name_NWSRFS_FS5Files.elementAt(i) );
+			__input_name_JComboBox.add ( (String)__input_name_NWSRFS_FS5Files.get(i) );
         }
 		// Try to select the current DMI (it should always work if the logic is correct)...
 
@@ -12874,8 +12882,8 @@ private void uiAction_InputTypeChoiceClicked()
 	else if ( __selected_input_type.equals ( __INPUT_TYPE_RiversideDB ) ) {
 		__data_type_JComboBox.setEnabled ( true );
 		__data_type_JComboBox.removeAll ();
-		Vector mts = null;
-		Vector dts = null;
+		List mts = null;
+		List dts = null;
 		try {
             mts = __rdmi.readMeasTypeListForDistinctData_type();
 			dts = __rdmi.readDataTypeList();
@@ -12894,13 +12902,13 @@ private void uiAction_InputTypeChoiceClicked()
 			int pos;
 			String data_type;
 			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)mts.elementAt(i);
+				mt = (RiversideDB_MeasType)mts.get(i);
 				pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
 				if ( pos < 0 ) {
 					__data_type_JComboBox.add(mt.getData_type() );
 				}
 				else {
-                    data_type = mt.getData_type() +	" - " + ((RiversideDB_DataType)dts.elementAt(pos)).getDescription();
+                    data_type = mt.getData_type() +	" - " + ((RiversideDB_DataType)dts.get(pos)).getDescription();
 					if ( data_type.length() > 30 ) {
 						__data_type_JComboBox.add( data_type.substring(0,30) + "..." );
 					}
@@ -13380,7 +13388,7 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 			// interface.  This will allow the user to pick this
 			// in the GUI later without reopening...
 			String path = __nwsrfs_dmi.getFS5FilesLocation();
-			__input_name_NWSRFS_FS5Files.addElement ( path );
+			__input_name_NWSRFS_FS5Files.add ( path );
 			// For now there is no way for the user to set a separate
 			// input name so set the same as the FS5 Files location...
 			// Is automatically set.
@@ -13671,7 +13679,7 @@ private void uiAction_PasteFromCutBufferToCommandList ()
 
 	Command command = null;
 	for ( int i = 0; i < buffersize; i++ ) {
-		command = (Command)__commands_cut_buffer.elementAt(i);
+		command = (Command)__commands_cut_buffer.get(i);
 		commandList_InsertCommandAt ( command, (last_selected + 1 + i) );
 	}
 
@@ -13755,7 +13763,7 @@ private void uiAction_RunCommands ( boolean runAllCommands, boolean createOutput
 	results_Clear ();
 	System.gc();
 	// Get commands to run (all or selected)...
-	Vector commands = commandList_GetCommands ( runAllCommands );
+	List commands = commandList_GetCommands ( runAllCommands );
 	// The limits of the command progress bar are handled in commandStarted().
 	// Run the commands in a thread.
 	commandProcessor_RunCommandsThreaded ( commands, createOutput );
@@ -14176,7 +14184,7 @@ throws Exception
         ui_SetIgnoreItemEvent ( true );
         if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
             // Not already in so add it at the beginning...
-            __input_name_HECDSS.addElement ( __BROWSE );
+            __input_name_HECDSS.add ( __BROWSE );
             __input_name_JComboBox.add ( __BROWSE );
         }
         if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
@@ -14184,11 +14192,11 @@ throws Exception
             // are listed chronologically by select with most recent at the top...
             if ( __input_name_JComboBox.getItemCount() > 1 ) {
                 __input_name_JComboBox.addAt ( input_name, 1 );
-                __input_name_StateCUB.insertElementAt ( input_name, 1 );
+                __input_name_StateCUB.add ( 1, input_name );
             }
             else {
                 __input_name_JComboBox.add ( input_name );
-                __input_name_StateCUB.addElement(input_name);
+                __input_name_StateCUB.add(input_name);
             }
         }
         ui_SetIgnoreItemEvent ( false );
@@ -14205,7 +14213,7 @@ throws Exception
     __data_type_JComboBox.setEnabled ( true );
     __data_type_JComboBox.removeAll ();
 
-    Vector data_types = new Vector();
+    List data_types = new Vector();
     int interval_base = TimeInterval.MONTH; // Default
     /* FIXME
     // TODO SAM 2006-01-15
@@ -14333,8 +14341,7 @@ throws Exception
 				__input_name_JComboBox.select ( 1 );
 			}
 			// Insert so we have the list of files later...
-			__input_name_NWSRFS_FS5Files.insertElementAt (
-					input_name, 0 );
+			__input_name_NWSRFS_FS5Files.add ( 0, input_name );
 		}
 		// Select the file in the input name because leaving it on
 		// browse will disable the user's ability to reselect browse...
@@ -14350,13 +14357,11 @@ throws Exception
 
 	JGUIUtil.setWaitCursor ( this, true );
 	try {	if ( input_name.equals(__USE_APPS_DEFAULTS) ) {
-			Message.printStatus ( 1, routine,
-			"Opening connection to NWSRFS FS5Files using Apps " +
-			"Defaults..." );
+			Message.printStatus ( 1, routine, "Opening connection to NWSRFS FS5Files using Apps Defaults..." );
 			__nwsrfs_dmi = new NWSRFS_DMI();
 		}
-		else {	Message.printStatus ( 1, routine,
-			"Opening connection to NWSRFS FS5Files using path \"" +
+		else {
+		    Message.printStatus ( 1, routine, "Opening connection to NWSRFS FS5Files using path \"" +
 			input_name + "\"..." );
 			__nwsrfs_dmi = new NWSRFS_DMI ( input_name );
 		}
@@ -14507,24 +14512,21 @@ throws Exception
 		// Set the input name...
 
 		ui_SetIgnoreItemEvent ( true );
-		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
-				__BROWSE, JGUIUtil.NONE, null, null ) ) {
+		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox, __BROWSE, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add it at the beginning...
-			__input_name_StateCU.addElement ( __BROWSE );
+			__input_name_StateCU.add ( __BROWSE );
 			__input_name_JComboBox.add ( __BROWSE );
 		}
-		if (	!JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,
-				input_name, JGUIUtil.NONE, null, null ) ) {
+		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox, input_name, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add after the browse string (files
-			// are listed chronologically by select with most recent
-			// at the top...
+			// are listed chronologically by select with most recent at the top...
 			if ( __input_name_JComboBox.getItemCount() > 1 ) {
 				__input_name_JComboBox.addAt ( input_name, 1 );
-				__input_name_StateCU.insertElementAt (
-						input_name, 1 );
+				__input_name_StateCU.add ( 1, input_name );
 			}
-			else {	__input_name_JComboBox.add ( input_name );
-				__input_name_StateCU.addElement(input_name);
+			else {
+			    __input_name_JComboBox.add ( input_name );
+				__input_name_StateCU.add(input_name);
 			}
 		}
 		ui_SetIgnoreItemEvent ( false );
@@ -14628,7 +14630,7 @@ throws Exception
         ui_SetIgnoreItemEvent ( true );
         if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
             // Not already in so add it at the beginning...
-            __input_name_StateCUB.addElement ( __BROWSE );
+            __input_name_StateCUB.add ( __BROWSE );
             __input_name_JComboBox.add ( __BROWSE );
         }
         if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
@@ -14636,11 +14638,11 @@ throws Exception
             // are listed chronologically by select with most recent at the top...
             if ( __input_name_JComboBox.getItemCount() > 1 ) {
                 __input_name_JComboBox.addAt ( input_name, 1 );
-                __input_name_StateCUB.insertElementAt ( input_name, 1 );
+                __input_name_StateCUB.add ( 1, input_name );
             }
             else {
                 __input_name_JComboBox.add ( input_name );
-                __input_name_StateCUB.addElement(input_name);
+                __input_name_StateCUB.add(input_name);
             }
         }
         ui_SetIgnoreItemEvent ( false );
@@ -14658,7 +14660,7 @@ throws Exception
     __data_type_JComboBox.removeAll ();
     String extension = IOUtil.getFileExtension ( input_name );
 
-    Vector data_types = null;
+    List data_types = null;
     int interval_base = TimeInterval.MONTH; // Default
     int comp = StateCU_DataSet.COMP_UNKNOWN;
     if ( extension.equalsIgnoreCase("bd1" ) ) {
@@ -14778,7 +14780,7 @@ throws Exception
 		ui_SetIgnoreItemEvent ( true );
 		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
 			// Not already in so add it at the beginning...
-			__input_name_StateModB.addElement ( __BROWSE );
+			__input_name_StateModB.add ( __BROWSE );
 			__input_name_JComboBox.add ( __BROWSE );
 		}
 		if ( !JGUIUtil.isSimpleJComboBoxItem (__input_name_JComboBox,inputName, JGUIUtil.NONE, null, null ) ) {
@@ -14786,11 +14788,11 @@ throws Exception
 			// are listed chronologically by select with most recent at the top...
 			if ( __input_name_JComboBox.getItemCount() > 1 ) {
 				__input_name_JComboBox.addAt ( inputName, 1 );
-				__input_name_StateModB.insertElementAt ( inputName, 1 );
+				__input_name_StateModB.add ( 1, inputName );
 			}
 			else {
                 __input_name_JComboBox.add ( inputName );
-				__input_name_StateModB.addElement(inputName);
+				__input_name_StateModB.add(inputName);
 			}
 		}
 		ui_SetIgnoreItemEvent ( false );
@@ -14808,7 +14810,7 @@ throws Exception
 	__data_type_JComboBox.removeAll ();
 	String extension = IOUtil.getFileExtension ( inputName );
 
-	Vector dataTypes = null;
+	List dataTypes = null;
 	int interval_base = TimeInterval.MONTH;	// Default
 	int comp = StateMod_DataSet.COMP_UNKNOWN;
 	if ( extension.equalsIgnoreCase("b42" ) ) {
@@ -14902,7 +14904,7 @@ private void uiAction_SelectOnMap ()
 throws Exception
 {	String routine = "TSTool_JFrame.selectOnMap";
 	int size = __query_JWorksheet.getRowCount();	// To size Vector
-	Vector idlist = new Vector(size);
+	List idlist = new Vector(size);
 	Message.printStatus ( 1, routine, "Selecting and zooming to stations on map.  Please wait...");
 	JGUIUtil.setWaitCursor(this, true);
 
@@ -14911,8 +14913,7 @@ throws Exception
 
 	// TODO SAM 2006-03-01
 	// Currently read this each time because it is a small file and it
-	// helps in development to not restart.  However, in the future, change
-	// so that the file is read once.
+	// helps in development to not restart.  However, in the future, change so that the file is read once.
 
 	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
 	if ( filename == null ) {
@@ -14963,13 +14964,13 @@ throws Exception
 		",Layer_DataSource=" + Layer_DataSourceCol_int );
 	}
 
-	Vector layerlist = new Vector();	// List of layers to match features
-	Vector mapidlist = new Vector();	// List of identifier attributes in map data to match features
+	List layerlist = new Vector();	// List of layers to match features
+	List mapidlist = new Vector();	// List of identifier attributes in map data to match features
 	String ts_inputtype, ts_datatype, ts_interval,
 		layer_name, layer_location, layer_datasource = "",
 		layer_interval = ""; // TSTool input to match against layers.
 	TableRecord rec;
-	if (	(TS_InputTypeCol_int >= 0) && (TS_DataTypeCol_int >= 0) &&
+	if ( (TS_InputTypeCol_int >= 0) && (TS_DataTypeCol_int >= 0) &&
 		(TS_IntervalCol_int >= 0) && (Layer_NameCol_int >= 0) &&
 		(Layer_LocationCol_int >= 0) ) {
 		// Have the necessary columns in the file to search for a matching layer...
@@ -15007,7 +15008,7 @@ throws Exception
 				layer_interval = (String)rec.getFieldValue(	Layer_IntervalCol_int);
 			}
 			// Save the layer to search and attribute(s) to match...
-			layerlist.addElement ( layer_name );
+			layerlist.add ( layer_name );
 			attributes.setLength(0);
 			attributes.append ( layer_location );
 			if ( (Layer_DataSourceCol_int >= 0) && (layer_datasource != null) && !layer_datasource.equals("") ) {
@@ -15016,7 +15017,7 @@ throws Exception
 			if ( (Layer_IntervalCol_int >= 0) && (layer_interval != null) && !layer_interval.equals("") ) {
 				attributes.append ( "," + layer_interval );
 			}
-			mapidlist.addElement ( attributes.toString() );
+			mapidlist.add ( attributes.toString() );
 		}
 	}
 
@@ -15087,7 +15088,7 @@ throws Exception
 				attributes.append ( "," + (String)__query_TableModel.getValueAt( row,interval_col ) );
 			}
 			// Add to the list to match...
-			idlist.addElement ( attributes.toString() );
+			idlist.add ( attributes.toString() );
 		}
 	}
 
@@ -15100,8 +15101,7 @@ throws Exception
 	Message.printStatus ( 2, routine, "LayerList=" + layerlist );
 	Message.printStatus ( 2, routine, "AttributeList=" + mapidlist );
 	Message.printStatus ( 2, routine, "IDList=" + idlist );
-	Vector matching_features =
-		__geoview_JFrame.getGeoViewJPanel().selectLayerFeatures(
+	List matching_features = __geoview_JFrame.getGeoViewJPanel().selectLayerFeatures(
 			layerlist,	// Layers to search
 			mapidlist,	// Attributes to use to compare to the identifiers
 			idlist,		// Identifiers to find
@@ -15280,9 +15280,9 @@ private void uiAction_ShowCommandStatus()
  */
 private String uiAction_ShowCommandStatus_GetCommandsStatus()
 {
-  Vector commands = commandList_GetCommandsBasedOnUI();
-  String html = CommandStatusUtil.getHTMLStatusReport(commands);	
-  return html;
+    List commands = commandList_GetCommandsBasedOnUI();
+    String html = CommandStatusUtil.getHTMLStatusReport(commands);	
+    return html;
 }
 
 /**
@@ -15336,24 +15336,24 @@ private void uiAction_ShowProperties_CommandsRun ()
 	reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 	reportProp.set ( "PrintSize", "7" );
 	reportProp.set ( "Title", "TSTool Commands Run Properties" );
-	Vector v = new Vector ( 4 );
-	v.addElement ( "Properties from the last commands run." );
-	v.addElement ( "Note that property values are as of the time the window is opened." );
-	v.addElement ( "Properties are set as defaults initially and change value when a command is processed." );
-	v.addElement ( "" );
+	List v = new Vector ( 4 );
+	v.add ( "Properties from the last commands run." );
+	v.add ( "Note that property values are as of the time the window is opened." );
+	v.add ( "Properties are set as defaults initially and change value when a command is processed." );
+	v.add ( "" );
 	
 	String s1 = "", s2 = "";
 	// Initial and current working directory...
-	v.addElement ( "Initial working directory:  " + __tsProcessor.getInitialWorkingDir() );
+	v.add ( "Initial working directory:  " + __tsProcessor.getInitialWorkingDir() );
 	try {
-	    v.addElement ( "Current working directory:  " + __tsProcessor.getPropContents("WorkingDir") );
+	    v.add ( "Current working directory:  " + __tsProcessor.getPropContents("WorkingDir") );
 	}
 	catch ( Exception e ) {
-	    v.addElement ( "Current working directory:  Unknown" );
+	    v.add ( "Current working directory:  Unknown" );
 	}
 	// Whether running and cancel requested...
-	v.addElement ( "Are commands running:  " + __tsProcessor.getIsRunning() );
-	v.addElement ( "Has cancel been requested (and is pending):  " + __tsProcessor.getCancelProcessingRequested() );
+	v.add ( "Are commands running:  " + __tsProcessor.getIsRunning() );
+	v.add ( "Has cancel been requested (and is pending):  " + __tsProcessor.getCancelProcessingRequested() );
 	// Input period...
 	DateTime date1 = commandProcessor_GetInputStart();
 	if ( date1 == null ) {
@@ -15368,8 +15368,8 @@ private void uiAction_ShowProperties_CommandsRun ()
 	}
 	else {	s2 = date2.toString();
 	}
-	v.addElement ( "Input (query/read) start: " + s1 );
-	v.addElement ( "Input (query/read) end:   " + s2 );
+	v.add ( "Input (query/read) start: " + s1 );
+	v.add ( "Input (query/read) end:   " + s2 );
 	// Output period...
 	date1 = commandProcessor_GetOutputStart();
 	if ( date1 == null ) {
@@ -15385,26 +15385,27 @@ private void uiAction_ShowProperties_CommandsRun ()
 	else {
         s2 = date2.toString();
 	}
-	v.addElement ( "Output period start: " + s1 );
-	v.addElement ( "Output period end:   " + s2 );
+	v.add ( "Output period start: " + s1 );
+	v.add ( "Output period end:   " + s2 );
 	// Auto-extend period...
-	v.addElement ( "Automatically extend period to output period during read: " +
+	v.add ( "Automatically extend period to output period during read: " +
 		commandProcessor_GetAutoExtendPeriod () );
 	// Include missing TS automatically...
-	v.addElement ( "Include missing TS automatically: " + commandProcessor_GetIncludeMissingTS() );
+	v.add ( "Include missing TS automatically: " + commandProcessor_GetIncludeMissingTS() );
 	if ( __source_HydroBase_enabled ) {
-		v.addElement ( "" );
+		v.add ( "" );
 		Object o2 = commandProcessor_GetHydroBaseDMIList();
-		if ( (o2 == null) || (((Vector)o2).size() == 0) ) {
-			v.addElement ( "No HydroBase connections are open for the command processor." );
+		if ( (o2 == null) || (((List)o2).size() == 0) ) {
+			v.add ( "No HydroBase connections are open for the command processor." );
 		}
-		else { Vector dmis = (Vector)o2;
+		else {
+		    List dmis = (List)o2;
 			int size = dmis.size();
 			for ( int i = 0; i < size; i++ ) {
-				v.addElement ( "Command processor HydroBase connection information:" );
+				v.add ( "Command processor HydroBase connection information:" );
 				try {
 					StringUtil.addListToStringList ( v,
-						StringUtil.toVector( ((HydroBaseDMI)dmis.elementAt(i)).getVersionComments() ) );
+						StringUtil.toList( ((HydroBaseDMI)dmis.get(i)).getVersionComments() ) );
 				}
 				catch ( Exception e ) {
 					// Ignore for now.
@@ -15506,8 +15507,7 @@ private void uiAction_ShowResultsTable ( String selected )
 }
 
 /**
-Method to run test code.  This is usually accessible only when running with the
--test command line option.
+Method to run test code.  This is usually accessible only when running with the -test command line option.
 @exception Exception if there is an error.
 */
 private void uiAction_Test ()
@@ -15520,82 +15520,61 @@ throws Exception
 
 		// Initialize the data types and SHEF code from the NWS files...
 		DataUnits.readNWSUnitsFile (
-			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles"+
-			"\\DATAUNIT", true );
+			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\DATAUNIT", true );
 		DataType.readNWSDataTypeFile (
-			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles"+
-			"\\DATATYPE" );
+			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\DATATYPE" );
 		DataType.readNWSDataTypeFile (
-			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles"+
-			"\\DATATYPE2" );
-		Vector datatypes = DataType.getDataTypesData();
+			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\DATATYPE2" );
+		List datatypes = DataType.getDataTypesData();
 		int size = datatypes.size();
 		for ( int i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "",
-			"DataType[" + i + "]: " +
-			((DataType)datatypes.elementAt(i)).toString() );
+			Message.printDebug ( 1, "", "DataType[" + i + "]: " + ((DataType)datatypes.get(i)).toString() );
 		}
 		SHEFType.readNWSSHEFPPDBFile (
-			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles"+
-			"\\SHEFPPDB", true );
-		Vector sheftypes = SHEFType.getSHEFTypesData();
+			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\SHEFPPDB", true );
+		List sheftypes = SHEFType.getSHEFTypesData();
 		size = sheftypes.size();
 		for ( int i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "",
-			"SHEFType[" + i + "]: " +
-			((SHEFType)sheftypes.elementAt(i)).toString() );
+			Message.printDebug ( 1, "", "SHEFType[" + i + "]: " + ((SHEFType)sheftypes.get(i)).toString() );
 		}
 		// Print out again after SHEF should be matched up...
 		datatypes = DataType.getDataTypesData();
 		size = datatypes.size();
 		for ( int i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "",
-			"DataType[" + i + "]: " +
-			((DataType)datatypes.elementAt(i)).toString() );
+			Message.printDebug ( 1, "", "DataType[" + i + "]: " + ((DataType)datatypes.get(i)).toString() );
 		}
 		// Read test input...
-		Vector tslist = DateValueTS.readTimeSeriesList (
-			"J:\\cdss\\develop\\apps\\TSTool\\test\\" +
-			"Data_SHEF\\TF24.mdk",
-			(DateTime)null, (DateTime)null, (String)null,
-			true );
+		List tslist = DateValueTS.readTimeSeriesList ( "J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\TF24.mdk",
+			(DateTime)null, (DateTime)null, (String)null, true );
 		// Write the SHEF
 		PropList outprops = new PropList ( "shef" );
 		outprops.set ( "Duration=DH1200" );
 		outprops.set ( "CreationDate=DC200311241319" );
 		ShefATS.writeTimeSeriesList ( tslist, 
-			"J:\\cdss\\develop\\apps\\TSTool\\test\\" +
-			"Data_SHEF\\test.shef", (DateTime)null, (DateTime)null,
-			(Vector)null, ShefATS.getPEForTimeSeries(tslist),
-			(Vector)null, (Vector)null,
-			outprops );
+			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\test.shef", (DateTime)null, (DateTime)null,
+			(List)null, ShefATS.getPEForTimeSeries(tslist), (List)null, (List)null, outprops );
 	}
 	else if ( test_num == 1 ) {
 		// Test reading multiple time series from a date value file
 		// and creating an average time series...
-		Vector tslist = DateValueTS.readTimeSeriesList (
-			"J:\\cdss\\develop\\apps\\TSTool\\test\\" +
-			"Data_EspTraceEnsemble\\CSCI.CSCI.SQIN.ACCUMULATOR",
-			(DateTime)null, (DateTime)null, (String)null,
-			true );
+	    List tslist = DateValueTS.readTimeSeriesList (
+			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_EspTraceEnsemble\\CSCI.CSCI.SQIN.ACCUMULATOR",
+			(DateTime)null, (DateTime)null, (String)null, true );
 		int size = tslist.size() - 1;
-		Vector tslist2 = new Vector(size);
+		List tslist2 = new Vector(size);
 		TS ts;
 		for ( int i = 0; i < size; i++ ) {
-			// Add time series that have ACFT units and "accum" in
-			// the description, but not the
-			// last time series, which is the average that we are
-			// trying to test here.
-			ts = (TS)tslist.elementAt(i);
-			if (	ts.getDataUnits().equalsIgnoreCase("ACFT") &&
-				(ts.getAlias().indexOf("Accum") >= 0) ) {
-				tslist2.addElement ( ts );
+			// Add time series that have ACFT units and "accum" in the description, but not the
+			// last time series, which is the average that we are trying to test here.
+			ts = (TS)tslist.get(i);
+			if ( ts.getDataUnits().equalsIgnoreCase("ACFT") && (ts.getAlias().indexOf("Accum") >= 0) ) {
+				tslist2.add ( ts );
 			}
 		}
 		PropList props = new PropList ( "test" );
 		props.set ( "TransferData=Sequentially" );
 		TS newts = TSUtil.average ( tslist2, null, null, props );
-		tslist2.addElement ( newts );
+		tslist2.add ( newts );
 		// Display...
 		/*
 		PropList graphprops = new PropList ( "graph" );
@@ -15828,8 +15807,7 @@ throws Exception
 			"The map must be displayed to run this test." );
 			return;
 		}
-		Vector layerviews =
-			__geoview_JFrame.getGeoViewJPanel().getLayerViews(null);
+		List layerviews = __geoview_JFrame.getGeoViewJPanel().getLayerViews(null);
 		int size = 0;
 		if ( layerviews != null ) {
 			size = layerviews.size();
@@ -15854,50 +15832,45 @@ throws Exception
 		// Hard code for now to demonstrate...
 		String analyzed_layer_name = "Streamflow Gages - Real-time";
 		for ( int i = 0; i < size; i++ ) {
-			lv = (GeoLayerView)layerviews.elementAt(i);
+			lv = (GeoLayerView)layerviews.get(i);
 			if(lv.getName().equalsIgnoreCase(analyzed_layer_name)){
 				break;
 			}
-			else {	lv = null;
+			else {
+			    lv = null;
 			}
 		}
 		if ( lv == null ) {
-			Message.printWarning ( 1, routine,
-			"Unable to find layer to analyze \"" +
-			analyzed_layer_name + "\"." );
+			Message.printWarning ( 1, routine, "Unable to find layer to analyze \"" + analyzed_layer_name + "\"." );
 			return;
 		}
 		GeoLayer lv_layer = lv.getLayer();
 
-		// Create a new layer to contain the analyzed data.  The layer
-		// needs shapes and an attribute table.
+		// Create a new layer to contain the analyzed data.  The layer needs shapes and an attribute table.
 
 		GeoLayer layer = new GeoLayer(new PropList("Layer"));
 		layer.setShapeType(GeoLayer.POINT);
-		Vector shapes = new Vector();
-		Vector lv_shapes = lv_layer.getShapes();
+		List shapes = new Vector();
+		List lv_shapes = lv_layer.getShapes();
 		DataTable lv_table = lv_layer.getAttributeTable();
 		int lv_layer_size = 0;
 		if ( lv_shapes != null ) {
 			lv_layer_size = lv_shapes.size();
-			Message.printStatus ( 2, routine,
-			"There are " + lv_layer_size + " features to process.");
+			Message.printStatus ( 2, routine, "There are " + lv_layer_size + " features to process.");
 		}
-		else {	Message.printWarning ( 1, routine,
-			"No shapes in layer." );
+		else {
+		    Message.printWarning ( 1, routine, "No shapes in layer." );
 			return;
 		}
 		GRShape shape = null;
 		GRPoint pt;
 		for ( int i = 0; i < lv_layer_size; i++ ) {
 			// Copy the shape into the new layer...
-			//Message.printStatus ( 2, routine,
-			//"Processing shape [" + i + "]" );
-			shape = (GRShape)lv_shapes.elementAt(i);
+			//Message.printStatus ( 2, routine,"Processing shape [" + i + "]" );
+			shape = (GRShape)lv_shapes.get(i);
 			if ( shape == null ) {
 				// Null shape (ignore)...
-				Message.printStatus ( 2, routine,
-				"Shape [" + i + "] is null." );
+				Message.printStatus ( 2, routine, "Shape [" + i + "] is null." );
 				continue;
 			}
 			if ( shape.type == GRShape.UNKNOWN ) {
@@ -15905,31 +15878,22 @@ throws Exception
 			}
 			//Message.printStatus ( 2, routine, "" + shape );
 			pt = (GRPoint)shape;
-			shapes.addElement ( new GRPoint(pt.x,pt.y) );
+			shapes.add ( new GRPoint(pt.x,pt.y) );
 		}
 		layer.setShapes ( shapes );
 
 		// Create the attribute table...
 
-		Vector fields = new Vector ();
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_STRING, "Abbrev", 12 ) ); // 0
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_STRING, "Station_id", 12 ) ); // 1
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_STRING, "Name", 40 ) ); // 2
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_DOUBLE, "Flow_cfs", 12 ) ); // 3
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_STRING, "Date", 10 ) ); // 4
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_DOUBLE, "Average", 10 ) ); // 5
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_DOUBLE, "Perc. Ave", 14 ) ); //6
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_DOUBLE, "UTMX", 13 ) ); //7
-		fields.addElement ( new TableField(
-			TableField.DATA_TYPE_DOUBLE, "UTMY", 13 ) ); //8
+		List fields = new Vector ();
+		fields.add ( new TableField(	TableField.DATA_TYPE_STRING, "Abbrev", 12 ) ); // 0
+		fields.add ( new TableField( TableField.DATA_TYPE_STRING, "Station_id", 12 ) ); // 1
+		fields.add ( new TableField(	TableField.DATA_TYPE_STRING, "Name", 40 ) ); // 2
+		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "Flow_cfs", 12 ) ); // 3
+		fields.add ( new TableField(	TableField.DATA_TYPE_STRING, "Date", 10 ) ); // 4
+		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "Average", 10 ) ); // 5
+		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "Perc. Ave", 14 ) ); //6
+		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "UTMX", 13 ) ); //7
+		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "UTMY", 13 ) ); //8
 		int fields_size = fields.size();
 		DataTable table = new DataTable ( fields );
 		layer.setAttributeTable(table);
@@ -15938,36 +15902,30 @@ throws Exception
 		// in memory and get its most recent value (for today).  Then
 		// determine all values from the matching historical record and
 		// compute an average flow.  Then calculate a percent of average
-		// for the current value.  Add these items to the attribute
-		// table of the layer.
+		// for the current value.  Add these items to the attribute table of the layer.
 
 		if ( __tsProcessor == null ) {
-			Message.printWarning ( 1, routine,
-			"No time series available for test." );
+			Message.printWarning ( 1, routine, "No time series available for test." );
 			return;
 		}
-		Vector tslist = commandProcessor_GetTimeSeriesResultsList();
+		List tslist = commandProcessor_GetTimeSeriesResultsList();
 		int tslist_size = 0;
 		if ( tslist != null ) {
 			tslist_size = tslist.size();
 		}
 		for ( int i = 0; i < lv_layer_size; i++ ) {
-			shape = (GRShape)lv_shapes.elementAt(i);
-			if ( 	(shape == null) ||
-				(shape.type == GRShape.UNKNOWN) ) {
+			shape = (GRShape)lv_shapes.get(i);
+			if ( (shape == null) || (shape.type == GRShape.UNKNOWN) ) {
 				// Null shape so ignore...
 				continue;
 			}
-			// Copy the shape into the new layer and add a record
-			// to the attribute table...
-			pt = (GRPoint)lv_shapes.elementAt(i);
+			// Copy the shape into the new layer and add a record to the attribute table...
+			pt = (GRPoint)lv_shapes.get(i);
 			rec = new TableRecord ( fields_size );
 			abbrev = (String)lv_table.getFieldValue(i,"Abbrev");
 			rec.addFieldValue ( abbrev );
-			station_id =
-				(String)lv_table.getFieldValue(i,"Station_id");
-			Message.printStatus ( 2, routine,
-			"Processing station abbrev=\"" + abbrev +
+			station_id = (String)lv_table.getFieldValue(i,"Station_id");
+			Message.printStatus ( 2, routine, "Processing station abbrev=\"" + abbrev +
 			"\" station_id=\"" + station_id + "\"" );
 			rec.addFieldValue ( station_id );
 			rec.addFieldValue ( lv_table.getFieldValue(i,"Name") );
@@ -15980,67 +15938,38 @@ throws Exception
 			table.addRecord ( rec );	// May be updated below
 
 			// Determine the most recent value of the time series...
-			// First loop through the time series to find one that
-			// matches the station.
+			// First loop through the time series to find one that matches the station.
 
 			for ( int j = 0; j < tslist_size; j++ ) {
-				ts = (TS)tslist.elementAt(j);
+				ts = (TS)tslist.get(j);
 				tsident = ts.getIdentifier();
-				if (	(tsident.getLocation().equalsIgnoreCase(
-					abbrev) ||
-					tsident.getLocation().equalsIgnoreCase(
-					station_id)) &&
-					tsident.getInterval().equalsIgnoreCase(
-					"Irregular") ) {
-					Message.printStatus ( 2, routine,
-					"Found matching real-time time " +
-					"series.");
+				if ( (tsident.getLocation().equalsIgnoreCase(abbrev) ||
+					tsident.getLocation().equalsIgnoreCase(station_id)) &&
+					tsident.getInterval().equalsIgnoreCase("Irregular") ) {
+					Message.printStatus ( 2, routine, "Found matching real-time time series.");
 					// have the matching station
 					value = ts.getDataValue ( now );
-					Message.printStatus ( 2, routine,
-					"Data value on " + now + " is " +
-					value );
+					Message.printStatus ( 2, routine, "Data value on " + now + " is " +	value );
 					rec.setFieldValue (3,new Double(value));
 					rec.setFieldValue (4,today.toString() );
-					// Find the historical time series if
-					// the current value is not missing...
+					// Find the historical time series if the current value is not missing...
 					if ( !ts.isDataMissing(value) ) {
 					for ( int k = 0; k < tslist_size; k++){
-						ts2 = (TS)tslist.elementAt(k);
+						ts2 = (TS)tslist.get(k);
 						tsident2 = ts2.getIdentifier();
-						if (	(tsident2.getLocation().
-							equalsIgnoreCase(
-							abbrev) ||
-							tsident2.getLocation().
-							equalsIgnoreCase(
-							station_id)) &&
-							tsident2.getInterval().
-							equalsIgnoreCase(
-							"Day") ) {
-							Message.printStatus ( 2,
-							routine,
-							"Found matching " +
-							"historical time " +
-							"series.");
-							// Loop through entire
-							// period to extract
-							// daily values matching
-							// today's date.
+						if ( (tsident2.getLocation().equalsIgnoreCase(abbrev) ||
+							tsident2.getLocation().equalsIgnoreCase(station_id)) &&
+							tsident2.getInterval().equalsIgnoreCase("Day") ) {
+							Message.printStatus ( 2, routine, "Found matching historical time series.");
+							// Loop through entire period to extract daily values matching today's date.
 							nvalues = 0;
 							sum = 0.0;
-							date = new DateTime (
-							ts2.getDate1() );
-							date.setMonth(
-							today.getMonth() );
-							date.setDay(
-							today.getDay() );
+							date = new DateTime (ts2.getDate1() );
+							date.setMonth( today.getMonth() );
+							date.setDay( today.getDay() );
 							end = ts2.getDate2();
-							for ( ; date.
-								lessThanOrEqualTo(
-								end);
-								date.addYear(1)){
-								value2 =
-								ts2.getDataValue(date);
+							for ( ; date.lessThanOrEqualTo(end); date.addYear(1)){
+								value2 = ts2.getDataValue(date);
 								if ( ts2.isDataMissing(value2) ) {
 									continue;
 								}
@@ -16049,34 +15978,19 @@ throws Exception
 							}
 				
 							// Compute the average.
-							// TODO - need some
-							// criteria for minimum
-							// number of points.
+							// TODO - need some criteria for minimum number of points.
 							if ( nvalues > 10 ) {
-								mean =
-								sum/nvalues;
-								percent =
-								value/
-								mean*100.0;
-								rec.
-								setFieldValue (
-								5,new Double(
-								mean));
-								rec.
-								setFieldValue (
-								6,new Double(
-								percent));
+								mean = sum/nvalues;
+								percent = value/mean*100.0;
+								rec.setFieldValue ( 5,new Double(mean));
+								rec.setFieldValue (	6,new Double(percent));
 							}
-							// No need to continue
-							// looking for the
-							// historical time
-							// series...
+							// No need to continue looking for the historical time series...
 							break;
 						}
 					}
 					}
-					// No need to continue looking for the
-					// station...
+					// No need to continue looking for the station...
 					break;
 				}
 			} 
@@ -16084,10 +15998,8 @@ throws Exception
 
 		// Write the shapefile...
 
-		layer.writeShapefile ( "F:\\home\\beware\\sam\\testflow",
-			false, false, null );
-		table.writeDelimitedFile ("F:\\home\\beware\\sam\\testflow.csv",
-			",", true, null );
+		layer.writeShapefile ( "F:\\home\\beware\\sam\\testflow", false, false, null );
+		table.writeDelimitedFile ("F:\\home\\beware\\sam\\testflow.csv", ",", true, null );
 	}
 	else if ( test_num == 9 ) {
 		// Read a DateValue file and test creating a graph.
@@ -16097,8 +16009,8 @@ throws Exception
 		// import RTi.GRTS.TSViewJFrame;
 		TS ts = DateValueTS.readTimeSeries (
 		"K:\\projects\\XR053_ArcGIS Engine Evaluation\\TimeSeriesExample\\example.dv" );
-		Vector tslist = new Vector(1);
-		tslist.addElement ( ts );
+		List tslist = new Vector(1);
+		tslist.add ( ts );
 		PropList graphprops = new PropList ( "graph" );
 		graphprops.set ( "TotalWidth", "600" );
 		graphprops.set ( "TotalHeight", "400" );

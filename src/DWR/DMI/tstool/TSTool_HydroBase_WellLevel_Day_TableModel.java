@@ -1,19 +1,6 @@
-// ----------------------------------------------------------------------------
-// TSTool_HydroBase_WellLevel_Day_TableModel - Table Model for a Vector of
-//	HydroBase_GroundWaterWellsView to be displayed as time series headers
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2005-11-15	J. Thomas Sapienza, RTi	Initial version.
-// 2007-02-26	SAM, RTi		Clean up code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package DWR.DMI.tstool;
 
-import java.util.Vector;
+import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
 import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
@@ -24,7 +11,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
 This class is a table model for time series header information for HydroBase
-time series.  By default the sheet will contain row and column numbers.
+daily well level time series.  By default the sheet will contain row and column numbers.
 */
 public class TSTool_HydroBase_WellLevel_Day_TableModel
 extends JWorksheet_AbstractRowTableModel
@@ -54,34 +41,30 @@ public final int COL_DSS_AQUIFER1 =	15;
 public final int COL_DSS_AQUIFER2 = 	16;
 public final int COL_INPUT_TYPE = 	17;
 
-private int __wdid_length = 7;				// The length to use
-							// when formatting
-							// WDIDs in IDs.
+private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
 /**
-Constructor.  This builds the model for displaying the given RiversideDB time
-series data.
+Constructor.  This builds the model for displaying the given HydroBase time series data.
 @param worksheet the JWorksheet that displays the data from the table model.
 @param wdid_length Total length to use when formatting WDIDs.
 @param data the Vector of HydroBase_GroundWaterWellsView objects to display in 
 the table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_WellLevel_Day_TableModel (JWorksheet worksheet, 
-int wdid_length, Vector data )
+public TSTool_HydroBase_WellLevel_Day_TableModel (JWorksheet worksheet, int wdid_length, List data )
 throws Exception
 {	__wdid_length = wdid_length;
 	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+	    _rows = data.size();
 	}
 	_data = data;
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -126,7 +109,6 @@ public String getColumnName(int columnIndex) {
 	}
 }
 
-
 /**
 Returns the format to display the specified column.
 @param column column for which to return the format.
@@ -146,11 +128,10 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableModel.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableModel.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
 {	// make sure the row numbers are never sorted ...
@@ -160,77 +141,66 @@ public Object getValueAt(int row, int col)
 
 	int i;	// Use for integer data.
 
-	HydroBase_GroundWaterWellsView wv 
-		= (HydroBase_GroundWaterWellsView) _data.elementAt(row);
+	HydroBase_GroundWaterWellsView wv = (HydroBase_GroundWaterWellsView) _data.get(row);
 
 	switch (col) {
 		// case 0 handled above.
 		case COL_ID:		
-					if (	wv.getIdentifier().
-						length() > 0 ) {
-						// Well with a different
-						// identifier to
-						// display.
+					if ( wv.getIdentifier().length() > 0 ) {
+						// Well with a different identifier to display.
 						return
 						wv.getIdentifier();
 					}
-					else {	// A structure other
-						// than wells...
-						return
-						HydroBase_WaterDistrict.
-						formWDID (__wdid_length,
-						wv.getWD(),
-						wv.getID() );
+					else {
+					    // A structure other than wells...
+						return HydroBase_WaterDistrict.formWDID (__wdid_length, wv.getWD(), wv.getID() );
 					}
 		case COL_NAME: 		return wv.getWell_name();
 		case COL_DATA_SOURCE:	return wv.getData_source();
-		case COL_DATA_TYPE:	// TSTool translates to values
-					// from the TSTool interface...
+		case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
 					return "WellLevel";
-		case COL_TIME_STEP:	// TSTool translates HydroBase
-					// values to nicer values...
+		case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 					return wv.getTime_step();
-		case COL_UNITS:		// The units are not in
-					// HydroBase.meas_type but are
-					// set by TSTool...
+		case COL_UNITS: // The units are not in HydroBase.meas_type but are set by TSTool...
 					return wv.getData_units();
-		case COL_START:		//return new Integer(
-					//wv.getStart_year() );
+		case COL_START: //return new Integer(wv.getStart_year() );
 					i = wv.getStart_year();
 					if ( DMIUtil.isMissing(i) ) {
 						return "";
 					}
-					else {	return "" + i;
+					else {
+					    return "" + i;
 					}
-		case COL_END:		//return new Integer (
-					//wv.getEnd_year() );
+		case COL_END: //return new Integer (wv.getEnd_year() );
 					i = wv.getEnd_year();
 					if ( DMIUtil.isMissing(i) ) {
 						return "";
 					}
-					else {	return "" + i;
+					else {
+					    return "" + i;
 					}
-		case COL_MEAS_COUNT:	i = wv.getMeas_count();
+		case COL_MEAS_COUNT: i = wv.getMeas_count();
 					if ( DMIUtil.isMissing(i) ) {
 						return "";
 					}
-					else {	return "" + i;
+					else {
+					    return "" + i;
 					}
-		case COL_DIV:		//return new Integer (
-					//	wv.getDiv() );
+		case COL_DIV: //return new Integer ( wv.getDiv() );
 					i = wv.getDiv();
 					if ( DMIUtil.isMissing(i) ) {
 						return "";
 					}
-					else {	return "" + i;
+					else {
+					    return "" + i;
 					}
-		case COL_DIST:		//return new Integer (
-					//	wv.getWD() );
+		case COL_DIST: //return new Integer ( wv.getWD() );
 					i = wv.getWD();
 					if ( DMIUtil.isMissing(i) ) {
 						return "";
 					}
-					else {	return "" + i;
+					else {
+					    return "" + i;
 					}
 		case COL_COUNTY:	return wv.getCounty();
 		case COL_STATE:		return wv.getST();
@@ -252,8 +222,7 @@ public int[] getColumnWidths() {
 	widths[COL_ID] = 12;		// ID
 	widths[COL_NAME] = 20;		// Name/Description
 	widths[COL_DATA_SOURCE] = 10;	// Data Source
-	widths[COL_DATA_TYPE] = 15;	// Data Type - 8 should be ok when
-					// column resize bug is fixed
+	widths[COL_DATA_TYPE] = 15;	// Data Type
 	widths[COL_TIME_STEP] = 8;	// Time Step
 	widths[COL_UNITS] = 8;		// Units
 	widths[COL_START] = 10;		// Start
@@ -272,12 +241,11 @@ public int[] getColumnWidths() {
 }
 
 /**
-Set the width of WDIDs, which controls formatting of the ID column for
-structures.
+Set the width of WDIDs, which controls formatting of the ID column for structures.
 @param wdid_length WDID length for formatting the ID.
 */
 public void setWDIDLength ( int wdid_length )
 {	__wdid_length = wdid_length;
 }
 
-} // End TSTool_HydroBase_WellLevel_Day_TableModel
+}
