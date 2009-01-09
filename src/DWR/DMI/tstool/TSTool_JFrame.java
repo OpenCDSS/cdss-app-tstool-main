@@ -1099,6 +1099,7 @@ JMenuItem
 	__Commands_Output_SelectTimeSeries_JMenuItem,
 	__Commands_Output_SortTimeSeries_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
+	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
 	__Commands_Output_WriteRiverWare_JMenuItem,
     __Commands_Output_WriteSHEF_JMenuItem,
@@ -1466,13 +1467,14 @@ private String
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Water, Calendar>",
 	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()...  <sort time series>",
-	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write DateValue file>",
-	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()...  <write NWS Card file>",
-	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write RiverWare file>",
-    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write SHEF (Standard Hydrologic Exchange Format) file (under development)>",
-	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()...  <write StateCU file>",
-	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write StateMod file>",
-	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write Summary file>",
+	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write time series to DateValue file>",
+	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()...  <write time series to HEC-DSS file>",
+	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()...  <write time series to NWS Card file>",
+	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write time series to RiverWare file>",
+    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write time series to SHEF file (under development)>",
+	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()...  <write time series to StateCU file>",
+	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write time series to StateMod file>",
+	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write time series to Summary file>",
     __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()...  <process a time series product file>",
 
 	// Commands...Analyze Time Series...
@@ -5689,6 +5691,7 @@ private void ui_CheckGUIState ()
         
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
+	    JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, true);
@@ -5782,12 +5785,12 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
 
-		// TODO SAM 2005-07-11 For now enable because models can
-		// create time series...
+		// TODO SAM 2005-07-11 For now enable because models can create time series...
 		//JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, false );
         
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, false );
         JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem,false);
@@ -7444,6 +7447,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
 
+    if ( __source_HECDSS_enabled ) {
+        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteHecDss_JMenuItem =
+            new SimpleJMenuItem( __Commands_Output_WriteHecDss_String, this ) );
+    }
+	
 	if ( __source_NWSCard_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteNwsCard_JMenuItem =
 			new SimpleJMenuItem( __Commands_Output_WriteNwsCard_String, this ) );
@@ -8303,15 +8311,15 @@ private void ui_SetIgnoreListSelectionEvent ( boolean ignore )
 /**
 Set the initial working directory, which will be the software startup home or
 the location where the command file has been read/saved.
-@param initial_working_dir The initial working directory (should be non-null).
+@param initialWorkingDir The initial working directory (should be non-null).
 */
-private void ui_SetInitialWorkingDir ( String initial_working_dir )
+private void ui_SetInitialWorkingDir ( String initialWorkingDir )
 {	String routine = getClass().getName() + ".ui_SetInitialWorkingDir";
 	Message.printStatus(2, routine, "Setting the initial working directory to \"" +
-			initial_working_dir + "\"" );
-	__initialWorkingDir = initial_working_dir;
+			initialWorkingDir + "\"" );
+	__initialWorkingDir = initialWorkingDir;
 	// Also set in the processor...
-	commandProcessor_SetInitialWorkingDir ( initial_working_dir );
+	commandProcessor_SetInitialWorkingDir ( initialWorkingDir );
 }
 
 /**
@@ -9700,6 +9708,9 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
 		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Output_WriteHecDss_String)){
+        commandList_EditCommand ( __Commands_Output_WriteHecDss_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Output_WriteNwsCard_String)){
 		commandList_EditCommand ( __Commands_Output_WriteNwsCard_String, null, __INSERT_COMMAND );
 	}
@@ -13148,7 +13159,9 @@ private void uiAction_OpenCommandFile ()
 		ui_SetDir_LastCommandFileOpened(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		Message.printStatus(2, routine, "Working directory from command file is \"" + IOUtil.getProgramWorkingDir() );
+		Message.printStatus(2, routine,
+		    "Working directory (and initial working directory) from command file is \"" +
+		    IOUtil.getProgramWorkingDir() );
 		// Load but do not automatically run.
 		ui_LoadCommandFile ( path, false );
 	}
