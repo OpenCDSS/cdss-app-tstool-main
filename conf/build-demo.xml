@@ -24,6 +24,7 @@
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
     	<!-- Binary files needed for HEC-DSS support beyond the jar files, which are handled automatically. -->
     	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/javaHeclib.dll"/>
+    	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/rmaUtil.dll"/>
     	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/DFORMDD.DLL"/>
     	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/MSVCRTD.DLL"/>
     	<!-- Documentation -->
