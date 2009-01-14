@@ -5047,6 +5047,24 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 			use_alias );
 		}
 	}
+	else if (  __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
+	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns
+	    // Currently essentially the same as the generic model but have custome headings
+        // The location (id), type, and time step uniquely identify the time series...
+        TSTool_HecDss_TableModel model = (TSTool_HecDss_TableModel)__query_TableModel;
+        String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
+        if ( seqnum.length() == 0 ) {
+            seqnum = null;
+        }
+        queryResultsList_AppendTSIDToCommandList (
+        (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+        (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
+        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
+        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false );
+    }
 	else if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
 			TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
@@ -11111,7 +11129,8 @@ throws IOException
             // Use the first matching filter...
             fPartReq = (String)inputList.get(0);
         }
-        String tsidPattern = aPartReq + "-" + bPartReq + "." + "*" + cPartReq + "." + ePartReq + "." + fPartReq +
+        // Use the : to separate the parts.
+        String tsidPattern = aPartReq + ":" + bPartReq + "." + "*" + cPartReq + "." + ePartReq + "." + fPartReq +
             "~HEC-DSS~" + inputNameSelected;
         Message.printStatus ( 1, routine, "Reading HEC-DSS file \"" + inputNameSelected + "\" for TSID pattern \"" + tsidPattern + "\"" );
         List tslist = null;
