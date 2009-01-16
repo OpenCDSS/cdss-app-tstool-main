@@ -10667,6 +10667,8 @@ private void uiAction_FileExitClicked ()
 		}
 		Message.closeLogFile();
 		System.exit(0);
+		// Close global data connections - need to figure out where to put this to work for batch mode also.
+		__tsProcessor.closeDataConnections(true);
 	}
 	else {
         // Cancel...
