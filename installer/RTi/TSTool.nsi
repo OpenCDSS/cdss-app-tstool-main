@@ -23,7 +23,6 @@ Name "${DISPLAYNAME}"
 !define COMPANY RTi
 !define URL http://www.riverside.com
 !define EXTERNALS_DIR "externals"
-!define JRE_VERSION "142"
 !define INSTALL_IS_CDSS "false"
 !define INST_BUILD_DIR "dist\install-rti"
 !define USER_MANUAL "doc\UserManual\${DISPLAYNAME}.pdf"
@@ -168,9 +167,14 @@ Section "TSTool" TSTool
     CreateDirectory $INSTDIR\logs
 
     !ifndef TEST
-        File /r "${INST_BUILD_DIR}\bin"
+        # just doing the recursive add annoyingly picks up the jre/bin
+        # directory and adds it again, slowing down the entire process.
+        SetOutPath "$INSTDIR\bin"
+        File /r "${INST_BUILD_DIR}\bin\*"
+        SetOutPath "$INSTDIR\system"
+        File /r "${INST_BUILD_DIR}\system\*"
+        SetOutPath "$INSTDIR\examples"
         File /r "${INST_BUILD_DIR}\examples"
-        File /r "${INST_BUILD_DIR}\system"
     !endif
     
     # Insert the -home Directory into the .bat file
