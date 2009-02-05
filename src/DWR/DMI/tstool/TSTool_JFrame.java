@@ -72,6 +72,7 @@ import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
+import rti.tscommandprocessor.commands.util.Exit_Command;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -2003,8 +2004,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		if ( __nwsrfs_dmi != null ) {
 			/* TODO SAM 2004-09-10 DO NOT DO THIS BECAUSE IT THEN PROMPTS FOR a choice...
 			__input_type_JComboBox.select ( null );
-			__input_type_JComboBox.select (
-				__INPUT_TYPE_NWSRFS_FS5Files );
+			__input_type_JComboBox.select ( __INPUT_TYPE_NWSRFS_FS5Files );
 			*/
 		}
 	}
@@ -2024,8 +2024,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	    ui_InitGUIInputFilters ( __inputFilterY );
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 3, rtn,
-		"For developers:  caught exception initializing input filters at setup." );
+		Message.printWarning ( 3, rtn, "For developers:  caught exception initializing input filters at setup." );
 		Message.printWarning ( 3, rtn, e );
 	}
 	// TODO SAM 2007-01-23 Evaluate use.
@@ -2079,16 +2078,14 @@ is not indicated (see CommandStatusProvider).
 @param icommand The command index (0+).
 @param ncommand The total number of commands to process
 @param command The reference to the command that has been cancelled, either the
-one that has just been processed, or potentially the next one, depending on when
-the cancel was requested.
+one that has just been processed, or potentially the next one, depending on when the cancel was requested.
 @param percent_complete If >= 0, the value can be used to indicate progress
 running a list of commands (not the single command).  If less than zero, then
 no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandCancelled ( int icommand, int ncommand, Command command,
-		float percent_complete, String message )
+public void commandCancelled ( int icommand, int ncommand, Command command, float percent_complete, String message )
 {	String routine = "TSTool_JFrame.commandCancelled";
 	
 	// Refresh the results with what is available...
@@ -2119,8 +2116,8 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 	//Message.printStatus(2,getClass().getName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
 	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
 	
-	if ( (icommand + 1) == ncommand ) {
-		// Last command has completed so refresh the time series results.
+	if ( ((icommand + 1) == ncommand) || command instanceof Exit_Command ) {
+		// Last command has completed (or Exit() command) so refresh the time series results.
 		// Only need to do if threaded because otherwise will handle synchronously
 		// in the uiAction_RunCommands() method...
 		String command_string = command.toString();
