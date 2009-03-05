@@ -163,6 +163,8 @@ import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
 import RTi.Util.IO.CommandDiscoverable;
 import RTi.Util.IO.CommandLogRecord;
+import RTi.Util.IO.CommandLog_CellRenderer;
+import RTi.Util.IO.CommandLog_TableModel;
 import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandProcessor;
 import RTi.Util.IO.CommandProcessorListener;
@@ -636,6 +638,11 @@ Popup menu for ensemble results.
 private JPopupMenu __resultsTSEnsembles_JPopupMenu = null;
 
 /**
+Worksheet that contains a list of problems from processing.
+*/
+private JWorksheet __resultsProblems_JWorksheet = null;
+
+/**
 Panel for TS results.
 */
 private JPanel __resultsTS_JPanel; 
@@ -655,7 +662,7 @@ private DefaultListModel __resultsTS_JListModel;
 The command processor, which maintains a list of command objects, process
 the data, and the time series results.  There is only one command processor
 instance for a TSTool session and it is kept current with the application.
-In the future, if threading is implemented, it may be possible to have, for
+TODO SAM 2009-03-06 In the future, if threading is implemented, it may be possible to have, for
 example, tabs for different command files, each with a TSCommandProcessor.
 */
 private TSCommandProcessor __tsProcessor = new TSCommandProcessor();
@@ -1474,7 +1481,7 @@ private String
 	__Commands_Output_SelectTimeSeries_String = TAB + "SelectTimeSeries()...  <select time series for output/processing>",
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
-	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Water, Calendar>",
+	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
 	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()...  <sort time series>",
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write time series to DateValue file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()...  <write time series to HEC-DSS file>",
@@ -2535,12 +2542,11 @@ private boolean commandList_EditCommandOldStyleComments (
 }
 
 /**
-Get the list of commands to process, as a Vector of Command, guaranteed
+Get the list of commands to process, as a list of Command, guaranteed
 to be non-null but may be zero length.
 @return the commands as a Vector of Command.
-@param get_all If false, return those that are selected
-unless none are selected, in which case all are returned.  If true, all are
-returned, regardless of which are selected.
+@param get_all If false, return those that are selected in the command list, unless none are selected,
+in which case all are returned.  If true, all are returned, regardless of which are selected.
 */
 private List commandList_GetCommands ( boolean get_all )
 {	if ( __commands_JListModel.size() == 0 ) {
@@ -2562,7 +2568,8 @@ private List commandList_GetCommands ( boolean get_all )
 		}
 		return itemVector;
 	}
-	else {	// Else something selected so get them...
+	else {
+	    // Else something selected so get them...
 	    List itemVector = new Vector(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
 			itemVector.add ( __commands_JListModel.get(selected[i]) );
@@ -3625,8 +3632,7 @@ private void commandProcessor_RunCommandsThreaded ( List commands, boolean creat
 	requestParams.setUsingObject ( "InitialWorkingDir", ui_GetInitialWorkingDir() );
 	requestParams.setUsingObject ( "CreateOutput", new Boolean(createOutput) );
 	try {
-		TSCommandProcessorThreadRunner runner =
-		new TSCommandProcessorThreadRunner ( __tsProcessor, requestParams );
+		TSCommandProcessorThreadRunner runner = new TSCommandProcessorThreadRunner ( __tsProcessor, requestParams );
 		Message.printStatus ( 2, routine, "Running commands in separate thread.");
 		Thread thread = new Thread ( runner );
 		thread.start();
@@ -3654,8 +3660,7 @@ private void commandProcessor_SetHydroBaseDMI( HydroBaseDMI hbdmi )
 
 /**
 Set the command processor HydroBase instance that is opened via the GUI.
-This version is generally called by the overloaded version and when processing
-an external command file.
+This version is generally called by the overloaded version and when processing an external command file.
 @param processor The command processor to set the HydroBase DMI instance.
 @param hbdmi Open HydroBaseDMI instance.
 The input name is blank since it is the default HydroBaseDMI.
@@ -3853,451 +3858,348 @@ attributes for the selected feature with the time series query list.
 public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List selected, boolean append )
 {	String routine = "TSTool_JFrame.geoViewSelect";
 
-	try {	// Main try, for development and troubleshooting
-	Message.printStatus ( 1, routine, "Selecting time series that match map selection." );
-
-	// Select from the time series query list matching the attributes in the selected layer.
-
-	// TODO SAM 2006-03-02 Need to evaluate how to best read this file once.
-
-	// Read the time series to layer lookup file...
-
-	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
-	if ( filename == null ) {
-		Message.printWarning ( 1, routine,
-		"The TSTool.MapLayerLookupFile is not defined - cannot link map and time series." );
-		return;
-	}
-
-	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
-	if ( !IOUtil.fileExists(full_filename) ) {
-		Message.printWarning ( 1, routine, "The map layer lookup file \"" + full_filename +
-		"\" does not exist.  Cannot link map and time series." );
-		return;
-	}
-	
-	PropList props = new PropList ("");
-	props.set ( "Delimiter=," );		// see existing prototype
-	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start
-						// with this
-	props.set ( "TrimStrings=True" );	// If true, trim strings after
-						// reading.
-	DataTable table = null;
-	try {	table = DataTable.parseFile ( full_filename, props );
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, routine,
-		"Error reading the map layer lookup file \"" + full_filename +
-		"\".  Cannot link map and time series." );
-		return;
-	}
-	
-	int tsize = 0;
-	int TS_InputTypeCol_int = -1;
-	int TS_DataTypeCol_int = -1;
-	int TS_IntervalCol_int = -1;
-	int Layer_NameCol_int = -1;
-	int Layer_LocationCol_int = -1;
-	int Layer_DataSourceCol_int = -1;
-	if ( table != null ) {
-		tsize = table.getNumberOfRecords();
-
-		try {
-		TS_InputTypeCol_int = table.getFieldIndex ( "TS_InputType" );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error finding TS_InputType column in lookup file \"" +
-			full_filename +
-			"\".  Cannot link map and time series." );
-			Message.printWarning ( 3, routine, e );
-			JGUIUtil.setWaitCursor ( this, false);
-			return;
-		}
-		try {	TS_DataTypeCol_int = table.getFieldIndex("TS_DataType");
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error finding TS_InputType column in lookup file \"" +
-			full_filename +
-			"\".  Cannot link map and time series." );
-			Message.printWarning ( 3, routine, e );
-			JGUIUtil.setWaitCursor ( this, false);
-			return;
-		}
-		try {	TS_IntervalCol_int = table.getFieldIndex("TS_Interval");
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error finding TS_Interval column in lookup file \"" +
-			full_filename +
-			"\".  Cannot link map and time series." );
-			Message.printWarning ( 3, routine, e );
-			JGUIUtil.setWaitCursor ( this, false);
-			return;
-		}
-		try {	Layer_NameCol_int = table.getFieldIndex ( "Layer_Name");
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error finding Layer_Name column in lookup file \"" +
-			full_filename +
-			"\".  Cannot link map and time series." );
-			Message.printWarning ( 3, routine, e );
-			JGUIUtil.setWaitCursor ( this, false);
-			return;
-		}
-		try {	Layer_LocationCol_int = table.getFieldIndex (
-				"Layer_Location");
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error finding Layer_Location column in lookup file \""+
-			full_filename +
-			"\".  Cannot link map and time series." );
-			Message.printWarning ( 3, routine, e );
-			JGUIUtil.setWaitCursor ( this, false);
-			return;
-		}
-		try {	Layer_DataSourceCol_int = table.getFieldIndex (
-			"Layer_DataSource");
-		}
-		catch ( Exception e ) {
-			// Non-fatal...
-			Message.printWarning ( 3, routine,
-			"Error finding TS_InputType column in lookup file \"" +
-			full_filename +
-			"\".  Data source will not be considered in lookups." );
-			Layer_DataSourceCol_int = -1;
-		}
-		Message.printStatus ( 2, routine, "TimeSeriesLookup table for "+
-		"map has columns...TS_InputType=" + TS_InputTypeCol_int +
-		",TS_DataType=" + TS_DataTypeCol_int +
-		",TS_Interval=" + TS_IntervalCol_int +
-		",Layer_Name=" + Layer_NameCol_int +
-		",Layer_Location=" + Layer_LocationCol_int +
-		",Layer_DataSource=" + Layer_DataSourceCol_int );
-	}
-
-	// Now search through the time series that are in the query list and
-	// select those that match the Vector of GeoRecord.  The current
-	// selections ARE NOT cleared first (the user can clear them manually
-	// if they want).  In this way multiple selections can be made from the
-	// map.
-
-	int nrows = __query_TableModel.getRowCount();
-	Message.printStatus ( 1, routine,
-	"Selecting query list time series based on map selections..." );
-	JGUIUtil.setWaitCursor ( this, true );
-	ui_SetIgnoreListSelectionEvent ( true );	// To increase performance
-						// during transfer...
-	ui_SetIgnoreItemEvent ( true );	// To increase performance
-	int match_count = 0;
-	int ngeo = 0;
-	if ( selected != null ) {
-		ngeo = selected.size();
-	}
-	// Loop through the selected features...
-	GeoRecord georec;
-	GeoLayerView geolayerview = null;
-	TableRecord rec = null;			// Lookup table record.
-	String geolayer_name = null;
-	TSTool_TS_TableModel generic_tm = null;
-	TSTool_HydroBase_TableModel HydroBase_tm = null;
-	String ts_inputtype = null;	// The TS input type from lookup file
-	String ts_datatype = null;	// The TS data type from lookup file
-	String ts_interval = null;	// The TS interval from lookup file
-	String layer_name = null;	// The layer name from lookup file
-	String layer_location = null;	// The layer location attribute from the
-					// lookup file
-	int layer_location_field_int =0;// Column index in attribute table for
-					// georecord location
-	String layer_datasource = null;	// The layer data source attribute from
-					// the lookup file
-	int layer_datasource_field_int =0;// Column index in attribute table for
-					// georecord data source
-	String georec_location = null;	// The georec location value.
-	String georec_datasource = null;// The georec data source value.
-	String tslist_id = null;	// The time series location ID from the time series list.
-	String tslist_datasource = null;// The time series data source from the time series list.
-	String tslist_datatype = null;	// The time series data type from the time series list.
-	String tslist_interval = null;	// The time series interval from the time series list.
-	for ( int igeo = 0; igeo < ngeo; igeo++ ) {
-		// Get the GeoRecord that was selected...
-		georec = (GeoRecord)selected.get(igeo);
-		// Get the name of the layer that corresponds to the GeoRecord,
-		// which is used to locate the record in the lookup file...
-		geolayerview = georec.getLayerView();
-		geolayer_name = geolayerview.getName();
-		// Find layer that matches the record, using the layer name in
-		// the lookup table.  More than one visible layer may be
-		// searched.  The data interval is also used to find a layer to match.
-		for ( int ilook = 0; ilook < tsize; ilook++ ) {
-			Message.printStatus ( 2, routine, "Searching lookup file for the layer named \"" + geolayer_name + "\"" );
-			try {	rec = table.getRecord(ilook);
-				ts_inputtype = (String)rec.getFieldValue(TS_InputTypeCol_int);
-				ts_datatype = (String)rec.getFieldValue(TS_DataTypeCol_int);
-				ts_interval = (String)rec.getFieldValue(TS_IntervalCol_int);
-				layer_name = (String)rec.getFieldValue(Layer_NameCol_int);
-				layer_location = (String)rec.getFieldValue(Layer_LocationCol_int);
-				layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
-				// TODO SAM 2006-03-02 Evaluate code
-				// Add layer_interval if such an attribute exists, and use this in addition to the
-				// layer name to find an appropriate layer in the lookup table.
-				Message.printStatus ( 2, routine,
-				"Lookup file [" + ilook + "] " +
-				"TS_InputType=\"" + ts_inputtype + "\" " +
-				"TS_DataType=\"" + ts_datatype + "\" " +
-				"TS_Interval=\"" + ts_interval + "\" " +
-				"Layer_Name=\"" + layer_name + "\" " +
-				"Layer_Location=\"" + layer_location + "\" " +
-				"Layer_DataSource=\"" + layer_datasource+"\"" );
-			}
-			catch ( Exception e ) {
-				// Just ignore...
-				Message.printWarning ( 3, routine,
-				"Unable to get data from lookup.  " +
-				"Ignoring record." );
-				Message.printWarning ( 3, routine, e );
-				continue;
-			}
-			if ( !geolayer_name.equalsIgnoreCase( layer_name) ) {
-				// The lookup record layer name does not match
-				// the selected GeoRecord layer name.
-				continue;
-			}
-
-			// If here then a layer was found so match the selected
-			// features with time series in the list.
-
-			Message.printStatus ( 1, routine,
-			"Matching layer \"" + layer_name +
-			"\" features with time series using " +
-			"attribute \"" + layer_location + "\"." );
-
-			try {	layer_location_field_int =
-				georec.getLayer().getAttributeTable().
-				getFieldIndex( layer_location );
-				Message.printStatus ( 2, routine,
-				"Attribute \"" + layer_location +
-				"\" is field [" + layer_location_field_int+"]");
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Layer attribute column \"" +
-				layer_location + "\" is not found.  " +
-				"Cannot link time series and map." );
-				Message.printWarning ( 3, routine, e );
-				JGUIUtil.setWaitCursor ( this, false);
-				return;
-			}
-			if ( Layer_DataSourceCol_int >= 0 ) {
-				try {	layer_datasource =
-					(String)rec.getFieldValue(
-					Layer_DataSourceCol_int);
-					try {	layer_datasource_field_int =
-						georec.getLayer().
-						getAttributeTable().
-						getFieldIndex(layer_datasource);
-						Message.printStatus ( 2,routine,
-						"Attribute \"" +
-						layer_datasource +
-						"\" is field [" +
-						layer_datasource_field_int+"]");
-					}
-					catch ( Exception e ) {
-						Message.printWarning ( 3,
-						routine, "Data source " +
-						"attribute column \"" +
-						layer_datasource +
-						"\" is not found.  " +
-						"Ignoring data source." );
-						Message.printWarning ( 3,
-						routine, e );
-						JGUIUtil.setWaitCursor ( this,
-						false);
-						layer_datasource = null;
-					}
-				}
-				catch ( Exception e ) {
-					Message.printWarning ( 3,
-					routine,
-					"Unable to determine data " +
-					"data source from layer " +
-					"attribute table.  Ignoring" +
-					" data source." );
-					// Ignore for now.
-					layer_datasource = null;
-				}
-			}
-
-			// TODO SAM 2006-03-02 Add attributes other than strings
-			// For now only deal with string attributes -
-			// later need to handle other types.
-
-			// Get the attribute to be checked for the ID,
-			// based on the attribute name in the lookup
-			// file...
-
-			// TODO SAM 2006-03-02 Optimize code
-			// Need to implement DbaseDataTable.getTableRecord to
-			// handle on the fly reading to make this a little more
-			// directy...
-
-			try {	georec_location =
-				(String)georec.getLayer()
-				.getAttributeTable().getFieldValue(
-				georec.getShape().index,
-				layer_location_field_int );
-				Message.printStatus ( 2, routine,
-				"Trying to find time series with location ID \""
-				+ georec_location + "\"..." );
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 3, routine,
-				"Cannot get value for \"" + layer_location +
-				"\" attribute.  Skipping record." );
-				// Ignore for now.
-				Message.printWarning ( 3, routine, e );
-				continue;
-			}
-			// Get the attribute to be checked for the data source,
-			// based on the attribute name in the lookup
-			// file...
-			if (	(Layer_DataSourceCol_int >= 0) &&
-				(layer_datasource != null) ) {
-			try {	georec_datasource =
-				(String)georec.getLayer()
-				.getAttributeTable().getFieldValue(
-				georec.getShape().index,
-				layer_datasource_field_int );
-				Message.printStatus ( 2, routine,
-				"Trying to find time series with data source \""
-				+ georec_datasource + "\"..." );
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 3, routine,
-				"Cannot get value for \"" + layer_datasource +
-				"\" attribute.  Skipping record." );
-				// Ignore for now.
-				Message.printWarning ( 3, routine, e );
-				continue;
-			}
-			}
-			// Now use the TS fields in the lookup table to match
-			// time series that are listed in the query results.
-			// This is done brute force by searching everything in
-			// the table model...
-			for ( int its = 0; its < nrows; its++ ) {
-				// Get the attributes from the time series
-				// query list table model.
-				// TODO SAM 2006-03-02 Refactor/optimize
-				// Probably what is needed here is a generic
-				// interface on time series table models to
-				// have methods that return TSIdent or TSID
-				// parts.  For now do it brute force.
-				if (	__query_TableModel instanceof
-					TSTool_TS_TableModel ) {
-					generic_tm = (TSTool_TS_TableModel)
-						__query_TableModel;
-					tslist_id = (String)generic_tm.
-						getValueAt(
-						its, generic_tm.COL_ID );
-					tslist_datasource = (String)generic_tm.
-						getValueAt(
-						its,generic_tm.COL_DATA_SOURCE);
-					tslist_datatype = (String)generic_tm.
-						getValueAt(
-						its, generic_tm.COL_DATA_TYPE );
-					tslist_interval = (String)generic_tm.
-						getValueAt(
-						its, generic_tm.COL_TIME_STEP );
-				}
-				else if(__query_TableModel instanceof
-					TSTool_HydroBase_TableModel ) {
-					HydroBase_tm =
-						(TSTool_HydroBase_TableModel)
-						__query_TableModel;
-					tslist_id = (String)HydroBase_tm.
-						getValueAt(
-						its, HydroBase_tm.COL_ID );
-					tslist_datasource =(String)HydroBase_tm.
-						getValueAt(
-						its,HydroBase_tm.
-						COL_DATA_SOURCE);
-					tslist_datatype = (String)HydroBase_tm.
-						getValueAt(
-						its,HydroBase_tm.COL_DATA_TYPE);
-					tslist_interval = (String)HydroBase_tm.
-						getValueAt(
-						its,HydroBase_tm.COL_TIME_STEP);
-				}
-				// Check the attributes against that in the
-				// map.  Use some of the look interval
-				// information for data type and interval,
-				// unless that is supplied in a layer
-				// attribute.
-				// TIDI SAM 2006-03-02 Optimize/refactor
-				// Currently check the ID and get the data type
-				// and interval from the lookup file.  Later
-				// can get the interval from the layer attribute
-				// data.
-				if ( !georec_location.equalsIgnoreCase(
-					tslist_id) ) {
-					// The ID in the selected feature does
-					// not match the time series ID in the
-					// list...
-					continue;
-				}
-				if (	(georec_datasource != null) &&
-					!georec_datasource.equalsIgnoreCase(
-					tslist_datasource) ) {
-					// The data source in the selected
-					// feature does not match the time
-					// series ID in the list...
-					continue;
-				}
-				if ( !ts_datatype.equalsIgnoreCase(
-					tslist_datatype) ) {
-					// The data type in lookup file for
-					// the selected layer does not match the
-					// time series data type in the
-					// list...
-					continue;
-				}
-				if ( !ts_interval.equalsIgnoreCase(
-					tslist_interval) ) {
-					// The data interval in lookup file for
-					// the selected layer does not match the
-					// time series data interval in the
-					// list...
-					continue;
-				}
-				// The checked attributes match so select the
-				// time series and increment the count (do not
-				// deselect first)...
-				Message.printStatus ( 2, routine,
-				"Selecting time seris [" + its + "]" );
-				__query_JWorksheet.selectRow ( its, false );
-				// TODO SAM 2006-03-02 Evaluate usability
-				// Should the worksheet automatically scroll to
-				// the last select?
-				++match_count;
-			}
-		}
-	}
-	if ( match_count != ngeo ) {
-		Message.printWarning ( 1, routine,
-		"The number of matched time series (" + match_count +
-		") is less than the number of selected features (" + ngeo +
-		").\nVerify that the map layer matches the time series list " +
-		"and that the lookup file has accurate information." );
-	}
-	ui_SetIgnoreListSelectionEvent ( false );
-	ui_SetIgnoreItemEvent ( false );
-	ui_UpdateStatus ( true );
-	JGUIUtil.setWaitCursor ( this, false );
-	Message.printStatus ( 1, routine, "Selected all time series." );
+	try {
+	    // Main try, for development and troubleshooting
+    	Message.printStatus ( 1, routine, "Selecting time series that match map selection." );
+    
+    	// Select from the time series query list matching the attributes in the selected layer.
+    
+    	// TODO SAM 2006-03-02 Need to evaluate how to best read this file once.
+    
+    	// Read the time series to layer lookup file...
+    
+    	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
+    	if ( filename == null ) {
+    		Message.printWarning ( 1, routine,
+    		"The TSTool.MapLayerLookupFile is not defined - cannot link map and time series." );
+    		return;
+    	}
+    
+    	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
+    	if ( !IOUtil.fileExists(full_filename) ) {
+    		Message.printWarning ( 1, routine, "The map layer lookup file \"" + full_filename +
+    		"\" does not exist.  Cannot link map and time series." );
+    		return;
+    	}
+    	
+    	PropList props = new PropList ("");
+    	props.set ( "Delimiter=," );		// see existing prototype
+    	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this
+    	props.set ( "TrimStrings=True" );	// If true, trim strings after reading.
+    	DataTable table = null;
+    	try {
+    	    table = DataTable.parseFile ( full_filename, props );
+    	}
+    	catch ( Exception e ) {
+    		Message.printWarning ( 1, routine, "Error reading the map layer lookup file \"" + full_filename +
+    		"\".  Cannot link map and time series." );
+    		return;
+    	}
+    	
+    	int tsize = 0;
+    	int TS_InputTypeCol_int = -1;
+    	int TS_DataTypeCol_int = -1;
+    	int TS_IntervalCol_int = -1;
+    	int Layer_NameCol_int = -1;
+    	int Layer_LocationCol_int = -1;
+    	int Layer_DataSourceCol_int = -1;
+    	if ( table != null ) {
+    		tsize = table.getNumberOfRecords();
+    
+    		try {
+    		    TS_InputTypeCol_int = table.getFieldIndex ( "TS_InputType" );
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 1, routine, "Error finding TS_InputType column in lookup file \"" +
+    			full_filename + "\".  Cannot link map and time series." );
+    			Message.printWarning ( 3, routine, e );
+    			JGUIUtil.setWaitCursor ( this, false);
+    			return;
+    		}
+    		try {
+    		    TS_DataTypeCol_int = table.getFieldIndex("TS_DataType");
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 1, routine, "Error finding TS_InputType column in lookup file \"" +
+    			full_filename + "\".  Cannot link map and time series." );
+    			Message.printWarning ( 3, routine, e );
+    			JGUIUtil.setWaitCursor ( this, false);
+    			return;
+    		}
+    		try {
+    		    TS_IntervalCol_int = table.getFieldIndex("TS_Interval");
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 1, routine, "Error finding TS_Interval column in lookup file \"" +
+    			full_filename + "\".  Cannot link map and time series." );
+    			Message.printWarning ( 3, routine, e );
+    			JGUIUtil.setWaitCursor ( this, false);
+    			return;
+    		}
+    		try {
+    		    Layer_NameCol_int = table.getFieldIndex ( "Layer_Name");
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 1, routine, "Error finding Layer_Name column in lookup file \"" +
+    			full_filename + "\".  Cannot link map and time series." );
+    			Message.printWarning ( 3, routine, e );
+    			JGUIUtil.setWaitCursor ( this, false);
+    			return;
+    		}
+    		try {
+    		    Layer_LocationCol_int = table.getFieldIndex ("Layer_Location");
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 1, routine, "Error finding Layer_Location column in lookup file \""+
+    			full_filename + "\".  Cannot link map and time series." );
+    			Message.printWarning ( 3, routine, e );
+    			JGUIUtil.setWaitCursor ( this, false);
+    			return;
+    		}
+    		try {
+    		    Layer_DataSourceCol_int = table.getFieldIndex ("Layer_DataSource");
+    		}
+    		catch ( Exception e ) {
+    			// Non-fatal...
+    			Message.printWarning ( 3, routine, "Error finding TS_InputType column in lookup file \"" +
+    			full_filename + "\".  Data source will not be considered in lookups." );
+    			Layer_DataSourceCol_int = -1;
+    		}
+    		Message.printStatus ( 2, routine, "TimeSeriesLookup table for "+
+    		"map has columns...TS_InputType=" + TS_InputTypeCol_int +
+    		",TS_DataType=" + TS_DataTypeCol_int +
+    		",TS_Interval=" + TS_IntervalCol_int +
+    		",Layer_Name=" + Layer_NameCol_int +
+    		",Layer_Location=" + Layer_LocationCol_int +
+    		",Layer_DataSource=" + Layer_DataSourceCol_int );
+    	}
+    
+    	// Now search through the time series that are in the query list and
+    	// select those that match the Vector of GeoRecord.  The current
+    	// selections ARE NOT cleared first (the user can clear them manually
+    	// if they want).  In this way multiple selections can be made from the map.
+    
+    	int nrows = __query_TableModel.getRowCount();
+    	Message.printStatus ( 1, routine, "Selecting query list time series based on map selections..." );
+    	JGUIUtil.setWaitCursor ( this, true );
+    	ui_SetIgnoreListSelectionEvent ( true ); // To increase performance during transfer...
+    	ui_SetIgnoreItemEvent ( true );	// To increase performance
+    	int match_count = 0;
+    	int ngeo = 0;
+    	if ( selected != null ) {
+    		ngeo = selected.size();
+    	}
+    	// Loop through the selected features...
+    	GeoRecord georec;
+    	GeoLayerView geolayerview = null;
+    	TableRecord rec = null; // Lookup table record.
+    	String geolayer_name = null;
+    	TSTool_TS_TableModel generic_tm = null;
+    	TSTool_HydroBase_TableModel HydroBase_tm = null;
+    	String ts_inputtype = null; // The TS input type from lookup file
+    	String ts_datatype = null; // The TS data type from lookup file
+    	String ts_interval = null; // The TS interval from lookup file
+    	String layer_name = null; // The layer name from lookup file
+    	String layer_location = null; // The layer location attribute from the lookup file
+    	int layer_location_field_int =0; // Column index in attribute table for georecord location
+    	String layer_datasource = null; // The layer data source attribute from the lookup file
+    	int layer_datasource_field_int =0; // Column index in attribute table for georecord data source
+    	String georec_location = null; // The georec location value.
+    	String georec_datasource = null; // The georec data source value.
+    	String tslist_id = null; // The time series location ID from the time series list.
+    	String tslist_datasource = null; // The time series data source from the time series list.
+    	String tslist_datatype = null; // The time series data type from the time series list.
+    	String tslist_interval = null; // The time series interval from the time series list.
+    	for ( int igeo = 0; igeo < ngeo; igeo++ ) {
+    		// Get the GeoRecord that was selected...
+    		georec = (GeoRecord)selected.get(igeo);
+    		// Get the name of the layer that corresponds to the GeoRecord,
+    		// which is used to locate the record in the lookup file...
+    		geolayerview = georec.getLayerView();
+    		geolayer_name = geolayerview.getName();
+    		// Find layer that matches the record, using the layer name in
+    		// the lookup table.  More than one visible layer may be
+    		// searched.  The data interval is also used to find a layer to match.
+    		for ( int ilook = 0; ilook < tsize; ilook++ ) {
+    			Message.printStatus ( 2, routine, "Searching lookup file for the layer named \"" + geolayer_name + "\"" );
+    			try {
+    			    rec = table.getRecord(ilook);
+    				ts_inputtype = (String)rec.getFieldValue(TS_InputTypeCol_int);
+    				ts_datatype = (String)rec.getFieldValue(TS_DataTypeCol_int);
+    				ts_interval = (String)rec.getFieldValue(TS_IntervalCol_int);
+    				layer_name = (String)rec.getFieldValue(Layer_NameCol_int);
+    				layer_location = (String)rec.getFieldValue(Layer_LocationCol_int);
+    				layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
+    				// TODO SAM 2006-03-02 Evaluate code
+    				// Add layer_interval if such an attribute exists, and use this in addition to the
+    				// layer name to find an appropriate layer in the lookup table.
+    				Message.printStatus ( 2, routine,
+    				"Lookup file [" + ilook + "] " +
+    				"TS_InputType=\"" + ts_inputtype + "\" " +
+    				"TS_DataType=\"" + ts_datatype + "\" " +
+    				"TS_Interval=\"" + ts_interval + "\" " +
+    				"Layer_Name=\"" + layer_name + "\" " +
+    				"Layer_Location=\"" + layer_location + "\" " +
+    				"Layer_DataSource=\"" + layer_datasource+"\"" );
+    			}
+    			catch ( Exception e ) {
+    				// Just ignore...
+    				Message.printWarning ( 3, routine, "Unable to get data from lookup.  Ignoring record." );
+    				Message.printWarning ( 3, routine, e );
+    				continue;
+    			}
+    			if ( !geolayer_name.equalsIgnoreCase( layer_name) ) {
+    				// The lookup record layer name does not match the selected GeoRecord layer name.
+    				continue;
+    			}
+    
+    			// If here then a layer was found so match the selected features with time series in the list.
+    
+    			Message.printStatus ( 2, routine, "Matching layer \"" + layer_name +
+    			"\" features with time series using attribute \"" + layer_location + "\"." );
+    
+    			try {
+    			    layer_location_field_int = georec.getLayer().getAttributeTable().getFieldIndex( layer_location );
+    				Message.printStatus ( 2, routine, "Attribute \"" + layer_location +
+    				"\" is field [" + layer_location_field_int+"]");
+    			}
+    			catch ( Exception e ) {
+    				Message.printWarning ( 1, routine, "Layer attribute column \"" + layer_location +
+    				    "\" is not found.  Cannot link time series and map." );
+    				Message.printWarning ( 3, routine, e );
+    				JGUIUtil.setWaitCursor ( this, false);
+    				return;
+    			}
+    			if ( Layer_DataSourceCol_int >= 0 ) {
+    				try {
+    				    layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
+    					try {
+    					    layer_datasource_field_int =
+    						georec.getLayer().getAttributeTable().getFieldIndex(layer_datasource);
+    						Message.printStatus ( 2,routine, "Attribute \"" + layer_datasource +
+    						"\" is field [" + layer_datasource_field_int+"]");
+    					}
+    					catch ( Exception e ) {
+    						Message.printWarning ( 3, routine, "Data source attribute column \"" +
+    						layer_datasource + "\" is not found.  Ignoring data source." );
+    						Message.printWarning ( 3, routine, e );
+    						JGUIUtil.setWaitCursor ( this, false);
+    						layer_datasource = null;
+    					}
+    				}
+    				catch ( Exception e ) {
+    					Message.printWarning ( 3, routine, "Unable to determine data data source from layer " +
+    					"attribute table.  Ignoring data source." );
+    					// Ignore for now.
+    					layer_datasource = null;
+    				}
+    			}
+    
+    			// TODO SAM 2006-03-02 Add attributes other than strings
+    			// For now only deal with string attributes - later need to handle other types.
+    
+    			// Get the attribute to be checked for the ID,
+    			// based on the attribute name in the lookup file...
+    
+    			// TODO SAM 2006-03-02 Optimize code
+    			// Need to implement DbaseDataTable.getTableRecord to
+    			// handle on the fly reading to make this a little more directly...
+    
+    			try {
+    			    georec_location = (String)georec.getLayer().getAttributeTable().getFieldValue(
+    				georec.getShape().index, layer_location_field_int );
+    				Message.printStatus ( 2, routine, "Trying to find time series with location ID \""
+    				+ georec_location + "\"..." );
+    			}
+    			catch ( Exception e ) {
+    				Message.printWarning ( 3, routine,
+    				"Cannot get value for \"" + layer_location + "\" attribute.  Skipping record." );
+    				// Ignore for now.
+    				Message.printWarning ( 3, routine, e );
+    				continue;
+    			}
+    			// Get the attribute to be checked for the data source,
+    			// based on the attribute name in the lookup file...
+    			if ( (Layer_DataSourceCol_int >= 0) && (layer_datasource != null) ) {
+        			try {
+        			    georec_datasource = (String)georec.getLayer().getAttributeTable().getFieldValue(
+        				georec.getShape().index, layer_datasource_field_int );
+        				Message.printStatus ( 2, routine, "Trying to find time series with data source \""
+        				+ georec_datasource + "\"..." );
+        			}
+        			catch ( Exception e ) {
+        				Message.printWarning ( 3, routine, "Cannot get value for \"" + layer_datasource +
+        				"\" attribute.  Skipping record." );
+        				// Ignore for now.
+        				Message.printWarning ( 3, routine, e );
+        				continue;
+        			}
+    			}
+    			// Now use the TS fields in the lookup table to match time series that are listed in the query
+    			// results.  This is done brute force by searching everything in the table model...
+    			for ( int its = 0; its < nrows; its++ ) {
+    				// Get the attributes from the time series query list table model.
+    				// TODO SAM 2006-03-02 Refactor/optimize
+    				// Probably what is needed here is a generic interface on time series table models to
+    				// have methods that return TSIdent or TSID parts.  For now do it brute force.
+    				if ( __query_TableModel instanceof TSTool_TS_TableModel ) {
+    					generic_tm = (TSTool_TS_TableModel)__query_TableModel;
+    					tslist_id = (String)generic_tm.getValueAt(its, generic_tm.COL_ID );
+    					tslist_datasource = (String)generic_tm.getValueAt(its,generic_tm.COL_DATA_SOURCE);
+    					tslist_datatype = (String)generic_tm.getValueAt(its, generic_tm.COL_DATA_TYPE );
+    					tslist_interval = (String)generic_tm.getValueAt(its, generic_tm.COL_TIME_STEP );
+    				}
+    				else if(__query_TableModel instanceof TSTool_HydroBase_TableModel ) {
+    					HydroBase_tm = (TSTool_HydroBase_TableModel)__query_TableModel;
+    					tslist_id = (String)HydroBase_tm.getValueAt(its, HydroBase_tm.COL_ID );
+    					tslist_datasource =(String)HydroBase_tm.getValueAt(its,HydroBase_tm.COL_DATA_SOURCE);
+    					tslist_datatype = (String)HydroBase_tm.getValueAt(its,HydroBase_tm.COL_DATA_TYPE);
+    					tslist_interval = (String)HydroBase_tm.getValueAt(its,HydroBase_tm.COL_TIME_STEP);
+    				}
+    				// Check the attributes against that in the map.  Use some of the look interval
+    				// information for data type and interval, unless that is supplied in a layer attribute.
+    				// TODO SAM 2006-03-02 Optimize/refactor
+    				// Currently check the ID and get the data type and interval from the lookup file.  Later
+    				// can get the interval from the layer attribute data.
+    				if ( !georec_location.equalsIgnoreCase(tslist_id) ) {
+    					// The ID in the selected feature does not match the time series ID in the list...
+    					continue;
+    				}
+    				if ( (georec_datasource != null) && !georec_datasource.equalsIgnoreCase(tslist_datasource) ) {
+    					// The data source in the selected feature does not match the timeseries ID in the list...
+    					continue;
+    				}
+    				if ( !ts_datatype.equalsIgnoreCase(tslist_datatype) ) {
+    					// The data type in lookup file for the selected layer does not match the
+    					// time series data type in the list...
+    					continue;
+    				}
+    				if ( !ts_interval.equalsIgnoreCase(tslist_interval) ) {
+    					// The data interval in lookup file for the selected layer does not match the
+    					// time series data interval in the list...
+    					continue;
+    				}
+    				// The checked attributes match so select the time series and increment the count (do not
+    				// deselect first)...
+    				Message.printStatus ( 2, routine, "Selecting time seris [" + its + "]" );
+    				__query_JWorksheet.selectRow ( its, false );
+    				// TODO SAM 2006-03-02 Evaluate usability - should the worksheet automatically scroll to
+    				// the last select?
+    				++match_count;
+    			}
+    		}
+    	}
+    	if ( match_count != ngeo ) {
+    		Message.printWarning ( 1, routine, "The number of matched time series (" + match_count +
+    		") is less than the number of selected features (" + ngeo +
+    		").\nVerify that the map layer matches the time series list " +
+    		"and that the lookup file has accurate information." );
+    	}
+    	ui_SetIgnoreListSelectionEvent ( false );
+    	ui_SetIgnoreItemEvent ( false );
+    	ui_UpdateStatus ( true );
+    	JGUIUtil.setWaitCursor ( this, false );
+    	Message.printStatus ( 1, routine, "Selected all time series." );
 	}
 	catch ( Exception e ) {
 		// Unexpected error...
@@ -4333,8 +4235,7 @@ selected and the user wants to go to the command in the interface.
 <pre>
 <command,count>
 </pre>
-where "command" is the command number (1+) and "count" is an optional count of
-warnings for the command.
+where "command" is the command number (1+) and "count" is an optional count of warnings for the command.
 */
 public void goToMessageTag ( String tag )
 {	String command_line = "";
@@ -4372,7 +4273,7 @@ commands list have changed due to commands being added.
 */
 public void intervalAdded ( ListDataEvent e )
 {
-	// The contents of the command list chagned so check the GUI state...
+	// The contents of the command list changed so check the GUI state...
 	ui_UpdateStatus ( true );	// true = also call checkGUIState();
 }
 
@@ -4382,7 +4283,7 @@ commands list have changed due to commands being removed.
 */
 public void intervalRemoved ( ListDataEvent e )
 {
-	// The contents of the command list chagned so check the GUI state...
+	// The contents of the command list changed so check the GUI state...
 	ui_UpdateStatus ( true );	// true = also call checkGUIState();
 }
 
@@ -4967,7 +4868,8 @@ private void queryResultsList_Clear ()
 		return;
 	}
 	if ( __query_TableModel.getRowCount() > 0 ) {
-        	try {	__query_JWorksheet.clear();       
+       	try {
+       	    __query_JWorksheet.clear();       
 		}
 		catch ( Exception e ) {
 			// Absorb the exception in most cases - print if
@@ -4975,8 +4877,7 @@ private void queryResultsList_Clear ()
 			if ( Message.isDebugOn && IOUtil.testing()  ) {
 				String routine = "TSTool_JFrame.clearQueryList";
 				Message.printWarning ( 3, routine,
-				"For developers:  caught exception in " +
-				"clearQueryList JWorksheet at setup." );
+				"For developers:  caught exception in clearQueryList JWorksheet at setup." );
 				Message.printWarning ( 3, routine, e );
 			}
 		}
@@ -4989,7 +4890,7 @@ private void queryResultsList_Clear ()
 }
 
 /**
-Select a station from the query list and create a time series indentifier in the command list.
+Select a station from the query list and create a time series identifier in the command list.
 @param row Row that is selected in the query list.  This method can be
 called once for a single event or multiple times from transferAll().
 @param update_status If true, then the GUI state is checked after the
@@ -5001,8 +4902,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 	if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
-		// If an alias is specified, assume that it should be used
-		// instead of the normal TSID.
+		// If an alias is specified, assume that it should be used instead of the normal TSID.
 		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 		String alias = ((String)model.getValueAt ( row, model.COL_ALIAS )).trim();
 		if ( !alias.equals("") ) {
@@ -5026,7 +4926,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
     			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", use_alias );
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 2, "", e );
+				Message.printWarning ( 3, "", e );
 			}
 		}
 		else {
@@ -6545,6 +6445,36 @@ private void ui_InitGUI ( )
     JGUIUtil.addComponent(results_files_JPanel, new JScrollPane ( __resultsOutputFiles_JList ), 
         0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Output Files", results_files_JPanel );
+    
+    // Results - problems...
+
+    JPanel results_problems_JPanel = new JPanel();
+    results_problems_JPanel.setLayout(gbl);
+    CommandLog_TableModel tableModel = null;
+    try {
+        tableModel = new CommandLog_TableModel(new Vector());
+    }
+    catch ( Exception e ) {
+        // Should not happen but log
+        Message.printWarning ( 3, routine, e );
+        Message.printWarning(3, routine, "Error creating table model for problem display.");
+        throw new RuntimeException ( e );
+    }
+    CommandLog_CellRenderer cellRenderer = new CommandLog_CellRenderer(tableModel);
+    PropList commandStatusProps = new PropList ( "Problems" );
+    commandStatusProps.add("JWorksheet.ShowRowHeader=true");
+    commandStatusProps.add("JWorksheet.AllowCopy=true");
+    // Initialize with null table model since no initial data
+    JScrollWorksheet sjw = new JScrollWorksheet ( cellRenderer, tableModel, commandStatusProps );
+    __resultsProblems_JWorksheet = sjw.getJWorksheet ();
+    __resultsProblems_JWorksheet.setColumnWidths (cellRenderer.getColumnWidths(), getGraphics() );
+    __resultsProblems_JWorksheet.setPreferredScrollableViewportSize(null);
+    // Listen for mouse events to ??...
+    //__problems_JWorksheet.addMouseListener ( this );
+    //__problems_JWorksheet.addJWorksheetListener ( this );
+    JGUIUtil.addComponent(results_problems_JPanel, sjw, 
+        0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Problems", results_problems_JPanel );
     
     // Results: tables...
 
@@ -8505,8 +8435,7 @@ private void ui_SetInputTypeChoices ()
 
 /**
 Update the command list to show the current status.  This is called after all commands
-have been processed in run mode(), when a command has been edited(), and when loading
-commands from a file.
+have been processed in run mode(), when a command has been edited(), and when loading commands from a file.
 */
 private void ui_ShowCurrentCommandListStatus ()
 {
@@ -8515,17 +8444,13 @@ private void ui_ShowCurrentCommandListStatus ()
 
 /**
 Update the main status information when the list contents have changed.  This
-method should be called after any change to the query, command, or time series
-results list.
+method should be called after any change to the query, command, or time series results list.
 Interface tasks include:
 <ol>
 <li>	Set the title bar.
-	If no command file has been read, the title will be:
-	"TSTool - no commands saved".
-	If a command file has been read but not modified, the title will be:
-	"TSTool - "filename"".
-	If a command file has been read and modified, the title will be:
-	"TSTool - "filename" (modified)".
+	If no command file has been read, the title will be:  "TSTool - no commands saved".
+	If a command file has been read but not modified, the title will be:  "TSTool - "filename"".
+	If a command file has been read and modified, the title will be: "TSTool - "filename" (modified)".
 	</li>
 <li>	Call updateTextFields() to indicate the number of selected and total
 	commands and set the general status to "Ready".
@@ -8572,10 +8497,9 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 				}
 			}
 		}
-        __query_results_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Time Series List (" + size + " time series, " + selected_size + " selected)") );
+        __query_results_JPanel.setBorder( BorderFactory.createTitledBorder (
+    		BorderFactory.createLineBorder(Color.black),
+    		"Time Series List (" + size + " time series, " + selected_size + " selected)") );
 	}
 	
 	// Commands....
@@ -8586,13 +8510,10 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		selected_size = selected_indices.length;
 	}
 	if ( __commands_JPanel != null ) {
-    	__commands_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
+    	__commands_JPanel.setBorder( BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
-		"Commands (" + __commands_JListModel.size() +
-		" commands, " + selected_size + " selected, " +
-		commandList_GetFailureCount() + " with failures, " +
-		commandList_GetWarningCount() + " with warnings)") );
+		"Commands (" + __commands_JListModel.size() + " commands, " + selected_size + " selected, " +
+		commandList_GetFailureCount() + " with failures, " + commandList_GetWarningCount() + " with warnings)") );
 	}
 	
 	// Results (currently only update title for time series tab...
@@ -8603,11 +8524,10 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		selected_size = selected_indices.length;
 	}
 	if ( __resultsTS_JPanel != null ) {
-        	__resultsTS_JPanel.setBorder(
-			BorderFactory.createTitledBorder (
-			BorderFactory.createLineBorder(Color.black),
-			//"Results: Time Series (" +	
-            "" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
+       	__resultsTS_JPanel.setBorder(BorderFactory.createTitledBorder (
+		BorderFactory.createLineBorder(Color.black),
+		//"Results: Time Series (" +	
+        "" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
 	}
 	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
 	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null,
@@ -10883,14 +10803,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ()
 throws IOException
 {	String message, routine = "TSTool_JFrame.readDateValueHeaders";
 
-	try {	JFileChooser fc = JFileChooserFactory.createJFileChooser (
-			JGUIUtil.getLastFileDialogDirectory() );
+	try {
+	    JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
 		fc.setDialogTitle ( "Select DateValue Time Series File" );
-		SimpleFileFilter dv_sff = new SimpleFileFilter( "dv",
-			"DateValue Time Series");
+		SimpleFileFilter dv_sff = new SimpleFileFilter( "dv", "DateValue Time Series");
 		fc.addChoosableFileFilter(dv_sff);
-		SimpleFileFilter sff = new SimpleFileFilter( "txt",
-			"DateValue Time Series");
+		SimpleFileFilter sff = new SimpleFileFilter( "txt", "DateValue Time Series");
 		fc.addChoosableFileFilter(sff);
 		fc.setFileFilter(dv_sff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
@@ -10933,8 +10851,7 @@ throws IOException
 	
 			__query_JWorksheet.setCellRenderer ( cr );
 			__query_JWorksheet.setModel ( __query_TableModel );
-			__query_JWorksheet.setColumnWidths (
-			cr.getColumnWidths(), getGraphics() );
+			__query_JWorksheet.setColumnWidths (cr.getColumnWidths(), getGraphics() );
 
 			JGUIUtil.setWaitCursor ( this, false );
         	ui_UpdateStatus ( false );
@@ -11881,7 +11798,7 @@ throws IOException
 	catch ( Exception e ) {
 		message = "Error reading RiverWare file.";
 		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
 		throw new IOException ( message );
 	}
@@ -13842,6 +13759,7 @@ private void uiAction_RunCommands_ShowResults()
 			uiAction_RunCommands_ShowResultsTimeSeries();
             uiAction_RunCommands_ShowResultsTables();
 			uiAction_RunCommands_ShowResultsOutputFiles();
+			uiAction_RunCommands_ShowResultsProblems();
             uiAction_RunCommands_ShowResultsEnsembles();
             
             // Repaint the list to reflect the status of the commands...
@@ -13925,6 +13843,35 @@ private void uiAction_RunCommands_ShowResultsOutputFiles()
 	}
 	ui_SetIgnoreActionEvent(false);
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Leaving method.");
+}
+
+/**
+Display the list of problems from the commands.
+*/
+private void uiAction_RunCommands_ShowResultsProblems()
+{   String routine = getClass().getName() + ".uiAction_RunCommands_ShowResultsProblems";
+    //Message.printStatus ( 2, routine, "Entering method.");
+    try {
+        // Get all of the command log messages from all commands for run phase...
+        List commands = __tsProcessor.getCommands();
+        List logRecordList = CommandStatusUtil.getLogRecordList ( commands, null );//CommandPhaseType.RUN );
+        Message.printStatus( 2, routine, "There were " + logRecordList.size() +
+            " problems processing " + commands.size() + " commands.");
+        // Create a new table model for the problem list.
+        // TODO SAM 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
+        CommandLog_TableModel tableModel = new CommandLog_TableModel ( logRecordList );
+        CommandLog_CellRenderer cellRenderer = new CommandLog_CellRenderer( tableModel );
+        __resultsProblems_JWorksheet.setCellRenderer ( cellRenderer );
+        __resultsProblems_JWorksheet.setModel ( tableModel );
+        __resultsProblems_JWorksheet.setColumnWidths ( cellRenderer.getColumnWidths() );
+        ui_SetIgnoreActionEvent(false);
+    }
+    catch ( Exception e ) {
+        Message.printWarning( 3 , routine, e);
+        Message.printWarning ( 1, routine, "Unexpected error displaying problems from run (" + e +
+            ") - contact support.");
+    }
+    //Message.printStatus ( 2, "uiAction_RunCommands_ShowProblems", "Leaving method.");
 }
 
 /**
@@ -15274,7 +15221,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2008\n" +
+        "Copyright 1997-2009\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
@@ -15288,13 +15235,12 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2008\n" +
+        "Copyright 1997-2009\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
         "License expires: " + licenseManager.getLicenseExpires() + "\n" +
-        "Contact support at:  " +
-        __RTiSupportEmail + "\n" );
+        "Contact support at:  " + __RTiSupportEmail + "\n" );
     }
 }
 
@@ -15307,8 +15253,8 @@ private void uiAction_ShowProperties_CommandsRun ()
 	// Too big (make this big when we have more stuff)...
 	//reportProp.set ( "TotalWidth", "750" );
 	//reportProp.set ( "TotalHeight", "550" );
-	reportProp.set ( "TotalWidth", "600" );
-	reportProp.set ( "TotalHeight", "300" );
+	reportProp.set ( "TotalWidth", "800" );
+	reportProp.set ( "TotalHeight", "500" );
 	reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
 	reportProp.set ( "DisplaySize", "11" );
 	reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
@@ -15332,6 +15278,9 @@ private void uiAction_ShowProperties_CommandsRun ()
 	// Whether running and cancel requested...
 	v.add ( "Are commands running:  " + __tsProcessor.getIsRunning() );
 	v.add ( "Has cancel been requested (and is pending):  " + __tsProcessor.getCancelProcessingRequested() );
+	v.add ( "Total number of failure/warning messages from run:  " + CommandStatusUtil.getLogRecordList(
+	    __tsProcessor.getCommands(), CommandPhaseType.RUN ).size());
+
 	// Input period...
 	DateTime date1 = commandProcessor_GetInputStart();
 	if ( date1 == null ) {
@@ -15344,7 +15293,8 @@ private void uiAction_ShowProperties_CommandsRun ()
 	if ( date2 == null ) {
 		s2 = "NOT SPECIFIED (use all available data)";
 	}
-	else {	s2 = date2.toString();
+	else {
+	    s2 = date2.toString();
 	}
 	v.add ( "Input (query/read) start: " + s1 );
 	v.add ( "Input (query/read) end:   " + s2 );
@@ -16090,8 +16040,7 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 {	String routine = "TSTool_JFrame.transferAllTSFromListToCommands";
 
 	int nrows = __query_TableModel.getRowCount();
-	Message.printStatus ( 1, routine,
-	"Transferring all time series to commands (" + nrows + " in list)..." );
+	Message.printStatus ( 1, routine, "Transferring all time series to commands (" + nrows + " in list)..." );
 	JGUIUtil.setWaitCursor ( this, true );
 	int iend = nrows - 1;
 	ui_SetIgnoreListSelectionEvent ( true ); // To increase performance during transfer...
@@ -16103,7 +16052,8 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 			__ignoreItemEvent = false;
 			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, true );
 		}
-		else {	queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, false );
+		else {
+		    queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, false );
 		}
 	}
 	ui_SetIgnoreListSelectionEvent ( false );
@@ -16120,9 +16070,7 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 {	String routine = "TSTool_JFrame.transferSelectedTSFromListToCommands";
 
 	int nrows = __query_JWorksheet.getSelectedRowCount();
-	Message.printStatus ( 1, routine,
-	"Transferring selected time series to commands (" + nrows +
-	" in list)..." );
+	Message.printStatus ( 1, routine, "Transferring selected time series to commands (" + nrows + " in list)..." );
 	int [] selected = __query_JWorksheet.getSelectedRows();
 	int iend = nrows - 1;
 	for ( int i = 0; i < nrows; i++ ) {
@@ -16130,7 +16078,8 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 		if ( i == iend ) {
 			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], true ); 
 		}
-		else {	queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], false ); 
+		else {
+		    queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], false ); 
 		}
 	}
 	Message.printStatus ( 1, routine, "Transferred selected time series." );
