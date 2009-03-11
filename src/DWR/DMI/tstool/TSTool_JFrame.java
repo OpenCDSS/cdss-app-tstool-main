@@ -1102,7 +1102,8 @@ JMenuItem
 JMenu
 	__Commands_Models_Routing_JMenu = null;
 JMenuItem
-	__Commands_Models_Routing_LagK_JMenuItem = null;
+	__Commands_Models_Routing_LagK_JMenuItem = null,
+	__Commands_Models_Routing_VariableLagK_JMenuItem = null;
 
 // Commands...Output Time Series....
 JMenu
@@ -1508,7 +1509,8 @@ private String
 	// Commands...Models...
 
 	__Commands_Models_Routing_String = "Models - Routing",
-	__Commands_Models_Routing_LagK_String =	"TS Alias = LagK()... <lag and attenuate (route)>",
+	__Commands_Models_Routing_LagK_String = "TS Alias = LagK()... <lag and attenuate (route)>",
+	__Commands_Models_Routing_VariableLagK_String = "TS Alias = VariableLagK()... <lag and attenuate (route)>",
     
 	// HydroBase commands...
 
@@ -7339,6 +7341,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.add ( __Commands_Models_Routing_JMenu = new JMenu(__Commands_Models_Routing_String) );
 	__Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_LagK_JMenuItem =
         new SimpleJMenuItem( __Commands_Models_Routing_LagK_String, this ) );
+   __Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_VariableLagK_JMenuItem =
+        new SimpleJMenuItem( __Commands_Models_Routing_VariableLagK_String, this ) );
 
 	// "Commands...Output Time Series"...
 
@@ -9550,6 +9554,9 @@ throws Exception
 	if (command.equals( __Commands_Models_Routing_LagK_String)){
 		commandList_EditCommand ( __Commands_Models_Routing_LagK_String, null, __INSERT_COMMAND );
 	}
+	else if (command.equals( __Commands_Models_Routing_VariableLagK_String)){
+        commandList_EditCommand ( __Commands_Models_Routing_VariableLagK_String, null, __INSERT_COMMAND );
+    }
 	else {
 		// Chain to other actions
 		uiAction_ActionPerformed12_CommandsEnsembleMenu ( event );
