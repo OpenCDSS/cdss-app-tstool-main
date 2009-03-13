@@ -70,6 +70,7 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
+import rti.tscommandprocessor.commands.ipp.IppDMI;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -792,6 +793,7 @@ private boolean __ignoreListSelectionEvent = false;
 Indicates which data sources are enabled, initialized to defaults.
 */
 private boolean
+    __source_ColoradoIPP_enabled = false, // Must configure in CDSS.cfg to enable 
     __source_ColoradoSMS_enabled = false,
 	__source_DateValue_enabled = true,
 	__source_DIADvisor_enabled = false,
@@ -838,6 +840,11 @@ HydroBaseDMI object for HydroBase input type, opened via TSTool.cfg information
 and the HydroBase select dialog, provided to the processor as the initial HydroBase DMI instance.
 */
 private HydroBaseDMI __hbdmi = null;
+
+/**
+IppDMI object for ColoradoIPP input type, opened via CDSS.cfg information.
+*/
+private IppDMI __ippdmi = null;
 
 /**
 SatMonSysDMI object for ColoradoSMS input type, opened via TSTool.cfg information
@@ -983,6 +990,7 @@ JMenuItem
 	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem = null,
     __Commands_ConvertTSIDTo_ReadDelimitedFile_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem = null,
+	__Commands_ConvertTSIDTo_ReadColoradoIPP_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem = null,
@@ -1002,6 +1010,7 @@ JMenuItem
     __Commands_Read_ReadDelimitedFile_JMenuItem,
     __Commands_Read_ReadHecDss_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
+	__Commands_Read_ReadColoradoIPP_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_ReadNWSRFSFS5Files_JMenuItem,
@@ -1401,6 +1410,7 @@ private String
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
+    __Commands_Read_ReadColoradoIPP_String = TAB + "ReadColoradoIPP()...  <read 1(+) time series from Colorado's IPP database>",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()...  <read 1(+) time series from a DateValue file>",
     __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file (under development)>",
     __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()...  <read 1(+) time series from a HEC-DSS database file>",
@@ -1645,6 +1655,7 @@ private String
 
 	// Input types for the __input_type_JComboBox...
 
+	__INPUT_TYPE_ColoradoIPP = "ColoradoIPP",
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
@@ -1721,6 +1732,18 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	String prop_value = null;
 	__source_DateValue_enabled = true;
+	
+	// ColoradoIPP disabled by default...
+
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoIPPEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_ColoradoIPP_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_ColoradoIPP_enabled = true;
+        }
+    }
 
 	// ColoradoSMS disabled by default...
 
@@ -1986,14 +2009,21 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	StopWatch sms = new StopWatch();
 	sms.start();
 	if ( __source_ColoradoSMS_enabled ) {
-		// Login to Colorado SMS database using information in the
-		// CDSS.cfg file (pending Doug Stenzel input)...
+		// Login to Colorado SMS database using information in the CDSS.cfg file...
 		uiAction_OpenColoradoSMS ( true );
 	}
 	sms.stop();
 	Message.printDebug(1, "", "JTS - OpenColoradoSMS: " + sms.getSeconds());
 	swMain.stop();
 	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " + swMain.getSeconds());
+	
+	// Open the IPP database connection
+	
+    if ( __source_ColoradoIPP_enabled ) {
+        // Login to Colorado IPP database using information in the CDSS.cfg file...
+        uiAction_OpenColoradoIPP ( true );
+    }
+	
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
 	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration file.
 	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file
@@ -3685,6 +3715,40 @@ private void commandProcessor_SetHydroBaseDMI( CommandProcessor processor, Hydro
 }
 
 /**
+Set the command processor IppDMI instance that is opened via the GUI.
+@param ippdmi Open IppDMI instance.
+The input name is blank since it is the default IppDMI.
+*/
+private void commandProcessor_SetIppDMI( IppDMI ippdmi )
+{   // Call the overloaded method that takes a processor as a parameter...
+    commandProcessor_SetIppDMI( __tsProcessor, ippdmi );
+}
+
+/**
+Set the command processor IppDMI instance that is opened via the GUI.
+This version is generally called by the overloaded version and when processing an external command file.
+@param processor The command processor to set the IPP DMI instance.
+@param ippdmi Open IppDMI instance.
+The input name is blank since it is the default IppDMI.
+*/
+private void commandProcessor_SetIppDMI( CommandProcessor processor, IppDMI ippdmi )
+{   String message, routine = "TSTool_JFrame.commandProcessor_SetIppDMI";
+    if ( ippdmi == null ) {
+        return;
+    }
+    PropList request_params = new PropList ( "" );
+    request_params.setUsingObject ( "ColoradoIppDMI", ippdmi );
+    //CommandProcessorRequestResultsBean bean = null;
+    try { //bean =
+        processor.processRequest( "SetColoradoIppDMI", request_params );
+    }
+    catch ( Exception e ) {
+        message = "Error requesting SetColoradoIppDMI(ColoradoIppDMI=\"" + ippdmi + "\") from processor.";
+        Message.printWarning(2, routine, message );
+    }
+}
+
+/**
 Set the command processor initial working directory.
 @param dir Initial working directory.
 */
@@ -5257,6 +5321,41 @@ public synchronized void setVisible(boolean state)
 }
 
 /**
+Enable/disable the ColoradoIPP input type features depending on whether a
+ColoradoIPP connection has been made.
+*/
+private void ui_CheckColoradoIPPFeatures ()
+{   if ( (__ippdmi != null) && __ippdmi.isOpen() ) {
+        if ( __input_type_JComboBox != null ) {
+            // Make sure ColoradoIPP is in the input type list...
+            int count = __input_type_JComboBox.getItemCount();
+            boolean ippfound = false;
+            for ( int i = 0; i < count; i++ ) {
+                if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_ColoradoIPP) ) {
+                    ippfound = true;
+                    break;
+                }
+            }
+            if ( !ippfound ) {
+                // Repopulate the input types...
+                ui_SetInputTypeChoices();
+            }
+        }
+        //JGUIUtil.setEnabled ( __File_Properties_ColoradoIPP_JMenuItem, true );
+    }
+    else {
+        // Remove ColoradoIPP from the data source list if necessary...
+        try {
+            __input_type_JComboBox.remove ( __INPUT_TYPE_ColoradoIPP);
+        }
+        catch ( Exception e ) {
+            // Ignore - probably already removed...
+        }
+        //JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem, false );
+    }
+}
+
+/**
 Enable/disable the ColoradoSMS input type features depending on whether a
 ColoradoSMS connection has been made.
 */
@@ -5281,20 +5380,18 @@ private void ui_CheckColoradoSMSFeatures ()
 			}
 		}
 		*/
-		JGUIUtil.setEnabled (
-			__File_Properties_ColoradoSMS_JMenuItem, true );
+		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem, true );
 	}
-	else {	// Remove ColoradoSMS from the data source list if necessary...
-		/* TODO SAM 2005-10-18 Currently time series cannot be
-		queried
+	else {
+	    // Remove ColoradoSMS from the data source list if necessary...
+		/* TODO SAM 2005-10-18 Currently time series cannot be queried
 		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
 		}
 		catch ( Exception e ) {
 			// Ignore - probably already removed...
 		}
 		*/
-		JGUIUtil.setEnabled (
-			__File_Properties_ColoradoSMS_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem, false );
 	}
 }
 
@@ -7041,6 +7138,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Read_SetInputPeriod_String, this ) );
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
+	
+    if ( __source_ColoradoIPP_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoIPP_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadColoradoIPP_String, this) );
+    }
 
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
@@ -8165,6 +8267,15 @@ private boolean ui_Property_RunCommandProcessorInThread()
 }
 
 /**
+Set the IppDMI instance used by the GUI.
+@param ippdmi the IppDMI instance used by the GUI.
+*/
+private void ui_SetColoradoIppDMI ( IppDMI ippdmi )
+{
+    __ippdmi = ippdmi;
+}
+
+/**
 Set the directory for the last "File...Open Command File".
 @param Dir_LastCommandFileOpened Directory for last command file opened.
 */
@@ -8776,7 +8887,13 @@ throws Exception
 		// List enabled data types...
 		v.add ( "Input types and whether enabled:" );
 		v.add ( "" );
-		if ( __source_HydroBase_enabled ) {
+       if ( __source_ColoradoIPP_enabled ) {
+            v.add ( "ColoradoIPP input type is enabled" );
+        }
+        else {
+            v.add ( "ColoradoIPP input type is not enabled");
+        }
+		if ( __source_ColoradoSMS_enabled ) {
 			v.add ( "ColoradoSMS input type is enabled" );
 		}
 		else {
@@ -8906,7 +9023,7 @@ throws Exception
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "Colorado SMS Properties" );
 		List v = null;
-		if ( __hbdmi == null ) {
+		if ( __smsdmi == null ) {
 		    v = new Vector(3);
 			v.add ( "Colorado SMS Properties" );
 			v.add ( "" );
@@ -9264,7 +9381,10 @@ throws Exception
 
 	// Read Time Series...
 
-	if (command.equals( __Commands_Read_ReadDateValue_String)){
+    if (command.equals( __Commands_Read_ReadColoradoIPP_String)){
+        commandList_EditCommand ( __Commands_Read_ReadColoradoIPP_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Read_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, __INSERT_COMMAND );
 	}
     else if (command.equals( __Commands_Read_ReadDelimitedFile_String)){
@@ -10213,7 +10333,7 @@ private void uiAction_DataTypeChoiceClicked()
         // input name is selected so do nothing here.
     }
 	else if ( __selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
-	    List time_steps =	HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
+	    List time_steps = HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
 			__selected_data_type,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
@@ -13032,6 +13152,70 @@ private void uiAction_NewCommandFile ()
     ui_UpdateStatusTextFields ( 2, null, null, "Use Commands menu to insert commands", __STATUS_READY );
     __processor_JProgressBar.setValue ( 0 );
     __command_JProgressBar.setValue ( 0 );
+}
+
+/**
+Open a connection to the ColoradoIPP database.  If running in batch mode, the
+CDSS configuration file is used to determine ColoradoIPP server and database
+name properties to use for the initial connection.  If no configuration file
+exists, then a default connection is attempted.
+@param startup If true, indicates that the database connection is being made
+at startup.  This is the case, for example, when multiple HydroBase databases
+may be available and there is no reason to automatically connect to one of them for all users.
+*/
+private void uiAction_OpenColoradoIPP ( boolean startup )
+{   String routine = "TSTool_JFrame.openColoradoIPP";
+    Message.printStatus ( 1, routine, "Opening ColoradoIPP connection..." );
+    // TODO SAM 2005-10-18
+    // Always connect, whether in batch mode or not.  Might need a way to configure this.
+    //if ( IOUtil.isBatch() || !__show_main ) {
+        // Running in batch mode or without a main GUI so automatically
+        // open HydroBase from the CDSS.cfg file information...
+        // Get the input needed to process the file...
+        String cfg = HydroBase_Util.getConfigurationFile();
+        PropList props = null;
+        if ( IOUtil.fileExists(cfg) ) {
+            // Use the configuration file to get ColoradoIPP properties...
+            try {
+                props = HydroBase_Util.readConfiguration(cfg);
+            }
+            catch ( Exception e ) {
+                Message.printWarning ( 1, routine, "Error reading CDSS configuration file \""+ cfg +
+                "\".  Using defaults for ColoradoIPP." );
+                Message.printWarning ( 3, routine, e );
+                props = null;
+            }
+        }
+        // Override with any TSTool command-line arguments, in particular the user login...
+        String propval = TSToolMain.getPropValue("ColoradoIPP.UserLogin" );
+        if ( propval != null ) {
+            props.set ( "ColoradoSMS.UserLogin", propval );
+            Message.printStatus ( 1, routine, "Using batch login ColoradoIPP.UserLogin=\"" + propval + "\"" );
+        }
+        try {
+            // Now open the database...
+            // This uses the default login.  If properties were not found,
+            // then default ColoradoIPP information will be used.
+            String databaseEngine = "SQLServer2000";
+            String databaseServer = null;
+            String databaseName = null;
+            int port = 0;
+            String systemLogin = null;
+            String systemPassword = null;
+            IppDMI ippdmi = new IppDMI ( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
+            ippdmi.open();
+            // Set the IppDMI for the GUI and command processor...
+            ui_SetColoradoIppDMI( ippdmi );
+            commandProcessor_SetIppDMI ( ippdmi );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, routine,
+                    "Error opening ColoradoIPP database.  ColoradoIPP features will be disabled." );
+            Message.printWarning ( 3, routine, e );
+            // Leave old connection?
+        }
+    // Enable/disable ColoradoIPP features as necessary...
+    ui_CheckColoradoIPPFeatures();
 }
 
 /**
