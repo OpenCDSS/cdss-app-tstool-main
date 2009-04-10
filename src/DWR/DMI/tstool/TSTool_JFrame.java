@@ -1190,6 +1190,7 @@ JMenuItem
 	__Commands_General_Running_RunCommands_JMenuItem = null,
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
+    __Commands_General_Running_RunDSSUTL_JMenuItem = null,
     __Commands_General_Running_Exit_JMenuItem = null,
     __Commands_General_Running_SetWorkingDir_JMenuItem = null;
 
@@ -1228,6 +1229,7 @@ private JMenuItem
 	__Run_SelectedCommandsCreateOutput_JMenuItem,
 	__Run_SelectedCommandsIgnoreOutput_JMenuItem,
 	__Run_CancelCommandProcessing_JMenuItem,
+	__Run_CancelAllCommandProcesses_JMenuItem,
 	__Run_CommandsFromFile_JMenuItem,
 	__Run_ProcessTSProductPreview_JMenuItem,
 	__Run_ProcessTSProductOutput_JMenuItem;
@@ -1572,8 +1574,9 @@ private String
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
         TAB + "SetPropertyFromNwsrfsAppDefault()... <set a processor property from an NWSRFS App Default>",
 	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
-	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run external program>",
+	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
+    __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
     __Commands_General_Running_Exit_String = TAB + "Exit()  <to end processing>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
  
@@ -1616,6 +1619,7 @@ private String
 	__Run_SelectedCommandsCreateOutput_String =	"Selected Commands (create all output)",
 	__Run_SelectedCommandsIgnoreOutput_String =	"Selected Commands (ignore output commands)",
 	__Run_CancelCommandProcessing_String = "Cancel Command Processing",
+	__Run_CancelAllCommandProcesses_String = "Cancel All Command Processes",
 	__Run_CommandsFromFile_String = "Commands From File...",
 	__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
 	__Run_ProcessTSProductOutput_String = "Process TS Product File (create output)...",
@@ -3040,8 +3044,7 @@ that display the command file name.  It DOES NOT cause the commands to be reload
 private void commandList_SetCommandFileName ( String commandFileName )
 {	// Set the file name used in the TSTool UI...
 	__commandFileName = commandFileName;
-	// Also set the initial working directory for the processor as the
-	// parent folder of the command file...
+	// Also set the initial working directory for the processor as the parent folder of the command file...
     if ( commandFileName != null ) {
         File file = new File ( commandFileName );
         commandProcessor_SetInitialWorkingDir ( file.getParent() );
@@ -3051,8 +3054,7 @@ private void commandList_SetCommandFileName ( String commandFileName )
 }
 
 /**
-Indicate whether the commands have been modified.  The application title is
-also updated to indicate this.
+Indicate whether the commands have been modified.  The application title is also updated to indicate this.
 @param dirty Specify as true if the commands have been modified in some way.
 */
 private void commandList_SetDirty ( boolean dirty )
@@ -3064,8 +3066,7 @@ private void commandList_SetDirty ( boolean dirty )
 /**
 Indicate the progress that is occurring within a command.  This may be a chained call
 from a CommandProcessor that implements CommandListener to listen to a command.  This
-level of monitoring is useful if more than one progress indicator is present in an
-application UI.
+level of monitoring is useful if more than one progress indicator is present in an application UI.
 @param istep The number of steps being executed in a command (0+).
 @param nstep The total number of steps to process within a command.
 @param command The reference to the command that is starting to run,
@@ -3076,8 +3077,7 @@ no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((istep + 1)/nstep)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandProgress ( int istep, int nstep, Command command,
-		float percent_complete, String message )
+public void commandProgress ( int istep, int nstep, Command command, float percent_complete, String message )
 {	if ( istep == 0 ) {
 		// Initialize the limits of the command progress bar.
 		__command_JProgressBar.setMinimum ( 0 );
@@ -3091,18 +3091,27 @@ public void commandProgress ( int istep, int nstep, Command command,
 // beyond basic command list insert/delete/update.
 
 /**
+Kill all processes that are still running for RunProgram(), RunDSSUTL(), and RunPython() commands.
+This may be needed because a process is hung (e.g., waiting for input).
+*/
+private void commandProcessor_CancelAllCommandProcesses ()
+{   String routine = getClass().getName() + ".commandProcessor_CancelAllCommandProcesses";
+    Message.printStatus(2, routine, "Killing all processes started by commands..." );
+    TSCommandProcessorUtil.killCommandProcesses(__tsProcessor.getCommands());
+}
+
+/**
 Get the command processor AutoExtendPeriod.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global AutoExtendPeriod as a Boolean from the command processor or null if
-not yet determined.
+reporting.  Any errors in the processor should be detected during command initialization and processing.
+@return The global AutoExtendPeriod as a Boolean from the command processor or null if not yet determined.
 */
 private Boolean commandProcessor_GetAutoExtendPeriod()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "AutoExtendPeriod" );
+	try {
+	    o = __tsProcessor.getPropContents ( "AutoExtendPeriod" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3110,7 +3119,8 @@ private Boolean commandProcessor_GetAutoExtendPeriod()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (Boolean)o;
+	else {
+	    return (Boolean)o;
 	}
 }
 
@@ -5914,12 +5924,11 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 	}
 	if ( command_list_size > 0 ) {
 		/* TODO SAM 2007-11-01 Evaluate need
-		if (	__commands_dirty ||
-			(!__commands_dirty && (ts_list_size == 0)) ) {
-			JGUIUtil.setEnabled (
-				__run_commands_JButton, true );
+		if ( __commands_dirty || (__commands_dirty && (ts_list_size == 0)) ) {
+			JGUIUtil.setEnabled (__run_commands_JButton, true );
 		}
-		else {	JGUIUtil.setEnabled ( __run_commands_JButton, false );
+		else {
+		    JGUIUtil.setEnabled ( __run_commands_JButton, false );
 		}
 		*/
 		// Run all commands menus always enabled if not already running...
@@ -7600,6 +7609,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Running_RunProgram_String,this));
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunDSSUTL_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_RunDSSUTL_String,this));
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
@@ -8041,6 +8052,8 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 		new SimpleJMenuItem(__Run_SelectedCommandsIgnoreOutput_String,this));
 	__Run_JMenu.add ( __Run_CancelCommandProcessing_JMenuItem =
 		new SimpleJMenuItem(__Run_CancelCommandProcessing_String,this));
+   __Run_JMenu.add ( __Run_CancelAllCommandProcesses_JMenuItem =
+        new SimpleJMenuItem(__Run_CancelAllCommandProcesses_String,this));
 	__Run_JMenu.addSeparator();
 	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem =
         new SimpleJMenuItem ( __Run_CommandsFromFile_String, this ));
@@ -8861,8 +8874,9 @@ throws Exception
 		else {
             v.add ( "Last command file read/saved: \"" + __commandFileName + "\"" );
 		}
-		v.add ( "Current working directory = " + IOUtil.getProgramWorkingDir() );
-		v.add ( "Run commands in thread = " + ui_Property_RunCommandProcessorInThread() );
+		v.add ( "Working directory (from user.dir system property):" + System.getProperty ( "user.dir" ) );
+		v.add ( "Current working directory (internal to TSTool) = " + IOUtil.getProgramWorkingDir() );
+		v.add ( "Run commands in thread (internal to TSTool) = " + ui_Property_RunCommandProcessorInThread() );
 		// List open database information...
 		if ( __source_ColoradoSMS_enabled ) {
 			v.add ( "" );
@@ -9255,10 +9269,14 @@ throws Exception
 	}
 	else if (command.equals(__Run_CancelCommandProcessing_String) ) {
 		// Cancel the current processor.  This may take awhile to occur.
-		ui_UpdateStatusTextFields ( 1, routine, "Processing is bing cancelled...", null, __STATUS_CANCELING );
+		ui_UpdateStatusTextFields ( 1, routine, "Processing is being cancelled...", null, __STATUS_CANCELING );
         ui_UpdateStatus ( true );
         __tsProcessor.setCancelProcessingRequested ( true );
 	}
+    else if (command.equals(__Run_CancelAllCommandProcesses_String) ) {
+        // Cancel all processes being run by commands - to fix hung processes
+        commandProcessor_CancelAllCommandProcesses ();
+    }
     else if ( command.equals(__Run_CommandsFromFile_String) ) {
 		// Get the name of the file to run and then execute a TSCommandProcessor as if in batch mode...
     	uiAction_RunCommandFile ();
@@ -9857,6 +9875,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_General_Running_RunPython_String) ) {
         commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_General_Running_RunDSSUTL_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_RunDSSUTL_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_General_Running_Exit_String) ) {
         commandList_EditCommand ( __Commands_General_Running_Exit_String, null, __INSERT_COMMAND );
@@ -15459,12 +15480,13 @@ private void uiAction_ShowProperties_CommandsRun ()
 	
 	String s1 = "", s2 = "";
 	// Initial and current working directory...
-	v.add ( "Initial working directory:  " + __tsProcessor.getInitialWorkingDir() );
+	v.add ( "Working directory (from user.dir system property):  " + System.getProperty ( "user.dir" ) );
+	v.add ( "Initial working directory (internal to TSTool):  " + __tsProcessor.getInitialWorkingDir() );
 	try {
-	    v.add ( "Current working directory:  " + __tsProcessor.getPropContents("WorkingDir") );
+	    v.add ( "Current working directory (internal to TSTool):  " + __tsProcessor.getPropContents("WorkingDir") );
 	}
 	catch ( Exception e ) {
-	    v.add ( "Current working directory:  Unknown" );
+	    v.add ( "Current working directory (internal to TSTool):  Unknown" );
 	}
 	// Whether running and cancel requested...
 	v.add ( "Are commands running:  " + __tsProcessor.getIsRunning() );
