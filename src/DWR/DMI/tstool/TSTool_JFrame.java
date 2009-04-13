@@ -8052,11 +8052,15 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 		new SimpleJMenuItem(__Run_SelectedCommandsIgnoreOutput_String,this));
 	__Run_JMenu.add ( __Run_CancelCommandProcessing_JMenuItem =
 		new SimpleJMenuItem(__Run_CancelCommandProcessing_String,this));
-   __Run_JMenu.add ( __Run_CancelAllCommandProcesses_JMenuItem =
+	/* TODO SAM 2009-04-10 Evaluate whether to allow this - the problem is that although the command processor
+	 * is run on a thread, the individual commands are not and therefore if a process hangs, it is hung in the
+	 * processor and the Process instances cannot be retrieved
+    __Run_JMenu.add ( __Run_CancelAllCommandProcesses_JMenuItem =
         new SimpleJMenuItem(__Run_CancelAllCommandProcesses_String,this));
+             */
 	__Run_JMenu.addSeparator();
 	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem =
-        new SimpleJMenuItem ( __Run_CommandsFromFile_String, this ));
+	    new SimpleJMenuItem ( __Run_CommandsFromFile_String, this ));
 	__Run_JMenu.addSeparator();
 	__Run_JMenu.add ( __Run_ProcessTSProductPreview_JMenuItem =
 		new SimpleJMenuItem(__Run_ProcessTSProductPreview_String,this));
