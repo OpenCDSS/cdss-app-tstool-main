@@ -1773,18 +1773,24 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		}
 	}
 	
-    // HEC-DSS enabled by default...
+    // HEC-DSS enabled by default on Windows and always off on UNIX because DLLs are for Windows.
+	// TODO SAM 2009-04-14 Emailed Bill Charley and waiting on answer for support of other OS.
 
 	__source_HECDSS_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_HECDSS_enabled = false;
+	if ( IOUtil.isUNIXMachine() ) {
+	    __source_HECDSS_enabled = false;
+	}
+	else {
+        prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
+        if ( prop_value != null ) {
+            if ( prop_value.equalsIgnoreCase("false") ) {
+                __source_HECDSS_enabled = false;
+            }
+            else if ( prop_value.equalsIgnoreCase("true") ) {
+                __source_HECDSS_enabled = true;
+            }
         }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_HECDSS_enabled = true;
-        }
-    }
+	}
 
 	// NWSRFS_ESPTraceEnsemble not enabled by default...
 
