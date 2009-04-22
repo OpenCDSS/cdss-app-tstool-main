@@ -1164,9 +1164,11 @@ JMenuItem
 	__Commands_General_Logging_SetWarningLevel_JMenuItem = null;
 
 JMenu
-__Commands_General_CheckingResults_JMenu = null;
+    __Commands_General_CheckingResults_JMenu = null;
 JMenuItem
-__Commands_General_CheckingResults_OpenCheckFile_JMenuItem = null;
+    __Commands_General_CheckingResults_CheckTimeSeries_JMenuItem = null,
+    __Commands_General_CheckingResults_OpenCheckFile_JMenuItem = null,
+    __Commands_General_CheckingResults_WriteCheckFile_JMenuItem = null;
 
 JMenu
     __Commands_General_Comments_JMenu = null;
@@ -1552,7 +1554,9 @@ private String
 	// General Commands...
     
     __Commands_General_CheckingResults_String = "General - Checking/Testing Results",
+    __Commands_General_CheckingResults_CheckTimeSeries_String = TAB + "CheckTimeSeries()... <check time series>",
     __Commands_General_CheckingResults_OpenCheckFile_String = TAB + "OpenCheckFile()... <open check file>",
+    __Commands_General_CheckingResults_WriteCheckFile_String = TAB + "WriteCheckFile()... <write check file>",
 
     __Commands_General_Comments_String = "General - Comments",
     __Commands_General_Comments_Comment_String = TAB + "# comment(s)...",
@@ -6323,7 +6327,7 @@ private void ui_InitGUI ( )
         __input_type_JComboBox = new SimpleJComboBox(false);
         __input_type_JComboBox.setMaximumRowCount ( 15 );
         __input_type_JComboBox.setToolTipText (
-		"<HTML>The input type is the file/database format being read.</HTML>" );
+		"<html>The input type is the file/database format being read.</html>" );
 	__input_type_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__queryInput_JPanel, __input_type_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6332,9 +6336,9 @@ private void ui_InitGUI ( )
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __inputName_JComboBox = new SimpleJComboBox(false);
         __inputName_JComboBox.setToolTipText (
-		"<HTML>The input name is the name of the file or database" +
+		"<html>The input name is the name of the file or database" +
 		" being read.<BR>It will default or be promted for after " +
-		"selecting the input type.</HTML>" );
+		"selecting the input type.</html>" );
 	__inputName_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__queryInput_JPanel, __inputName_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6344,7 +6348,7 @@ private void ui_InitGUI ( )
 	__dataType_JComboBox = new SimpleJComboBox(false);
         __dataType_JComboBox.setMaximumRowCount ( 20 );
 	__dataType_JComboBox.setToolTipText (
-		"<HTML>The data type is used to filter the list of time series.</HTML>" );
+		"<html>The data type is used to filter the list of time series.</html>" );
 	__dataType_JComboBox.addItemListener( this );
     JGUIUtil.addComponent(__queryInput_JPanel, __dataType_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6353,7 +6357,7 @@ private void ui_InitGUI ( )
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __timeStep_JComboBox = new SimpleJComboBox(false);
 	__timeStep_JComboBox.setToolTipText (
-		"<HTML>The time step is used to filter the list of time series.</HTML>" );
+		"<html>The time step is used to filter the list of time series.</html>" );
 	__timeStep_JComboBox.addItemListener( this );
     JGUIUtil.addComponent(__queryInput_JPanel, __timeStep_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6369,8 +6373,8 @@ private void ui_InitGUI ( )
 
     __get_ts_list_JButton = new SimpleJButton(BUTTON_TOP_GET_TIME_SERIES,this);
 	__get_ts_list_JButton.setToolTipText (
-		"<HTML>Get a list of time series but not the full time " +
-		"series data.<BR>Time series can then be selected for processing.</HTML>" );
+		"<html>Get a list of time series but not the full time " +
+		"series data.<BR>Time series can then be selected for processing.</html>" );
     JGUIUtil.addComponent(__queryInput_JPanel, __get_ts_list_JButton, 
 		2, y++, 1, 1, 0, 0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
@@ -6418,14 +6422,14 @@ private void ui_InitGUI ( )
 	y = 7;
     __CopySelectedToCommands_JButton = new SimpleJButton( BUTTON_TOP_COPY_SELECTED_TO_COMMANDS,this);
 	__CopySelectedToCommands_JButton.setToolTipText (
-		"<HTML>Copy selected time series from above to the Commands " +
-		"list,<BR>as time series identifiers.</HTML>" );
+		"<html>Copy selected time series from above to the Commands " +
+		"list,<BR>as time series identifiers.</html>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopySelectedToCommands_JButton, 
 		1, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
     __CopyAllToCommands_JButton = new SimpleJButton( BUTTON_TOP_COPY_ALL_TO_COMMANDS,this);
 	__CopyAllToCommands_JButton.setToolTipText (
-		"<HTML>Copy all time series from above to the Commands " +
-		"list,<BR>as time series identifiers.</HTML>" );
+		"<html>Copy all time series from above to the Commands " +
+		"list,<BR>as time series identifiers.</html>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopyAllToCommands_JButton, 
 		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
  
@@ -6493,21 +6497,21 @@ private void ui_InitGUI ( )
 	__Run_SelectedCommands_JButton =
 		new SimpleJButton(__Button_RunSelectedCommands_String,__Run_SelectedCommandsCreateOutput_String, this);
 	__Run_SelectedCommands_JButton.setToolTipText (
-		"<HTML>Run selected commands from above to generate time " +
-		"series,<BR>which will be shown in the Time Series Results list below.</HTML>" );
+		"<html>Run selected commands from above to generate time " +
+		"series,<BR>which will be shown in the Time Series Results list below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_SelectedCommands_JButton,
 		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Run_AllCommands_JButton =
 		new SimpleJButton(__Button_RunAllCommands_String, __Run_AllCommandsCreateOutput_String, this);
 	__Run_AllCommands_JButton.setToolTipText (
-		"<HTML>Run all commands from above to generate time series," +
-		"<BR>which will be shown in the Time Series Results list below.</HTML>" );
+		"<html>Run all commands from above to generate time series," +
+		"<BR>which will be shown in the Time Series Results list below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
 		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	// Put on right because we want it to be a decision to clear...
 	__ClearCommands_JButton = new SimpleJButton(__Button_ClearCommands_String, this);
 	__ClearCommands_JButton.setToolTipText (
-		"<HTML>Clear selected commands from above.<BR>Clear all commands if none are selected.</HTML>" );
+		"<html>Clear selected commands from above.<BR>Clear all commands if none are selected.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __ClearCommands_JButton, 
 		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
@@ -6969,7 +6973,7 @@ private void ui_InitGUIInputFilters ( final int y )
         			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         			GridBagConstraints.WEST );
         		__inputFilterMexicoCSMN_JPanel.setToolTipText (
-        			"<HTML>Mexico CSMN queries can be filtered <BR>based on station data.</HTML>" );
+        			"<html>Mexico CSMN queries can be filtered <BR>based on station data.</html>" );
         		__inputFilterJPanelList.add ( __inputFilterMexicoCSMN_JPanel );
         	}
         
@@ -6996,7 +7000,7 @@ private void ui_InitGUIInputFilters ( final int y )
         			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         			GridBagConstraints.WEST );
         	__inputFilterGeneric_JPanel.setToolTipText (
-        		"<HTML>The selected input type does not support <BR>input filters.</HTML>" );
+        		"<html>The selected input type does not support <BR>input filters.</html>" );
         	__inputFilterJPanelList.add ( __inputFilterGeneric_JPanel );
         	// The appropriate JPanel will be set visible later based on the input type that is selected.
         	// Because a component is added to the original GUI, need to refresh the GUI layout...
@@ -7574,8 +7578,13 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 	__Commands_JMenu.addSeparator();   // Separate general commands from others
     
     __Commands_JMenu.add( __Commands_General_CheckingResults_JMenu = new JMenu( __Commands_General_CheckingResults_String, true ) );
-    __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_OpenCheckFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_General_CheckingResults_OpenCheckFile_String, this ) );
+    //FIXME SAM 2009-04-20 Remove when other method of checks tests out.
+    //__Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_OpenCheckFile_JMenuItem =
+    //    new SimpleJMenuItem( __Commands_General_CheckingResults_OpenCheckFile_String, this ) );
+    __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_CheckTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_CheckingResults_CheckTimeSeries_String, this ) );
+    __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_WriteCheckFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_CheckingResults_WriteCheckFile_String, this ) );
 	
     __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
     __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
@@ -8175,7 +8184,7 @@ private void ui_InitToolbar ()
  
     if ( __toolbarNew_JButton != null ) {
         // Might be null if no files are found.
-        __toolbarNew_JButton.setToolTipText ( "<HTML>" + New_CommandFile_String + "</HTML>" );
+        __toolbarNew_JButton.setToolTipText ( "<html>" + New_CommandFile_String + "</html>" );
         toolbar.add(__toolbarNew_JButton);
     }
     */
@@ -8191,7 +8200,7 @@ private void ui_InitToolbar ()
 
     if ( __toolbarOpen_JButton != null ) {
         // Might be null if no files are found.
-        __toolbarOpen_JButton.setToolTipText ( "<HTML>" + Open_CommandFile_String + "/HTML>" );
+        __toolbarOpen_JButton.setToolTipText ( "<html>" + Open_CommandFile_String + "/html>" );
         toolbar.add(__toolbarOpen_JButton);
     }
 
@@ -8207,7 +8216,7 @@ private void ui_InitToolbar ()
 
     if ( __toolbarSave_JButton != null ) {
         // Might be null if no files are found.
-        __toolbarSave_JButton.setToolTipText ( "<HTML>" + Save_CommandFile_String + "/HTML>" );
+        __toolbarSave_JButton.setToolTipText ( "<html>" + Save_CommandFile_String + "/html>" );
         toolbar.add(__toolbarSave_JButton);
     }
     // FIXME SAM 2007-12-04 Add when some of the other layout changes - adding split pane to separate
@@ -9845,8 +9854,14 @@ throws Exception
 	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals(__Commands_General_CheckingResults_CheckTimeSeries_String) ) {
+        commandList_EditCommand ( __Commands_General_CheckingResults_CheckTimeSeries_String, null, __INSERT_COMMAND );
+    }
     else if (command.equals(__Commands_General_CheckingResults_OpenCheckFile_String) ) {
         commandList_EditCommand ( __Commands_General_CheckingResults_OpenCheckFile_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals(__Commands_General_CheckingResults_WriteCheckFile_String) ) {
+        commandList_EditCommand ( __Commands_General_CheckingResults_WriteCheckFile_String, null, __INSERT_COMMAND );
     }
 	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, __INSERT_COMMAND );
@@ -15421,7 +15436,7 @@ private void uiAction_ShowCommandStatus()
   }
 
 /**
- * Gets Commands status in HTML - this is currently only a helper for
+ * Gets Commands status in html - this is currently only a helper for
  * the above method.  Rename if it will be used generically.
  * @return
  */
@@ -15585,8 +15600,11 @@ private void uiAction_ShowResultsOutputFile ( String selected )
         selected = IOUtil.getPathUsingWorkingDir( selected );
     }
     if ( selected.toUpperCase().endsWith(".HTML")) {
+        // FIXME SAM 2009-04-21 Use a browser because the embedded view does not look that good.
+        IOUtil.openURL( selected );
+        /*
         // Run the simple RTi browser to display the check file
-        // this browser enables HTML navigation features for viewing the check file
+        // this browser enables html navigation features for viewing the check file
         try {
             new SimpleBrowser( selected ).setVisible(true);
         } 
@@ -15597,10 +15615,11 @@ private void uiAction_ShowResultsOutputFile ( String selected )
             Message.printWarning( 2, routine,"Failed to open browser to view: " + selected );
             Message.printWarning( 3, routine, e );
         }
+        */
     }
     else {
         // Display a simple text file (will show up in courier fixed width
-        // font, which looks better than the HTML browser).
+        // font, which looks better than the html browser).
         try {
             if ( IOUtil.isUNIXMachine() ) {
                 // Use a built in viewer (may be slow)...
