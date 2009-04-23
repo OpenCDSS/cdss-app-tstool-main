@@ -15717,12 +15717,10 @@ throws Exception
 		List tslist = DateValueTS.readTimeSeriesList ( "J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\TF24.mdk",
 			(DateTime)null, (DateTime)null, (String)null, true );
 		// Write the SHEF
-		PropList outprops = new PropList ( "shef" );
-		outprops.set ( "Duration=DH1200" );
-		outprops.set ( "CreationDate=DC200311241319" );
 		ShefATS.writeTimeSeriesList ( tslist, 
-			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\test.shef", (DateTime)null, (DateTime)null,
-			(List)null, ShefATS.getPEForTimeSeries(tslist), (List)null, (List)null, outprops );
+			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\test.shef", false, (DateTime)null, (DateTime)null,
+			(List)null, ShefATS.getPEForTimeSeries(tslist), (List)null, (List)null,
+			null, null, "DC200311241319", "DH1200", 24, -1);
 	}
 	else if ( test_num == 1 ) {
 		// Test reading multiple time series from a date value file
