@@ -1295,11 +1295,17 @@ private JMenu
 	__Help_JMenu = null;
 private JMenuItem
 	__Help_AboutTSTool_JMenuItem = null,
+	__Help_ViewDocumentation_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
-private final static int
-			__UPDATE_COMMAND = 1,	// Update command.
-			__INSERT_COMMAND = 2;	// Insert new command.
+/**
+Used when editing a command - update the command.
+*/
+private final static int __UPDATE_COMMAND = 1;
+/**
+Used when editing a command - insert a new command.
+*/
+private final static int __INSERT_COMMAND = 2;
 
 // String labels for buttons and menus...
 
@@ -1651,6 +1657,7 @@ private String
 
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
+		__Help_ViewDocumentation_String = "View Documentation",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
 	// Strings used in popup menu for other components...
@@ -4390,15 +4397,13 @@ public void itemStateChanged ( ItemEvent evt )
 	}
 
 	if ( ui_GetIgnoreItemEvent() ) {
-		// A programatic change to a list is occurring and we want to
-		// ignore the event that will result...
+		// A programatic change to a list is occurring and we want to ignore the event that will result...
 		return;
 	}
 
 	Object	o = evt.getItemSelectable();
 
-	// If any of the choices are changed, clear the main list so that the
-	// choices and list are in agreement...
+	// If any of the choices are changed, clear the main list so that the choices and list are in agreement...
 
 	try {
     	// List in the order of the GUI...
@@ -4412,8 +4417,7 @@ public void itemStateChanged ( ItemEvent evt )
     		// New input name selected...
     		if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_FS5Files) &&
     			!__inputName_JComboBox.getSelected().equals( __PLEASE_SELECT) ) {
-    			// If the default "Please Select" is shown, the it is
-    			// initialization - don't force a selection...
+    			// If the default "Please Select" is shown, the it is initialization - don't force a selection...
     			try {
     			    uiAction_SelectInputName_NWSRFS_FS5Files ( false );
     			}
@@ -7878,6 +7882,8 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	//menu_bar.setHelpMenu ( _help_JMenu );
 	__Help_JMenu.add ( __Help_AboutTSTool_JMenuItem = new SimpleJMenuItem(__Help_AboutTSTool_String,this));
 	__Help_JMenu.addSeparator();
+    __Help_JMenu.add ( __Help_ViewDocumentation_JMenuItem = new SimpleJMenuItem(__Help_ViewDocumentation_String,this));
+    __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
 	/* TODO SAM 2004-05-24 Help index features are not working as well now that
 	documentation is huge and PDF is available.  Rely on tool tips and PDF
@@ -10203,7 +10209,10 @@ throws Exception
 	if ( command.equals ( __Help_AboutTSTool_String )) {
 		uiAction_ShowHelpAbout ( license_GetLicenseManager() );
 	}
-    if ( command.equals ( __Help_ImportConfiguration_String )) {
+	else if ( command.equals ( __Help_ViewDocumentation_String )) {
+        uiAction_ViewDocumentation ();
+    }
+	else if ( command.equals ( __Help_ImportConfiguration_String )) {
         uiAction_ImportConfiguration ( IOUtil.getApplicationHomeDir() + File.separator + "system" +
             File.separator + "TSTool.cfg");
     }
@@ -16323,6 +16332,20 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 		}
 	}
 	Message.printStatus ( 1, routine, "Transferred selected time series." );
+}
+
+/**
+View the documentation by displaying in a web browser.
+*/
+private void uiAction_ViewDocumentation ()
+{   String routine = getClass().getName() + ".uiAction_ViewDocumentation";
+    // The location of the documentation is relative to the application home
+    String docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf";
+    // Convert for the operating system
+    docFileName = IOUtil.verifyPathForOS(docFileName, true);
+    // Now display using the default application for the file extension
+    Message.printStatus(2, routine, "Opening documentation \"" + docFileName + "\"" );
+    IOUtil.openURL(docFileName);
 }
 
 /**
