@@ -2,7 +2,7 @@ IMPORTANT - READ CAREFULLY.  By choosing to use this software, you agree to be b
 
 1. GRANT OF LICENSE.  RTi grants you the right to use one copy of the enclosed TSTool software program on a single computer or as defined in license agreements for a complete system of which TSTool is a component.
 
-2. COPYRIGHT.  Copyright 1997-2008 RTi, All Rights Reserved.
+2. COPYRIGHT.  Copyright 1997-2009 RTi, All Rights Reserved.
 
 RTi implements TSTool in support of its other products and provides support and maintenance for TSTool.  RTi typically installs complete systems and therefore software cost and licensing are typically defined for the primary system component(s).  Where TSTool is installed independent of any system, special conditions may apply. 
 
