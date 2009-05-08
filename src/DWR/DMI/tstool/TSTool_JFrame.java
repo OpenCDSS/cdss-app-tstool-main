@@ -6279,7 +6279,7 @@ private void ui_InitGUI ( )
 {	String routine = "TSTool_JFrame.initGUI";
 	try {	// To catch layout problems...
 	int y;
-
+	
 	try {
         JGUIUtil.setSystemLookAndFeel(true);
 	}

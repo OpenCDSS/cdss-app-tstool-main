@@ -443,6 +443,7 @@ import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
+import RTi.Util.Message.MessageEventQueue;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -453,7 +454,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.03.06 (2009-04-29)";
+public static final String PROGRAM_VERSION = "9.03.07 (2009-05-06)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -560,12 +561,13 @@ public void init()
 {	String routine = "TSToolMain.init";
 	IOUtil.setApplet ( this );
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null );
+	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
+    new MessageEventQueue();
     try {
         parseArgs( this );
 	}
 	catch ( Exception e ) {
-        Message.printWarning( 1, routine,
-                "Error parsing command line arguments.  Using default behavior if necessary." );
+        Message.printWarning( 1, routine, "Error parsing command line arguments.  Using default behavior if necessary." );
 		Message.printWarning ( 3, routine, e );
     }
 
@@ -663,6 +665,9 @@ public static void main ( String args[] )
 	setWorkingDirInitial ();
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args );
 	JGUIUtil.setAppNameForWindows("TSTool");
+	
+	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
+	new MessageEventQueue();
 
 	// Note that messages will not be printed to the log file until the log file is opened below.
 
