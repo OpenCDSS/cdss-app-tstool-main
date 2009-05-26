@@ -70,6 +70,10 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
 import rti.tscommandprocessor.commands.ipp.IppDMI;
+import rti.tscommandprocessor.commands.ts.FillMixedStation_Command;
+import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
+import rti.tscommandprocessor.commands.ts.PrincipalComponentAnalysis_Command;
+import rti.tscommandprocessor.commands.ts.PrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -197,6 +201,7 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeBuilderJDialog;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
+
 
 /**
 JFrame to provide the application interface for TSTool.  This class provides the
@@ -1264,6 +1269,7 @@ private JMenu
 	__Tools_JMenu = null,
 	__Tools_Analysis_JMenu = null;
 private JMenuItem
+	__Tools_Analysis_PrincipalComponentAnalysis_JMenuItem = null,
 	__Tools_Analysis_MixedStationAnalysis_JMenuItem = null;
 private JMenu
 	__Tools_Report_JMenu = null;
@@ -1637,6 +1643,7 @@ private String
 	__Tools_String = "Tools",
 		__Tools_Analysis_String = "Analysis",
 			__Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
+			__Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
 		__Tools_Report_String = "Report",
 			__Tools_Report_DataCoverageByYear_String = "Data Coverage by Year...",
 			__Tools_Report_DataLimitsSummary_String = "Data Limits Summary...",
@@ -8099,6 +8106,9 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 	__Tools_Analysis_JMenu.add(	__Tools_Analysis_MixedStationAnalysis_JMenuItem =
 		new SimpleJMenuItem(__Tools_Analysis_MixedStationAnalysis_String, this ) );
 
+	__Tools_Analysis_JMenu.add(	__Tools_Analysis_PrincipalComponentAnalysis_JMenuItem =
+		new SimpleJMenuItem(__Tools_Analysis_PrincipalComponentAnalysis_String, this ) );
+
 	__Tools_JMenu.add ( __Tools_Report_JMenu = new JMenu(__Tools_Report_String, true ) );
 
 	__Tools_Report_JMenu.add(__Tools_Report_DataCoverageByYear_JMenuItem=
@@ -10058,21 +10068,37 @@ throws Exception
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
 		/* FIXME SAM 2007-08-09 need to keep main commands processor
-		 separate from this instance.  Determine how TSEngine is used.
-		try {	Command c = new fillMixedStation_Command(false);
-			c.initializeCommand ( command,
+		 separate from this instance.  Determine how TSEngine is used. */
+		try {	Command c = new FillMixedStation_Command(false);
+			/* c.initializeCommand ( command,
 				new TSCommandProcessor(__final_ts_engine),
 				null,	// Command tag
 				1,	// Warning level
-				false );// Minimal initialization
-			new fillMixedStation_JDialog ( this, c, 0 );
+				false );// Minimal initialization */
+			new FillMixedStation_JDialog ( this, c, 0 );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
 			"Error performing mixed station analysis." );
 			Message.printWarning ( 2, routine, e );
 		}
-		*/
+		/* */
+	}
+    else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
+		// Create the dialog using the available time series...
+		try {	Command c = new PrincipalComponentAnalysis_Command();
+			/* c.initializeCommand ( command,
+				new TSCommandProcessor(__final_ts_engine),
+				null,	// Command tag
+				1,	// Warning level
+				false );// Minimal initialization */
+			new PrincipalComponentAnalysis_JDialog ( this, c, 0 );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine,
+			"Error performing principal component analysis." );
+			Message.printWarning ( 2, routine, e );
+		}
 	}
 	else if (command.equals(__Tools_Report_DataCoverageByYear_String) ) {
 		// Use graph TS because it does not take an output file...
