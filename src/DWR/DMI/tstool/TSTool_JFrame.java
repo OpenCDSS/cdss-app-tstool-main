@@ -72,8 +72,8 @@ import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
 import rti.tscommandprocessor.commands.ipp.IppDMI;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_Command;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
-import rti.tscommandprocessor.commands.ts.PrincipalComponentAnalysis_Command;
-import rti.tscommandprocessor.commands.ts.PrincipalComponentAnalysis_JDialog;
+import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
+import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_Command;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -10086,13 +10086,11 @@ throws Exception
 	}
     else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
-		try {	Command c = new PrincipalComponentAnalysis_Command();
-			/* c.initializeCommand ( command,
-				new TSCommandProcessor(__final_ts_engine),
-				null,	// Command tag
-				1,	// Warning level
-				false );// Minimal initialization */
-			new PrincipalComponentAnalysis_JDialog ( this, c, 0 );
+		try {	Command c = new FillPrincipalComponentAnalysis_Command(false);
+			 c.initializeCommand ( command,
+				__tsProcessor,
+				false );// Minimal initialization
+			new FillPrincipalComponentAnalysis_JDialog ( this, c, 0 );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
