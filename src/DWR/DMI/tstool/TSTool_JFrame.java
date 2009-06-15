@@ -165,6 +165,7 @@ import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
 import RTi.Util.IO.CommandDiscoverable;
+import RTi.Util.IO.CommandListUI;
 import RTi.Util.IO.CommandLogRecord;
 import RTi.Util.IO.CommandLog_CellRenderer;
 import RTi.Util.IO.CommandLog_TableModel;
@@ -202,7 +203,6 @@ import RTi.Util.Time.DateTimeBuilderJDialog;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 
-
 /**
 JFrame to provide the application interface for TSTool.  This class provides the
 following main functionality:
@@ -216,17 +216,18 @@ following main functionality:
 */
 public class TSTool_JFrame extends JFrame
 implements
-ActionListener,			// To handle menu selections in GUI
-GeoViewListener,
-ItemListener,			// To handle choice selections in GUI
-JWorksheet_Listener,	// To handle query result interaction
-KeyListener,			// To handle keyboard input in GUI
-ListDataListener,		// To change the GUI state when commands list change
+ActionListener, // To handle menu selections in GUI
+CommandListUI, // To integrate this UI with command tools
+GeoViewListener, // To handle map interaction (not well developed)
+ItemListener, // To handle choice selections in GUI
+JWorksheet_Listener, // To handle query result interaction
+KeyListener, // To handle keyboard input in GUI
+ListDataListener, // To change the GUI state when commands list change
 ListSelectionListener,
-MessageLogListener,		// To handle interaction between log view and command list
+MessageLogListener, // To handle interaction between log view and command list
 MouseListener,
-WindowListener,			// To handle window/app shutdown
-CommandProcessorListener// To handle command processor progress updates
+WindowListener, // To handle window/app shutdown, in particular if called in headless mode and TSView controls
+CommandProcessorListener // To handle command processor progress updates (to update status messages)
 {
 
 //================================
@@ -274,8 +275,7 @@ Available input types including enabled file and databases.
 private SimpleJComboBox	__input_type_JComboBox;
 
 /**
-Available input names for the input type (history of recent
-choices and allow browse where necessary).
+Available input names for the input type (history of recent choices and allow browse where necessary).
 */
 private SimpleJComboBox __inputName_JComboBox;	
 
@@ -567,12 +567,6 @@ Annotated list to hold commands and display the command status.
 private AnnotatedCommandJList __commands_AnnotatedCommandJList;
 
 /**
-Commands JList, to support interaction such as selecting and popup menus.
-This is a reference to the JList managed by AnnotatedList.
-*/
-//private JList __commands_JList;
-
-/**
 List model that maps the TSCommandProcessor Command data to the command JList.
 */
 private TSCommandProcessorListModel __commands_JListModel;
@@ -593,7 +587,7 @@ Clear commands(s).
 private SimpleJButton __ClearCommands_JButton;
 						
 /**
-The Vector of Command that is used with cut/copy/paste user actions.
+The list of Command that is used with cut/copy/paste user actions.
 */
 private List __commands_cut_buffer = new Vector(100,100);
 
@@ -606,8 +600,7 @@ have been modified and need to be saved (or cancel) before exit.
 private boolean __commandsDirty = false;
 
 /**
-Name of the command file.	Don't set until selected by
-the user (or on the command line).
+Name of the command file.  Don't set until selected by the user (or on the command line).
 */
 private String __commandFileName = null;	
 
@@ -657,8 +650,7 @@ Final list showing in-memory time series results.
 private JList __resultsTS_JList;
 
 /**
-JList data model for final time series (basically a Vector of
-time series associated with __results_ts_JList).
+JList data model for final time series (basically a list of time series associated with __results_ts_JList).
 */
 private DefaultListModel __resultsTS_JListModel;	
 
@@ -2748,15 +2740,14 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 		// Insert before the first selected item...
 		insert_pos = selectedIndices[0];
 		__commands_JListModel.insertElementAt (	inserted_command, insert_pos );
-		Message.printStatus(2, routine, "Inserting command \"" +
-				inserted_command + "\" at [" + insert_pos + "]" );
+		Message.printStatus(2, routine, "Inserting command \"" + inserted_command + "\" at [" + insert_pos + "]" );
 	}
-	else {	// Insert at end of commands list.
+	else {
+	    // Insert at end of commands list.
 		__commands_JListModel.addElement ( inserted_command );
 		insert_pos = __commands_JListModel.size() - 1;
 	}
-	// Make sure that the list scrolls to the position that has been
-	// updated...
+	// Make sure that the list scrolls to the position that has been updated...
 	if ( insert_pos >= 0 ) {
 	    ui_GetCommandJList().ensureIndexIsVisible ( insert_pos );
 	}
@@ -4366,6 +4357,31 @@ public void goToMessageTag ( String tag )
 }
 
 /**
+Insert a command in the command list, depending on the state of the UI (e.g., insert before highlighted
+commands).  This method is called by command editors that are also stand-alone tools, when transferring
+commands to the main command processor.
+@param command single command to insert
+*/
+public void insertCommand ( Command command )
+{   // Chain to the private method
+    commandList_InsertCommandBasedOnUI ( command );
+}
+
+/**
+Insert multiple commands in the command list, depending on the state of the UI (e.g., insert before highlighted
+commands).  This method is called by command editors that are also stand-alone tools, when transferring
+commands to the main command processor.
+@param command single command to insert
+*/
+/* FIXME SAM 2009-06-12 Enable when needed
+public void insertCommands ( List<Command> commands )
+{
+    // Chain to the private method
+    commandList_InsertCommandsBasedOnUI ( commands );
+}
+*/
+
+/**
 Required by ListDataListener - receive notification when the contents of the
 commands list have changed due to commands being added.
 */
@@ -5267,9 +5283,10 @@ private void results_Ensembles_Clear()
     ui_UpdateStatus ( false );
 }
 
+// TODO SAM 2009-05-08 Evaluate sorting the files - maybe need to put in a worksheet so they can be sorted
 /**
 Add the specified output file to the list of output files that can be selected for viewing.
-Only files that exist are added.
+Only files that exist are added.  Files are added in the order of processing.
 @param file Output file generated by the processor.
 */
 private void results_OutputFiles_AddOutputFile ( File file )
@@ -10066,36 +10083,27 @@ throws Exception
 	String routine = "ToolsMenu";
 
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
-		// Create the dialog using the available time series...
-		/* FIXME SAM 2007-08-09 need to keep main commands processor
-		 separate from this instance.  Determine how TSEngine is used. */
-		try {	Command c = new FillMixedStation_Command(false);
-			/* c.initializeCommand ( command,
-				new TSCommandProcessor(__final_ts_engine),
-				null,	// Command tag
-				1,	// Warning level
-				false );// Minimal initialization */
-			new FillMixedStation_JDialog ( this, c, 0 );
+		// Create the dialog using the available time series (accessed by the procesor)...
+		try {
+			new FillMixedStation_JDialog ( this, __tsProcessor, this );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error performing mixed station analysis." );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 1, routine, "Error performing mixed station analysis (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
 		}
-		/* */
 	}
     else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
-		try {	Command c = new FillPrincipalComponentAnalysis_Command(false);
+		try {
+		    Command c = new FillPrincipalComponentAnalysis_Command(false);
 			 c.initializeCommand ( command,
 				__tsProcessor,
 				false );// Minimal initialization
 			new FillPrincipalComponentAnalysis_JDialog ( this, c, 0 );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error performing principal component analysis." );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 1, routine, "Error performing principal component analysis (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
 		}
 	}
 	else if (command.equals(__Tools_Report_DataCoverageByYear_String) ) {
@@ -10263,8 +10271,8 @@ private void uiAction_ConvertCommandsToComments ( boolean to_comment )
 		if ( to_comment ) {
 			// Replace the current command with a new string that has the comment character...
 			new_command = commandList_NewCommand(
-					"# " + old_command_string,	// New command as comment
-					true );	// Create the command even if not recognized.
+				"# " + old_command_string,	// New command as comment
+				true );	// Create the command even if not recognized.
 			commandList_ReplaceCommand ( old_command, new_command );
 		}
 		else {
@@ -10357,7 +10365,7 @@ private void uiAction_DataTypeChoiceClicked()
 			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 1).trim();
 		}
 		else if ( __selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
-		        __selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files)) {
+	        __selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files)) {
             // Data type is first and explanation second, for example...
 		    // Mexico CSMN:   "EV - Evaporation"
 		    // NWSRFS FS5 Files: "MAP - Mean Areal Precipitation"
@@ -14092,7 +14100,7 @@ Display the list of output files from the commands.
 private void uiAction_RunCommands_ShowResultsOutputFiles()
 {	// Loop through the commands.  For any that implement the FileGenerator interface,
 	// get the output file names and add to the list.
-	// Only add a file if not already in the list (so append does not
+	// Only add a file if not already in the list
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Entering method.");
 	int size = __commands_JListModel.size();
 	Command command;
