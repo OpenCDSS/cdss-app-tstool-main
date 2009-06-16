@@ -10095,11 +10095,7 @@ throws Exception
     else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
 		try {
-		    Command c = new FillPrincipalComponentAnalysis_Command(false);
-			 c.initializeCommand ( command,
-				__tsProcessor,
-				false );// Minimal initialization
-			new FillPrincipalComponentAnalysis_JDialog ( this, c, 0 );
+			new FillPrincipalComponentAnalysis_JDialog ( this, __tsProcessor, this );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error performing principal component analysis (" + e + ")." );
