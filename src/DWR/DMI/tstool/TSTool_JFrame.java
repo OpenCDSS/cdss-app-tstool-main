@@ -1147,7 +1147,8 @@ JMenuItem
 JMenu
     __Commands_Table_JMenu = null;
 JMenuItem
-    __Commands_Table_ReadTableFromDelimitedFile_JMenuItem;
+    __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
+    __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
 
 // Commands (General)...
 
@@ -1398,13 +1399,13 @@ private String
 	__Commands_ConvertTSIDTo_ReadUsgsNwis_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadUsgsNwis()",
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
-	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()...  <read 1(+) time series from a list of identifiers>",
-    __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()...  <resequence years to create new scenarios>",
-	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()...  <convert time series to one with a different interval (under development)>",
-	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()...  <copy a time series>",
-	__Commands_Create_TS_Disaggregate_String = TAB + "TS Alias = Disaggregate()...  <disaggregate longer interval to shorter>",
-	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String = TAB + "TS Alias = NewDayTSFromMonthAndDayTS()...  <create daily time series from monthly total and daily pattern>",
-	__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String = TAB + "TS Alias = NewEndOfMonthTSFromDayTS()...  <convert daily data to end of month time series>",
+	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1(+) time series from a list of identifiers>",
+    __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()... <resequence years to create new scenarios>",
+	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()... <convert time series to one with a different interval (under development)>",
+	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()... <copy a time series>",
+	__Commands_Create_TS_Disaggregate_String = TAB + "TS Alias = Disaggregate()... <disaggregate longer interval to shorter>",
+	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String = TAB + "TS Alias = NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
+	__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String = TAB + "TS Alias = NewEndOfMonthTSFromDayTS()... <convert daily data to end of month time series>",
 	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
 	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as a repeating statistic from another time series - EXPERIMENTAL>",
 	__Commands_Create_TS_NewStatisticYearTS_String = TAB + "TS Alias = NewStatisticYearTS()... <create a year time series using a statistic from another time series>",
@@ -1416,99 +1417,99 @@ private String
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
-    __Commands_Read_ReadColoradoIPP_String = TAB + "ReadColoradoIPP()...  <read 1(+) time series from Colorado's IPP database>",
-	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()...  <read 1(+) time series from a DateValue file>",
-    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()...  <read 1(+) time series from a delimited file (under development)>",
-    __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()...  <read 1(+) time series from a HEC-DSS database file>",
-    __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()...  <read 1(+) time series from HydroBase>",
-	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()...  <read 1(+) time ries from a MODSIM output file>",
-	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()...  <read 1(+) time series from an NWS CARD file>",
-	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()...  <read 1(+) time series from NWSRFS FS5 files>",
-	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()...  <read 1(+) time series from a StateCU file>",
-	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()...  <read 1(+) time series from a StateCU binary output file>",
-	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()...  <read 1(+) time series from a StateMod file>",
-	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()...  <read 1(+) time series from a StateMod binary output file>",
-	__Commands_Read_StateModMax_String = TAB + "StateModMax()...  <generate 1(+) time series as Max() of TS in two StateMod files>",
+    __Commands_Read_ReadColoradoIPP_String = TAB + "ReadColoradoIPP()... <read 1(+) time series from Colorado's IPP database>",
+	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()... <read 1(+) time series from a DateValue file>",
+    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()... <read 1(+) time series from a delimited file (under development)>",
+    __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()... <read 1(+) time series from a HEC-DSS database file>",
+    __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()... <read 1(+) time series from HydroBase>",
+	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()... <read 1(+) time ries from a MODSIM output file>",
+	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1(+) time series from an NWS CARD file>",
+	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()... <read 1(+) time series from NWSRFS FS5 files>",
+	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1(+) time series from a StateCU file>",
+	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()... <read 1(+) time series from a StateCU binary output file>",
+	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1(+) time series from a StateMod file>",
+	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1(+) time series from a StateMod binary output file>",
+	__Commands_Read_StateModMax_String = TAB + "StateModMax()... <generate 1(+) time series as Max() of TS in two StateMod files>",
 
-	__Commands_Read_TS_ReadDateValue_String = TAB +	"TS Alias = ReadDateValue()...  <read 1 time series from a DateValue file>",
-	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()...  <read 1 time series from HydroBase>",
-	__Commands_Read_TS_ReadMODSIM_String = TAB + "TS Alias = ReadMODSIM()...  <read 1 time series from a MODSIM output file>",
-	__Commands_Read_TS_ReadNDFD_String = TAB + "TS Alias = ReadNDFD()...  <read 1 time series from NDFD web service>",
-	__Commands_Read_TS_ReadNwsCard_String = TAB + "TS Alias = ReadNwsCard()...  <read 1 time series from an NWS CARD file>",
-	__Commands_Read_TS_ReadNWSRFSFS5Files_String = TAB + "TS Alias = ReadNWSRFSFS5Files()...  <read 1 time series from NWSRFS FS5 files>",
-	__Commands_Read_TS_ReadRiverWare_String = TAB +	"TS Alias = ReadRiverWare()...  <read 1 time series from a RiverWare file>",
-	__Commands_Read_TS_ReadStateMod_String = TAB + "TS Alias = ReadStateMod()...  <read 1 time series from a StateMod file>",
-	__Commands_Read_TS_ReadStateModB_String = TAB + "TS Alias = ReadStateModB()...  <read 1 time series from a StateMod binary file>",
-	__Commands_Read_TS_ReadTimeSeries_String = TAB + "TS Alias = ReadTimeSeries()...  <read 1 time series given a full TSID>",
-	__Commands_Read_TS_ReadUsgsNwis_String = TAB + "TS Alias = ReadUsgsNwis()...  <read 1 time series from a USGS NWIS file>",
+	__Commands_Read_TS_ReadDateValue_String = TAB +	"TS Alias = ReadDateValue()... <read 1 time series from a DateValue file>",
+	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()... <read 1 time series from HydroBase>",
+	__Commands_Read_TS_ReadMODSIM_String = TAB + "TS Alias = ReadMODSIM()... <read 1 time series from a MODSIM output file>",
+	__Commands_Read_TS_ReadNDFD_String = TAB + "TS Alias = ReadNDFD()... <read 1 time series from NDFD web service>",
+	__Commands_Read_TS_ReadNwsCard_String = TAB + "TS Alias = ReadNwsCard()... <read 1 time series from an NWS CARD file>",
+	__Commands_Read_TS_ReadNWSRFSFS5Files_String = TAB + "TS Alias = ReadNWSRFSFS5Files()... <read 1 time series from NWSRFS FS5 files>",
+	__Commands_Read_TS_ReadRiverWare_String = TAB +	"TS Alias = ReadRiverWare()... <read 1 time series from a RiverWare file>",
+	__Commands_Read_TS_ReadStateMod_String = TAB + "TS Alias = ReadStateMod()... <read 1 time series from a StateMod file>",
+	__Commands_Read_TS_ReadStateModB_String = TAB + "TS Alias = ReadStateModB()... <read 1 time series from a StateMod binary file>",
+	__Commands_Read_TS_ReadTimeSeries_String = TAB + "TS Alias = ReadTimeSeries()... <read 1 time series given a full TSID>",
+	__Commands_Read_TS_ReadUsgsNwis_String = TAB + "TS Alias = ReadUsgsNwis()... <read 1 time series from a USGS NWIS file>",
 
 	// Commands... Fill Time Series...
 
 	__Commands_FillTimeSeries_String = "Fill Time Series Missing Data",
-	__Commands_Fill_FillConstant_String = TAB + "FillConstant()...  <fill TS with constant>",
-	__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String = TAB + "FillDayTSFrom2MonthTSAnd1DayTS()...  <fill daily time series using D1 = D2*M1/M2>",
-	__Commands_Fill_FillFromTS_String = TAB + "FillFromTS()...  <fill time series with values from another time series>",
-	__Commands_Fill_FillHistMonthAverage_String = TAB +	"FillHistMonthAverage()...  <fill monthly TS using historic average>",
-	__Commands_Fill_FillHistYearAverage_String = TAB + "FillHistYearAverage()...  <fill yearly TS using historic average>",
-	__Commands_Fill_FillInterpolate_String = TAB + "FillInterpolate()...  <fill TS using interpolation>",
-	__Commands_Fill_FillMixedStation_String = TAB + "FillMixedStation()...  <fill TS using mixed stations (under development)>",
-	__Commands_Fill_FillMOVE1_String = TAB + "FillMOVE1()...  <fill TS using MOVE1 method>",
-	__Commands_Fill_FillMOVE2_String = TAB + "FillMOVE2()...  <fill TS using MOVE2 method>",
-	__Commands_Fill_FillPattern_String = TAB + "FillPattern()...  <fill TS using WET/DRY/AVG pattern>",
+	__Commands_Fill_FillConstant_String = TAB + "FillConstant()... <fill TS with constant>",
+	__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String = TAB + "FillDayTSFrom2MonthTSAnd1DayTS()... <fill daily time series using D1 = D2*M1/M2>",
+	__Commands_Fill_FillFromTS_String = TAB + "FillFromTS()... <fill time series with values from another time series>",
+	__Commands_Fill_FillHistMonthAverage_String = TAB +	"FillHistMonthAverage()... <fill monthly TS using historic average>",
+	__Commands_Fill_FillHistYearAverage_String = TAB + "FillHistYearAverage()... <fill yearly TS using historic average>",
+	__Commands_Fill_FillInterpolate_String = TAB + "FillInterpolate()... <fill TS using interpolation>",
+	__Commands_Fill_FillMixedStation_String = TAB + "FillMixedStation()... <fill TS using mixed stations (under development)>",
+	__Commands_Fill_FillMOVE1_String = TAB + "FillMOVE1()... <fill TS using MOVE1 method>",
+	__Commands_Fill_FillMOVE2_String = TAB + "FillMOVE2()... <fill TS using MOVE2 method>",
+	__Commands_Fill_FillPattern_String = TAB + "FillPattern()... <fill TS using WET/DRY/AVG pattern>",
 	__Commands_Fill_ReadPatternFile_String = TAB + "  ReadPatternFile()... <for use with FillPattern() >",
-	__Commands_Fill_FillProrate_String = TAB + "FillProrate()...  <fill TS by prorating another time series>",
-	__Commands_Fill_FillRegression_String = TAB + "FillRegression()...  <fill TS using regression>",
-	__Commands_Fill_FillRepeat_String = TAB + "FillRepeat()...  <fill TS by repeating values>",
+	__Commands_Fill_FillProrate_String = TAB + "FillProrate()... <fill TS by prorating another time series>",
+	__Commands_Fill_FillRegression_String = TAB + "FillRegression()... <fill TS using regression>",
+	__Commands_Fill_FillRepeat_String = TAB + "FillRepeat()... <fill TS by repeating values>",
 	__Commands_Fill_FillUsingDiversionComments_String = TAB + "FillUsingDiversionComments()... <use diversion comments as data  - HydroBase ONLY>",
 
 	__Commands_Fill_SetAutoExtendPeriod_String = TAB + "SetAutoExtendPeriod()... <for data filling and manipulation>",
 	__Commands_Fill_SetAveragePeriod_String = TAB +	"SetAveragePeriod()... <for data filling>",
 	__Commands_Fill_SetIgnoreLEZero_String = TAB + "SetIgnoreLEZero()... <ignore values <= 0 in historical averages>",
 	__Commands_SetTimeSeries_String = "Set Time Series Contents",
-	__Commands_Set_ReplaceValue_String = TAB + "ReplaceValue()...  <replace value (range) with constant in TS>",
-	__Commands_Set_SetConstant_String = TAB + "SetConstant()...  <set all values to constant in TS>",
-	__Commands_Set_SetDataValue_String = TAB + "SetDataValue()...  <set a single data value in a TS>",
-	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()...  <set time series values from another time series>",
-	__Commands_Set_SetToMax_String = TAB + "SetToMax()...  <set values to maximum of time series>",
-	__Commands_Set_SetToMin_String = TAB + "SetToMin()...  <set values to minimum of time series>",
-    __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()...  <set time series properties>",
+	__Commands_Set_ReplaceValue_String = TAB + "ReplaceValue()... <replace value (range) with constant in TS>",
+	__Commands_Set_SetConstant_String = TAB + "SetConstant()... <set all values to constant in TS>",
+	__Commands_Set_SetDataValue_String = TAB + "SetDataValue()... <set a single data value in a TS>",
+	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()... <set time series values from another time series>",
+	__Commands_Set_SetToMax_String = TAB + "SetToMax()... <set values to maximum of time series>",
+	__Commands_Set_SetToMin_String = TAB + "SetToMin()... <set values to minimum of time series>",
+    __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()... <set time series properties>",
 
 	// Commands...Manipulate Time Series menu...
 
-	__Commands_Manipulate_Add_String = TAB + "Add()...  <add one or more TS to another>",
-	__Commands_Manipulate_AddConstant_String = TAB + "AddConstant()...  <add a constant value to a TS>",
-	__Commands_Manipulate_AdjustExtremes_String = TAB + "AdjustExtremes()...  <adjust extreme values>",
-	__Commands_Manipulate_ARMA_String = TAB + "ARMA()...  <lag/attenuate a time series using ARMA>",
-	__Commands_Manipulate_Blend_String = TAB + "Blend()...  <blend one TS with another>",
-    __Commands_Manipulate_ChangePeriod_String = TAB + "ChangePeriod()...  <change the period of record>",
-	__Commands_Manipulate_ConvertDataUnits_String = TAB + "ConvertDataUnits()...  <convert data units>",
-	__Commands_Manipulate_Cumulate_String = TAB + "Cumulate()...  <cumulate values over time>",
-	__Commands_Manipulate_Divide_String = TAB +	"Divide()...  <divide one TS by another TS>",
-	__Commands_Manipulate_Free_String = TAB + "Free()...  <free time series>", 
-	__Commands_Manipulate_Multiply_String = TAB + "Multiply()...  <multiply one TS by another TS>",
-	__Commands_Manipulate_RunningAverage_String = TAB +	"RunningAverage()...  <convert TS to running average>",
-	__Commands_Manipulate_Scale_String = TAB + "Scale()...  <scale TS by a constant>",
-	__Commands_Manipulate_ShiftTimeByInterval_String = TAB + "ShiftTimeByInterval()...  <shift TS by an even interval>",
-	__Commands_Manipulate_Subtract_String = TAB + "Subtract()...  <subtract one or more TS from another>",
+	__Commands_Manipulate_Add_String = TAB + "Add()... <add one or more TS to another>",
+	__Commands_Manipulate_AddConstant_String = TAB + "AddConstant()... <add a constant value to a TS>",
+	__Commands_Manipulate_AdjustExtremes_String = TAB + "AdjustExtremes()... <adjust extreme values>",
+	__Commands_Manipulate_ARMA_String = TAB + "ARMA()... <lag/attenuate a time series using ARMA>",
+	__Commands_Manipulate_Blend_String = TAB + "Blend()... <blend one TS with another>",
+    __Commands_Manipulate_ChangePeriod_String = TAB + "ChangePeriod()... <change the period of record>",
+	__Commands_Manipulate_ConvertDataUnits_String = TAB + "ConvertDataUnits()... <convert data units>",
+	__Commands_Manipulate_Cumulate_String = TAB + "Cumulate()... <cumulate values over time>",
+	__Commands_Manipulate_Divide_String = TAB +	"Divide()... <divide one TS by another TS>",
+	__Commands_Manipulate_Free_String = TAB + "Free()... <free time series>", 
+	__Commands_Manipulate_Multiply_String = TAB + "Multiply()... <multiply one TS by another TS>",
+	__Commands_Manipulate_RunningAverage_String = TAB +	"RunningAverage()... <convert TS to running average>",
+	__Commands_Manipulate_Scale_String = TAB + "Scale()... <scale TS by a constant>",
+	__Commands_Manipulate_ShiftTimeByInterval_String = TAB + "ShiftTimeByInterval()... <shift TS by an even interval>",
+	__Commands_Manipulate_Subtract_String = TAB + "Subtract()... <subtract one or more TS from another>",
 
 	// Commands...Output Series menu...
 
 	__Commands_OutputTimeSeries_String = "Output Time Series",
-	__Commands_Output_DeselectTimeSeries_String = TAB +	"DeselectTimeSeries()...  <deselect time series for output/processing>",
-	__Commands_Output_SelectTimeSeries_String = TAB + "SelectTimeSeries()...  <select time series for output/processing>",
+	__Commands_Output_DeselectTimeSeries_String = TAB +	"DeselectTimeSeries()... <deselect time series for output/processing>",
+	__Commands_Output_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
-	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()...  <sort time series>",
-	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()...  <write time series to DateValue file>",
-	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()...  <write time series to HEC-DSS file>",
-	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()...  <write time series to NWS Card file>",
-	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()...  <write time series to RiverWare file>",
-    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()...  <write time series to SHEF file (under development)>",
-	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()...  <write time series to StateCU file>",
-	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()...  <write time series to StateMod file>",
-	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()...  <write time series to Summary file>",
-    __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()...  <process a time series product file>",
+	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()... <sort time series>",
+	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()... <write time series to DateValue file>",
+	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
+	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
+	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()... <write time series to RiverWare file>",
+    __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()... <write time series to SHEF file (under development)>",
+	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
+	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()... <write time series to StateMod file>",
+	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
+    __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
 
 	// Commands...Analyze Time Series...
 
@@ -1541,17 +1542,18 @@ private String
     // Commands...Ensemble processing...
     
     __Commands_Ensemble_String = "Ensemble Processing",
-    __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()...  <convert 1 time series into an ensemble>",
-    __Commands_Ensemble_CopyEnsemble_String = TAB + "CopyEnsemble()...  <create a copy of an ensemble>",
-    __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()...  <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
+    __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()... <convert 1 time series into an ensemble>",
+    __Commands_Ensemble_CopyEnsemble_String = TAB + "CopyEnsemble()... <create a copy of an ensemble>",
+    __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()... <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
     __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
-    __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()...  <write NWSRFS ESP trace ensemble file>",
+    __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
     
     // Table Commands...
 
     __Commands_Table_String = "Table Processing",
-    __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file (under development)>",
+    __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
+    __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
 
 	// General Commands...
     
@@ -1583,7 +1585,7 @@ private String
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
     __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
-    __Commands_General_Running_Exit_String = TAB + "Exit()  <to end processing>",
+    __Commands_General_Running_Exit_String = TAB + "Exit() <to end processing>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
  
     __Commands_General_TestProcessing_String = "General - Test Processing",
@@ -7600,6 +7602,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
 
 	__Commands_JMenu.addSeparator();   // Separate general commands from others
     
@@ -9869,6 +9873,9 @@ throws Exception
     
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
+        commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, __INSERT_COMMAND );
     }
 
 	// General commands...
