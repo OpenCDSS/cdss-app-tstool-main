@@ -433,6 +433,7 @@ import rti.tscommandprocessor.core.TSCommandFileRunner;
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 
+import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.GRTS.TSViewGraphJFrame;
 import RTi.GRTS.TSViewSummaryJFrame;
 import RTi.GRTS.TSViewTableJFrame;
@@ -454,7 +455,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.04.00 beta (2009-06-16)";
+public static final String PROGRAM_VERSION = "9.04.01 beta (2009-06-17)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -718,6 +719,9 @@ public static void main ( String args[] )
 	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
 		// reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner );
+        // Open the RiversideDB connection if the configuration file specifies the information.  Do this before
+        // reading the command file because commands may try to run discovery during load.
+        openRiversideDB ( runner );
 		try {
 		    String command_file_full = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + command_file_full + "\"" );
@@ -865,6 +869,65 @@ private static void openHydroBase ( TSCommandFileRunner runner )
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
+            Message.printWarning ( 3, routine, e );
+        }
+    }
+}
+
+/**
+Open the RiversideDB connection using the TSTool configuration file information, when running
+in batch mode.  The configuration file is used to determine the database server and
+name properties to use for the initial connection.
+*/
+private static void openRiversideDB ( TSCommandFileRunner runner )
+{   String routine = "TSToolMain.openRiversideDB";
+    boolean RiversideDB_enabled = false;  // Whether RiversideDBEnabled = true in TSTool config file
+    String propval = __tstool_props.getValue ( "TSTool.RiversideDBEnabled");
+    if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
+        RiversideDB_enabled = true;
+    }
+    if ( !RiversideDB_enabled ) {
+        Message.printStatus ( 2, routine, "RiversideDB is not enabled in TSTool configuation so not opening connection." );
+        return; 
+    }
+    String configFile = getConfigFile();
+    if ( IOUtil.isBatch() ) {
+        // Use the configuration file to get RiversideDB properties...
+        Message.printStatus(2, routine, "TSTool configuration file \"" + configFile +
+        "\" is being used to open RiversideDB connection at startup." );
+        String databaseEngine = getPropValue ( "RiversideDB.DatabaseEngine" );
+        String databaseServer = getPropValue ( "RiversideDB.DatabaseServer" );
+        String databaseName = getPropValue ( "RiversideDB.Database" );
+        // FIXME SAM 2009-06-17 Need to evaluate encryption of password.
+        String systemLogin = getPropValue ( "RiversideDB.SystemLogin" ); // OK if null
+        String systemPassword = getPropValue ( "RiversideDB.SystemPassword" ); // OK if null
+        if ( (databaseEngine == null) || databaseEngine.equals("") ) {
+            Message.printWarning ( 1, routine,
+            "No RiversideDB.DatabaseEngine property defined in TSTool configuration file \""+ configFile + "\"." +
+        		"  Cannot open RiversideDB connection for batch run." );
+        }
+        if ( (databaseServer == null) || databaseServer.equals("") ) {
+            Message.printWarning ( 1, routine,
+            "No RiversideDB.DatabaseServer property defined in TSTool configuration file \""+ configFile + "\"." +
+                "  Cannot open RiversideDB connection for batch run." );
+        }
+        if ( (databaseName == null) || databaseName.equals("") ) {
+            Message.printWarning ( 1, routine,
+            "No RiversideDB.Database property defined in TSTool configuration file \""+ configFile + "\"." +
+                "  Cannot open RiversideDB connection for batch run." );
+        }
+        
+        try {
+            // Now open the database...
+            // This uses the guest login.  If properties were not found,
+            // then default HydroBase information will be used.
+            RiversideDB_DMI rdmi = new RiversideDB_DMI ( databaseEngine, databaseServer, databaseName,
+                    -1, systemLogin, systemPassword );
+            rdmi.open();
+            runner.getProcessor().setPropContents ( "RiversideDBDMI", rdmi );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, routine, "Error opening RiversideDB.  RiversideDB features will be disabled (" + e + ")." );
             Message.printWarning ( 3, routine, e );
         }
     }
