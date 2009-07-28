@@ -1094,6 +1094,7 @@ JMenu
 	__Commands_AnalyzeTimeSeries_JMenu = null;
 JMenuItem
 	__Commands_Analyze_AnalyzePattern_JMenuItem = null,
+	__Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem = null,
 	__Commands_Analyze_CompareTimeSeries_JMenuItem = null,
 	__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem = null,
 
@@ -1147,6 +1148,7 @@ JMenuItem
 JMenu
     __Commands_Table_JMenu = null;
 JMenuItem
+    __Commands_Table_NewTable_JMenuItem,
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
 
@@ -1514,7 +1516,8 @@ private String
 	// Commands...Analyze Time Series...
 
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
-	__Commands_Analyze_AnalyzePattern_String = TAB + "AnalyzePattern()... <determine pattern(s) for FillPattern() (under development)>",
+	__Commands_Analyze_CalculateTimeSeriesStatistic_String = TAB + "CalculateTimeSeriesStatistic()... <determine statistic for time series>",
+	__Commands_Analyze_AnalyzePattern_String = TAB + "AnalyzePattern()... <determine pattern(s) for FillPattern()>",
 	__Commands_Analyze_CompareTimeSeries_String = TAB + "CompareTimeSeries()... <find differences between time series>",
 	__Commands_Analyze_ComputeErrorTimeSeries_String = TAB + "ComputeErrorTimeSeries()... <compute error between time series>",
 
@@ -1552,6 +1555,7 @@ private String
     // Table Commands...
 
     __Commands_Table_String = "Table Processing",
+    __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
 
@@ -5692,6 +5696,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,true);
 
 		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, true);
+	    JGUIUtil.setEnabled ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
@@ -5790,6 +5795,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,false);
 
 		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
@@ -7465,7 +7471,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu= new JMenu(__Commands_AnalyzeTimeSeries_String) );
 	__Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_AnalyzePattern_JMenuItem =
         new SimpleJMenuItem(__Commands_Analyze_AnalyzePattern_String, this ) );
-
+    __Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem =
+        new SimpleJMenuItem(__Commands_Analyze_CalculateTimeSeriesStatistic_String, this ) );
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_CompareTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Analyze_CompareTimeSeries_String, this ) );
 	
@@ -7600,6 +7607,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
+    __Commands_Table_JMenu.add( __Commands_Table_NewTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
@@ -9711,6 +9721,9 @@ throws Exception
 	if (command.equals( __Commands_Analyze_AnalyzePattern_String)){
 		commandList_EditCommand ( __Commands_Analyze_AnalyzePattern_String,	null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Analyze_CalculateTimeSeriesStatistic_String)){
+        commandList_EditCommand ( __Commands_Analyze_CalculateTimeSeriesStatistic_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Analyze_CompareTimeSeries_String)){
 		commandList_EditCommand ( __Commands_Analyze_CompareTimeSeries_String, null, __INSERT_COMMAND );
 	}
@@ -9871,6 +9884,9 @@ throws Exception
     
     // Table commands...
     
+    else if (command.equals( __Commands_Table_NewTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_NewTable_String, null, __INSERT_COMMAND );
+    }
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, __INSERT_COMMAND );
     }
