@@ -3066,7 +3066,7 @@ private void commandList_SetCommandFileName ( String commandFileName )
 	// Also set the initial working directory for the processor as the parent folder of the command file...
     if ( commandFileName != null ) {
         File file = new File ( commandFileName );
-        commandProcessor_SetInitialWorkingDir ( file.getParent() );
+        commandProcessor_SetInitialWorkingDir ( file.getParent(), true );
     }
 	// Update the title bar...
 	ui_UpdateStatus ( false );
@@ -3780,16 +3780,25 @@ private void commandProcessor_SetIppDMI( CommandProcessor processor, IppDMI ippd
 /**
 Set the command processor initial working directory.
 @param dir Initial working directory.
+@param setWorkingDir if true, also set the working directory to the same value
 */
-private void commandProcessor_SetInitialWorkingDir ( String InitialWorkingDir )
-{
+private void commandProcessor_SetInitialWorkingDir ( String InitialWorkingDir, boolean setWorkingDir )
+{   String routine = getClass().getName() + ".commandProcessor_setInitialWorkingDir";
 	try {
 		__tsProcessor.setPropContents( "InitialWorkingDir", InitialWorkingDir );
 	}
 	catch ( Exception e ) {
-		String routine = getClass().getName() + ".commandProcessor_setInitialWorkingDir";
 		String message = "Error setting InitialWorkingDir(\"" + InitialWorkingDir + "\") in processor.";
 		Message.printWarning(2, routine, message );
+	}
+	if ( setWorkingDir ) {
+	    try {
+	        __tsProcessor.setPropContents( "WorkingDir", InitialWorkingDir );
+	    }
+	    catch ( Exception e ) {
+	        String message = "Error setting WorkingDir(\"" + InitialWorkingDir + "\") in processor.";
+	        Message.printWarning(2, routine, message );
+	    }
 	}
 }
 
@@ -6489,7 +6498,7 @@ private void ui_InitGUI ( )
 	// initial working directory will be the software startup directory.
 	__tsProcessor = new TSCommandProcessor();
 	ui_SetInitialWorkingDir( System.getProperty("user.dir") );
-	commandProcessor_SetInitialWorkingDir ( ui_GetInitialWorkingDir() );
+	commandProcessor_SetInitialWorkingDir ( ui_GetInitialWorkingDir(), true );
 	// FIXME SAM 2007-08-28 Need to set a WindowListener for -nomaingui calls?
 	//__ts_processor.setTSCommandProcessorUI ( this );
 	__tsProcessor.addCommandProcessorListener ( this );
@@ -8428,7 +8437,7 @@ private void ui_SetInitialWorkingDir ( String initialWorkingDir )
 			initialWorkingDir + "\"" );
 	__initialWorkingDir = initialWorkingDir;
 	// Also set in the processor...
-	commandProcessor_SetInitialWorkingDir ( initialWorkingDir );
+	commandProcessor_SetInitialWorkingDir ( initialWorkingDir, true );
 }
 
 /**
@@ -10106,7 +10115,7 @@ throws Exception
 	String routine = "ToolsMenu";
 
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
-		// Create the dialog using the available time series (accessed by the procesor)...
+		// Create the dialog using the available time series results (accessed by the procesor)...
 		try {
 			new FillMixedStation_JDialog ( this, __tsProcessor, this );
 		}
