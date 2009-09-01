@@ -3261,7 +3261,8 @@ private Boolean commandProcessor_GetIncludeMissingTS()
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "IncludeMissingTS" );
+	try {
+	    o = __tsProcessor.getPropContents ( "IncludeMissingTS" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3269,23 +3270,23 @@ private Boolean commandProcessor_GetIncludeMissingTS()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (Boolean)o;
+	else {
+	    return (Boolean)o;
 	}
 }
 
 /**
 Get the command processor InputEnd.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global InputEnd as a DateTime from the command processor or null if
-not yet determined.
+reporting.  Any errors in the processor should be detected during command initialization and processing.
+@return The global InputEnd as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetInputEnd()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "InputEnd" );
+	try {
+	    o = __tsProcessor.getPropContents ( "InputEnd" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3293,23 +3294,23 @@ private DateTime commandProcessor_GetInputEnd()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (DateTime)o;
+	else {
+	    return (DateTime)o;
 	}
 }
 
 /**
 Get the command processor InputStart.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global InputStart as a DateTime from the command processor or null if
-not yet determined.
+reporting.  Any errors in the processor should be detected during command initialization and processing.
+@return The global InputStart as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetInputStart()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "InputStart" );
+	try {
+	    o = __tsProcessor.getPropContents ( "InputStart" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3317,23 +3318,23 @@ private DateTime commandProcessor_GetInputStart()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (DateTime)o;
+	else {
+	    return (DateTime)o;
 	}
 }
 
 /**
 Get the command processor OutputEnd.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
-@return The global OutputEnd as a DateTime from the command processor or null if
-not yet determined.
+reporting.  Any errors in the processor should be detected during command initialization and processing.
+@return The global OutputEnd as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetOutputEnd()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "OutputEnd" );
+	try {
+	    o = __tsProcessor.getPropContents ( "OutputEnd" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3341,7 +3342,8 @@ private DateTime commandProcessor_GetOutputEnd()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (DateTime)o;
+	else {
+	    return (DateTime)o;
 	}
 }
 
@@ -3349,15 +3351,15 @@ private DateTime commandProcessor_GetOutputEnd()
 Get the command processor OutputStart.  This method is meant for simple
 reporting.  Any errors in the processor should be detected during command
 initialization and processing.
-@return The global OutputStart as a DateTime from the command processor or null if
-not yet determined.
+@return The global OutputStart as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetOutputStart()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
 	Object o = null;
-	try {	o = __tsProcessor.getPropContents ( "OutputStart" );
+	try {
+	    o = __tsProcessor.getPropContents ( "OutputStart" );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -3365,7 +3367,8 @@ private DateTime commandProcessor_GetOutputStart()
 	if ( o == null ) {
 		return null;
 	}
-	else { return (DateTime)o;
+	else {
+	    return (DateTime)o;
 	}
 }
 
@@ -3433,8 +3436,7 @@ Get the command processor time series results for an index position.
 Typically this corresponds to a user selecting the time series from the
 results list, for further display.
 @param pos Position (0+ for the time series).
-@return The time series at the requested position in the results or null
-if the processor is not available.
+@return The time series at the requested position in the results or null if the processor is not available.
 */
 private TS commandProcessor_GetTimeSeries( int pos )
 {	String message, routine = "TSTool_JFrame.commandProcessorGetTimeSeries";
@@ -10117,20 +10119,20 @@ throws Exception
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series results (accessed by the procesor)...
 		try {
-			new FillMixedStation_JDialog ( this, __tsProcessor, this );
+			new FillMixedStation_JDialog ( this, commandProcessor_GetCommandProcessor(), this );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error performing mixed station analysis (" + e + ")." );
+			Message.printWarning ( 1, routine, "Error in Mixed Station Analysis tool (" + e + ")." );
 			Message.printWarning ( 3, routine, e );
 		}
 	}
     else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
 		try {
-			new FillPrincipalComponentAnalysis_JDialog ( this, __tsProcessor, this );
+			new FillPrincipalComponentAnalysis_JDialog ( this, commandProcessor_GetCommandProcessor(), this );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error performing principal component analysis (" + e + ")." );
+			Message.printWarning ( 1, routine, "Error in Principal Component Analysis tool (" + e + ")." );
 			Message.printWarning ( 3, routine, e );
 		}
 	}
