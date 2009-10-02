@@ -70,10 +70,8 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
 import rti.tscommandprocessor.commands.ipp.IppDMI;
-import rti.tscommandprocessor.commands.ts.FillMixedStation_Command;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
-import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_Command;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -1150,6 +1148,7 @@ JMenu
 JMenuItem
     __Commands_Table_NewTable_JMenuItem,
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
+    __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
 
 // Commands (General)...
@@ -1557,6 +1556,7 @@ private String
     __Commands_Table_String = "Table Processing",
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
+    __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
 
 	// General Commands...
@@ -7620,9 +7620,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
     __Commands_Table_JMenu.add( __Commands_Table_NewTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
 
@@ -9900,6 +9902,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, __INSERT_COMMAND );
