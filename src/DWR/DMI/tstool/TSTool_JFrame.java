@@ -191,6 +191,7 @@ import RTi.Util.IO.UnknownCommandException;
 import RTi.Util.Message.DiagnosticsJFrame;
 import RTi.Util.Message.Message;
 import RTi.Util.Message.MessageLogListener;
+import RTi.Util.Message.MessageUtil;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.DataTable_JFrame;
@@ -1134,9 +1135,11 @@ JMenuItem
 JMenu
     __Commands_Ensemble_JMenu = null;
 JMenuItem
-    __Commands_Ensemble_CreateEnsemble_JMenuItem,
+    __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem,
     __Commands_Ensemble_CopyEnsemble_JMenuItem,
+    __Commands_Ensemble_NewEnsemble_JMenuItem,
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem,
+    __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem,
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
     __Commands_Ensemble_TS_WeightTraces_JMenuItem,
     __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem;
@@ -1150,6 +1153,13 @@ JMenuItem
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
+
+// Commands (Template)...
+
+JMenu
+    __Commands_Template_JMenu = null;
+JMenuItem
+    __Commands_Template_ExpandTemplateFile_JMenuItem;
 
 // Commands (General)...
 
@@ -1337,7 +1347,7 @@ private String
 
 	__File_String = "File",
 	   __File_New_String = "New",
-           __File_New_CommandFile_String = "Command File...", 
+           __File_New_CommandFile_String = "Command File", 
 		__File_Open_String = "Open",
 			__File_Open_CommandFile_String = "Command File...", 
 			__File_Open_DIADvisor_String = "DIADvisor...",
@@ -1544,9 +1554,12 @@ private String
     // Commands...Ensemble processing...
     
     __Commands_Ensemble_String = "Ensemble Processing",
-    __Commands_Ensemble_CreateEnsemble_String = TAB + "CreateEnsemble()... <convert 1 time series into an ensemble>",
+    __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String =
+        TAB + "CreateEnsembleFromOneTimeSeries()... <convert 1 time series into an ensemble>",
     __Commands_Ensemble_CopyEnsemble_String = TAB + "CopyEnsemble()... <create a copy of an ensemble>",
+    __Commands_Ensemble_NewEnsemble_String = TAB + "NewEnsemble()... <create a new ensemble from 0+ time series>",
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()... <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
+    __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String = TAB + "InsertTimeSeriesIntoEnsemble()... <insert 1+ time series into an ensemble>",
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
     __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
     __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
@@ -1559,6 +1572,11 @@ private String
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
 
+    // Template Commands...
+
+    __Commands_Template_String = "Template Processing",
+    __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
+    
 	// General Commands...
     
     __Commands_General_CheckingResults_String = "General - Checking/Testing Results",
@@ -1615,6 +1633,8 @@ private String
 	__Results_Graph_PredictedValue_String =	"Graph - Predicted Value (under development)",
 	__Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
 	__Results_Graph_XYScatter_String = "Graph - XY-Scatter",
+	
+	__Results_Ensemble_Properties_String = "Ensemble Properties",
 
 	__Results_Table_String = "Table",
 	__Results_Report_Summary_String = "Report - Summary",
@@ -5300,6 +5320,37 @@ private void results_Ensembles_Clear()
     ui_UpdateStatus ( false );
 }
 
+/**
+Get the ensemble identifier from a displayed ensemble item, which is in the format
+N) EnsembleID - Ensemble Name
+*/
+private TSEnsemble results_Ensembles_GetEnsembleID ( String displayItem )
+{   String routine = getClass().getName() + ".results_Ensembles_GetEnsembleID";
+    String message;
+    String s = displayItem.substring(displayItem.indexOf( " " )).trim();
+    String ensembleID = StringUtil.getToken ( s, "-", 0, 0 ).trim();
+    PropList requestParams = new PropList ( "" );
+    requestParams.set ( "EnsembleID", ensembleID );
+    CommandProcessorRequestResultsBean bean = null;
+    try {
+        bean = __tsProcessor.processRequest( "GetEnsemble", requestParams);
+    }
+    catch ( Exception e ) {
+        message = "Error requesting GetEnsemble(EnsembleID=\"" + ensembleID + "\".";
+        Message.printWarning(3, routine, message );
+        return null;
+    }
+    PropList bean_PropList = bean.getResultsPropList();
+    Object o_tsEnsemble = bean_PropList.getContents ( "TSEnsemble" );
+    if ( o_tsEnsemble == null ) {
+        message = "Null TSEnsemble requesting GetEnsemble(EnsembleID=\"" + ensembleID + "\".";
+        Message.printWarning(3, routine, message );
+        return null;
+    }
+    TSEnsemble ensemble = (TSEnsemble)o_tsEnsemble;
+    return ensemble;
+}
+
 // TODO SAM 2009-05-08 Evaluate sorting the files - maybe need to put in a worksheet so they can be sorted
 /**
 Add the specified output file to the list of output files that can be selected for viewing.
@@ -5726,7 +5777,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem, true);
         
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, true);
@@ -5826,7 +5877,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem,false);
         
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsemble_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, false);
@@ -7597,24 +7648,35 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
-    __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CreateEnsemble_JMenuItem =
-        new SimpleJMenuItem( __Commands_Ensemble_CreateEnsemble_String, this) );
+    __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String, this) );
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CopyEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_CopyEnsemble_String, this) );
+    __Commands_Ensemble_JMenu.add( __Commands_Ensemble_NewEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_NewEnsemble_String, this) );
     
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
         __Commands_Ensemble_JMenu.add( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, this) );
     }
+    
+    __Commands_Ensemble_JMenu.addSeparator();
+    __Commands_Ensemble_JMenu.add( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, this) );
+    
+    __Commands_Ensemble_JMenu.addSeparator();
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, this ) );
     
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_WeightTraces_JMenuItem =
         new SimpleJMenuItem(__Commands_Ensemble_TS_WeightTraces_String, this ) );
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+        __Commands_Ensemble_JMenu.addSeparator();
         __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem=
             new SimpleJMenuItem(__Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String,this ));
     }
+    
+    // Commands...Table processing...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
@@ -7627,6 +7689,15 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
+    
+    // Commands...Template processing...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_Template_JMenu = new JMenu( __Commands_Template_String, true ) );
+    __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
+    
+    // Commands...General...
 
 	__Commands_JMenu.addSeparator();   // Separate general commands from others
     
@@ -8086,6 +8157,7 @@ private void ui_InitGUIMenus_ResultsPopup ()
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Duration_String, this ));
     */
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, ens_l ) );
+    __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Properties_String, ens_l ) );
     /*
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_LineLogY_String, this ) );
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PeriodOfRecord_String, this ) );
@@ -9789,14 +9861,20 @@ private void uiAction_ActionPerformed12_CommandsEnsembleMenu (ActionEvent event)
 throws Exception
 {   String command = event.getActionCommand();
 
-    if (command.equals( __Commands_Ensemble_CreateEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_CreateEnsemble_String, null, __INSERT_COMMAND );
+    if (command.equals( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String, null, __INSERT_COMMAND );
     }
-    if (command.equals( __Commands_Ensemble_CopyEnsemble_String)){
+    else if (command.equals( __Commands_Ensemble_CopyEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_CopyEnsemble_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Ensemble_NewEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_NewEnsemble_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, null, __INSERT_COMMAND );
     }
     else if (command.equals(__Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, null, __INSERT_COMMAND );
@@ -9909,7 +9987,13 @@ throws Exception
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, __INSERT_COMMAND );
     }
+	
+	// Template commands...
 
+    else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
+        commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, __INSERT_COMMAND );
+    }
+	
 	// General commands...
 
 	else if (command.equals( __Commands_General_Logging_StartLog_String) ) {
@@ -14027,6 +14111,109 @@ throws Exception
 }
 
 /**
+Show properties for the selected ensemble(s).
+*/
+private void uiAction_ResultsEnsembleProperties ()
+{   String routine = getClass().getName() + ".uiAction_ResultsEnsembleProperties";
+    String message;
+    // Get the selected ensembles
+    int selected [] = __resultsTSEnsembles_JList.getSelectedIndices();
+    if ( (selected == null) || (selected.length == 0) ) {
+        // Nothing is selected to process all
+        int size = __resultsTSEnsembles_JListModel.size();
+        selected = new int[size];
+        for ( int i = 0; i < size; i++ ) {
+            selected[i] = i;
+        }
+    }
+    // Get the list of time series from the processor, to check whether time series are shared
+    List<TS> tslist = null;
+    int tsResultsSize = -1;
+    try {
+        tslist = (List<TS>)__tsProcessor.getPropContents("TSResultsList");
+        tsResultsSize = tslist.size();
+    }
+    catch ( Exception e ) {
+        // Should not happen
+        message = "Error getting time series list from processor:";
+        Message.printWarning ( 3, routine, message );
+        Message.printWarning ( 3, routine, e );
+    }
+    // Get the properties from the ensembles, including included time series properties
+    String ensembleDisplay;
+    String ensembleID;
+    TSEnsemble ensemble;
+    List<String> v = new Vector ();
+    v.add ( "Ensemble Properties" );
+    TS ts;
+    for ( int i = 0; i < selected.length; i++ ) {
+        // Get the ensemble ID from the list...
+        ensembleDisplay = (String)__resultsTSEnsembles_JListModel.get(i);
+        ensemble = results_Ensembles_GetEnsembleID ( ensembleDisplay );
+        ensembleID = ensemble.getEnsembleID();
+        if ( ensemble == null ) {
+            v.add ( "" );
+            v.add ( "EnsembleID:  " + ensembleID );
+            v.add ( "  Error getting ensemble properties from processor.");
+        }
+        else {
+            // Format the output and append to what is displayed
+            v.add ( "" );
+            v.add ( "EnsembleID:  " + ensembleID );
+            v.add ( "Ensemble name:  " + ensemble.getEnsembleName() );
+            int ensembleSize = ensemble.size();
+            v.add ( "Number of time series:  " + ensembleSize );
+            for ( int its = 0; its < ensembleSize; its++ ) {
+                ts = ensemble.get(its);
+                v.add ( "  " + StringUtil.formatString( (its + 1), "%4d") + " Time series identifier:  " +
+                    ts.getIdentifierString() );
+                v.add ( "        Period:  " + ts.getDate1() + " - " + ts.getDate2() );
+                // Determine if the time series exists in the main time series list
+                boolean found = false;
+                int foundPos = -1;
+                if ( tslist == null ) {
+                    // Did not have the main time series list for some reason.
+                    v.add ( "        Shared with main time series list:  UNKNOWN (no main list available)" );
+                }
+                else {
+                    // Loop through the main time series list and try to match the time series reference,
+                    // which will differ if the time series was copied.
+                    TS tsr;
+                    for ( int irts = 0; irts < tsResultsSize; irts++ ) {
+                        tsr = tslist.get(irts);
+                        // Compare by reference
+                        if ( tsr == ts ) {
+                            found = true;
+                            foundPos = irts;
+                            break;
+                        }
+                    }
+                    if ( found ) {
+                        v.add ( "        Shared with main time series list:  YES, time series " + (foundPos + 1) +
+                        " (was not copied to ensemble)" );
+                    }
+                    else {
+                        v.add ( "        Shared with main time series list:  NO (was copied to ensemble)" );
+                    }
+                }
+            }
+        }
+    }
+    PropList reportProp = new PropList ("ReportJFrame.props");
+    // Too big (make this big when we have more stuff)...
+    //reportProp.set ( "TotalWidth", "750" );
+    //reportProp.set ( "TotalHeight", "550" );
+    reportProp.set ( "TotalWidth", "800" );
+    reportProp.set ( "TotalHeight", "500" );
+    reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
+    reportProp.set ( "DisplaySize", "11" );
+    reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
+    reportProp.set ( "PrintSize", "7" );
+    reportProp.set ( "Title", "Ensemble Properties" );
+    new ReportJFrame ( v, reportProp );
+}
+
+/**
 Run the commands in the command list.  These time series are saved in
 __ts_processor and are then available for export, analysis, or viewing.  This
 method should only be called if there are commands in the command list.
@@ -16629,7 +16816,7 @@ Internal class to handle action events from ensemble results list.
 private class ActionListener_ResultsEnsembles implements ActionListener
 {
     /**
-    Handle a group of actions for the View menu.
+    Handle a group of actions for the ensemble popup menu.
     @param event Event to handle.
     */
     public void actionPerformed (ActionEvent event)
@@ -16637,6 +16824,9 @@ private class ActionListener_ResultsEnsembles implements ActionListener
 
         if ( command.equals(__Results_Graph_Line_String) ) {
             uiAction_GraphEnsembleResults("-olinegraph");
+        }
+        else if ( command.equals(__Results_Ensemble_Properties_String) ) {
+            uiAction_ResultsEnsembleProperties();
         }
     }
 }
