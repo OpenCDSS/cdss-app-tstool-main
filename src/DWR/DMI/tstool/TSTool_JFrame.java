@@ -191,7 +191,6 @@ import RTi.Util.IO.UnknownCommandException;
 import RTi.Util.Message.DiagnosticsJFrame;
 import RTi.Util.Message.Message;
 import RTi.Util.Message.MessageLogListener;
-import RTi.Util.Message.MessageUtil;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.DataTable_JFrame;
@@ -1634,6 +1633,8 @@ private String
 	__Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
 	__Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 	
+	__Results_Ensemble_Graph_Line_String = "Graph - Line",
+	__Results_Ensemble_Table_String = "Table",
 	__Results_Ensemble_Properties_String = "Ensemble Properties",
 
 	__Results_Table_String = "Table",
@@ -8156,7 +8157,8 @@ private void ui_InitGUIMenus_ResultsPopup ()
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsRight_String, this ));
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Duration_String, this ));
     */
-    __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Line_String, ens_l ) );
+    __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Graph_Line_String, ens_l ) );
+    __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Table_String, ens_l ) );
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Properties_String, ens_l ) );
     /*
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_LineLogY_String, this ) );
@@ -16822,8 +16824,11 @@ private class ActionListener_ResultsEnsembles implements ActionListener
     public void actionPerformed (ActionEvent event)
     {   String command = event.getActionCommand();
 
-        if ( command.equals(__Results_Graph_Line_String) ) {
+        if ( command.equals(__Results_Ensemble_Graph_Line_String) ) {
             uiAction_GraphEnsembleResults("-olinegraph");
+        }
+        else if ( command.equals(__Results_Ensemble_Table_String) ) {
+            uiAction_GraphEnsembleResults("-otable");
         }
         else if ( command.equals(__Results_Ensemble_Properties_String) ) {
             uiAction_ResultsEnsembleProperties();
