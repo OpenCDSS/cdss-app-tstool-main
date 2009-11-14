@@ -1662,7 +1662,7 @@ private String
 	__Tools_String = "Tools",
 		__Tools_Analysis_String = "Analysis",
 			__Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
-			__Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis...",
+			__Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
 		__Tools_Report_String = "Report",
 			__Tools_Report_DataCoverageByYear_String = "Data Coverage by Year...",
 			__Tools_Report_DataLimitsSummary_String = "Data Limits Summary...",
