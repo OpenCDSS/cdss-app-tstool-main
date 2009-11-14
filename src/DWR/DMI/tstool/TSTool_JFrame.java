@@ -1417,7 +1417,7 @@ private String
 	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String = TAB + "TS Alias = NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
 	__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String = TAB + "TS Alias = NewEndOfMonthTSFromDayTS()... <convert daily data to end of month time series>",
 	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
-	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as a repeating statistic from another time series - EXPERIMENTAL>",
+	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as a repeating statistic from another time series",
 	__Commands_Create_TS_NewStatisticYearTS_String = TAB + "TS Alias = NewStatisticYearTS()... <create a year time series using a statistic from another time series>",
 	__Commands_Create_TS_NewTimeSeries_String = TAB + "TS Alias = NewTimeSeries()... <create and initialize a new time series>",
 	__Commands_Create_TS_Normalize_String = TAB + "TS Alias = Normalize()... <Normalize time series to unitless values>",
@@ -1559,7 +1559,7 @@ private String
     __Commands_Ensemble_NewEnsemble_String = TAB + "NewEnsemble()... <create a new ensemble from 0+ time series>",
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()... <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String = TAB + "InsertTimeSeriesIntoEnsemble()... <insert 1+ time series into an ensemble>",
-    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble - EXPERIMENTAL>",
+    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble>",
     __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
     __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
     
