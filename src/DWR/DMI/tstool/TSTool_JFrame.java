@@ -100,6 +100,7 @@ import DWR.StateCU.StateCU_Util;
 import DWR.StateMod.StateMod_BTS;
 import DWR.StateMod.StateMod_DataSet;
 import DWR.StateMod.StateMod_DiversionRight;
+import DWR.StateMod.StateMod_GUIUtil;
 import DWR.StateMod.StateMod_InstreamFlowRight;
 import DWR.StateMod.StateMod_ReservoirRight;
 import DWR.StateMod.StateMod_TS;
@@ -1411,7 +1412,7 @@ private String
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1(+) time series from a list of identifiers>",
     __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()... <resequence years to create new scenarios>",
-	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()... <convert time series to one with a different interval (under development)>",
+	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()... <convert time series to one with a different interval>",
 	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()... <copy a time series>",
 	__Commands_Create_TS_Disaggregate_String = TAB + "TS Alias = Disaggregate()... <disaggregate longer interval to shorter>",
 	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String = TAB + "TS Alias = NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
@@ -11435,7 +11436,7 @@ throws Exception
 	int size = 0;
 	try {	
 		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( __hbdmi, __selected_data_type, __selected_time_step,
-				(InputFilter_JPanel)__selectedInputFilter_JPanel, grlimits );
+			(InputFilter_JPanel)__selectedInputFilter_JPanel, grlimits );
 		// Make sure that size is set...
 		if ( tslist != null ) {
 			size = tslist.size();
@@ -12334,87 +12335,13 @@ throws Exception
 		// TODO SAM 2007-05-14 Need to better handle picking files.
 		// Need to pick the file first and detect the time step from the file, similar to the binary file.
         // For now, key off the selected time step.
-		SimpleFileFilter ddr_filter = null;
-		SimpleFileFilter ifr_filter = null;
-		SimpleFileFilter rer_filter = null;
-		SimpleFileFilter wer_filter = null;
 		if ( __selected_time_step.equals( __TIMESTEP_DAY)) {
 			fc.setDialogTitle (	"Select StateMod Daily Time Series File" );
-			SimpleFileFilter sff = new SimpleFileFilter( "ddd",	"StateMod Direct Diversion Demands (Daily)");
-			fc.addChoosableFileFilter(sff);
-			ddr_filter = new SimpleFileFilter( "ddr", "StateMod Diversion Rights (Daily)");
-			fc.addChoosableFileFilter(ddr_filter);
-			sff = new SimpleFileFilter( "ddy", "StateMod Historicial Diversions (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "eoy", "StateMod Reservoir Storage (End of Day)");
-			fc.addChoosableFileFilter(sff);
-			ifr_filter = new SimpleFileFilter( "ifd", "StateMod Instream Flow Demands (Daily)");
-			fc.addChoosableFileFilter(ifr_filter);
-			sff = new SimpleFileFilter( "ifr", "StateMod Instream Flow Rights (Daily)");
-			fc.addChoosableFileFilter(ifr_filter);
-			rer_filter = new SimpleFileFilter( "rer", "StateMod Reservoir Rights (Daily)");
-			fc.addChoosableFileFilter(rer_filter);
-			sff = new SimpleFileFilter( "riy", "StateMod Base Streamflow (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "riy", "StateMod Historicial Streamflow (Daily)");
-			fc.addChoosableFileFilter(sff);
-			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm", "StateMod Time Series (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "tad", "StateMod Reservoir Min/Max Targets (Daily)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "wed", "StateMod Well Demands (Daily)");
-			fc.addChoosableFileFilter(sff);
-			wer_filter = new SimpleFileFilter( "wer", "StateMod Well Rights (Daily)");
-			fc.addChoosableFileFilter(wer_filter);
-			sff = new SimpleFileFilter( "wey", "StateMod Historicial Well Pumping (Daily)");
-			fc.addChoosableFileFilter(sff);
-			fc.setFileFilter(stm_sff);
+			StateMod_GUIUtil.addTimeSeriesFilenameFilters(fc, TimeInterval.DAY, false);
 		}
 		else if ( __selected_time_step.equals( __TIMESTEP_MONTH)) {
 			fc.setDialogTitle (	"Select StateMod Monthly Time Series File" );
-			SimpleFileFilter sff = new SimpleFileFilter( "ddh",	"StateMod Historicial Diversions (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "dda", "StateMod Direct Diversion Demands (Average Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ddm", "StateMod Direct Diversion Demands (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ddo", "StateMod Direct Diversion Demands Override (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			ddr_filter = new SimpleFileFilter( "ddr", "StateMod Diversion Rights (Monthly)");
-			fc.addChoosableFileFilter(ddr_filter);
-			sff = new SimpleFileFilter( "eom", "StateMod Reservoir Storage (End of Month)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "eva", "StateMod Evaporation (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifa", "StateMod Instream Flow Demands (Average Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifm", "StateMod Instream Flow Demands (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "ifr", "StateMod Instream Flow Rights (Monthly)");
-			fc.addChoosableFileFilter(ifr_filter);
-			sff = new SimpleFileFilter( "ddc", "StateMod/StateCU Irrigation Water Requirement (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "iwr", "StateMod/StateCU Irrigation Water Requirement (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "pre", "StateMod Precipitation (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "rih", "StateMod Historicial Streamflow (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "riy", "StateMod Base Streamflow (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			sff = new SimpleFileFilter( "tar", "StateMod Reservoir Min/Max Targets (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			rer_filter = new SimpleFileFilter( "rer", "StateMod Reservoir Rights (Monthly)");
-			fc.addChoosableFileFilter(rer_filter);
-			SimpleFileFilter stm_sff = new SimpleFileFilter( "stm",	"StateMod Time Series (Monthly)");
-			fc.addChoosableFileFilter(stm_sff);
-			sff = new SimpleFileFilter( "wem", "StateMod Well Demands (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			wer_filter = new SimpleFileFilter( "wer", "StateMod Well Rights (Monthly)");
-			fc.addChoosableFileFilter(wer_filter);
-			sff = new SimpleFileFilter( "weh", "StateMod Historicial Well Pumping (Monthly)");
-			fc.addChoosableFileFilter(sff);
-			fc.setFileFilter(stm_sff);
+			StateMod_GUIUtil.addTimeSeriesFilenameFilters(fc, TimeInterval.MONTH, false);
 		}
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
 			// Cancelled...
@@ -12425,9 +12352,8 @@ throws Exception
 		String path = fc.getSelectedFile().getPath();
 		Message.printStatus ( 1, routine, "Reading StateMod file \"" + path + "\"" );
 		// Normal daily or monthly format file...
-		List tslist = null;
+		List<TS> tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
-		FileFilter ff = fc.getFileFilter();
 		int interval_base = TimeInterval.MONTH;
 		if ( __selected_time_step.equals(__TIMESTEP_DAY)) {
 			interval_base = TimeInterval.DAY;
@@ -12440,7 +12366,9 @@ throws Exception
 			interval_base = TimeInterval.YEAR;
 		}
 		*/
-		if ( ff == ddr_filter ) {
+		// TODO SAM 2009-11-16 The well rights are not completely supported - can list but not read.
+		// Use the ReadStateMod() command.
+		if ( StateMod_DiversionRight.isDiversionRightFile(path) ) {
 			// First read the diversion rights...
 		    List ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
@@ -12456,8 +12384,18 @@ throws Exception
 					null,
 					null,
 					false );          // don't read data - only header
+	        // Set the input name and input type, which are not set in the above call
+            int size = 0;
+            if ( tslist != null ) {
+                size = tslist.size();
+            }
+            for ( int i = 0; i < size; i++ ) {
+                TS ts = tslist.get(i);
+                ts.getIdentifier().setInputType("StateMod");
+                ts.getIdentifier().setInputName(path);
+            }
 		}
-		else if ( ff == ifr_filter ) {
+		else if ( StateMod_InstreamFlowRight.isInstreamFlowRightFile(path) ) {
 			// First read the instream flow rights...
 		    List ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
@@ -12473,8 +12411,18 @@ throws Exception
 					null,
 					null,
 					false );           // don't read data - only header
+	        // Set the input name and input type, which are not set in the above call
+            int size = 0;
+            if ( tslist != null ) {
+                size = tslist.size();
+            }
+            for ( int i = 0; i < size; i++ ) {
+                TS ts = tslist.get(i);
+                ts.getIdentifier().setInputType("StateMod");
+                ts.getIdentifier().setInputName(path);
+            }
 		}
-		else if ( ff == rer_filter ) {
+		else if ( StateMod_ReservoirRight.isReservoirRightFile(path) ) {
 			// First read the reservoir rights...
 		    List rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
@@ -12490,8 +12438,18 @@ throws Exception
 					null,
 					null,
 					false );           // don't read data - only header
+	        // Set the input name and input type, which are not set in the above call
+            int size = 0;
+            if ( tslist != null ) {
+                size = tslist.size();
+            }
+            for ( int i = 0; i < size; i++ ) {
+                TS ts = tslist.get(i);
+                ts.getIdentifier().setInputType("StateMod");
+                ts.getIdentifier().setInputName(path);
+            }
 		}
-		else if ( ff == wer_filter ) {
+		else if ( StateMod_WellRight.isWellRightFile(path) ) {
 			// First read the well rights...
 		    List wer_Vector = StateMod_WellRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
@@ -12506,13 +12464,24 @@ throws Exception
 					999999.0,	// No special treatment of junior rights
 					null,
 					null,
-					false );           // don't read data - only header
+					false ); // don't read data - only header
+			// Set the input name and input type, which are not set in the above call
+			int size = 0;
+			if ( tslist != null ) {
+			    size = tslist.size();
+			}
+			for ( int i = 0; i < size; i++ ) {
+			    TS ts = tslist.get(i);
+			    ts.getIdentifier().setInputType("StateMod");
+			    ts.getIdentifier().setInputName(path);
+			}
 		}
 		else if ( __selected_time_step.equals(__TIMESTEP_DAY) ) {
-			// Only read the headers...
+			// Daily, only read the headers...
 			tslist = StateMod_TS.readTimeSeriesList ( path, null, null, null, false );
 		}
-		else {	// Only read the headers...
+		else {
+		    // Monthly, only read the headers...
 			tslist = StateMod_TS.readTimeSeriesList ( path, null, null, null, false );
 		}
 		int size = 0;
@@ -12531,7 +12500,7 @@ throws Exception
 			__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 		}
         if ( (tslist == null) || (size == 0) ) {
-			Message.printStatus ( 1, routine, "No StateMod time series read." );
+			Message.printStatus ( 1, routine, "No StateMod time series were read." );
 			queryResultsList_Clear ();
         }
         else {
@@ -12542,7 +12511,7 @@ throws Exception
         ui_UpdateStatus ( false );
 	}
 	catch ( Exception e ) {
-		message = "Error reading StateMod file.";
+		message = "Error reading StateMod file (" + e + ").";
 		Message.printWarning ( 2, routine, message );
 		JGUIUtil.setWaitCursor ( this, false );
 		throw new Exception ( message );
