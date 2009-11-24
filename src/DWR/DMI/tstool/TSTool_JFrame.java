@@ -75,6 +75,8 @@ import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
+import us.co.state.dwr.ColoradoWaterSMS;
+import us.co.state.dwr.ColoradoWaterSMSAPI;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -177,6 +179,7 @@ import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.CommandStatusUtil;
 import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
+import RTi.Util.IO.DataUnits_JFrame;
 import RTi.Util.IO.EndianRandomAccessFile;
 import RTi.Util.IO.FileGenerator;
 import RTi.Util.IO.HTMLViewer;
@@ -414,7 +417,7 @@ take up too much space in the interface.
 private List __inputNameHecDssVisibleList = new Vector();
 
 /**
-The last HEC-DSS file that was selected, to reset after cancelling a browse.
+The last HEC-DSS file that was selected, to reset after canceling a browse.
 */
 private String __inputNameHecDssVisibleLast = null;
 
@@ -431,7 +434,7 @@ between input types but not losing the list of files.
 private List __inputNameStateCU = new Vector();
 
 /**
-The last StateCU file that was selected, to reset after cancelling a browse. 
+The last StateCU file that was selected, to reset after canceling a browse. 
 */
 private String __inputNameStateCULast = null;
 
@@ -442,7 +445,7 @@ between input types but not losing the list of files.
 private List __input_name_StateCUB = new Vector();
 
 /**
-The last StateCUB file that was selected, to reset after cancelling a browse.
+The last StateCUB file that was selected, to reset after canceling a browse.
 */
 private String __input_name_StateCUB_last = null;
 
@@ -453,7 +456,7 @@ between input types but not losing the list of files.
 private List __input_name_StateModB = new Vector();
 
 /**
-The last StateModB file that was selected, to reset after cancelling a browse.
+The last StateModB file that was selected, to reset after canceling a browse.
 */
 private String __input_name_StateModB_last = null;
 
@@ -789,6 +792,7 @@ Indicates which data sources are enabled, initialized to defaults.
 private boolean
     __source_ColoradoIPP_enabled = false, // Must configure in CDSS.cfg to enable 
     __source_ColoradoSMS_enabled = false,
+    __source_ColoradoWaterSMS_enabled = true, // By default - allow all to access web service
 	__source_DateValue_enabled = true,
 	__source_DIADvisor_enabled = false,
 	__source_HECDSS_enabled = true,
@@ -954,6 +958,8 @@ private JMenu
 	__View_JMenu = null;
 private JCheckBoxMenuItem
 	__View_MapInterface_JCheckBoxMenuItem = null;
+private JMenuItem
+    __View_DataUnits_JMenuItem = null;
 
 // Commands (Create Time Series)...
 
@@ -1390,7 +1396,8 @@ private String
 	// View menu (order in GUI)...
 
 	__View_String = "View",
-		__View_MapInterface_String = "Map",
+		__View_Map_String = "Map",
+		__View_DataUnits_String = "Data Units",
 
 	// Commands menu (order in GUI)...
 
@@ -1697,6 +1704,7 @@ private String
 
 	__INPUT_TYPE_ColoradoIPP = "ColoradoIPP",
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
+	__INPUT_TYPE_ColoradoWaterSMS = "ColoradoWaterSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
 	__INPUT_TYPE_HECDSS = "HEC-DSS",
@@ -1796,6 +1804,21 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 			__source_ColoradoSMS_enabled = true;
 		}
 	}
+	
+	// State of Colorado Water SMS web service enabled by default...
+
+    // Newer...
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_ColoradoWaterSMS_enabled = false;
+    }
+    if ( __source_HydroBase_enabled ) {
+        // Use newer notation...
+        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "true" );
+    }
+    else {
+        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "false" );
+    }
 
 	// DIADvisor not enabled by default...
 
@@ -4490,13 +4513,13 @@ public void itemStateChanged ( ItemEvent evt )
                 uiAction_SelectInputName_HECDSS ( false );
             }
     		else if ( __selectedInputType.equals(__INPUT_TYPE_StateCU ) ){
-    			uiAction_SelectInputName_StateCU ( false );
+    			uiAction_SelectInputType_StateCU ( false );
     		}
             else if(__selectedInputType.equals(__INPUT_TYPE_StateCUB )) {
-                uiAction_SelectInputName_StateCUB ( false );
+                uiAction_SelectInputType_StateCUB ( false );
             }
     		else if(__selectedInputType.equals(__INPUT_TYPE_StateModB )) {
-    			uiAction_SelectInputName_StateModB ( false );
+    			uiAction_SelectInputType_StateModB ( false );
     		}
     	}
     	else if ( o == __dataType_JComboBox && (evt.getStateChange() == ItemEvent.SELECTED) ) {
@@ -4931,8 +4954,13 @@ of strings already found in the __commands_JList.
 @param comment Comment for time series (null or empty for no comment).
 @param use_alias If true, then the location contains the alias and the other
 TSID fields are ignored when putting together the TSID command.
+@param insertOffset the position to offset the insert (used to ensure that inserting multiple
+time series results in the same order in the commands, rather than first in last out appearance
+that could occur when inserting after a selected command).
+@return the number of commands inserted (may be 2 if a comment is inserted).  This is only used when
+commands are selected and prevents the insert from occurring in reverse order.
 */
-private void queryResultsList_AppendTSIDToCommandList (	String location,
+private int queryResultsList_AppendTSIDToCommandList ( String location,
 					String source,
 					String type,
 					String interval,
@@ -4941,7 +4969,8 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 					String input_type,
 					String input_name,
 					String comment,
-					boolean use_alias )
+					boolean use_alias,
+					int insertOffset )
 {	// Add after the last selected item or at the end if nothing is selected.
 	int selected_indices[] = ui_GetCommandJList().getSelectedIndices();
 	int selected_size = 0;
@@ -4968,7 +4997,10 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 	}
 	if ( selected_size > 0 ) {
 		// Insert after the last item.
-		insert_pos = selected_indices[selected_size - 1] + 1;
+	    // If this is part of a block of inserts, the insertOffset is also added to ensure that the
+	    // insert occurs at the end of the block (incremental).  Otherwise the insert is first in last
+	    // out and reversed the order of the block.
+		insert_pos = selected_indices[selected_size - 1] + 1 + insertOffset;
 	}
 	else {
 	    // Insert at the end...
@@ -4977,10 +5009,12 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 	
 	int i = 0;	// Leave this in case we add looping.
 	int offset = 0;	// Handles cases where a comment is inserted prior to the command.
+	int numberInserted = 0;
 	if ( (comment != null) && !comment.equals("") ) {
 	    // Insert a comment prior to the command, for example to include the station description.
 	    Command commentCommand = commandList_NewCommand ( "# " + comment, true );
 		__commands_JListModel.insertElementAt ( commentCommand, (insert_pos + i*2));
+		++numberInserted;
 		offset = 1;
 	}
 	String tsident_string = null;
@@ -5000,13 +5034,16 @@ private void queryResultsList_AppendTSIDToCommandList (	String location,
 	//__commands_JListModel.insertElementAt ( tsident_string, (insert_pos + i*2 + offset));
 	Command tsid_command = commandList_NewCommand ( tsident_string, true );
 	__commands_JListModel.insertElementAt ( tsid_command, (insert_pos + i*2 + offset));
+    ++numberInserted;
 	//commandList_SetDirty ( true );
 	//ui_UpdateStatus ( false );
     if ( tsid_command instanceof CommandDiscoverable ) {
+        // Run discovery on the command to do initial validation and provide data to other commands
         commandList_EditCommand_RunDiscovery ( tsid_command );
     }
     ui_ShowCurrentCommandListStatus();
     commandList_SetDirty ( true );
+    return numberInserted;
 }
 
 /**
@@ -5046,10 +5083,30 @@ called once for a single event or multiple times from transferAll().
 @param update_status If true, then the GUI state is checked after the
 transfer.  This should only be set to true when transferring one command.  If
 many are transferred, this slows down the GUI.
+@param insertOffset used when processing multiple time series - ensures that inserts after a selected
+command occur in order and not first in last out.
+@return the number of commands that are added (1 or maybe 2 if a comment is inserted before the command).
 */
-private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( int row, boolean update_status ) 
+private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
+    int row, boolean update_status, int insertOffset ) 
 {	boolean use_alias = false;
-	if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
+    int numCommandsAdded = 0; // Used when inserting blocks of time series
+    if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
+        TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+            "", // No scenario
+            null, // No sequence number
+            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+            "", // No input name
+            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV) + " - " +
+            (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+            false, insertOffset );
+    }
+    else if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used instead of the normal TSID.
@@ -5066,14 +5123,14 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		if ( use_alias ) {
 			// Use the alias instead of the identifier...
 		    try {
-    			queryResultsList_AppendTSIDToCommandList ( alias,
+		        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( alias,
     			null,
     			null,
     			null,
     			null,
     			null,	// No sequence number
     			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-    			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", use_alias );
+    			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", use_alias, insertOffset );
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 3, "", e );
@@ -5082,7 +5139,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		else {
 		    // Use full ID and all other fields...
 			Message.printStatus ( 1, "", "Calling append (no alias)..." );
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 			(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
@@ -5091,31 +5148,32 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 			(String)__query_TableModel.getValueAt ( row, model.COL_SEQUENCE),
 			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
 			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_NAME), "",
-			use_alias );
+			use_alias, insertOffset );
 		}
 	}
 	else if (  __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
 	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns
-	    // Currently essentially the same as the generic model but have custome headings
+	    // Currently essentially the same as the generic model but have custom headings
         // The location (id), type, and time step uniquely identify the time series...
         TSTool_HecDss_TableModel model = (TSTool_HecDss_TableModel)__query_TableModel;
         String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
         if ( seqnum.length() == 0 ) {
             seqnum = null;
         }
-        queryResultsList_AppendTSIDToCommandList (
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
         (String)__query_TableModel.getValueAt( row, model.COL_ID ),
         (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
         (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
         (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
         (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false );
+        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
     }
 	else if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
+		    // Time series for most stations and structures
 			TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
@@ -5126,12 +5184,12 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				"", // No input name
 				(String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
 				(String)__query_TableModel.getValueAt (	row, model.COL_NAME),
-				false );
+				false, insertOffset );
 		}
 		else if (__query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel) {
 			TSTool_HydroBase_WellLevel_Day_TableModel model =
 			    (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList(
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList(
 				(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
@@ -5142,11 +5200,11 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				"", // No input name
 				(String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
 				(String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-				false );			
+				false, insertOffset );			
 		}
 		else if ( __query_TableModel instanceof	TSTool_HydroBase_Ag_TableModel){
 			TSTool_HydroBase_Ag_TableModel model = (TSTool_HydroBase_Ag_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
@@ -5156,11 +5214,11 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
-				false );
+				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof	TSTool_HydroBase_AgGIS_TableModel){
 			TSTool_HydroBase_AgGIS_TableModel model = (TSTool_HydroBase_AgGIS_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
@@ -5170,12 +5228,12 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
-				false );
+				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof TSTool_HydroBase_CASSLivestockStats_TableModel){
 			TSTool_HydroBase_CASSLivestockStats_TableModel model =
 				(TSTool_HydroBase_CASSLivestockStats_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
@@ -5185,12 +5243,12 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
-				false );
+				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof TSTool_HydroBase_CUPopulation_TableModel){
 			TSTool_HydroBase_CUPopulation_TableModel model =
 				(TSTool_HydroBase_CUPopulation_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
@@ -5200,11 +5258,11 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
-				false );
+				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof TSTool_HydroBase_WIS_TableModel){
 			TSTool_HydroBase_WIS_TableModel model =	(TSTool_HydroBase_WIS_TableModel)__query_TableModel;
-			queryResultsList_AppendTSIDToCommandList ( 
+			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
@@ -5214,7 +5272,7 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 				(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
 				"", // No input name
 				"", // No comment
-				false );
+				false, insertOffset );
 		}
 	}
 	else if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
@@ -5228,8 +5286,9 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		if ( use_alias_in_id ) {
 			// Need to figure out what to do here...
 		}
-		else {	// Use full ID and all other fields...
-			queryResultsList_AppendTSIDToCommandList ( 
+		else {
+		    // Use full ID and all other fields...
+		    numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 			(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
@@ -5238,14 +5297,14 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 			(String)__query_TableModel.getValueAt ( row, model.COL_SEQUENCE),
 			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
 			(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_NAME), "",
-			false );
+			false, insertOffset );
 		}
 	}
 	else if ( __selectedInputType.equals(__INPUT_TYPE_RiversideDB) ) {
 		// The location (id), type, and time step uniquely
 		// identify the time series, but the input_name is needed to indicate the database.
 		TSTool_RiversideDB_TableModel model = (TSTool_RiversideDB_TableModel)__query_TableModel;
-		queryResultsList_AppendTSIDToCommandList (
+		numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 		(String)__query_TableModel.getValueAt( row,	model.COL_DATA_SOURCE),
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
@@ -5254,12 +5313,13 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		null,	// No sequence number
 		(String)__query_TableModel.getValueAt( row,model.COL_INPUT_TYPE),
 		"",
-		"", false );
+		"", false, insertOffset );
 	}
 	// The following input types use the generic TSTool_TS_TableModel with
 	// no special considerations.  If the sequence number is non-blank in
 	// the worksheet, it will be transferred.
-	else if ( __selectedInputType.equals(__INPUT_TYPE_DIADvisor) ||
+	else if (
+	    __selectedInputType.equals(__INPUT_TYPE_DIADvisor) ||
 	    __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ||
 		__selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
 		__selectedInputType.equals(__INPUT_TYPE_MODSIM) ||
@@ -5277,19 +5337,27 @@ private void queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i
 		if ( seqnum.length() == 0 ) {
 			seqnum = null;
 		}
-		queryResultsList_AppendTSIDToCommandList (
+		numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
 		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
 		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
 		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false );
+		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
+	}
+	else {
+	    String routine = getClass().getName() +
+	    ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
+	    Message.printWarning(1, routine, "Transfer from query list to commands has not been implemented for \"" +
+            __selectedInputType + "\" input type." );
+	    numCommandsAdded = 0;
 	}
 	// Check the GUI...
 	if ( update_status ) {
 		ui_UpdateStatus ( true );
 	}
+	return numCommandsAdded;
 }
 
 /**
@@ -6521,13 +6589,15 @@ private void ui_InitGUI ( )
     __CopySelectedToCommands_JButton = new SimpleJButton( BUTTON_TOP_COPY_SELECTED_TO_COMMANDS,this);
 	__CopySelectedToCommands_JButton.setToolTipText (
 		"<html>Copy selected time series from above to the Commands " +
-		"list,<BR>as time series identifiers.</html>" );
+		"list as time series identifiers.<br/>" +
+		"Insert AFTER last selected command or at end if no commands are selected.</html>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopySelectedToCommands_JButton, 
 		1, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
     __CopyAllToCommands_JButton = new SimpleJButton( BUTTON_TOP_COPY_ALL_TO_COMMANDS,this);
 	__CopyAllToCommands_JButton.setToolTipText (
 		"<html>Copy all time series from above to the Commands " +
-		"list,<BR>as time series identifiers.</html>" );
+		"list as time series identifiers.<br />" +
+		"Insert AFTER last selected command or at end if no commands are selected.</html>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopyAllToCommands_JButton, 
 		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
  
@@ -8288,12 +8358,13 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 Initialize the View menu.
 */
 private void ui_InitGUIMenus_View ( JMenuBar menuBar )
-{	JMenu viewJMenu = new JMenu (__View_String, true);
-	menuBar.add (viewJMenu);
+{	__View_JMenu = new JMenu (__View_String, true);
+	menuBar.add (__View_JMenu);
 
-	viewJMenu.add ( __View_MapInterface_JCheckBoxMenuItem =	new JCheckBoxMenuItem(__View_MapInterface_String) );
+	__View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem =	new JCheckBoxMenuItem(__View_Map_String) );
 	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
 	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
+	__View_JMenu.add ( __View_DataUnits_JMenuItem=new SimpleJMenuItem( __View_DataUnits_String, this));
 }
 
 /**
@@ -8636,12 +8707,13 @@ private void ui_SetInputTypeChoices ()
 	if ( __input_type_JComboBox.getItemCount() > 0 ) {
 		__input_type_JComboBox.removeAll ();
 	}
+    if ( __source_ColoradoWaterSMS_enabled ) {
+        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterSMS );
+    }
 	if ( __source_DateValue_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_DateValue );
 	}
-	if (	__source_DIADvisor_enabled &&
-		(__DIADvisor_dmi != null) &&
-		(__DIADvisor_archive_dmi != null) ) {
+	if ( __source_DIADvisor_enabled && (__DIADvisor_dmi != null) && (__DIADvisor_archive_dmi != null) ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_DIADvisor );
 	}
     if ( __source_HECDSS_enabled ) {
@@ -8707,9 +8779,9 @@ private void ui_SetInputTypeChoices ()
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
 	}
 	else {
-        // Select the first item in the list...
+        // Select the DateValue format, which is generic...
 		__input_type_JComboBox.select ( null );
-		__input_type_JComboBox.select ( 0 );
+		__input_type_JComboBox.select ( __INPUT_TYPE_DateValue );
 	}
 }
 
@@ -9388,7 +9460,7 @@ throws Exception
 	}
 	else {
 		// Chain to next set of actions...
-		uiAction_ActionPerformed04_RunMenu ( event );
+		uiAction_ActionPerformed04_ViewMenu ( event );
 	}
 }
 
@@ -9396,57 +9468,21 @@ throws Exception
 Handle a group of actions for the Run menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed04_RunMenu (ActionEvent event)
+private void uiAction_ActionPerformed04_ViewMenu (ActionEvent event)
 throws Exception
-{	String command = event.getActionCommand();
-	String routine = getClass().getName() + ".uiAction_ActionPerformed4_RunMenu";
+{   String command = event.getActionCommand();
+    //String routine = getClass().getName() + ".uiAction_ActionPerformed3b_ViewMenu";
 
-	// Run menu (order in menu)...
+    // Run menu (order in menu)...
 
-    if ( command.equals(__Run_AllCommandsCreateOutput_String) ) {
-		// Process time series and create all output from Write* commands...
-        uiAction_RunCommands ( true, true );
-	}
-    else if ( command.equals(__Run_AllCommandsIgnoreOutput_String) ) {
-		// Process time series but ignore write* commands...
-        uiAction_RunCommands ( true, false );
-	}
-    else if ( command.equals(__Run_SelectedCommandsCreateOutput_String) ) {
-		// Process selected commands and create all output from Write* commands...
-        uiAction_RunCommands ( false, true );
-	}
-    else if ( command.equals(__Run_SelectedCommandsIgnoreOutput_String) ) {
-		// Process selected commands but ignore write* commands...
-    	uiAction_RunCommands ( false, false );
-	}
-	else if (command.equals(__Run_CancelCommandProcessing_String) ) {
-		// Cancel the current processor.  This may take awhile to occur.
-		ui_UpdateStatusTextFields ( 1, routine, "Processing is being cancelled...", null, __STATUS_CANCELING );
-        ui_UpdateStatus ( true );
-        __tsProcessor.setCancelProcessingRequested ( true );
-	}
-    else if (command.equals(__Run_CancelAllCommandProcesses_String) ) {
-        // Cancel all processes being run by commands - to fix hung processes
-        commandProcessor_CancelAllCommandProcesses ();
+    if ( command.equals(__View_DataUnits_String) ) {
+        // Show the data units
+        uiAction_ShowDataUnits();
     }
-    else if ( command.equals(__Run_CommandsFromFile_String) ) {
-		// Get the name of the file to run and then execute a TSCommandProcessor as if in batch mode...
-    	uiAction_RunCommandFile ();
-	}
-    else if (command.equals(__Run_ProcessTSProductOutput_String) ) {
-		// Test code...
-		try {
-            uiAction_ProcessTSProductFile ( false );
-		}
-		catch ( Exception te ) {
-			Message.printWarning ( 1, "", "Error processing TSProduct file." );
-			Message.printWarning ( 2, "", te );
-		}
-	}
-	else {
-	    // Chain to the next method...
-		uiAction_ActionPerformed05_CommandsCreateMenu(event);
-	}
+    else {
+        // Chain to next set of actions...
+        uiAction_ActionPerformed05_CommandsCreateMenu(event);
+    }
 }
 
 /**
@@ -10087,15 +10123,72 @@ throws Exception
 	}
 	else {
 		// Chain to other actions...
-		uiAction_ActionPerformed15_ResultsMenu ( event );
+		uiAction_ActionPerformed15_RunMenu ( event );
 	}
+}
+
+/**
+Handle a group of actions for the Run menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed15_RunMenu (ActionEvent event)
+throws Exception
+{   String command = event.getActionCommand();
+    String routine = getClass().getName() + ".uiAction_ActionPerformed4_RunMenu";
+
+    // Run menu (order in menu)...
+
+    if ( command.equals(__Run_AllCommandsCreateOutput_String) ) {
+        // Process time series and create all output from Write* commands...
+        uiAction_RunCommands ( true, true );
+    }
+    else if ( command.equals(__Run_AllCommandsIgnoreOutput_String) ) {
+        // Process time series but ignore write* commands...
+        uiAction_RunCommands ( true, false );
+    }
+    else if ( command.equals(__Run_SelectedCommandsCreateOutput_String) ) {
+        // Process selected commands and create all output from Write* commands...
+        uiAction_RunCommands ( false, true );
+    }
+    else if ( command.equals(__Run_SelectedCommandsIgnoreOutput_String) ) {
+        // Process selected commands but ignore write* commands...
+        uiAction_RunCommands ( false, false );
+    }
+    else if (command.equals(__Run_CancelCommandProcessing_String) ) {
+        // Cancel the current processor.  This may take awhile to occur.
+        ui_UpdateStatusTextFields ( 1, routine, "Processing is being cancelled...", null, __STATUS_CANCELING );
+        ui_UpdateStatus ( true );
+        __tsProcessor.setCancelProcessingRequested ( true );
+    }
+    else if (command.equals(__Run_CancelAllCommandProcesses_String) ) {
+        // Cancel all processes being run by commands - to fix hung processes
+        commandProcessor_CancelAllCommandProcesses ();
+    }
+    else if ( command.equals(__Run_CommandsFromFile_String) ) {
+        // Get the name of the file to run and then execute a TSCommandProcessor as if in batch mode...
+        uiAction_RunCommandFile ();
+    }
+    else if (command.equals(__Run_ProcessTSProductOutput_String) ) {
+        // Test code...
+        try {
+            uiAction_ProcessTSProductFile ( false );
+        }
+        catch ( Exception te ) {
+            Message.printWarning ( 1, "", "Error processing TSProduct file." );
+            Message.printWarning ( 2, "", te );
+        }
+    }
+    else {
+        // Chain to the next method...
+        uiAction_ActionPerformed16_ResultsMenu ( event );
+    }
 }
 
 /**
 Handle a group of actions for the View menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed15_ResultsMenu (ActionEvent event)
+private void uiAction_ActionPerformed16_ResultsMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
@@ -10194,7 +10287,7 @@ throws Exception
 	}
     else {
     	// Chain to next actions...
-    	uiAction_ActionPerformed16_ToolsMenu ( event );
+    	uiAction_ActionPerformed17_ToolsMenu ( event );
     }
 }
 
@@ -10202,7 +10295,7 @@ throws Exception
 Handle a group of actions for the Tools menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed16_ToolsMenu (ActionEvent event)
+private void uiAction_ActionPerformed17_ToolsMenu (ActionEvent event)
 throws Exception
 {	Object o = event.getSource();
 	String command = event.getActionCommand();
@@ -10343,7 +10436,7 @@ throws Exception
 	}
 	else {
 		// Chain to remaining actions...
-		uiAction_ActionPerformed17_HelpMenu ( event );
+		uiAction_ActionPerformed18_HelpMenu ( event );
 	}
 }
 
@@ -10351,7 +10444,7 @@ throws Exception
 Handle a group of actions for the Tools menu.
 @param event Event to handle.
 */
-private void uiAction_ActionPerformed17_HelpMenu (ActionEvent event)
+private void uiAction_ActionPerformed18_HelpMenu (ActionEvent event)
 throws Exception
 {	//Object o = event.getSource();
 	String command = event.getActionCommand();
@@ -10937,8 +11030,7 @@ private void uiAction_GetTimeSeriesListClicked()
 	// Verify that the input filters have valid data...
 
 	if ( __selectedInputFilter_JPanel != __inputFilterGeneric_JPanel ) {
-		if ( !((InputFilter_JPanel)__selectedInputFilter_JPanel).
-			checkInput(true) ) {
+		if ( !((InputFilter_JPanel)__selectedInputFilter_JPanel).checkInput(true) ) {
 			// An input error was detected so don't get the time series...
 			return;
 		}
@@ -10948,14 +11040,25 @@ private void uiAction_GetTimeSeriesListClicked()
 	// area.  Return if an error occurs because the message at the bottom
 	// should only be printed if successful.
 
-	if ( __selectedInputType.equals (__INPUT_TYPE_DateValue)) {
+    if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
+        }
+        catch ( Exception e ) {
+            message = "Error reading ColoradoWaterSMS web service - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
+	else if ( __selectedInputType.equals (__INPUT_TYPE_DateValue)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading DateValue file.  Cannot display time series list.";
+			message = "Error reading DateValue file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -10964,9 +11067,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading DIADvisor.  Cannot display time series list.";
+			message = "Error reading DIADvisor - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -10975,9 +11078,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadHECDSSHeaders ();
         }
         catch ( Exception e ) {
-            message = "Error reading HEC-DSS file.  Cannot display time series list.";
+            message = "Error reading HEC-DSS file - cannot display time series list (" + e + ").";
             Message.printWarning ( 1, routine, message );
-            Message.printWarning ( 2, routine, e );
+            Message.printWarning ( 3, routine, e );
             return;
         }
     }
@@ -10986,9 +11089,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( null ); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading HydroBase.  Cannot display time series list.";
+			message = "Error reading HydroBase - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -10998,9 +11101,9 @@ private void uiAction_GetTimeSeriesListClicked()
 		}
 		catch ( Exception e ) {
 			message =
-			"Error reading Mexico CSMN catalog file.  Cannot display time series list.";
+			"Error reading Mexico CSMN catalog file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11009,9 +11112,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading MODSIM file.  Cannot display time series list.";
+			message = "Error reading MODSIM file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11020,20 +11123,20 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading NWS CARD file.  Cannot display time series list.";
+			message = "Error reading NWS CARD file - cannot display time series list )" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals(	__INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+	else if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadNwsrfsEspTraceEnsembleHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading NWSRFS_ESPTraceEnsemble file.  Cannot display time series list.";
+			message = "Error reading NWSRFS_ESPTraceEnsemble file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11043,9 +11146,9 @@ private void uiAction_GetTimeSeriesListClicked()
 			uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading NWSRFS FS5Files time series list.  Cannot display time series list.";
+			message = "Error reading NWSRFS FS5Files time series list - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11054,9 +11157,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading RiversideDB.  Cannot display time series list.";
+			message = "Error reading RiversideDB - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11065,9 +11168,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading RiverWare file.  Cannot display time series list.";
+			message = "Error reading RiverWare file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11076,9 +11179,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading StateCU file.  Cannot display time series list.";
+			message = "Error reading StateCU file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11087,9 +11190,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ();
         }
         catch ( Exception e ) {
-            message = "Error reading StateCU binary file.  Cannot display time series list.";
+            message = "Error reading StateCU binary file - cannot display time series list (" + e + ").";
             Message.printWarning ( 1, routine, message );
-            Message.printWarning ( 2, routine, e );
+            Message.printWarning ( 3, routine, e );
             return;
         }
     }
@@ -11098,9 +11201,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading StateMod file.  Cannot display time series list.";
+			message = "Error reading StateMod file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11109,9 +11212,9 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading StateMod binary file.  Cannot display time series list.";
+			message = "Error reading StateMod binary file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
@@ -11120,14 +11223,102 @@ private void uiAction_GetTimeSeriesListClicked()
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ();
 		}
 		catch ( Exception e ) {
-			message = "Error reading USGS NWIS file.  Cannot display time series list.";
+			message = "Error reading USGS NWIS file - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
+	else {
+	    Message.printWarning(1,routine,
+	        "Getting time series list for \"" + __selectedInputType + "\" is not implemented." );
+	}
 	Message.printStatus ( 1, routine,
 	"Time series list from " + __selectedInputType + " input type are listed in Time Series List area." );
+}
+
+/**
+Read ColoradoWaterSWS time series via web service and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
+{   String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, routine, "Please wait... retrieving data");
+
+    // The headers are a Vector of HydroBase_
+    try {
+        queryResultsList_Clear ();
+
+        String location = "";
+        String dataType = __dataType_JComboBox.getSelected().trim();
+        String timestep = __timeStep_JComboBox.getSelected().trim();
+
+        Message.printStatus ( 2, "", "Datatype = \"" + dataType + "\" timestep = \"" + timestep + "\"" );
+
+        List<HydroBase_StationGeolocMeasType> tslist = null;
+        try {
+            ColoradoWaterSMS service = new ColoradoWaterSMS();
+            // FIXME SAM 2009-11-20 Need to enable input filters for wd, div, abbrev
+            int wd = -1; // Get all
+            int div = -1; // Get all
+            String abbrev = null; // Get all
+            String stationName = null; // Get all
+            String dataProvider = null; // Get all
+            tslist = ColoradoWaterSMSAPI.readTimeSeriesHeaderObjects (
+                service, wd, div, abbrev, stationName, dataProvider, dataType, timestep,
+                null, null, false ); // Don't specify dates and don't request data
+        }
+        catch ( Exception e ) {
+            Message.printWarning(3, routine, "Error reading time series list." );
+            Message.printWarning(3,routine,e);
+            tslist = null;
+        }
+
+        int size = 0;
+        if ( tslist != null ) {
+            size = tslist.size();
+            // Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            /* If objects are time series
+            __query_TableModel = new TSTool_TS_TableModel ( results );
+            TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+            */
+            // Stations and structures...
+            __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
+                __props.getValue( "HydroBase.WDIDLength")), tslist, __selectedInputType );
+            TSTool_HydroBase_CellRenderer cr =
+                new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel(__query_TableModel);
+            // Turn off columns in the table model that do not apply...
+            if ( (tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
+                __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ID );
+            }
+            else if ( !(tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
+                __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
+            }
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (tslist == null) || (size == 0) ) {
+            Message.printStatus ( 1, routine,"Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, routine, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, routine, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
 }
 
 /**
@@ -12832,477 +13023,71 @@ private void uiAction_InputTypeChoiceClicked()
 
 	// List alphabetically...
 	try {
-	if ( __selectedInputType.equals ( __INPUT_TYPE_DateValue ) ) {
-		// Most information is determined from the file so set the other choices to be inactive...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll ();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel ( null, true );
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
-		// TODO Seems to be null at startup?
-		if ( __query_JWorksheet != null ) {
-			try {
-                __query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel ( __query_TableModel );
-				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-			}
-			catch ( Exception e ) {
-				// Absorb the exception in most cases - print if developing to see if this issue can be resolved.
-				if ( Message.isDebugOn && IOUtil.testing()  ) {
-					Message.printWarning ( 3, routine,
-                        "For developers:  caught exception in clearQueryList JWorksheet at setup." );
-					Message.printWarning ( 3, routine, e );
-				}
-			}
-		}
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_DIADvisor ) ) {
-		__dataType_JComboBox.setEnabled ( true );
-		__dataType_JComboBox.removeAll ();
-		// Get the data types from the GroupDef table.  Because two values may be available, append "-DataValue" and
-		// "-DataValue2" to each group.
-		List sensordef_Vector = null;
-		try {
-		    sensordef_Vector = __DIADvisor_dmi.readSensorDefListForDistinctGroup();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine, e );
-			Message.printWarning ( 2, routine, __DIADvisor_dmi.getLastSQLString() );
-		}
-		// For now always list a DataValue and DataValue2, even though
-		// DataValue2 may not be available - need to get more info from DIAD to know how to limit...
-
-		int size = 0;
-		if ( sensordef_Vector != null ) {
-			size = sensordef_Vector.size();
-		}
-		DIADvisor_SensorDef sensordef = null;
-		for ( int i = 0; i < size; i++ ) {
-			sensordef = (DIADvisor_SensorDef)sensordef_Vector.get(i);
-			__dataType_JComboBox.add( sensordef.getGroup() + "-DataValue" );
-			__dataType_JComboBox.add( sensordef.getGroup() + "-DataValue2" );
-		}
-
-		// Default to first in the list...
-		__dataType_JComboBox.select( null );
-		__dataType_JComboBox.select( 0 );
-
-		/* TODO - need to put these in input filters...
-		__where_JComboBox.setEnabled ( true );
-		__where_JComboBox.removeAll ();
-		// TODO Need to decide what to put here...
-		__where_JComboBox.add("Sensor Description");
-		__where_JComboBox.add("Sensor ID");
-		__where_JComboBox.add("Sensor Rating Type");
-        	__where_JComboBox.add("Sensor Type");
-		__where_JComboBox.add("Site ID");
-		__where_JComboBox.select ( 1 );
-		*/
-
-        String [] width_array = new String[10];
-        String [] heading_array = new String[10];
-		heading_array[__DIADvisor_COL_ID] = "ID";
-		width_array[__DIADvisor_COL_ID] =  "75";
-		heading_array[__DIADvisor_COL_NAME] = "Name/Description";
-		width_array[__DIADvisor_COL_NAME] = "120";
-		heading_array[__DIADvisor_COL_DATA_SOURCE] = "Data Source";
-		width_array[__DIADvisor_COL_DATA_SOURCE] = "110";
-		heading_array[__DIADvisor_COL_DATA_TYPE] = "Data Type";
-		width_array[__DIADvisor_COL_DATA_TYPE] = "110";
-		heading_array[__DIADvisor_COL_TIMESTEP] = "Time Step";
-		width_array[__DIADvisor_COL_TIMESTEP] = "70";
-		heading_array[__DIADvisor_COL_SCENARIO] = "Scenario";
-		width_array[__DIADvisor_COL_SCENARIO] = "70";
-		heading_array[__DIADvisor_COL_UNITS] = "Units";
-		width_array[__DIADvisor_COL_UNITS] = "70";
-		heading_array[__DIADvisor_COL_START] = "Start";
-		width_array[__DIADvisor_COL_START] = "50";
-		heading_array[__DIADvisor_COL_END] = "End";
-		width_array[__DIADvisor_COL_END] = "50";
-		heading_array[__DIADvisor_COL_INPUT_TYPE]= "Input Type";
-		width_array[__DIADvisor_COL_INPUT_TYPE]	= "85";
-		// set MultiList column headings, widths and justifications
-		/* TODO
-        	try {	_queryList_MultiList.clear();
-			_queryList_MultiList.redraw();
-			_queryList_MultiList.setHeadings( heading_array );
-                	_queryList_MultiList.setColumnSizes( width_array );
-                	//_list.setColumnAlignments( justify_array );
-        	}
-        	catch ( Exception e ) {
-                	Message.printWarning( 2, routine, e );
-        	}
-		 */
-        width_array = null;
-        heading_array = null;
-	}
-    else if ( __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
-        // Prompt for a HEC-DSS file and update choices...
-        uiAction_SelectInputName_HECDSS ( true );
-        // Empty and disable the data type and time step because an input filter with choices from the file is used.
-        __dataType_JComboBox.setEnabled ( false );
-        __dataType_JComboBox.removeAll ();
-        __timeStep_JComboBox.setEnabled ( false );
-        __timeStep_JComboBox.removeAll ();
-        // Initialize with blank data vector...
-
-        __query_TableModel = new TSTool_HecDss_TableModel ( null, true );
-        TSTool_HecDss_CellRenderer cr = new TSTool_HecDss_CellRenderer( (TSTool_HecDss_TableModel)__query_TableModel);
-        __query_JWorksheet.setCellRenderer ( cr );
-        __query_JWorksheet.setModel ( __query_TableModel );
-        __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-    }
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
-		// Input name cleared and disabled...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-		// Data type - get the time series choices from the HydroBase_Util code...
-		__dataType_JComboBox.setEnabled ( true );
-		__dataType_JComboBox.removeAll ();
-		List data_types =
-			HydroBase_Util.getTimeSeriesDataTypes (__hbdmi,
-			HydroBase_Util.DATA_TYPE_AGRICULTURE |
-			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
-			HydroBase_Util.DATA_TYPE_HARDWARE |
-			HydroBase_Util.DATA_TYPE_STATION_ALL |
-			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
-			HydroBase_Util.DATA_TYPE_WIS,
-			true );	// Add notes
-		__dataType_JComboBox.setData ( data_types );
-
-		// Select the default (this causes the other choices to be updated)...
-
-		__dataType_JComboBox.select( null );
-		__dataType_JComboBox.select(HydroBase_Util.getDefaultTimeSeriesDataType(__hbdmi, true ) );
-
-		// Initialize with blank data vector...
-
-		try {
-		    __query_TableModel = new TSTool_HydroBase_TableModel(
-			__query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null);
-			TSTool_HydroBase_CellRenderer cr =
-			new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			__query_JWorksheet.setColumnWidths (cr.getColumnWidths() );
-		}
-		catch ( Exception e ) {
-			// Absorb the exception in most cases - print if developing to see if this issue can be resolved.
-			if ( Message.isDebugOn && IOUtil.testing()  ) {
-				Message.printWarning ( 3, routine,
-				"For developers:  caught exception blanking HydroBase JWorksheet at setup." );
-				Message.printWarning ( 3, routine, e );
-		}
-	}
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_MEXICO_CSMN ) ) {
-		// Most information is determined from the file but let the user limit the time series that will be liste...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.removeAll ();
-		__dataType_JComboBox.add ( "EV - Evaporation" );
-		__dataType_JComboBox.add ( "PP - Precipitation" );
-		__dataType_JComboBox.setEnabled ( true );
-
-		// Set the default, which cascades other settings...
-
-		__dataType_JComboBox.select ( 0 );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_MODSIM ) ) {
-		// Most information is determined from the file...
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll ();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Remove columns that are not appropriate...
-		__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ) {
-		// Most information is determined from the file...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Remove columns that are not appropriate...
-		__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files)){
-		// Update the input name and let the user choose Apps Defaults or pick a directory...
-		ui_SetIgnoreItemEvent ( true );		// Do this to prevent item event cascade
-		__inputName_JComboBox.removeAll();
-		if ( IOUtil.isUNIXMachine() ) {
-			__inputName_JComboBox.add ( __PLEASE_SELECT );
-			__inputName_JComboBox.add ( __USE_APPS_DEFAULTS );
-			__inputName_JComboBox.select ( __PLEASE_SELECT );
-		}
-		__inputName_JComboBox.add ( __BROWSE );
-		// If previous choices were selected, show them...
-		int size = __input_name_NWSRFS_FS5Files.size();
-		for ( int i = 0; i < size; i++ ) {
-			__inputName_JComboBox.add ( (String)__input_name_NWSRFS_FS5Files.get(i) );
+        if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
+            uiAction_SelectInputType_ColoradoWaterSMS ();
         }
-		// Try to select the current DMI (it should always work if the logic is correct)...
-
-		boolean choice_ok = false;	// Needed to force data types to cascade correctly...
-		if ( __nwsrfs_dmi != null ) {
-			String path = __nwsrfs_dmi.getFS5FilesLocation();
-			try {
-                __inputName_JComboBox.select ( path );
-				choice_ok = true;
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 2, routine,
-                        "Unable to select current NWSRFS FS5Files \"" +	path + "\" in input names." );
-			}
-		}
-		__inputName_JComboBox.setEnabled ( true );
-
-		// Enable when an input name is picked...
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll ();
-
-		// Enable when a data type is picked...
-
-		__timeStep_JComboBox.setEnabled ( false );
-		__timeStep_JComboBox.removeAll ();
-
-		ui_SetIgnoreItemEvent ( false );		// Item events OK again
-
-		if ( (__inputName_JComboBox.getItemCount() == 1) && (__inputName_JComboBox.getSelected().equals(__BROWSE))){
-			// Only Browse is in the list so if the user picks, the
-			// component does not generate an event because the choice has not changed.
-			try {
-                uiAction_SelectInputName_NWSRFS_FS5Files ( false );
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine, "Error opening NWSRFS FS5Files connection." );
-				Message.printWarning ( 2, routine, e );
-			}
-		}
-		else if ( choice_ok ) {
-			// The current open DMI was able to be selected above. Need to force the data types to cascade...
-			uiAction_InputNameChoiceClicked();
-		}
-
-		// Display the NWSRFS input filters...
-		ui_SetInputFilters();
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Remove columns that are not appropriate...
-		__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if(__selectedInputType.equals ( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
-		// Most information is determined from the file...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll ();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel ( null, true );
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_RiversideDB ) ) {
-		__dataType_JComboBox.setEnabled ( true );
-		__dataType_JComboBox.removeAll ();
-		List mts = null;
-		List dts = null;
-		try {
-            mts = __rdmi.readMeasTypeListForDistinctData_type();
-			dts = __rdmi.readDataTypeList();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 2, routine, e );
-			Message.printWarning ( 2, routine, __rdmi.getLastSQLString() );
-			mts = null;
-		}
-		int size = 0;
-		if ( mts != null ) {
-			size = mts.size();
-		}
-		if ( size > 0 ) {
-			RiversideDB_MeasType mt = null;
-			int pos;
-			String data_type;
-			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)mts.get(i);
-				pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
-				if ( pos < 0 ) {
-					__dataType_JComboBox.add(mt.getData_type() );
-				}
-				else {
-                    data_type = mt.getData_type() +	" - " + ((RiversideDB_DataType)dts.get(pos)).getDescription();
-					if ( data_type.length() > 30 ) {
-						__dataType_JComboBox.add( data_type.substring(0,30) + "..." );
-					}
-					else {
-                        __dataType_JComboBox.add( data_type );
-					}
-				}
-			}
-			__dataType_JComboBox.select ( null );
-			__dataType_JComboBox.select ( 0 );
-		}
-
-		// Default to first in the list...
-		//__data_type_JComboBox.select( 0 );
-
-		/* TODO
-		__where_JComboBox.setEnabled ( true );
-		__where_JComboBox.removeAll ();
-		// SAMX Need to decide what to put here...
-		__where_JComboBox.add("Data Source");
-        	__where_JComboBox.add("Location ID");
-		__where_JComboBox.add("Location Name");
-		__where_JComboBox.select ( 2 );
-		*/
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_RiversideDB_TableModel(null);
-		TSTool_RiversideDB_CellRenderer cr =
-			new TSTool_RiversideDB_CellRenderer((TSTool_RiversideDB_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Remove columns that are not appropriate...
-		//__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ) {
-		// Most information is determined from the file...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Remove columns that are not appropriate...
-		__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateCU ) ) {
-		// Prompt for a StateCU file and update choices...
-		uiAction_SelectInputName_StateCU ( true );
-	}
-    else if ( __selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ) {
-        // Prompt for a StateCU binary file and update choices...
-        uiAction_SelectInputName_StateCUB ( true );
-    }
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
-		// We disable all but the time step so the user can pick from appropriate files...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll ();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-		__dataType_JComboBox.select ( null );
-		__dataType_JComboBox.select ( 0 );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Turn off columns in the table model that do not apply...
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateModB ) ) {
-		// Prompt for a StateMod binary file and update choices...
-		uiAction_SelectInputName_StateModB ( true );
-	}
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_USGSNWIS ) ) {
-		// Most information is determined from the file...
-		__inputName_JComboBox.removeAll();
-		__inputName_JComboBox.setEnabled ( false );
-
-		__dataType_JComboBox.setEnabled ( false );
-		__dataType_JComboBox.removeAll ();
-		__dataType_JComboBox.add( __DATA_TYPE_AUTO );
-
-		// Initialize with blank data vector...
-
-		__query_TableModel = new TSTool_TS_TableModel(null);
-		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
-		__query_JWorksheet.setCellRenderer ( cr );
-		__query_JWorksheet.setModel ( __query_TableModel );
-		// Turn off columns in the table model that do not apply...
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
-		__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
-		__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	}
-	else {	// Not a recognized input source...
-		Message.printWarning ( 1, routine,"\"" + __selectedInputType + "\" is not a recognized input source." );
-		return;
-	}
-
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_DateValue ) ) {
+    	    uiAction_SelectInputType_DateValue ();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_DIADvisor ) ) {
+    	    uiAction_SelectInputType_DIADvisor ();
+    	}
+        else if ( __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
+            uiAction_SelectInputType_HECDSS ();
+        }
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
+    	    uiAction_SelectInputType_HydroBase();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_MEXICO_CSMN ) ) {
+    	    uiAction_SelectInputType_MexicoCSMN();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_MODSIM ) ) {
+    	    uiAction_SelectInputType_MODSIM();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ) {
+    	    uiAction_SelectInputType_NwsCard();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files)) {
+    	    uiAction_SelectInputType_NwsrfsFs5files();
+    	}
+    	else if(__selectedInputType.equals ( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+    	    uiAction_SelectInputType_NwsrfsEspTraceEnsemble();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_RiversideDB ) ) {
+            uiAction_SelectInputType_RiversideDB ();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ) {
+    	    uiAction_SelectInputType_RiverWare();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateCU ) ) {
+    		// Prompt for a StateCU file and update choices...
+    		uiAction_SelectInputType_StateCU ( true );
+    	}
+        else if ( __selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ) {
+            // Prompt for a StateCU binary file and update choices...
+            uiAction_SelectInputType_StateCUB ( true );
+        }
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
+    	    uiAction_SelectInputType_StateMod ();
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateModB ) ) {
+    		// Prompt for a StateMod binary file and update choices...
+    		uiAction_SelectInputType_StateModB ( true );
+    	}
+    	else if ( __selectedInputType.equals ( __INPUT_TYPE_USGSNWIS ) ) {
+    	    uiAction_SelectInputType_UsgsNwis();
+    	}
+    	else {
+    	    // Not a recognized input source...
+    		Message.printWarning ( 1, routine,"\"" + __selectedInputType + "\" is not a recognized input type." );
+    		return;
+    	}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 1, routine, "Error setting up choices for " + __selectedInputType +
+		    " input type (" + e + ")." );
+		Message.printWarning ( 3, routine, e );
 	}
-
-	routine = null;
 }
 
 /**
@@ -14603,6 +14388,7 @@ private void uiAction_SelectAllCommands()
 }
 
 /**
+Set up query choices because a HECDSS file name has been selected.
 Prompt for a HECDSS input name (binary file name).  When selected, update the choices.
 @param resetInputNames If true, the input names will be repopulated with values from __inputNameHecDssListVisible.
 @exception Exception if there is an error.
@@ -14723,6 +14509,7 @@ throws Exception
 }
 
 /**
+Set up the query choices because an NWSRFS FS5files directory has been selected.
 Prompt for a NWSRFS FS5Files input name (FS5Files directory).  When selected, update the choices.
 @param reset_input_names If true, the input names will be repopulated with
 values from __input_name_NWSRFS_FS5Files.
@@ -14730,112 +14517,628 @@ values from __input_name_NWSRFS_FS5Files.
 */
 private void uiAction_SelectInputName_NWSRFS_FS5Files ( boolean reset_input_names )
 throws Exception
-{	String routine = "TSTool_JFrame.selectInputName_NWSRFS_FS5Files";
-	// TODO SAM 2004-09-10 it does not seem like the following case ever
-	// is true - need to decide whether to take out.
-	if ( reset_input_names ) {
-		// The NWSRFS_FS5Files input type has been selected as a change
-		// from another type.  Repopululate the list if previous choices exist...
-		//int size = __input_name_NWSRFS_FS5Files.size();
-		// TODO - probably not needed...
-		//__input_name_JComboBox.removeAll();
-		// This does NOT include the leading browse, etc...
-		__inputName_JComboBox.setData ( __input_name_NWSRFS_FS5Files );
-	}
-	// Check the item that is selected...
-	String inputName = __inputName_JComboBox.getSelected();
-	if ( (inputName == null) || inputName.equals(__BROWSE) ) {
-		// Prompt for the name of an NWSRFS FS5Files directory...
-		// Based on the file extension, set the data types and other information...
-		JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle("Select NWSRFS FS5Files Directory");
-		fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
-		if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// User cancelled - set the file name back to the original and disable other choices...
-			// Ignore programatic events on the combo boxes...
-			ui_SetIgnoreItemEvent ( true );
-			if ( inputName != null ) {
-				__inputName_JComboBox.select(null);
-				__inputName_JComboBox.select(inputName);
-			}
-			ui_SetIgnoreItemEvent ( false );
-			return;
-		}
-		// User has chosen a directory...
+{   String routine = "TSTool_JFrame.selectInputName_NWSRFS_FS5Files";
+    // TODO SAM 2004-09-10 it does not seem like the following case ever
+    // is true - need to decide whether to take out.
+    if ( reset_input_names ) {
+        // The NWSRFS_FS5Files input type has been selected as a change
+        // from another type.  Repopululate the list if previous choices exist...
+        //int size = __input_name_NWSRFS_FS5Files.size();
+        // TODO - probably not needed...
+        //__input_name_JComboBox.removeAll();
+        // This does NOT include the leading browse, etc...
+        __inputName_JComboBox.setData ( __input_name_NWSRFS_FS5Files );
+    }
+    // Check the item that is selected...
+    String inputName = __inputName_JComboBox.getSelected();
+    if ( (inputName == null) || inputName.equals(__BROWSE) ) {
+        // Prompt for the name of an NWSRFS FS5Files directory...
+        // Based on the file extension, set the data types and other information...
+        JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
+        fc.setDialogTitle("Select NWSRFS FS5Files Directory");
+        fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
+        if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            // User cancelled - set the file name back to the original and disable other choices...
+            // Ignore programatic events on the combo boxes...
+            ui_SetIgnoreItemEvent ( true );
+            if ( inputName != null ) {
+                __inputName_JComboBox.select(null);
+                __inputName_JComboBox.select(inputName);
+            }
+            ui_SetIgnoreItemEvent ( false );
+            return;
+        }
+        // User has chosen a directory...
 
-		inputName = fc.getSelectedFile().getPath(); 
-		JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
+        inputName = fc.getSelectedFile().getPath(); 
+        JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
 
-		// Set the input name...
+        // Set the input name...
 
-		ui_SetIgnoreItemEvent ( true );
-		if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox, inputName, JGUIUtil.NONE, null, null ) ) {
-			// Not already in so add after the browse string (files
-			// are listed chronologically by select with most recent at the top...
-			if ( IOUtil.isUNIXMachine() ) {
-				// Unix/Linux includes "Please Select...",
-				// "Use Apps Defaults", and "Browse..."...
-				__inputName_JComboBox.addAt ( inputName, 3 );
-				__inputName_JComboBox.select ( 3 );
-			}
-			else {
-			    // Windows includes only "Browse..."
-				__inputName_JComboBox.addAt ( inputName, 1 );
-				__inputName_JComboBox.select ( 1 );
-			}
-			// Insert so we have the list of files later...
-			__input_name_NWSRFS_FS5Files.add ( 0, inputName );
-		}
-		// Select the file in the input name because leaving it on
-		// browse will disable the user's ability to reselect browse...
-		__inputName_JComboBox.select ( null );
-		__inputName_JComboBox.select ( inputName );
-		// Now allow item events to occur as normal again...
-		ui_SetIgnoreItemEvent ( false );
-	}
+        ui_SetIgnoreItemEvent ( true );
+        if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox, inputName, JGUIUtil.NONE, null, null ) ) {
+            // Not already in so add after the browse string (files
+            // are listed chronologically by select with most recent at the top...
+            if ( IOUtil.isUNIXMachine() ) {
+                // Unix/Linux includes "Please Select...",
+                // "Use Apps Defaults", and "Browse..."...
+                __inputName_JComboBox.addAt ( inputName, 3 );
+                __inputName_JComboBox.select ( 3 );
+            }
+            else {
+                // Windows includes only "Browse..."
+                __inputName_JComboBox.addAt ( inputName, 1 );
+                __inputName_JComboBox.select ( 1 );
+            }
+            // Insert so we have the list of files later...
+            __input_name_NWSRFS_FS5Files.add ( 0, inputName );
+        }
+        // Select the file in the input name because leaving it on
+        // browse will disable the user's ability to reselect browse...
+        __inputName_JComboBox.select ( null );
+        __inputName_JComboBox.select ( inputName );
+        // Now allow item events to occur as normal again...
+        ui_SetIgnoreItemEvent ( false );
+    }
 
-	__inputName_JComboBox.setEnabled ( true );
+    __inputName_JComboBox.setEnabled ( true );
 
-	// Open the NWSRFS_DMI instance...
+    // Open the NWSRFS_DMI instance...
 
-	JGUIUtil.setWaitCursor ( this, true );
-	try {
-	    if ( inputName.equals(__USE_APPS_DEFAULTS) ) {
-			Message.printStatus ( 1, routine, "Opening connection to NWSRFS FS5Files using Apps Defaults..." );
-			__nwsrfs_dmi = new NWSRFS_DMI();
-		}
-		else {
-		    Message.printStatus ( 1, routine, "Opening connection to NWSRFS FS5Files using path \"" +
-			inputName + "\"..." );
-			__nwsrfs_dmi = new NWSRFS_DMI ( inputName );
-		}
-		__nwsrfs_dmi.open ();
-		Message.printStatus ( 1, routine, "Opened connection to NWSRFS FS5Files." );
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, routine, "Error opening NWSRFS FS5Files" );
-		Message.printWarning ( 2, routine, e );
-		__nwsrfs_dmi = null;
-		JGUIUtil.setWaitCursor ( this, false );
-		return;
-		// TODO SAM 2004-09-08 need to remove from the input name list if an error?
-	}
-	
-	// Set the data types and time step based on what is available...
+    JGUIUtil.setWaitCursor ( this, true );
+    try {
+        if ( inputName.equals(__USE_APPS_DEFAULTS) ) {
+            Message.printStatus ( 1, routine, "Opening connection to NWSRFS FS5Files using Apps Defaults..." );
+            __nwsrfs_dmi = new NWSRFS_DMI();
+        }
+        else {
+            Message.printStatus ( 1, routine, "Opening connection to NWSRFS FS5Files using path \"" +
+            inputName + "\"..." );
+            __nwsrfs_dmi = new NWSRFS_DMI ( inputName );
+        }
+        __nwsrfs_dmi.open ();
+        Message.printStatus ( 1, routine, "Opened connection to NWSRFS FS5Files." );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error opening NWSRFS FS5Files (" + e + ")." );
+        Message.printWarning ( 2, routine, e );
+        __nwsrfs_dmi = null;
+        JGUIUtil.setWaitCursor ( this, false );
+        return;
+        // TODO SAM 2004-09-08 need to remove from the input name list if an error?
+    }
+    
+    // Set the data types and time step based on what is available...
 
-	uiAction_InputNameChoiceClicked ();
+    uiAction_InputNameChoiceClicked ();
 
-	// Initialize with blank data vector...
+    // Initialize with blank data vector...
 
-	__query_TableModel = new TSTool_TS_TableModel(null);
-	TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-	__query_JWorksheet.setCellRenderer ( cr );
-	__query_JWorksheet.setModel ( __query_TableModel );
-	// Turn off columns in the table model that do not apply...
-	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
-	__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-	JGUIUtil.setWaitCursor ( this, false );
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Turn off columns in the table model that do not apply...
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+    JGUIUtil.setWaitCursor ( this, false );
+}
+
+/**
+Refresh the query choices for a ColoradoWaterSMS web service.
+*/
+private void uiAction_SelectInputType_ColoradoWaterSMS ()
+throws Exception
+{   String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
+    // Input name is not currently used...
+    __inputName_JComboBox.removeAll ();
+    __inputName_JComboBox.setEnabled ( false );
+    // Get the distinct list of data types (SMS variables) for all stations...
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    ColoradoWaterSMS service = new ColoradoWaterSMS();
+    List<String> dataTypes = ColoradoWaterSMSAPI.readDistinctStationVariableList ( service, true );
+    __dataType_JComboBox.removeAll();
+    for ( String dataType : dataTypes  ) {
+        __dataType_JComboBox.add ( dataType );
+    }
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+    
+    // Timestep is irregular (for real-time), and hour and day aggregations
+    __timeStep_JComboBox.setEnabled ( true );
+    __timeStep_JComboBox.removeAll ();
+    __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR );
+    __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
+    __timeStep_JComboBox.select ( 0 );
+
+    /* TODO
+    __where_JComboBox.setEnabled ( true );
+    __where_JComboBox.removeAll ();
+    // SAMX Need to decide what to put here...
+    __where_JComboBox.add("Data Source");
+        __where_JComboBox.add("Location ID");
+    __where_JComboBox.add("Location Name");
+    __where_JComboBox.select ( 2 );
+    */
+
+    // Initialize with blank data vector...
+
+    //__query_TableModel = new TSTool_TS_TableModel(null);
+    //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_TableModel = new TSTool_HydroBase_TableModel(
+        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, __selectedInputType);
+    TSTool_HydroBase_CellRenderer cr =
+        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set the query options because the DateValue input type has been selected.
+*/
+private void uiAction_SelectInputType_DateValue ()
+throws Exception
+{   String routine = getClass().getName() + ".uiAction_SelectInputName_DateValue";
+    // Most information is determined from the file so set the other choices to be inactive...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel ( null, true );
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    // TODO Seems to be null at startup?
+    if ( __query_JWorksheet != null ) {
+        try {
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+        }
+        catch ( Exception e ) {
+            // Absorb the exception in most cases - print if developing to see if this issue can be resolved.
+            if ( Message.isDebugOn && IOUtil.testing()  ) {
+                Message.printWarning ( 3, routine,
+                    "For developers:  caught exception in clearQueryList JWorksheet at setup." );
+                Message.printWarning ( 3, routine, e );
+            }
+        }
+    }
+}
+
+/**
+Set the query options because the DIADvisor input type has been selected.
+*/
+private void uiAction_SelectInputType_DIADvisor ()
+{   String routine = getClass().getName() + ".uiAction_SelectInputName_DIADvisor";
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    // Get the data types from the GroupDef table.  Because two values may be available, append "-DataValue" and
+    // "-DataValue2" to each group.
+    List sensordef_Vector = null;
+    try {
+        sensordef_Vector = __DIADvisor_dmi.readSensorDefListForDistinctGroup();
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 2, routine, e );
+        Message.printWarning ( 2, routine, __DIADvisor_dmi.getLastSQLString() );
+    }
+    // For now always list a DataValue and DataValue2, even though
+    // DataValue2 may not be available - need to get more info from DIAD to know how to limit...
+
+    int size = 0;
+    if ( sensordef_Vector != null ) {
+        size = sensordef_Vector.size();
+    }
+    DIADvisor_SensorDef sensordef = null;
+    for ( int i = 0; i < size; i++ ) {
+        sensordef = (DIADvisor_SensorDef)sensordef_Vector.get(i);
+        __dataType_JComboBox.add( sensordef.getGroup() + "-DataValue" );
+        __dataType_JComboBox.add( sensordef.getGroup() + "-DataValue2" );
+    }
+
+    // Default to first in the list...
+    __dataType_JComboBox.select( null );
+    __dataType_JComboBox.select( 0 );
+
+    /* TODO - need to put these in input filters...
+    __where_JComboBox.setEnabled ( true );
+    __where_JComboBox.removeAll ();
+    // TODO Need to decide what to put here...
+    __where_JComboBox.add("Sensor Description");
+    __where_JComboBox.add("Sensor ID");
+    __where_JComboBox.add("Sensor Rating Type");
+        __where_JComboBox.add("Sensor Type");
+    __where_JComboBox.add("Site ID");
+    __where_JComboBox.select ( 1 );
+    */
+
+    String [] width_array = new String[10];
+    String [] heading_array = new String[10];
+    heading_array[__DIADvisor_COL_ID] = "ID";
+    width_array[__DIADvisor_COL_ID] =  "75";
+    heading_array[__DIADvisor_COL_NAME] = "Name/Description";
+    width_array[__DIADvisor_COL_NAME] = "120";
+    heading_array[__DIADvisor_COL_DATA_SOURCE] = "Data Source";
+    width_array[__DIADvisor_COL_DATA_SOURCE] = "110";
+    heading_array[__DIADvisor_COL_DATA_TYPE] = "Data Type";
+    width_array[__DIADvisor_COL_DATA_TYPE] = "110";
+    heading_array[__DIADvisor_COL_TIMESTEP] = "Time Step";
+    width_array[__DIADvisor_COL_TIMESTEP] = "70";
+    heading_array[__DIADvisor_COL_SCENARIO] = "Scenario";
+    width_array[__DIADvisor_COL_SCENARIO] = "70";
+    heading_array[__DIADvisor_COL_UNITS] = "Units";
+    width_array[__DIADvisor_COL_UNITS] = "70";
+    heading_array[__DIADvisor_COL_START] = "Start";
+    width_array[__DIADvisor_COL_START] = "50";
+    heading_array[__DIADvisor_COL_END] = "End";
+    width_array[__DIADvisor_COL_END] = "50";
+    heading_array[__DIADvisor_COL_INPUT_TYPE]= "Input Type";
+    width_array[__DIADvisor_COL_INPUT_TYPE] = "85";
+    // set MultiList column headings, widths and justifications
+    /* TODO
+        try {   _queryList_MultiList.clear();
+        _queryList_MultiList.redraw();
+        _queryList_MultiList.setHeadings( heading_array );
+                _queryList_MultiList.setColumnSizes( width_array );
+                //_list.setColumnAlignments( justify_array );
+        }
+        catch ( Exception e ) {
+                Message.printWarning( 2, routine, e );
+        }
+     */
+}
+
+/**
+Set up the query choices because the HEC DSS input type has been selected.
+*/
+private void uiAction_SelectInputType_HECDSS ()
+throws Exception
+{
+    // Prompt for a HEC-DSS file and update choices...
+    uiAction_SelectInputName_HECDSS ( true );
+    // Empty and disable the data type and time step because an input filter with choices from the file is used.
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    __timeStep_JComboBox.setEnabled ( false );
+    __timeStep_JComboBox.removeAll ();
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_HecDss_TableModel ( null, true );
+    TSTool_HecDss_CellRenderer cr = new TSTool_HecDss_CellRenderer( (TSTool_HecDss_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up the query options because the HydroBase input type has been selected.
+*/
+private void uiAction_SelectInputType_HydroBase ()
+{   String routine = getClass().getName() + ".uiAction_SelectInputName_HydroBase";
+    // Input name cleared and disabled...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+    // Data type - get the time series choices from the HydroBase_Util code...
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    List data_types =
+        HydroBase_Util.getTimeSeriesDataTypes (__hbdmi,
+        HydroBase_Util.DATA_TYPE_AGRICULTURE |
+        HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
+        HydroBase_Util.DATA_TYPE_HARDWARE |
+        HydroBase_Util.DATA_TYPE_STATION_ALL |
+        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
+        HydroBase_Util.DATA_TYPE_WIS,
+        true ); // Add notes
+    __dataType_JComboBox.setData ( data_types );
+
+    // Select the default (this causes the other choices to be updated)...
+
+    __dataType_JComboBox.select( null );
+    __dataType_JComboBox.select(HydroBase_Util.getDefaultTimeSeriesDataType(__hbdmi, true ) );
+
+    // Initialize with blank data vector...
+
+    try {
+        __query_TableModel = new TSTool_HydroBase_TableModel(
+        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null);
+        TSTool_HydroBase_CellRenderer cr =
+        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+        __query_JWorksheet.setCellRenderer ( cr );
+        __query_JWorksheet.setModel ( __query_TableModel );
+        __query_JWorksheet.setColumnWidths (cr.getColumnWidths() );
+    }
+    catch ( Exception e ) {
+        // Absorb the exception in most cases - print if developing to see if this issue can be resolved.
+        if ( Message.isDebugOn && IOUtil.testing()  ) {
+            Message.printWarning ( 3, routine,
+            "For developers:  caught exception blanking HydroBase JWorksheet at setup." );
+            Message.printWarning ( 3, routine, e );
+        }
+    }
+}
+
+/**
+Set up query choices because the MEXICO CSMN input type has been selected.
+*/
+private void uiAction_SelectInputType_MexicoCSMN ()
+throws Exception
+{
+    // Most information is determined from the file but let the user limit the time series that will be liste...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.add ( "EV - Evaporation" );
+    __dataType_JComboBox.add ( "PP - Precipitation" );
+    __dataType_JComboBox.setEnabled ( true );
+
+    // Set the default, which cascades other settings...
+
+    __dataType_JComboBox.select ( 0 );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up the query options because the MODSIM input type has been selected
+*/
+private void uiAction_SelectInputType_MODSIM ()
+throws Exception
+{
+    // Most information is determined from the file...
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    __query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up query choices because NWS Card input type has been selected.
+*/
+private void uiAction_SelectInputType_NwsCard ()
+throws Exception
+{
+    // Most information is determined from the file...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    __query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up query choices becase NWSRFS ESP trace ensemble input type was seleted.
+*/
+private void uiAction_SelectInputType_NwsrfsEspTraceEnsemble ()
+throws Exception
+{
+    // Most information is determined from the file...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel ( null, true );
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up query choices because the NWSRFS FS5Files input type was selected.
+*/
+private void uiAction_SelectInputType_NwsrfsFs5files ()
+throws Exception
+{   String routine = getClass().getName() + ".uiAction_SelectInputType_NwsrfsFs5files";
+    // Update the input name and let the user choose Apps Defaults or pick a directory...
+    ui_SetIgnoreItemEvent ( true );     // Do this to prevent item event cascade
+    __inputName_JComboBox.removeAll();
+    if ( IOUtil.isUNIXMachine() ) {
+        __inputName_JComboBox.add ( __PLEASE_SELECT );
+        __inputName_JComboBox.add ( __USE_APPS_DEFAULTS );
+        __inputName_JComboBox.select ( __PLEASE_SELECT );
+    }
+    __inputName_JComboBox.add ( __BROWSE );
+    // If previous choices were selected, show them...
+    int size = __input_name_NWSRFS_FS5Files.size();
+    for ( int i = 0; i < size; i++ ) {
+        __inputName_JComboBox.add ( (String)__input_name_NWSRFS_FS5Files.get(i) );
+    }
+    // Try to select the current DMI (it should always work if the logic is correct)...
+
+    boolean choice_ok = false;  // Needed to force data types to cascade correctly...
+    if ( __nwsrfs_dmi != null ) {
+        String path = __nwsrfs_dmi.getFS5FilesLocation();
+        try {
+            __inputName_JComboBox.select ( path );
+            choice_ok = true;
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                    "Unable to select current NWSRFS FS5Files \"" + path + "\" in input names." );
+        }
+    }
+    __inputName_JComboBox.setEnabled ( true );
+
+    // Enable when an input name is picked...
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+
+    // Enable when a data type is picked...
+
+    __timeStep_JComboBox.setEnabled ( false );
+    __timeStep_JComboBox.removeAll ();
+
+    ui_SetIgnoreItemEvent ( false );        // Item events OK again
+
+    if ( (__inputName_JComboBox.getItemCount() == 1) && (__inputName_JComboBox.getSelected().equals(__BROWSE))){
+        // Only Browse is in the list so if the user picks, the
+        // component does not generate an event because the choice has not changed.
+        try {
+            uiAction_SelectInputName_NWSRFS_FS5Files ( false );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, routine, "Error opening NWSRFS FS5Files connection." );
+            Message.printWarning ( 2, routine, e );
+        }
+    }
+    else if ( choice_ok ) {
+        // The current open DMI was able to be selected above. Need to force the data types to cascade...
+        uiAction_InputNameChoiceClicked();
+    }
+
+    // Display the NWSRFS input filters...
+    ui_SetInputFilters();
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    __query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Refresh the query choices for a RiversideDB connection.
+*/
+private void uiAction_SelectInputType_RiversideDB ()
+throws Exception
+{   String routine = getClass().getName() + "uiAction_SelectInputName_RiversideDB";
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    List<RiversideDB_MeasType> mts = null;
+    List<RiversideDB_DataType> dts = null;
+    try {
+        mts = __rdmi.readMeasTypeListForDistinctData_type();
+        dts = __rdmi.readDataTypeList();
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error getting time series choices (" + e + ")." );
+        Message.printWarning ( 3, routine, e );
+        Message.printWarning ( 3, routine, __rdmi.getLastSQLString() );
+        mts = null;
+    }
+    int size = 0;
+    if ( mts != null ) {
+        size = mts.size();
+    }
+    if ( size > 0 ) {
+        RiversideDB_MeasType mt = null;
+        int pos;
+        String data_type;
+        for ( int i = 0; i < size; i++ ) {
+            mt = mts.get(i);
+            pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
+            if ( pos < 0 ) {
+                __dataType_JComboBox.add(mt.getData_type() );
+            }
+            else {
+                data_type = mt.getData_type() + " - " + dts.get(pos).getDescription();
+                if ( data_type.length() > 30 ) {
+                    __dataType_JComboBox.add( data_type.substring(0,30) + "..." );
+                }
+                else {
+                    __dataType_JComboBox.add( data_type );
+                }
+            }
+        }
+        __dataType_JComboBox.select ( null );
+        __dataType_JComboBox.select ( 0 );
+    }
+
+    // Default to first in the list...
+    //__data_type_JComboBox.select( 0 );
+
+    /* TODO
+    __where_JComboBox.setEnabled ( true );
+    __where_JComboBox.removeAll ();
+    // SAMX Need to decide what to put here...
+    __where_JComboBox.add("Data Source");
+        __where_JComboBox.add("Location ID");
+    __where_JComboBox.add("Location Name");
+    __where_JComboBox.select ( 2 );
+    */
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_RiversideDB_TableModel(null);
+    TSTool_RiversideDB_CellRenderer cr =
+        new TSTool_RiversideDB_CellRenderer((TSTool_RiversideDB_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    //__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up query choices because the Riverware input type has been selected.
+*/
+private void uiAction_SelectInputType_RiverWare ()
+throws Exception
+{
+    // Most information is determined from the file...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    __query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
 /**
@@ -14843,7 +15146,7 @@ Prompt for a StateCU input name (one of several files).  When selected, update t
 @param reset_input_names If true, the input names will be repopulated with values from __input_name_StateCU.
 @exception Exception if there is an error.
 */
-private void uiAction_SelectInputName_StateCU ( boolean reset_input_names )
+private void uiAction_SelectInputType_StateCU ( boolean reset_input_names )
 throws Exception
 {	if ( reset_input_names ) {
 		// The StateCU input type has been selected as a change from another type.
@@ -14983,7 +15286,7 @@ Prompt for a StateCUB input name (binary file name).  When selected, update the 
 values from __input_name_StateModB.
 @exception Exception if there is an error.
 */
-private void uiAction_SelectInputName_StateCUB ( boolean reset_input_names )
+private void uiAction_SelectInputType_StateCUB ( boolean reset_input_names )
 throws Exception
 {   String routine = "TSTool_JFrame.selectInputName_StateCUB";
     if ( reset_input_names ) {
@@ -15122,11 +15425,42 @@ throws Exception
 }
 
 /**
+Set up query choices because the StateMod input type has been selected.
+*/
+private void uiAction_SelectInputType_StateMod ()
+throws Exception
+{
+    // We disable all but the time step so the user can pick from appropriate files...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Turn off columns in the table model that do not apply...
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
 Prompt for a StateModB input name (binary file name).  When selected, update the choices.
 @param resetInputNames If true, the input names will be repopulated with values from __input_name_StateModB.
 @exception Exception if there is an error.
 */
-private void uiAction_SelectInputName_StateModB ( boolean resetInputNames )
+private void uiAction_SelectInputType_StateModB ( boolean resetInputNames )
 throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_StateModB";
 	if ( resetInputNames ) {
@@ -15287,6 +15621,35 @@ throws Exception
 	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
 	__query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE);
 	__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Set up query choices because the USGS NWIS input type has been selected.
+*/
+private void uiAction_SelectInputType_UsgsNwis ()
+throws Exception
+{
+    // Most information is determined from the file...
+    __inputName_JComboBox.removeAll();
+    __inputName_JComboBox.setEnabled ( false );
+
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.add( __DATA_TYPE_AUTO );
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_TS_TableModel(null);
+    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Turn off columns in the table model that do not apply...
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
+    __query_JWorksheet.removeColumn (((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+    __query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
 /**
@@ -15677,6 +16040,19 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
     List commands = commandList_GetCommandsBasedOnUI();
     String html = CommandStatusUtil.getHTMLStatusReport(commands);	
     return html;
+}
+
+/**
+Show the data units.
+*/
+private void uiAction_ShowDataUnits ()
+{   String routine = getClass().getName() + "uiAction_ShowDataUnits";
+    try {
+        new DataUnits_JFrame ( "Data Units", DataUnits.getUnitsData() );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error displaying data units (" + e + ")." );
+    }
 }
 
 /**
@@ -16509,7 +16885,7 @@ private void uiAction_TimeStepChoiceClicked()
 Transfer all the time series from the query results to the command List.
 */
 private void uiAction_TransferAllQueryResultsToCommandList()
-{	String routine = "TSTool_JFrame.transferAllTSFromListToCommands";
+{	String routine = "TSTool_JFrame.uiAction_TransferAllQueryResultsToCommandList";
 
 	int nrows = __query_TableModel.getRowCount();
 	Message.printStatus ( 1, routine, "Transferring all time series to commands (" + nrows + " in list)..." );
@@ -16517,15 +16893,16 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 	int iend = nrows - 1;
 	ui_SetIgnoreListSelectionEvent ( true ); // To increase performance during transfer...
 	ui_SetIgnoreItemEvent ( true );	// To increase performance
+	int numInserted = 0;
 	for ( int i = 0; i < nrows; i++ ) {
 		// Only force the GUI state to be updated if the last item.
 		if ( i == iend ) {
 			ui_SetIgnoreListSelectionEvent ( false );
 			__ignoreItemEvent = false;
-			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, true );
+			numInserted += queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, true, numInserted );
 		}
 		else {
-		    queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, false );
+		    numInserted += queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( i, false, numInserted );
 		}
 	}
 	ui_SetIgnoreListSelectionEvent ( false );
@@ -16539,19 +16916,22 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 Transfer selected time series from the query results to the command List.
 */
 private void uiAction_TransferSelectedQueryResultsToCommandList ()
-{	String routine = "TSTool_JFrame.transferSelectedTSFromListToCommands";
+{	String routine = "TSTool_JFrame.uiAction_TransferSelectedQueryResultsToCommandList";
 
 	int nrows = __query_JWorksheet.getSelectedRowCount();
 	Message.printStatus ( 1, routine, "Transferring selected time series to commands (" + nrows + " in list)..." );
 	int [] selected = __query_JWorksheet.getSelectedRows();
 	int iend = nrows - 1;
+	int numInserted = 0;
 	for ( int i = 0; i < nrows; i++ ) {
 		// Only update the GUI state if transferring the last command...
 		if ( i == iend ) {
-			queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], true ); 
+			numInserted += queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
+			    selected[i], true, numInserted ); 
 		}
 		else {
-		    queryResultsList_TransferOneTSFromQueryResultsListToCommandList ( selected[i], false ); 
+		    numInserted += queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
+		        selected[i], false, numInserted ); 
 		}
 	}
 	Message.printStatus ( 1, routine, "Transferred selected time series." );

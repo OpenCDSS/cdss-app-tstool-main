@@ -52,14 +52,39 @@ private int __record_type = __RECORD_TYPE_UNKNOWN;	// Type of records being list
 private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
 /**
+Input type for time series identifier (default to "HydroBase" but can be set to allow class to be used
+with other State-related data, such as ColoradoWaterSMS).
+*/
+private String __inputType = "HydroBase";
+
+/**
+Constructor.  This builds the model for displaying the given HydroBase time series data.
+The input type defaults to "HydroBase".
+@param worksheet the JWorksheet that displays the data from the table model.
+@param wdid_length Total length to use when formatting WDIDs.
+@param data the Vector of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
+that will be displayed in the table (null is allowed - see setData()).
+@inputName input name for time series (default if not specified is "HydroBase").  Use this, for example,
+when using the class to display data from the ColoradoWaterSMS database.
+@throws Exception if an invalid results passed in.
+*/
+public TSTool_HydroBase_TableModel ( JWorksheet worksheet, int wdid_length, List data )
+throws Exception
+{
+    this ( worksheet, wdid_length, data, null );
+}
+
+/**
 Constructor.  This builds the model for displaying the given HydroBase time series data.
 @param worksheet the JWorksheet that displays the data from the table model.
 @param wdid_length Total length to use when formatting WDIDs.
 @param data the Vector of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
 that will be displayed in the table (null is allowed - see setData()).
+@inputType input type for time series (default if null or blank is "HydroBase").  Use this, for example,
+when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_TableModel ( JWorksheet worksheet, int wdid_length, List data )
+public TSTool_HydroBase_TableModel ( JWorksheet worksheet, int wdid_length, List data, String inputType )
 throws Exception
 {	__wdid_length = wdid_length;
 	if ( data == null ) {
@@ -85,6 +110,9 @@ throws Exception
 		}
 	}
 	_data = data;
+	if ( (inputType != null) && !inputType.equals("") ) {
+	    __inputType = inputType;
+	}
 }
 
 /**
@@ -143,7 +171,7 @@ Returns the format to display the specified column.
 */
 public String getFormat ( int column ) {
 	switch (column) {
-		default:		return "%s";	// All are strings.
+		default:  return "%s"; // All are strings.
 	}
 }
 
@@ -161,7 +189,7 @@ From AbstractTableModel.  Returns the data that should be placed in the JTable a
 @return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
-{	// make sure the row numbers are never sorted ...
+{	// If sorted, get the position in the data from the displayed row.
 	if (_sortOrder != null) {
 		row = _sortOrder[row];
 	}
@@ -226,7 +254,7 @@ public Object getValueAt(int row, int col)
 			case COL_COUNTY:	return mt.getCounty();
 			case COL_STATE:		return mt.getST();
 			case COL_HUC:		return mt.getHUC();
-			case COL_INPUT_TYPE:	return "HydroBase";
+			case COL_INPUT_TYPE:	return __inputType;
 			default:		return "";
 		}
 	}
@@ -295,7 +323,7 @@ public Object getValueAt(int row, int col)
 			case COL_COUNTY:	return mt.getCounty();
 			case COL_STATE:		return mt.getST();
 			case COL_HUC:		return mt.getHUC();
-			case COL_INPUT_TYPE:	return "HydroBase";
+			case COL_INPUT_TYPE:	return __inputType;
 			default:		return "";
 		}
 	}
@@ -365,7 +393,7 @@ public Object getValueAt(int row, int col)
 			case COL_COUNTY:	return wv.getCounty();
 			case COL_STATE:		return wv.getST();
 			case COL_HUC:		return wv.getHUC();
-			case COL_INPUT_TYPE:	return "HydroBase";
+			case COL_INPUT_TYPE: return __inputType;
 			default:		return "";
 		}
 	}
@@ -380,22 +408,22 @@ Returns an array containing the column widths (in number of characters).
 */
 public int[] getColumnWidths() {
 	int[] widths = new int[__COLUMNS];
-	widths[COL_ID] = 12;		// ID
-	widths[COL_ABBREV] = 7;		// State of CO abbreviation
-	widths[COL_NAME] = 20;		// Name/Description
-	widths[COL_DATA_SOURCE] = 10;	// Data Source
-	widths[COL_DATA_TYPE] = 15;	// Data Type
-	widths[COL_TIME_STEP] = 8;	// Time Step
-	widths[COL_UNITS] = 8;		// Units
-	widths[COL_START] = 10;		// Start
-	widths[COL_END] = 10;		// End
-	widths[COL_MEAS_COUNT] = 8;	// Meas. count
-	widths[COL_DIV] = 5;		// Division
-	widths[COL_DIST] = 5;		// District
-	widths[COL_COUNTY] = 8;		// County
-	widths[COL_STATE] = 3;		// State
-	widths[COL_HUC] = 8;		// HUC
-	widths[COL_INPUT_TYPE] = 12;	// Input Type
+	widths[COL_ID] = 12;
+	widths[COL_ABBREV] = 7;
+	widths[COL_NAME] = 20;
+	widths[COL_DATA_SOURCE] = 10;
+	widths[COL_DATA_TYPE] = 15;
+	widths[COL_TIME_STEP] = 8;
+	widths[COL_UNITS] = 8;
+	widths[COL_START] = 10;
+	widths[COL_END] = 10;
+	widths[COL_MEAS_COUNT] = 8;
+	widths[COL_DIV] = 5;
+	widths[COL_DIST] = 5;
+	widths[COL_COUNTY] = 8;
+	widths[COL_STATE] = 3;
+	widths[COL_HUC] = 8;
+	widths[COL_INPUT_TYPE] = 12;
 	return widths;
 }
 
