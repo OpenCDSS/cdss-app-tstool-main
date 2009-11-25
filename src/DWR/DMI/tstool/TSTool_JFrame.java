@@ -1837,6 +1837,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	__source_HECDSS_enabled = true;
 	if ( IOUtil.isUNIXMachine() ) {
+	    // Disable on UNIX
 	    __source_HECDSS_enabled = false;
 	}
 	else {
