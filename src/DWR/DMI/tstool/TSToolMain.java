@@ -421,6 +421,7 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -428,7 +429,12 @@ import java.awt.Frame;
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 
+import org.restlet.data.Parameter;
+
+import rti.app.tstoolrestlet.TSToolServer;
+
 import rti.tscommandprocessor.core.TSCommandFileRunner;
+import rti.tscommandprocessor.core.TSCommandProcessor;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
@@ -455,7 +461,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.06.00 (2009-11-24)";
+public static final String PROGRAM_VERSION = "9.06.01 (2010-02-02)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -478,9 +484,9 @@ List of properties to control the software from the configuration file and passe
 private static PropList __tstool_props = null;
 
 /**
-Indicates whether TSTool is running in server mode - under development.
+Indicates whether TSTool is running in server mode using restlet.
 */
-private static boolean __is_server = false;
+private static boolean __isRestletServer = false;
 
 /**
 Indicates whether the command file should run after loading, when used in GUI mode.
@@ -648,8 +654,8 @@ private static void initializeAfterHomeIsKnown ()
 Indicate whether TSTool is running in server mode.  This feature is under development.
 @return true if running in server mode.
 */
-public static boolean isServer()
-{	return __is_server;
+public static boolean isRestletServer()
+{	return __isRestletServer;
 }
     
 /**
@@ -718,7 +724,7 @@ public static void main ( String args[] )
 		TSCommandFileRunner runner = new TSCommandFileRunner();
 	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
 		// reading the command file because commands may try to run discovery during load.
-        openHydroBase ( runner );
+        openHydroBase ( runner.getProcessor() );
         // Open the RiversideDB connection if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
         openRiversideDB ( runner );
@@ -788,10 +794,9 @@ public static void main ( String args[] )
 			quitProgram ( 1 );
 		}
 	}
-	else if ( __is_server ) {
-		// Run in server mode via the GUI object.  This goes into a loop...
-		//__tstool_JFrame.runServer();
-		// FIXME SAM 2007-11-06 Need to pull in XML-RPC or other server hook.
+	else if ( isRestletServer() ) {
+		// Run in server mode as a restlet
+		runRestletServer();
 	}
 	else {
 		// Run the GUI...
@@ -814,22 +819,26 @@ public static void main ( String args[] )
 	}
 }
 
+// TODO SAM 2010-02-03 Evaluate whether non-null HydroBaseDMI return is OK or whether
+// should rely on exceptions.
 /**
 Open the HydroBase connection using the CDSS configuration file information, when running
-in batch mode.  The CDSS configuration file is used to determine HydroBase server and
-database name properties to use for the initial connection.  If no configuration file
+in batch mode or when auto-connecting in the GUI.  The CDSS configuration file is used to determine
+HydroBase server and database name properties to use for the initial connection.  If no configuration file
 exists, then a default connection is attempted.
+@param processor the command processor that needs the (default) HydroBase connection.
+@return opened HydroBaseDMI if the connection was made, or null if a problem.
 */
-private static void openHydroBase ( TSCommandFileRunner runner )
+public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
 {   String routine = "TSToolMain.openHydroBase";
-    boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool config file
+    boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool configuration file
     String propval = __tstool_props.getValue ( "TSTool.HydroBaseEnabled");
     if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
         HydroBase_enabled = true;
     }
     if ( !HydroBase_enabled ) {
         Message.printStatus ( 2, routine, "HydroBase is not enabled in TSTool configuation so not opening connection." );
-        return; 
+        return null; 
     }
     if ( IOUtil.isBatch() ) {
         // Running in batch mode or without a main GUI so automatically
@@ -865,13 +874,16 @@ private static void openHydroBase ( TSCommandFileRunner runner )
             hbdmi.open();
             List hbdmi_Vector = new Vector(1);
             hbdmi_Vector.add ( hbdmi );
-            runner.getProcessor().setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+            processor.setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+            return hbdmi;
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
             Message.printWarning ( 3, routine, e );
+            return null;
         }
     }
+    return null; // Probably will not get here
 }
 
 /**
@@ -1090,8 +1102,8 @@ throws Exception
         }
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-server")) {
-			Message.printStatus ( 1, routine, "Starting TSTool in server mode" );
-			__is_server = true;
+			Message.printStatus ( 1, routine, "Will start TSTool in restlet server mode." );
+			__isRestletServer = true;
 		}
 		// User specified (generally by developers)
 		else if (args[i].equalsIgnoreCase("-test")) {
@@ -1214,6 +1226,23 @@ private static void readConfigFile ( String configFile )
 			"Error reading TSTool configuration file \"" + configFile + "\".  TSTool may not start." );
 		}
 	}
+}
+
+/**
+Run TSTool in restlet server mode.
+*/
+private static void runRestletServer ()
+{   String routine = "TSToolMain.runRestletServer()";
+    try {
+        int port = -1; // Default
+        TSToolServer server = new TSToolServer();
+        server.startServer ( port, new ArrayList<Parameter>() );
+    }
+    catch (Exception e) {  
+        Message.printWarning ( 1, routine, "Error starting restlet application (" + e + ")." );
+        Message.printWarning ( 3, routine, e );
+        quitProgram ( 1 );
+    } 
 }
 
 /**
@@ -1367,4 +1396,4 @@ private static void setWorkingDirUsingCommandFile ( String command_file_full )
     System.out.println(message);
 }
 
-} // End TSTool
+}

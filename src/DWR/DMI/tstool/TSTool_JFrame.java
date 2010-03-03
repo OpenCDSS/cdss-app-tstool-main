@@ -1148,7 +1148,7 @@ JMenuItem
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem,
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
     __Commands_Ensemble_TS_WeightTraces_JMenuItem,
-    __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem;
+    __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem;
 
 // Commands (Table)...
 
@@ -1569,7 +1569,7 @@ private String
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String = TAB + "InsertTimeSeriesIntoEnsemble()... <insert 1+ time series into an ensemble>",
     __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble>",
     __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
-    __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String = TAB + "WriteNWSRFSESPTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
+    __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String = TAB + "WriteNwsrfsEspTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
     
     // Table Commands...
 
@@ -2099,7 +2099,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file
 	if ( __source_HydroBase_enabled && license_IsInstallCDSS(__licenseManager) ) {
 		// Login to HydroBase using information in the TSTool configuration file...
-		uiAction_OpenHydroBase ();
+		uiAction_OpenHydroBase ( true );
 		// Force the choices to refresh...
 		if ( __hbdmi != null ) {
 			__input_type_JComboBox.select ( null );
@@ -5852,7 +5852,7 @@ private void ui_CheckGUIState ()
         JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem,true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,true);
 
 		/* TODO - it is irritating to not be able to run commands
 		  when external input changes (or during debugging)...
@@ -5952,7 +5952,7 @@ private void ui_CheckGUIState ()
         JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
         JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem,false);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,false);
 
 		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
@@ -6198,7 +6198,7 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 	String routine = "TSTool_JFrame.checkInputTypesForLicense";
 	if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
 		if ( !__source_StateCU_enabled ) {
-			// Might not be in older config files...
+			// Might not be in older configuration files...
 			Message.printStatus ( 1, routine, "StateCU input type being enabled for CDSS." );
 			__source_StateCU_enabled = true;
 		}
@@ -6857,7 +6857,7 @@ private void ui_InitGUI ( )
 	setSize ( 800, 600 );
 	JGUIUtil.center ( this );
 	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
-	if ( !TSToolMain.isServer() ) {
+	if ( !TSToolMain.isRestletServer() ) {
        	setVisible ( true );
 	}
 	}
@@ -7745,8 +7745,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_Ensemble_TS_WeightTraces_String, this ) );
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
         __Commands_Ensemble_JMenu.addSeparator();
-        __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_JMenuItem=
-            new SimpleJMenuItem(__Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String,this ));
+        __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem=
+            new SimpleJMenuItem(__Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String,this ));
     }
     
     // Commands...Table processing...
@@ -8994,7 +8994,7 @@ throws Exception
 		}
 	}
 	else if ( command.equals ( __File_Open_HydroBase_String )) {
-		uiAction_OpenHydroBase ();
+		uiAction_OpenHydroBase ( false );
 		// Update the input filters
 		ui_InitGUIInputFilters ( __inputFilterY );
 		// Force the choices to refresh...
@@ -9922,8 +9922,8 @@ throws Exception
     else if (command.equals( __Commands_Ensemble_TS_WeightTraces_String)){
         commandList_EditCommand ( __Commands_Ensemble_TS_WeightTraces_String, null, __INSERT_COMMAND );
     }
-    else if(command.equals( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_WriteNWSRFSESPTraceEnsemble_String, null, __INSERT_COMMAND );
+    else if(command.equals( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String, null, __INSERT_COMMAND );
     }
     else {
         // Chain to other actions
@@ -10941,7 +10941,7 @@ private void uiAction_FileExitClicked ()
 	// This code is also in openCommandFile - might be able to remove
 	// copy once all actions are implemented...
 	int x = ResponseJDialog.YES;	// Default for batch mode
-	if ( !TSToolMain.isServer() && !IOUtil.isBatch() ) {
+	if ( !TSToolMain.isRestletServer() && !IOUtil.isBatch() ) {
 		if ( __commandsDirty ) {
 			if ( __commandFileName == null ) {
 				// Have not been saved before...
@@ -13387,48 +13387,70 @@ private void uiAction_OpenDIADvisor ()
 
 /**
 Open a connection to the HydroBase database.
+@param startup if true, then the connection is being made at software startup.  In this case
+if AutoConnect=True in the configuration, the dialog will not be shown.
 */
-private void uiAction_OpenHydroBase ()
+private void uiAction_OpenHydroBase ( boolean startup )
 {	String routine = "TSTool_JFrame.uiAction_OpenHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
 
-    // Running interactively so prompt the user to select and login to HydroBase.
+    // Running interactively so:
+	// 1) If AutoConnect=True, automatically connect using default info
+	// 2) If AutoConnect=False (default), prompt the user to select and login to HydroBase.
 	// This is a modal dialog that will not allow anything else to occur until the
 	// information is entered.  Use a PropList to pass information because there are many
 	// parameters that may change in the future.
-
-	PropList hb_props = new PropList ( "SelectHydroBase" );
-	hb_props.set ( "ValidateLogin", "false" );
-	hb_props.set ( "ShowWaterDivisions", "false" );
-
-	// Pass in the previous HydroBaseDMI so that its information
-	// can be displayed as the initial values...
-
-	SelectHydroBaseJDialog selectHydroBaseJDialog = null;
-	HydroBaseDMI hbdmi = null; // DMI that is opened by the dialog - null if cancel or error
-	String error = ""; // Message for whether there was an unexpected error opening HydroBase.
-	try {
-        // Let the dialog check HydroBase properties in the CDSS configuration file...
-		selectHydroBaseJDialog = new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
-		// After getting to here, the dialog has been closed.
-		// The HydroBaseDMI from the dialog can be retrieved and used...
-		hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
-	}
-	catch ( Exception e ) {
-		error = "Error opening HydroBase connection.  ";
-		Message.printWarning ( 3, routine, e );
-		hbdmi = null;
-	}
 	
-	// If no HydroBase connection was opened, print an appropriate message...
-	if ( hbdmi == null ) {
-	    if ( ui_GetHydroBaseDMI() == null ) {
-	        Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
-	    }
+	// Determine whether the database connection should be automatically made...
+	boolean AutoConnect_boolean = false; // Default is to use the login dialog
+	// Get the property from the TSTool configuration file because ultimately this will be by
+	// user and the generic CDSS information will continue to be for all users
+	String AutoConnect = TSToolMain.getPropValue("HydroBase.AutoConnect");
+	if ( (AutoConnect != null) && AutoConnect.equalsIgnoreCase("true") ) {
+	    AutoConnect_boolean = true;
+	}
+
+	HydroBaseDMI hbdmi = null; // DMI that is opened by the dialog or automatically - null if cancel or error
+    String error = ""; // Message for whether there was an unexpected error opening HydroBase.
+	if ( startup && AutoConnect_boolean ) {
+	    Message.printStatus ( 2, routine, "HydroBase.AutoConnect=True in TSTool configuration file so " +
+	    	"autoconnecting to HydroBase with default connection information." );
+	    hbdmi = TSToolMain.openHydroBase(__tsProcessor);
+	    // Further checks are made below for UI setup
+	}
+	else {
+	    // Use the login dialog
+    	PropList hb_props = new PropList ( "SelectHydroBase" );
+    	hb_props.set ( "ValidateLogin", "false" );
+    	hb_props.set ( "ShowWaterDivisions", "false" );
+    
+    	// Pass in the previous HydroBaseDMI so that its information
+    	// can be displayed as the initial values...
+    
+    	SelectHydroBaseJDialog selectHydroBaseJDialog = null;
+    	
+    	try {
+            // Let the dialog check HydroBase properties in the CDSS configuration file...
+    		selectHydroBaseJDialog = new SelectHydroBaseJDialog ( this, __hbdmi, hb_props );
+    		// After getting to here, the dialog has been closed.
+    		// The HydroBaseDMI from the dialog can be retrieved and used...
+    		hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
+    	}
+    	catch ( Exception e ) {
+    		error = "Error opening HydroBase connection.  ";
+    		Message.printWarning ( 3, routine, e );
+    		hbdmi = null;
+    	}
+	}
+    // If no HydroBase connection was opened, print an appropriate message...
+    if ( hbdmi == null ) {
+        if ( ui_GetHydroBaseDMI() == null ) {
+            Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
+        }
         else {
             Message.printWarning ( 1, routine, error + "The previous HydroBase connection will be used." );
         }
-	}
+    }
 	else if ( hbdmi == ui_GetHydroBaseDMI() ) {
 	    // Same instance was returned as original (user cancelled) - no need to do anything
 	    // TODO SAM 2008-10-23 If this step is not ignored, the GUI removes HydroBase from the interface?
@@ -16067,7 +16089,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2009\n" +
+        "Copyright 1997-2010\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
@@ -16081,7 +16103,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2009\n" +
+        "Copyright 1997-2010\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +

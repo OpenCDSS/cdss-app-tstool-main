@@ -36,7 +36,7 @@ public class tstoolTest extends TestCase {
     ********************************************************************/
     public void testisServer()
     {
-       assertEquals(false, TSToolMain.isServer());
+       assertEquals(false, TSToolMain.isRestletServer());
     }
     
     public void testgetJFrame()

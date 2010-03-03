@@ -15,7 +15,7 @@
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="rti.app.tstool.TSTool"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-home test/operational/RTi"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-home test/operational/RTi -server"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="TSTool"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.library.path=${workspace_loc}/TSTool/test/operational/RTi/bin -Xmx1024m"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.library.path=${workspace_loc}/TSTool/test/operational/RTi/bin -Djava.util.logging.config.file=${workspace_loc}/TSTool/test/operational/RTi/system/javaLogging.properties  -Xmx1024m"/>
 </launchConfiguration>
