@@ -182,7 +182,7 @@ def main ():
 
 	# TSTool executable to use.  This should be set to a version that has been tested
 	# out with this process.
-	tstool = "C:/CDSS/TSTool-08.18.02/bin/tstool.exe"
+	tstool = "C:/CDSS/TSTool-09.06.02/bin/tstool.exe"
 	if ( not os.path.exists(snotelHomeDir) ):
 		logger.error ( "The TSTool program to use does not exist: \"" + tstool + "\"" )
 		logger.error ( "Verify the configuration in " + sys.argv[0] )
@@ -557,7 +557,7 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 	# Loop though the dates to process and pull back
 	# Start one day before start because it gets incremented at start of loop
 	snotelDate = snotelStart - datetime.timedelta(days=1)
-	remoteDirPrev = ""	# Previosu remote directory, to increase performance
+	remoteDirPrev = ""	# Previos remote directory, to increase performance
 	cacheDict = dict()
 	while ( True ):
 		snotelDate = snotelDate + datetime.timedelta(days=1)
@@ -567,7 +567,7 @@ def ftpGetSnotelFiles ( snotelStart, snotelEnd, snotelByDateDir ):
 		# Figure out the water year for the folder...
 		month = snotelDate.month
 		if ( (month >= 10) and (month <= 12) ):
-			wyFolder = "wy" + str(snotelDate.year - 1)
+			wyFolder = "wy" + str(snotelDate.year + 1)
 		else:
 			wyFolder = "wy" + str(snotelDate.year)
 		remoteDir = remoteMainDirectory + "/" + wyFolder
