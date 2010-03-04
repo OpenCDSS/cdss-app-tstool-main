@@ -6154,7 +6154,11 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 Enable/disable the HydroBase input type features depending on whether a HydroBaseDMI connection has been made.
 */
 private void ui_CheckHydroBaseFeatures ()
-{	if ( (__hbdmi != null) && __hbdmi.isOpen() ) {
+{	String routine = getClass().getName() + ".ui_CheckHydroBaseFeatures";
+    Message.printStatus(2, routine, "In check, connected=" + __hbdmi.connected() + " isOpen=" + __hbdmi.isOpen() );
+    if ( (__hbdmi != null) && __hbdmi.isOpen() ) {
+        Message.printStatus ( 2, routine,
+            "HydroBase connection is available... adding its features to UI..." );
 		if ( __input_type_JComboBox != null ) {
 			// Make sure HydroBase is in the input type list...
 			int count = __input_type_JComboBox.getItemCount();
@@ -6174,6 +6178,8 @@ private void ui_CheckHydroBaseFeatures ()
 	}
 	else {
 	    // Remove HydroBase from the input type list if necessary...
+	    Message.printStatus ( 2, routine,
+	        "HydroBase connection is not available... removing its features to UI..." );
 		try {
 		    __input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
 		}
@@ -6203,7 +6209,7 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 			__source_StateCU_enabled = true;
 		}
 		if ( !__source_StateMod_enabled ) {
-			// Might not be in older config files...
+			// Might not be in older configuration files...
 			Message.printStatus ( 1, routine, "StateMod input type being enabled for CDSS." );
 			__source_StateMod_enabled = true;
 		}
@@ -6862,7 +6868,8 @@ private void ui_InitGUI ( )
 	}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, "", e );
+	    Message.printWarning ( 2, routine, "Error initializing UI (" + e + ")." );
+		Message.printWarning ( 2, routine, e );
 	}
 	__guiInitialized = true;
 	// Select an input type to get the UI to a usable initial state.
@@ -8536,7 +8543,9 @@ private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalComma
 }
 
 /**
-Set the HydroBaseDMI instance used by the GUI.
+Set the HydroBaseDMI instance used by the GUI.  This is typically the same as the command processor;
+however, it is possible that OpenHydroBase() commands will be used and open up different HydroBase
+connections during processing.
 @param hbdmi the HydroBaseDMI instance used by the GUI.
 */
 private void ui_SetHydroBaseDMI ( HydroBaseDMI hbdmi )
@@ -13413,8 +13422,8 @@ private void uiAction_OpenHydroBase ( boolean startup )
 	HydroBaseDMI hbdmi = null; // DMI that is opened by the dialog or automatically - null if cancel or error
     String error = ""; // Message for whether there was an unexpected error opening HydroBase.
 	if ( startup && AutoConnect_boolean ) {
-	    Message.printStatus ( 2, routine, "HydroBase.AutoConnect=True in TSTool configuration file so " +
-	    	"autoconnecting to HydroBase with default connection information." );
+	    Message.printStatus ( 2, routine, "HydroBase.AutoConnect=True in TSTool.cfg configuration file so " +
+	    	"autoconnecting to HydroBase with default connection information from CDSS.cfg." );
 	    hbdmi = TSToolMain.openHydroBase(__tsProcessor);
 	    // Further checks are made below for UI setup
 	}
@@ -13445,9 +13454,11 @@ private void uiAction_OpenHydroBase ( boolean startup )
     // If no HydroBase connection was opened, print an appropriate message...
     if ( hbdmi == null ) {
         if ( ui_GetHydroBaseDMI() == null ) {
+            // No previous connection known to the UI
             Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
         }
         else {
+            // Had a previous connection in the UI so continue to use it
             Message.printWarning ( 1, routine, error + "The previous HydroBase connection will be used." );
         }
     }
@@ -13456,9 +13467,14 @@ private void uiAction_OpenHydroBase ( boolean startup )
 	    // TODO SAM 2008-10-23 If this step is not ignored, the GUI removes HydroBase from the interface?
 	}
 	else {
+	    // New connection has been established
     	// Set the HydroBaseDMI for the GUI and command processor...
-	    ui_SetHydroBaseDMI( hbdmi );
+	    Message.printStatus(2, routine,
+	        "Using new HydroBase connection in UI (refreshing HydroBase features) and processor." );
     	commandProcessor_SetHydroBaseDMI ( hbdmi );
+    	// Set the UI instance last because setting in the processor may close the old connection and
+    	// therefore close the one referenced by the UI...
+    	ui_SetHydroBaseDMI( hbdmi );
     	// Enable/disable HydroBase features as necessary...
     	ui_CheckHydroBaseFeatures();
 	}

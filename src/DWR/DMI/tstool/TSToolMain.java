@@ -461,7 +461,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.06.01 (2010-02-02)";
+public static final String PROGRAM_VERSION = "9.06.01 beta (2010-03-03)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -840,7 +840,14 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
         Message.printStatus ( 2, routine, "HydroBase is not enabled in TSTool configuation so not opening connection." );
         return null; 
     }
-    if ( IOUtil.isBatch() ) {
+    // If using GUI, this code is called from the TSTool_JFrame but need to check the property
+    // below to make the connection occur.
+    boolean autoConnect = false;
+    propval = __tstool_props.getValue ( "HydroBase.AutoConnect");
+    if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
+        autoConnect = true;
+    }
+    if ( IOUtil.isBatch() || autoConnect ) {
         // Running in batch mode or without a main GUI so automatically
         // open HydroBase from the CDSS.cfg file information...
         // Get the input needed to process the file...
@@ -875,6 +882,7 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
             List hbdmi_Vector = new Vector(1);
             hbdmi_Vector.add ( hbdmi );
             processor.setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+            Message.printStatus(2, routine, "Successfully opened HydroBase connection." );
             return hbdmi;
         }
         catch ( Exception e ) {
