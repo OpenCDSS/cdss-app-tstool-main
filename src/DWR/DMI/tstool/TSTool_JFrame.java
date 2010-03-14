@@ -123,6 +123,7 @@ import RTi.DMI.RiversideDB_DMI.LoginJDialog;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
 import RTi.GIS.GeoView.GeoLayer;
 import RTi.GIS.GeoView.GeoLayerView;
@@ -391,6 +392,11 @@ private InputFilter_JPanel __inputFilterMexicoCSMN_JPanel = null;
 InputFilter_JPanel for NWSRFS_FS5Files time series.
 */
 private InputFilter_JPanel __inputFilterNWSRFSFS5Files_JPanel = null;
+
+/**
+InputFilter_JPanel for RiversideDB time series.
+*/
+private InputFilter_JPanel __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel = null;
 
 /**
 JPanel for input types that do not support input filters.
@@ -5305,10 +5311,16 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		// The location (id), type, and time step uniquely
 		// identify the time series, but the input_name is needed to indicate the database.
 		TSTool_RiversideDB_TableModel model = (TSTool_RiversideDB_TableModel)__query_TableModel;
+		// TSID data type is formed from separate database values
+		String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
+		String subType = (String)__query_TableModel.getValueAt( row, model.COL_SUB_TYPE);
+		if ( subType.length() > 0 ) {
+		    dataType = dataType + "-" + subType;
+		}
 		numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 		(String)__query_TableModel.getValueAt( row,	model.COL_DATA_SOURCE),
-		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+		dataType,
 		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
 		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
 		null,	// No sequence number
@@ -5393,7 +5405,7 @@ private void results_Ensembles_Clear()
 
 /**
 Get the ensemble identifier from a displayed ensemble item, which is in the format
-N) EnsembleID - Ensemble Name
+"N) EnsembleID - Ensemble Name".
 */
 private TSEnsemble results_Ensembles_GetEnsembleID ( String displayItem )
 {   String routine = getClass().getName() + ".results_Ensembles_GetEnsembleID";
@@ -7167,6 +7179,24 @@ private void ui_InitGUIInputFilters ( final int y )
         			Message.printWarning ( 2, routine, e );
         		}
         	}
+        	
+            if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
+                // Add input filters for meastypes...
+        
+                try {
+                    __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel = new
+                    RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel(__rdmi);
+                    JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel,
+                        0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                        GridBagConstraints.WEST );
+                    __inputFilterJPanelList.add ( __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel );
+                }
+                catch ( Exception e ) {
+                    Message.printWarning ( 2, routine,
+                        "Unable to initialize input filter for RiversideDB time series (MeasTypes) (" + e + ")." );
+                    Message.printWarning ( 2, routine, e );
+                }
+            }
         
         	// Always add a generic input filter JPanel that is shared by input
         	// types that do not have filter capabilities and when database connections are not set up...
@@ -8685,6 +8715,10 @@ private void ui_SetInputFilters()
 		(__inputFilterNWSRFSFS5Files_JPanel != null) ) {
 		__selectedInputFilter_JPanel = __inputFilterNWSRFSFS5Files_JPanel;
 	}
+    else if(__selectedInputType.equals(__INPUT_TYPE_RiversideDB) &&
+        (__inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel != null) ) {
+        __selectedInputFilter_JPanel = __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel;
+    }
 	else {
         // Currently no other input types support filtering - this may also be used if HydroBase input
         // filters were not set up due to a missing database connection...
@@ -12207,7 +12241,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
-	// The headers are a Vector of HydroBase_
+	// The headers are a list of RiversideDB_MeasTypeMeasLocGeoloc
 	try {
         queryResultsList_Clear ();
 
@@ -12240,15 +12274,20 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 		}
 		*/
 
+		/*
 		TSIdent ident = new TSIdent ( location + ".." + data_type +	data_type_mod + "." + timestep + "." );
 		Message.printStatus ( 2, "", "Datatype = \"" + ident.getType() + "\" main = \"" +
 		ident.getMainType() + "\" sub = \"" + ident.getSubType() +"\"");
+		*/
 
 		List results = null;
 
 		try {
-            results = __rdmi.readMeasTypeListForTSIdent (
-				location + ".." + data_type + data_type_mod + "." + timestep + "." );
+            //results = __rdmi.readMeasTypeListForTSIdent (
+			//	location + ".." + data_type + data_type_mod + "." + timestep + "." );
+            //results = __rdmi.readMeasType ( __hbdmi, __selected_data_type, __selected_time_step,
+            //        (InputFilter_JPanel)__selectedInputFilter_JPanel, grlimits );
+		    results = __rdmi.readMeasTypeMeasLocGeolocList();
 		}
 		catch ( Exception e ) {
 			results = null;
@@ -12257,7 +12296,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 		int size = 0;
 		if ( results != null ) {
 			size = results.size();
-			// Does not work??
+			// TODO Does not work??
 			//__query_TableModel.setNewData ( results );
 			// Try brute force...
 			__query_TableModel = new TSTool_RiversideDB_TableModel ( results );
@@ -12269,7 +12308,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 			__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 		}
         if ( (results == null) || (size == 0) ) {
-			Message.printStatus ( 1, rtn,"Query complete.  No records returned." );
+			Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
 		}
         else {
             Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );

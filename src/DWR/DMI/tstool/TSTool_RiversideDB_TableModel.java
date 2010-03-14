@@ -3,7 +3,7 @@ package DWR.DMI.tstool;
 import java.util.List;
 
 import RTi.DMI.DMIUtil;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.String.StringUtil;
 
@@ -11,27 +11,37 @@ import RTi.Util.String.StringUtil;
 This class is a table model for time series header information for RiversideDB
 time series.  By default the sheet will contain row and column numbers.
 */
-public class TSTool_RiversideDB_TableModel
-extends JWorksheet_AbstractRowTableModel
+public class TSTool_RiversideDB_TableModel extends JWorksheet_AbstractRowTableModel
 {
 
 /**
 Number of columns in the table model.
 */
-private final int __COLUMNS = 12;
+private final int __COLUMNS = 19;
 
+// MeasType
 public final int COL_ID = 0;
-public final int COL_NAME = 1;
-public final int COL_DATA_SOURCE= 2;
+public final int COL_NAME = 1; // time series description
+public final int COL_DATA_SOURCE = 2;
 public final int COL_DATA_TYPE = 3;
-public final int COL_TIME_STEP = 4;
-public final int COL_SCENARIO = 5;
-public final int COL_UNITS = 6;
-public final int COL_START = 7;
-public final int COL_END = 8;
-public final int COL_COUNTY = 9;
-public final int COL_STATE = 10;
-public final int COL_INPUT_TYPE	= 11;
+public final int COL_SUB_TYPE = 4;
+public final int COL_TIME_STEP = 5;
+public final int COL_SCENARIO = 6;
+public final int COL_UNITS = 7;
+public final int COL_START = 8;
+public final int COL_END = 9;
+// MeasLoc
+public final int COL_STATION_NAME = 10; // station name
+// Geoloc
+public final int COL_COUNTY = 11;
+public final int COL_STATE = 12;
+public final int COL_LATITUDE = 13;
+public final int COL_LONGITUDE = 14;
+public final int COL_X = 15;
+public final int COL_Y = 16;
+public final int COL_ELEVATION = 17;
+// TSID input type
+public final int COL_INPUT_TYPE	= 18;
 
 /**
 Constructor.  This builds the model for displaying the given RiversideDB time series data.
@@ -56,19 +66,26 @@ From AbstractTableModel.  Returns the class of the data stored in a given column
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return String.class;
-		case COL_NAME:		return String.class;
-		case COL_DATA_SOURCE:	return String.class;
-		case COL_DATA_TYPE:	return String.class;
-		case COL_TIME_STEP:	return String.class;
-		case COL_SCENARIO:	return String.class;
-		case COL_UNITS:		return String.class;
-		case COL_START:		return String.class;
-		case COL_END:		return String.class;
-		case COL_COUNTY:	return String.class;
-		case COL_STATE:		return String.class;
-		case COL_INPUT_TYPE:	return String.class;
-		default:		return String.class;
+		case COL_ID: return String.class;
+		case COL_NAME: return String.class;
+		case COL_DATA_SOURCE: return String.class;
+		case COL_DATA_TYPE: return String.class;
+		case COL_SUB_TYPE: return String.class;
+		case COL_TIME_STEP: return String.class;
+		case COL_SCENARIO: return String.class;
+		case COL_UNITS: return String.class;
+		case COL_START: return String.class;
+		case COL_END: return String.class;
+		case COL_STATION_NAME: return String.class;
+	    case COL_COUNTY: return String.class;
+	    case COL_STATE: return String.class;
+		case COL_LATITUDE: return Double.class;
+		case COL_LONGITUDE: return Double.class;
+		case COL_X: return Double.class;
+		case COL_Y: return Double.class;
+		case COL_ELEVATION: return Double.class;
+		case COL_INPUT_TYPE: return String.class;
+		default: return String.class;
 	}
 }
 
@@ -86,19 +103,26 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return "ID";
-		case COL_NAME:		return "Name/Description";
-		case COL_DATA_SOURCE:	return "Data Source";
-		case COL_DATA_TYPE:	return "Data Type";
-		case COL_TIME_STEP:	return "Time Step";
-		case COL_SCENARIO:	return "Scenario";
-		case COL_UNITS:		return "Units";
-		case COL_START:		return "Start";
-		case COL_END:		return "End";
-		case COL_COUNTY:	return "County";
-		case COL_STATE:		return "State";
-		case COL_INPUT_TYPE:	return "Input Type";
-		default:		return "";
+		case COL_ID: return "ID";
+		case COL_NAME: return "Name/Description";
+		case COL_DATA_SOURCE: return "Data Source";
+		case COL_DATA_TYPE: return "Data Type";
+		case COL_SUB_TYPE: return "Subtype";
+		case COL_TIME_STEP: return "Time Step";
+		case COL_SCENARIO: return "Scenario";
+		case COL_UNITS: return "Units";
+		case COL_START: return "Start";
+		case COL_END: return "End";
+		case COL_STATION_NAME: return "Station Name";
+		case COL_COUNTY: return "County";
+        case COL_STATE: return "State";
+        case COL_LATITUDE: return "Latitude";
+        case COL_LONGITUDE: return "Longitude";
+        case COL_X: return "X";
+        case COL_Y: return "Y";
+        case COL_ELEVATION: return "Elevation";
+		case COL_INPUT_TYPE: return "Input Type";
+		default: return "";
 	}
 }
 
@@ -109,7 +133,18 @@ Returns the format to display the specified column.
 */
 public String getFormat ( int column ) {
 	switch (column) {
-		default:		return "%s";	// All are strings.
+	    case COL_LATITUDE:
+	        return "%10.6f";
+	    case COL_LONGITUDE:
+            return "%11.6f";
+	    case COL_X:
+            return "%14.6f";
+	    case COL_Y:
+            return "%14.6f";
+	    case COL_ELEVATION:
+            return "%9.3f";
+		default:
+		    return "%s"; // All else are strings.
 	}
 }
 
@@ -132,45 +167,93 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	RiversideDB_MeasType mt = (RiversideDB_MeasType)_data.get(row);
+	RiversideDB_MeasTypeMeasLocGeoloc mt = (RiversideDB_MeasTypeMeasLocGeoloc)_data.get(row);
 	switch (col) {
 		// case 0 handled above.
-		case COL_ID:	return mt.getIdentifier();
-		case COL_NAME: 	String description = mt.getDescription();
-				if ( description.equals("") ) {
-					description = mt.getMeasLoc_name();
-				}
-				return description;
+		case COL_ID:
+		    return mt.getIdentifier();
+		case COL_NAME:
+		    String description = mt.getDescription();
+			if ( description.equals("") ) {
+			    // Use the station name 
+				description = mt.getMeasLoc_name();
+			}
+			return description;
 		case COL_DATA_SOURCE:
-				return mt.getSource_abbrev();
+			return mt.getSource_abbrev();
 		case COL_DATA_TYPE:
-			 	String subtype = "";
-				if ( !mt.getSub_type().equals("") ) {
-					subtype = "-" + mt.getSub_type();
-				}
-				return mt.getData_type() + subtype;
-			
+			return mt.getData_type();
+	     case COL_SUB_TYPE:
+            return mt.getSub_type();
 		case COL_TIME_STEP:
-				int interval_mult = (int)mt.getTime_step_mult();
-				String interval_base = mt.getTime_step_base();
-				String timestep = "";
-				if ( DMIUtil.isMissing(interval_mult) || StringUtil.startsWithIgnoreCase( interval_base,"IRR") ) {
-					timestep = mt.getTime_step_base();
-				}
-				else {
-				    timestep = "" + interval_mult + interval_base;
-				}
-				return timestep;
+			int interval_mult = (int)mt.getTime_step_mult();
+			String interval_base = mt.getTime_step_base();
+			String timestep = "";
+			if ( DMIUtil.isMissing(interval_mult) || StringUtil.startsWithIgnoreCase( interval_base,"IRR") ) {
+				timestep = mt.getTime_step_base();
+			}
+			else {
+			    timestep = "" + interval_mult + interval_base;
+			}
+			return timestep;
 		case COL_SCENARIO:
-				return mt.getScenario();
-		case COL_UNITS:	return mt.getUnits_abbrev();
-		case COL_START:	return "";	// Not yet available
-		case COL_END:	return "";	// Not yet available
-		case COL_COUNTY:return "";	// Not yet available
-		case COL_STATE:	return "";	// Not yet available
+			return mt.getScenario();
+		case COL_UNITS:
+		    return mt.getUnits_abbrev();
+		case COL_START:
+		    return "";	// Not yet available
+		case COL_END:
+		    return "";	// Not yet available
+		case COL_STATION_NAME:
+            return mt.getMeasLoc_name();
+		case COL_COUNTY:
+		    return mt.getCounty();
+		case COL_STATE:
+		    return mt.getState();
+        case COL_LATITUDE:
+            double latitude = mt.getLatitude();
+            if ( DMIUtil.isMissing(latitude) ) {
+                return null;
+            }
+            else {
+                return new Double(latitude);
+            }
+        case COL_LONGITUDE:
+            double longitude = mt.getLongitude();
+            if ( DMIUtil.isMissing(longitude)) {
+                return null;
+            }
+            else {
+                return new Double(longitude);
+            }
+        case COL_X:
+            double x = mt.getX();
+            if ( DMIUtil.isMissing(x)) {
+                return null;
+            }
+            else {
+                return new Double(x);
+            }
+        case COL_Y:
+            double y = mt.getY();
+            if ( DMIUtil.isMissing(y)) {
+                return null;
+            }
+            else {
+                return new Double(y);
+            }
+        case COL_ELEVATION:
+            double elevation = mt.getElevation();
+            if ( DMIUtil.isMissing(elevation)) {
+                return null;
+            }
+            else {
+                return new Double(elevation);
+            }
 		case COL_INPUT_TYPE:
-				return "RiversideDB";
-		default:	return "";
+			return "RiversideDB";
+		default:
+		    return "";
 	}
 }
 
@@ -184,13 +267,20 @@ public int[] getColumnWidths() {
 	widths[COL_NAME] = 20;
 	widths[COL_DATA_SOURCE] = 10;
 	widths[COL_DATA_TYPE] = 8;
+	widths[COL_SUB_TYPE] = 8;
 	widths[COL_TIME_STEP] = 8;
 	widths[COL_SCENARIO] = 8;
 	widths[COL_UNITS] = 8;
 	widths[COL_START] = 10;
 	widths[COL_END] = 10;
-	widths[COL_COUNTY] = 0;
-	widths[COL_STATE] = 0;
+	widths[COL_STATION_NAME] = 20;
+	widths[COL_COUNTY] = 8;
+	widths[COL_STATE] = 6;
+    widths[COL_LATITUDE] = 10;
+    widths[COL_LONGITUDE] = 10;
+    widths[COL_X] = 10;
+    widths[COL_Y] = 10;
+    widths[COL_ELEVATION] = 10;
 	widths[COL_INPUT_TYPE] = 12;
 	return widths;
 }

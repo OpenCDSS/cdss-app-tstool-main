@@ -1,11 +1,13 @@
 package DWR.DMI.tstool;
 
-import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
+import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
+//import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 
 /**
 This class is used to render cells for TSTool_RiversideDB_TableModel data.
 */
-public class TSTool_RiversideDB_CellRenderer extends JWorksheet_DefaultTableCellRenderer {
+public class TSTool_RiversideDB_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
+//JWorksheet_DefaultTableCellRenderer {
 
 TSTool_RiversideDB_TableModel __table_model = null;	// Table model to render
 
