@@ -12245,49 +12245,22 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 	try {
         queryResultsList_Clear ();
 
-		String location = "";
-		String data_type = StringUtil.getToken(	__dataType_JComboBox.getSelected()," ",0,0).trim();
-		String timestep = __timeStep_JComboBox.getSelected();
-		if ( timestep == null ) {
+		String dataType = StringUtil.getToken(	__dataType_JComboBox.getSelected()," ",0,0).trim();
+		String timeStep = __timeStep_JComboBox.getSelected();
+		if ( timeStep == null ) {
 			Message.printWarning ( 1, rtn, "No time series are available for timestep." );
 			JGUIUtil.setWaitCursor ( this, false );
 			return;
 		}
 		else {
-            timestep = timestep.trim();
+            timeStep = timeStep.trim();
 		}
-		String data_type_mod = "";
-		if ( data_type.indexOf ( "-" ) >= 0 ) {
-			data_type_mod = StringUtil.getToken ( data_type,"-", 0, 1 );
-		}
-		if ( !data_type_mod.equals("") ) {
-			data_type_mod = "-" + data_type_mod;
-		}
-
-		/* TODO - need to figure out how to do where - or do we just have choices?
-        	// add where clause(s)   
-		if ( getWhereClauses() == false ) {
-        		JGUIUtil.setWaitCursor ( this, false );
-        		Message.printStatus ( 1, rtn, 
-			"Query aborted - null where string");
-			return;
-		}
-		*/
-
-		/*
-		TSIdent ident = new TSIdent ( location + ".." + data_type +	data_type_mod + "." + timestep + "." );
-		Message.printStatus ( 2, "", "Datatype = \"" + ident.getType() + "\" main = \"" +
-		ident.getMainType() + "\" sub = \"" + ident.getSubType() +"\"");
-		*/
 
 		List results = null;
-
+		// Data type is shown with name so only use the first part of the choice
 		try {
-            //results = __rdmi.readMeasTypeListForTSIdent (
-			//	location + ".." + data_type + data_type_mod + "." + timestep + "." );
-            //results = __rdmi.readMeasType ( __hbdmi, __selected_data_type, __selected_time_step,
-            //        (InputFilter_JPanel)__selectedInputFilter_JPanel, grlimits );
-		    results = __rdmi.readMeasTypeMeasLocGeolocList();
+		    results = __rdmi.readMeasTypeMeasLocGeolocList(dataType, timeStep,
+		            (InputFilter_JPanel)__selectedInputFilter_JPanel);
 		}
 		catch ( Exception e ) {
 			results = null;

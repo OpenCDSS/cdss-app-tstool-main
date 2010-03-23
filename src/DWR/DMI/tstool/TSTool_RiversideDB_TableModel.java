@@ -79,12 +79,19 @@ public Class getColumnClass (int columnIndex) {
 		case COL_STATION_NAME: return String.class;
 	    case COL_COUNTY: return String.class;
 	    case COL_STATE: return String.class;
+	    /* TODO SAM 2010-03-23 Need to figure out why justification does not work
 		case COL_LATITUDE: return Double.class;
 		case COL_LONGITUDE: return Double.class;
 		case COL_X: return Double.class;
 		case COL_Y: return Double.class;
 		case COL_ELEVATION: return Double.class;
-		case COL_INPUT_TYPE: return String.class;
+		*/
+        case COL_LATITUDE: return String.class;
+        case COL_LONGITUDE: return String.class;
+        case COL_X: return String.class;
+        case COL_Y: return String.class;
+        case COL_ELEVATION: return String.class;
+        case COL_INPUT_TYPE: return String.class;
 		default: return String.class;
 	}
 }
@@ -133,6 +140,7 @@ Returns the format to display the specified column.
 */
 public String getFormat ( int column ) {
 	switch (column) {
+	/* TODO SAM 2010-03-23 Need to figure out why justification does not work - use strings for now
 	    case COL_LATITUDE:
 	        return "%10.6f";
 	    case COL_LONGITUDE:
@@ -143,6 +151,17 @@ public String getFormat ( int column ) {
             return "%14.6f";
 	    case COL_ELEVATION:
             return "%9.3f";
+            */
+        case COL_LATITUDE:
+            return "%10.10s";
+        case COL_LONGITUDE:
+            return "%11.11s";
+        case COL_X:
+            return "%14.14s";
+        case COL_Y:
+            return "%14.14s";
+        case COL_ELEVATION:
+            return "%9.9s";
 		default:
 		    return "%s"; // All else are strings.
 	}
@@ -210,6 +229,7 @@ public Object getValueAt(int row, int col) {
 		    return mt.getCounty();
 		case COL_STATE:
 		    return mt.getState();
+		    /* TODO SAM 2010-03-23 Need to figure out why justification does not work
         case COL_LATITUDE:
             double latitude = mt.getLatitude();
             if ( DMIUtil.isMissing(latitude) ) {
@@ -250,6 +270,47 @@ public Object getValueAt(int row, int col) {
             else {
                 return new Double(elevation);
             }
+            */
+        case COL_LATITUDE:
+            double latitude = mt.getLatitude();
+            if ( DMIUtil.isMissing(latitude) ) {
+                return "";
+            }
+            else {
+                return StringUtil.formatString(latitude,"%10.6f");
+            }
+        case COL_LONGITUDE:
+            double longitude = mt.getLongitude();
+            if ( DMIUtil.isMissing(longitude)) {
+                return "";
+            }
+            else {
+                return StringUtil.formatString(longitude,"%11.6f");
+            }
+        case COL_X:
+            double x = mt.getX();
+            if ( DMIUtil.isMissing(x)) {
+                return null;
+            }
+            else {
+                return StringUtil.formatString(x,"%14.6f");
+            }
+        case COL_Y:
+            double y = mt.getY();
+            if ( DMIUtil.isMissing(y)) {
+                return null;
+            }
+            else {
+                return StringUtil.formatString(y,"%14.6f");
+            }
+        case COL_ELEVATION:
+            double elevation = mt.getElevation();
+            if ( DMIUtil.isMissing(elevation)) {
+                return null;
+            }
+            else {
+                return StringUtil.formatString(elevation,"%9.3f");
+            }		    
 		case COL_INPUT_TYPE:
 			return "RiversideDB";
 		default:
@@ -265,7 +326,7 @@ public int[] getColumnWidths() {
 	int[] widths = new int[__COLUMNS];
 	widths[COL_ID] = 12;
 	widths[COL_NAME] = 20;
-	widths[COL_DATA_SOURCE] = 10;
+	widths[COL_DATA_SOURCE] = 11;
 	widths[COL_DATA_TYPE] = 8;
 	widths[COL_SUB_TYPE] = 8;
 	widths[COL_TIME_STEP] = 8;
