@@ -1207,6 +1207,7 @@ JMenu
     __Commands_General_FileHandling_JMenu = null;
 JMenuItem
     __Commands_General_FileHandling_FTPGet_JMenuItem = null,
+    __Commands_General_FileHandling_WebGet_JMenuItem = null,
     __Commands_General_FileHandling_RemoveFile_JMenuItem = null;
 
 JMenu
@@ -1611,6 +1612,7 @@ private String
     
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
+    __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
     
 	__Commands_General_Logging_String = "General - Logging",
@@ -7927,6 +7929,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_FTPGet_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_FTPGet_String, this ) );
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_WebGet_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_WebGet_String, this ) );
+    __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
     
@@ -10252,6 +10257,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_FileHandling_FTPGet_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_FTPGet_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_General_FileHandling_WebGet_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_WebGet_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, __INSERT_COMMAND );
