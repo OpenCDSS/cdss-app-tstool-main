@@ -69,7 +69,9 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
+import rti.tscommandprocessor.commands.ipp.IPPSubjectType;
 import rti.tscommandprocessor.commands.ipp.IppDMI;
+import rti.tscommandprocessor.commands.ipp.IPP_DataMetaData_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.util.Comment_Command;
@@ -327,6 +329,11 @@ The currently selected input filter JPanel, used to check input and get the filt
 Not an InputFilter_JPanel because of the generic case where a simple JPanel may need to be inserted.
 */
 private JPanel __selectedInputFilter_JPanel = null;
+
+/**
+InputFilter_JPanel for Colorado IPP time series.
+*/
+private InputFilter_JPanel __inputFilterColoradoIPPDataMetaData_JPanel = null;
 
 /**
 InputFilter_JPanel for HEC-DSS time series.
@@ -1743,6 +1750,7 @@ private String
 	__TIMESTEP_HOUR = "Hour",
 	__TIMESTEP_DAY = "Day",
 	__TIMESTEP_MONTH = "Month",
+	__TIMESTEP_YEAR = "Year",
 	__TIMESTEP_IRREGULAR = "Irregular"; // Use for real-time where interval is not known
 
 // Columns in the time series list.
@@ -1827,6 +1835,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
         __source_ColoradoWaterSMS_enabled = false;
     }
     if ( __source_HydroBase_enabled ) {
+        // Automatically enable the real-time web services input type...
         // Use newer notation...
         __props.set ( "TSTool.ColoradoWaterSMSEnabled", "true" );
     }
@@ -3773,6 +3782,40 @@ private void commandProcessor_RunCommandsThreaded ( List commands, boolean creat
 }
 
 /**
+Set the command processor IppDMI instance that is opened via the GUI.
+@param ippdmi Open IppDMI instance.
+The input name is blank since it is the default IppDMI.
+*/
+private void commandProcessor_SetColoradoIppDMI( IppDMI ippdmi )
+{   // Call the overloaded method that takes a processor as a parameter...
+    commandProcessor_SetColoradoIppDMI( __tsProcessor, ippdmi );
+}
+
+/**
+Set the command processor IppDMI instance that is opened via the GUI.
+This version is generally called by the overloaded version and when processing an external command file.
+@param processor The command processor to set the IPP DMI instance.
+@param ippdmi Open IppDMI instance.
+The input name is blank since it is the default IppDMI.
+*/
+private void commandProcessor_SetColoradoIppDMI( CommandProcessor processor, IppDMI ippdmi )
+{   String message, routine = "TSTool_JFrame.commandProcessor_SetColoradoIppDMI";
+    if ( ippdmi == null ) {
+        return;
+    }
+    PropList request_params = new PropList ( "" );
+    request_params.setUsingObject ( "ColoradoIppDMI", ippdmi );
+    //CommandProcessorRequestResultsBean bean = null;
+    try { //bean =
+        processor.processRequest( "SetColoradoIppDMI", request_params );
+    }
+    catch ( Exception e ) {
+        message = "Error requesting SetColoradoIppDMI(ColoradoIppDMI=\"" + ippdmi + "\") from processor.";
+        Message.printWarning(2, routine, message );
+    }
+}
+
+/**
 Set the command processor HydroBase instance that is opened via the GUI.
 @param hbdmi Open HydroBaseDMI instance.
 The input name is blank since it is the default HydroBaseDMI.
@@ -3804,40 +3847,6 @@ private void commandProcessor_SetHydroBaseDMI( CommandProcessor processor, Hydro
 		message = "Error requesting SetHydroBaseDMI(HydroBaseDMI=\"" + hbdmi + " from processor.";
 		Message.printWarning(2, routine, message );
 	}
-}
-
-/**
-Set the command processor IppDMI instance that is opened via the GUI.
-@param ippdmi Open IppDMI instance.
-The input name is blank since it is the default IppDMI.
-*/
-private void commandProcessor_SetIppDMI( IppDMI ippdmi )
-{   // Call the overloaded method that takes a processor as a parameter...
-    commandProcessor_SetIppDMI( __tsProcessor, ippdmi );
-}
-
-/**
-Set the command processor IppDMI instance that is opened via the GUI.
-This version is generally called by the overloaded version and when processing an external command file.
-@param processor The command processor to set the IPP DMI instance.
-@param ippdmi Open IppDMI instance.
-The input name is blank since it is the default IppDMI.
-*/
-private void commandProcessor_SetIppDMI( CommandProcessor processor, IppDMI ippdmi )
-{   String message, routine = "TSTool_JFrame.commandProcessor_SetIppDMI";
-    if ( ippdmi == null ) {
-        return;
-    }
-    PropList request_params = new PropList ( "" );
-    request_params.setUsingObject ( "ColoradoIppDMI", ippdmi );
-    //CommandProcessorRequestResultsBean bean = null;
-    try { //bean =
-        processor.processRequest( "SetColoradoIppDMI", request_params );
-    }
-    catch ( Exception e ) {
-        message = "Error requesting SetColoradoIppDMI(ColoradoIppDMI=\"" + ippdmi + "\") from processor.";
-        Message.printWarning(2, routine, message );
-    }
 }
 
 /**
@@ -5107,7 +5116,30 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int row, boolean update_status, int insertOffset ) 
 {	boolean use_alias = false;
     int numCommandsAdded = 0; // Used when inserting blocks of time series
-    if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
+    if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input_name is needed to indicate the database.
+        TSTool_ColoradoIPP_TableModel model = (TSTool_ColoradoIPP_TableModel)__query_TableModel;
+        // TSID data type is formed from separate database values
+        String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
+        String subType = (String)__query_TableModel.getValueAt( row, model.COL_SUB_TYPE);
+        String method = (String)__query_TableModel.getValueAt( row, model.COL_METHOD);
+        String subMethod = (String)__query_TableModel.getValueAt( row, model.COL_SUB_METHOD);
+        if ( subType.length() > 0 ) {
+            dataType = dataType + "-" + subType + "-" + method + "-" + subMethod;
+        }
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+        (String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_ID ),
+        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+        dataType,
+        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
+        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
+        null,   // No sequence number
+        (String)__query_TableModel.getValueAt( row,model.COL_INPUT_TYPE),
+        "",
+        "", false, insertOffset );
+    }
+    else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
         TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
@@ -5567,15 +5599,13 @@ ColoradoSMS connection has been made.
 */
 private void ui_CheckColoradoSMSFeatures ()
 {	if ( (__smsdmi != null) && __smsdmi.isOpen() ) {
-		/* TODO SAM 2005-10-18 Currently time series features are not
-		available...
+		/* TODO SAM 2005-10-18 Currently time series features are not available...
 		if ( __input_type_JComboBox != null ) {
 			// Make sure HydroBase is in the input type list...
 			int count = __input_type_JComboBox.getItemCount();
 			boolean hbfound = false;
 			for ( int i = 0; i < count; i++ ) {
-				if ( __input_type_JComboBox.getItem(i).equals(
-					__INPUT_TYPE_ColoradoSMS) ) {
+				if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_ColoradoSMS) ) {
 					hbfound = true;
 					break;
 				}
@@ -5591,7 +5621,8 @@ private void ui_CheckColoradoSMSFeatures ()
 	else {
 	    // Remove ColoradoSMS from the data source list if necessary...
 		/* TODO SAM 2005-10-18 Currently time series cannot be queried
-		try {	__input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
+		try {
+		    __input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
 		}
 		catch ( Exception e ) {
 			// Ignore - probably already removed...
@@ -6538,7 +6569,7 @@ private void ui_InitGUI ( )
     JGUIUtil.addComponent(__queryInput_JPanel, new JLabel("Input Type:"), 
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
         __input_type_JComboBox = new SimpleJComboBox(false);
-        __input_type_JComboBox.setMaximumRowCount ( 15 );
+        __input_type_JComboBox.setMaximumRowCount ( 20 );
         __input_type_JComboBox.setToolTipText (
 		"<html>The input type is the file/database format being read.</html>" );
 	__input_type_JComboBox.addItemListener( this );
@@ -6945,6 +6976,11 @@ private void ui_InitGUIInputFilters ( final int y )
         	}
         	__inputFilterJPanelList.clear();
         	// Now add the input filters for input types that are enabled, all on top of each other
+        	
+            if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
+                ui_InitGUIInputFiltersColoradoIPP(__ippdmi, y );
+            }
+            
             if ( __source_HECDSS_enabled ) {
                 // Add input filters for HEC-DSS files.
                 try {
@@ -7081,6 +7117,36 @@ private void ui_InitGUIInputFilters ( final int y )
     else 
     {
         SwingUtilities.invokeLater ( r );
+    }
+}
+
+/**
+Initialize the ColoradoIPP input filter (may be called at startup after login or File...Open ColoradoIPP).
+*/
+private void ui_InitGUIInputFiltersColoradoIPP ( IppDMI ippdmi, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersColoradoIPP";
+    try {
+        Message.printStatus ( 2, routine, "Initializing input filters using ColoradoIPP connection." );
+        // If the previous instance is not null, remove it from the list...
+        if ( __inputFilterColoradoIPPDataMetaData_JPanel != null ) {
+            __inputFilterJPanelList.remove ( __inputFilterColoradoIPPDataMetaData_JPanel );
+        }
+        // Create a new panel...
+        __inputFilterColoradoIPPDataMetaData_JPanel =
+            new IPP_DataMetaData_InputFilter_JPanel(ippdmi, IPPSubjectType.COUNTY );
+
+        // Add the new panel to the layout and set in the global data...
+        int buffer = 3;
+        Insets insets = new Insets(0,buffer,0,0);
+        JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoIPPDataMetaData_JPanel,
+            0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+            GridBagConstraints.WEST );
+        __inputFilterJPanelList.add ( __inputFilterColoradoIPPDataMetaData_JPanel );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 2, routine,
+            "Unable to initialize input filter for ColoradoIPP time series (" + e + ")." );
+        Message.printWarning ( 2, routine, e );
     }
 }
 
@@ -7322,8 +7388,7 @@ private void ui_InitGUIInputFiltersRiversideDB ( RiversideDB_DMI rdmi, int y )
 }
 
 /**
-Initialize the GUI menus.  Split out of the main initGUI method to keep the
-method size under 64K.
+Initialize the GUI menus.
 */
 private void ui_InitGUIMenus ()
 {	JMenuBar menu_bar = new JMenuBar();
@@ -8734,7 +8799,12 @@ Set the input filters based on the current settings.  This sets the appropriate
 input filter visible since all input filters are created at startup.
 */
 private void ui_SetInputFilters()
-{	if(__selectedInputType.equals(__INPUT_TYPE_HECDSS) &&
+{	
+    if(__selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) &&
+        (__inputFilterColoradoIPPDataMetaData_JPanel != null) ) {
+        __selectedInputFilter_JPanel = __inputFilterColoradoIPPDataMetaData_JPanel;
+    }
+    else if(__selectedInputType.equals(__INPUT_TYPE_HECDSS) &&
         (__inputFilterHecDss_JPanel != null) ) {
         __selectedInputFilter_JPanel = __inputFilterHecDss_JPanel;
     }
@@ -8856,6 +8926,9 @@ private void ui_SetInputTypeChoices ()
 	if ( __input_type_JComboBox.getItemCount() > 0 ) {
 		__input_type_JComboBox.removeAll ();
 	}
+    if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
+        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoIPP );
+    }
     if ( __source_ColoradoWaterSMS_enabled ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterSMS );
     }
@@ -8917,7 +8990,7 @@ private void ui_SetInputTypeChoices ()
 
 	ui_SetIgnoreItemEvent ( false );
 
-    if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
+	if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
         // If enabled and available, select it because the users probably want it as the choice...
         __input_type_JComboBox.select( null );
         __input_type_JComboBox.select( __INPUT_TYPE_RiversideDB );
@@ -9280,7 +9353,7 @@ throws Exception
 		// List enabled data types...
 		v.add ( "Input types and whether enabled:" );
 		v.add ( "" );
-       if ( __source_ColoradoIPP_enabled ) {
+        if ( __source_ColoradoIPP_enabled ) {
             v.add ( "ColoradoIPP input type is enabled" );
         }
         else {
@@ -10752,7 +10825,14 @@ private void uiAction_DataTypeChoiceClicked()
 
 	// Set the appropriate settings for the current data input type and data type...
 
-	if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
+    if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
+        // Time steps is always year...
+        __timeStep_JComboBox.removeAll ();
+        __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
+        __timeStep_JComboBox.select ( 0 );
+        __timeStep_JComboBox.setEnabled ( true );
+    }
+    else if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// DateValue file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11198,7 +11278,18 @@ private void uiAction_GetTimeSeriesListClicked()
 	// area.  Return if an error occurs because the message at the bottom
 	// should only be printed if successful.
 
-    if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
+    if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoIPP)) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading ColoradoIPP - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
+	else if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
         }
@@ -11393,6 +11484,73 @@ private void uiAction_GetTimeSeriesListClicked()
 	}
 	Message.printStatus ( 1, routine,
 	"Time series list from " + __selectedInputType + " input type are listed in Time Series List area." );
+}
+
+/**
+Read ColoradoIPP time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    // The headers are a list of RiversideDB_MeasTypeMeasLocGeoloc
+    try {
+        queryResultsList_Clear ();
+
+        // Datatype not used from main interface because it is in the Where filters
+        //String dataType = StringUtil.getToken(  __dataType_JComboBox.getSelected()," ",0,0).trim();
+        /* Timestep is always year so no need to pass to query
+        String timeStep = __timeStep_JComboBox.getSelected();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+        */
+
+        List results = null;
+        // Data type is shown with name so only use the first part of the choice
+        try {
+            results = __ippdmi.readDataMetaDataList( (InputFilter_JPanel)__selectedInputFilter_JPanel,
+                IPPSubjectType.COUNTY );
+        }
+        catch ( Exception e ) {
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new TSTool_ColoradoIPP_TableModel ( results );
+            TSTool_ColoradoIPP_CellRenderer cr =
+                new TSTool_ColoradoIPP_CellRenderer( (TSTool_ColoradoIPP_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
 }
 
 /**
@@ -13159,7 +13317,10 @@ private void uiAction_InputTypeChoiceClicked()
 
 	// List alphabetically...
 	try {
-        if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
+        if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoIPP ) ) {
+            uiAction_SelectInputType_ColoradoIPP ();
+        }
+        else if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
             uiAction_SelectInputType_ColoradoWaterSMS ();
         }
     	else if ( __selectedInputType.equals ( __INPUT_TYPE_DateValue ) ) {
@@ -13260,7 +13421,7 @@ at startup.  This is the case, for example, when multiple HydroBase databases
 may be available and there is no reason to automatically connect to one of them for all users.
 */
 private void uiAction_OpenColoradoIPP ( boolean startup )
-{   String routine = "TSTool_JFrame.openColoradoIPP";
+{   String routine = "TSTool_JFrame.uiAction_OpenColoradoIPP";
     Message.printStatus ( 1, routine, "Opening ColoradoIPP connection..." );
     // TODO SAM 2005-10-18
     // Always connect, whether in batch mode or not.  Might need a way to configure this.
@@ -13283,26 +13444,21 @@ private void uiAction_OpenColoradoIPP ( boolean startup )
             }
         }
         // Override with any TSTool command-line arguments, in particular the user login...
-        String propval = TSToolMain.getPropValue("ColoradoIPP.UserLogin" );
-        if ( propval != null ) {
-            props.set ( "ColoradoSMS.UserLogin", propval );
-            Message.printStatus ( 1, routine, "Using batch login ColoradoIPP.UserLogin=\"" + propval + "\"" );
-        }
+        String databaseServer = TSToolMain.getPropValue("ColoradoIPP.DatabaseServer" );
+        String databaseName = TSToolMain.getPropValue("ColoradoIPP.DatabaseName" );
+        String systemLogin = TSToolMain.getPropValue("ColoradoIPP.SystemLogin" );
+        String systemPassword = TSToolMain.getPropValue("ColoradoIPP.SystemPassword" );
         try {
             // Now open the database...
             // This uses the default login.  If properties were not found,
             // then default ColoradoIPP information will be used.
-            String databaseEngine = "SQLServer2000";
-            String databaseServer = null;
-            String databaseName = null;
+            String databaseEngine = "SQLServer";
             int port = 0;
-            String systemLogin = null;
-            String systemPassword = null;
             IppDMI ippdmi = new IppDMI ( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
             ippdmi.open();
             // Set the IppDMI for the GUI and command processor...
             ui_SetColoradoIppDMI( ippdmi );
-            commandProcessor_SetIppDMI ( ippdmi );
+            commandProcessor_SetColoradoIppDMI ( ippdmi );
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, routine,
@@ -14791,11 +14947,38 @@ throws Exception
 }
 
 /**
+Refresh the query choices for a ColoradoIPP connection.
+*/
+private void uiAction_SelectInputType_ColoradoIPP ()
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectInputType_ColoradoIPP";
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    
+    // Timestep is always year
+    __timeStep_JComboBox.setEnabled ( true );
+    __timeStep_JComboBox.removeAll ();
+    __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
+    __timeStep_JComboBox.select ( 0 );
+ 
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_ColoradoIPP_TableModel(null);
+    TSTool_ColoradoIPP_CellRenderer cr =
+        new TSTool_ColoradoIPP_CellRenderer((TSTool_ColoradoIPP_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    //__query_JWorksheet.removeColumn (((TSTool_ColoradoIPP_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
 Refresh the query choices for a ColoradoWaterSMS web service.
 */
 private void uiAction_SelectInputType_ColoradoWaterSMS ()
 throws Exception
-{   String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
+{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
     // Input name is not currently used...
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
@@ -14818,16 +15001,6 @@ throws Exception
     __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
     __timeStep_JComboBox.add ( __TIMESTEP_DAY );
     __timeStep_JComboBox.select ( 0 );
-
-    /* TODO
-    __where_JComboBox.setEnabled ( true );
-    __where_JComboBox.removeAll ();
-    // SAMX Need to decide what to put here...
-    __where_JComboBox.add("Data Source");
-        __where_JComboBox.add("Location ID");
-    __where_JComboBox.add("Location Name");
-    __where_JComboBox.select ( 2 );
-    */
 
     // Initialize with blank data vector...
 
@@ -16971,13 +17144,10 @@ the currently selected input data source, data type and time step.
 */
 private void uiAction_TimeStepChoiceClicked()
 {	String rtn = "TSTool_JFrame.timeStepChoiceClicked";
-	if (	(__input_type_JComboBox == null) ||
-		(__dataType_JComboBox == null) ||
-		(__timeStep_JComboBox == null)  ) {
+	if ( (__input_type_JComboBox == null) || (__dataType_JComboBox == null) || (__timeStep_JComboBox == null) ) {
 		// GUI still initializing...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Time step has been " +
-			"selected but the GUI is not initialized." );
+			Message.printDebug ( 1, rtn, "Time step has been selected but the GUI is not initialized." );
 		}
 		return;
 	}
@@ -16986,14 +17156,12 @@ private void uiAction_TimeStepChoiceClicked()
 		// Apparently this happens when setData() or similar is called
 		// on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, rtn, "Time step has been " +
-			"selected:  null (select is ignored)" );
+			Message.printDebug ( 1, rtn, "Time step has been selected:  null (select is ignored)" );
 		}
 		return;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printStatus ( 2, rtn, "Time step has been " +
-		"selected:  \"" + __selected_time_step + "\"" );
+		Message.printStatus ( 2, rtn, "Time step has been selected:  \"" + __selected_time_step + "\"" );
 	}
 
 	ui_SetInputFilters();
