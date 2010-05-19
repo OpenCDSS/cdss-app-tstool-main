@@ -2,6 +2,7 @@ package DWR.DMI.tstool;
 
 import java.util.List;
 
+import rti.tscommandprocessor.commands.ipp.IPPSubjectType;
 import rti.tscommandprocessor.commands.ipp.IPP_DataMetaData;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
@@ -148,15 +149,25 @@ public Object getValueAt(int row, int col) {
         case COL_SUBJECT_TYPE:
             return data.getSubject();
 		case COL_SUBJECT_ID:
-		    return "" + data.getSubjectID();
+		    if ( data.getSubject().equalsIgnoreCase(""+IPPSubjectType.COUNTY)) {
+		        return "" + data.getName();
+		    }
+		    else {
+		        // TODO SAM 2010-04-29 Need to use human-readable name when available in DB
+		        return "" + data.getSubjectID();
+		    }
 		case COL_SUBJECT_NAME:
 		    return data.getName();
 		case COL_DATA_SOURCE:
 			return data.getSource();
 		case COL_DATA_TYPE:
 			return data.getDataType();
-	     case COL_SUB_TYPE:
+	    case COL_SUB_TYPE:
             return data.getSubType();
+        case COL_METHOD:
+            return data.getMethod();
+        case COL_SUB_METHOD:
+            return data.getSubMethod();
 		case COL_TIME_STEP:
 			return "Year";
 		case COL_SCENARIO:

@@ -77,8 +77,10 @@ import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
-import us.co.state.dwr.ColoradoWaterSMS;
-import us.co.state.dwr.ColoradoWaterSMSAPI;
+import us.co.state.dwr.hbguest.ColoradoWaterHBGuest;
+import us.co.state.dwr.hbguest.ColoradoWaterHBGuestAPI;
+import us.co.state.dwr.sms.ColoradoWaterSMS;
+import us.co.state.dwr.sms.ColoradoWaterSMSAPI;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -812,6 +814,7 @@ private boolean
     __source_ColoradoIPP_enabled = false, // Must configure in CDSS.cfg to enable 
     __source_ColoradoSMS_enabled = false,
     __source_ColoradoWaterSMS_enabled = true, // By default - allow all to access web service
+    __source_ColoradoWaterHBGuest_enabled = true, // By default - allow all to access web service
 	__source_DateValue_enabled = true,
 	__source_DIADvisor_enabled = false,
 	__source_HECDSS_enabled = true,
@@ -1725,6 +1728,7 @@ private String
 
 	__INPUT_TYPE_ColoradoIPP = "ColoradoIPP",
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
+	__INPUT_TYPE_ColoradoWaterHBGuest = "ColoradoWaterHBGuest",
 	__INPUT_TYPE_ColoradoWaterSMS = "ColoradoWaterSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
@@ -1814,22 +1818,25 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
             __source_ColoradoIPP_enabled = true;
         }
     }
+    
+    // State of Colorado Water HBGuest web service enabled by default...
+
+    __source_ColoradoWaterHBGuest_enabled = false; // Default is off
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+        __source_ColoradoWaterHBGuest_enabled = true;
+    }
 
 	// ColoradoSMS disabled by default...
 
+    __source_ColoradoSMS_enabled = true;
 	prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_ColoradoSMS_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_ColoradoSMS_enabled = true;
-		}
+	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+		__source_ColoradoSMS_enabled = false;
 	}
 	
 	// State of Colorado Water SMS web service enabled by default...
 
-    // Newer...
     prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
     if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
         __source_ColoradoWaterSMS_enabled = false;
@@ -5125,19 +5132,33 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         String subType = (String)__query_TableModel.getValueAt( row, model.COL_SUB_TYPE);
         String method = (String)__query_TableModel.getValueAt( row, model.COL_METHOD);
         String subMethod = (String)__query_TableModel.getValueAt( row, model.COL_SUB_METHOD);
-        if ( subType.length() > 0 ) {
-            dataType = dataType + "-" + subType + "-" + method + "-" + subMethod;
-        }
+        String dataTypeFull = dataType + "-" + subType + "-" + method + "-" + subMethod;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+        __query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
         (String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_ID ),
         (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
-        dataType,
+        dataTypeFull,
         (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
         (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
         null,   // No sequence number
         (String)__query_TableModel.getValueAt( row,model.COL_INPUT_TYPE),
         "",
         "", false, insertOffset );
+    }
+    else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
+        TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+            "", // No scenario
+            null, // No sequence number
+            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+            "", // No input name
+            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV) + " - " +
+            (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+            false, insertOffset );
     }
     else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
         TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
@@ -8929,6 +8950,9 @@ private void ui_SetInputTypeChoices ()
     if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoIPP );
     }
+    if ( __source_ColoradoWaterHBGuest_enabled ) {
+        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterHBGuest );
+    }
     if ( __source_ColoradoWaterSMS_enabled ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterSMS );
     }
@@ -11289,6 +11313,17 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
+    else if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterHBGuest) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders ();
+        }
+        catch ( Exception e ) {
+            message = "Error reading ColoradoWaterHBGuest web service - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
@@ -11511,12 +11546,22 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
             timeStep = timeStep.trim();
         }
         */
+        
+        // Get the subject from the where filters.  If not set, warn and don't query
+        IPPSubjectType subject = null;
+        List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Subject", false, null );
+        if ( input.size() == 0 ) {
+            Message.printWarning ( 1, rtn, "You must specify the Subject as a Where in the input filter." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        //Message.printStatus(2, "", "Input is \"" + input.get(0) );
+        subject = IPPSubjectType.valueOfIgnoreCase(StringUtil.getToken(input.get(0),";",0,1));
 
         List results = null;
         // Data type is shown with name so only use the first part of the choice
         try {
-            results = __ippdmi.readDataMetaDataList( (InputFilter_JPanel)__selectedInputFilter_JPanel,
-                IPPSubjectType.COUNTY );
+            results = __ippdmi.readDataMetaDataList( (InputFilter_JPanel)__selectedInputFilter_JPanel, subject );
         }
         catch ( Exception e ) {
             results = null;
@@ -11549,6 +11594,92 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
     catch ( Exception e ) {
         // Messages elsewhere but catch so we can get the cursor back...
         Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+}
+
+/**
+Read ColoradoWaterSWS time series via web service and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
+{   String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, routine, "Please wait... retrieving data");
+
+    // The headers are a Vector of HydroBase_
+    try {
+        queryResultsList_Clear ();
+
+        String location = "";
+        String dataType = __dataType_JComboBox.getSelected().trim();
+        String timestep = __timeStep_JComboBox.getSelected().trim();
+
+        Message.printStatus ( 2, "", "Datatype = \"" + dataType + "\" timestep = \"" + timestep + "\"" );
+
+        List<HydroBase_StationGeolocMeasType> tslist = null;
+        try {
+            ColoradoWaterHBGuest service = new ColoradoWaterHBGuest();
+            // FIXME SAM 2009-11-20 Need to enable input filters for wd, div, abbrev
+            int wd = -1; // Get all
+            int div = -1; // Get all
+            String abbrev = null; // Get all
+            String stationName = null; // Get all
+            String dataProvider = null; // Get all
+            // TODO SAM 2010-05-17 Need to enable
+            //tslist = ColoradoWaterHBGuestAPI.readTimeSeriesHeaderObjects (
+            //    service, wd, div, abbrev, stationName, dataProvider, dataType, timestep,
+            //    null, null, false ); // Don't specify dates and don't request data
+            tslist = new Vector();
+        }
+        catch ( Exception e ) {
+            Message.printWarning(3, routine, "Error reading time series list." );
+            Message.printWarning(3,routine,e);
+            tslist = null;
+        }
+
+        int size = 0;
+        if ( tslist != null ) {
+            size = tslist.size();
+            // Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            /* If objects are time series
+            __query_TableModel = new TSTool_TS_TableModel ( results );
+            TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+            */
+            // Stations and structures...
+            __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
+                __props.getValue( "HydroBase.WDIDLength")), tslist, __selectedInputType );
+            TSTool_HydroBase_CellRenderer cr =
+                new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel(__query_TableModel);
+            // Turn off columns in the table model that do not apply...
+            if ( (tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
+                __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ID );
+            }
+            else if ( !(tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
+                __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
+            }
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (tslist == null) || (size == 0) ) {
+            Message.printStatus ( 1, routine,"Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, routine, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, routine, e );
         JGUIUtil.setWaitCursor ( this, false );
     }
 }
@@ -13320,6 +13451,9 @@ private void uiAction_InputTypeChoiceClicked()
         if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoIPP ) ) {
             uiAction_SelectInputType_ColoradoIPP ();
         }
+        else if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterHBGuest ) ) {
+            uiAction_SelectInputType_ColoradoWaterHBGuest ();
+        }
         else if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
             uiAction_SelectInputType_ColoradoWaterSMS ();
         }
@@ -13444,16 +13578,27 @@ private void uiAction_OpenColoradoIPP ( boolean startup )
             }
         }
         // Override with any TSTool command-line arguments, in particular the user login...
-        String databaseServer = TSToolMain.getPropValue("ColoradoIPP.DatabaseServer" );
-        String databaseName = TSToolMain.getPropValue("ColoradoIPP.DatabaseName" );
-        String systemLogin = TSToolMain.getPropValue("ColoradoIPP.SystemLogin" );
-        String systemPassword = TSToolMain.getPropValue("ColoradoIPP.SystemPassword" );
+        String databaseServer = props.getValue("ColoradoIPP.DatabaseServer" );
+        String databaseName = props.getValue("ColoradoIPP.DatabaseName" );
+        String portString = props.getValue("ColoradoIPP.Port" );
+        String systemLogin = props.getValue("ColoradoIPP.SystemLogin" );
+        String systemPassword = props.getValue("ColoradoIPP.SystemPassword" );
+        Message.printStatus ( 2, routine,
+            "Colorado IPP database configuration information read from file: \""+ cfg + "\"." );
+        Message.printStatus ( 2, routine, "ColoradoIPP.DatabaseServer=\"" + databaseServer + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoIPP.DatabaseName=\"" + databaseName + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoIPP.Port=\"" + portString + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoIPP.SystemLogin=\"" + systemLogin + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoIPP.SystemPassword=\"" + systemPassword + "\"" );
         try {
             // Now open the database...
             // This uses the default login.  If properties were not found,
             // then default ColoradoIPP information will be used.
             String databaseEngine = "SQLServer";
             int port = 0;
+            if ( StringUtil.isInteger(portString) ) {
+                port = Integer.parseInt(portString);
+            }
             IppDMI ippdmi = new IppDMI ( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
             ippdmi.open();
             // Set the IppDMI for the GUI and command processor...
@@ -14970,6 +15115,50 @@ throws Exception
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
     //__query_JWorksheet.removeColumn (((TSTool_ColoradoIPP_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Refresh the query choices for a ColoradoWaterSMS web service.
+*/
+private void uiAction_SelectInputType_ColoradoWaterHBGuest ()
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterHBGuest";
+    // Input name is not currently used...
+    __inputName_JComboBox.removeAll ();
+    __inputName_JComboBox.setEnabled ( false );
+    // Get the distinct list of data types (HBGuest variables) for all stations...
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    ColoradoWaterHBGuest service = new ColoradoWaterHBGuest();
+    // TODO SAM 2010-05-17 Need to enable code
+    List<String> dataTypes = ColoradoWaterHBGuestAPI.readDistinctStationDataTypeList ( service, true );
+    __dataType_JComboBox.removeAll();
+    for ( String dataType : dataTypes  ) {
+        __dataType_JComboBox.add ( dataType );
+    }
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+    
+    // Timestep is irregular (for real-time), and hour and day aggregations
+    __timeStep_JComboBox.setEnabled ( true );
+    __timeStep_JComboBox.removeAll ();
+    __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR );
+    __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
+    __timeStep_JComboBox.select ( 0 );
+
+    // Initialize with blank data vector...
+
+    //__query_TableModel = new TSTool_TS_TableModel(null);
+    //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_TableModel = new TSTool_HydroBase_TableModel(
+        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, __selectedInputType);
+    TSTool_HydroBase_CellRenderer cr =
+        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
