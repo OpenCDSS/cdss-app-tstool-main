@@ -7024,7 +7024,6 @@ private void ui_InitGUIInputFilters ( final int y )
         	}
 
         	if ( __source_MexicoCSMN_enabled ) {
-                PropList filter_props = new PropList ( "InputFilter" );
                 List input_filters = null;
                 InputFilter filter = null;
         		// Add input filters using text fields...
@@ -7075,13 +7074,12 @@ private void ui_InitGUIInputFilters ( final int y )
         			statenum_Vector, statenum_Vector, true );
         		filter.setTokenInfo("-",0);
         		input_filters.add ( filter );
-        		filter_props.set ( "NumFilterGroups=2" );
-                	JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMexicoCSMN_JPanel =
-        			new InputFilter_JPanel ( input_filters, filter_props ), 
+                JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMexicoCSMN_JPanel =
+        			new InputFilter_JPanel ( input_filters, 2, -1 ), 
         			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         			GridBagConstraints.WEST );
         		__inputFilterMexicoCSMN_JPanel.setToolTipText (
-        			"<html>Mexico CSMN queries can be filtered <BR>based on station data.</html>" );
+        			"<html>Mexico CSMN queries can be filtered<br>based on station data.</html>" );
         		__inputFilterJPanelList.add ( __inputFilterMexicoCSMN_JPanel );
         	}
         
@@ -7153,8 +7151,7 @@ private void ui_InitGUIInputFiltersColoradoIPP ( IppDMI ippdmi, int y )
             __inputFilterJPanelList.remove ( __inputFilterColoradoIPPDataMetaData_JPanel );
         }
         // Create a new panel...
-        __inputFilterColoradoIPPDataMetaData_JPanel =
-            new IPP_DataMetaData_InputFilter_JPanel(ippdmi, IPPSubjectType.COUNTY );
+        __inputFilterColoradoIPPDataMetaData_JPanel = new IPP_DataMetaData_InputFilter_JPanel(ippdmi, IPPSubjectType.COUNTY, 5 );
 
         // Add the new panel to the layout and set in the global data...
         int buffer = 3;
@@ -7165,8 +7162,7 @@ private void ui_InitGUIInputFiltersColoradoIPP ( IppDMI ippdmi, int y )
         __inputFilterJPanelList.add ( __inputFilterColoradoIPPDataMetaData_JPanel );
     }
     catch ( Exception e ) {
-        Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for ColoradoIPP time series (" + e + ")." );
+        Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoIPP time series (" + e + ")." );
         Message.printWarning ( 2, routine, e );
     }
 }
@@ -8820,7 +8816,7 @@ Set the input filters based on the current settings.  This sets the appropriate
 input filter visible since all input filters are created at startup.
 */
 private void ui_SetInputFilters()
-{	
+{	String routine = getClass() + getName() + ".ui_SetInputFilters";
     if(__selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) &&
         (__inputFilterColoradoIPPDataMetaData_JPanel != null) ) {
         __selectedInputFilter_JPanel = __inputFilterColoradoIPPDataMetaData_JPanel;
@@ -8838,7 +8834,7 @@ private void ui_SetInputFilters()
 		//String vax_field = hb_mt[1];
 		//String time_step = hb_mt[2];
 		if ( __hbdmi != null ) {
-    		Message.printStatus(2, "", "isStationTimeSeriesDataType("+ __selected_data_type
+    		Message.printStatus(2, routine, "isStationTimeSeriesDataType("+ __selected_data_type
     			+ "," + __selected_time_step + "," + meas_type +
     			")=" + HydroBase_Util.isStationTimeSeriesDataType (__hbdmi, meas_type));
 		}
@@ -9326,181 +9322,7 @@ throws Exception
 		uiAction_ShowProperties_CommandsRun();
 	}
     else if ( command.equals(__File_Properties_TSToolSession_String) ) {
-		// Simple text display of session data, including last
-		// command file that was read.  Put here where in the past
-		// information was shown in labels.  Now need the label space
-		// for other information.
-		PropList reportProp = new PropList ("ReportJFrame.props");
-		// Too big (make this big when we have more stuff)...
-		//reportProp.set ( "TotalWidth", "750" );
-		//reportProp.set ( "TotalHeight", "550" );
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "TSTool Session Properties" );
-		List v = new Vector ( 4 );
-		v.add ( "TSTool Session Properties" );
-		v.add ( "" );
-		if ( __commandFileName == null ) {
-			v.add ( "No command file has been read or saved." );
-		}
-		else {
-            v.add ( "Last command file read/saved: \"" + __commandFileName + "\"" );
-		}
-		v.add ( "Working directory (from user.dir system property):" + System.getProperty ( "user.dir" ) );
-		v.add ( "Current working directory (internal to TSTool) = " + IOUtil.getProgramWorkingDir() );
-		v.add ( "Run commands in thread (internal to TSTool) = " + ui_Property_RunCommandProcessorInThread() );
-		// List open database information...
-		if ( __source_ColoradoSMS_enabled ) {
-			v.add ( "" );
-			if ( __smsdmi == null ) {
-				v.add ( "GUI ColoradoSMS connection not defined.");
-			}
-			else {
-                v.add ( "GUI ColoradoSMS connection information:" );
-				StringUtil.addListToStringList ( v,	StringUtil.toList( __smsdmi.getVersionComments() ) );
-			}
-		}
-		if ( __source_HydroBase_enabled ) {
-			v.add ( "" );
-			if ( __hbdmi == null ) {
-				v.add ( "GUI HydroBase connection not defined.");
-			}
-			else {
-                v.add ( "GUI HydroBase connection information:" );
-				StringUtil.addListToStringList ( v, StringUtil.toList( __hbdmi.getVersionComments() ) );
-			}
-		}
-		// List enabled data types...
-		v.add ( "Input types and whether enabled:" );
-		v.add ( "" );
-        if ( __source_ColoradoIPP_enabled ) {
-            v.add ( "ColoradoIPP input type is enabled" );
-        }
-        else {
-            v.add ( "ColoradoIPP input type is not enabled");
-        }
-		if ( __source_ColoradoSMS_enabled ) {
-			v.add ( "ColoradoSMS input type is enabled" );
-		}
-		else {
-            v.add ( "ColoradoSMS input type is not enabled");
-		}
-		if ( __source_DateValue_enabled ) {
-			v.add ( "DateValue input type is enabled" );
-		}
-		else {
-            v.add ( "DateValue input type is not enabled" );
-		}
-		if ( __source_DIADvisor_enabled ) {
-			v.add ( "DIADvisor input type is enabled" );
-		}
-		else {
-            v.add ( "DIADvisor input type is not enabled" );
-		}
-        if ( __source_HECDSS_enabled ) {
-            v.add ( "HEC-DSS input type is enabled" );
-        }
-        else {
-            v.add ( "HEC-DSS input type is not enabled");
-        }
-		if ( __source_HydroBase_enabled ) {
-			v.add ( "HydroBase input type is enabled" );
-		}
-		else {
-            v.add ( "HydroBase input type is not enabled" );
-		}
-		if ( __source_MexicoCSMN_enabled ) {
-			v.add ( "MexicoCSMN input type is enabled" );
-		}
-		else {
-            v.add ( "MexicoCSMN input type is not enabled" );
-		}
-		if ( __source_MODSIM_enabled ) {
-			v.add ( "MODSIM input type is enabled" );
-		}
-		else {
-            v.add ( "MODSIM input type is not enabled" );
-		}
-		if ( __source_NDFD_enabled  ) {
-			v.add ( "NDFD input type is enabled" );
-		}
-		else {
-            v.add ( "NDFD input type is not enabled" );
-		}
-		if ( __source_NWSCard_enabled  ) {
-			v.add ( "NWSCARD input type is enabled" );
-		}
-		else {
-            v.add ( "NWSCARD input type is not enabled" );
-		}
-		if ( __source_NWSRFS_FS5Files_enabled ) {
-			v.add ( "NWSRFS FS5Files input type is enabled");
-		}
-		else {
-            v.add ( "NWSRFS FS5Files input type is not enabled" );
-		}
-		if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
-			v.add ( "NWSRFS_ESPTraceEnsemble input type is enabled" );
-		}
-		else {
-            v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
-		}
-		if ( __source_RiversideDB_enabled ) {
-			v.add ( "RiversideDB input type is enabled" );
-		}
-		else {
-            v.add ( "RiversideDB input type is not enabled");
-		}
-		if ( __source_RiverWare_enabled ) {
-			v.add ( "RiverWare input type is enabled" );
-		}
-		else {
-            v.add ( "RiverWare input type is not enabled");
-		}
-		if ( __source_SHEF_enabled ) {
-			v.add ( "SHEF input type is enabled" );
-		}
-		else {
-            v.add ( "SHEF input type is not enabled");
-		}
-		if ( __source_StateCU_enabled ) {
-			v.add ( "StateCU input type is enabled" );
-		}
-		else {
-            v.add ( "StateCU input type is not enabled");
-		}
-        if ( __source_StateCUB_enabled ) {
-            v.add ( "StateCUB input type is enabled" );
-        }
-        else {
-            v.add ( "StateCUB input type is not enabled");
-        }
-		if ( __source_StateMod_enabled ) {
-			v.add ( "StateMod input type is enabled" );
-		}
-		else {
-            v.add ( "StateMod input type is not enabled");
-		}
-		if ( __source_StateModB_enabled ) {
-			v.add ( "StateModB input type is enabled" );
-		}
-		else {
-            v.add ( "StateModB input type is not enabled");
-		}
-		if ( __source_USGSNWIS_enabled ) {
-			v.add ( "USGSNWIS input type is enabled" );
-		}
-		else {
-            v.add ( "USGSNWIS input type is not enabled");
-		}
-		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
+        uiAction_ShowProperties_TSToolSession( ui_GetHydroBaseDMI() );
 	}
     else if ( command.equals(__File_Properties_ColoradoSMS_String) ) {
 		// Simple text display of HydroBase properties.
@@ -11533,20 +11355,6 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
     try {
         queryResultsList_Clear ();
 
-        // Datatype not used from main interface because it is in the Where filters
-        //String dataType = StringUtil.getToken(  __dataType_JComboBox.getSelected()," ",0,0).trim();
-        /* Timestep is always year so no need to pass to query
-        String timeStep = __timeStep_JComboBox.getSelected();
-        if ( timeStep == null ) {
-            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
-            JGUIUtil.setWaitCursor ( this, false );
-            return;
-        }
-        else {
-            timeStep = timeStep.trim();
-        }
-        */
-        
         // Get the subject from the where filters.  If not set, warn and don't query
         IPPSubjectType subject = null;
         List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Subject", false, null );
@@ -16643,11 +16451,17 @@ private void uiAction_ShowProperties_CommandsRun ()
 	v.add ( "Working directory (from user.dir system property):  " + System.getProperty ( "user.dir" ) );
 	v.add ( "Initial working directory (internal to TSTool):  " + __tsProcessor.getInitialWorkingDir() );
 	try {
-	    v.add ( "Current working directory (internal to TSTool):  " + __tsProcessor.getPropContents("WorkingDir") );
+	    v.add ( "Current working directory ${WorkingDir}:  " + __tsProcessor.getPropContents("WorkingDir") );
 	}
 	catch ( Exception e ) {
-	    v.add ( "Current working directory (internal to TSTool):  Unknown" );
+	    v.add ( "Current working directory ${WorkingDir}:  Unknown" );
 	}
+    try {
+        v.add ( "Software install directory ${InstallDir}:  " + __tsProcessor.getPropContents("InstallDir") );
+    }
+    catch ( Exception e ) {
+        v.add ( "Software install directory ${InstallDir}:  Unknown" );
+    }
 	// Whether running and cancel requested...
 	v.add ( "Are commands running:  " + __tsProcessor.getIsRunning() );
 	v.add ( "Has cancel been requested (and is pending):  " + __tsProcessor.getCancelProcessingRequested() );
@@ -16718,6 +16532,200 @@ private void uiAction_ShowProperties_CommandsRun ()
 	// Clean up...
 	v = null;
 	reportProp = null;
+}
+
+/**
+Show properties from the TSTool session.
+*/
+private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
+{
+    // Simple text display of session data, including last
+    // command file that was read.  Put here where in the past
+    // information was shown in labels.  Now need the label space
+    // for other information.
+    PropList reportProp = new PropList ("ReportJFrame.props");
+    // Too big (make this big when we have more stuff)...
+    //reportProp.set ( "TotalWidth", "750" );
+    //reportProp.set ( "TotalHeight", "550" );
+    reportProp.set ( "TotalWidth", "600" );
+    reportProp.set ( "TotalHeight", "300" );
+    reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
+    reportProp.set ( "DisplaySize", "11" );
+    reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
+    reportProp.set ( "PrintSize", "7" );
+    reportProp.set ( "Title", "TSTool Session Properties" );
+    List v = new Vector ( 4 );
+    v.add ( "TSTool Session Properties" );
+    v.add ( "" );
+    if ( __commandFileName == null ) {
+        v.add ( "No command file has been read or saved." );
+    }
+    else {
+        v.add ( "Last command file read/saved: \"" + __commandFileName + "\"" );
+    }
+    v.add ( "Working directory (from user.dir system property):" + System.getProperty ( "user.dir" ) );
+    v.add ( "Current working directory (internal to TSTool) = " + IOUtil.getProgramWorkingDir() );
+    v.add ( "Run commands in thread (internal to TSTool) = " + ui_Property_RunCommandProcessorInThread() );
+    // List open database information...
+    if ( __source_ColoradoSMS_enabled ) {
+        v.add ( "" );
+        if ( __smsdmi == null ) {
+            v.add ( "GUI ColoradoSMS connection not defined.");
+        }
+        else {
+            v.add ( "GUI ColoradoSMS connection information:" );
+            StringUtil.addListToStringList ( v, StringUtil.toList( __smsdmi.getVersionComments() ) );
+        }
+    }
+    if ( __source_HydroBase_enabled ) {
+        v.add ( "" );
+        if ( __hbdmi == null ) {
+            v.add ( "GUI HydroBase connection not defined.");
+        }
+        else {
+            v.add ( "GUI HydroBase connection information:" );
+            try {
+                StringUtil.addListToStringList ( v, StringUtil.toList( hbdmi.getVersionComments() ) );
+            }
+            catch ( Exception e ) {
+                v.add ( "Error getting HydroBase connection information (" + e + ")." );
+            }
+        }
+    }
+    // List enabled data types...
+    v.add ( "" );
+    v.add ( "Input types and whether enabled:" );
+    v.add ( "" );
+    if ( __source_ColoradoIPP_enabled ) {
+        v.add ( "ColoradoIPP input type is enabled" );
+    }
+    else {
+        v.add ( "ColoradoIPP input type is not enabled");
+    }
+    if ( __source_ColoradoSMS_enabled ) {
+        v.add ( "ColoradoSMS input type is enabled" );
+    }
+    else {
+        v.add ( "ColoradoSMS input type is not enabled");
+    }
+    if ( __source_DateValue_enabled ) {
+        v.add ( "DateValue input type is enabled" );
+    }
+    else {
+        v.add ( "DateValue input type is not enabled" );
+    }
+    if ( __source_DIADvisor_enabled ) {
+        v.add ( "DIADvisor input type is enabled" );
+    }
+    else {
+        v.add ( "DIADvisor input type is not enabled" );
+    }
+    if ( __source_HECDSS_enabled ) {
+        v.add ( "HEC-DSS input type is enabled" );
+    }
+    else {
+        v.add ( "HEC-DSS input type is not enabled");
+    }
+    if ( __source_HydroBase_enabled ) {
+        v.add ( "HydroBase input type is enabled" );
+    }
+    else {
+        v.add ( "HydroBase input type is not enabled" );
+    }
+    if ( __source_MexicoCSMN_enabled ) {
+        v.add ( "MexicoCSMN input type is enabled" );
+    }
+    else {
+        v.add ( "MexicoCSMN input type is not enabled" );
+    }
+    if ( __source_MODSIM_enabled ) {
+        v.add ( "MODSIM input type is enabled" );
+    }
+    else {
+        v.add ( "MODSIM input type is not enabled" );
+    }
+    if ( __source_NDFD_enabled  ) {
+        v.add ( "NDFD input type is enabled" );
+    }
+    else {
+        v.add ( "NDFD input type is not enabled" );
+    }
+    if ( __source_NWSCard_enabled  ) {
+        v.add ( "NWSCARD input type is enabled" );
+    }
+    else {
+        v.add ( "NWSCARD input type is not enabled" );
+    }
+    if ( __source_NWSRFS_FS5Files_enabled ) {
+        v.add ( "NWSRFS FS5Files input type is enabled");
+    }
+    else {
+        v.add ( "NWSRFS FS5Files input type is not enabled" );
+    }
+    if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
+        v.add ( "NWSRFS_ESPTraceEnsemble input type is enabled" );
+    }
+    else {
+        v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
+    }
+    if ( __source_RiversideDB_enabled ) {
+        v.add ( "RiversideDB input type is enabled" );
+    }
+    else {
+        v.add ( "RiversideDB input type is not enabled");
+    }
+    if ( __source_RiverWare_enabled ) {
+        v.add ( "RiverWare input type is enabled" );
+    }
+    else {
+        v.add ( "RiverWare input type is not enabled");
+    }
+    if ( __source_SHEF_enabled ) {
+        v.add ( "SHEF input type is enabled" );
+    }
+    else {
+        v.add ( "SHEF input type is not enabled");
+    }
+    if ( __source_StateCU_enabled ) {
+        v.add ( "StateCU input type is enabled" );
+    }
+    else {
+        v.add ( "StateCU input type is not enabled");
+    }
+    if ( __source_StateCUB_enabled ) {
+        v.add ( "StateCUB input type is enabled" );
+    }
+    else {
+        v.add ( "StateCUB input type is not enabled");
+    }
+    if ( __source_StateMod_enabled ) {
+        v.add ( "StateMod input type is enabled" );
+    }
+    else {
+        v.add ( "StateMod input type is not enabled");
+    }
+    if ( __source_StateModB_enabled ) {
+        v.add ( "StateModB input type is enabled" );
+    }
+    else {
+        v.add ( "StateModB input type is not enabled");
+    }
+    if ( __source_USGSNWIS_enabled ) {
+        v.add ( "USGSNWIS input type is enabled" );
+    }
+    else {
+        v.add ( "USGSNWIS input type is not enabled");
+    }
+    
+    v.add ( "" );
+    v.add ( "Environment properties:" );
+    v.add ( "" );
+    v.add ( "Software installation directory = \"" + IOUtil.getApplicationHomeDir() + "\"" );
+    v.add ( "Global working directory = \"" + IOUtil.getProgramWorkingDir() + "\"" );
+    new ReportJFrame ( v, reportProp );
+    // Clean up...
+    v = null;
+    reportProp = null;
 }
 
 /**

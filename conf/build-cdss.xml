@@ -44,6 +44,12 @@
     	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/download-snotel.py"/>
     	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/download-snotel.doc"/>
     	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/TSlite.py"/>
+    	<mkdir dir="${install.dir}/python/table"/>
+    	<copy todir="${install.dir}/python/table">
+    		<fileset dir="resources/runtime/python/table">
+    			<include name="*.py"/>
+    			</fileset>
+    		</copy>
     	<!-- System (configuration) files -->
     	<copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/TSTool.cfg"/>
