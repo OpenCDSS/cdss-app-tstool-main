@@ -1670,7 +1670,8 @@ private String
 	__Results_Ensemble_Properties_String = "Ensemble Properties",
 
 	__Results_Table_String = "Table",
-	__Results_Report_Summary_String = "Report - Summary",
+	__Results_Report_Summary_Html_String = "Report - Summary (HTML)",
+	__Results_Report_Summary_Text_String = "Report - Summary (Text)",
 	__Results_TimeSeriesProperties_String = "Time Series Properties",
 
 	// Only for popup Results menu...
@@ -6687,15 +6688,13 @@ private void ui_InitGUI ( )
 	y = 7;
     __CopySelectedToCommands_JButton = new SimpleJButton( BUTTON_TOP_COPY_SELECTED_TO_COMMANDS,this);
 	__CopySelectedToCommands_JButton.setToolTipText (
-		"<html>Copy selected time series from above to the Commands " +
-		"list as time series identifiers.<br/>" +
+		"<html>Copy selected time series from above to the Commands list as time series identifiers.<br/>" +
 		"Insert AFTER last selected command or at end if no commands are selected.</html>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopySelectedToCommands_JButton, 
 		1, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
     __CopyAllToCommands_JButton = new SimpleJButton( BUTTON_TOP_COPY_ALL_TO_COMMANDS,this);
 	__CopyAllToCommands_JButton.setToolTipText (
-		"<html>Copy all time series from above to the Commands " +
-		"list as time series identifiers.<br />" +
+		"<html>Copy all time series from above to the Commands list as time series identifiers.<br />" +
 		"Insert AFTER last selected command or at end if no commands are selected.</html>" );
     JGUIUtil.addComponent ( __query_results_JPanel,	__CopyAllToCommands_JButton, 
 		2, y, 1, 1, 0.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.EAST );
@@ -6765,14 +6764,14 @@ private void ui_InitGUI ( )
 		new SimpleJButton(__Button_RunSelectedCommands_String,__Run_SelectedCommandsCreateOutput_String, this);
 	__Run_SelectedCommands_JButton.setToolTipText (
 		"<html>Run selected commands from above to generate time " +
-		"series,<BR>which will be shown in the Time Series Results list below.</html>" );
+		"series,<br>which will be shown in the Time Series Results list below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_SelectedCommands_JButton,
 		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Run_AllCommands_JButton =
 		new SimpleJButton(__Button_RunAllCommands_String, __Run_AllCommandsCreateOutput_String, this);
 	__Run_AllCommands_JButton.setToolTipText (
 		"<html>Run all commands from above to generate time series," +
-		"<BR>which will be shown in the Time Series Results list below.</html>" );
+		"<br>which will be shown in the Time Series Results list below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
 		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	// Put on right because we want it to be a decision to clear...
@@ -7105,21 +7104,16 @@ private void ui_InitGUIInputFilters ( final int y )
         	// Always add a generic input filter JPanel that is shared by input
         	// types that do not have filter capabilities and when database connections are not set up...
         
-           	JGUIUtil.addComponent(__queryInput_JPanel,
-        		__inputFilterGeneric_JPanel = new InputFilter_JPanel (),
-        			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-        			GridBagConstraints.WEST );
-        	__inputFilterGeneric_JPanel.setToolTipText (
-        		"<html>The selected input type does not support <BR>input filters.</html>" );
+           	JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterGeneric_JPanel = new InputFilter_JPanel (),
+    			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+        	__inputFilterGeneric_JPanel.setToolTipText ( "The selected input type does not support input filters." );
         	__inputFilterJPanelList.add ( __inputFilterGeneric_JPanel );
         	
             // Always add a message input filter JPanel that can be used to display a message, such as
         	// an instruction that a database connection is not available...
         
-            JGUIUtil.addComponent(__queryInput_JPanel,
-                __inputFilterMessage_JPanel = new InputFilter_JPanel (""),
-                    0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                    GridBagConstraints.WEST );
+            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMessage_JPanel = new InputFilter_JPanel (""),
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
             __inputFilterJPanelList.add ( __inputFilterMessage_JPanel );
             
         	// The appropriate JPanel will be set visible later based on the input type that is selected.
@@ -8404,8 +8398,10 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( __Results_Table_String, this ) );
 
 	__Results_JMenu.addSeparator();
+    __Results_JMenu.add(__Results_Report_Summary_JMenuItem =
+        new SimpleJMenuItem( __Results_Report_Summary_Html_String, this ) );
 	__Results_JMenu.add(__Results_Report_Summary_JMenuItem =
-        new SimpleJMenuItem( __Results_Report_Summary_String, this ) );
+        new SimpleJMenuItem( __Results_Report_Summary_Text_String, this ) );
 
 	__Results_JMenu.addSeparator();
 	__Results_JMenu.add(__Results_TimeSeriesProperties_JMenuItem =
@@ -8431,7 +8427,8 @@ private void ui_InitGUIMenus_ResultsPopup ()
 	__resultsTS_JPopupMenu.addSeparator();
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Table_String, this ) );
 	__resultsTS_JPopupMenu.addSeparator();
-	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Report_Summary_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Report_Summary_Html_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Report_Summary_Text_String, this ) );
 	__resultsTS_JPopupMenu.addSeparator();
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_FindTimeSeries_String, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( BUTTON_TS_SELECT_ALL, this ) );
@@ -10334,7 +10331,13 @@ throws Exception
 		// For now handle similar to the summary report, forcing a preview...
     	uiAction_ExportTimeSeriesResults("-otable", "-preview" );
 	}
-    else if ( command.equals(__Results_Report_Summary_String) ) {
+    else if ( command.equals(__Results_Report_Summary_Html_String) ) {
+        // SAM.  Let the ReportJFrame prompt for this.  This is
+        // different from the StateMod output in that when a summary is
+        // exported in the GUI, the user views first and then saves to disk.
+        uiAction_ExportTimeSeriesResults("-osummaryhtml", "-preview" );
+    }
+    else if ( command.equals(__Results_Report_Summary_Text_String) ) {
 		// SAM.  Let the ReportJFrame prompt for this.  This is
 		// different from the StateMod output in that when a summary is
 		// exported in the GUI, the user views first and then saves to disk.
@@ -14444,14 +14447,12 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
             ts = commandProcessor_GetTimeSeries(i);
 		}
 		catch ( Exception e ) {
-			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) +
-			") - Error getting time series from processor." );
+			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") - Error getting time series from processor." );
 			Message.printWarning ( 3, routine, e );
 			continue;
 		}
 		if ( ts == null ) {
-			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1)+
-			") - Null time series from processor." );
+			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") - Null time series from processor." );
 			continue;
 		}
 		else {
@@ -14548,8 +14549,7 @@ private void uiAction_RunCommandFile ()
 	}
 }
 
-//TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series
-//that are selected.
+//TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series that are selected.
 /**
 Save the current time series to the selected format.  The user picks the file
 and the format, via the chooser filter.
@@ -14569,17 +14569,12 @@ private void uiAction_SaveTimeSeries ()
 		fc.addChoosableFileFilter ( esp_cs_sff );
 	}
 	// Add NWS Card only if enabled in the configuration... 
-//	SimpleFileFilter nwscard_sff = null;
 	FileFilter[] nwscardFilters = null;
 	if ( __source_NWSCard_enabled ) {
 		nwscardFilters = NWSCardTS.getFileFilters();
 		for (int i = 0; i < nwscardFilters.length - 1; i++) {
 			fc.addChoosableFileFilter(nwscardFilters[i]);
 		}
-/*
-		nwscard_sff = new SimpleFileFilter( "nwscard", "NWS Card Time Series File" );
-		fc.addChoosableFileFilter( nwscard_sff );
-*/
 	}
 	// Add RiverWare only if enabled in the configuration... 
 	SimpleFileFilter riverware_sff = null;
@@ -14617,12 +14612,6 @@ private void uiAction_SaveTimeSeries ()
 	if ( ff == datevalue_sff ) {
 		uiAction_ExportTimeSeriesResults("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
 	}
-	/*
-	else if ( ff == nwscard_sff ) {
-		// Don't know for sure what extension...
-		export("-onwscard", path );
-	}
-	*/
 	else if ( ff == esp_cs_sff ) {
 		uiAction_ExportTimeSeriesResults("-onwsrfsesptraceensemble",
 		IOUtil.enforceFileExtension(path,"CS") );
@@ -14653,8 +14642,7 @@ private void uiAction_SaveTimeSeries ()
 }
 
 /**
-Select all commands in the commands list.  This occurs in response to a user
-selecting a menu choice.
+Select all commands in the commands list.  This occurs in response to a user selecting a menu choice.
 */
 private void uiAction_SelectAllCommands()
 {	JGUIUtil.selectAll(ui_GetCommandJList());
@@ -16742,8 +16730,12 @@ private void uiAction_ShowResultsOutputFile ( String selected )
     if ( !( new File( selected ).isAbsolute() ) ) {
         selected = IOUtil.getPathUsingWorkingDir( selected );
     }
-    if ( selected.toUpperCase().endsWith(".HTML")) {
-        // FIXME SAM 2009-04-21 Use a browser because the embedded view does not look that good.
+    // TODO SAM 2010-06-06 Need to evaluate when to use system-defined viewers rather than hard-coding file
+    // extensions here.  Probably need to find UNIX code consistent with windows code to determine viewer from extension
+    if ( selected.toUpperCase().endsWith(".HTML") || selected.toUpperCase().endsWith(".PNG") ||
+        selected.toUpperCase().endsWith(".JPG")) {
+        // FIXME SAM 2009-04-21 Use a browser for HTML because the embedded view does not look that good.
+        // ALso use for common image types
         IOUtil.openURL( selected );
         /*
         // Run the simple RTi browser to display the check file
