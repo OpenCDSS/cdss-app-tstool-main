@@ -1,6 +1,10 @@
 #
 # Simple Python script to transpose a CSV file so that rows are columns.
-# This is useful to get around the Excel 256 column limit.
+# This is useful for:
+#
+#  * getting around the Excel 256 column limit.
+#  * taking a column of identifiers and creating a single row of csv
+#
 # There is very little error checking in this script.
 #
 # 1. The input is allowed to have # comments at the top - they are discarded.
