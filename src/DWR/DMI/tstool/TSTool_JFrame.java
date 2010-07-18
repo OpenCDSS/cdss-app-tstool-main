@@ -52,6 +52,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
@@ -66,6 +67,8 @@ import rti.tscommandprocessor.core.TSCommandProcessor;
 import rti.tscommandprocessor.core.TSCommandProcessorListModel;
 import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
+import rti.tscommandprocessor.core.TimeSeriesTreeView;
+import rti.tscommandprocessor.core.TimeSeriesView;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
@@ -167,6 +170,7 @@ import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
+import RTi.Util.GUI.SimpleJTree;
 import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
@@ -632,7 +636,7 @@ private String __commandFileName = null;
 //================================
 
 /**
-Tabbed panel to include all results.
+Tabbed pane to include all results.
 */
 private JTabbedPane __results_JTabbedPane;
 
@@ -647,7 +651,7 @@ Final list showing in-memory time series ensemble results.
 private JList __resultsTSEnsembles_JList;
 
 /**
-JList data model for final time series ensembles (basically a Vector of
+JList data model for final time series ensembles (basically a list of
 time series associated with __results_tsensembles_JList).
 */
 private DefaultListModel __resultsTSEnsembles_JListModel;
@@ -712,6 +716,16 @@ JList data model for final time series (basically a Vector of
 filenames associated with __resultsOutputFiles_JList).
 */
 private DefaultListModel __resultsOutputFiles_JListModel;
+
+/**
+Panel for results views.
+*/
+private JPanel __resultsViews_JPanel;
+
+/**
+Tabbed pane for views within the view results.
+*/
+private JTabbedPane __resultsViews_JTabbedPane;
 
 //================================
 // Status-area related...
@@ -1182,12 +1196,19 @@ JMenuItem
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
 
-// Commands (Template)...
+// Commands (Template Processing)...
 
 JMenu
     __Commands_Template_JMenu = null;
 JMenuItem
     __Commands_Template_ExpandTemplateFile_JMenuItem;
+
+//Commands (View Processing)...
+
+JMenu
+    __Commands_View_JMenu = null;
+JMenuItem
+    __Commands_View_NewTreeView_JMenuItem;
 
 // Commands (General)...
 
@@ -1606,6 +1627,11 @@ private String
 
     __Commands_Template_String = "Template Processing",
     __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
+    
+    // View Commands...
+
+    __Commands_View_String = "View Processing",
+    __Commands_View_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
     
 	// General Commands...
     
@@ -3491,7 +3517,7 @@ Get the command processor table results list.
 @return The table results list or null
 if the processor is not available.
 */
-private List commandProcessor_GetTableResultsList()
+private List<DataTable> commandProcessor_GetTableResultsList()
 {   String routine = "TSTool_JFrame.commandProcessorGetTableResultsList";
     Object o = null;
     try {
@@ -3505,7 +3531,7 @@ private List commandProcessor_GetTableResultsList()
         return null;
     }
     else {
-        return (List)o;
+        return (List<DataTable>)o;
     }
 }
 
@@ -3578,6 +3604,28 @@ private int commandProcessor_GetTimeSeriesResultsListSize()
 		return 0;
 	}
 	return results.size();
+}
+
+/**
+Get the command processor time series view results list.
+@return The time series view results list or null if the processor is not available.
+*/
+private List<TimeSeriesView> commandProcessor_GetTimeSeriesViewResultsList()
+{   String routine = "TSTool_JFrame.commandProcessor_GetTimeSeriesViewResultsList";
+    Object o = null;
+    try {
+        o = __tsProcessor.getPropContents ( "TimeSeriesViewResultsList" );
+    }
+    catch ( Exception e ) {
+        String message = "Error requesting TimeSeriesViewResultsList from processor.";
+        Message.printWarning(2, routine, message );
+    }
+    if ( o == null ) {
+        return null;
+    }
+    else {
+        return (List<TimeSeriesView>)o;
+    }
 }
 
 // TODO SAM 2008-01-05 Evaluate whether this should live in the processor.
@@ -5442,9 +5490,10 @@ Clear the results displays.
 private void results_Clear()
 {
     results_Ensembles_Clear();
+    results_OutputFiles_Clear();
 	results_TimeSeries_Clear();
     results_Tables_Clear();
-	results_OutputFiles_Clear();
+    results_Views_Clear();
 }
 
 /**
@@ -5542,7 +5591,7 @@ private void results_Tables_AddTable ( DataTable table )
 }
 
 /**
-Clear the list of results tables.  This is normally called before the commands are run.
+Clear the list of results tables.  This is normally called immediately before the commands are run.
 */
 private void results_Tables_Clear()
 {
@@ -5567,6 +5616,32 @@ private void results_TimeSeries_Clear()
 {	// Clear the visible list of results...
 	__resultsTS_JListModel.removeAllElements();
 	ui_UpdateStatus ( false );
+}
+
+/**
+Add the specified view to the list of views that can be selected for viewing.
+@param view time series view generated by the processor.
+*/
+private void results_Views_AddView ( TimeSeriesView view )
+{   String viewid = view.getViewID();
+    // The tabbed pane is cleared before running commands so adding a view should be as simple
+    // as adding a new panel to the tabbed pane
+    if ( view instanceof TimeSeriesTreeView ) {
+        TimeSeriesTreeView treeView = (TimeSeriesTreeView)view;
+        __resultsViews_JTabbedPane.add(viewid,new JScrollPane(new JTree(treeView.getRootNode())));
+        //__resultsViews_JTabbedPane.add(viewid,new JScrollPane(new SimpleJTree(treeView.getRootNode())));
+    }
+    else {
+        __resultsViews_JTabbedPane.add ( new JLabel("View is not implemented.") );
+    }
+}
+
+/**
+Clear the list of results views.  This is normally called immediately before the commands are run.
+*/
+private void results_Views_Clear()
+{
+    __resultsViews_JTabbedPane.removeAll();
 }
 
 /**
@@ -6907,6 +6982,17 @@ private void ui_InitGUI ( )
 		0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Time Series", __resultsTS_JPanel );
     
+    // Results: views...
+
+    __resultsViews_JPanel = new JPanel();
+    __resultsViews_JPanel.setLayout(gbl);
+    JGUIUtil.addComponent(center_JPanel, __resultsViews_JPanel,
+        0, 3, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
+    __resultsViews_JTabbedPane = new JTabbedPane();
+    JGUIUtil.addComponent(__resultsViews_JPanel, __resultsViews_JTabbedPane, 
+        0, 0, 1, 1, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Views", __resultsViews_JPanel );
+    
     // Default to time series selected since that is what most people have seen with previous
     // TSTool versions...
     
@@ -7978,6 +8064,13 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_Template_JMenu = new JMenu( __Commands_Template_String, true ) );
     __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
+    
+    // Commands...View processing...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_View_JMenu = new JMenu( __Commands_View_String, true ) );
+    __Commands_View_JMenu.add( __Commands_View_NewTreeView_JMenuItem =
+        new SimpleJMenuItem( __Commands_View_NewTreeView_String, this ) );
     
     // Commands...General...
 
@@ -10102,6 +10195,12 @@ throws Exception
 
     else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
         commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, __INSERT_COMMAND );
+    }
+	
+	// View commands...
+
+    else if (command.equals( __Commands_View_NewTreeView_String) ) {
+        commandList_EditCommand ( __Commands_View_NewTreeView_String, null, __INSERT_COMMAND );
     }
 	
 	// General commands...
@@ -14287,11 +14386,12 @@ private void uiAction_RunCommands_ShowResults()
             // layers of recursion can occur when running a command file)...
             TSCommandProcessorUtil.closeRegressionTestReportFile();
 			results_Clear();
-			uiAction_RunCommands_ShowResultsTimeSeries();
-            uiAction_RunCommands_ShowResultsTables();
-			uiAction_RunCommands_ShowResultsOutputFiles();
-			uiAction_RunCommands_ShowResultsProblems();
             uiAction_RunCommands_ShowResultsEnsembles();
+            uiAction_RunCommands_ShowResultsOutputFiles();
+            uiAction_RunCommands_ShowResultsProblems();
+            uiAction_RunCommands_ShowResultsTables();
+			uiAction_RunCommands_ShowResultsTimeSeries();
+			uiAction_RunCommands_ShowResultsViews();
             
             // Repaint the list to reflect the status of the commands...
             ui_ShowCurrentCommandListStatus ();
@@ -14508,6 +14608,26 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	//JGUIUtil.setWaitCursor ( this, false );
 	
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Leaving method.");
+}
+
+/**
+Display the table results.
+*/
+private void uiAction_RunCommands_ShowResultsViews()
+{   // Get the list of views from the processor.
+    //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTables", "Entering method.");
+    // Get the list of table identifiers from the processor.
+    List<TimeSeriesView> view_List = commandProcessor_GetTimeSeriesViewResultsList();
+    int size = 0;
+    if ( view_List != null ) {
+        size = view_List.size();
+    }
+    TimeSeriesView view;
+    for ( int i = 0; i < size; i++ ) {
+        view = view_List.get(i);
+        results_Views_AddView ( view );
+    }
+    //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTables", "Leaving method.");
 }
 
 /**
@@ -16453,8 +16573,8 @@ private void uiAction_ShowProperties_CommandsRun ()
 	// Whether running and cancel requested...
 	v.add ( "Are commands running:  " + __tsProcessor.getIsRunning() );
 	v.add ( "Has cancel been requested (and is pending):  " + __tsProcessor.getCancelProcessingRequested() );
-	v.add ( "Total number of failure/warning messages from run:  " + CommandStatusUtil.getLogRecordList(
-	    __tsProcessor.getCommands(), CommandPhaseType.RUN ).size());
+	v.add ( "Total number of failure/warning messages from run:  " +
+	    CommandStatusUtil.getLogRecordListFromCommands(__tsProcessor.getCommands(), CommandPhaseType.RUN ).size());
 
 	// Input period...
 	DateTime date1 = commandProcessor_GetInputStart();
