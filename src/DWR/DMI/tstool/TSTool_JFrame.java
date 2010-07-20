@@ -52,7 +52,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
@@ -68,6 +67,7 @@ import rti.tscommandprocessor.core.TSCommandProcessorListModel;
 import rti.tscommandprocessor.core.TSCommandProcessorThreadRunner;
 import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 import rti.tscommandprocessor.core.TimeSeriesTreeView;
+import rti.tscommandprocessor.core.TimeSeriesTreeView_JTree;
 import rti.tscommandprocessor.core.TimeSeriesView;
 
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
@@ -170,7 +170,6 @@ import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
-import RTi.Util.GUI.SimpleJTree;
 import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
@@ -2297,9 +2296,9 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 
 /**
 Determine whether commands are equal.  To allow for multi-line commands, each
-command is stored in a Vector (but typically only the first String is used.
-@param original_command Original command as a Vector of String or Command.
-@param edited_command Edited command as a Vector of String or Command.
+command is stored in a list (but typically only the first String is used.
+@param original_command Original command as a list of String or Command.
+@param edited_command Edited command as a list of String or Command.
 */
 private boolean commandList_CommandsAreEqual(List original_command, List edited_command)
 {	if ( (original_command == null) && (edited_command != null) ) {
@@ -2442,9 +2441,9 @@ be edited are when they are in a {# delimited comment block).
 @param mode the action to take when editing the command (__INSERT_COMMAND for a
 new command or __UPDATE_COMMAND for an existing command).
 */
-private void commandList_EditCommand ( String action, List command_Vector, int mode )
+private void commandList_EditCommand ( String action, List<Command> command_Vector, int mode )
 {	String routine = getClass().getName() + ".editCommand";
-	int dl = 1;		// Debug level
+	int dl = 1; // Debug level
 	
     // Make absolutely sure that warning level 1 messages are shown to the user in a dialog.
     // This may have been turned off in command processing.
@@ -2492,7 +2491,7 @@ private void commandList_EditCommand ( String action, List command_Vector, int m
 		}
 		else {
 			// Get the original command...
-			command_to_edit_original = (Command)command_Vector.get(0);
+			command_to_edit_original = command_Vector.get(0);
 			// Clone it so that the edit occurs on the copy...
 			command_to_edit = (Command)command_to_edit_original.clone();
 			Message.printStatus(2, routine, "Cloned command to edit: \"" + command_to_edit + "\"" );
@@ -2538,7 +2537,7 @@ private void commandList_EditCommand ( String action, List command_Vector, int m
 	// Second, edit the command, whether an update or an insert...
 
 	boolean edit_completed = false;
-	List new_comments = new Vector();	// Used if comments are edited.
+	List<String> new_comments = new Vector();	// Used if comments are edited.
 	if ( is_comment_block ) {
 		// Edit using the old-style editor...
 		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, command_Vector, new_comments );
@@ -2606,7 +2605,7 @@ private void commandList_EditCommand ( String action, List command_Vector, int m
 			else {
 				// A temporary new command was inserted so remove it.
 				commandList_RemoveCommand(command_to_edit);
-				Message.printStatus(2, routine, "Edit was cancelled.  Removing from command list." );
+				Message.printStatus(2, routine, "Edit was canceled.  Removing from command list." );
 			}
 		}
 		else if ( mode == __UPDATE_COMMAND ) {
@@ -2615,7 +2614,7 @@ private void commandList_EditCommand ( String action, List command_Vector, int m
 			}
 			else {
 				// Else was an update so restore the original command...
-			    Message.printStatus(2, routine, "Edit was cancelled.  Restoring pre-edit command." );
+			    Message.printStatus(2, routine, "Edit was canceled.  Restoring pre-edit command." );
 				int pos = commandList_IndexOf(command_to_edit);
 				commandList_RemoveCommand(command_to_edit);
 				commandList_InsertCommandAt(command_to_edit_original, pos);
@@ -2630,7 +2629,7 @@ private void commandList_EditCommand ( String action, List command_Vector, int m
 	}
 	catch ( Exception e2 ) {
 		// TODO SAM 2005-05-18 Evaluate handling of unexpected error... 
-		Message.printWarning(1, routine, "Unexpected error editing command." );
+		Message.printWarning(1, routine, "Unexpected error editing command (" + e2 + ")." );
 		Message.printWarning ( 3, routine, e2 );
 	}
 }
@@ -2670,29 +2669,29 @@ Edit comments using an old-style editor.
 @param mode Mode of editing, whether updating or inserting.
 @param action If not null, then the comments are new (insert).
 @param command_Vector Comments being edited as a Vector of GenericCommand, as passed from the legacy code.
-@param new_comments The new comments as a Vector of String, to be inserted into the command list.
+@param new_comments The new comments as a list of String, to be inserted into the command list.
 @return true if the command edits were committed, false if canceled.
 */
 private boolean commandList_EditCommandOldStyleComments (
-		int mode, String action, List command_Vector, List new_comments )
+	int mode, String action, List<Command> command_Vector, List<String> new_comments )
 {	//else if ( action.equals(__Commands_General_Comment_String) ||
 	//	command.startsWith("#") ) {
-    List cv = new Vector();
+    List<String> cv = new Vector();
 	int size = 0;
 	if ( command_Vector != null ) {
 		size = command_Vector.size();
 	}
 	Command command = null;
 	for ( int i = 0; i < size; i++ ) {
-		command = (Command)command_Vector.get(i);
+		command = command_Vector.get(i);
 		cv.add( command.toString() );
 	}
-	List edited_cv = new Comment_JDialog ( this, cv ).getText();
+	List<String> edited_cv = new Comment_JDialog ( this, cv ).getText();
 	if ( edited_cv == null ) {
 		return false;
 	}
 	else {
-		// Transfer to the Vector that was passed in...
+		// Transfer to the list that was passed in...
 		int size2 = edited_cv.size();
 		for ( int i = 0; i < size2; i++ ) {
 			new_comments.add ( edited_cv.get(i) );
@@ -2868,9 +2867,9 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 /**
 Insert comments into the command list, utilizing the selected commands in the displayed
 list to determine the insert position.
-@param new_comments The comments to insert, as a Vector of String.
+@param new_comments The comments to insert, as a list of String.
 */
-private void commandList_InsertCommentsBasedOnUI ( List new_comments )
+private void commandList_InsertCommentsBasedOnUI ( List<String> new_comments )
 {	String routine = getClass().getName() + ".commandList_InsertCommentsBasedOnUI";
 
 	// Get the selected indices from the commands...
@@ -2882,7 +2881,15 @@ private void commandList_InsertCommentsBasedOnUI ( List new_comments )
 	int insert_pos = 0;
 	Command inserted_command = null;	// New comment line as Command
 	for ( int i = 0; i < size; i++ ) {
-		inserted_command = commandList_NewCommand ( (String)new_comments.get(i), true );
+		inserted_command = commandList_NewCommand ( new_comments.get(i), true );
+		// Check the command parameters to trigger an OK status - otherwise
+		// the UI will decorate the command to indicate status unknown
+		try {
+		    inserted_command.checkCommandParameters(null, "", 3);
+		}
+		catch ( Exception e ) {
+		    // Should not happen.
+		}
 		if (selectedSize > 0) {
 			// Insert before the first selected item...
 			int insert_pos0 = selectedIndices[0];
@@ -2892,7 +2899,7 @@ private void commandList_InsertCommentsBasedOnUI ( List new_comments )
 				inserted_command + "\" at [" + insert_pos + "]" );
 		}
 		else {
-		    // Insert at end of commands list.
+		    // Insert at end of command list.
 			__commands_JListModel.addElement ( inserted_command );
 			insert_pos = __commands_JListModel.size() - 1;
 		}
@@ -2901,7 +2908,7 @@ private void commandList_InsertCommentsBasedOnUI ( List new_comments )
 	if ( insert_pos >= 0 ) {
 	    ui_GetCommandJList().ensureIndexIsVisible ( insert_pos );
 	}
-	// Since an insert, mark the commands list as dirty...
+	// Since an insert, mark the command list as dirty...
 	//commandList_SetDirty(true);
 }
 
@@ -2917,7 +2924,7 @@ This allows a warning to be printed that only a block of ALL comments can be edi
 for true to be returned.  The GUI code should check this and disallow comment edits if not contiguous.
 */
 private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
-        List commands, boolean allMustBeComments, boolean mustBeContiguous )
+        List<Command> commands, boolean allMustBeComments, boolean mustBeContiguous )
 {
 	int size_commands = commands.size();
 	boolean is_comment_block = true;
@@ -2927,12 +2934,11 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 	int comment_count = 0;
 	int pos_prev = -1;
 	for ( int i = 0; i < size_commands; i++ ) {
-		command = (Command)commands.get(i);
+		command = commands.get(i);
 		if ( command instanceof Comment_Command ) {
 			++comment_count;
 		}
-		// Get the index position in the commands processor and
-		// check for contiguousness.
+		// Get the index position in the commands processor and check for contiguousness.
 		int pos = processor.indexOf(command);
 		if ( (i > 0) && (pos != (pos_prev + 1)) ) {
 			is_contiguous = false;
@@ -3106,7 +3112,7 @@ Replace a contiguous block of # comments with another block.
 @param old_comments Vector of old comments (as Command) to remove.
 @param new_comments Vector of new comments (as String) to insert in its place.
 */
-private void commandList_ReplaceComments ( List old_comments, List new_comments )
+private void commandList_ReplaceComments ( List<Command> old_comments, List<String> new_comments )
 {	//String routine = getClass().getName() + ".commandList_ReplaceComments";
 	// Probably could get the index passed in from list operations but
 	// do the lookup through the data model to be more independent.
@@ -3126,7 +3132,15 @@ private void commandList_ReplaceComments ( List old_comments, List new_comments 
 	if ( pos_old < __tsProcessor.size() ) {
 		// Have enough elements to add at the requested position...
 		for ( int i = 0; i < size_new; i++ ) {
-			Command new_command = commandList_NewCommand ( (String)new_comments.get(i), true );
+			Command new_command = commandList_NewCommand ( new_comments.get(i), true );
+			// Check the command parameters to trigger an OK status - otherwise
+	        // the UI will decorate the command to indicate status unknown
+	        try {
+	            new_command.checkCommandParameters(null, "", 3);
+	        }
+	        catch ( Exception e ) {
+	            // Should not happen.
+	        }
 			//Message.printStatus ( 2, routine, "Inserting " + new_command + " at " + (pos_old + 1));
 			__tsProcessor.insertCommandAt( new_command, (pos_old + i) );
 		}
@@ -3134,7 +3148,7 @@ private void commandList_ReplaceComments ( List old_comments, List new_comments 
 	else {
 		// Add at the end...
 		for ( int i = 0; i < size_new; i++ ) {
-			Command new_command = commandList_NewCommand ( (String)new_comments.get(i), true );
+			Command new_command = commandList_NewCommand ( new_comments.get(i), true );
 			//Message.printStatus ( 2, routine, "Adding " + new_command + " at end" );
 			__tsProcessor.addCommand ( new_command );
 		}
@@ -3336,7 +3350,7 @@ reporting.  Any errors in the processor should be detected during command initia
 @return The HydroBaseDMIList as a Vector from the command processor or null if
 not yet determined or no connections.
 */
-private List commandProcessor_GetHydroBaseDMIList()
+private List<HydroBaseDMI> commandProcessor_GetHydroBaseDMIList()
 {	if ( __tsProcessor == null ) {
 		return null;
 	}
@@ -3351,7 +3365,7 @@ private List commandProcessor_GetHydroBaseDMIList()
 		return null;
 	}
 	else {
-	    return (List)o;
+	    return (List<HydroBaseDMI>)o;
 	}
 }
 
@@ -5627,9 +5641,11 @@ private void results_Views_AddView ( TimeSeriesView view )
     // The tabbed pane is cleared before running commands so adding a view should be as simple
     // as adding a new panel to the tabbed pane
     if ( view instanceof TimeSeriesTreeView ) {
+        // See the StateMod_DataSet_JTree for a more complex tree - this is pretty simple for now
         TimeSeriesTreeView treeView = (TimeSeriesTreeView)view;
-        __resultsViews_JTabbedPane.add(viewid,new JScrollPane(new JTree(treeView.getRootNode())));
-        //__resultsViews_JTabbedPane.add(viewid,new JScrollPane(new SimpleJTree(treeView.getRootNode())));
+        //__resultsViews_JTabbedPane.add(viewid,new JScrollPane(new JTree(treeView.getRootNode())));
+        TimeSeriesTreeView_JTree tree = new TimeSeriesTreeView_JTree(treeView.getRootNode());
+        __resultsViews_JTabbedPane.add(viewid,new JScrollPane(tree));
     }
     else {
         __resultsViews_JTabbedPane.add ( new JLabel("View is not implemented.") );
