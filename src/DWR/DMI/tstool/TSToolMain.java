@@ -461,7 +461,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.06.04 beta (2010-05-19)";
+public static final String PROGRAM_VERSION = "9.07.00 beta (2010-08-09)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1377,7 +1377,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
 Set the working directory as the system "user.dir" property.
 */
 private static void setWorkingDirInitial()
-{String routine = "TSToolMain.setWorkingDirInitial";
+{   String routine = "TSToolMain.setWorkingDirInitial";
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
     // Set the dialog because if the running in batch mode and interaction with the graph
