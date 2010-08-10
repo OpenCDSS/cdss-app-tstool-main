@@ -15069,6 +15069,10 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	// Make sure that the user is not waiting on the wait cursor....
 	//JGUIUtil.setWaitCursor ( this, false );
 	
+	// TODO SAM 2010-08-09 Evaluate whether this fixes the problem and evaluate the approach
+	// Redraw the list because sometimes it gets out of sync with the UI
+	__resultsTS_JList.invalidate();
+	
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Leaving method.");
 }
 
