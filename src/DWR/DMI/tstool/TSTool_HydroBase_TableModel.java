@@ -101,7 +101,7 @@ throws Exception
 			else if ( o instanceof HydroBase_StructureGeolocStructMeasType ) {
 				__record_type = __RECORD_TYPE_STRUCTURES;
 				// Hide the abbreviation...
-				// FIXME - Tom was working on this - currently it does not work (?)
+				// FIXME - Tom was working on this - currently it does not work here - is in TSTool_JFrame(?)
 				//worksheet.removeColumn ( COL_ABBREV );
 			}
 			else if (o instanceof HydroBase_GroundWaterWellsView) {
@@ -425,6 +425,15 @@ public int[] getColumnWidths() {
 	widths[COL_HUC] = 8;
 	widths[COL_INPUT_TYPE] = 12;
 	return widths;
+}
+
+/**
+Set the input type (default is "HydroBase" but need to change when the table model is used for
+multiple purposes.
+*/
+public void setInputType ( String inputType )
+{
+    __inputType = inputType;
 }
 
 /**
