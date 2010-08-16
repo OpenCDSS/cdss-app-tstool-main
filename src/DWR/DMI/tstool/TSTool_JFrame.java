@@ -82,7 +82,7 @@ import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuestAPI;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuestService;
-import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocStructMeasType_InputFilter_JPanel;
+import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel;
 import us.co.state.dwr.sms.ColoradoWaterSMS;
 import us.co.state.dwr.sms.ColoradoWaterSMSAPI;
 
@@ -5125,6 +5125,13 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
 	if ( (comment != null) && !comment.equals("") ) {
 	    // Insert a comment prior to the command, for example to include the station description.
 	    Command commentCommand = commandList_NewCommand ( "# " + comment, true );
+	    // Run the comment to set the status from unknown to success
+        try {
+            commentCommand.checkCommandParameters(null, "", 3);
+        }
+        catch ( Exception e ) {
+            // Should not happen.
+        }
 		__commands_JListModel.insertElementAt ( commentCommand, (insert_pos + i*2));
 		++numberInserted;
 		offset = 1;
@@ -5228,7 +5235,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
         TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
+            (String)__query_TableModel.getValueAt( row, model.COL_ID ),
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
@@ -5236,7 +5243,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             null, // No sequence number
             (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
             "", // No input name
-            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV) + " - " +
+            (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
             (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
             false, insertOffset );
     }
@@ -7323,7 +7330,7 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( ColoradoWaterHBGuestSe
             __inputFilterJPanelList.remove ( __inputFilterColoradoWaterHBGuestStructure_JPanel );
         }
         __inputFilterColoradoWaterHBGuestStructure_JPanel = new
-            ColoradoWaterHBGuest_GUI_StructureGeolocStructMeasType_InputFilter_JPanel( service, false );
+            ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel( service, false );
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoWaterHBGuestStructure_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
@@ -11911,10 +11918,11 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
     int size = 0;
     try {
         // Get the subject from the where filters.  If not set, warn and don't query
-        List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Division", false, null );
-        if ( input.size() != 1 ) {
+        List<String> inputDivision = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Division", false, null );
+        List<String> inputDistrict = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("District", false, null );
+        if ( (inputDistrict.size() + inputDivision.size()) == 0 ) {
             Message.printWarning ( 1, routine,
-                "You must specify the division as a Where in the input filter (only 1 can be selected)." );
+                "You must specify a district or division as a Where in the input filter." );
             JGUIUtil.setWaitCursor ( this, false );
             return;
         }
@@ -12031,6 +12039,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
                 // Stations and structures...
                 __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
                     __props.getValue( "HydroBase.WDIDLength")), tslist );
+                ((TSTool_HydroBase_TableModel)__query_TableModel).setInputType(__selectedInputType);
                 TSTool_HydroBase_CellRenderer cr =
                     new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
                 __query_JWorksheet.setCellRenderer ( cr );
