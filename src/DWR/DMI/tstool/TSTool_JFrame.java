@@ -11942,7 +11942,8 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
         }
         // Now display the data in the worksheet...
         if ( (tslist != null) && (size > 0) ) {
-            Message.printStatus ( 1, routine, "" + size + " ColoradoWaterHBGuest time series read.  Displaying data..." );
+            Message.printStatus ( 1, routine, "" + size + " ColoradoWaterHBGuest time series read for data type \"" +
+                dataType + "\" and timestep \"" + timestep + "\".  Displaying data..." );
             /* Not implemented
             if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ||
                 HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type ) ) {
