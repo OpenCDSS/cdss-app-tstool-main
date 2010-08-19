@@ -1854,16 +1854,16 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
         }
     }
     
-	// ColoradoSMS enabled by default...
+	// ColoradoSMS not enabled by default (requires direct SQL Server access)...
 
-    __source_ColoradoSMS_enabled = true;
+    __source_ColoradoSMS_enabled = false;
 	prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_ColoradoSMS_enabled = false;
+	if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+		__source_ColoradoSMS_enabled = true;
 	}
 	
-	// State of Colorado HBGuest web service disabled by default (can be slow at startup due to
-    // input filter initialization) but can turn on...
+	// State of Colorado HBGuest web service enabled by default if HydroBase is enabled
+	// (can be slow at startup due to input filter initialization) but can turn on...
 
     __source_ColoradoWaterHBGuest_enabled = false;
     prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
@@ -7127,10 +7127,28 @@ private void ui_InitGUIInputFilters ( final int y )
         	// Now add the input filters for input types that are enabled, all on top of each other
         	
             if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
-                ui_InitGUIInputFiltersColoradoIPP(__ippdmi, y );
+                try {
+                    ui_InitGUIInputFiltersColoradoIPP(__ippdmi, y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the web service static code cannot initialize.  Just catch
+                    // and let a blank panel be used for input filters.
+                    Message.printWarning(3, routine, "Error initializing ColoradoIPP input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
             }
             if ( __source_ColoradoWaterHBGuest_enabled ) {
-                ui_InitGUIInputFiltersColoradoWaterHBGuest( ColoradoWaterHBGuestService.getService(), y );
+                try {
+                    ui_InitGUIInputFiltersColoradoWaterHBGuest( ColoradoWaterHBGuestService.getService(), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the web service static code cannot initialize.
+                    // Remove from the input types.
+                    Message.printWarning(1, routine,
+                        "Error initializing ColoradoWaterHBGuest input filters - removing as input type (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                    __input_type_JComboBox.remove(__INPUT_TYPE_ColoradoWaterHBGuest );
+                }
             }
             if ( __source_HECDSS_enabled ) {
                 // Add input filters for HEC-DSS files.
@@ -7144,13 +7162,21 @@ private void ui_InitGUIInputFilters ( final int y )
                         GridBagConstraints.WEST );
                     __inputFilterJPanelList.add ( __inputFilterHecDss_JPanel );
                 }
-                catch ( Exception e ) {
-                    Message.printWarning ( 2, routine, "Unable to initialize input filter for HEC-DSS file.");
-                    Message.printWarning ( 2, routine, e );
+                catch ( Throwable e ) {
+                    Message.printWarning ( 3, routine, "Unable to initialize input filter for HEC-DSS file.");
+                    Message.printWarning ( 3, routine, e );
                 }
             }
         	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
-        	    ui_InitGUIInputFiltersHydroBase(__hbdmi, y );
+        	    try {
+        	        ui_InitGUIInputFiltersHydroBase(__hbdmi, y );
+        	    }
+                catch ( Throwable e ) {
+                    // This may happen if the web service static code cannot initialize.  Just catch
+                    // and let a blank panel be used for input filters.
+                    Message.printWarning(3, routine, "Error initializing HydroBase input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
         	}
 
         	if ( __source_MexicoCSMN_enabled ) {
@@ -7221,13 +7247,21 @@ private void ui_InitGUIInputFilters ( final int y )
         				GridBagConstraints.WEST );
         			__inputFilterJPanelList.add ( __inputFilterNWSRFSFS5Files_JPanel );
         		}
-        		catch ( Exception e ) {
+        		catch ( Throwable e ) {
         			Message.printWarning ( 2, routine, "Unable to initialize input filter for NWSRFS FS5Files.");
         			Message.printWarning ( 2, routine, e );
         		}
         	}
             if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
-                ui_InitGUIInputFiltersRiversideDB(__rdmi, y );
+                try {
+                    ui_InitGUIInputFiltersRiversideDB(__rdmi, y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the web service static code cannot initialize.  Just catch
+                    // and let a blank panel be used for input filters.
+                    Message.printWarning(3, routine, "Error initializing RiversideDB input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
             }
         
         	// Always add a generic input filter JPanel that is shared by input
