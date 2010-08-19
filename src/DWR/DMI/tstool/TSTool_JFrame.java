@@ -80,7 +80,6 @@ import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
-import us.co.state.dwr.hbguest.ColoradoWaterHBGuestAPI;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuestService;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel;
 import us.co.state.dwr.sms.ColoradoWaterSMS;
