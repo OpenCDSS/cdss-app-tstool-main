@@ -60,6 +60,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
+import riverside.datastore.DataStore;
+import riverside.datastore.DataStores_JFrame;
 import rti.tscommandprocessor.core.TSCommandFactory;
 import rti.tscommandprocessor.core.TSCommandFileRunner;
 import rti.tscommandprocessor.core.TSCommandProcessor;
@@ -116,6 +118,7 @@ import DWR.StateMod.StateMod_TS;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
 import RTi.DMI.DMIUtil;
+import RTi.DMI.DatabaseDataStore;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
 import RTi.DMI.DIADvisorDMI.DIADvisor_SensorDef;
 import RTi.DMI.DIADvisorDMI.DIADvisor_SysConfig;
@@ -127,9 +130,11 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;
 import RTi.DMI.RiversideDB_DMI.LoginJDialog;
+import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
+import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
 import RTi.GIS.GeoView.GeoLayer;
@@ -141,6 +146,7 @@ import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 import RTi.GRTS.TSProcessor;
+import RTi.GRTS.TSProductDMI;
 import RTi.GRTS.TSPropertiesJFrame;
 import RTi.GRTS.TSViewJFrame;
 import RTi.TS.DateValueTS;
@@ -280,24 +286,34 @@ private String __COMMANDS_FONT = "Lucida Console";
 //================================
 
 /**
+Label for data stores, necessary because label will be set not visible if no data stores.
+*/
+private JLabel __dataStore_JLabel = null;
+
+/**
+Available data stores.
+*/
+private SimpleJComboBox __dataStore_JComboBox = null;
+
+/**
 Available input types including enabled file and databases.
 */
-private SimpleJComboBox	__input_type_JComboBox;
+private SimpleJComboBox	__input_type_JComboBox = null;
 
 /**
 Available input names for the input type (history of recent choices and allow browse where necessary).
 */
-private SimpleJComboBox __inputName_JComboBox;	
+private SimpleJComboBox __inputName_JComboBox = null;	
 
 /**
 Data type choice.
 */
-private SimpleJComboBox __dataType_JComboBox;
+private SimpleJComboBox __dataType_JComboBox = null;
 
 /**
 Time step for initial query.
 */
-private SimpleJComboBox __timeStep_JComboBox;
+private SimpleJComboBox __timeStep_JComboBox = null;
 
 /**
 FileFilter for current input name, checked with StateCU (and more being phased in).
@@ -326,8 +342,10 @@ private SimpleFileFilter
 /**
 List of InputFilter_JPanel or JPanel (for input types that do not support input filters).
 One of these will be visible at any time to provide query filter capability.
+TODO SAM 2010-09-02 Evaluate whether a generic blank InputFilter_JPanel can be implemented to help
+make the code more elegant.
 */
-private List<JPanel> __inputFilterJPanelList = new Vector(5);
+private List<JPanel> __inputFilterJPanelList = new Vector();
 
 /**
 The currently selected input filter JPanel, used to check input and get the filter information for queries.
@@ -411,11 +429,6 @@ InputFilter_JPanel for NWSRFS_FS5Files time series.
 private InputFilter_JPanel __inputFilterNWSRFSFS5Files_JPanel = null;
 
 /**
-InputFilter_JPanel for RiversideDB time series.
-*/
-private InputFilter_JPanel __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel = null;
-
-/**
 JPanel for input types that do not support input filters.
 */
 private InputFilter_JPanel __inputFilterGeneric_JPanel = null;
@@ -436,14 +449,14 @@ private int __inputFilterY = 0;
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.  These are the full file strings.
 */
-private List __inputNameHecDssList = new Vector();
+private List<String> __inputNameHecDssList = new Vector();
 
 /**
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.  These are the abbreviated file strings, so as to not
 take up too much space in the interface.
 */
-private List __inputNameHecDssVisibleList = new Vector();
+private List<String> __inputNameHecDssVisibleList = new Vector();
 
 /**
 The last HEC-DSS file that was selected, to reset after canceling a browse.
@@ -554,39 +567,6 @@ private JWorksheet __query_JWorksheet;
 Table model for query results.
 */
 private JWorksheet_AbstractRowTableModel __query_TableModel = null;
-
-/**
-Input type when "Get Time Series List" is selected.
-*/
-private String __selectedInputType = null;
-
-/**
-Input name displayed in the "Input Name:" choice. (full name).
-*/
-private String __selectedInputName = null;
-
-/**
-Input name displayed in the "Input Name:" choice. (visible, possibly abbreviated, name).
-*/
-private String __selectedInputNameVisible = null;
-
-/**
-Data type when "Get Time Series List" is selected - only containing
-the data type used in time series identifiers.  The leading or trailing extra
-information is removed after selection to simplify use.
-*/
-private String __selected_data_type = null;
-
-/**
-Full data type from the visible choice - this allows input types like HydroBase
-to differentiate between stations and structures.
-*/
-private String __selected_data_type_full = null;
-
-/**
-Time step when "Get Time Series List" is selected.
-*/
-private String __selected_time_step = null;					
 
 //================================
 // Commands area...
@@ -861,12 +841,6 @@ capabilities to GIS applications).
 //private boolean __show_main = true;
 
 /**
-RiversideDB_DMI object for RiversideDB input type, opened via TSTool.cfg information
-and the RiversideDB select dialog, provided to the processor as the initial RiversideDB DMI instance.
-*/
-private RiversideDB_DMI __rdmi = null;
-
-/**
 DiadVisor_DMI objects for DiadVisor input type, opened via TSTool.cfg information
 and the DiadVisor select dialog, provided to the processor as the initial DiadVisor DMI instance.
 */
@@ -999,6 +973,7 @@ private JMenu
 private JCheckBoxMenuItem
 	__View_MapInterface_JCheckBoxMenuItem = null;
 private JMenuItem
+    __View_DataStores_JMenuItem = null,
     __View_DataUnits_JMenuItem = null;
 
 // Commands (Create Time Series)...
@@ -1142,12 +1117,7 @@ JMenuItem
 	__Commands_Analyze_AnalyzePattern_JMenuItem = null,
 	__Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem = null,
 	__Commands_Analyze_CompareTimeSeries_JMenuItem = null,
-	__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem = null,
-
-	__Commands_Analyze_NewDataTest_JMenuItem = null,
-	__Commands_Analyze_ReadDataTestFromRiversideDB_JMenuItem = null,
-	__Commands_Analyze_RunDataTests_JMenuItem = null,
-	__Commands_Analyze_ProcessDataTestResults_JMenuItem = null;
+	__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem = null;
 
 // Commands...Models....
 JMenu
@@ -1446,6 +1416,7 @@ private String
 
 	__View_String = "View",
 		__View_Map_String = "Map",
+		__View_DataStores_String = "Data Stores",
 		__View_DataUnits_String = "Data Units",
 
 	// Commands menu (order in GUI)...
@@ -1586,11 +1557,6 @@ private String
 	__Commands_Analyze_AnalyzePattern_String = TAB + "AnalyzePattern()... <determine pattern(s) for FillPattern()>",
 	__Commands_Analyze_CompareTimeSeries_String = TAB + "CompareTimeSeries()... <find differences between time series>",
 	__Commands_Analyze_ComputeErrorTimeSeries_String = TAB + "ComputeErrorTimeSeries()... <compute error between time series>",
-
-	__Commands_Analyze_NewDataTest_String = TAB + "DataTest TestID = NewDataTest()... <create a new data test> (under development)",
-	__Commands_Analyze_ReadDataTestFromRiversideDB_String = TAB + "ReadDataTestFromRiversideDB()... <read 1 data test from RiversideDB> (under development)",
-	__Commands_Analyze_RunDataTests_String = TAB + "RunDataTests()... <run data tests to evaluate time series> (under development)",
-	__Commands_Analyze_ProcessDataTestResults_String = TAB + "ProcessDataTestResults()... <process data test results> (under development)",
 
 	// Commands...Models...
 
@@ -2039,8 +2005,8 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 
 	// RiversideDB disabled by default...
 
+	__source_RiversideDB_enabled = false;
 	prop_value = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
-
 	if ( prop_value != null ) {
 		if ( prop_value.equalsIgnoreCase("false") ) {
 			__source_RiversideDB_enabled = false;
@@ -2184,11 +2150,20 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 			*/
 		}
 	}
-	if ( __source_RiversideDB_enabled ) {
-		// Login to the RiversideDB using information in the TSTool configuration file...
-		uiAction_OpenRiversideDB ( null, true );
-	}
 
+	// Open remaining data stores (RiversideDB is first to be implemented as data store).
+	// TODO SAM 2010-09-03 migrate more input types to data stores
+	try {
+	    TSToolMain.openDataStoresAtStartup(__tsProcessor);
+	}
+	catch ( Exception e ) {
+	    Message.printStatus ( 1, rtn, "Error opening data stores (" + e + ")." );
+	}
+	
+	// Populate the data store choices in the UI.
+	
+	ui_DataStoreList_Populate ();
+	
 	// Add GUI features that depend on the databases...
 	// The appropriate panel will be set visible as input types and data
 	// types are chosen.  The panels are currently only initialized once so
@@ -2717,11 +2692,11 @@ private boolean commandList_EditCommandOldStyleComments (
 /**
 Get the list of commands to process, as a list of Command, guaranteed
 to be non-null but may be zero length.
-@return the commands as a Vector of Command.
+@return the commands as a list of Command.
 @param get_all If false, return those that are selected in the command list, unless none are selected,
 in which case all are returned.  If true, all are returned, regardless of which are selected.
 */
-private List commandList_GetCommands ( boolean get_all )
+private List<Command> commandList_GetCommands ( boolean get_all )
 {	if ( __commands_JListModel.size() == 0 ) {
 		return new Vector();
 	}
@@ -2735,17 +2710,17 @@ private List commandList_GetCommands ( boolean get_all )
 	if ( (selected_size == 0) || get_all ) {
 		// Nothing selected or want to get all, get all...
 		selected_size = __commands_JListModel.size();
-		List itemVector = new Vector(selected_size);
+		List<Command> itemVector = new Vector(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.add ( __commands_JListModel.get(i) );
+			itemVector.add ( (Command)__commands_JListModel.get(i) );
 		}
 		return itemVector;
 	}
 	else {
 	    // Else something selected so get them...
-	    List itemVector = new Vector(selected_size);
+	    List<Command> itemVector = new Vector(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.add ( __commands_JListModel.get(selected[i]) );
+			itemVector.add ( (Command)__commands_JListModel.get(selected[i]) );
 		}
 		return itemVector;
 	}
@@ -2754,9 +2729,9 @@ private List commandList_GetCommands ( boolean get_all )
 /**
 Get the list of commands to process.  If any are selected, only they will be
 returned.  If none are selected, all will be returned.
-@return the commands as a Vector of String.
+@return the commands as a list of String.
 */
-private List commandList_GetCommandsBasedOnUI ( )
+private List<Command> commandList_GetCommandsBasedOnUI ( )
 {	return commandList_GetCommands ( false );
 }
 
@@ -2767,14 +2742,14 @@ Get the list of commands to process, as a Vector of String.
 unless none are selected, in which case all are returned.  If true, all are
 returned, regardless of which are selected.
 */
-private List commandList_GetCommandStrings ( boolean get_all )
+private List<String> commandList_GetCommandStrings ( boolean get_all )
 {	// Get the Command list, will not be non-null
-    List commands = commandList_GetCommands ( get_all );
+    List<Command> commands = commandList_GetCommands ( get_all );
 	// Convert to String instances
 	int size = commands.size();
-	List strings = new Vector(size);
+	List<String> strings = new Vector(size);
 	for ( int i = 0; i < size; i++ ) {
-		strings.add ( ((Command)commands.get(i)).toString() );
+		strings.add ( "" + commands.get(i) );
 	}
 	return strings;
 }
@@ -3990,32 +3965,6 @@ private void commandProcessor_SetNWSRFSFS5FilesDMI( TSCommandProcessor processor
 }
 
 /**
-Set the command processor RiversideDB instance that is opened via the GUI.
-This version is generally called by the overloaded version and when processing
-an external command file.
-@param processor The command processor to set the RiversideDB DMI instance.
-@param rdmi Open RiversideDB_DMI instance.
-The input name is blank since it is the default RiversideDB_DMI.
-*/
-private void commandProcessor_SetRiversideDB_DMI( RiversideDB_DMI rdmi )
-{   String message, routine = "TSTool_JFrame.commandProcessor_SetRiversideDBDMI";
-    if ( rdmi == null ) {
-        return;
-    }
-    CommandProcessor processor = commandProcessor_GetCommandProcessor();
-    PropList request_params = new PropList ( "" );
-    request_params.setUsingObject ( "RiversideDB_DMI", rdmi );
-    //CommandProcessorRequestResultsBean bean = null;
-    try { //bean =
-        processor.processRequest( "SetRiversideDB_DMI", request_params );
-    }
-    catch ( Exception e ) {
-        message = "Error requesting SetRiversideDB_DMI(RiversideDB_DMI=\"" + rdmi + "\") from processor.";
-        Message.printWarning(2, routine, message );
-    }
-}
-
-/**
 Indicate that a command has started running.
 @param icommand The command index (0+) in the list of commands being run (see ncommand)
 @param ncommand The total number of commands to process (will be selected number if running selected)
@@ -4583,7 +4532,7 @@ Respond to ItemEvents.  If in the final list, the behavior is similar to Microso
 </ol>
 */
 public void itemStateChanged ( ItemEvent evt )
-{	String	routine="TSTool_JFrame.itemStateChanged";
+{	String routine="TSTool_JFrame.itemStateChanged";
 
 	if ( !__guiInitialized ) {
 		// Some objects are probably still null so ignore the event...
@@ -4595,21 +4544,26 @@ public void itemStateChanged ( ItemEvent evt )
 		return;
 	}
 
-	Object	o = evt.getItemSelectable();
+	Object o = evt.getItemSelectable();
+	String selectedInputType = ui_GetSelectedInputType();
 
 	// If any of the choices are changed, clear the main list so that the choices and list are in agreement...
 
 	try {
     	// List in the order of the GUI...
     
-    	if ( (o == __input_type_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+        if ( (o == __dataStore_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+            // New data store selected...
+            uiAction_DataStoreChoiceClicked();
+        }
+        else if ( (o == __input_type_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
     		// New input type selected...
     		queryResultsList_Clear();
-    		uiAction_InputTypeChoiceClicked();
+    		uiAction_InputTypeChoiceClicked(null); // null indicates data store selection is not driving action
     	}
     	else if((o == __inputName_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
     		// New input name selected...
-    		if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_FS5Files) &&
+    		if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_FS5Files) &&
     			!__inputName_JComboBox.getSelected().equals( __PLEASE_SELECT) ) {
     			// If the default "Please Select" is shown, the it is initialization - don't force a selection...
     			try {
@@ -4620,16 +4574,16 @@ public void itemStateChanged ( ItemEvent evt )
     				Message.printWarning ( 2, routine, e );
     			}
     		}
-            else if(__selectedInputType.equals(__INPUT_TYPE_HECDSS )) {
+            else if(selectedInputType.equals(__INPUT_TYPE_HECDSS )) {
                 uiAction_SelectInputName_HECDSS ( false );
             }
-    		else if ( __selectedInputType.equals(__INPUT_TYPE_StateCU ) ){
+    		else if ( selectedInputType.equals(__INPUT_TYPE_StateCU ) ){
     			uiAction_SelectInputType_StateCU ( false );
     		}
-            else if(__selectedInputType.equals(__INPUT_TYPE_StateCUB )) {
+            else if(selectedInputType.equals(__INPUT_TYPE_StateCUB )) {
                 uiAction_SelectInputType_StateCUB ( false );
             }
-    		else if(__selectedInputType.equals(__INPUT_TYPE_StateModB )) {
+    		else if(selectedInputType.equals(__INPUT_TYPE_StateModB )) {
     			uiAction_SelectInputType_StateModB ( false );
     		}
     	}
@@ -4991,6 +4945,7 @@ Handle mouse pressed event.
 public void mousePressed ( MouseEvent event )
 {	int mods = event.getModifiers();
 	Component c = event.getComponent();
+	String selectedInputType = ui_GetSelectedInputType();
     // Popup for commands...
 	if ( (c == ui_GetCommandJList()) && (__commands_JListModel.size() > 0) &&
 		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
@@ -5011,21 +4966,21 @@ public void mousePressed ( MouseEvent event )
     }
 	// Popup for input name...
     else if ( (c == __inputName_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
-        __selectedInputType.equals(__INPUT_TYPE_HECDSS) ) {
+        selectedInputType.equals(__INPUT_TYPE_HECDSS) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
         __input_name_JPopupMenu.removeAll();
         __input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseHECDSS_String, this ) );
         __input_name_JPopupMenu.show ( c, pt.x, pt.y );
     }
     else if ( (c == __inputName_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
-        __selectedInputType.equals(__INPUT_TYPE_StateCUB) ) {
+        selectedInputType.equals(__INPUT_TYPE_StateCUB) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
         __input_name_JPopupMenu.removeAll();
         __input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseStateCUB_String, this ) );
         __input_name_JPopupMenu.show ( c, pt.x, pt.y );
     }
 	else if ( (c == __inputName_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
-		__selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
+		selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __input_name_JPopupMenu );
 		__input_name_JPopupMenu.removeAll();
 		__input_name_JPopupMenu.add( new SimpleJMenuItem (__InputName_BrowseStateModB_String, this ) );
@@ -5209,7 +5164,9 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int row, boolean update_status, int insertOffset ) 
 {	boolean use_alias = false;
     int numCommandsAdded = 0; // Used when inserting blocks of time series
-    if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
+    String selectedInputType = ui_GetSelectedInputType();
+    DataStore selectedDataStore = ui_GetSelectedDataStore(); 
+    if ( selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
         TSTool_ColoradoIPP_TableModel model = (TSTool_ColoradoIPP_TableModel)__query_TableModel;
@@ -5231,7 +5188,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         "",
         "", false, insertOffset );
     }
-    else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
         TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             (String)__query_TableModel.getValueAt( row, model.COL_ID ),
@@ -5246,7 +5203,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
             false, insertOffset );
     }
-    else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
         TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
@@ -5261,7 +5218,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
             false, insertOffset );
     }
-    else if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used instead of the normal TSID.
@@ -5306,7 +5263,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			use_alias, insertOffset );
 		}
 	}
-	else if (  __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
+	else if (  selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
 	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns
 	    // Currently essentially the same as the generic model but have custom headings
         // The location (id), type, and time step uniquely identify the time series...
@@ -5324,7 +5281,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
     }
-	else if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
+	else if ( selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
 		    // Time series for most stations and structures
 			TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
@@ -5430,7 +5387,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				false, insertOffset );
 		}
 	}
-	else if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used
@@ -5455,7 +5412,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			false, insertOffset );
 		}
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_RiversideDB) ) {
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		// The location (id), type, and time step uniquely
 		// identify the time series, but the input_name is needed to indicate the database.
 		TSTool_RiversideDB_TableModel model = (TSTool_RiversideDB_TableModel)__query_TableModel;
@@ -5472,7 +5429,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
 		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
 		null,	// No sequence number
-		(String)__query_TableModel.getValueAt( row,model.COL_INPUT_TYPE),
+		(String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
 		"",
 		"", false, insertOffset );
 	}
@@ -5480,18 +5437,18 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	// no special considerations.  If the sequence number is non-blank in
 	// the worksheet, it will be transferred.
 	else if (
-	    __selectedInputType.equals(__INPUT_TYPE_DIADvisor) ||
-	    __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ||
-		__selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
-		__selectedInputType.equals(__INPUT_TYPE_MODSIM) ||
-		__selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ||
-		__selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ||
-		__selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ||
-		__selectedInputType.equals ( __INPUT_TYPE_StateCU ) ||
-		__selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ||
-		__selectedInputType.equals ( __INPUT_TYPE_StateMod ) ||
-		__selectedInputType.equals ( __INPUT_TYPE_StateModB ) ||
-		__selectedInputType.equals(__INPUT_TYPE_USGSNWIS) ) {
+	    selectedInputType.equals(__INPUT_TYPE_DIADvisor) ||
+	    selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ||
+		selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
+		selectedInputType.equals(__INPUT_TYPE_MODSIM) ||
+		selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ||
+		selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ||
+		selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ||
+		selectedInputType.equals ( __INPUT_TYPE_StateCU ) ||
+		selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ||
+		selectedInputType.equals ( __INPUT_TYPE_StateMod ) ||
+		selectedInputType.equals ( __INPUT_TYPE_StateModB ) ||
+		selectedInputType.equals(__INPUT_TYPE_USGSNWIS) ) {
 		// The location (id), type, and time step uniquely identify the time series...
 		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 		String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
@@ -5511,7 +5468,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	    String routine = getClass().getName() +
 	    ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
 	    Message.printWarning(1, routine, "Transfer from query list to commands has not been implemented for \"" +
-            __selectedInputType + "\" input type." );
+            selectedInputType + "\" input type." );
 	    numCommandsAdded = 0;
 	}
 	// Check the GUI...
@@ -5840,12 +5797,29 @@ private void ui_CheckGUIState ()
 	if ( __resultsTS_JListModel != null ) {
 		ts_list_size = __resultsTS_JListModel.size();
 	}
+	
+	int dataStoreListSize = 0;
+	if ( __tsProcessor != null ) {
+	    dataStoreListSize = __tsProcessor.getDataStores().size();
+	}
+	
+	// If no data stores are available, don't even show the data store choices - this should hopefully
+	// minimize confusion between data stores and input type/name selections
+	
+	if ( dataStoreListSize == 0 ) {
+	    __dataStore_JLabel.setVisible(false);
+	    __dataStore_JComboBox.setVisible(false);
+	}
+	else {
+	    __dataStore_JLabel.setVisible(true);
+	    __dataStore_JComboBox.setVisible(true);
+	}
 
-	// List in the order of the GUI.  Popup menu items are checked as needed mixed in below...
+	// List menus in the order of the GUI.  Popup menu items are checked as needed mixed in below...
 
 	// File menu...
 
-	enabled = false;	// Use for File...Save menu.
+	enabled = false; // Use for File...Save menu.
 	if ( command_list_size > 0 ) {
 		// Have commands shown...
 		if ( __commandsDirty  ) {
@@ -5859,7 +5833,8 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
 		enabled = true;
 	}
-	else {	// No commands are shown.
+	else {
+	    // No commands are shown.
 		JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
@@ -5898,7 +5873,7 @@ private void ui_CheckGUIState ()
 	else {
         JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,false );
 	}
-	if ( __rdmi != null ) {
+	if ( __tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0 ) {
 		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,true );
 	}
 	else {
@@ -5913,7 +5888,8 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,true);
 		JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,true);
 	}
-	else {	// No commands are shown.
+	else {
+	    // No commands are shown.
 		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem,false);
 		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,false);
@@ -5958,6 +5934,13 @@ private void ui_CheckGUIState ()
 	}
 
 	// View menu...
+	
+	if ( dataStoreListSize > 0 ) {
+	    JGUIUtil.setEnabled ( __View_DataStores_JMenuItem, true );
+	}
+	else {
+	    JGUIUtil.setEnabled ( __View_DataStores_JMenuItem, false );
+	}
 
 	// Commands menu...
 
@@ -6422,7 +6405,7 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 		__source_NWSRFS_FS5Files_enabled = false;
 		Message.printStatus ( 2, routine, "NWSRFS ESPTraceEnsemble input type being disabled for CDSS." );
 		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
-		Message.printStatus ( 2, routine, "RiversideDB input type being disabled for CDSS." );
+		Message.printStatus ( 2, routine, "RiversideDB data stores being disabled for CDSS." );
 		__source_RiversideDB_enabled = false;
 		Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
 		__source_SHEF_enabled = false;
@@ -6456,7 +6439,7 @@ private void ui_CheckNWSRFSFS5FilesFeatures ()
 		// input types because a new connection currently can be established from the interactive.
 		/*
 		try {
-		    __input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
+		    __input_type_JComboBox.remove(__INPUT_TYPE_NWSRFS_FS5FILES);
 		}
 		catch ( Exception e ) {
 			// Ignore - probably already removed...
@@ -6464,42 +6447,6 @@ private void ui_CheckNWSRFSFS5FilesFeatures ()
 		*/
 		if (__File_Properties_NWSRFSFS5Files_JMenuItem != null ) {
 			__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled ( false );
-		}
-	}
-}
-
-/**
-Check the GUI for RiversideDB features.
-*/
-private void ui_CheckRiversideDBFeatures ()
-{	if ( (__rdmi != null) && (__input_type_JComboBox != null) ) {
-		// Make sure RiversideDB is in the data source list...
-		int count = __input_type_JComboBox.getItemCount();
-		boolean rfound = false;
-		for ( int i = 0; i < count; i++ ) {
-			if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_RiversideDB) ) {
-				rfound = true;
-				break;
-			}
-		}
-		if ( !rfound ) {
-			// Repopulate the data sources...
-			ui_SetInputTypeChoices();
-		}
-		if (__File_Properties_RiversideDB_JMenuItem != null ) {
-			__File_Properties_RiversideDB_JMenuItem.setEnabled(true);
-		}
-	}
-	else {
-        // RiversideDB connection failed so remove RiversideDB from the data source list if necessary...
-		try {
-            __input_type_JComboBox.remove(__INPUT_TYPE_RiversideDB);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		if ( __File_Properties_RiversideDB_JMenuItem != null ) {
-			__File_Properties_RiversideDB_JMenuItem.setEnabled ( false );
 		}
 	}
 }
@@ -6521,6 +6468,27 @@ private String ui_CreateAbbreviatedVisibleFilename(String fullFilename)
         int numCharsToRetainEachEnd = (fullFilename.length() - numCharsToRemove)/2;
         return fullFilename.substring(0,numCharsToRetainEachEnd) + "..." +
             fullFilename.substring(fullFilename.length() - numCharsToRetainEachEnd);
+    }
+}
+
+/**
+Populate the data store list from available processor data stores.
+*/
+private void ui_DataStoreList_Populate ()
+{
+    __dataStore_JComboBox.removeAll();
+    List<String> dataStoreNameList = new Vector();
+    dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
+    List<DataStore> dataStoreList = __tsProcessor.getDataStores();
+    for ( DataStore dataStore : dataStoreList ) {
+        dataStoreNameList.add ( dataStore.getName() );
+    }
+    __dataStore_JComboBox.setData(dataStoreNameList);
+    // Select the blank
+    __dataStore_JComboBox.select("");
+    if ( dataStoreNameList.size() == 1 ) {
+        // Only the blank so disable the data store choice
+        __dataStore_JComboBox.setEnabled(false);
     }
 }
 
@@ -6629,6 +6597,30 @@ private InputFilter_JPanel ui_GetInputFilterMessageJPanel ( String text )
     return __inputFilterMessage_JPanel;
 }
 
+/**
+Return the input filter panel for the specified data store name.  By design, this method should only be called
+when working with input type selections that use data stores.  Eventually all the "database" input types will
+be handled (including binary files and relational databases).
+@param dataStoreName name of data store to match
+@return the input filter panel that matches the data store name, or null if not found
+*/
+private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
+{
+    // This is a bit brute force because the name is embedded in the data store but is not
+    // a data member of the input panel
+    for ( JPanel panel : __inputFilterJPanelList ) {
+        if ( panel instanceof RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
+    }
+    return null;
+}
+
 //FIXME SAM 2007-11-01 Need to use /tmp etc for a startup home if not
 //specified so the software install home is not used.
 /**
@@ -6650,6 +6642,96 @@ the configuration file inforation or the NWSRFS FS5Files select dialog.
 private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
 {
 	return __nwsrfs_dmi;
+}
+
+/**
+Return the data store for the selected data store name.
+@return the data store for the selected data store name, or null if the selected name is blank (or for some
+reason is not in the processor - should not happen if data are being kept consistent).
+*/
+private DataStore ui_GetSelectedDataStore ()
+{
+    // TODO SAM 2010-09-02 How to ensure that name is unique until data stores are handled consistently?
+    String dataStoreName = __dataStore_JComboBox.getSelected();
+    Message.printStatus(2, "ui_GetSelectedDataStore", "Getting data store for selected name \"" +
+        dataStoreName + "\"" );
+    if ( (dataStoreName == null) || dataStoreName.equals("") ) {
+        // No need to request from processor
+        return null;
+    }
+    return __tsProcessor.getDataStoreForName ( dataStoreName );
+}
+
+/**
+Return the seleted data type as a short string.  For some input types, data types have additional
+label-only information because the types are grouped in the GUI due to the list length.
+StateCUB has a lot of types but currently they are not grouped (AND THEY MAY INCLUDE "-" so
+don't do anything special).
+*/
+private String ui_GetSelectedDataType ()
+{
+    // First set the default for no special handling of data type in GUI.  This applies to many of
+    // the data types, including DateValue, HEC-DSS, MODSIM, NWSCard, NWSRFS ESP trace ensemble,
+    // RiverWare, StateCU, StateCUB, StateMod, StateModB (New - just use data types in files), USGS NWIS
+    String selectedInputType = ui_GetSelectedInputType(); // OK if null or blank
+    String selectedDataTypeFull = ui_GetSelectedDataTypeFull();  
+    String selectedDataType = selectedDataTypeFull;
+    // The displayed data type may not be the actual due to some annotation.  Check some specific input types.
+    if ( (selectedInputType == null) || selectedInputType.equals("") ) {
+        // Do nothing
+    }
+    else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ||
+        selectedInputType.equals(__INPUT_TYPE_HydroBase) || selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
+        // Data type group is first and data type second.
+        // ColoradoWaterHBGuest:  "Station - Precip"
+        // HydroBase:  "Climate - Precip"
+        // StateModB (old, group the types to help user):  "Water Supply - Total_Supply"
+        if ( selectedDataTypeFull.indexOf('-') >= 0 ) {
+            selectedDataType = StringUtil.getToken( selectedDataTypeFull, "-", 0, 1).trim();
+        }
+    }
+    else if ( selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
+        selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files)) {
+        // Data type is first and explanation second, for example...
+        // Mexico CSMN:   "EV - Evaporation"
+        // NWSRFS FS5 Files: "MAP - Mean Areal Precipitation"
+        if ( selectedDataTypeFull.indexOf('-') >= 0 ) {
+            selectedDataType = StringUtil.getToken( selectedDataTypeFull, "-", 0, 0).trim();
+        }
+    }
+    return selectedDataType;
+}
+
+/**
+Return the selected data type full string, which may include a note.
+*/
+private String ui_GetSelectedDataTypeFull ()
+{
+    return __dataType_JComboBox.getSelected();
+}
+
+/**
+Return the selected input name.
+*/
+private String ui_GetSelectedInputName()
+{
+    return __inputName_JComboBox.getSelected();
+}
+
+/**
+Return the selected input type.  Use this to ensure that operations are based on the current setting.
+*/
+private String ui_GetSelectedInputType()
+{
+    return __input_type_JComboBox.getSelected();
+}
+
+/**
+Return the selected time step.
+*/
+private String ui_GetSelectedTimeStep()
+{
+    return __timeStep_JComboBox.getSelected();
 }
 
 /**
@@ -6699,48 +6781,69 @@ private void ui_InitGUI ( )
 
 	__queryInput_JPanel = new JPanel();
 	__queryInput_JPanel.setLayout(gbl);
-	__queryInput_JPanel.setBorder(	BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),"Input/Query Options" ));
+	ui_SetInputPanelTitle (null, Color.black );
 	
     query_JPanel.add("West", __queryInput_JPanel);
  
 	y=0;
-    JGUIUtil.addComponent(__queryInput_JPanel, new JLabel("Input Type:"), 
+	__dataStore_JLabel = new JLabel("Data store:");
+    JGUIUtil.addComponent(__queryInput_JPanel, __dataStore_JLabel, 
+        0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    __dataStore_JComboBox = new SimpleJComboBox(false);
+    __dataStore_JComboBox.setMaximumRowCount ( 20 );
+    String tooltip = "<html>Configured data stores - select one or select input type and name.</html>";
+    __dataStore_JLabel.setToolTipText(tooltip);
+    __dataStore_JComboBox.setToolTipText ( tooltip );
+    __dataStore_JComboBox.addItemListener( this );
+        JGUIUtil.addComponent(__queryInput_JPanel, __dataStore_JComboBox, 
+        1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+    JLabel label = new JLabel("Input type:");
+    JGUIUtil.addComponent(__queryInput_JPanel, label, 
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        __input_type_JComboBox = new SimpleJComboBox(false);
-        __input_type_JComboBox.setMaximumRowCount ( 20 );
-        __input_type_JComboBox.setToolTipText (
-		"<html>The input type is the file/database format being read.</html>" );
+    __input_type_JComboBox = new SimpleJComboBox(false);
+    __input_type_JComboBox.setMaximumRowCount ( 20 );
+    tooltip = "<html>The input type is the file/database format being read - select one or select a data store.</html>";
+    label.setToolTipText ( tooltip );
+    __input_type_JComboBox.setToolTipText ( tooltip );
 	__input_type_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__queryInput_JPanel, __input_type_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    JGUIUtil.addComponent(__queryInput_JPanel, new JLabel("Input Name:"), 
+    label = new JLabel("Input name:" );
+    JGUIUtil.addComponent(__queryInput_JPanel, label, 
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        __inputName_JComboBox = new SimpleJComboBox(false);
-        __inputName_JComboBox.setToolTipText (
-		"<html>The input name is the name of the file or database" +
-		" being read.<BR>It will default or be promted for after " +
-		"selecting the input type.</html>" );
+    __inputName_JComboBox = new SimpleJComboBox(false);
+    __inputName_JComboBox.setMaximumRowCount ( 20 );
+    // Set a blank entry to work with data store handling
+    __inputName_JComboBox.add ( "" );
+    tooltip = "<html>The input name is the name of the file or database" +
+    " being read.<br>It will default or be prompted for after selecting the input type.</html>";
+    label.setToolTipText ( tooltip );
+    __inputName_JComboBox.setToolTipText ( tooltip );
 	__inputName_JComboBox.addItemListener( this );
         JGUIUtil.addComponent(__queryInput_JPanel, __inputName_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    JGUIUtil.addComponent(__queryInput_JPanel, new JLabel("Data Type:"), 
+    label = new JLabel("Data type:");
+    JGUIUtil.addComponent(__queryInput_JPanel, label, 
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__dataType_JComboBox = new SimpleJComboBox(false);
-        __dataType_JComboBox.setMaximumRowCount ( 20 );
-	__dataType_JComboBox.setToolTipText (
-		"<html>The data type is used to filter the list of time series.</html>" );
+    __dataType_JComboBox.setMaximumRowCount ( 20 );
+    tooltip = "<html>The data type is used to filter the list of time series.</html>";
+    label.setToolTipText ( tooltip );
+	__dataType_JComboBox.setToolTipText ( tooltip );
 	__dataType_JComboBox.addItemListener( this );
     JGUIUtil.addComponent(__queryInput_JPanel, __dataType_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    JGUIUtil.addComponent(__queryInput_JPanel, new JLabel("Time Step:"), 
+    label = new JLabel("Time step:");
+    JGUIUtil.addComponent(__queryInput_JPanel, label, 
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
-        __timeStep_JComboBox = new SimpleJComboBox(false);
-	__timeStep_JComboBox.setToolTipText (
-		"<html>The time step is used to filter the list of time series.</html>" );
+    __timeStep_JComboBox = new SimpleJComboBox(false);
+    tooltip = "<html>The time step is used to filter the list of time series.</html>";
+    label.setToolTipText ( tooltip );
+	__timeStep_JComboBox.setToolTipText ( tooltip );
 	__timeStep_JComboBox.addItemListener( this );
     JGUIUtil.addComponent(__queryInput_JPanel, __timeStep_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -6757,7 +6860,7 @@ private void ui_InitGUI ( )
     __get_ts_list_JButton = new SimpleJButton(BUTTON_TOP_GET_TIME_SERIES,this);
 	__get_ts_list_JButton.setToolTipText (
 		"<html>Get a list of time series but not the full time " +
-		"series data.<BR>Time series can then be selected for processing.</html>" );
+		"series data.<br>Time series can then be selected for processing.</html>" );
     JGUIUtil.addComponent(__queryInput_JPanel, __get_ts_list_JButton, 
 		2, y++, 1, 1, 0, 0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
@@ -6881,20 +6984,20 @@ private void ui_InitGUI ( )
 		new SimpleJButton(__Button_RunSelectedCommands_String,__Run_SelectedCommandsCreateOutput_String, this);
 	__Run_SelectedCommands_JButton.setToolTipText (
 		"<html>Run selected commands from above to generate time " +
-		"series,<br>which will be shown in the Time Series Results list below.</html>" );
+		"series,<br>which will be shown in the Results - Time Series tab below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_SelectedCommands_JButton,
 		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Run_AllCommands_JButton =
 		new SimpleJButton(__Button_RunAllCommands_String, __Run_AllCommandsCreateOutput_String, this);
 	__Run_AllCommands_JButton.setToolTipText (
 		"<html>Run all commands from above to generate time series," +
-		"<br>which will be shown in the Time Series Results list below.</html>" );
+		"<br>which will be shown in the Results - Time Series tab below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
 		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	// Put on right because we want it to be a decision to clear...
 	__ClearCommands_JButton = new SimpleJButton(__Button_ClearCommands_String, this);
 	__ClearCommands_JButton.setToolTipText (
-		"<html>Clear selected commands from above.<BR>Clear all commands if none are selected.</html>" );
+		"<html>Clear selected commands from above.<br>Clear all commands if none are selected.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __ClearCommands_JButton, 
 		7, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
@@ -7109,13 +7212,15 @@ enabled input type but only one is set visible at a time.  Later, as an input
 type is selected, the appropriate input filter is made visible.
 This method is called at GUI startup.  Individual helper methods can be called as necessary to reset the
 filters for a specific input time (e.g., when File...Open...HydroBase is used).
-@param y Layout position to add the input filters.
+@param y layout position to add the input filters.
 */
 private void ui_InitGUIInputFilters ( final int y )
 {	// Define and add specific input filters...
+    Message.printStatus ( 2, "ui_InitGUIInputFilters", "Initializing input filters." );
     Runnable r = new Runnable() {
         public void run() {
         	String routine = "TSTool_JFrame.ui_InitGUIInputFilters";
+            ui_SetInputPanelTitle ("Initializing Input/Query Options...", Color.red );
         	int buffer = 3;
         	Insets insets = new Insets(0,buffer,0,0);
         	// Remove all the current input filters...
@@ -7251,13 +7356,12 @@ private void ui_InitGUIInputFilters ( final int y )
         			Message.printWarning ( 2, routine, e );
         		}
         	}
-            if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
+            if ( __source_RiversideDB_enabled && (__tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0) ) {
                 try {
-                    ui_InitGUIInputFiltersRiversideDB(__rdmi, y );
+                    ui_InitGUIInputFiltersRiversideDB(__tsProcessor.getDataStoresByType(RiversideDBDataStore.class), y );
                 }
                 catch ( Throwable e ) {
-                    // This may happen if the web service static code cannot initialize.  Just catch
-                    // and let a blank panel be used for input filters.
+                    // This may happen if the database is unavailable or inconsistent with expected design.
                     Message.printWarning(3, routine, "Error initializing RiversideDB input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
@@ -7281,6 +7385,7 @@ private void ui_InitGUIInputFilters ( final int y )
         	// The appropriate JPanel will be set visible later based on the input type that is selected.
         	// Because a component is added to the original GUI, need to refresh the GUI layout...
         	ui_SetInputFilters();
+            ui_SetInputPanelTitle (null, Color.black );
         	validate();
         	repaint();
         }
@@ -7759,31 +7864,39 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
 
 /**
 Initialize the RiversideDB input filter (may be called at startup after login or File...Open RiversideDB).
+@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
 */
-private void ui_InitGUIInputFiltersRiversideDB ( RiversideDB_DMI rdmi, int y )
+private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersRiversideDB";
-    try {
-        Message.printStatus ( 2, routine, "Initializing input filters using RiversideDB connection." );
-        // If the previous instance is not null, remove it from the list...
-        if ( __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel != null ) {
-            __inputFilterJPanelList.remove ( __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel );
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " RiversideDB data stores." );
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name...
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName() );
+            // If the previous instance is not null, remove it from the list...
+            if ( ifp != null ) {
+                __inputFilterJPanelList.remove ( ifp );
+            }
+            // Create a new panel...
+            RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel newIfp =
+                new RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel((RiversideDBDataStore)dataStore);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            __inputFilterJPanelList.add ( newIfp );
         }
-        // Create a new panel...
-        __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel = 
-            new RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel(rdmi);
-
-        // Add the new panel to the layout and set in the global data...
-        int buffer = 3;
-        Insets insets = new Insets(0,buffer,0,0);
-        JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel,
-            0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-            GridBagConstraints.WEST );
-        __inputFilterJPanelList.add ( __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel );
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for RiversideDB time series (MeasType/MeasLoc/Geoloc) (" + e + ")." );
-        Message.printWarning ( 2, routine, e );
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for RiversideDB time series (MeasType/MeasLoc/Geoloc) " +
+                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
+        }
     }
 }
 
@@ -8215,18 +8328,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Analyze_ComputeErrorTimeSeries_String, this ) );
-
-	/* FIXME SAM 2008-02-04 Enable after talking with Ian about new data tests and working on result validation.
-	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
-	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_NewDataTest_JMenuItem =
-		new SimpleJMenuItem(__Commands_Analyze_NewDataTest_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ReadDataTestFromRiversideDB_JMenuItem =
-		new SimpleJMenuItem(__Commands_Analyze_ReadDataTestFromRiversideDB_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_RunDataTests_JMenuItem =
-		new SimpleJMenuItem(__Commands_Analyze_RunDataTests_String, this ) );
-	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ProcessDataTestResults_JMenuItem =
-		new SimpleJMenuItem(__Commands_Analyze_ProcessDataTestResults_String, this ) );
-    */
 
 	// "Commands...Models"...
 
@@ -8980,6 +9081,7 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
 	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
 	__View_JMenu.add ( __View_DataUnits_JMenuItem=new SimpleJMenuItem( __View_DataUnits_String, this));
+	__View_JMenu.add ( __View_DataStores_JMenuItem=new SimpleJMenuItem( __View_DataStores_String, this));
 }
 
 /**
@@ -9209,23 +9311,28 @@ private void ui_SetInitialWorkingDir ( String initialWorkingDir )
 
 /**
 Set the input filters based on the current settings.  This sets the appropriate
-input filter visible since all input filters are created at startup.
+input filter visible since all input filters are created at startup or when a data store is opened.
 */
 private void ui_SetInputFilters()
-{	String routine = getClass() + getName() + ".ui_SetInputFilters";
+{	String routine = getClass().getName() + ".ui_SetInputFilters";
+    DataStore selectedDataStore = ui_GetSelectedDataStore();
     JPanel selectedInputFilter_JPanel = null; // If not seet at end, will use generic panel
+    String selectedInputType = ui_GetSelectedInputType();
+    String selectedDataType = ui_GetSelectedDataType();
+    String selectedTimeStep = ui_GetSelectedTimeStep();
     Message.printStatus(2, routine, "Setting input filter based on selected input type \"" +
-        __selectedInputType + "\" and data type \"" + __selected_data_type + "\"" );
-    if(__selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) &&
+        selectedInputType + "\" and data type \"" + selectedDataType + "\"" );
+    try {
+    if(selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) &&
         (__inputFilterColoradoIPPDataMetaData_JPanel != null) ) {
         selectedInputFilter_JPanel = __inputFilterColoradoIPPDataMetaData_JPanel;
     }
-    else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
         // Can only use the ColoradoWaterHBGuest filters if they were originally
         // set up (if the web service was originally available).
         // The following lookups are currently hard coded and not read from HydroBase
         ColoradoWaterHBGuestService service = ColoradoWaterHBGuestService.getService();
-        String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( __selected_data_type, __selected_time_step );
+        String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
         String meas_type = hb_mt[0];
         /* Not enabled
         if ( (__inputFilterHydroBaseStation_JPanel != null) &&
@@ -9289,20 +9396,20 @@ private void ui_SetInputFilters()
             selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
         }
     }
-    else if(__selectedInputType.equals(__INPUT_TYPE_HECDSS) && (__inputFilterHecDss_JPanel != null) ) {
+    else if(selectedInputType.equals(__INPUT_TYPE_HECDSS) && (__inputFilterHecDss_JPanel != null) ) {
         selectedInputFilter_JPanel = __inputFilterHecDss_JPanel;
     }
-    else if ( __selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
 		// Can only use the HydroBase filters if they were originally
 		// set up (if HydroBase was originally available).
         // The following lookups are currently hard coded and not read from HydroBase
-		String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( __selected_data_type, __selected_time_step );
+		String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
 		String meas_type = hb_mt[0];
 		//String vax_field = hb_mt[1];
 		//String time_step = hb_mt[2];
 		if ( __hbdmi != null ) {
-    		Message.printStatus(2, routine, "isStationTimeSeriesDataType("+ __selected_data_type
-    			+ "," + __selected_time_step + "," + meas_type +
+    		Message.printStatus(2, routine, "isStationTimeSeriesDataType("+ selectedDataType
+    			+ "," + selectedTimeStep + "," + meas_type +
     			")=" + HydroBase_Util.isStationTimeSeriesDataType (__hbdmi, meas_type));
 		}
 		if ( __hbdmi == null ) {
@@ -9324,32 +9431,32 @@ private void ui_SetInputFilters()
 			selectedInputFilter_JPanel = __inputFilterHydroBaseStructure_JPanel;
 		}
 		else if ((__inputFilterHydroBaseCASSCropStats_JPanel != null)
-			&& HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			&& HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 			//Message.printStatus (2, "","Displaying CASS crop stats panel");
 			selectedInputFilter_JPanel = __inputFilterHydroBaseCASSCropStats_JPanel;
 		}
 		else if ((__inputFilterHydroBaseCASSLivestockStats_JPanel != null) &&
-		    HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+		    HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 			//Message.printStatus (2, "","Displaying CASS livestock stats panel");
 			selectedInputFilter_JPanel = __inputFilterHydroBaseCASSLivestockStats_JPanel;
 		}
 		else if ((__inputFilterHydroBaseCUPopulation_JPanel != null) &&
-		    HydroBase_Util.isCUPopulationTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+		    HydroBase_Util.isCUPopulationTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 			//Message.printStatus (2, "","Displaying CU population panel");
 			selectedInputFilter_JPanel = __inputFilterHydroBaseCUPopulation_JPanel;
 		}
 		else if ( (__inputFilterHydroBaseNASS_JPanel != null) &&
-			HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 			//Message.printStatus (2, "","Displaying NASS agstats panel");
 			selectedInputFilter_JPanel = __inputFilterHydroBaseNASS_JPanel;
 		}
 		else if ( (__inputFilterHydroBaseIrrigts_JPanel != null) &&
-			HydroBase_Util.isIrrigSummaryTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			HydroBase_Util.isIrrigSummaryTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 			selectedInputFilter_JPanel = __inputFilterHydroBaseIrrigts_JPanel;
 		}
 		else if ((__inputFilterHydroBaseWells_JPanel != null) 
-		    && HydroBase_Util.isGroundWaterWellTimeSeriesDataType( __hbdmi, __selected_data_type)) {
-			if (__selected_time_step.equals(__TIMESTEP_IRREGULAR)) {
+		    && HydroBase_Util.isGroundWaterWellTimeSeriesDataType( __hbdmi, selectedDataType)) {
+			if (selectedTimeStep.equals(__TIMESTEP_IRREGULAR)) {
 				selectedInputFilter_JPanel = __inputFilterHydroBaseStation_JPanel;
 			}
 			else {
@@ -9357,7 +9464,7 @@ private void ui_SetInputFilters()
 			}
 		}		
 		else if ( (__inputFilterHydroBaseWIS_JPanel != null) &&
-			HydroBase_Util.isWISTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			HydroBase_Util.isWISTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 			selectedInputFilter_JPanel = __inputFilterHydroBaseWIS_JPanel;
 		}
 		else {
@@ -9365,18 +9472,22 @@ private void ui_SetInputFilters()
 			selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
 		}
 	}
-	else if(__selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) &&
+	else if(selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) &&
 		(__inputFilterMexicoCSMN_JPanel != null) ) {
 		// Can only use the Mexico CSMN filters if they were originally set up...
 		selectedInputFilter_JPanel=__inputFilterMexicoCSMN_JPanel;
 	}
-	else if(__selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files) &&
+	else if(selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files) &&
 		(__inputFilterNWSRFSFS5Files_JPanel != null) ) {
 		selectedInputFilter_JPanel = __inputFilterNWSRFSFS5Files_JPanel;
 	}
-    else if(__selectedInputType.equals(__INPUT_TYPE_RiversideDB) &&
-        (__inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel != null) ) {
-        selectedInputFilter_JPanel = __inputFilterRiversideDBMeasTypeMeasLocGeoloc_JPanel;
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
+        if ( selectedDataStore == null ) {
+            Message.printStatus(2, routine, "Selected RiversideDB data store is null - can't make available.");
+        }
+        else {
+            selectedInputFilter_JPanel = ui_GetInputFilterPanelForDataStoreName(selectedDataStore.getName());
+        }
     }
 	else {
         // Currently no other input types support filtering - this may also be used if HydroBase input
@@ -9385,7 +9496,16 @@ private void ui_SetInputFilters()
 	}
     if ( selectedInputFilter_JPanel == null ) {
         Message.printStatus(2, routine,
-            "Unable to determine input panel to use for input type.  Using blank panel." );
+            "Unable to determine input panel to use for input type \"" + selectedInputType +
+            "\".  Using blank panel." );
+        selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
+    }
+    }
+    catch ( Throwable e ) {
+        Message.printStatus(2, routine,
+            "Error selecting the input panel for input type\"" + selectedInputType +
+            "\".  Using blank panel." );
+        Message.printWarning(3,routine,e);
         selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
     }
     __selectedInputFilter_JPanel = selectedInputFilter_JPanel;
@@ -9401,6 +9521,22 @@ private void ui_SetInputFilters()
 }
 
 /**
+Set the title of the input panel.
+@param title the title for the input/query panel.  If null, use the default of "Input/Query Options" with
+a black border.
+@param color color of the line border.
+*/
+private void ui_SetInputPanelTitle ( String title, Color color )
+{
+    if ( title == null ) {
+        title = "Input/Query Options";
+        color = Color.black;
+    }
+    __queryInput_JPanel.setBorder( BorderFactory.createTitledBorder (
+        BorderFactory.createLineBorder(color),title ));
+}
+
+/**
 Set the __input_type_JComboBox contents based on the configuration information.
 If an input type is a database, only add if a non-null connection is available.
 Later, database connections may also be named, in which case more checks will need to be done.
@@ -9413,6 +9549,8 @@ private void ui_SetInputTypeChoices ()
 	if ( __input_type_JComboBox.getItemCount() > 0 ) {
 		__input_type_JComboBox.removeAll ();
 	}
+	// Add a blank choice to allow working with data stores
+	__input_type_JComboBox.add ( "" );
     if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoIPP );
     }
@@ -9450,9 +9588,6 @@ private void ui_SetInputTypeChoices ()
 		__input_type_JComboBox.add(
 		__INPUT_TYPE_NWSRFS_ESPTraceEnsemble );
 	}
-	if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_RiversideDB );
-	}
 	if ( __source_RiverWare_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_RiverWare );
 	}
@@ -9480,12 +9615,7 @@ private void ui_SetInputTypeChoices ()
 
 	ui_SetIgnoreItemEvent ( false );
 
-	if ( __source_RiversideDB_enabled && (__rdmi != null) ) {
-        // If enabled and available, select it because the users probably want it as the choice...
-        __input_type_JComboBox.select( null );
-        __input_type_JComboBox.select( __INPUT_TYPE_RiversideDB );
-    }
-    else if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
+	if ( __source_HydroBase_enabled && (__hbdmi != null) ) {
 		// If enabled and available, select it because the users probably want it as the choice...
 		__input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
@@ -9725,10 +9855,13 @@ throws Exception
 		}
 	}
 	else if ( command.equals ( __File_Open_RiversideDB_String )) {
+	    // FIXME SAM 2010-09-07 Need to enable in some form
 		// Read a RiverTrak config file, get the RiversideDB properties, and open the database...
 		JFileChooser fc = JFileChooserFactory.createJFileChooser( JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle( "Select a RiverTrak or TSTool Configuration File" );
-		SimpleFileFilter sff = new SimpleFileFilter ( "cfg", "RiverTrak/TSTool Configuration File" );
+		fc.setDialogTitle( "Select a RiversideDB Configuration File" );
+		SimpleFileFilter sff = new SimpleFileFilter ( "cfg", "RiversideDB Data Store Configuration File" );
+        fc.addChoosableFileFilter ( sff );
+		sff = new SimpleFileFilter ( "cfg", "RiverTrak/TSTool Configuration File" );
 		fc.addChoosableFileFilter ( sff );
 		fc.setFileFilter ( sff );
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
@@ -9736,18 +9869,15 @@ throws Exception
 		}
 		// Don't save the directory because it is probably a one-off selection and won't be picked again.
 		String path = fc.getSelectedFile().getPath();
-		// Read into a PropList...
-		PropList rprops = new PropList("");
-		rprops.setPersistentName ( path );
-		rprops.readPersistent ();
-		uiAction_OpenRiversideDB ( rprops, false );
-	    // Open the input filters with the new database connection
-        if ( __rdmi != null ) {
-            ui_InitGUIInputFiltersRiversideDB ( __rdmi, ui_GetInputFilterY() );
-        }
-		// Force the choices to refresh (this will display the filter panel)...
-		__input_type_JComboBox.select ( null );
-		__input_type_JComboBox.select ( __INPUT_TYPE_RiversideDB );
+		DataStore dataStore = uiAction_OpenRiversideDB ( path );
+        // Now update the input filters for the open data store list (only pass in the one item so that
+        // existing input filters are not impacted
+        List<DataStore> dataStoreList = new Vector();
+        dataStoreList.add ( dataStore );
+        ui_InitGUIInputFiltersRiversideDB ( dataStoreList, ui_GetInputFilterY() );
+        // Add the data store name to the choices and select the choice, which will cause other events
+        __dataStore_JComboBox.add(dataStore.getName());
+        __dataStore_JComboBox.select(dataStore.getName());
 	}
 	else if ( o == __File_Save_Commands_JMenuItem ) {
 		try {
@@ -9894,9 +10024,6 @@ throws Exception
             v = __nwsrfs_dmi.getDatabaseProperties ( 3 );
 		}
 		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
 	}
     else if ( command.equals(__File_Properties_RiversideDB_String) ) {
 		PropList reportProp = new PropList ("RiversideDB.props");
@@ -9907,12 +10034,19 @@ throws Exception
 		reportProp.set ( "DisplaySize", "11" );
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "RiversideDB Properties" );
-		List v = __rdmi.getDatabaseProperties ( 3 );
+		reportProp.set ( "Title", "RiversideDB Data Store Properties" );
+		List<DataStore> dataStoreList = __tsProcessor.getDataStoresByType(RiversideDBDataStore.class);
+		List<String> v = new Vector();
+        v.add ( "RiversideDB Data Store Properties" );
+        v.add ( "" );
+		for ( DataStore dataStore : dataStoreList ) {
+		    v.add ( "Data store name:  " + dataStore.getName() );
+		    v.add ( "Data store description:  " + dataStore.getDescription() );
+		    v.add ( "" );
+		    RiversideDB_DMI rdmi = (RiversideDB_DMI)((RiversideDBDataStore)dataStore).getDMI();
+		    v.addAll ( rdmi.getDatabaseProperties ( 3 ) );
+		}
 		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
 	}
     else if ( o == __File_SetWorkingDirectory_JMenuItem ) {
 		JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -10030,6 +10164,10 @@ throws Exception
     if ( command.equals(__View_DataUnits_String) ) {
         // Show the data units
         uiAction_ShowDataUnits();
+    }
+    else if ( command.equals(__View_DataStores_String) ) {
+        // Show the data stores
+        uiAction_ShowDataStores();
     }
     else {
         // Chain to next set of actions...
@@ -10409,18 +10547,6 @@ throws Exception
 	else if (command.equals( __Commands_Analyze_ComputeErrorTimeSeries_String)){
         commandList_EditCommand ( __Commands_Analyze_ComputeErrorTimeSeries_String, null, __INSERT_COMMAND );
     }
-	else if (command.equals( __Commands_Analyze_NewDataTest_String)){
-		commandList_EditCommand ( __Commands_Analyze_NewDataTest_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals(__Commands_Analyze_ReadDataTestFromRiversideDB_String)){
-		commandList_EditCommand ( __Commands_Analyze_ReadDataTestFromRiversideDB_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Analyze_RunDataTests_String)){
-		commandList_EditCommand ( __Commands_Analyze_RunDataTests_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Analyze_ProcessDataTestResults_String)){
-		commandList_EditCommand ( __Commands_Analyze_ProcessDataTestResults_String, null, __INSERT_COMMAND );
-	}
 	else {
 		// Chain to other actions
 		uiAction_ActionPerformed11_CommandsModelsMenu ( event );
@@ -10976,11 +11102,12 @@ throws Exception
 		new NWSRFS_ConvertJulianHour_JDialog(this);
 	}
 	else if ( o == __Tools_RiversideDB_TSProductManager_JMenuItem ) {
-	    List rdmi_Vector = new Vector();
-		if ( __rdmi != null ) {
-			rdmi_Vector.add ( __rdmi );
-		}
-		new RiversideDB_TSProductManager_JFrame ( rdmi_Vector, null );
+	    List<TSProductDMI> rdmiList = new Vector();
+	    List<DataStore> dataStores = __tsProcessor.getDataStoresByType(RiversideDBDataStore.class);
+	    for ( DataStore dataStore : dataStores ) {
+    		rdmiList.add ( (RiversideDB_DMI)((DatabaseDataStore)dataStore).getDMI() );
+	    }
+		new RiversideDB_TSProductManager_JFrame ( rdmiList, null );
 	}
 	else if ( o == __Tools_SelectOnMap_JMenuItem ) {
 		try {
@@ -11118,19 +11245,57 @@ private void uiAction_CopyFromCommandListToCutBuffer ( boolean remove_original )
 }
 
 /**
+The data store choice has been clicked so process the event.
+The only entry point to this method is if the user actually clicks on the choice.
+In this case, the input type/name choices will be set to blank because the user has
+made a decision to work with a data store.  If they subsequently choose to work with an input type, then
+they would select an input and the data store choice would be blanked.
+*/
+private void uiAction_DataStoreChoiceClicked()
+{   String routine = getClass().getName() + ".uiAction_DataStoreChoiceClicked";
+    if ( __dataStore_JComboBox == null ) {
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "Data store has been selected but GUI is not yet initialized.");
+        }
+        return; // Not done initializing.
+    }
+    String selectedDataStoreName = __dataStore_JComboBox.getSelected();
+    Message.printStatus(2, routine, "Selected data store \"" + selectedDataStoreName + "\"." );
+    if ( selectedDataStoreName.equals("") ) {
+        // Selected blank for some reason - do nothing
+        return;
+    }
+    DataStore selectedDataStore = ui_GetSelectedDataStore();
+    // This will select blank input type and name so that the focus is on the selected data store...
+    uiAction_InputTypeChoiceClicked(selectedDataStore);
+    // Now fully initialize the input/query information based on the data store
+    try {
+        if ( selectedDataStore instanceof RiversideDBDataStore ) {
+            uiAction_SelectDataStore_RiversideDB ( (RiversideDBDataStore)selectedDataStore );
+        }
+    }
+    catch ( Exception e ) {
+        Message.printWarning( 2, routine, "Error selecting data store \"" + selectedDataStore.getName() + "\"" );
+        Message.printWarning ( 3, routine, e );
+    }
+}
+
+/**
 This function fills in appropriate selections for the time step and choices.
 This will result in a call to timestepChoiceClicked(), which will display input filters if appropriate.
 */
 private void uiAction_DataTypeChoiceClicked()
-{	String rtn = "TSTool_JFrame.dataTypeChoiceClicked";
+{	String rtn = "TSTool_JFrame.uiAction_DataTypeChoiceClicked";
 	if ( (__input_type_JComboBox == null) || (__dataType_JComboBox == null) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, rtn, "Data type has been selected but GUI is not initialized." );
 		}
 		return;	// Not done initializing.
 	}
-	__selected_data_type_full = __dataType_JComboBox.getSelected();
-	if ( __selected_data_type_full == null ) {
+	String selectedInputType = ui_GetSelectedInputType();
+	String selectedDataType = ui_GetSelectedDataType ();
+	DataStore selectedDataStore = ui_GetSelectedDataStore();
+	if ( selectedDataType == null ) {
 		// Apparently this happens when setData() or similar is called
 		// on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
@@ -11138,45 +11303,16 @@ private void uiAction_DataTypeChoiceClicked()
 		}
 		return;
 	}
-	// For some input types, data types have additional label-only information because the types
-	// are grouped in the GUI due to the list length.
-	// StateCUB has a lot of types but currently they are not grouped (AND THEY MAY INCLUDE - so
-	// don't do anything special below).
-	// First set the default for no special handling of data type in GUI.  This applies to many of
-	// the data types, including DateValue, HEC-DSS, MODSIM, NWSCard, NWSRFS ESP trace ensemble,
-	// RiverWare, StateCU, StateCUB, StateMod, StateModB (New - just use data types in files), USGS NWIS
-    __selected_data_type = __selected_data_type_full;  
-    // Override handling for specific data types...
-	if ( __selected_data_type_full.indexOf('-') >= 0 ) {
-	    // The displayed data type may not be the actual due to some annotation.  Check some specific
-	    // input types.
-		if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ||
-		    __selectedInputType.equals(__INPUT_TYPE_HydroBase)
-			|| __selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
-			// Data type group is first and data type second.
-		    // ColoradoWaterHBGuest:  "Station - Precip"
-		    // HydroBase:  "Climate - Precip"
-		    // StateModB (old, group the types to help user):  "Water Supply - Total_Supply"
-			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 1).trim();
-		}
-		else if ( __selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
-	        __selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files)) {
-            // Data type is first and explanation second, for example...
-		    // Mexico CSMN:   "EV - Evaporation"
-		    // NWSRFS FS5 Files: "MAP - Mean Areal Precipitation"
-			__selected_data_type = StringUtil.getToken(	__selected_data_type_full, "-", 0, 0).trim();
-		}
-	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, rtn, "Data type has been selected for read:  \"" + __selected_data_type + "\"" );
+		Message.printDebug ( 1, rtn, "Data type has been selected for read:  \"" + selectedDataType + "\"" );
 	}
 
 	// Set the appropriate settings for the current data input type and data type...
 
-    if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
+    if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
         List<String> time_steps = ColoradoWaterHBGuestService.getService().getTimeSeriesTimeSteps (
-            __selected_data_type,
+            selectedDataType,
             HydroBase_Util.DATA_TYPE_AGRICULTURE |
             HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
             HydroBase_Util.DATA_TYPE_HARDWARE |
@@ -11203,14 +11339,14 @@ private void uiAction_DataTypeChoiceClicked()
         // If the data type is for a diversion or reservoir data type,
         // hide the abbreviation column in the table model.  Else show the column.
     }
-	else if ( __selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
         // Time steps is always year...
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
         __timeStep_JComboBox.select ( 0 );
         __timeStep_JComboBox.setEnabled ( true );
     }
-    else if ( __selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// DateValue file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11218,20 +11354,20 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_DIADvisor) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_DIADvisor) ) {
 		// The time steps are always available in both the operational
 		// and archive database.  However, "DataValue2" is only
 		// available in the operational database.  Also, regular
 		// interval data seem to only be available for Rain group.
-		String group =StringUtil.getToken(__selected_data_type,"-",0,0);
+		String group =StringUtil.getToken(selectedDataType,"-",0,0);
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.setEnabled ( true );
-		if ( __selected_data_type.endsWith("DataValue") && group.equalsIgnoreCase("Rain") ) {
+		if ( selectedDataType.endsWith("DataValue") && group.equalsIgnoreCase("Rain") ) {
 			__timeStep_JComboBox.add ( __TIMESTEP_DAY );
 			__timeStep_JComboBox.add ( __TIMESTEP_HOUR );
 		}
 		__timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR );
-		if ( __selected_data_type.endsWith("DataValue") && group.equalsIgnoreCase("Rain") ) {
+		if ( selectedDataType.endsWith("DataValue") && group.equalsIgnoreCase("Rain") ) {
 			try {
                 DIADvisor_SysConfig config = __DIADvisor_dmi.readSysConfig();
 				__timeStep_JComboBox.add ( "" + config.getInterval() +	__TIMESTEP_MINUTE );
@@ -11244,13 +11380,13 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( null );
 		__timeStep_JComboBox.select ( 0 );
 	}
-    else if ( __selectedInputType.equals(__INPUT_TYPE_HECDSS) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_HECDSS) ) {
         // HEC-DSS database file - the time step is set when the
         // input name is selected so do nothing here.
     }
-	else if ( __selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
-	    List time_steps = HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
-			__selected_data_type,
+	else if ( selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
+	    List<String> time_steps = HydroBase_Util.getTimeSeriesTimeSteps (__hbdmi,
+	        selectedDataType,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
 			HydroBase_Util.DATA_TYPE_HARDWARE |
@@ -11277,7 +11413,7 @@ private void uiAction_DataTypeChoiceClicked()
 		// If the data type is for a diversion or reservoir data type,
 		// hide the abbreviation column in the table model.  Else show the column.
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ) {
 		// Mexico CSMN file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_DAY );
@@ -11285,7 +11421,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_DAY );
 		__timeStep_JComboBox.setEnabled ( true );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_MODSIM) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_MODSIM) ) {
 		// MODSIM file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11293,7 +11429,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_NWSCARD) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_NWSCARD) ) {
 		// NWSCard file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_HOUR );
@@ -11301,9 +11437,9 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_HOUR );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
 		// Time steps are determined from the system...
-	    List time_steps = NWSRFS_Util.getDataTypeIntervals ( __nwsrfs_dmi, __selected_data_type );
+	    List<String> time_steps = NWSRFS_Util.getDataTypeIntervals ( __nwsrfs_dmi, selectedDataType );
 		__timeStep_JComboBox.setData ( time_steps );
 		__timeStep_JComboBox.select ( null );
 		__timeStep_JComboBox.setEnabled ( true );
@@ -11322,7 +11458,7 @@ private void uiAction_DataTypeChoiceClicked()
 			}
 		}
 	}
-	else if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble) ){
+	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble) ){
 		// ESP Trace Ensemble file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11330,15 +11466,18 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_RiversideDB) ) {
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore)) {
 		// Time steps are determined from the database based on the data type that is selected...
 		String data_type = StringUtil.getToken(__dataType_JComboBox.getSelected()," ",0,0).trim();
-		List v = null;
+		List<RiversideDB_MeasType> v = null;
+		DataStore dataStore = ui_GetSelectedDataStore();
+		RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)dataStore).getDMI();
 		try {
-            v = __rdmi.readMeasTypeListForTSIdent (	".." + data_type + ".." );
+            v = rdmi.readMeasTypeListForTSIdent ( ".." + data_type + ".." );
 		}
 		catch ( Exception e ) {
-			Message.printWarning(2, rtn, "Error getting time steps from RiversideDB.");
+			Message.printWarning(2, rtn, "Error getting time steps from RiversideDB \"" +
+			    selectedDataStore.getName() + ".");
 			Message.printWarning(2, rtn, e);
 			v = null;
 		}
@@ -11353,7 +11492,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.removeAll ();
 		if ( size > 0 ) {
 			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)v.get(i);
+				mt = v.get(i);
 				// Only add if not already listed. Alternatively - add a "distinct" query
 				time_step_base = mt.getTime_step_base();
 				time_step_mult = mt.getTime_step_mult();
@@ -11375,7 +11514,7 @@ private void uiAction_DataTypeChoiceClicked()
             __timeStep_JComboBox.setEnabled ( false );
 		}
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_RiverWare) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_RiverWare) ) {
 		// RiverWare file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11383,17 +11522,17 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_StateCU) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_StateCU) ) {
 		// StateCU files...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-    else if ( __selectedInputType.equals(__INPUT_TYPE_StateCUB) ) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_StateCUB) ) {
         // StateCU binary output file - the time step is set when the
         // input name is selected so do nothing here.
     }
-	else if ( __selectedInputType.equals(__INPUT_TYPE_StateMod) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_StateMod) ) {
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_DAY );
 		__timeStep_JComboBox.add ( __TIMESTEP_MONTH );
@@ -11401,11 +11540,11 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_MONTH );
 		__timeStep_JComboBox.setEnabled ( true );
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
 		// StateMod binary output file - the time step is set when the
 		// input name is selected so do nothing here.
 	}
-	else if ( __selectedInputType.equals(__INPUT_TYPE_USGSNWIS) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_USGSNWIS) ) {
 		// USGS NWIS file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -11641,7 +11780,9 @@ Respond to "Get Time Series List" being clicked.
 */
 private void uiAction_GetTimeSeriesListClicked()
 {	String message, routine = getClass().getName() + ".getTimeSeriesListClicked";
-	Message.printStatus ( 1, routine, "Getting time series list from " + __selectedInputType + " input type..." );
+    String selectedInputType = ui_GetSelectedInputType();
+    DataStore selectedDataStore = ui_GetSelectedDataStore();
+	Message.printStatus ( 1, routine, "Getting time series list from " + selectedInputType + " input type..." );
 
 	// Verify that the input filters have valid data...
 
@@ -11656,7 +11797,7 @@ private void uiAction_GetTimeSeriesListClicked()
 	// area.  Return if an error occurs because the message at the bottom
 	// should only be printed if successful.
 
-    if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoIPP)) {
+    if ( selectedInputType.equals (__INPUT_TYPE_ColoradoIPP)) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders(); 
         }
@@ -11667,7 +11808,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-    else if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterHBGuest) ) {
+    else if ( selectedInputType.equals (__INPUT_TYPE_ColoradoWaterHBGuest) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders ();
         }
@@ -11678,7 +11819,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( __selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
         }
@@ -11689,7 +11830,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( __selectedInputType.equals (__INPUT_TYPE_DateValue)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_DateValue)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
 		}
@@ -11700,7 +11841,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_DIADvisor)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_DIADvisor)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
 		}
@@ -11711,7 +11852,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-    else if ( __selectedInputType.equals (__INPUT_TYPE_HECDSS)) {
+    else if ( selectedInputType.equals (__INPUT_TYPE_HECDSS)) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadHECDSSHeaders ();
         }
@@ -11722,7 +11863,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( __selectedInputType.equals (__INPUT_TYPE_HydroBase)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_HydroBase)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( null ); 
 		}
@@ -11733,7 +11874,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_MEXICO_CSMN)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_MEXICO_CSMN)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ();
 		}
@@ -11745,7 +11886,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_MODSIM)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_MODSIM)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
 		}
@@ -11756,7 +11897,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_NWSCARD)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_NWSCARD)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ();
 		}
@@ -11767,7 +11908,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadNwsrfsEspTraceEnsembleHeaders ();
 		}
@@ -11778,7 +11919,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
 		try {
             // This reads the time series headers and displays the results in the list...
 			uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ();
@@ -11790,18 +11931,19 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_RiversideDB)) {
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
 		}
 		catch ( Exception e ) {
-			message = "Error reading RiversideDB - cannot display time series list (" + e + ").";
+			message = "Error reading time series from RiversideDB \"" + selectedDataStore.getName() +
+			    "\" - cannot display time series list (" + e + ").";
 			Message.printWarning ( 1, routine, message );
 			Message.printWarning ( 3, routine, e );
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_RiverWare)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_RiverWare)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
 		}
@@ -11812,7 +11954,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_StateCU)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_StateCU)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ();
 		}
@@ -11823,7 +11965,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-   else if ( __selectedInputType.equals (__INPUT_TYPE_StateCUB)) {
+   else if ( selectedInputType.equals (__INPUT_TYPE_StateCUB)) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ();
         }
@@ -11834,7 +11976,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( __selectedInputType.equals (__INPUT_TYPE_StateMod)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_StateMod)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
 		}
@@ -11845,7 +11987,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_StateModB)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_StateModB)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ();
 		}
@@ -11856,7 +11998,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( __selectedInputType.equals (__INPUT_TYPE_USGSNWIS)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_USGSNWIS)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ();
 		}
@@ -11869,10 +12011,10 @@ private void uiAction_GetTimeSeriesListClicked()
 	}
 	else {
 	    Message.printWarning(1,routine,
-	        "Getting time series list for \"" + __selectedInputType + "\" is not implemented." );
+	        "Getting time series list for \"" + selectedInputType + "\" is not implemented." );
 	}
 	Message.printStatus ( 1, routine,
-	"Time series list from " + __selectedInputType + " input type are listed in Time Series List area." );
+	"Time series list from " + selectedInputType + " input type are listed in Time Series List area." );
 }
 
 /**
@@ -11883,7 +12025,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
-    // The headers are a list of RiversideDB_MeasTypeMeasLocGeoloc
+    // The headers are a list of DataMetaData
     try {
         queryResultsList_Clear ();
 
@@ -11950,6 +12092,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
     List tslist;
     int size = 0;
     try {
+        String selectedInputType = ui_GetSelectedInputType();
         // Get the subject from the where filters.  If not set, warn and don't query
         List<String> inputDivision = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Division", false, null );
         List<String> inputDistrict = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("District", false, null );
@@ -12073,7 +12216,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
                 // Stations and structures...
                 __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
                     __props.getValue( "HydroBase.WDIDLength")), tslist );
-                ((TSTool_HydroBase_TableModel)__query_TableModel).setInputType(__selectedInputType);
+                ((TSTool_HydroBase_TableModel)__query_TableModel).setInputType(selectedInputType);
                 TSTool_HydroBase_CellRenderer cr =
                     new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
                 __query_JWorksheet.setCellRenderer ( cr );
@@ -12107,8 +12250,9 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, routine, "Please wait... retrieving data");
 
-    // The headers are a Vector of HydroBase_
+    // The headers are a list of HydroBase_
     try {
+        String selectedInputType = ui_GetSelectedInputType();
         queryResultsList_Clear ();
 
         String location = "";
@@ -12152,7 +12296,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
             */
             // Stations and structures...
             __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-                __props.getValue( "HydroBase.WDIDLength")), tslist, __selectedInputType );
+                __props.getValue( "HydroBase.WDIDLength")), tslist, selectedInputType );
             TSTool_HydroBase_CellRenderer cr =
                 new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
             __query_JWorksheet.setCellRenderer ( cr );
@@ -12483,12 +12627,15 @@ throws Exception
 {	String message, routine = "TSTool_JFrame.readHydroBaseHeaders";
 
     JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, routine, "Please wait... retrieving data");
+    Message.printStatus ( 1, routine, "Please wait... retrieving data...");
+    String selectedDataType = ui_GetSelectedDataType();
+    String selectedTimeStep = ui_GetSelectedTimeStep();
 
+    // Object type in list varies
     List tslist = null;
 	int size = 0;
 	try {	
-		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( __hbdmi, __selected_data_type, __selected_time_step,
+		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( __hbdmi, selectedDataType, selectedTimeStep,
 			(InputFilter_JPanel)__selectedInputFilter_JPanel, grlimits );
 		// Make sure that size is set...
 		if ( tslist != null ) {
@@ -12497,21 +12644,21 @@ throws Exception
 		// Now display the data in the worksheet...
 		if ( (tslist != null) && (size > 0) ) {
        		Message.printStatus ( 1, routine, "" + size + " HydroBase time series read.  Displaying data..." );
-			if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ||
-				HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type ) ) {
+			if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( __hbdmi, selectedDataType) ||
+				HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( __hbdmi, selectedDataType ) ) {
 				// Data from agricultural_CASS_crop_statistics or agricultural_NASS_crop_statistics...
 				__query_TableModel = new
-					TSTool_HydroBase_Ag_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
+					TSTool_HydroBase_Ag_TableModel ( __query_JWorksheet, tslist, selectedDataType );
 				TSTool_HydroBase_Ag_CellRenderer cr = new
 					TSTool_HydroBase_Ag_CellRenderer((TSTool_HydroBase_Ag_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
-			else if(HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
+			else if(HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( __hbdmi, selectedDataType) ) {
 				// Data from CASS livestock stats...
 				__query_TableModel = new
-					TSTool_HydroBase_CASSLivestockStats_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
+					TSTool_HydroBase_CASSLivestockStats_TableModel ( __query_JWorksheet, tslist, selectedDataType );
 				TSTool_HydroBase_CASSLivestockStats_CellRenderer cr = new
 					TSTool_HydroBase_CASSLivestockStats_CellRenderer(
 					(TSTool_HydroBase_CASSLivestockStats_TableModel)__query_TableModel);
@@ -12519,10 +12666,10 @@ throws Exception
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
-			else if(HydroBase_Util.isCUPopulationTimeSeriesDataType( __hbdmi, __selected_data_type) ) {
+			else if(HydroBase_Util.isCUPopulationTimeSeriesDataType( __hbdmi, selectedDataType) ) {
 				// Data from CUPopulation...
 				__query_TableModel = new
-					TSTool_HydroBase_CUPopulation_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
+					TSTool_HydroBase_CUPopulation_TableModel ( __query_JWorksheet, tslist, selectedDataType );
 				TSTool_HydroBase_CUPopulation_CellRenderer cr =	new
 					TSTool_HydroBase_CUPopulation_CellRenderer(
 					(TSTool_HydroBase_CUPopulation_TableModel)__query_TableModel);
@@ -12530,10 +12677,10 @@ throws Exception
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
-			else if(HydroBase_Util.isIrrigSummaryTimeSeriesDataType( __hbdmi, __selected_data_type ) ) {
+			else if(HydroBase_Util.isIrrigSummaryTimeSeriesDataType( __hbdmi, selectedDataType ) ) {
 				// Irrig summary TS...
 				__query_TableModel = new
-					TSTool_HydroBase_AgGIS_TableModel (	__query_JWorksheet, tslist, __selected_data_type,
+					TSTool_HydroBase_AgGIS_TableModel (	__query_JWorksheet, tslist, selectedDataType,
 					StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")) );
 				TSTool_HydroBase_AgGIS_CellRenderer cr = new
 					TSTool_HydroBase_AgGIS_CellRenderer( (TSTool_HydroBase_AgGIS_TableModel)__query_TableModel);
@@ -12541,10 +12688,10 @@ throws Exception
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
-			else if( HydroBase_Util.isWISTimeSeriesDataType ( __hbdmi, __selected_data_type ) ) {
+			else if( HydroBase_Util.isWISTimeSeriesDataType ( __hbdmi, selectedDataType ) ) {
 				// WIS TS...
 				__query_TableModel = new
-					TSTool_HydroBase_WIS_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
+					TSTool_HydroBase_WIS_TableModel ( __query_JWorksheet, tslist, selectedDataType );
 				TSTool_HydroBase_WIS_CellRenderer cr = new
 					TSTool_HydroBase_WIS_CellRenderer( (TSTool_HydroBase_WIS_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
@@ -12552,8 +12699,8 @@ throws Exception
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
 			// XJTSX
-			else if (__selected_data_type.equalsIgnoreCase(	"WellLevel")) {
-    			if (__selected_time_step.equalsIgnoreCase("Day")) {
+			else if (selectedDataType.equalsIgnoreCase(	"WellLevel")) {
+    			if (selectedTimeStep.equalsIgnoreCase("Day")) {
     				__query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
     					__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist );
     				TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
@@ -12616,6 +12763,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ()
 throws IOException
 {	String message, routine = "TSTool_JFrame.readMexicoCSMNHeaders";
 
+    String selectedDataType = ui_GetSelectedDataType();
 	try {
 	    List allts = MexicoCsmnTS.getCatalogTSList();
 		if ( allts == null ) {
@@ -12708,11 +12856,11 @@ throws IOException
 			if ( ((station == null) || station_filter.matches ( ts.getDescription(),
 				station_operator, true )) && ((state == null) || ts.getLocation().startsWith(prefix)) ) {
 				// OK to add the time series to the output list (reset some information first)...
-				ts.setDataType ( __selected_data_type );
+				ts.setDataType ( selectedDataType );
 				state_num = StringUtil.atoi( ts.getLocation().substring(0,5) );
 				f = new File(ts.getIdentifier().getInputName());
 				ts.getIdentifier().setInputName ( f.getParent() + File.separator +
-					MexicoCsmnTS.getStateAbbreviation( state_num) + "_" + __selected_data_type + ".CSV" );
+					MexicoCsmnTS.getStateAbbreviation( state_num) + "_" + selectedDataType + ".CSV" );
 				tslist.add ( ts );
 			}
 		}
@@ -12999,11 +13147,12 @@ throws IOException
 			id_input = (String)input_Vector.get(0);
 		}
 		String datatype = StringUtil.getToken ( __dataType_JComboBox.getSelected().trim(), " ",0, 0);
+		String selectedTimeStep = ui_GetSelectedTimeStep();
 		// Parse the interval into the integer hour...
 		String selected_input_name=__inputName_JComboBox.getSelected();
 		try {
 		    String tsident_string = id_input + ".NWSRFS." + datatype + "." +
-				__selected_time_step + "~NWSRFS_FS5Files~" + selected_input_name;
+				selectedTimeStep + "~NWSRFS_FS5Files~" + selected_input_name;
 			Message.printStatus ( 2, routine, "Reading NWSRFS FS5Files time series for \"" + tsident_string + "\"..." );
 			tslist = __nwsrfs_dmi.readTimeSeriesList ( tsident_string, (DateTime)null,
 				(DateTime)null, (String)null, false );
@@ -13055,12 +13204,15 @@ throws IOException
 Read RiversideDB time series (MeasType) and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
-{	String rtn = "TSTool_JFrame.readRiversideDBHeaders";
+{	String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
+    DataStore dataStore = ui_GetSelectedDataStore ();
 	// The headers are a list of RiversideDB_MeasTypeMeasLocGeoloc
 	try {
+	    RiversideDBDataStore riversideDBDataStore = (RiversideDBDataStore)dataStore;
+	    RiversideDB_DMI rdmi = (RiversideDB_DMI)riversideDBDataStore.getDMI();
         queryResultsList_Clear ();
 
 		String dataType = StringUtil.getToken(	__dataType_JComboBox.getSelected()," ",0,0).trim();
@@ -13074,10 +13226,10 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
             timeStep = timeStep.trim();
 		}
 
-		List results = null;
+		List<RiversideDB_MeasTypeMeasLocGeoloc> results = null;
 		// Data type is shown with name so only use the first part of the choice
 		try {
-		    results = __rdmi.readMeasTypeMeasLocGeolocList(dataType, timeStep,
+		    results = rdmi.readMeasTypeMeasLocGeolocList(dataType, timeStep,
 		            (InputFilter_JPanel)__selectedInputFilter_JPanel);
 		}
 		catch ( Exception e ) {
@@ -13090,7 +13242,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 			// TODO Does not work??
 			//__query_TableModel.setNewData ( results );
 			// Try brute force...
-			__query_TableModel = new TSTool_RiversideDB_TableModel ( results );
+			__query_TableModel = new TSTool_RiversideDB_TableModel ( riversideDBDataStore, results );
 			TSTool_RiversideDB_CellRenderer cr =
 				new TSTool_RiversideDB_CellRenderer( (TSTool_RiversideDB_TableModel)__query_TableModel);
 
@@ -13308,13 +13460,14 @@ private void uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ()
 throws IOException
 {   String routine = "TSTool_JFrame.readStateCUdBHeaders";
 
+    String selectedDataType = ui_GetSelectedDataType();
     try {
         String path = __inputName_JComboBox.getSelected();
         Message.printStatus ( 1, routine, "Reading StateCU binary output file \"" + path + "\"" );
         List tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
         StateCU_BTS bin = new StateCU_BTS ( path );
-        tslist = bin.readTimeSeriesList ( "*.*." + __selected_data_type + ".*.*", null, null, null, false );
+        tslist = bin.readTimeSeriesList ( "*.*." + selectedDataType + ".*.*", null, null, null, false );
         bin.close();
         int size = 0;
         if ( tslist != null ) {
@@ -13363,14 +13516,15 @@ throws Exception
 
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
+        String selectedTimeStep = ui_GetSelectedTimeStep();
 		// TODO SAM 2007-05-14 Need to better handle picking files.
 		// Need to pick the file first and detect the time step from the file, similar to the binary file.
         // For now, key off the selected time step.
-		if ( __selected_time_step.equals( __TIMESTEP_DAY)) {
+		if ( selectedTimeStep.equals( __TIMESTEP_DAY)) {
 			fc.setDialogTitle (	"Select StateMod Daily Time Series File" );
 			StateMod_GUIUtil.addTimeSeriesFilenameFilters(fc, TimeInterval.DAY, false);
 		}
-		else if ( __selected_time_step.equals( __TIMESTEP_MONTH)) {
+		else if ( selectedTimeStep.equals( __TIMESTEP_MONTH)) {
 			fc.setDialogTitle (	"Select StateMod Monthly Time Series File" );
 			StateMod_GUIUtil.addTimeSeriesFilenameFilters(fc, TimeInterval.MONTH, false);
 		}
@@ -13386,10 +13540,10 @@ throws Exception
 		List<TS> tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
 		int interval_base = TimeInterval.MONTH;
-		if ( __selected_time_step.equals(__TIMESTEP_DAY)) {
+		if ( selectedTimeStep.equals(__TIMESTEP_DAY)) {
 			interval_base = TimeInterval.DAY;
 		}
-		else if ( __selected_time_step.equals(__TIMESTEP_MONTH)) {
+		else if ( selectedTimeStep.equals(__TIMESTEP_MONTH)) {
 			interval_base = TimeInterval.MONTH;
 		}
 		/* TODO SAM 2007-05-16 Resolve later.  Use readStateMod() in the meantime.
@@ -13507,7 +13661,7 @@ throws Exception
 			    ts.getIdentifier().setInputName(path);
 			}
 		}
-		else if ( __selected_time_step.equals(__TIMESTEP_DAY) ) {
+		else if ( selectedTimeStep.equals(__TIMESTEP_DAY) ) {
 			// Daily, only read the headers...
 			tslist = StateMod_TS.readTimeSeriesList ( path, null, null, null, false );
 		}
@@ -13555,15 +13709,16 @@ The binary file is taken from the selected item in the __input_name_JComboBox.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ()
 throws IOException
-{	String routine = "TSTool_JFrame.readStateModBHeaders";
+{	String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders";
 
+    String selectedDataType = ui_GetSelectedDataType();
 	try {
         String path = __inputName_JComboBox.getSelected();
 		Message.printStatus ( 1, routine, "Reading StateMod binary output file \"" + path + "\"" );
 		List tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
 		StateMod_BTS bin = new StateMod_BTS ( path );
-		tslist = bin.readTimeSeriesList ( "*.*." + __selected_data_type + ".*.*", null, null, null, false );
+		tslist = bin.readTimeSeriesList ( "*.*." + selectedDataType + ".*.*", null, null, null, false );
 		bin.close();
 		int size = 0;
 		if ( tslist != null ) {
@@ -13791,34 +13946,53 @@ private void uiAction_ImportConfiguration ( String configFilePath )
 /**
 Reset the query options choices based on the selected input name.  Other
 method calls are cascaded to fully reset the choices.
+@param selectedDataStore if not null, then the blank input name is selected; if null, then the input name
+selection is processed
 */
-private void uiAction_InputNameChoiceClicked()
+private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
 {	String routine = getClass().getName() + "uiAction_InputNameChoiceClicked";
 	if ( __inputName_JComboBox == null ) {
 		return;
 	}
 	// Default is for selected name and visible name to be the same, but phase in abbreviated visible names for
 	// some input types below.
-	__selectedInputName = __inputName_JComboBox.getSelected();
-	__selectedInputNameVisible = __selectedInputName;
+	String selectedInputName = ui_GetSelectedInputName();
+	String selectedInputNameVisible = selectedInputName;
+	
+    if ( selectedDataStore != null ) {
+        Message.printStatus(2, routine, "Blanking out input type because data store \"" +
+            selectedDataStore.getName() + "\" has been selected." );
+        // Set the input name to blank, adding the blank item if necessary
+        if ( __inputName_JComboBox.getItemCount() == 0 ) {
+            __inputName_JComboBox.add("");
+        }
+        else if ( !__inputName_JComboBox.getItemAt(0).equals("") ) {
+            __inputName_JComboBox.addAt("",0);
+        }
+        ui_SetIgnoreItemEvent(true);
+        __inputName_JComboBox.select("");
+        ui_SetIgnoreItemEvent(false);
+        return;
+    }
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Input name has been selected:  \"" + __selectedInputName + "\"" );
+		Message.printDebug ( 1, routine, "Input name has been selected:  \"" + selectedInputName + "\"" );
 	}
 
 	// List alphabetically...
 	try {
-        if ( __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
+	    String selectedInputType = ui_GetSelectedInputType();
+        if ( selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
             // Get the position of the visible name
-            int listIndex = StringUtil.indexOf(__inputNameHecDssVisibleList,__selectedInputNameVisible);
+            int listIndex = StringUtil.indexOf(__inputNameHecDssVisibleList,selectedInputNameVisible);
             Message.printStatus( 2, routine, "Visible item is in position " + listIndex );
-            __selectedInputName = (String)__inputNameHecDssList.get(listIndex);
-            Message.printStatus( 2, routine, "File corresponding to visible item is \"" + __selectedInputName + "\"" );
+            selectedInputName = __inputNameHecDssList.get(listIndex);
+            Message.printStatus( 2, routine, "File corresponding to visible item is \"" + selectedInputName + "\"" );
             // A new file was slected so clear the part choices and regenerate the lists...
-            ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).setHecDssFile(new File(__selectedInputName));
+            ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).setHecDssFile(new File(selectedInputName));
             ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).refreshChoices(true);
         }
-        if ( __selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ) {
+        else if ( selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ) {
     		// Reset the data types...
     		__dataType_JComboBox.setEnabled ( true );
     		__dataType_JComboBox.removeAll ();
@@ -13838,8 +14012,11 @@ private void uiAction_InputNameChoiceClicked()
 Reset the query options choices based on the selected input type.  Other
 method calls are cascaded to fully reset the choices.  This method also
 shows/hides columns in the query results multilist to be appropriate for the data input source.
+@param selectedDataStore if not null, then the input type choice is being cascaded through from
+a data store selection and just needs to futher cascade to the input type, setting both to blank.
+If null, then input type and name are fully processed, ignoring the data store.
 */
-private void uiAction_InputTypeChoiceClicked()
+private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 {	String routine = "TSTool_JFrame.inputTypeChoiceClicked";
 	if ( __input_type_JComboBox == null ) {
 		if ( Message.isDebugOn ) {
@@ -13847,8 +14024,26 @@ private void uiAction_InputTypeChoiceClicked()
 		}
 		return;	// Not done initializing.
 	}
-	__selectedInputType = __input_type_JComboBox.getSelected();
-	if ( __selectedInputType == null ) {
+	if ( selectedDataStore != null ) {
+	    Message.printStatus(2, routine, "Blanking out input type because data store \"" +
+	        selectedDataStore.getName() + "\" has been selected." );
+	    // Set the input type to blank, adding the blank item if necessary
+        if ( __input_type_JComboBox.getItemCount() == 0 ) {
+            __input_type_JComboBox.add("");
+        }
+        else if ( !__input_type_JComboBox.getItemAt(0).equals("") ) {
+            __input_type_JComboBox.addAt("",0);
+        }
+        ui_SetIgnoreItemEvent(true);
+        __input_type_JComboBox.select("");
+        ui_SetIgnoreItemEvent(false);
+	    // Now chain to selecting the input name - this will blank the input name selection
+	    uiAction_InputNameChoiceClicked(selectedDataStore);
+	    return;
+	}
+	// Get the selected input type
+    String selectedInputType = ui_GetSelectedInputType();
+	if ( selectedInputType == null ) {
 		// Apparently this happens when setData() or similar is called
 	    // on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
@@ -13856,81 +14051,83 @@ private void uiAction_InputTypeChoiceClicked()
 		}
 		return;
 	}
+	// If here, make sure to blank out the selection on the data store so that the user is not confused by
+	// seeing both
+	ui_SetIgnoreItemEvent(true);
+	__dataStore_JComboBox.select ( "" );
+	ui_SetIgnoreItemEvent(false);
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Input type has been selected:  \"" + __selectedInputType + "\"" );
+		Message.printDebug ( 1, routine, "Input type has been selected:  \"" + selectedInputType + "\"" );
 	}
 
 	// List alphabetically...
 	try {
-        if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoIPP ) ) {
+        if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoIPP ) ) {
             uiAction_SelectInputType_ColoradoIPP ();
         }
-        else if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterHBGuest ) ) {
+        else if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterHBGuest ) ) {
             uiAction_SelectInputType_ColoradoWaterHBGuest ();
         }
-        else if ( __selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
+        else if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
             uiAction_SelectInputType_ColoradoWaterSMS ();
         }
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_DateValue ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_DateValue ) ) {
     	    uiAction_SelectInputType_DateValue ();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_DIADvisor ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_DIADvisor ) ) {
     	    uiAction_SelectInputType_DIADvisor ();
     	}
-        else if ( __selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
+        else if ( selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
             uiAction_SelectInputType_HECDSS ();
         }
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
     	    uiAction_SelectInputType_HydroBase();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_MEXICO_CSMN ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_MEXICO_CSMN ) ) {
     	    uiAction_SelectInputType_MexicoCSMN();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_MODSIM ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_MODSIM ) ) {
     	    uiAction_SelectInputType_MODSIM();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ) {
     	    uiAction_SelectInputType_NwsCard();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files)) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files)) {
     	    uiAction_SelectInputType_NwsrfsFs5files();
     	}
-    	else if(__selectedInputType.equals ( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+    	else if(selectedInputType.equals ( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
     	    uiAction_SelectInputType_NwsrfsEspTraceEnsemble();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_RiversideDB ) ) {
-            uiAction_SelectInputType_RiversideDB ();
-    	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ) {
     	    uiAction_SelectInputType_RiverWare();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateCU ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_StateCU ) ) {
     		// Prompt for a StateCU file and update choices...
     		uiAction_SelectInputType_StateCU ( true );
     	}
-        else if ( __selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ) {
+        else if ( selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ) {
             // Prompt for a StateCU binary file and update choices...
             uiAction_SelectInputType_StateCUB ( true );
         }
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
     	    uiAction_SelectInputType_StateMod ();
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_StateModB ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_StateModB ) ) {
     		// Prompt for a StateMod binary file and update choices...
     		uiAction_SelectInputType_StateModB ( true );
     	}
-    	else if ( __selectedInputType.equals ( __INPUT_TYPE_USGSNWIS ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_USGSNWIS ) ) {
     	    uiAction_SelectInputType_UsgsNwis();
     	}
     	else {
     	    // Not a recognized input source...
-    		Message.printWarning ( 1, routine,"\"" + __selectedInputType + "\" is not a recognized input type." );
+    		Message.printWarning ( 1, routine,"\"" + selectedInputType + "\" is not a recognized input type." );
     		return;
     	}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 1, routine, "Error setting up choices for " + __selectedInputType +
+		Message.printWarning ( 1, routine, "Error setting up choices for " + selectedInputType +
 		    " input type (" + e + ")." );
 		Message.printWarning ( 3, routine, e );
 	}
@@ -14413,240 +14610,23 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 }
 
 /**
-Open a connection to the RiversideDB database.
-@param props RiversideDB Properties read from a RiverTrak configuration file.
-If null, the properties will be determined from the TSTool configuration file,
-if available.  This will likely be the case at startup in systems where a
-connection to RiversideDB will always be made.  If not null, the connection is
-likely being defined from a RiverTrak configuration file.
+Open a connection to the RiversideDB database based on information in a configuration file.
+Currently this ONLY works on the newer configuration file, not TSTool or RiverTrak configurations files.
+@param configFile configuration file containing RiversideDB connection information
 @param startup If true, indicates that the database connection is being made
 at startup.  In this case, the RiversideDB input type is enabled but there may
 not actually be information in the TSTool.cfg file.  This is the case, for
 example, when multiple RiversideDB databases may be available and there is no
 reason to automatically connect to one of them for all users.
 */
-private void uiAction_OpenRiversideDB ( PropList props, boolean startup )
-{	String routine = "TSTool_JFrame.openRiversideDB";
-	// First close the existing connection...
-	if ( __rdmi != null ) {
-		try {
-            __rdmi.close();
-		}
-		catch ( Exception e ) {
-			// Ignore - any reason not to?
-		}
-	}
-	
-    boolean ShowLoginDialog_boolean = true; // Default is to ask user to login
-    
-	try {
-        String	connect_method = null,
-			database_engine = null,
-			database_server = null,
-			database_name = null,
-			errors = "",
-			system_login = null,
-			system_password = null;
-		int error_count = 0;
-		int needed_prop_count = 0; // For a connection method, how many needed props are found
-
-		// Get the database connect method (optional - will default)...
-
-		if ( props == null ) {
-			connect_method = TSToolMain.getPropValue("RiversideDB.JavaConnectMethod");
-		}
-		else {
-		    // Newer...
-			connect_method = props.getValue("RiversideDB.JavaConnectMethod");
-		}
-		if ( connect_method == null ) {
-		    // Default should work in most cases because phasing out ODBC DSN specification.
-			connect_method = "JDBCODBC";
-		}
-
-		// First get the database engine (required)...
-
-		if ( props == null ) {
-			database_engine = TSToolMain.getPropValue("RiversideDB.DatabaseEngine" );
-		}
-		else {
-            database_engine = props.getValue("RiversideDB.DatabaseEngine");
-		}
-		if ( database_engine == null ) {
-			errors += "\nRiversideDB.DatabaseEngine is not defined in configuration information.";
-			++error_count;
-		}
-		else {
-            ++needed_prop_count;
-		}
-
-		// Now get the properties for the connect method...
-
-		if ( connect_method.equalsIgnoreCase ( "JDBCODBC" ) ) {
-			// Database server name (required)...
-			if ( props == null ) {
-				database_server = TSToolMain.getPropValue( "RiversideDB.JavaDatabaseServer" );
-			}
-			else {
-                database_server = props.getValue( "RiversideDB.JavaDatabaseServer");
-			}
-			if ( database_server == null ) {
-			    // Try more generic properties (should work for most configurations)
-	            if ( props == null ) {
-	                database_server = TSToolMain.getPropValue( "RiversideDB.DatabaseServer" );
-	            }
-	            else {
-	                database_server = props.getValue( "RiversideDB.DatabaseServer");
-	            }
-			}
-			if ( database_server == null ) {
-				errors += "\nRiversideDB.DatabaseServer is not defined in configuration information.";
-				++error_count;
-			}
-			else {
-                ++needed_prop_count;
-			}
-		}
-
-		// The database name is used for both "ODBC" and "JDBCODBC" connect methods (required)...
-
-		if ( props == null ) {
-			database_name = TSToolMain.getPropValue("RiversideDB.JavaDatabase" );
-		}
-		else {
-            database_name = props.getValue(	"RiversideDB.JavaDatabase" );
-		}
-        if ( database_name == null ) {
-            // Try more generic properties (should work for most configurations)
-            if ( props == null ) {
-                database_name = TSToolMain.getPropValue( "RiversideDB.Database" );
-            }
-            else {
-                database_name = props.getValue( "RiversideDB.Database");
-            }
-        }
-		if ( database_name == null ) {
-			errors += "\nRiversideDB.Database is not defined in configuration information.";
-			++error_count;
-		}
-		else {
-            ++needed_prop_count;
-		}
-
-		// Now get the system login and password to use (optional - will default)...
-
-		if ( props == null ) {
-			// Newer...
-			system_login = TSToolMain.getPropValue(	"RiversideDB.SystemLogin");
-			if ( system_login == null ) {
-				// Older...
-				system_login = TSToolMain.getPropValue("RiversideDB.Login");
-			}
-		}
-		else {
-		    // Newer...
-			system_login=props.getValue("RiversideDB.SystemLogin");
-			if ( system_login == null ) {
-				// Older...
-				system_login = props.getValue (	"RiversideDB.Login");
-			}
-		}
-		if ( props == null ) {
-			// Newer...
-			system_password = TSToolMain.getPropValue("RiversideDB.SystemPassword");
-			if ( system_password == null ) {
-				// Older...
-				system_password = TSToolMain.getPropValue("RiversideDB.Password");
-			}
-		}
-		else {
-		    // Newer...
-			system_password = props.getValue("RiversideDB.SystemPassword");
-			if ( system_password == null ) {
-				// Older...
-				system_password = props.getValue("RiversideDB.Password");
-			}
-		}
-		
-		// Determine whether a login dialog should be shown
-		String ShowLoginDialog = null;
-        if ( props == null ) {
-            ShowLoginDialog = TSToolMain.getPropValue("RiversideDB.ShowLoginDialog" );
-        }
-        else {
-            ShowLoginDialog = props.getValue("RiversideDB.DShowLoginDialog");
-        }
-        if ( (ShowLoginDialog != null) && ShowLoginDialog.equalsIgnoreCase("false") ) {
-            ShowLoginDialog_boolean = false;
-        }
-
-		// Check for configuration errors...
-
-		if ( error_count > 0 ) {
-			if ( !startup || (startup && (needed_prop_count > 0) ) ) {
-				// A startup condition where RiversideDB properties have been given that are incorrect
-				// and should be corrected... OR... A startup condition where RiversideDB properties
-				// are not given - no error because expect the user to specify connection information later.
-				errors += "\n\nError in RiversideDB configuration properties.";
-				errors += "\nUnable to open RiversideDB database.";
-				Message.printWarning ( 1, routine, errors );
-			}
-			__rdmi = null;
-			return;
-		}
-
-		// Construct a new DMI...
-
-		if ( connect_method.equalsIgnoreCase("ODBC") ) {
-			__rdmi = new RiversideDB_DMI ( database_engine, database_name, system_login, system_password );
-		}
-		else {
-            __rdmi = new RiversideDB_DMI ( database_engine, database_server, database_name,
-					-1, system_login, system_password );
-		}
-
-		// Now open the connection...
-		__rdmi.open();
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 1, routine, "Unable to open RiversideDB database. ");
-		Message.printWarning( 2, routine, e );
-		// Set the DMI to null so that features will be turned on but still allow the RiversideDB
-		// input type to be enabled so that it can be tried again.
-		__rdmi = null;
-	}
-
-	// Check the GUI state to enable/disable RiversideDB properties...
-
-	ui_CheckRiversideDBFeatures ();
-
-    if ( !startup || (startup && ShowLoginDialog_boolean) ) {
-        // Need to show the login dialog to let the user specify the RiversideDB login
-    	int login = LoginJDialog.LOGIN_EXCEEDED_MAX;
-    	try {
-    		while (login != LoginJDialog.LOGIN_CANCELLED 
-    		    && login != LoginJDialog.LOGIN_OK) {
-    			login = new LoginJDialog(this, "RiversideDB Login", __rdmi).response();
-    		}
-    	}
-    	catch (Exception e) {
-    		Message.printWarning(2, routine, "Error opening login dialog.");
-    		Message.printWarning(2, routine, e);
-    		login = LoginJDialog.LOGIN_CANCELLED;
-    	}
-    
-    	if (login == LoginJDialog.LOGIN_CANCELLED) {
-    		new ResponseJDialog(this, "Login Cancelled",
-    			"RiversideDB login was cancelled.  Editing and saving capabilities will be disabled.\n" +
-    			"However, the connection to the database was still established for reading data.", 
-    			ResponseJDialog.OK);
-    	}
-    }
-    
-    // Set the HydroBaseDMI for the command processor...
-    commandProcessor_SetRiversideDB_DMI ( __rdmi );
-    // Enable/disable RiversideDB features as necessary...
-    ui_CheckRiversideDBFeatures();
+private DataStore uiAction_OpenRiversideDB ( String configFile )
+throws Exception
+{
+    // Read into a PropList...
+    PropList rprops = new PropList("");
+    rprops.setPersistentName ( configFile );
+    rprops.readPersistent ();
+    return TSToolMain.openDataStore( rprops, __tsProcessor );
 }
 
 /**
@@ -15017,7 +14997,7 @@ private void uiAction_RunCommands_ShowResultsTables()
 {   // Get the list of tables from the processor.
     //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTables", "Entering method.");
     // Get the list of table identifiers from the processor.
-    List table_List = commandProcessor_GetTableResultsList();
+    List<DataTable> table_List = commandProcessor_GetTableResultsList();
     int size = 0;
     if ( table_List != null ) {
         size = table_List.size();
@@ -15025,7 +15005,7 @@ private void uiAction_RunCommands_ShowResultsTables()
     ui_SetIgnoreActionEvent(true);
     DataTable table;
     for ( int i = 0; i < size; i++ ) {
-        table = (DataTable)table_List.get(i);
+        table = table_List.get(i);
         results_Tables_AddTable ( table );
     }
     ui_SetIgnoreActionEvent(false);
@@ -15045,19 +15025,25 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	TS ts = null;
 	String desc = null;
 	String alias = null;
+	DateTime date1, date2;
 	boolean [] selected_boolean = new boolean[size];   // Size to results list
+	// HTML brackets to deal with data issues - is red OK or is that a problem for people that are color-blind?
+	String htmlStart = "<html><span style=\"color:red;font-weight:bold\">", htmlStart2;
+	String htmlEnd = "</span></html>", htmlEnd2;
 	for ( int i = 0; i < size; i++ ) {
 		selected_boolean[i] = false;
 		try {
             ts = commandProcessor_GetTimeSeries(i);
 		}
 		catch ( Exception e ) {
-			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") - Error getting time series from processor." );
+			results_TimeSeries_AddTimeSeriesToResults ( htmlStart + (i + 1) +
+			    ") - Error getting time series from processor." + htmlEnd );
 			Message.printWarning ( 3, routine, e );
 			continue;
 		}
 		if ( ts == null ) {
-			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") - Null time series from processor." );
+			results_TimeSeries_AddTimeSeriesToResults ( htmlStart + (i + 1) +
+			    ") - Null time series from processor." + htmlEnd );
 			continue;
 		}
 		else {
@@ -15070,8 +15056,26 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 			if ( (desc == null) || (desc.length() == 0) ) {
 				desc = ts.getIdentifier().getLocation();
 			}
-			results_TimeSeries_AddTimeSeriesToResults ( "" + (i + 1) + ") " + alias +
-			desc + " - " + ts.getIdentifier() +	" (" + ts.getDate1() + " to " +	ts.getDate2() + ")" );
+			date1 = ts.getDate1();
+			date2 = ts.getDate2();
+			String dateString = null;
+			htmlStart2 = "";
+			htmlEnd2 = "";
+			if ( (date1 == null) || (date2 == null) ) {
+			    dateString = " (NO DATA)";
+			    htmlStart2 = htmlStart;
+			    htmlEnd2 = htmlEnd;
+			}
+			else if ( !ts.hasData() ) {
+			    dateString = " (" + ts.getDate1() + " to " + ts.getDate2() + " NO DATA)";
+	            htmlStart2 = htmlStart;
+	            htmlEnd2 = htmlEnd;
+			}
+			else {
+			    dateString = " (" + ts.getDate1() + " to " + ts.getDate2() + ")";
+			}
+			results_TimeSeries_AddTimeSeriesToResults ( htmlStart2 + (i + 1) + ") " + alias +
+			    desc + " - " + ts.getIdentifier() +	dateString + htmlEnd2 );
 			// Determine whether the time series was programmatically selected in the commands...
 			selected_boolean[i] = ts.isSelected();
 		}
@@ -15276,6 +15280,81 @@ Select all commands in the commands list.  This occurs in response to a user sel
 private void uiAction_SelectAllCommands()
 {	JGUIUtil.selectAll(ui_GetCommandJList());
 	ui_UpdateStatus ( true );
+}
+
+/**
+Refresh the query choices for the currently selected RiversideDB data store.
+*/
+private void uiAction_SelectDataStore_RiversideDB ( RiversideDBDataStore selectedDataStore )
+throws Exception
+{   String routine = getClass().getName() + "uiAction_SelectInputName_RiversideDB";
+    // Get the DMI instances for the matching data store
+    RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    List<RiversideDB_MeasType> mts = null;
+    List<RiversideDB_DataType> dts = null;
+    try {
+        mts = rdmi.readMeasTypeListForDistinctData_type();
+        dts = rdmi.readDataTypeList();
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error getting time series choices (" + e + ")." );
+        Message.printWarning ( 3, routine, e );
+        Message.printWarning ( 3, routine, rdmi.getLastSQLString() );
+        mts = null;
+    }
+    int size = 0;
+    if ( mts != null ) {
+        size = mts.size();
+    }
+    if ( size > 0 ) {
+        RiversideDB_MeasType mt = null;
+        int pos;
+        String data_type;
+        for ( int i = 0; i < size; i++ ) {
+            mt = mts.get(i);
+            pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
+            if ( pos < 0 ) {
+                __dataType_JComboBox.add(mt.getData_type() );
+            }
+            else {
+                data_type = mt.getData_type() + " - " + dts.get(pos).getDescription();
+                if ( data_type.length() > 30 ) {
+                    __dataType_JComboBox.add( data_type.substring(0,30) + "..." );
+                }
+                else {
+                    __dataType_JComboBox.add( data_type );
+                }
+            }
+        }
+        __dataType_JComboBox.select ( null );
+        __dataType_JComboBox.select ( 0 );
+    }
+
+    // Default to first in the list...
+    //__data_type_JComboBox.select( 0 );
+
+    /* TODO
+    __where_JComboBox.setEnabled ( true );
+    __where_JComboBox.removeAll ();
+    // SAMX Need to decide what to put here...
+    __where_JComboBox.add("Data Source");
+        __where_JComboBox.add("Location ID");
+    __where_JComboBox.add("Location Name");
+    __where_JComboBox.select ( 2 );
+    */
+
+    // Initialize with blank data vector...
+
+    __query_TableModel = new TSTool_RiversideDB_TableModel(selectedDataStore,null);
+    TSTool_RiversideDB_CellRenderer cr =
+        new TSTool_RiversideDB_CellRenderer((TSTool_RiversideDB_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    //__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
 /**
@@ -15501,7 +15580,7 @@ throws Exception
     
     // Set the data types and time step based on what is available...
 
-    uiAction_InputNameChoiceClicked ();
+    uiAction_InputNameChoiceClicked ( null );
 
     // Initialize with blank data vector...
 
@@ -15552,6 +15631,7 @@ throws Exception
     // Input name is not currently used...
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
+    String selectedInputType = ui_GetSelectedInputType();
     // Get the distinct list of data types (HBGuest variables) for all stations...
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
@@ -15574,7 +15654,7 @@ throws Exception
     //__query_TableModel = new TSTool_TS_TableModel(null);
     //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
     __query_TableModel = new TSTool_HydroBase_TableModel(
-        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, __selectedInputType);
+        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
     TSTool_HydroBase_CellRenderer cr =
         new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
@@ -15592,6 +15672,7 @@ throws Exception
     // Input name is not currently used...
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
+    String selectedInputType = ui_GetSelectedInputType();
     // Get the distinct list of data types (SMS variables) for all stations...
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
@@ -15617,7 +15698,7 @@ throws Exception
     //__query_TableModel = new TSTool_TS_TableModel(null);
     //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
     __query_TableModel = new TSTool_HydroBase_TableModel(
-        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, __selectedInputType);
+        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
     TSTool_HydroBase_CellRenderer cr =
         new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
@@ -15974,7 +16055,7 @@ throws Exception
     }
     else if ( choice_ok ) {
         // The current open DMI was able to be selected above. Need to force the data types to cascade...
-        uiAction_InputNameChoiceClicked();
+        uiAction_InputNameChoiceClicked( null );
     }
 
     // Display the NWSRFS input filters...
@@ -15988,79 +16069,6 @@ throws Exception
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
     __query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SEQUENCE );
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-}
-
-/**
-Refresh the query choices for a RiversideDB connection.
-*/
-private void uiAction_SelectInputType_RiversideDB ()
-throws Exception
-{   String routine = getClass().getName() + "uiAction_SelectInputName_RiversideDB";
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
-    List<RiversideDB_MeasType> mts = null;
-    List<RiversideDB_DataType> dts = null;
-    try {
-        mts = __rdmi.readMeasTypeListForDistinctData_type();
-        dts = __rdmi.readDataTypeList();
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 1, routine, "Error getting time series choices (" + e + ")." );
-        Message.printWarning ( 3, routine, e );
-        Message.printWarning ( 3, routine, __rdmi.getLastSQLString() );
-        mts = null;
-    }
-    int size = 0;
-    if ( mts != null ) {
-        size = mts.size();
-    }
-    if ( size > 0 ) {
-        RiversideDB_MeasType mt = null;
-        int pos;
-        String data_type;
-        for ( int i = 0; i < size; i++ ) {
-            mt = mts.get(i);
-            pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
-            if ( pos < 0 ) {
-                __dataType_JComboBox.add(mt.getData_type() );
-            }
-            else {
-                data_type = mt.getData_type() + " - " + dts.get(pos).getDescription();
-                if ( data_type.length() > 30 ) {
-                    __dataType_JComboBox.add( data_type.substring(0,30) + "..." );
-                }
-                else {
-                    __dataType_JComboBox.add( data_type );
-                }
-            }
-        }
-        __dataType_JComboBox.select ( null );
-        __dataType_JComboBox.select ( 0 );
-    }
-
-    // Default to first in the list...
-    //__data_type_JComboBox.select( 0 );
-
-    /* TODO
-    __where_JComboBox.setEnabled ( true );
-    __where_JComboBox.removeAll ();
-    // SAMX Need to decide what to put here...
-    __where_JComboBox.add("Data Source");
-        __where_JComboBox.add("Location ID");
-    __where_JComboBox.add("Location Name");
-    __where_JComboBox.select ( 2 );
-    */
-
-    // Initialize with blank data vector...
-
-    __query_TableModel = new TSTool_RiversideDB_TableModel(null);
-    TSTool_RiversideDB_CellRenderer cr =
-        new TSTool_RiversideDB_CellRenderer((TSTool_RiversideDB_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    //__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
@@ -16612,6 +16620,10 @@ throws Exception
 	List idlist = new Vector(size);
 	Message.printStatus ( 1, routine, "Selecting and zooming to stations on map.  Please wait...");
 	JGUIUtil.setWaitCursor(this, true);
+	
+	String selectedInputType = ui_GetSelectedInputType();
+	String selectedDataType = ui_GetSelectedDataType();
+	String selectedTimeStep = ui_GetSelectedTimeStep();
 
 	// Get the list of layers to select from, and the attributes to use...
 	// First read the file with the lookup of time series to layer information.
@@ -16695,13 +16707,13 @@ throws Exception
 				layer_interval = (String)rec.getFieldValue(	Layer_IntervalCol_int);
 			}
 			// Required fields...
-			if (!ts_inputtype.equalsIgnoreCase(	__selectedInputType)){
+			if (!ts_inputtype.equalsIgnoreCase(	selectedInputType)){
 				continue;
 			}
-			if ( !ts_datatype.equalsIgnoreCase(	__selected_data_type)){
+			if ( !ts_datatype.equalsIgnoreCase(	selectedDataType)){
 				continue;
 			}
-			if ( !ts_interval.equalsIgnoreCase(	__selected_time_step)){
+			if ( !ts_interval.equalsIgnoreCase(	selectedTimeStep)){
 				continue;
 			}
 			// The layer matches the main input selections...
@@ -16733,7 +16745,7 @@ throws Exception
 	// Get the worksheet of interest...
 
 	int row = -1, location_col = -1, datasource_col = -1, interval_col = -1;
-	if ( __selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
+	if ( selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_TS_TableModel){
 			TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 			location_col = model.COL_ID;
@@ -16988,6 +17000,19 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
     List commands = commandList_GetCommandsBasedOnUI();
     String html = CommandStatusUtil.getHTMLStatusReport(commands);	
     return html;
+}
+
+/**
+Show the data stores.
+*/
+private void uiAction_ShowDataStores ()
+{   String routine = getClass().getName() + "uiAction_ShowDataStores";
+    try {
+        new DataStores_JFrame ( "Data Stores", __tsProcessor.getDataStores() );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error displaying data stores (" + e + ")." );
+    }
 }
 
 /**
@@ -17282,10 +17307,10 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
         v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
     }
     if ( __source_RiversideDB_enabled ) {
-        v.add ( "RiversideDB input type is enabled" );
+        v.add ( "RiversideDB data store is enabled" );
     }
     else {
-        v.add ( "RiversideDB input type is not enabled");
+        v.add ( "RiversideDB data store is not enabled");
     }
     if ( __source_RiverWare_enabled ) {
         v.add ( "RiverWare input type is enabled" );
@@ -17965,8 +17990,8 @@ private void uiAction_TimeStepChoiceClicked()
 		}
 		return;
 	}
-	__selected_time_step = __timeStep_JComboBox.getSelected();
-	if ( __selected_time_step == null ) {
+	String selectedTimeStep = ui_GetSelectedTimeStep();
+	if ( selectedTimeStep == null ) {
 		// Apparently this happens when setData() or similar is called
 		// on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
@@ -17975,11 +18000,11 @@ private void uiAction_TimeStepChoiceClicked()
 		return;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printStatus ( 2, rtn, "Time step has been selected:  \"" + __selected_time_step + "\"" );
+		Message.printStatus ( 2, rtn, "Time step has been selected:  \"" + selectedTimeStep + "\"" );
 	}
 
 	ui_SetInputFilters();
-/*
+/* TODO SAM 2010-09-07 What is this?  Can it be removed?
 	else if ( dsource.equals(__INPUT_TYPE_RiversideDB) ) {
 		// Get the selected MeasType that match the choices so far
 		// and add to the data type modifiers (sub-data type)...

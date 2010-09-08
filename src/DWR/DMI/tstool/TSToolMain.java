@@ -431,6 +431,8 @@ import javax.swing.JFrame;
 
 import org.restlet.data.Parameter;
 
+import riverside.datastore.DataStore;
+import riverside.datastore.DataStoreFactory;
 import rti.app.tstoolrestlet.TSToolServer;
 
 import rti.tscommandprocessor.core.TSCommandFileRunner;
@@ -440,6 +442,7 @@ import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
+import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
 import RTi.GRTS.TSViewGraphJFrame;
 import RTi.GRTS.TSViewSummaryJFrame;
 import RTi.GRTS.TSViewTableJFrame;
@@ -461,7 +464,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.07.02 (2010-08-19)";
+public static final String PROGRAM_VERSION = "9.08.00 (2010-09-08)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -540,6 +543,19 @@ public static JFrame getJFrame ()
 
 /**
 Return a TSTool property.  The properties are defined in the TSTool configuration file.
+@param propertyExp name of property to look up as a Java regular expression.
+@return the value(s) for a TSTool configuration property, or null if a properties file does not exist.
+Return null if the property is not found (or if no configuration file exists for TSTool).
+*/
+public static List<Prop> getProps ( String propertyExp )
+{   if ( __tstool_props == null ) {
+        return null;
+    }
+    return __tstool_props.getPropsMatchingRegExp(propertyExp);
+}
+
+/**
+Return the value of a TSTool property.  The properties are defined in the TSTool configuration file.
 @param property name of property to look up.
 @return the value for a TSTool configuration property, or null if a properties file does not exist.
 Return null if the property is not found (or if no configuration file exists for TSTool).
@@ -725,9 +741,9 @@ public static void main ( String args[] )
 	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
 		// reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner.getProcessor() );
-        // Open the RiversideDB connection if the configuration file specifies the information.  Do this before
+        // Open data stores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
-        openRiversideDB ( runner );
+        openDataStoresAtStartup ( runner.getProcessor() );
 		try {
 		    String command_file_full = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + command_file_full + "\"" );
@@ -819,6 +835,159 @@ public static void main ( String args[] )
 	}
 }
 
+/**
+Open a data store given its configuration properties.  The data store is also added to the processor.
+@param dataStoreProps data store configuration properties recognized by the data store factory "create" method.
+@param processor time series command processor that will use/manage the data store
+*/
+protected static DataStore openDataStore ( PropList dataStoreProps, TSCommandProcessor processor )
+throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
+{
+    // Open the data store depending on the type
+    String dataStoreType = dataStoreProps.getValue("Type");
+    // For now hard-code this here
+    // TODO SAM 2010-09-01 Make this more elegant
+    String packagePath = "";
+    if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
+        packagePath = "RTi.DMI.RiversideDB_DMI.";
+    }
+    Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
+    DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
+    DataStore dataStore = factory.create(dataStoreProps);
+    // Add the data store to the processor
+    processor.setPropContents ( "DataStore", dataStore );
+    return dataStore;
+}
+
+/**
+Open the data stores (e.g., RiversideDB connection(s)) using the TSTool configuration file information and set
+in the command processor.  The configuration file is used to determine the database server and
+name properties to use for the initial connection(s).  This method can be called from the UI code
+to automatically establish database startup database connections.
+In the UI, the user may subsequently open new connections (File...Open...RiversideDB) in which case the
+openRiversideDB() method will be called directly (no need to deal with the main TSTool configuration file).
+*/
+protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
+{   String routine = "TSToolMain.openDataStoreStartup";
+    String configFile = getConfigFile();
+
+    // Use the configuration file to get RiversideDB properties...
+    Message.printStatus(2, routine, "TSTool configuration file \"" + configFile +
+    "\" is being used to open data stores at startup." );
+    
+    // Legacy properties allowed on RiversideDB to be configured from the main TSTool.cfg file
+    // Support this approach to open a default "RiversideDB" data store name
+    String name = "RiversideDB";
+    String description = "Default RiversideDB";
+    String databaseEngine = getPropValue ( "RiversideDB.DatabaseEngine" );
+    String databaseServer = getPropValue ( "RiversideDB.DatabaseServer" );
+    String databaseName = getPropValue ( "RiversideDB.Database" );
+    // FIXME SAM 2009-06-17 Need to evaluate encryption of password.
+    String systemLogin = getPropValue ( "RiversideDB.SystemLogin" ); // OK if null
+    String systemPassword = getPropValue ( "RiversideDB.SystemPassword" ); // OK if null
+    if ( (databaseEngine == null) && (databaseServer == null) && (databaseName == null) ) {
+        // Most likely because using new data store conventions
+        // Open below with the generic data store code
+    }
+    else {
+        // Have some data so check for the individual properties
+        boolean RiversideDB_enabled = false;  // Whether RiversideDBEnabled = true in TSTool config file
+        String propval = __tstool_props.getValue ( "TSTool.RiversideDBEnabled");
+        if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
+            RiversideDB_enabled = true;
+        }
+        if ( RiversideDB_enabled ) {
+            String warning = "";
+            if ( (databaseEngine == null) || databaseEngine.equals("") ) {
+                warning +=
+                    "\nNo RiversideDB.DatabaseEngine property defined in TSTool configuration file \"" + configFile +
+                    "\".  Cannot open RiversideDB connection for batch run.";
+            }
+            if ( (databaseServer == null) || databaseServer.equals("") ) {
+                warning +=
+                    "\nNo RiversideDB.DatabaseServer property defined in TSTool configuration file \"" + configFile +
+                    "\".  Cannot open RiversideDB connection for batch run.";
+            }
+            if ( (databaseName == null) || databaseName.equals("") ) {
+                warning +=
+                    "\nNo RiversideDB.Database property defined in TSTool configuration file \"" + configFile +
+                    "\".  Cannot open RiversideDB connection for batch run.";
+            }
+            if ( warning.length() > 0 ) {
+                Message.printWarning ( 1, routine, warning );
+            }
+            else {
+                Message.printStatus(2, routine, "Opening RiversideDB \"" + name + "\"." );
+                openRiversideDB ( processor, name, description,
+                    databaseEngine, databaseServer, databaseName, systemLogin, systemPassword );
+            }
+        }
+    }
+    
+    // Also allow multiple RiversideDB connections via the new convention using data store configuration files
+    // The following code processes all data stores, although RiversideDB is the first implementation using
+    // this approach.
+    
+    // TODO SAM 2010-09-01 DataStore:*ConfigFile does not work
+    List<Prop> dataStoreMainProps = getProps ( "DataStore:*" );
+    if ( dataStoreMainProps == null ) {
+        Message.printStatus(2, routine, "No configuration properties matching DataStore:*.ConfigFile" );
+    }
+    else {
+        Message.printStatus(2, routine, "Got " + dataStoreMainProps.size() + " DataStore:*.ConfigFile properties.");
+        for ( Prop prop: dataStoreMainProps ) {
+            // Only want .ConfigFile properties
+            if ( !StringUtil.endsWithIgnoreCase(prop.getKey(),".ConfigFile") ) {
+                continue;
+            }
+            // Get the filename that defines the data store - absolute or relative to the system folder
+            String dataStoreFile = prop.getValue();
+            Message.printStatus ( 2, routine, "Opening data store using properties in \"" + dataStoreFile + "\".");
+            // Read the properties from the configuration file
+            PropList dataStoreProps = new PropList("");
+            String dataStoreFileFull = dataStoreFile;
+            if ( !IOUtil.isAbsolute(dataStoreFile)) {
+                dataStoreFileFull = __home + File.separator + "system" + File.separator + dataStoreFile;
+            }
+            if ( !IOUtil.fileExists(dataStoreFileFull) ) {
+                Message.printWarning(3, routine, "Data store configuration file \"" + dataStoreFileFull +
+                    "\" does not exist - not opening data store." );
+            }
+            else {
+                dataStoreProps.setPersistentName(dataStoreFileFull);
+                String dataStoreClassName = "";
+                try {
+                    // Get the properties from the file
+                    dataStoreProps.readPersistent();
+                    openDataStore ( dataStoreProps, processor );
+                }
+                catch ( ClassNotFoundException e ) {
+                    Message.printWarning (2,routine, "Data store class \"" + dataStoreClassName +
+                        "\" is not in the class path - report to software support (" + e + ")." );
+                    Message.printWarning(2, routine, e);
+                }
+                catch( InstantiationException e ) {
+                    Message.printWarning (2,routine, "Error instantiating data store for class \"" + dataStoreClassName +
+                        "\" - report to software support (" + e + ")." );
+                    Message.printWarning(2, routine, e);
+                }
+                catch( IllegalAccessException e ) {
+                    Message.printWarning (2,routine, "Data store for class \"" + dataStoreClassName +
+                        "\" needs a no-argument constructor - report to software support (" + e + ")." );
+                    Message.printWarning(2, routine, e);
+                }
+                catch ( Exception e ) {
+                    Message.printWarning (2,routine,"Error reading data store configuration file \"" +
+                        dataStoreFileFull + "\" - not opening data store (" + e + ")." );
+                    Message.printWarning(2, routine, e);
+                }
+            }
+        }
+    }
+    
+    // TODO SAM 2010-09-01 Transition HydroBase and other data stores here
+}
+
 // TODO SAM 2010-02-03 Evaluate whether non-null HydroBaseDMI return is OK or whether
 // should rely on exceptions.
 /**
@@ -895,61 +1064,30 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
 }
 
 /**
-Open the RiversideDB connection using the TSTool configuration file information, when running
-in batch mode.  The configuration file is used to determine the database server and
-name properties to use for the initial connection.
+Open a single RiversideDB connection using the specified information.  This method will add the connection
+to the list of data stores used by the processor.  This method is used with the legacy information stored
+in the TSTool.cfg file.  New conventions use a data store configuration file.
 */
-private static void openRiversideDB ( TSCommandFileRunner runner )
+protected static void openRiversideDB ( TSCommandProcessor processor, String name, String description,
+    String databaseEngine, String databaseServer, String databaseName, String systemLogin, String systemPassword )
 {   String routine = "TSToolMain.openRiversideDB";
-    boolean RiversideDB_enabled = false;  // Whether RiversideDBEnabled = true in TSTool config file
-    String propval = __tstool_props.getValue ( "TSTool.RiversideDBEnabled");
-    if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
-        RiversideDB_enabled = true;
+    try {
+        // Now open the database...
+        // This uses the guest login.  If properties were not found,
+        // then default HydroBase information will be used.
+        RiversideDB_DMI rdmi = new RiversideDB_DMI ( databaseEngine, databaseServer, databaseName,
+            -1, // Don't use the port number - use the database name instead
+            systemLogin, // OK if null - use read-only guest
+            systemPassword ); // OK if null - use read-only guest
+        rdmi.open();
+        DataStore dataStore = new RiversideDBDataStore(name, description, rdmi);
+        // This adds a data store to the processor
+        processor.setPropContents ( "DataStore", dataStore );
     }
-    if ( !RiversideDB_enabled ) {
-        Message.printStatus ( 2, routine, "RiversideDB is not enabled in TSTool configuation so not opening connection." );
-        return; 
-    }
-    String configFile = getConfigFile();
-    if ( IOUtil.isBatch() ) {
-        // Use the configuration file to get RiversideDB properties...
-        Message.printStatus(2, routine, "TSTool configuration file \"" + configFile +
-        "\" is being used to open RiversideDB connection at startup." );
-        String databaseEngine = getPropValue ( "RiversideDB.DatabaseEngine" );
-        String databaseServer = getPropValue ( "RiversideDB.DatabaseServer" );
-        String databaseName = getPropValue ( "RiversideDB.Database" );
-        // FIXME SAM 2009-06-17 Need to evaluate encryption of password.
-        String systemLogin = getPropValue ( "RiversideDB.SystemLogin" ); // OK if null
-        String systemPassword = getPropValue ( "RiversideDB.SystemPassword" ); // OK if null
-        if ( (databaseEngine == null) || databaseEngine.equals("") ) {
-            Message.printWarning ( 1, routine,
-            "No RiversideDB.DatabaseEngine property defined in TSTool configuration file \""+ configFile + "\"." +
-        		"  Cannot open RiversideDB connection for batch run." );
-        }
-        if ( (databaseServer == null) || databaseServer.equals("") ) {
-            Message.printWarning ( 1, routine,
-            "No RiversideDB.DatabaseServer property defined in TSTool configuration file \""+ configFile + "\"." +
-                "  Cannot open RiversideDB connection for batch run." );
-        }
-        if ( (databaseName == null) || databaseName.equals("") ) {
-            Message.printWarning ( 1, routine,
-            "No RiversideDB.Database property defined in TSTool configuration file \""+ configFile + "\"." +
-                "  Cannot open RiversideDB connection for batch run." );
-        }
-        
-        try {
-            // Now open the database...
-            // This uses the guest login.  If properties were not found,
-            // then default HydroBase information will be used.
-            RiversideDB_DMI rdmi = new RiversideDB_DMI ( databaseEngine, databaseServer, databaseName,
-                    -1, systemLogin, systemPassword );
-            rdmi.open();
-            runner.getProcessor().setPropContents ( "RiversideDBDMI", rdmi );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 1, routine, "Error opening RiversideDB.  RiversideDB features will be disabled (" + e + ")." );
-            Message.printWarning ( 3, routine, e );
-        }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error opening RiversideDB.  RiversideDB features will be disabled for \"" +
+            name + "\" (" + e + ")." );
+        Message.printWarning ( 3, routine, e );
     }
 }
 
@@ -1268,8 +1406,7 @@ private static void setCommandFile ( String configFile )
 Set the configuration file that is being used with TSTool.  If a relative path is
 given, then the file is made into an absolute path by using the working directory.
 Typically an absolute path is provided when the -home command line parameter is parsed
-at startup, and a relative path may be provided if -config is specified on the command
-line.
+at startup, and a relative path may be provided if -config is specified on the command line.
 @param configFile Configuration file.
 */
 private static void setConfigFile ( String configFile )
