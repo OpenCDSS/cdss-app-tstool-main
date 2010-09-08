@@ -3,6 +3,7 @@ package DWR.DMI.tstool;
 import java.util.List;
 
 import RTi.DMI.DMIUtil;
+import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.String.StringUtil;
@@ -13,6 +14,11 @@ time series.  By default the sheet will contain row and column numbers.
 */
 public class TSTool_RiversideDB_TableModel extends JWorksheet_AbstractRowTableModel
 {
+    
+/**
+Data store name corresponding to data store used to retrieve the data.
+*/
+String __dataStoreName = null;
 
 /**
 Number of columns in the table model.
@@ -41,7 +47,7 @@ public final int COL_X = 15;
 public final int COL_Y = 16;
 public final int COL_ELEVATION = 17;
 // TSID input type
-public final int COL_INPUT_TYPE	= 18;
+public final int COL_DATASTORE_NAME	= 18;
 
 /**
 Constructor.  This builds the model for displaying the given RiversideDB time series data.
@@ -49,7 +55,7 @@ Constructor.  This builds the model for displaying the given RiversideDB time se
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_RiversideDB_TableModel ( List data )
+public TSTool_RiversideDB_TableModel ( RiversideDBDataStore dataStore, List data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -57,6 +63,7 @@ throws Exception
 	else {
 	    _rows = data.size();
 	}
+    __dataStoreName = dataStore.getName();
 	_data = data;
 }
 
@@ -91,7 +98,7 @@ public Class getColumnClass (int columnIndex) {
         case COL_X: return String.class;
         case COL_Y: return String.class;
         case COL_ELEVATION: return String.class;
-        case COL_INPUT_TYPE: return String.class;
+        case COL_DATASTORE_NAME: return String.class;
 		default: return String.class;
 	}
 }
@@ -128,7 +135,7 @@ public String getColumnName(int columnIndex) {
         case COL_X: return "X";
         case COL_Y: return "Y";
         case COL_ELEVATION: return "Elevation";
-		case COL_INPUT_TYPE: return "Input Type";
+		case COL_DATASTORE_NAME: return "Data Store";
 		default: return "";
 	}
 }
@@ -311,8 +318,8 @@ public Object getValueAt(int row, int col) {
             else {
                 return StringUtil.formatString(elevation,"%9.3f");
             }		    
-		case COL_INPUT_TYPE:
-			return "RiversideDB";
+		case COL_DATASTORE_NAME:
+			return __dataStoreName;
 		default:
 		    return "";
 	}
@@ -342,7 +349,7 @@ public int[] getColumnWidths() {
     widths[COL_X] = 10;
     widths[COL_Y] = 10;
     widths[COL_ELEVATION] = 10;
-	widths[COL_INPUT_TYPE] = 12;
+	widths[COL_DATASTORE_NAME] = 12;
 	return widths;
 }
 
