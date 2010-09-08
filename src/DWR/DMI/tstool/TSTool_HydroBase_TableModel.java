@@ -4,6 +4,7 @@ import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
+import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
 import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 
@@ -62,7 +63,7 @@ Constructor.  This builds the model for displaying the given HydroBase time seri
 The input type defaults to "HydroBase".
 @param worksheet the JWorksheet that displays the data from the table model.
 @param wdid_length Total length to use when formatting WDIDs.
-@param data the Vector of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
+@param data the list of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
 that will be displayed in the table (null is allowed - see setData()).
 @inputName input name for time series (default if not specified is "HydroBase").  Use this, for example,
 when using the class to display data from the ColoradoWaterSMS database.
@@ -78,7 +79,7 @@ throws Exception
 Constructor.  This builds the model for displaying the given HydroBase time series data.
 @param worksheet the JWorksheet that displays the data from the table model.
 @param wdid_length Total length to use when formatting WDIDs.
-@param data the Vector of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
+@param data the list of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
 that will be displayed in the table (null is allowed - see setData()).
 @inputType input type for time series (default if null or blank is "HydroBase").  Use this, for example,
 when using the class to display data from the ColoradoWaterSMS database.
@@ -210,7 +211,12 @@ public Object getValueAt(int row, int col)
 			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 						return mt.getTime_step();
 			case COL_UNITS: // The units are not in HydroBase.meas_type but are set by TSTool...
-						return mt.getData_units();
+						//return mt.getData_units();
+			    String units = HydroBase_Util.getTimeSeriesDataUnits(null, mt.getMeas_type(), mt.getTime_step());
+			    if ( units == null ) {
+			        units = "";
+			    }
+			    return units;
 			case COL_START:		//return new Integer(mt.getStart_year() );
 						i = mt.getStart_year();
 						if ( DMIUtil.isMissing(i) ) {
