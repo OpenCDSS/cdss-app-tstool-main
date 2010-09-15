@@ -55,7 +55,7 @@
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<!-- Training slideshows under doc/Training -->
     	<!-- If this becomes onerous, put in a separate target so it can be run like the PDF build -->
-    	<!-- Omit bit files that can be regenerated, but otherwise include files for users to poke around -->
+    	<!-- Omit big files that can be regenerated, but otherwise include files for users to poke around -->
     	<mkdir dir="${install.dir}/doc/Training"/>
     	<copy todir="${install.dir}/doc/Training">
     		<fileset dir="doc/Training">
