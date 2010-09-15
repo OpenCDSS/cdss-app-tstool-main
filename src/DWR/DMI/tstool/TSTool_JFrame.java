@@ -1169,6 +1169,8 @@ JMenuItem
     __Commands_Table_NewTable_JMenuItem,
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_TimeSeriesToTable_JMenuItem,
+    __Commands_Table_TableMath_JMenuItem,
+    __Commands_Table_TableTimeSeriesMath_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
 
 // Commands (Template Processing)...
@@ -1593,6 +1595,8 @@ private String
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
+    __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
+    __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
 
     // Template Commands...
@@ -2130,7 +2134,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
 	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration file.
 	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file
-	if ( __source_HydroBase_enabled && license_IsInstallCDSS(__licenseManager) ) {
+	if ( __source_HydroBase_enabled ) { //&& license_IsInstallCDSS(__licenseManager) ) {
 		// Login to HydroBase using information in the TSTool configuration file...
 		uiAction_OpenHydroBase ( true );
 		// Force the choices to refresh...
@@ -8462,6 +8466,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_TableMath_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_TableMath_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_TableTimeSeriesMath_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_TableTimeSeriesMath_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
     
@@ -10703,6 +10712,12 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
         commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_TableMath_String) ) {
+        commandList_EditCommand ( __Commands_Table_TableMath_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_TableTimeSeriesMath_String) ) {
+        commandList_EditCommand ( __Commands_Table_TableTimeSeriesMath_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, __INSERT_COMMAND );
@@ -14434,6 +14449,7 @@ private void uiAction_OpenDIADvisor ()
 }
 
 /**
+TODO SAM 2010-09-13 Streamline this when HydroBase is converted to a data store from input type/name
 Open a connection to the HydroBase database.
 @param startup if true, then the connection is being made at software startup.  In this case
 if AutoConnect=True in the configuration, the dialog will not be shown.
@@ -14460,13 +14476,14 @@ private void uiAction_OpenHydroBase ( boolean startup )
 
 	HydroBaseDMI hbdmi = null; // DMI that is opened by the dialog or automatically - null if cancel or error
     String error = ""; // Message for whether there was an unexpected error opening HydroBase.
+    boolean usedDialog = false;
 	if ( startup && AutoConnect_boolean ) {
 	    Message.printStatus ( 2, routine, "HydroBase.AutoConnect=True in TSTool.cfg configuration file so " +
 	    	"autoconnecting to HydroBase with default connection information from CDSS.cfg." );
 	    hbdmi = TSToolMain.openHydroBase(__tsProcessor);
 	    // Further checks are made below for UI setup
 	}
-	else {
+	else if ( license_IsInstallCDSS(__licenseManager) ) {
 	    // Use the login dialog
     	PropList hb_props = new PropList ( "SelectHydroBase" );
     	hb_props.set ( "ValidateLogin", "false" );
@@ -14476,6 +14493,7 @@ private void uiAction_OpenHydroBase ( boolean startup )
     	// can be displayed as the initial values...
     
     	SelectHydroBaseJDialog selectHydroBaseJDialog = null;
+    	usedDialog = true;
     	
     	try {
             // Let the dialog check HydroBase properties in the CDSS configuration file...
@@ -14492,17 +14510,17 @@ private void uiAction_OpenHydroBase ( boolean startup )
 	}
     // If no HydroBase connection was opened, print an appropriate message...
     if ( hbdmi == null ) {
-        if ( ui_GetHydroBaseDMI() == null ) {
-            // No previous connection known to the UI
+        if ( (ui_GetHydroBaseDMI() == null) && usedDialog ) {
+            // No previous connection known to the UI - print this warning if the dialog was attempted
             Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
         }
-        else {
+        else if ( usedDialog ) {
             // Had a previous connection in the UI so continue to use it
             Message.printWarning ( 1, routine, error + "The previous HydroBase connection will be used." );
         }
     }
 	else if ( hbdmi == ui_GetHydroBaseDMI() ) {
-	    // Same instance was returned as original (user cancelled) - no need to do anything
+	    // Same instance was returned as original (user canceled) - no need to do anything
 	    // TODO SAM 2008-10-23 If this step is not ignored, the GUI removes HydroBase from the interface?
 	}
 	else {
