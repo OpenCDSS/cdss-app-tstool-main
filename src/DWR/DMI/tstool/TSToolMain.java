@@ -464,7 +464,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.08.00 (2010-09-08)";
+public static final String PROGRAM_VERSION = "9.08.01 (2010-09-15)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1048,7 +1048,7 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
             // then default HydroBase information will be used.
             HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
             hbdmi.open();
-            List hbdmi_Vector = new Vector(1);
+            List<HydroBaseDMI> hbdmi_Vector = new Vector(1);
             hbdmi_Vector.add ( hbdmi );
             processor.setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
             Message.printStatus(2, routine, "Successfully opened HydroBase connection." );
