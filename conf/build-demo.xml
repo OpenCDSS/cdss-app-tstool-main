@@ -50,6 +50,20 @@
     	<copy tofile="${install.dir}/system/TSTool.cfg" file="resources/runtime/system-RTi/TSTool-demo.cfg"/>
         <!-- System configuration file for CDSS.cfg included because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
+    	<!-- Training slideshows under doc/Training -->
+    	<!-- If this becomes onerous, put in a separate target so it can be run like the PDF build -->
+    	<!-- Omit big files that can be regenerated, but otherwise include files for users to poke around -->
+    	<mkdir dir="${install.dir}/doc/Training"/>
+    	<copy todir="${install.dir}/doc/Training">
+    		<fileset dir="doc/Training">
+    			<include name="**/*.*"/>
+    			<exclude name="**/*.chk"/>
+    			<exclude name="**/*.log"/>
+    			<exclude name="**/*.check.html"/>
+    			<exclude name="**/*.ppt"/>
+    			<exclude name="**/graphics/**"/>
+    			</fileset>
+    		</copy>
     </target>
     
     <target name="-standard-exe" depends="-init-installer" description="create launch4j installer">
