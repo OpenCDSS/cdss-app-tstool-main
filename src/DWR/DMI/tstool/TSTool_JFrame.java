@@ -6490,10 +6490,6 @@ private void ui_DataStoreList_Populate ()
     __dataStore_JComboBox.setData(dataStoreNameList);
     // Select the blank
     __dataStore_JComboBox.select("");
-    if ( dataStoreNameList.size() == 1 ) {
-        // Only the blank so disable the data store choice
-        __dataStore_JComboBox.setEnabled(false);
-    }
 }
 
 /**
