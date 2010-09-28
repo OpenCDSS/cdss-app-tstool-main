@@ -1167,10 +1167,14 @@ JMenu
     __Commands_Table_JMenu = null;
 JMenuItem
     __Commands_Table_NewTable_JMenuItem,
+    __Commands_Table_CopyTable_JMenuItem,
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
+    __Commands_Table_ReadTableFromDBF_JMenuItem,
     __Commands_Table_TimeSeriesToTable_JMenuItem,
+    __Commands_Table_ManipulateTableString_JMenuItem,
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
+    __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
 
 // Commands (Template Processing)...
@@ -1593,10 +1597,15 @@ private String
 
     __Commands_Table_String = "Table Processing",
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
+    __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
+    __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
+    __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
+    __Commands_Table_SetTimeSeriesPropertiesFromTable_String =
+        TAB + "SetTimeSeriesPropertiesFromTable()... <set time series properties from table contents>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
 
     // Template Commands...
@@ -8457,15 +8466,24 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
     __Commands_Table_JMenu.add( __Commands_Table_NewTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_CopyTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_CopyTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDBF_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_ReadTableFromDBF_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_TableMath_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TableMath_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_TableTimeSeriesMath_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TableTimeSeriesMath_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
@@ -10703,11 +10721,23 @@ throws Exception
     else if (command.equals( __Commands_Table_NewTable_String) ) {
         commandList_EditCommand ( __Commands_Table_NewTable_String, null, __INSERT_COMMAND );
     }
+    else if (command.equals( __Commands_Table_CopyTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_CopyTable_String, null, __INSERT_COMMAND );
+    }
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, __INSERT_COMMAND );
     }
+    else if (command.equals( __Commands_Table_ReadTableFromDBF_String) ) {
+        commandList_EditCommand ( __Commands_Table_ReadTableFromDBF_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_SetTimeSeriesPropertiesFromTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, null, __INSERT_COMMAND );
+    }
     else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
         commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
+        commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_Table_TableMath_String) ) {
         commandList_EditCommand ( __Commands_Table_TableMath_String, null, __INSERT_COMMAND );
