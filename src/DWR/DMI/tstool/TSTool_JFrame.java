@@ -9866,7 +9866,7 @@ throws Exception
 		}
 	}
 	else if ( command.equals ( __File_Open_HydroBase_String )) {
-		uiAction_OpenHydroBase ( false );
+		uiAction_OpenHydroBase ( false ); // False means not opening at startup
 		// Update the HydroBase input filters
 		if ( __hbdmi != null ) {
 		    ui_InitGUIInputFiltersHydroBase ( __hbdmi, __inputFilterY );
@@ -14509,7 +14509,7 @@ private void uiAction_OpenHydroBase ( boolean startup )
 	    hbdmi = TSToolMain.openHydroBase(__tsProcessor);
 	    // Further checks are made below for UI setup
 	}
-	else if ( license_IsInstallCDSS(__licenseManager) ) {
+	else if ( (startup && license_IsInstallCDSS(__licenseManager)) || !startup ) {
 	    // Use the login dialog
     	PropList hb_props = new PropList ( "SelectHydroBase" );
     	hb_props.set ( "ValidateLogin", "false" );
