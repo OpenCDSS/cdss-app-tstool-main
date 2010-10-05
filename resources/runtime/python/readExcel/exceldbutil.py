@@ -281,6 +281,28 @@ def formatSqlValueString ( type, value ):
     else:
         return str(value)
 
+def countNonBlankCellsInColumn ( sheet, startRow, endRow, column, returnOnFirst ):
+    """
+    Determine how many cell values in a column are non-blank.
+    Counting stops as soon as a blank occurs.
+    sheet - the XLRD sheet object
+    startRow - starting row (0+) to process
+    endRow - ending row (0+) to process
+    column - the column to read
+    returnOnFirst - if True, return when the first blank cell is found;
+        if False, process the full row range
+    """
+    nonBlankCount = 0
+    for row in range(startRow,(endRow + 1)):
+        # Output for user
+        if ( sheet.cell_value(row,column) == ''):
+            if ( returnOnFirst == True ):
+            	break
+        else:
+            # Have a non-blank
+            nonBlankCount = nonBlankCount + 1
+    return nonBlankCount
+
 def getLoadMapNamedCells ( dataSheetLoadMap, cellNameKey, namedCells,
     loadFinal, loadColumnKey, finalColumnKey ):
     """

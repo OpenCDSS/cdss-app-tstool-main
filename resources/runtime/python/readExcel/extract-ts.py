@@ -38,7 +38,7 @@ def main():
         return
     mapFile = sys.argv[1] 
     if ( not os.path.exists(mapFile) ):
-        message = "Data sheet map file does not exist: \"" + sys.argv[2] + "\""
+        message = "Data sheet map file does not exist: \"" + sys.argv[1] + "\""
         print ( message )
         logger.error ( message )
         printUsage()
@@ -65,6 +65,9 @@ def main():
         locLookupColumnName2 = dataMap["LocLookupColumnName2"]
         locLookupDict = readLocLookupDictionary ( locLookupWorkbook, locLookupWorksheet,
             locLookupColumnName, locLookupColumnName2 )
+        if ( len(locLookupDict) == 0 ):
+            # No dictionary was read
+            locLookupDict = None
     except KeyError:
         # Lookup is not used
         logger.info("Location lookup table is being not used to translate location names.")
@@ -90,43 +93,58 @@ def main():
     locColumnNumber = colxlo
     dataColumnNumbers = []
     dataColumnNames = dataMap["DataColumnNames"]
-    dataColumnCount = 0
-    for dataColumnName in dataColumnNames:
-    	locXlrdName = lookupNamedCellInList ( dataColumnName, namedCells )
-        xsheet, rowxlo, rowxhi, colxlo, colxhi = locXlrdName.area2d()
-        if ( locXlrdName == None ):
-            loggingutil.warning("Requested data column name \"" + dataColumnName +
-                "\" was not found in data sheet - check defined names." )
-	    dataColumnNumbers.append(None)
-        else:
-            logger.info("Requested data column name \"" + dataColumnName +
-                "\" is in Excel column " + excelColumnStringAddressFromNumber ( colxlo ) )
-	    dataColumnNumbers.append(colxlo)
-        dataColumnCount = dataColumnCount + 1
     # Get the date/times corresponding to the data
     dateTimes = dataMap["DateTimes"]
     if ( len(dataColumnNames) != len(dateTimes) ):
-        loggingutil.warning("The number of items in the configuration for \"DataColumnNames\" (" +
-            str(len(dataColumnNames)) + ") is not the same as \"DateTimes\" (" + str(len(dateTimes)) + ")." )
+        message = "The number of items in the data map for \"DataColumnNames\" (" + \
+            str(len(dataColumnNames)) + ") is not the same as \"DateTimes\" (" + str(len(dateTimes)) + ")."
+        loggingutil.warning(logger,message)
+        raise RuntimeError(message)
+    # Look up the Excel columns for the requested values
+    dataColumnCount = 0
+    for dataColumnName in dataColumnNames:
+    	locXlrdName = lookupNamedCellInList ( dataColumnName, namedCells )
+        if ( locXlrdName == None ):
+            loggingutil.warning(logger,"Requested data column name \"" + dataColumnName +
+                "\" was not found in data sheet - check defined names." )
+        else:
+            xsheet, rowxlo, rowxhi, colxlo, colxhi = locXlrdName.area2d()
+            logger.info("Requested data column name \"" + dataColumnName +
+                "\" for date/time " + str(dateTimes[dataColumnCount]) + " is in Excel column " +
+                excelColumnStringAddressFromNumber ( colxlo ) )
+	    dataColumnNumbers.append(colxlo)
+        dataColumnCount = dataColumnCount + 1
+    if ( len(dataColumnNumbers) != len(dataColumnNames) ):
+        message = "One or more of the column names in the data data map \"DataColumnNames\"" + \
+            " is not defined as a named cell in the worksheet.  Fix and rerun."
+        loggingutil.warning(logger,message)
+        raise RuntimeError(message)
     # Allocate an array with rows corresponding to date/time and columns to the locations/time series
-    # Number of columns should be conservative.  If extra ARE allocated due to spurious content at end,
-    # the extra locations shouldn't be output because processing will stop at a blank row
     locList = []   # List of locations with time series, using time series ID string
-    cellValues = [ [None for icol in range(sheet.nrows - (headerRow + 1))] for irow in range(len(dateTimes)) ]
+    numRows = len(dateTimes)
+    numCols = exceldbutil.countNonBlankCellsInColumn ( sheet, (headerRow + 1),
+        sheet.nrows, locColumnNumber, True )
+    cellValues = [ [None for icol in range(numCols)] for irow in range(numRows) ]
+    logger.info("Created data array with " + str(numRows) + " rows for date/times and " +
+        str(numCols) + " columns for locations.")
     # Start reading first data row and process each row until a blank row is found
     # Data will be the non-blank rows after that.
+    # "row" is 0-index whereas logging messages are Excel rows 1+
     row = headerRow
-    logger.info("Start reading data rows in Excel row " + str(row + 1) + " headerRow=" + str(headerRow))
+    logger.info("Start reading data rows in Excel row " + str(row + 2) + " headerRow=" + str(headerRow + 1))
     while True:
         # Increment the row to read - for first row it will be the row after the headerRow
         row = row + 1
         # Output for user
-        if ( (row % 25) == 0 ):
-            print "Processing row " + str(row)
+        if ( (((row + 1) % 25) == 0) or (row == (headerRow + 1)) or (row == (sheet.nrows - 1)) ):
+            # Print a message so user can see progress
+            print "Processing Excel row " + str(row + 1)
         # Read the data from the sheet.  To avoid extra checks, if the first column value is
         # blank, break
-        if ( (row == sheet.nrows) or (sheet.cell_value(row,0) == '') ):
+        # The first check works because row is zero index
+        if ( (row == sheet.nrows) or (sheet.cell_value(row,locColumnNumber) == '') ):
             # Row is the count prior to this row (since zero indexed)
+            print ( "End processing at Excel row " + str(row + 1) + " since blank or last row found.")
             logger.info ( "Processed " + str(row) + " rows of data - ending processing since blank row found.")
             break
         # Read the location for the row
@@ -135,7 +153,7 @@ def main():
 	# Loop through the years...
         dataColumnCount = -1
         for dataColumnNumber in dataColumnNumbers:
-            dataColumnCount = dataColumnCount + 1
+            dataColumnCount = dataColumnCount + 1 # Will be 0+
             if ( dataColumnNumber == None ):
                 cellValue = None
             else:
@@ -150,13 +168,18 @@ def main():
                 cellValue = exceldbutil.enforceType ( cellValue, cellType, "float" )
                 if ( (cellValue0 != None) and (cellValue == None) ):
                     # The value was set to none.  This is a data error
-                    loggingutil.warning ( "Cell value at Excel row " + str(row + 1) +
+                    loggingutil.warning ( logger,"Cell value at Excel row " + str(row + 1) +
                         " and Excel column " + str(excelColumnStringAddressFromNumber (dataColumnNumber)) +
                         " is invalid - verify that the value is a number." )
             except:
                 cellValue = None
-            cellValues[dataColumnCount - 1][row - headerRow - 1] = cellValue
+            # Now set the data array.  Since the original date/times are listed horizontally but
+            # the data array is with date/time vertical, reverse the indices
+            cellValues[dataColumnCount][row - headerRow - 1] = cellValue
+            logger.info("Setting [" + str(dataColumnCount) + "][" + str(row - headerRow - 1) +
+                "] = " + str(cellValue) )
     # Write the values out with date/times in column 1 and each time series in a separate column
+    # The time series column names match the location identifiers with no data types or units
     # Use standard output if no output file has been specified
     logger.info("Read " + str(len(locList)) + " locations from file for period " +
         dateTimes[0] + " to " + dateTimes[len(dateTimes) - 1] )
@@ -164,34 +187,43 @@ def main():
     if ( outputFile != None ):
         out = open(outputFile,"w")
     out.write("\"Date/time\"")
-    locAddPrefix = None
+    locTranslatorBeforeLookup = None
     try:
-        locAddPrefix = dataMap["LocAddPrefix"]
+        locTranslatorBeforeLookup = dataMap["LocTranslatorBeforeLookup"]
     except KeyError:
-        # Prefix is not used
-        locAddPrefix = None
+        # Translator is not used
+        locTranslatorBeforeLookup = None
+    locTranslatorAfterLookup = None
+    try:
+        locTranslatorAfterLookup = dataMap["LocTranslatorAfterLookup"]
+    except KeyError:
+        # Translator is not used
+        locTranslatorAfterLookup = None
     for loc in locList:
-        # Single quotes are replaced by triple quotes in output
+        # Single quotes are replaced by triple quotes in output if they still exist
+        # (but hopefully the translation/lookup results in a "nice" location string)
+        #
+        # First run the translator on input if available
+        if ( locTranslatorBeforeLookup != None ):
+            loc = locTranslatorBeforeLookup(loc)
+        # Always strip whitespace
+        loc = loc.strip()
         # Use the lookup table to get the more appropriate location
         if ( locLookupDict != None ):
             try:
-                loctmp = lookupAlternateLocation ( locLookupDict, loc.strip() )
+                loc = lookupAlternateLocation ( locLookupDict, loc )
             except KeyError:
-                logger.warning("Location \"" + loc.strip() + "\" could not be translated.  Using original.")
-                loctmp = loc.strip().replace(".","").replace('"','"""' )
-        # The location prefix is useful to differentiate location types
-        # For example in the BNDSS project all proviver time series have the prefix "Provider:"
-        if ( locAddPrefix != None ):
-            loctmp = locAddPrefix + loctmp
-        out.write(",\"" + loctmp + "\"")
+                logger.warning("Location \"" + loc + "\" could not be looked up.  Using original.")
+        if ( locTranslatorAfterLookup != None ):
+            loc = locTranslatorAfterLookup(loc)
+        # Make sure that quotes are handled appropriately before final output
+        loc = loc.replace(".","").replace('"','"""' )
+        out.write(",\"" + loc + "\"")
     out.write("\n")
-    dateTimePos = -1
-    for dateTime in dateTimes:
-        dateTimePos = dateTimePos + 1
-        out.write(dateTime)
-        locPos = -1
-        for loc in locList:
-            locPos = locPos + 1
+    # Now write the data rows
+    for dateTimePos in range(len(dateTimes)):
+        out.write(str(dateTimes[dateTimePos]))
+        for locPos in range(len(locList)):
             if ( cellValues[dateTimePos][locPos] == None ):
                 out.write(",")
             else:
@@ -240,6 +272,9 @@ def readLocLookupDictionary ( locLookupWorkbook, locLookupWorksheet,
     """
     logger = logging.getLogger()
     dict = {}
+    # If the lookup file has not been specified, return an empty dictionary
+    if ( locLookupWorkbook == None ):
+        return dict
     xlsFileAbs = exceldbutil.absolutePath(locLookupWorkbook)
     logger.info ( "Opening location lookup workbook \"" + xlsFileAbs + "\"." )
     book = xlrd.open_workbook ( xlsFileAbs )
