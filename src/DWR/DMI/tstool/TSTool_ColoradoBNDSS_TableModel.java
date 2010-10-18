@@ -4,6 +4,7 @@ import java.util.List;
 
 import rti.tscommandprocessor.commands.bndss.BNDSSSubjectType;
 import rti.tscommandprocessor.commands.bndss.BNDSS_DataMetaData;
+import rti.tscommandprocessor.commands.bndss.ColoradoBNDSSDataStore;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
@@ -38,15 +39,21 @@ public final int COL_END = 12;
 //public final int COL_X = 15;
 //public final int COL_Y = 16;
 // TSID input type
-public final int COL_INPUT_TYPE	= 13;
+public final int COL_DATASTORE_NAME	= 13;
+
+/**
+Data store name corresponding to data store used to retrieve the data.
+*/
+String __dataStoreName = null;
 
 /**
 Constructor.  This builds the model for displaying the given RiversideDB time series data.
+@param dataStore the data store for the data
 @param data the list of BNDSS_DataMetaData that will be displayed in the
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_ColoradoBNDSS_TableModel ( List data )
+public TSTool_ColoradoBNDSS_TableModel ( ColoradoBNDSSDataStore dataStore, List data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -54,6 +61,7 @@ throws Exception
 	else {
 	    _rows = data.size();
 	}
+    __dataStoreName = dataStore.getName();
 	_data = data;
 }
 
@@ -76,7 +84,7 @@ public Class getColumnClass (int columnIndex) {
 		case COL_UNITS: return String.class;
 		case COL_START: return String.class;
 		case COL_END: return String.class;
-        case COL_INPUT_TYPE: return String.class;
+        case COL_DATASTORE_NAME: return String.class;
 		default: return String.class;
 	}
 }
@@ -108,7 +116,7 @@ public String getColumnName(int columnIndex) {
 		case COL_UNITS: return "Units";
 		case COL_START: return "Start";
 		case COL_END: return "End";
-		case COL_INPUT_TYPE: return "Input Type";
+		case COL_DATASTORE_NAME: return "Data Store";
 		default: return "";
 	}
 }
@@ -178,8 +186,8 @@ public Object getValueAt(int row, int col) {
 		    return "";	// Not yet available
 		case COL_END:
 		    return "";	// Not yet available
-		case COL_INPUT_TYPE:
-			return "ColoradoBNDSS";
+		case COL_DATASTORE_NAME:
+			return __dataStoreName;
 		default:
 		    return "";
 	}
@@ -204,7 +212,7 @@ public int[] getColumnWidths() {
 	widths[COL_UNITS] = 8;
 	widths[COL_START] = 10;
 	widths[COL_END] = 10;
-	widths[COL_INPUT_TYPE] = 12;
+	widths[COL_DATASTORE_NAME] = 12;
 	return widths;
 }
 

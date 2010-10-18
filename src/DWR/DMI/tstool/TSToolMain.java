@@ -421,6 +421,7 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -464,7 +465,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.09.00 (2010-09-30)";
+public static final String PROGRAM_VERSION = "9.09.01beta (2010-10-16)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -851,6 +852,13 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
         packagePath = "RTi.DMI.RiversideDB_DMI.";
     }
+    else if ( dataStoreType.equalsIgnoreCase("ColoradoBNDSSDataStore") ) {
+        packagePath = "rti.tscommandprocessor.commands.bndss.";
+    }
+    else {
+        throw new InvalidParameterException("Data store type \"" + dataStoreType +
+            "\" is not recognized - cannot initialize data store connection." );
+    }
     Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
     DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
     DataStore dataStore = factory.create(dataStoreProps);
@@ -924,7 +932,7 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
         }
     }
     
-    // Also allow multiple RiversideDB connections via the new convention using data store configuration files
+    // Also allow multiple database connections via the new convention using data store configuration files
     // The following code processes all data stores, although RiversideDB is the first implementation using
     // this approach.
     
