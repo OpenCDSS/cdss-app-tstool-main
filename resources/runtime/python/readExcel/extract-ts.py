@@ -115,7 +115,7 @@ def main():
 	    dataColumnNumbers.append(colxlo)
         dataColumnCount = dataColumnCount + 1
     if ( len(dataColumnNumbers) != len(dataColumnNames) ):
-        message = "One or more of the column names in the data data map \"DataColumnNames\"" + \
+        message = "One or more of the column names in the data map \"DataColumnNames\"" + \
             " is not defined as a named cell in the worksheet.  Fix and rerun."
         loggingutil.warning(logger,message)
         raise RuntimeError(message)
@@ -123,7 +123,7 @@ def main():
     locList = []   # List of locations with time series, using time series ID string
     numRows = len(dateTimes)
     numCols = exceldbutil.countNonBlankCellsInColumn ( sheet, (headerRow + 1),
-        sheet.nrows, locColumnNumber, True )
+        (sheet.nrows - 1), locColumnNumber, True )
     cellValues = [ [None for icol in range(numCols)] for irow in range(numRows) ]
     logger.info("Created data array with " + str(numRows) + " rows for date/times and " +
         str(numCols) + " columns for locations.")
@@ -261,7 +261,7 @@ def lookupAlternateLocation ( locLookupDict, loc ):
 def readLocLookupDictionary ( locLookupWorkbook, locLookupWorksheet,
     locLookupColumnName, locLookupColumnName2 ):
     """
-    Read an XLS file that contains provider data that can be used to lookup
+    Read an XLS file that contains location data that can be used to lookup
     alternate location identifiers that that in the time series data.
     This is needed because the raw data identifiers may be difficult to
     deal with in TSTool, have special characters, etc.
@@ -285,7 +285,6 @@ def readLocLookupDictionary ( locLookupWorkbook, locLookupWorksheet,
     # Named cells are for the entire workbook
     namedCells = exceldbutil.readNamedCells ( book, sheet )
     # Get the row for the location named cell (data will be in following row)
-    logger.info ( "Original location column is in named column \"" + locLookupColumnName + "\"" )
     locXlrdName = lookupNamedCellInList ( locLookupColumnName, namedCells )
     if ( locXlrdName == None ):
         message = "Unable to find named cell \"" + locLookupColumnName + "\" in \"" + locLookupWorkbook + "\""
@@ -293,6 +292,8 @@ def readLocLookupDictionary ( locLookupWorkbook, locLookupWorksheet,
         raise RuntimeError(message)
     xsheet, rowxlo, rowxhi, colxlo, colxhi = locXlrdName.area2d()
     locLookupColumnNameNumber = colxlo
+    logger.info ( "Original location column is in named column \"" + locLookupColumnName + "\", Excel column " +
+       excelColumnStringAddressFromNumber ( locLookupColumnNameNumber ) )
     # Note that row is 0-index based
     headerRow = rowxlo
     logger.info ( "Column names are in Excel row " + str(headerRow + 1) +
@@ -304,18 +305,22 @@ def readLocLookupDictionary ( locLookupWorkbook, locLookupWorksheet,
         raise RuntimeError(message)
     xsheet, rowxlo, rowxhi, colxlo, colxhi = locXlrdName.area2d()
     locLookupColumnNameNumber2 = colxlo
+    logger.info ( "Alternate (looked up) location column is in named column \"" +
+       locLookupColumnName2 + "\", Excel column " +
+       excelColumnStringAddressFromNumber ( locLookupColumnNameNumber2 ) )
     # Read through the XLS and extract the original and looked up locations
-    for irow in range(headerRow + 2,sheet.nrows):
+    for irow in range(headerRow + 1,sheet.nrows):
 	locCell = sheet.cell_value(irow,locLookupColumnNameNumber)
-        if ( locCell == None ):
-            logger.warning("Original location name is blank in Excel row " +
-                str(irow + 1) + " - will not be able to translate")
-            continue
+        if ( (locCell == None) or (locCell.strip() == "") ):
+            logger.info("Original location name is blank in Excel row " +
+                str(irow + 1) + " - stop reading data" )
+            break
         locCell = locCell.strip()
 	locCell2 = sheet.cell_value(irow,locLookupColumnNameNumber2)
-        if ( locCell2 == None ):
+        if ( (locCell2 == None) or (locCell2.strip() == "") ):
             # Set to the same value
-            logger.warning("Original location name does not have alternate in Excel row " +
+            loggingutil.warning(logger,"Original location name \"" + str(locCell) +
+                "\" does not have alternate in Excel row " +
                 str(irow + 1) + " - will not be able to translate")
 	    dict[locCell] = locCell.strip()
         else:
