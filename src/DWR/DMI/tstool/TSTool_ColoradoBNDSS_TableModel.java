@@ -2,8 +2,8 @@ package DWR.DMI.tstool;
 
 import java.util.List;
 
-import rti.tscommandprocessor.commands.ipp.IPPSubjectType;
-import rti.tscommandprocessor.commands.ipp.IPP_DataMetaData;
+import rti.tscommandprocessor.commands.bndss.BNDSSSubjectType;
+import rti.tscommandprocessor.commands.bndss.BNDSS_DataMetaData;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
@@ -11,7 +11,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for time series header information for RiversideDB
 time series.  By default the sheet will contain row and column numbers.
 */
-public class TSTool_ColoradoIPP_TableModel extends JWorksheet_AbstractRowTableModel
+public class TSTool_ColoradoBNDSS_TableModel extends JWorksheet_AbstractRowTableModel
 {
 
 /**
@@ -20,7 +20,7 @@ Number of columns in the table model.
 private final int __COLUMNS = 14;
 
 // MeasType
-public final int COL_SUBJECT_TYPE = 0; // See IPPSubjectType enumeration
+public final int COL_SUBJECT_TYPE = 0; // See BNDSSSubjectType enumeration
 public final int COL_SUBJECT_ID = 1; // subjectID, same as name (need to resolve length)
 public final int COL_SUBJECT_NAME = 2; // subject name
 public final int COL_DATA_SOURCE = 3;
@@ -42,11 +42,11 @@ public final int COL_INPUT_TYPE	= 13;
 
 /**
 Constructor.  This builds the model for displaying the given RiversideDB time series data.
-@param data the list of IPP_DataMetaData that will be displayed in the
+@param data the list of BNDSS_DataMetaData that will be displayed in the
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_ColoradoIPP_TableModel ( List data )
+public TSTool_ColoradoBNDSS_TableModel ( List data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -144,12 +144,12 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	IPP_DataMetaData data = (IPP_DataMetaData)_data.get(row);
+	BNDSS_DataMetaData data = (BNDSS_DataMetaData)_data.get(row);
 	switch (col) {
         case COL_SUBJECT_TYPE:
             return data.getSubject();
 		case COL_SUBJECT_ID:
-		    if ( data.getSubject().equalsIgnoreCase(""+IPPSubjectType.COUNTY)) {
+		    if ( data.getSubject().equalsIgnoreCase(""+BNDSSSubjectType.COUNTY)) {
 		        return "" + data.getName();
 		    }
 		    else {
@@ -179,7 +179,7 @@ public Object getValueAt(int row, int col) {
 		case COL_END:
 		    return "";	// Not yet available
 		case COL_INPUT_TYPE:
-			return "ColoradoIPP";
+			return "ColoradoBNDSS";
 		default:
 		    return "";
 	}

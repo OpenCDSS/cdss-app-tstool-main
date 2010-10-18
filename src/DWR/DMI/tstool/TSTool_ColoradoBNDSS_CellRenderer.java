@@ -4,18 +4,18 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 //import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 
 /**
-This class is used to render cells for TSTool_ColoradoIPP_TableModel data.
+This class is used to render cells for TSTool_ColoradoBNDSS_TableModel data.
 */
-public class TSTool_ColoradoIPP_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
+public class TSTool_ColoradoBNDSS_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
 //JWorksheet_DefaultTableCellRenderer {
 
-TSTool_ColoradoIPP_TableModel __table_model = null;	// Table model to render
+TSTool_ColoradoBNDSS_TableModel __table_model = null;	// Table model to render
 
 /**
 Constructor.
 @param table_model The TSTool_RiversideDB_TableModel to render.
 */
-public TSTool_ColoradoIPP_CellRenderer ( TSTool_ColoradoIPP_TableModel table_model )
+public TSTool_ColoradoBNDSS_CellRenderer ( TSTool_ColoradoBNDSS_TableModel table_model )
 {	__table_model = table_model;
 }
 

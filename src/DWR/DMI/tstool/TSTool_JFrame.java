@@ -72,11 +72,11 @@ import rti.tscommandprocessor.core.TimeSeriesTreeView;
 import rti.tscommandprocessor.core.TimeSeriesTreeView_JTree;
 import rti.tscommandprocessor.core.TimeSeriesView;
 
+import rti.tscommandprocessor.commands.bndss.BNDSSSubjectType;
+import rti.tscommandprocessor.commands.bndss.BNDSS_DataMetaData_InputFilter_JPanel;
+import rti.tscommandprocessor.commands.bndss.BNDSS_DMI;
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
-import rti.tscommandprocessor.commands.ipp.IPPSubjectType;
-import rti.tscommandprocessor.commands.ipp.IppDMI;
-import rti.tscommandprocessor.commands.ipp.IPP_DataMetaData_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.util.Comment_Command;
@@ -354,9 +354,9 @@ Not an InputFilter_JPanel because of the generic case where a simple JPanel may 
 private JPanel __selectedInputFilter_JPanel = null;
 
 /**
-InputFilter_JPanel for Colorado IPP time series.
+InputFilter_JPanel for Colorado BNDSS time series.
 */
-private InputFilter_JPanel __inputFilterColoradoIPPDataMetaData_JPanel = null;
+private InputFilter_JPanel __inputFilterColoradoBNDSSDataMetaData_JPanel = null;
 
 /**
 InputFilter_JPanel for HBGuest station time series.
@@ -809,7 +809,7 @@ private boolean __ignoreListSelectionEvent = false;
 Indicates which data sources are enabled, initialized to defaults.
 */
 private boolean
-    __source_ColoradoIPP_enabled = false, // Must configure in CDSS.cfg to enable
+    __source_ColoradoBNDSS_enabled = false,
     __source_ColoradoSMS_enabled = false,
     __source_ColoradoWaterHBGuest_enabled = true, // By default - allow all to access web service
     __source_ColoradoWaterSMS_enabled = true, // By default - allow all to access web service
@@ -854,9 +854,9 @@ and the HydroBase select dialog, provided to the processor as the initial HydroB
 private HydroBaseDMI __hbdmi = null;
 
 /**
-IppDMI object for ColoradoIPP input type, opened via CDSS.cfg information.
+BNDSS_DMI object for ColoradoBNDSS input type, opened via CDSS.cfg information.
 */
-private IppDMI __ippdmi = null;
+private BNDSS_DMI __bndssdmi = null;
 
 /**
 SatMonSysDMI object for ColoradoSMS input type, opened via TSTool.cfg information
@@ -1006,7 +1006,7 @@ JMenuItem
 	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem = null,
     __Commands_ConvertTSIDTo_ReadDelimitedFile_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadColoradoIPP_JMenuItem = null,
+	__Commands_ConvertTSIDTo_ReadColoradoBNDSS_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem = null,
@@ -1026,7 +1026,7 @@ JMenuItem
     __Commands_Read_ReadDelimitedFile_JMenuItem,
     __Commands_Read_ReadHecDss_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
-	__Commands_Read_ReadColoradoIPP_JMenuItem,
+	__Commands_Read_ReadColoradoBNDSS_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_ReadNWSRFSFS5Files_JMenuItem,
@@ -1462,7 +1462,7 @@ private String
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
-    __Commands_Read_ReadColoradoIPP_String = TAB + "ReadColoradoIPP()... <read 1(+) time series from Colorado's IPP database>",
+    __Commands_Read_ReadColoradoBNDSS_String = TAB + "ReadColoradoBNDSS()... <read 1(+) time series from Colorado's BNDSS database>",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()... <read 1(+) time series from a DateValue file>",
     __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()... <read 1(+) time series from a delimited file (under development)>",
     __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()... <read 1(+) time series from a HEC-DSS database file>",
@@ -1738,7 +1738,7 @@ private String
 
 	// Input types for the __input_type_JComboBox...
 
-	__INPUT_TYPE_ColoradoIPP = "ColoradoIPP",
+	__INPUT_TYPE_ColoradoBNDSS = "ColoradoBNDSS",
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_ColoradoWaterHBGuest = "ColoradoWaterHBGuest",
 	__INPUT_TYPE_ColoradoWaterSMS = "ColoradoWaterSMS",
@@ -1819,16 +1819,16 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	String prop_value = null;
 	__source_DateValue_enabled = true;
 	
-	// ColoradoIPP disabled by default...
+	// Colorado disabled by default...
 
-    __source_ColoradoIPP_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoIPPEnabled" );
+    __source_ColoradoBNDSS_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoBNDSSEnabled" );
     if ( prop_value != null ) {
         if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_ColoradoIPP_enabled = false;
+            __source_ColoradoBNDSS_enabled = false;
         }
         else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_ColoradoIPP_enabled = true;
+            __source_ColoradoBNDSS_enabled = true;
         }
     }
     
@@ -2133,11 +2133,11 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	swMain.stop();
 	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " + swMain.getSeconds());
 	
-	// Open the IPP database connection
+	// Open the Colorado BNDSS database connection
 	
-    if ( __source_ColoradoIPP_enabled ) {
-        // Login to Colorado IPP database using information in the CDSS.cfg file...
-        uiAction_OpenColoradoIPP ( true );
+    if ( __source_ColoradoBNDSS_enabled ) {
+        // Login to Colorado BNDSS database using information in the CDSS.cfg file...
+        uiAction_OpenColoradoBNDSS ( true );
     }
 	
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
@@ -3854,35 +3854,35 @@ private void commandProcessor_RunCommandsThreaded ( List commands, boolean creat
 }
 
 /**
-Set the command processor IppDMI instance that is opened via the GUI.
-@param ippdmi Open IppDMI instance.
-The input name is blank since it is the default IppDMI.
+Set the command processor BNDSS_DMI instance that is opened via the GUI.
+@param bndssdmi Open BNDSS_DMI instance.
+The input name is blank since it is the default BNDSS_DMI.
 */
-private void commandProcessor_SetColoradoIppDMI( IppDMI ippdmi )
+private void commandProcessor_SetColoradoBNDSSDMI( BNDSS_DMI bndssdmi )
 {   // Call the overloaded method that takes a processor as a parameter...
-    commandProcessor_SetColoradoIppDMI( __tsProcessor, ippdmi );
+    commandProcessor_SetColoradoBNDSSDMI( __tsProcessor, bndssdmi );
 }
 
 /**
-Set the command processor IppDMI instance that is opened via the GUI.
+Set the command processor BNDSS_DMI instance that is opened via the GUI.
 This version is generally called by the overloaded version and when processing an external command file.
-@param processor The command processor to set the IPP DMI instance.
-@param ippdmi Open IppDMI instance.
-The input name is blank since it is the default IppDMI.
+@param processor The command processor to set the BNDSS_DMI instance.
+@param bndssdmi Open BNDSS_DMI instance.
+The input name is blank since it is the default BNDSS_DMI.
 */
-private void commandProcessor_SetColoradoIppDMI( CommandProcessor processor, IppDMI ippdmi )
-{   String message, routine = "TSTool_JFrame.commandProcessor_SetColoradoIppDMI";
-    if ( ippdmi == null ) {
+private void commandProcessor_SetColoradoBNDSSDMI( CommandProcessor processor, BNDSS_DMI bndssdmi )
+{   String message, routine = "TSTool_JFrame.commandProcessor_SetColoradoBNDSSDMI";
+    if ( bndssdmi == null ) {
         return;
     }
     PropList request_params = new PropList ( "" );
-    request_params.setUsingObject ( "ColoradoIppDMI", ippdmi );
+    request_params.setUsingObject ( "ColoradoBNDSSDMI", bndssdmi );
     //CommandProcessorRequestResultsBean bean = null;
     try { //bean =
-        processor.processRequest( "SetColoradoIppDMI", request_params );
+        processor.processRequest( "SetColoradoBNDSSDMI", request_params );
     }
     catch ( Exception e ) {
-        message = "Error requesting SetColoradoIppDMI(ColoradoIppDMI=\"" + ippdmi + "\") from processor.";
+        message = "Error requesting SetColoradoBNDSSDMI(ColoradoBNDSSDMI=\"" + bndssdmi + "\") from processor.";
         Message.printWarning(2, routine, message );
     }
 }
@@ -5179,10 +5179,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int numCommandsAdded = 0; // Used when inserting blocks of time series
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore(); 
-    if ( selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
+    if ( selectedInputType.equals(__INPUT_TYPE_ColoradoBNDSS) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
-        TSTool_ColoradoIPP_TableModel model = (TSTool_ColoradoIPP_TableModel)__query_TableModel;
+        TSTool_ColoradoBNDSS_TableModel model = (TSTool_ColoradoBNDSS_TableModel)__query_TableModel;
         // TSID data type is formed from separate database values
         String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
         String subType = (String)__query_TableModel.getValueAt( row, model.COL_SUB_TYPE);
@@ -5665,32 +5665,32 @@ public synchronized void setVisible(boolean state)
 }
 
 /**
-Enable/disable the ColoradoIPP input type features depending on whether a
-ColoradoIPP connection has been made.
+Enable/disable the ColoradoBNDSS input type features depending on whether a
+ColoradoBNDSS connection has been made.
 */
-private void ui_CheckColoradoIPPFeatures ()
-{   if ( (__ippdmi != null) && __ippdmi.isOpen() ) {
+private void ui_CheckColoradoBNDSSFeatures ()
+{   if ( (__bndssdmi != null) && __bndssdmi.isOpen() ) {
         if ( __input_type_JComboBox != null ) {
-            // Make sure ColoradoIPP is in the input type list...
+            // Make sure ColoradoBNDSS is in the input type list...
             int count = __input_type_JComboBox.getItemCount();
-            boolean ippfound = false;
+            boolean bndssfound = false;
             for ( int i = 0; i < count; i++ ) {
-                if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_ColoradoIPP) ) {
-                    ippfound = true;
+                if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_ColoradoBNDSS) ) {
+                    bndssfound = true;
                     break;
                 }
             }
-            if ( !ippfound ) {
+            if ( !bndssfound ) {
                 // Repopulate the input types...
                 ui_SetInputTypeChoices();
             }
         }
-        //JGUIUtil.setEnabled ( __File_Properties_ColoradoIPP_JMenuItem, true );
+        //JGUIUtil.setEnabled ( __File_Properties_ColoradoBNDSS_JMenuItem, true );
     }
     else {
-        // Remove ColoradoIPP from the data source list if necessary...
+        // Remove ColoradoBNDSS from the data source list if necessary...
         try {
-            __input_type_JComboBox.remove ( __INPUT_TYPE_ColoradoIPP);
+            __input_type_JComboBox.remove ( __INPUT_TYPE_ColoradoBNDSS);
         }
         catch ( Exception e ) {
             // Ignore - probably already removed...
@@ -7239,14 +7239,14 @@ private void ui_InitGUIInputFilters ( final int y )
         	__inputFilterJPanelList.clear();
         	// Now add the input filters for input types that are enabled, all on top of each other
         	
-            if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
+            if ( __source_ColoradoBNDSS_enabled && (__bndssdmi != null) ) {
                 try {
-                    ui_InitGUIInputFiltersColoradoIPP(__ippdmi, y );
+                    ui_InitGUIInputFiltersColoradoBNDSS(__bndssdmi, y );
                 }
                 catch ( Throwable e ) {
                     // This may happen if the web service static code cannot initialize.  Just catch
                     // and let a blank panel be used for input filters.
-                    Message.printWarning(3, routine, "Error initializing ColoradoIPP input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing ColoradoBNDSS input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7410,29 +7410,30 @@ private void ui_InitGUIInputFilters ( final int y )
 }
 
 /**
-Initialize the ColoradoIPP input filter (may be called at startup after login or File...Open ColoradoIPP).
+Initialize the ColoradoBNDSS input filter (may be called at startup after login or File...Open ColoradoBNDSS).
 */
-private void ui_InitGUIInputFiltersColoradoIPP ( IppDMI ippdmi, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersColoradoIPP";
+private void ui_InitGUIInputFiltersColoradoBNDSS ( BNDSS_DMI bndssdmi, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersColoradoBNDSS";
     try {
-        Message.printStatus ( 2, routine, "Initializing input filters using ColoradoIPP connection." );
+        Message.printStatus ( 2, routine, "Initializing input filters using ColoradoBNDSS connection." );
         // If the previous instance is not null, remove it from the list...
-        if ( __inputFilterColoradoIPPDataMetaData_JPanel != null ) {
-            __inputFilterJPanelList.remove ( __inputFilterColoradoIPPDataMetaData_JPanel );
+        if ( __inputFilterColoradoBNDSSDataMetaData_JPanel != null ) {
+            __inputFilterJPanelList.remove ( __inputFilterColoradoBNDSSDataMetaData_JPanel );
         }
         // Create a new panel...
-        __inputFilterColoradoIPPDataMetaData_JPanel = new IPP_DataMetaData_InputFilter_JPanel(ippdmi, IPPSubjectType.COUNTY, 5 );
+        __inputFilterColoradoBNDSSDataMetaData_JPanel = new BNDSS_DataMetaData_InputFilter_JPanel(
+            bndssdmi, BNDSSSubjectType.COUNTY, 5 );
 
         // Add the new panel to the layout and set in the global data...
         int buffer = 3;
         Insets insets = new Insets(0,buffer,0,0);
-        JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoIPPDataMetaData_JPanel,
+        JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoBNDSSDataMetaData_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
-        __inputFilterJPanelList.add ( __inputFilterColoradoIPPDataMetaData_JPanel );
+        __inputFilterJPanelList.add ( __inputFilterColoradoBNDSSDataMetaData_JPanel );
     }
     catch ( Exception e ) {
-        Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoIPP time series (" + e + ")." );
+        Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoBNDSS time series (" + e + ")." );
         Message.printWarning ( 2, routine, e );
     }
 }
@@ -8050,9 +8051,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
 	
-    if ( __source_ColoradoIPP_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoIPP_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_ReadColoradoIPP_String, this) );
+    if ( __source_ColoradoBNDSS_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoBNDSS_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadColoradoBNDSS_String, this) );
     }
 
 	if ( __source_DateValue_enabled ) {
@@ -9243,12 +9244,12 @@ private boolean ui_Property_RunCommandProcessorInThread()
 }
 
 /**
-Set the IppDMI instance used by the GUI.
-@param ippdmi the IppDMI instance used by the GUI.
+Set the BNDSS_DMI instance used by the GUI.
+@param bndssdmi the BNDSS_DMI instance used by the GUI.
 */
-private void ui_SetColoradoIppDMI ( IppDMI ippdmi )
+private void ui_SetColoradoBNDSSDMI ( BNDSS_DMI bndssdmi )
 {
-    __ippdmi = ippdmi;
+    __bndssdmi = bndssdmi;
 }
 
 /**
@@ -9346,9 +9347,9 @@ private void ui_SetInputFilters()
     Message.printStatus(2, routine, "Setting input filter based on selected input type \"" +
         selectedInputType + "\" and data type \"" + selectedDataType + "\"" );
     try {
-    if(selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) &&
-        (__inputFilterColoradoIPPDataMetaData_JPanel != null) ) {
-        selectedInputFilter_JPanel = __inputFilterColoradoIPPDataMetaData_JPanel;
+    if(selectedInputType.equals(__INPUT_TYPE_ColoradoBNDSS) &&
+        (__inputFilterColoradoBNDSSDataMetaData_JPanel != null) ) {
+        selectedInputFilter_JPanel = __inputFilterColoradoBNDSSDataMetaData_JPanel;
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
         // Can only use the ColoradoWaterHBGuest filters if they were originally
@@ -9574,8 +9575,8 @@ private void ui_SetInputTypeChoices ()
 	}
 	// Add a blank choice to allow working with data stores
 	__input_type_JComboBox.add ( "" );
-    if ( __source_ColoradoIPP_enabled && (__ippdmi != null) ) {
-        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoIPP );
+    if ( __source_ColoradoBNDSS_enabled && (__bndssdmi != null) ) {
+        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoBNDSS );
     }
     if ( __source_ColoradoWaterHBGuest_enabled ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterHBGuest );
@@ -10303,8 +10304,8 @@ throws Exception
 
 	// Read Time Series...
 
-    if (command.equals( __Commands_Read_ReadColoradoIPP_String)){
-        commandList_EditCommand ( __Commands_Read_ReadColoradoIPP_String, null, __INSERT_COMMAND );
+    if (command.equals( __Commands_Read_ReadColoradoBNDSS_String)){
+        commandList_EditCommand ( __Commands_Read_ReadColoradoBNDSS_String, null, __INSERT_COMMAND );
     }
     else if (command.equals( __Commands_Read_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, __INSERT_COMMAND );
@@ -11380,7 +11381,7 @@ private void uiAction_DataTypeChoiceClicked()
         // If the data type is for a diversion or reservoir data type,
         // hide the abbreviation column in the table model.  Else show the column.
     }
-	else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoIPP) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoBNDSS) ) {
         // Time steps is always year...
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
@@ -11838,12 +11839,12 @@ private void uiAction_GetTimeSeriesListClicked()
 	// area.  Return if an error occurs because the message at the bottom
 	// should only be printed if successful.
 
-    if ( selectedInputType.equals (__INPUT_TYPE_ColoradoIPP)) {
+    if ( selectedInputType.equals (__INPUT_TYPE_ColoradoBNDSS)) {
         try {
-            uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders(); 
+            uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders(); 
         }
         catch ( Exception e ) {
-            message = "Error reading ColoradoIPP - cannot display time series list (" + e + ").";
+            message = "Error reading ColoradoBNDSS - cannot display time series list (" + e + ").";
             Message.printWarning ( 1, routine, message );
             Message.printWarning ( 3, routine, e );
             return;
@@ -12059,10 +12060,10 @@ private void uiAction_GetTimeSeriesListClicked()
 }
 
 /**
-Read ColoradoIPP time series and list in the GUI.
+Read ColoradoBNDSS time series and list in the GUI.
 */
-private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders";
+private void uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
@@ -12071,7 +12072,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
         queryResultsList_Clear ();
 
         // Get the subject from the where filters.  If not set, warn and don't query
-        IPPSubjectType subject = null;
+        BNDSSSubjectType subject = null;
         List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Subject", false, null );
         if ( input.size() == 0 ) {
             Message.printWarning ( 1, rtn, "You must specify the Subject as a Where in the input filter." );
@@ -12079,12 +12080,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
             return;
         }
         //Message.printStatus(2, "", "Input is \"" + input.get(0) );
-        subject = IPPSubjectType.valueOfIgnoreCase(StringUtil.getToken(input.get(0),";",0,1));
+        subject = BNDSSSubjectType.valueOfIgnoreCase(StringUtil.getToken(input.get(0),";",0,1));
 
         List results = null;
         // Data type is shown with name so only use the first part of the choice
         try {
-            results = __ippdmi.readDataMetaDataList( (InputFilter_JPanel)__selectedInputFilter_JPanel, subject );
+            results = __bndssdmi.readDataMetaDataList( (InputFilter_JPanel)__selectedInputFilter_JPanel, subject );
         }
         catch ( Exception e ) {
             results = null;
@@ -12096,9 +12097,9 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoIPPHeaders()
             // TODO Does not work??
             //__query_TableModel.setNewData ( results );
             // Try brute force...
-            __query_TableModel = new TSTool_ColoradoIPP_TableModel ( results );
-            TSTool_ColoradoIPP_CellRenderer cr =
-                new TSTool_ColoradoIPP_CellRenderer( (TSTool_ColoradoIPP_TableModel)__query_TableModel);
+            __query_TableModel = new TSTool_ColoradoBNDSS_TableModel ( results );
+            TSTool_ColoradoBNDSS_CellRenderer cr =
+                new TSTool_ColoradoBNDSS_CellRenderer( (TSTool_ColoradoBNDSS_TableModel)__query_TableModel);
 
             __query_JWorksheet.setCellRenderer ( cr );
             __query_JWorksheet.setModel ( __query_TableModel );
@@ -14104,8 +14105,8 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 
 	// List alphabetically...
 	try {
-        if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoIPP ) ) {
-            uiAction_SelectInputType_ColoradoIPP ();
+        if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoBNDSS ) ) {
+            uiAction_SelectInputType_ColoradoBNDSS ();
         }
         else if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterHBGuest ) ) {
             uiAction_SelectInputType_ColoradoWaterHBGuest ();
@@ -14199,17 +14200,17 @@ private void uiAction_NewCommandFile ()
 }
 
 /**
-Open a connection to the ColoradoIPP database.  If running in batch mode, the
-CDSS configuration file is used to determine ColoradoIPP server and database
+Open a connection to the ColoradoBNDSS database.  If running in batch mode, the
+CDSS configuration file is used to determine ColoradoBNDSS server and database
 name properties to use for the initial connection.  If no configuration file
 exists, then a default connection is attempted.
 @param startup If true, indicates that the database connection is being made
 at startup.  This is the case, for example, when multiple HydroBase databases
 may be available and there is no reason to automatically connect to one of them for all users.
 */
-private void uiAction_OpenColoradoIPP ( boolean startup )
-{   String routine = "TSTool_JFrame.uiAction_OpenColoradoIPP";
-    Message.printStatus ( 1, routine, "Opening ColoradoIPP connection..." );
+private void uiAction_OpenColoradoBNDSS ( boolean startup )
+{   String routine = "TSTool_JFrame.uiAction_OpenColoradoBNDSS";
+    Message.printStatus ( 1, routine, "Opening ColoradoBNDSS connection..." );
     // TODO SAM 2005-10-18
     // Always connect, whether in batch mode or not.  Might need a way to configure this.
     //if ( IOUtil.isBatch() || !__show_main ) {
@@ -14219,53 +14220,53 @@ private void uiAction_OpenColoradoIPP ( boolean startup )
         String cfg = HydroBase_Util.getConfigurationFile();
         PropList props = null;
         if ( IOUtil.fileExists(cfg) ) {
-            // Use the configuration file to get ColoradoIPP properties...
+            // Use the configuration file to get ColoradoBNDSS properties...
             try {
                 props = HydroBase_Util.readConfiguration(cfg);
             }
             catch ( Exception e ) {
                 Message.printWarning ( 1, routine, "Error reading CDSS configuration file \""+ cfg +
-                "\".  Using defaults for ColoradoIPP." );
+                "\".  Using defaults for ColoradoBNDSS" );
                 Message.printWarning ( 3, routine, e );
                 props = null;
             }
         }
         // Override with any TSTool command-line arguments, in particular the user login...
-        String databaseServer = props.getValue("ColoradoIPP.DatabaseServer" );
-        String databaseName = props.getValue("ColoradoIPP.DatabaseName" );
-        String portString = props.getValue("ColoradoIPP.Port" );
-        String systemLogin = props.getValue("ColoradoIPP.SystemLogin" );
-        String systemPassword = props.getValue("ColoradoIPP.SystemPassword" );
+        String databaseServer = props.getValue("ColoradoBNDSS.DatabaseServer" );
+        String databaseName = props.getValue("ColoradoBNDSS.DatabaseName" );
+        String portString = props.getValue("ColoradoBNDSS.Port" );
+        String systemLogin = props.getValue("ColoradoBNDSS.SystemLogin" );
+        String systemPassword = props.getValue("ColoradoBNDSS.SystemPassword" );
         Message.printStatus ( 2, routine,
-            "Colorado IPP database configuration information read from file: \""+ cfg + "\"." );
-        Message.printStatus ( 2, routine, "ColoradoIPP.DatabaseServer=\"" + databaseServer + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoIPP.DatabaseName=\"" + databaseName + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoIPP.Port=\"" + portString + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoIPP.SystemLogin=\"" + systemLogin + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoIPP.SystemPassword=\"" + systemPassword + "\"" );
+            "Colorado BNDSS database configuration information read from file: \""+ cfg + "\"." );
+        Message.printStatus ( 2, routine, "ColoradoBNDSS.DatabaseServer=\"" + databaseServer + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoBNDSS.DatabaseName=\"" + databaseName + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoBNDSS.Port=\"" + portString + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoBNDSS.SystemLogin=\"" + systemLogin + "\"" );
+        Message.printStatus ( 2, routine, "ColoradoBNDSS.SystemPassword=\"" + systemPassword + "\"" );
         try {
             // Now open the database...
             // This uses the default login.  If properties were not found,
-            // then default ColoradoIPP information will be used.
+            // then default ColoradoBNDSS information will be used.
             String databaseEngine = "SQLServer";
             int port = 0;
             if ( StringUtil.isInteger(portString) ) {
                 port = Integer.parseInt(portString);
             }
-            IppDMI ippdmi = new IppDMI ( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
-            ippdmi.open();
-            // Set the IppDMI for the GUI and command processor...
-            ui_SetColoradoIppDMI( ippdmi );
-            commandProcessor_SetColoradoIppDMI ( ippdmi );
+            BNDSS_DMI bndssdmi = new BNDSS_DMI ( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
+            bndssdmi.open();
+            // Set the BNDSS_DMI for the GUI and command processor...
+            ui_SetColoradoBNDSSDMI( bndssdmi );
+            commandProcessor_SetColoradoBNDSSDMI ( bndssdmi );
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, routine,
-                    "Error opening ColoradoIPP database.  ColoradoIPP features will be disabled." );
+                    "Error opening ColoradoBNDSS database.  ColoradoBNDSS features will be disabled." );
             Message.printWarning ( 3, routine, e );
             // Leave old connection?
         }
-    // Enable/disable ColoradoIPP features as necessary...
-    ui_CheckColoradoIPPFeatures();
+    // Enable/disable ColoradoBNDSS features as necessary...
+    ui_CheckColoradoBNDSSFeatures();
 }
 
 /**
@@ -15640,11 +15641,11 @@ throws Exception
 }
 
 /**
-Refresh the query choices for a ColoradoIPP connection.
+Refresh the query choices for a ColoradoBNDSS connection.
 */
-private void uiAction_SelectInputType_ColoradoIPP ()
+private void uiAction_SelectInputType_ColoradoBNDSS ()
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectInputType_ColoradoIPP";
+{   //String routine = getClass().getName() + "uiAction_SelectInputType_ColoradoBNDSS";
     __dataType_JComboBox.setEnabled ( false );
     __dataType_JComboBox.removeAll ();
     
@@ -15656,13 +15657,13 @@ throws Exception
  
     // Initialize with blank data vector...
 
-    __query_TableModel = new TSTool_ColoradoIPP_TableModel(null);
-    TSTool_ColoradoIPP_CellRenderer cr =
-        new TSTool_ColoradoIPP_CellRenderer((TSTool_ColoradoIPP_TableModel)__query_TableModel);
+    __query_TableModel = new TSTool_ColoradoBNDSS_TableModel(null);
+    TSTool_ColoradoBNDSS_CellRenderer cr =
+        new TSTool_ColoradoBNDSS_CellRenderer((TSTool_ColoradoBNDSS_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
-    //__query_JWorksheet.removeColumn (((TSTool_ColoradoIPP_TableModel)__query_TableModel).COL_SEQUENCE );
+    //__query_JWorksheet.removeColumn (((TSTool_ColoradoBNDSS_TableModel)__query_TableModel).COL_SEQUENCE );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
@@ -17278,11 +17279,11 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
     v.add ( "" );
     v.add ( "Input types and whether enabled:" );
     v.add ( "" );
-    if ( __source_ColoradoIPP_enabled ) {
-        v.add ( "ColoradoIPP input type is enabled" );
+    if ( __source_ColoradoBNDSS_enabled ) {
+        v.add ( "ColoradoBNDSS data store is enabled" );
     }
     else {
-        v.add ( "ColoradoIPP input type is not enabled");
+        v.add ( "ColoradoBNDSS data store is not enabled");
     }
     if ( __source_ColoradoSMS_enabled ) {
         v.add ( "ColoradoSMS input type is enabled" );
