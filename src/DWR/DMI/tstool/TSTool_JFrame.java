@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
@@ -78,6 +79,10 @@ import rti.tscommandprocessor.commands.bndss.BNDSS_DMI;
 import rti.tscommandprocessor.commands.bndss.ColoradoBNDSSDataStore;
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
+import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStore;
+import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_DMI;
+import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSeriesMetadata;
+import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.util.Comment_Command;
@@ -130,7 +135,6 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;
-import RTi.DMI.RiversideDB_DMI.LoginJDialog;
 import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
@@ -302,6 +306,11 @@ Available input types including enabled file and databases.
 private SimpleJComboBox	__input_type_JComboBox = null;
 
 /**
+Input name choice label.  This may be set (in)visible depending on selected data store or input type.
+*/
+private JLabel __inputName_JLabel = null;
+
+/**
 Available input names for the input type (history of recent choices and allow browse where necessary).
 */
 private SimpleJComboBox __inputName_JComboBox = null;	
@@ -353,11 +362,6 @@ The currently selected input filter JPanel, used to check input and get the filt
 Not an InputFilter_JPanel because of the generic case where a simple JPanel may need to be inserted.
 */
 private JPanel __selectedInputFilter_JPanel = null;
-
-/**
-InputFilter_JPanel for Colorado BNDSS time series.
-*/
-private InputFilter_JPanel __inputFilterColoradoBNDSSDataMetaData_JPanel = null;
 
 /**
 InputFilter_JPanel for HBGuest station time series.
@@ -824,6 +828,7 @@ private boolean
 	__source_NWSCard_enabled = true,
 	__source_NWSRFS_FS5Files_enabled = false,
 	__source_NWSRFS_ESPTraceEnsemble_enabled = false,
+	__source_ReclamationHDB_enabled = false,
 	__source_RiversideDB_enabled = false,
 	__source_RiverWare_enabled = true,
 	__source_SHEF_enabled = true,
@@ -853,11 +858,6 @@ HydroBaseDMI object for HydroBase input type, opened via TSTool.cfg information
 and the HydroBase select dialog, provided to the processor as the initial HydroBase DMI instance.
 */
 private HydroBaseDMI __hbdmi = null;
-
-/**
-BNDSS_DMI object for ColoradoBNDSS input type, opened via CDSS.cfg information.
-*/
-private BNDSS_DMI __bndssdmi = null;
 
 /**
 SatMonSysDMI object for ColoradoSMS input type, opened via TSTool.cfg information
@@ -1011,6 +1011,7 @@ JMenuItem
 	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem = null,
+	__Commands_ConvertTSIDTo_ReadReclamationHDB_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem = null,
 	__Commands_ConvertTSIDTo_ReadStateModB_JMenuItem = null,
@@ -1031,6 +1032,7 @@ JMenuItem
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_ReadNWSRFSFS5Files_JMenuItem,
+	__Commands_Read_ReadReclamationHDB_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
 	__Commands_Read_ReadStateCUB_JMenuItem,
 	__Commands_Read_ReadStateMod_JMenuItem,
@@ -1140,6 +1142,7 @@ JMenuItem
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
+	__Commands_Output_WriteReclamationHDB_JMenuItem,
 	__Commands_Output_WriteRiverWare_JMenuItem,
     __Commands_Output_WriteSHEF_JMenuItem,
 	__Commands_Output_WriteStateCU_JMenuItem,
@@ -1471,6 +1474,7 @@ private String
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()... <read 1(+) time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1(+) time series from an NWS CARD file>",
 	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()... <read 1(+) time series from NWSRFS FS5 files>",
+	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1(+) time series from Reclamation's HDB database>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1(+) time series from a StateCU file>",
 	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()... <read 1(+) time series from a StateCU binary output file>",
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1(+) time series from a StateMod file>",
@@ -1550,6 +1554,7 @@ private String
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()... <write time series to DateValue file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
+	__Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to Reclamation HDB database>",
 	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()... <write time series to RiverWare file>",
     __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()... <write time series to SHEF file (under development)>",
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
@@ -1739,7 +1744,6 @@ private String
 
 	// Input types for the __input_type_JComboBox...
 
-	__INPUT_TYPE_ColoradoBNDSS = "ColoradoBNDSS",
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_ColoradoWaterHBGuest = "ColoradoWaterHBGuest",
 	__INPUT_TYPE_ColoradoWaterSMS = "ColoradoWaterSMS",
@@ -1752,7 +1756,6 @@ private String
 	__INPUT_TYPE_NWSCARD = "NWSCARD",
 	__INPUT_TYPE_NWSRFS_FS5Files = "NWSRFS_FS5Files",
 	__INPUT_TYPE_NWSRFS_ESPTraceEnsemble = "NWSRFS_ESPTraceEnsemble",
-	__INPUT_TYPE_RiversideDB = "RiversideDB",
 	__INPUT_TYPE_RiverWare = "RiverWare",
 	__INPUT_TYPE_StateCU = "StateCU",
 	__INPUT_TYPE_StateCUB = "StateCUB",
@@ -2016,6 +2019,19 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 			__props.set( "NWSRFSFS5Files.InputName",prop_value );
 		}
 	}
+	
+	// Reclamation HDB disabled by default...
+
+    __source_ReclamationHDB_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_ReclamationHDB_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_ReclamationHDB_enabled = true;
+        }
+    }
 
 	// RiversideDB disabled by default...
 
@@ -3848,40 +3864,6 @@ private void commandProcessor_RunCommandsThreaded ( List commands, boolean creat
 }
 
 /**
-Set the command processor BNDSS_DMI instance that is opened via the GUI.
-@param bndssdmi Open BNDSS_DMI instance.
-The input name is blank since it is the default BNDSS_DMI.
-*/
-private void commandProcessor_SetColoradoBNDSSDMI( BNDSS_DMI bndssdmi )
-{   // Call the overloaded method that takes a processor as a parameter...
-    commandProcessor_SetColoradoBNDSSDMI( __tsProcessor, bndssdmi );
-}
-
-/**
-Set the command processor BNDSS_DMI instance that is opened via the GUI.
-This version is generally called by the overloaded version and when processing an external command file.
-@param processor The command processor to set the BNDSS_DMI instance.
-@param bndssdmi Open BNDSS_DMI instance.
-The input name is blank since it is the default BNDSS_DMI.
-*/
-private void commandProcessor_SetColoradoBNDSSDMI( CommandProcessor processor, BNDSS_DMI bndssdmi )
-{   String message, routine = "TSTool_JFrame.commandProcessor_SetColoradoBNDSSDMI";
-    if ( bndssdmi == null ) {
-        return;
-    }
-    PropList request_params = new PropList ( "" );
-    request_params.setUsingObject ( "ColoradoBNDSSDMI", bndssdmi );
-    //CommandProcessorRequestResultsBean bean = null;
-    try { //bean =
-        processor.processRequest( "SetColoradoBNDSSDMI", request_params );
-    }
-    catch ( Exception e ) {
-        message = "Error requesting SetColoradoBNDSSDMI(ColoradoBNDSSDMI=\"" + bndssdmi + "\") from processor.";
-        Message.printWarning(2, routine, message );
-    }
-}
-
-/**
 Set the command processor HydroBase instance that is opened via the GUI.
 @param hbdmi Open HydroBaseDMI instance.
 The input name is blank since it is the default HydroBaseDMI.
@@ -5419,6 +5401,31 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			false, insertOffset );
 		}
 	}
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input_name is needed to indicate the database.
+        TSTool_ReclamationHDB_TableModel model = (TSTool_ReclamationHDB_TableModel)__query_TableModel;
+        String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE);
+        String scenario = "";
+        if ( tsType.equalsIgnoreCase("Model") ) {
+            scenario = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME ) + "-" +
+                (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME ) + "-" +
+                (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
+        }
+        String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
+        String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+        //(String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
+        tsType + ":" + loc.replace('.','?'), // Replace period because it will interfere with TSID
+        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+        dataType,
+        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
+        scenario,
+        null,   // No sequence number
+        (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
+        "",
+        "", false, insertOffset );
+    }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		// The location (id), type, and time step uniquely
 		// identify the time series, but the input_name is needed to indicate the database.
@@ -5656,41 +5663,6 @@ public synchronized void setVisible(boolean state)
 		setLocation(50, 50);
 	}
 	super.setVisible(state);
-}
-
-/**
-Enable/disable the ColoradoBNDSS input type features depending on whether a
-ColoradoBNDSS connection has been made.
-*/
-private void ui_CheckColoradoBNDSSFeatures ()
-{   if ( (__bndssdmi != null) && __bndssdmi.isOpen() ) {
-        if ( __input_type_JComboBox != null ) {
-            // Make sure ColoradoBNDSS is in the input type list...
-            int count = __input_type_JComboBox.getItemCount();
-            boolean bndssfound = false;
-            for ( int i = 0; i < count; i++ ) {
-                if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_ColoradoBNDSS) ) {
-                    bndssfound = true;
-                    break;
-                }
-            }
-            if ( !bndssfound ) {
-                // Repopulate the input types...
-                ui_SetInputTypeChoices();
-            }
-        }
-        //JGUIUtil.setEnabled ( __File_Properties_ColoradoBNDSS_JMenuItem, true );
-    }
-    else {
-        // Remove ColoradoBNDSS from the data source list if necessary...
-        try {
-            __input_type_JComboBox.remove ( __INPUT_TYPE_ColoradoBNDSS);
-        }
-        catch ( Exception e ) {
-            // Ignore - probably already removed...
-        }
-        //JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem, false );
-    }
 }
 
 /**
@@ -6020,6 +5992,12 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
 	    JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,true);
+		if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
+		    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, true );
+		}
+		else {
+		    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false );
+		}
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, true);
@@ -6121,6 +6099,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, false );
         JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem,false);
@@ -6628,6 +6607,14 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
                 return panel;
             }
         }
+        else if ( panel instanceof ReclamationHDB_TimeSeries_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((ReclamationHDB_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
     }
     return null;
 }
@@ -6635,7 +6622,7 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
 //FIXME SAM 2007-11-01 Need to use /tmp etc for a startup home if not
 //specified so the software install home is not used.
 /**
-Return the initial working directory, which will be the softare startup
+Return the initial working directory, which will be the software startup
 home, or the location of new command files.
 This directory is suitable for initializing a workflow processing run.
 @return the initial working directory, which should always be non-null.
@@ -6647,7 +6634,7 @@ private String ui_GetInitialWorkingDir ()
 
 /**
 Return the NWSRFSFS5Files instance that is active for the UI, opened from
-the configuration file inforation or the NWSRFS FS5Files select dialog.
+the configuration file information or the NWSRFS FS5Files select dialog.
 @return the NWSRFSDMI instance that is active for the UI.
 */
 private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
@@ -6674,7 +6661,7 @@ private DataStore ui_GetSelectedDataStore ()
 }
 
 /**
-Return the seleted data type as a short string.  For some input types, data types have additional
+Return the selected data type as a short string.  For some input types, data types have additional
 label-only information because the types are grouped in the GUI due to the list length.
 StateCUB has a lot of types but currently they are not grouped (AND THEY MAY INCLUDE "-" so
 don't do anything special).
@@ -6821,8 +6808,8 @@ private void ui_InitGUI ( )
         JGUIUtil.addComponent(__queryInput_JPanel, __input_type_JComboBox, 
 		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    label = new JLabel("Input name:" );
-    JGUIUtil.addComponent(__queryInput_JPanel, label, 
+    __inputName_JLabel = new JLabel("Input name:" );
+    JGUIUtil.addComponent(__queryInput_JPanel, __inputName_JLabel, 
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __inputName_JComboBox = new SimpleJComboBox(false);
     __inputName_JComboBox.setMaximumRowCount ( 20 );
@@ -7293,12 +7280,12 @@ private void ui_InitGUIInputFilters ( final int y )
         	}
 
         	if ( __source_MexicoCSMN_enabled ) {
-                List input_filters = null;
+                List<InputFilter> input_filters = null;
                 InputFilter filter = null;
         		// Add input filters using text fields...
         		// Later may put this code in the MexicoCSMN package since it may be used by other interfaces...
         		input_filters = new Vector(2);
-        		List statenum_Vector = new Vector (32);
+        		List<String> statenum_Vector = new Vector (32);
         		statenum_Vector.add ( "01 - Aguascalientes" );
         		statenum_Vector.add ( "02 - Baja California" );
         		statenum_Vector.add ( "03 - Baja California Sur" );
@@ -7349,15 +7336,17 @@ private void ui_InitGUIInputFilters ( final int y )
         			GridBagConstraints.WEST );
         		__inputFilterMexicoCSMN_JPanel.setToolTipText (
         			"<html>Mexico CSMN queries can be filtered<br>based on station data.</html>" );
+        		__inputFilterMexicoCSMN_JPanel.setName ( "MexicoCSMN.InputFilterPanel" );
         		__inputFilterJPanelList.add ( __inputFilterMexicoCSMN_JPanel );
         	}
          	if ( __source_NWSRFS_FS5Files_enabled ) {
         		// Add input filters for NWSRFS FS5 files.
         		try {
-        		    __inputFilterNWSRFSFS5Files_JPanel = new	NWSRFS_TS_InputFilter_JPanel ();
+        		    __inputFilterNWSRFSFS5Files_JPanel = new NWSRFS_TS_InputFilter_JPanel ();
                 		JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterNWSRFSFS5Files_JPanel,
         				0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
         				GridBagConstraints.WEST );
+                	__inputFilterNWSRFSFS5Files_JPanel.setName ( "NWSRFSFS5Files.InputFilterPanel" );
         			__inputFilterJPanelList.add ( __inputFilterNWSRFSFS5Files_JPanel );
         		}
         		catch ( Throwable e ) {
@@ -7365,6 +7354,16 @@ private void ui_InitGUIInputFilters ( final int y )
         			Message.printWarning ( 2, routine, e );
         		}
         	}
+            if ( __source_ReclamationHDB_enabled && (__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0) ) {
+                try {
+                    ui_InitGUIInputFiltersReclamationHDB(__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing Reclamation HDB input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
             if ( __source_RiversideDB_enabled && (__tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0) ) {
                 try {
                     ui_InitGUIInputFiltersRiversideDB(__tsProcessor.getDataStoresByType(RiversideDBDataStore.class), y );
@@ -7382,6 +7381,7 @@ private void ui_InitGUIInputFilters ( final int y )
            	JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterGeneric_JPanel = new InputFilter_JPanel (),
     			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
         	__inputFilterGeneric_JPanel.setToolTipText ( "The selected input type does not support input filters." );
+        	__inputFilterGeneric_JPanel.setName( "GenericDefault.InputFilterPanel" );
         	__inputFilterJPanelList.add ( __inputFilterGeneric_JPanel );
         	
             // Always add a message input filter JPanel that can be used to display a message, such as
@@ -7389,6 +7389,7 @@ private void ui_InitGUIInputFilters ( final int y )
         
             JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMessage_JPanel = new InputFilter_JPanel (""),
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+            __inputFilterMessage_JPanel.setName ( "Message.InputFilterPanel" );
             __inputFilterJPanelList.add ( __inputFilterMessage_JPanel );
             
         	// The appropriate JPanel will be set visible later based on the input type that is selected.
@@ -7429,13 +7430,13 @@ private void ui_InitGUIInputFiltersColoradoBNDSS ( List<DataStore> dataStoreList
             // Create a new panel...
             BNDSS_DataMetaData_InputFilter_JPanel newIfp =
                 new BNDSS_DataMetaData_InputFilter_JPanel((ColoradoBNDSSDataStore)dataStore, null, 3);
-    
             // Add the new panel to the layout and set in the global data...
             int buffer = 3;
             Insets insets = new Insets(0,buffer,0,0);
             JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
+            newIfp.setName ( "ColoradoBNDSS.InputFilterPanel" );
             __inputFilterJPanelList.add ( newIfp );
         }
         catch ( Exception e ) {
@@ -7491,6 +7492,7 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( ColoradoWaterHBGuestSe
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoWaterHBGuestStructure_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterColoradoWaterHBGuestStructure_JPanel.setName ( "ColoradoWaterHBGuest.InputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterColoradoWaterHBGuestStructure_JPanel );
     }
     catch ( Exception e ) {
@@ -7695,6 +7697,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseStation_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseStation_JPanel.setName ( "HydroBase.StationInputFilterPanel");
         __inputFilterJPanelList.add (__inputFilterHydroBaseStation_JPanel );
     }
     catch ( Exception e ) {
@@ -7714,6 +7717,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseStructure_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseStructure_JPanel.setName ( "HydroBase.StructureInputFilterPanel" );
         __inputFilterJPanelList.add ( __inputFilterHydroBaseStructure_JPanel );
     }
     catch ( Exception e ) {
@@ -7730,6 +7734,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseStructureSfut_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseStructureSfut_JPanel.setName("HydroBase.StructureSFUTInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseStructureSfut_JPanel);
     }
     catch ( Exception e ) {
@@ -7749,6 +7754,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseIrrigts_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseIrrigts_JPanel.setName ( "HydroBase.IrrigationSummaryInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseIrrigts_JPanel );
     }
     catch ( Exception e ) {
@@ -7769,6 +7775,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseCASSCropStats_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseCASSCropStats_JPanel.setName("HydroBase.CASSCropsInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseCASSCropStats_JPanel );
     }
     catch ( Exception e ) {
@@ -7791,6 +7798,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseCASSLivestockStats_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseCASSLivestockStats_JPanel.setName("HydroBase.CASSLivestockInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseCASSLivestockStats_JPanel );
     }
     catch ( Exception e ) {
@@ -7812,6 +7820,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseCUPopulation_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseCUPopulation_JPanel.setName("HydroBase.CUPopulationInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseCUPopulation_JPanel );
     }
     catch ( Exception e ) {
@@ -7833,6 +7842,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseNASS_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseNASS_JPanel.setName("HydroBase.NASSInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseNASS_JPanel );
     }
     catch ( Exception e ) {
@@ -7853,6 +7863,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseWIS_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
+        __inputFilterHydroBaseWIS_JPanel.setName("HydroBase.WISInputFilterPanel");
         __inputFilterJPanelList.add ( __inputFilterHydroBaseWIS_JPanel );
     }
     catch ( Exception e ) {
@@ -7871,6 +7882,7 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         JGUIUtil.addComponent(__queryInput_JPanel,__inputFilterHydroBaseWells_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST);
+        __inputFilterHydroBaseWells_JPanel.setName("HydroBase.WellsInputFilterPanel");
         __inputFilterJPanelList.add( __inputFilterHydroBaseWells_JPanel);
     }
     catch ( Exception e ) {
@@ -7878,6 +7890,45 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
         Message.printWarning ( 2, routine,
         "Unable to initialize input filter for HydroBase wells - old database?" );
         Message.printWarning ( 2, routine, e );
+    }
+}
+
+/**
+Initialize the Reclamation HDB input filter (may be called at startup).
+@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
+*/
+private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersReclamationHDB";
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " ReclamationHDB data stores." );
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name...
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName() );
+            // If the previous instance is not null, remove it from the list...
+            if ( ifp != null ) {
+                __inputFilterJPanelList.remove ( ifp );
+            }
+            // Create a new panel...
+            ReclamationHDB_TimeSeries_InputFilter_JPanel newIfp =
+                new ReclamationHDB_TimeSeries_InputFilter_JPanel((ReclamationHDBDataStore)dataStore, null, 3);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            newIfp.setName("ReclamationHDB.InputFilterPanel");
+            __inputFilterJPanelList.add ( newIfp );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for Reclamation HDB time series " +
+                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
+        }
     }
 }
 
@@ -7908,6 +7959,7 @@ private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, 
             JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
+            newIfp.setName("RiversideDB.InputFilterPanel");
             __inputFilterJPanelList.add ( newIfp );
         }
         catch ( Exception e ) {
@@ -8102,6 +8154,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			new SimpleJMenuItem(__Commands_Read_readNWSRFSFS5Files_String, this) );
 	}
 	*/
+	
+    if ( __source_ReclamationHDB_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationHDB_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadReclamationHDB_String, this) );
+    }
 
 	if ( __source_StateCU_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCU_JMenuItem =
@@ -8389,6 +8446,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteNwsCard_JMenuItem =
 			new SimpleJMenuItem( __Commands_Output_WriteNwsCard_String, this ) );
 	}
+	
+    if ( __source_ReclamationHDB_enabled ) {
+        __Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteReclamationHDB_JMenuItem =
+            new SimpleJMenuItem(__Commands_Output_WriteReclamationHDB_String, this ) );
+    }
 
 	if ( __source_RiverWare_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiverWare_JMenuItem =
@@ -9253,15 +9315,6 @@ private boolean ui_Property_RunCommandProcessorInThread()
 }
 
 /**
-Set the BNDSS_DMI instance used by the GUI.
-@param bndssdmi the BNDSS_DMI instance used by the GUI.
-*/
-private void ui_SetColoradoBNDSSDMI ( BNDSS_DMI bndssdmi )
-{
-    __bndssdmi = bndssdmi;
-}
-
-/**
 Set the directory for the last "File...Open Command File".
 @param Dir_LastCommandFileOpened Directory for last command file opened.
 */
@@ -9348,15 +9401,21 @@ input filter visible since all input filters are created at startup or when a da
 */
 private void ui_SetInputFilters()
 {	String routine = getClass().getName() + ".ui_SetInputFilters";
+    String selectedDataStoreName = null;
     DataStore selectedDataStore = ui_GetSelectedDataStore();
-    JPanel selectedInputFilter_JPanel = null; // If not seet at end, will use generic panel
+    if ( selectedDataStore != null ) {
+        selectedDataStoreName = selectedDataStore.getName();
+    }
+    JPanel selectedInputFilter_JPanel = null; // If not set at end, will use generic panel
     String selectedInputType = ui_GetSelectedInputType();
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
-    Message.printStatus(2, routine, "Setting input filter based on selected input type \"" +
-        selectedInputType + "\" and data type \"" + selectedDataType + "\"" );
+    Message.printStatus(2, routine, "Setting input filter based on selected data store \"" +
+        selectedDataStoreName + "\", input type \"" + selectedInputType +
+        "\", and data type \"" + selectedDataType + "\"" );
     try {
-    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoBNDSSDataStore) ) {
+    if ( selectedDataStore != null ) {
+        // This handles ColoradoBNDSS, ReclamationHDB, and RiversideDB
         selectedInputFilter_JPanel = ui_GetInputFilterPanelForDataStoreName(selectedDataStore.getName());
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
@@ -9513,9 +9572,6 @@ private void ui_SetInputFilters()
 		(__inputFilterNWSRFSFS5Files_JPanel != null) ) {
 		selectedInputFilter_JPanel = __inputFilterNWSRFSFS5Files_JPanel;
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
-        selectedInputFilter_JPanel = ui_GetInputFilterPanelForDataStoreName(selectedDataStore.getName());
-    }
 	else {
         // Currently no other input types support filtering - this may also be used if HydroBase input
         // filters were not set up due to a missing database connection...
@@ -9540,11 +9596,25 @@ private void ui_SetInputFilters()
 	for ( JPanel input_filter_JPanel: __inputFilterJPanelList ) {
 		if ( input_filter_JPanel == __selectedInputFilter_JPanel ) {
 			input_filter_JPanel.setVisible ( true );
+			Message.printStatus(2, routine, "Set input filter panel \"" + input_filter_JPanel.getName() +
+			    "\" visible TRUE." );
 		}
 		else {
 		    input_filter_JPanel.setVisible ( false );
+		    Message.printStatus(2, routine, "Set input filter panel \"" + input_filter_JPanel.getName() +
+            "\" visible FALSE." );
 		}
 	}
+}
+
+/**
+Set the "Input name" label and choices visible.  This is called when a data store or input type is selected
+because input name is only used by some.
+*/
+private void ui_SetInputNameVisible(boolean isVisible )
+{
+    __inputName_JLabel.setVisible(isVisible);
+    __inputName_JComboBox.setVisible(isVisible);
 }
 
 /**
@@ -9578,9 +9648,6 @@ private void ui_SetInputTypeChoices ()
 	}
 	// Add a blank choice to allow working with data stores
 	__input_type_JComboBox.add ( "" );
-    if ( __source_ColoradoBNDSS_enabled && (__bndssdmi != null) ) {
-        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoBNDSS );
-    }
     if ( __source_ColoradoWaterHBGuest_enabled ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterHBGuest );
     }
@@ -10331,6 +10398,9 @@ throws Exception
 	else if (command.equals( __Commands_Read_ReadNWSRFSFS5Files_String)){
 		commandList_EditCommand ( __Commands_Read_ReadNWSRFSFS5Files_String, null, __INSERT_COMMAND );
 	}
+    if (command.equals( __Commands_Read_ReadReclamationHDB_String)){
+        commandList_EditCommand ( __Commands_Read_ReadReclamationHDB_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Read_ReadStateCU_String)){
 		commandList_EditCommand ( __Commands_Read_ReadStateCU_String, null, __INSERT_COMMAND );
 	}
@@ -10674,6 +10744,9 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteNwsCard_String)){
 		commandList_EditCommand ( __Commands_Output_WriteNwsCard_String, null, __INSERT_COMMAND );
 	}
+    else if (command.equals( __Commands_Output_WriteReclamationHDB_String)){
+        commandList_EditCommand ( __Commands_Output_WriteReclamationHDB_String, null, __INSERT_COMMAND );
+    }
 	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
 		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, __INSERT_COMMAND );
 	}
@@ -11321,6 +11394,9 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof ColoradoBNDSSDataStore ) {
             uiAction_SelectDataStore_ColoradoBNDSS ( (ColoradoBNDSSDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
+            uiAction_SelectDataStore_ReclamationHDB ( (ReclamationHDBDataStore)selectedDataStore );
+        }
     }
     catch ( Exception e ) {
         Message.printWarning( 2, routine, "Error selecting data store \"" + selectedDataStore.getName() + "\"" );
@@ -11514,6 +11590,56 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore)) {
+        // Time steps are determined from the database based on the data type that is selected...
+        /** FIXME SAM 2010-10-19 Need to enable
+        String data_type = StringUtil.getToken(__dataType_JComboBox.getSelected()," ",0,0).trim();
+        List<RiversideDB_MeasType> v = null;
+        DataStore dataStore = ui_GetSelectedDataStore();
+        RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)dataStore).getDMI();
+        try {
+            v = rdmi.readMeasTypeListForTSIdent ( ".." + data_type + ".." );
+        }
+        catch ( Exception e ) {
+            Message.printWarning(2, rtn, "Error getting time steps from RiversideDB \"" +
+                selectedDataStore.getName() + ".");
+            Message.printWarning(2, rtn, e);
+            v = null;
+        }
+        int size = 0;
+        if ( v != null ) {
+            size = v.size();
+        }
+        RiversideDB_MeasType mt = null;
+        String timestep;
+        String time_step_base;
+        long time_step_mult;
+        __timeStep_JComboBox.removeAll ();
+        if ( size > 0 ) {
+            for ( int i = 0; i < size; i++ ) {
+                mt = v.get(i);
+                // Only add if not already listed. Alternatively - add a "distinct" query
+                time_step_base = mt.getTime_step_base();
+                time_step_mult = mt.getTime_step_mult();
+                if ( time_step_base.equalsIgnoreCase( "IRREGULAR") || DMIUtil.isMissing(time_step_mult) ) {
+                    timestep = mt.getTime_step_base();
+                }
+                else {
+                    timestep = "" + mt.getTime_step_mult() + mt.getTime_step_base();
+                }
+                if ( !JGUIUtil.isSimpleJComboBoxItem(__timeStep_JComboBox, timestep, JGUIUtil.NONE, null, null)){
+                    __timeStep_JComboBox.add(timestep);
+                }
+            }
+            __timeStep_JComboBox.select ( null );
+            __timeStep_JComboBox.select ( 0 );
+            __timeStep_JComboBox.setEnabled ( true );
+        }
+        else {
+            __timeStep_JComboBox.setEnabled ( false );
+        }
+        */
+    }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore)) {
 		// Time steps are determined from the database based on the data type that is selected...
 		String data_type = StringUtil.getToken(__dataType_JComboBox.getSelected()," ",0,0).trim();
@@ -11601,7 +11727,9 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.setEnabled ( false );
 	}
 
-	// Set the filter where clauses based on the data type changing...
+	// Set the filter where clauses based on the data type changing (this only triggers a reset of the
+    // input filter for some input types/data stores, like HydroBase, which has different input filters
+    // for different data types)...
 
 	ui_SetInputFilters();
 }
@@ -11979,6 +12107,17 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading ReclamationHDB - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
@@ -13253,6 +13392,73 @@ throws IOException
 }
 
 /**
+Read ReclamationHDB time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    DataStore dataStore = ui_GetSelectedDataStore ();
+    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
+    try {
+        ReclamationHDBDataStore hdbDataStore = (ReclamationHDBDataStore)dataStore;
+        ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)hdbDataStore.getDMI();
+        queryResultsList_Clear ();
+
+        String dataType = __dataType_JComboBox.getSelected(); // Object type - common data type
+        String timeStep = __timeStep_JComboBox.getSelected();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+
+        List<ReclamationHDB_SiteTimeSeriesMetadata> results = null;
+        // Data type is shown with name so only use the first part of the choice
+        try {
+            results = dmi.readSiteTimeSeriesMetadataList(dataType, timeStep,
+                    (InputFilter_JPanel)__selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new TSTool_ReclamationHDB_TableModel ( hdbDataStore, timeStep, results );
+            TSTool_ReclamationHDB_CellRenderer cr =
+                new TSTool_ReclamationHDB_CellRenderer( (TSTool_ReclamationHDB_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+}
+
+/**
 Read RiversideDB time series (MeasType) and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
@@ -14204,76 +14410,6 @@ private void uiAction_NewCommandFile ()
     ui_UpdateStatusTextFields ( 2, null, null, "Use Commands menu to insert commands", __STATUS_READY );
     __processor_JProgressBar.setValue ( 0 );
     __command_JProgressBar.setValue ( 0 );
-}
-
-/**
-Open a connection to the ColoradoBNDSS database.  If running in batch mode, the
-CDSS configuration file is used to determine ColoradoBNDSS server and database
-name properties to use for the initial connection.  If no configuration file
-exists, then a default connection is attempted.
-@param startup If true, indicates that the database connection is being made
-at startup.  This is the case, for example, when multiple HydroBase databases
-may be available and there is no reason to automatically connect to one of them for all users.
-*/
-private void uiAction_OpenColoradoBNDSS ( boolean startup )
-{   String routine = "TSTool_JFrame.uiAction_OpenColoradoBNDSS";
-    Message.printStatus ( 1, routine, "Opening ColoradoBNDSS connection..." );
-    // TODO SAM 2005-10-18
-    // Always connect, whether in batch mode or not.  Might need a way to configure this.
-    //if ( IOUtil.isBatch() || !__show_main ) {
-        // Running in batch mode or without a main GUI so automatically
-        // open HydroBase from the CDSS.cfg file information...
-        // Get the input needed to process the file...
-        String cfg = HydroBase_Util.getConfigurationFile();
-        PropList props = null;
-        if ( IOUtil.fileExists(cfg) ) {
-            // Use the configuration file to get ColoradoBNDSS properties...
-            try {
-                props = HydroBase_Util.readConfiguration(cfg);
-            }
-            catch ( Exception e ) {
-                Message.printWarning ( 1, routine, "Error reading CDSS configuration file \""+ cfg +
-                "\".  Using defaults for ColoradoBNDSS" );
-                Message.printWarning ( 3, routine, e );
-                props = null;
-            }
-        }
-        // Override with any TSTool command-line arguments, in particular the user login...
-        String databaseServer = props.getValue("ColoradoBNDSS.DatabaseServer" );
-        String databaseName = props.getValue("ColoradoBNDSS.DatabaseName" );
-        String portString = props.getValue("ColoradoBNDSS.Port" );
-        String systemLogin = props.getValue("ColoradoBNDSS.SystemLogin" );
-        String systemPassword = props.getValue("ColoradoBNDSS.SystemPassword" );
-        Message.printStatus ( 2, routine,
-            "Colorado BNDSS database configuration information read from file: \""+ cfg + "\"." );
-        Message.printStatus ( 2, routine, "ColoradoBNDSS.DatabaseServer=\"" + databaseServer + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoBNDSS.DatabaseName=\"" + databaseName + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoBNDSS.Port=\"" + portString + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoBNDSS.SystemLogin=\"" + systemLogin + "\"" );
-        Message.printStatus ( 2, routine, "ColoradoBNDSS.SystemPassword=\"" + systemPassword + "\"" );
-        try {
-            // Now open the database...
-            // This uses the default login.  If properties were not found,
-            // then default ColoradoBNDSS information will be used.
-            String databaseEngine = "SQLServer";
-            int port = 0;
-            if ( StringUtil.isInteger(portString) ) {
-                port = Integer.parseInt(portString);
-            }
-            BNDSS_DMI bndssdmi = new BNDSS_DMI ( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
-            bndssdmi.open();
-            // Set the BNDSS_DMI for the GUI and command processor...
-            ui_SetColoradoBNDSSDMI( bndssdmi );
-            commandProcessor_SetColoradoBNDSSDMI ( bndssdmi );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 1, routine,
-                    "Error opening ColoradoBNDSS database.  ColoradoBNDSS features will be disabled." );
-            Message.printWarning ( 3, routine, e );
-            // Leave old connection?
-        }
-    // Enable/disable ColoradoBNDSS features as necessary...
-    ui_CheckColoradoBNDSSFeatures();
 }
 
 /**
@@ -15335,14 +15471,14 @@ private void uiAction_SelectAllCommands()
 }
 
 /**
-Refresh the query choices for the currently selected RiversideDB data store.
+Refresh the query choices for the currently selected ColoradoBNDSS data store.
 */
 private void uiAction_SelectDataStore_ColoradoBNDSS ( ColoradoBNDSSDataStore selectedDataStore )
 throws Exception
 {   String routine = getClass().getName() + "uiAction_SelectDataStore_ColoradoBNDSS";
     // Get the DMI instances for the matching data store
     BNDSS_DMI dmi = (BNDSS_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
-    
+    ui_SetInputNameVisible(false); // Not needed
     __dataType_JComboBox.setEnabled ( false );
     __dataType_JComboBox.removeAll ();
     
@@ -15434,6 +15570,44 @@ throws Exception
 }
 
 /**
+Refresh the query choices for the currently selected ReclamationHDB data store.
+*/
+private void uiAction_SelectDataStore_ReclamationHDB ( ReclamationHDBDataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
+    // Get the DMI instances for the matching data store
+    ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
+    ui_SetInputNameVisible(false); // Not needed for HDB
+    __dataType_JComboBox.removeAll ();
+    // Get the list of valid object/data types from the database
+    List<String> dataTypes = dmi.getObjectDataTypes ( true );
+    // Add a wildcard option to get all data types
+    dataTypes.add(0,"*");
+    __dataType_JComboBox.setData ( dataTypes );
+    __dataType_JComboBox.setEnabled ( true );
+    
+    // Get the list of timesteps that are valid for the data type
+    // Need to trigger a select to populate the input filters
+    __timeStep_JComboBox.removeAll ();
+    // FIXME SAM 2010-10-26 Need to handle INSTANT as irregular
+    __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
+    __timeStep_JComboBox.add ( __TIMESTEP_MONTH );
+    __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
+    // FIXME SAM 2010-10-26 Could handle WY as YEAR, but need to think about it
+    __timeStep_JComboBox.select ( __TIMESTEP_MONTH );
+    __timeStep_JComboBox.setEnabled ( true );
+ 
+    // Initialize with blank data vector...
+    __query_TableModel = new TSTool_ReclamationHDB_TableModel( (ReclamationHDBDataStore)selectedDataStore, null, null);
+    TSTool_ReclamationHDB_CellRenderer cr =
+        new TSTool_ReclamationHDB_CellRenderer((TSTool_ReclamationHDB_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
 Refresh the query choices for the currently selected RiversideDB data store.
 */
 private void uiAction_SelectDataStore_RiversideDB ( RiversideDBDataStore selectedDataStore )
@@ -15441,6 +15615,7 @@ throws Exception
 {   String routine = getClass().getName() + "uiAction_SelectDataStore_RiversideDB";
     // Get the DMI instances for the matching data store
     RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
+    ui_SetInputNameVisible(false); // Not needed
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
     List<RiversideDB_MeasType> mts = null;
@@ -15753,6 +15928,7 @@ private void uiAction_SelectInputType_ColoradoWaterHBGuest ()
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterHBGuest";
     // Input name is not currently used...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
     String selectedInputType = ui_GetSelectedInputType();
@@ -15794,6 +15970,7 @@ private void uiAction_SelectInputType_ColoradoWaterSMS ()
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
     // Input name is not currently used...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
     String selectedInputType = ui_GetSelectedInputType();
@@ -15838,6 +16015,7 @@ private void uiAction_SelectInputType_DateValue ()
 throws Exception
 {   String routine = getClass().getName() + ".uiAction_SelectInputName_DateValue";
     // Most information is determined from the file so set the other choices to be inactive...
+    ui_SetInputNameVisible(false); // Not used
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -15872,6 +16050,7 @@ Set the query options because the DIADvisor input type has been selected.
 */
 private void uiAction_SelectInputType_DIADvisor ()
 {   String routine = getClass().getName() + ".uiAction_SelectInputName_DIADvisor";
+    ui_SetInputNameVisible(false); // Not needed
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
     // Get the data types from the GroupDef table.  Because two values may be available, append "-DataValue" and
@@ -15955,7 +16134,7 @@ Set up the query choices because the HEC DSS input type has been selected.
 */
 private void uiAction_SelectInputType_HECDSS ()
 throws Exception
-{
+{   ui_SetInputNameVisible(true); // Lists files
     // Prompt for a HEC-DSS file and update choices...
     uiAction_SelectInputName_HECDSS ( true );
     // Empty and disable the data type and time step because an input filter with choices from the file is used.
@@ -15978,6 +16157,7 @@ Set up the query options because the HydroBase input type has been selected.
 private void uiAction_SelectInputType_HydroBase ()
 {   String routine = getClass().getName() + ".uiAction_SelectInputName_HydroBase";
     // Input name cleared and disabled...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
     // Data type - get the time series choices from the HydroBase_Util code...
@@ -16027,6 +16207,7 @@ private void uiAction_SelectInputType_MexicoCSMN ()
 throws Exception
 {
     // Most information is determined from the file but let the user limit the time series that will be liste...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -16053,7 +16234,7 @@ Set up the query options because the MODSIM input type has been selected
 */
 private void uiAction_SelectInputType_MODSIM ()
 throws Exception
-{
+{   ui_SetInputNameVisible(false); // Not needed
     // Most information is determined from the file...
     __dataType_JComboBox.setEnabled ( false );
     __dataType_JComboBox.removeAll ();
@@ -16077,6 +16258,7 @@ private void uiAction_SelectInputType_NwsCard ()
 throws Exception
 {
     // Most information is determined from the file...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -16102,6 +16284,7 @@ private void uiAction_SelectInputType_NwsrfsEspTraceEnsemble ()
 throws Exception
 {
     // Most information is determined from the file...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -16126,6 +16309,7 @@ throws Exception
 {   String routine = getClass().getName() + ".uiAction_SelectInputType_NwsrfsFs5files";
     // Update the input name and let the user choose Apps Defaults or pick a directory...
     ui_SetIgnoreItemEvent ( true );     // Do this to prevent item event cascade
+    ui_SetInputNameVisible(true); // Lists files
     __inputName_JComboBox.removeAll();
     if ( IOUtil.isUNIXMachine() ) {
         __inputName_JComboBox.add ( __PLEASE_SELECT );
@@ -16203,6 +16387,7 @@ private void uiAction_SelectInputType_RiverWare ()
 throws Exception
 {
     // Most information is determined from the file...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -16228,7 +16413,8 @@ Prompt for a StateCU input name (one of several files).  When selected, update t
 */
 private void uiAction_SelectInputType_StateCU ( boolean reset_input_names )
 throws Exception
-{	if ( reset_input_names ) {
+{	ui_SetInputNameVisible(true); // Lists files
+    if ( reset_input_names ) {
 		// The StateCU input type has been selected as a change from another type.
         // Repopululate the list if previous choices exist...
 		__inputName_JComboBox.setData ( __inputNameStateCU );
@@ -16369,6 +16555,7 @@ values from __input_name_StateModB.
 private void uiAction_SelectInputType_StateCUB ( boolean reset_input_names )
 throws Exception
 {   String routine = "TSTool_JFrame.selectInputName_StateCUB";
+    ui_SetInputNameVisible(true); // Lists files
     if ( reset_input_names ) {
         // The StateCUB input type has been selected as a change from
         // another type.  Repopululate the list if previous choices exist...
@@ -16511,6 +16698,7 @@ private void uiAction_SelectInputType_StateMod ()
 throws Exception
 {
     // We disable all but the time step so the user can pick from appropriate files...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -16543,6 +16731,7 @@ Prompt for a StateModB input name (binary file name).  When selected, update the
 private void uiAction_SelectInputType_StateModB ( boolean resetInputNames )
 throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_StateModB";
+    ui_SetInputNameVisible(true); // Lists files
 	if ( resetInputNames ) {
 		// The StateModB input type has been selected as a change from
 		// another type.  Repopululate the list if previous choices exist...
@@ -16710,6 +16899,7 @@ private void uiAction_SelectInputType_UsgsNwis ()
 throws Exception
 {
     // Most information is determined from the file...
+    ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
 
@@ -17429,6 +17619,12 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
     }
     else {
         v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
+    }
+    if ( __source_ReclamationHDB_enabled ) {
+        v.add ( "ReclamationHDB data store is enabled" );
+    }
+    else {
+        v.add ( "ReclamationHDB data store is not enabled");
     }
     if ( __source_RiversideDB_enabled ) {
         v.add ( "RiversideDB data store is enabled" );

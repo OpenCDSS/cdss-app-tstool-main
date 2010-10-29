@@ -3,18 +3,17 @@ package DWR.DMI.tstool;
 import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 
 /**
-This class is used to render cells for TSTool_ColoradoBNDSS_TableModel data.
+This class is used to render cells for TSTool_ReclamationHDB_TableModel data.
 */
-public class TSTool_ColoradoBNDSS_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
-//JWorksheet_DefaultTableCellRenderer {
+public class TSTool_ReclamationHDB_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
 
-TSTool_ColoradoBNDSS_TableModel __table_model = null;
+TSTool_ReclamationHDB_TableModel __table_model = null;
 
 /**
 Constructor.
-@param table_model The TSTool_ColoradoBNDSS_TableModel to render.
+@param table_model The TSTool_ReclamationHDB_TableModel to render.
 */
-public TSTool_ColoradoBNDSS_CellRenderer ( TSTool_ColoradoBNDSS_TableModel table_model )
+public TSTool_ReclamationHDB_CellRenderer ( TSTool_ReclamationHDB_TableModel table_model )
 {	__table_model = table_model;
 }
 

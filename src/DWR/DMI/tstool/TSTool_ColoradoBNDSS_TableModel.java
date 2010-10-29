@@ -9,7 +9,7 @@ import rti.tscommandprocessor.commands.bndss.ColoradoBNDSSDataStore;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
-This class is a table model for time series header information for RiversideDB
+This class is a table model for time series header information for Colorado BNDSS
 time series.  By default the sheet will contain row and column numbers.
 */
 public class TSTool_ColoradoBNDSS_TableModel extends JWorksheet_AbstractRowTableModel
@@ -47,7 +47,7 @@ Data store name corresponding to data store used to retrieve the data.
 String __dataStoreName = null;
 
 /**
-Constructor.  This builds the model for displaying the given RiversideDB time series data.
+Constructor.  This builds the model for displaying the given Colorado BNDSS time series data.
 @param dataStore the data store for the data
 @param data the list of BNDSS_DataMetaData that will be displayed in the
 table (null is allowed - see setData()).
