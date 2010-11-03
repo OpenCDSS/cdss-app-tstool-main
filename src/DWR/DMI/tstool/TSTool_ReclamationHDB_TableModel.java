@@ -17,7 +17,7 @@ public class TSTool_ReclamationHDB_TableModel extends JWorksheet_AbstractRowTabl
 /**
 Number of columns in the table model.
 */
-private final int __COLUMNS = 32;
+private final int __COLUMNS = 33;
 
 public final int COL_TYPE = 0;
 public final int COL_SITE_COMMON_NAME = 1;
@@ -29,28 +29,29 @@ public final int COL_DATA_TYPE = 6;
 public final int COL_TIME_STEP = 7;
 public final int COL_MODEL_NAME = 8;
 public final int COL_MODEL_RUN_NAME = 9;
-public final int COL_MODEL_RUN_DATE = 10;
-public final int COL_UNITS = 11;
-public final int COL_START = 12;
-public final int COL_END = 13;
-public final int COL_OBJECT_TYPE_ID = 14;
-public final int COL_OBJECT_TYPE_NAME = 15;
-public final int COL_OBJECT_TYPE_TAG = 16;
-public final int COL_PHYSICAL_QUANTITY_NAME = 17;
-public final int COL_SITE_DB_SITE_CODE = 18;
-public final int COL_SITE_NWS_CODE = 19;
-public final int COL_SITE_SCS_ID = 20;
-public final int COL_SITE_SHEF_CODE = 21;
-public final int COL_SITE_USGS_ID = 22;
-public final int COL_SITE_STATE = 23;
-public final int COL_SITE_BASIN = 24;
-public final int COL_SITE_HUC = 25;
-public final int COL_SITE_SEGMENT_NO = 26;
-public final int COL_SITE_RIVER_MILE = 27;
-public final int COL_SITE_LATITUDE = 28;
-public final int COL_SITE_LONGITUDE = 29;
-public final int COL_SITE_ELEVATION = 30;
-public final int COL_DATASTORE_NAME	= 31;
+public final int COL_MODEL_HYDROLOGIC_INDICATOR = 10;
+public final int COL_MODEL_RUN_DATE = 11;
+public final int COL_UNITS = 12;
+public final int COL_START = 13; // This is actually the min start date/time
+public final int COL_END = 14; // This is actually the max start date/time
+public final int COL_OBJECT_TYPE_ID = 15;
+public final int COL_OBJECT_TYPE_NAME = 16;
+public final int COL_OBJECT_TYPE_TAG = 17;
+public final int COL_PHYSICAL_QUANTITY_NAME = 18;
+public final int COL_SITE_DB_SITE_CODE = 19;
+public final int COL_SITE_NWS_CODE = 20;
+public final int COL_SITE_SCS_ID = 21;
+public final int COL_SITE_SHEF_CODE = 22;
+public final int COL_SITE_USGS_ID = 23;
+public final int COL_SITE_STATE = 24;
+public final int COL_SITE_BASIN = 25;
+public final int COL_SITE_HUC = 26;
+public final int COL_SITE_SEGMENT_NO = 27;
+public final int COL_SITE_RIVER_MILE = 28;
+public final int COL_SITE_LATITUDE = 29;
+public final int COL_SITE_LONGITUDE = 30;
+public final int COL_SITE_ELEVATION = 31;
+public final int COL_DATASTORE_NAME	= 32;
 
 /**
 Data store name corresponding to data store used to retrieve the data.
@@ -99,6 +100,7 @@ public Class getColumnClass (int columnIndex) {
 		case COL_TIME_STEP: return String.class;
 		case COL_MODEL_NAME: return String.class;
 	    case COL_MODEL_RUN_NAME: return String.class;
+	    case COL_MODEL_HYDROLOGIC_INDICATOR: return String.class;
 	    case COL_MODEL_RUN_DATE: return String.class;
 		case COL_UNITS: return String.class;
 		case COL_START: return String.class;
@@ -149,6 +151,7 @@ public String getColumnName(int columnIndex) {
 		case COL_TIME_STEP: return "Time Step";
 	    case COL_MODEL_NAME: return "Model";
 		case COL_MODEL_RUN_NAME: return "Model Run";
+		case COL_MODEL_HYDROLOGIC_INDICATOR: return "Model Hydrologic Indicator";
 		case COL_MODEL_RUN_DATE: return "Model Run Date";
 		case COL_UNITS: return "Units";
 		case COL_START: return "Start";
@@ -233,14 +236,16 @@ public Object getValueAt(int row, int col) {
 		    return data.getModelName();
         case COL_MODEL_RUN_NAME:
             return data.getModelRunName();
+        case COL_MODEL_HYDROLOGIC_INDICATOR:
+            return data.getHydrologicIndicator();
         case COL_MODEL_RUN_DATE:
             return data.getModelRunDate();
 		case COL_UNITS:
 		    return data.getUnitCommonName();
 		case COL_START:
-		    return "" + data.getStart();
+		    return "" + data.getStartDateTimeMin();
 		case COL_END:
-		    return "" + data.getEnd();
+		    return "" + data.getStartDateTimeMax();
         case COL_OBJECT_TYPE_ID:
             return data.getObjectTypeID();
         case COL_OBJECT_TYPE_NAME:
@@ -298,6 +303,7 @@ public int[] getColumnWidths() {
 	widths[COL_TIME_STEP] = 8;
 	widths[COL_MODEL_NAME] = 12;
 	widths[COL_MODEL_RUN_NAME] = 12;
+	widths[COL_MODEL_HYDROLOGIC_INDICATOR] = 18;
 	widths[COL_MODEL_RUN_DATE] = 12;
 	widths[COL_UNITS] = 8;
 	widths[COL_START] = 10;

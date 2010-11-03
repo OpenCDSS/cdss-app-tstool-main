@@ -5408,9 +5408,23 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE);
         String scenario = "";
         if ( tsType.equalsIgnoreCase("Model") ) {
-            scenario = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME ) + "-" +
-                (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME ) + "-" +
-                (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
+            String modelRunDate = "" + (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
+            // Trim off the hundredths of a second since that interferes with the TSID conventions.  It always
+            // appears to be ".0"
+            int pos = modelRunDate.indexOf(".");
+            if ( pos > 0 ) {
+                modelRunDate = modelRunDate.substring(0,pos);
+            }
+            // Replace "." with "?" in the model information so as to not conflict with TSID conventions - will
+            // switch again later.
+            String modelName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME );
+            modelName = modelName.replace('.', '?');
+            String modelRunName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME );
+            modelRunName = modelRunName.replace('.', '?');
+            String hydrologicIndicator = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_HYDROLOGIC_INDICATOR );
+            hydrologicIndicator = hydrologicIndicator.replace('.', '?');
+            // The following should uniquely identify a model time series (in addition to other TSID parts)
+            scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
         }
         String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
         String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
