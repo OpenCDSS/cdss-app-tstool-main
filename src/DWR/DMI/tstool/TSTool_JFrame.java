@@ -971,11 +971,11 @@ private JMenuItem
 
 private JMenu
 	__View_JMenu = null;
-private JCheckBoxMenuItem
-	__View_MapInterface_JCheckBoxMenuItem = null;
 private JMenuItem
     __View_DataStores_JMenuItem = null,
     __View_DataUnits_JMenuItem = null;
+private JCheckBoxMenuItem
+	__View_MapInterface_JCheckBoxMenuItem = null;
 
 // Commands (Create Time Series)...
 
@@ -1425,9 +1425,9 @@ private String
 	// View menu (order in GUI)...
 
 	__View_String = "View",
-		__View_Map_String = "Map",
 		__View_DataStores_String = "Data Stores",
 		__View_DataUnits_String = "Data Units",
+	    __View_Map_String = "Map",
 
 	// Commands menu (order in GUI)...
 
@@ -1813,299 +1813,8 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
  
 	addWindowListener ( this );
 
-	// Determine which data sources are available.  This controls the look
-	// and feel of the GUI.  Alphabetize the checks.  Initialize default
-	// properties for each area if necessary (all other properties are
-	// defaulted after checking the individual input types)...
-
-	// DateValue always enabled by default...
-
-	String prop_value = null;
-	__source_DateValue_enabled = true;
-	
-	// Colorado BNDSS disabled by default...
-
-    __source_ColoradoBNDSS_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoBNDSSEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_ColoradoBNDSS_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_ColoradoBNDSS_enabled = true;
-        }
-    }
-    
-	// ColoradoSMS not enabled by default (requires direct SQL Server access)...
-
-    __source_ColoradoSMS_enabled = false;
-	prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
-		__source_ColoradoSMS_enabled = true;
-	}
-	
-	// State of Colorado HBGuest web service enabled by default if HydroBase is enabled
-	// (can be slow at startup due to input filter initialization) but can turn on...
-
-    __source_ColoradoWaterHBGuest_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
-        __source_ColoradoWaterHBGuest_enabled = true;
-    }
-	
-	// State of Colorado Water SMS web service enabled by default
-	// (not slow at start because no input filter initialization)...
-
-	__source_ColoradoWaterSMS_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-        __source_ColoradoWaterSMS_enabled = false;
-    }
-    if ( __source_HydroBase_enabled ) {
-        // Automatically enable the real-time web services input type...
-        // Use newer notation...
-        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "true" );
-    }
-    else {
-        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "false" );
-    }
-
-	// DIADvisor not enabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_DIADvisor_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_DIADvisor_enabled = true;
-		}
-	}
-	
-    // HEC-DSS enabled by default on Windows and always off on UNIX because DLLs are for Windows.
-	// TODO SAM 2009-04-14 Emailed Bill Charley and waiting on answer for support of other OS.
-
-	__source_HECDSS_enabled = true;
-	if ( IOUtil.isUNIXMachine() ) {
-	    // Disable on UNIX
-	    __source_HECDSS_enabled = false;
-	}
-	else {
-        prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
-        if ( prop_value != null ) {
-            if ( prop_value.equalsIgnoreCase("false") ) {
-                __source_HECDSS_enabled = false;
-            }
-            else if ( prop_value.equalsIgnoreCase("true") ) {
-                __source_HECDSS_enabled = true;
-            }
-        }
-	}
-
-	// NWSRFS_ESPTraceEnsemble not enabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_NWSRFS_ESPTraceEnsemble_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_NWSRFS_ESPTraceEnsemble_enabled = true;
-		}
-	}
-	// Always disable if not available in the Jar file...
-	if ( !IOUtil.classCanBeLoaded( "RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble") ) {
-		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
-	}
-
-	// NWSRFS_FS5Files not enabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_NWSRFS_FS5Files_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_NWSRFS_FS5Files_enabled = true;
-		}
-	}
-
-	// State of Colorado HydroBase enabled by default...
-
-	// Newer...
-	prop_value = TSToolMain.getPropValue ( "TSTool.HydroBaseEnabled" );
-	if ( prop_value == null ) {
-		// Older...
-		prop_value = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
-	}
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_HydroBase_enabled = false;
-	}
-	if ( __source_HydroBase_enabled ) {
-		// Use newer notation...
-		__props.set ( "TSTool.HydroBaseEnabled", "true" );
-		prop_value = TSToolMain.getPropValue ( "HydroBase.WDIDLength" );
-		if ( (prop_value != null) && StringUtil.isInteger(prop_value)){
-			__props.set ( "HydroBase.WDIDLength", prop_value );
-			// Also set in global location.
-			HydroBase_Util.setPreferredWDIDLength (	StringUtil.atoi ( prop_value ) );
-		}
-		else {
-		    // Default...
-			__props.set ( "HydroBase.WDIDLength", "7" );
-		}
-		prop_value = TSToolMain.getPropValue ( "HydroBase.OdbcDsn" );
-		if ( prop_value != null ) {
-			__props.set ( "HydroBase.OdbcDsn", prop_value );
-		}
-	}
-	else {
-	    __props.set ( "TSTool.HydroBaseEnabled", "false" );
-	}
-
-	// Mexico CSMN disabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.MexicoCSMNEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_MexicoCSMN_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_MexicoCSMN_enabled = true;
-		}
-	}
-
-	// MODSIM always enabled by default...
-
-	__source_MODSIM_enabled = true;
-	prop_value = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_MODSIM_enabled = false;
-	}
-
-	// NDFD enabled for RTi, disabled for CDSS by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.NDFDEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_NDFD_enabled = false;
-	}
-
-	// NWS Card disabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_NWSCard_enabled = false;
-	}
-
-	// NWSRFS FS5Files disabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_NWSRFS_FS5Files_enabled = false;
-	}
-	else if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ){
-		__source_NWSRFS_FS5Files_enabled = true;
-		prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
-		if ( prop_value != null ) {
-			__props.set( "NWSRFSFS5Files.UseAppsDefaults",prop_value );
-		}
-		else {
-		    // Default is to use files.  If someone has Apps
-			// Defaults configured, this property can be changed.
-			__props.set ( "NWSRFSFS5Files.UseAppsDefaults","false");
-		}
-		prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.InputName" );
-		if ( prop_value != null ) {
-			__props.set( "NWSRFSFS5Files.InputName",prop_value );
-		}
-	}
-	
-	// Reclamation HDB disabled by default...
-
-    __source_ReclamationHDB_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_ReclamationHDB_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_ReclamationHDB_enabled = true;
-        }
-    }
-
-	// RiversideDB disabled by default...
-
-	__source_RiversideDB_enabled = false;
-	prop_value = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_RiversideDB_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_RiversideDB_enabled = true;
-		}
-	}
-
-	// RiverWare disabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_RiverWare_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_RiverWare_enabled = true;
-		}
-	}
-
-	// SHEF disabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("false") ) {
-			__source_SHEF_enabled = false;
-		}
-		else if ( prop_value.equalsIgnoreCase("true") ) {
-			__source_SHEF_enabled = true;
-		}
-	}
-
-	// StateMod enabled by default (no config file)...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_StateMod_enabled = false;
-	}
-
-	// StateCU enabled by default (no config file)...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_StateCU_enabled = false;
-	}
-	
-	// StateCUB enabled by default...
-
-    prop_value = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-        __source_StateCUB_enabled = false;
-    }
-
-	// StateModB enabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_StateModB_enabled = false;
-	}
-
-	// USGSNWIS enabled by default...
-
-	prop_value = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-		__source_USGSNWIS_enabled = false;
-	}
-
-	prop_value = null;
+	// Initialize the input types and data stores based on the configuration
+	ui_EnableInputTypesForConfiguration ();
 
 	// Values determined at run-time...
 
@@ -6376,20 +6085,9 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 	}
 	String routine = "TSTool_JFrame.checkInputTypesForLicense";
 	if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-		if ( !__source_StateCU_enabled ) {
-			// Might not be in older configuration files...
-			Message.printStatus ( 1, routine, "StateCU input type being enabled for CDSS." );
-			__source_StateCU_enabled = true;
-		}
-		if ( !__source_StateMod_enabled ) {
-			// Might not be in older configuration files...
-			Message.printStatus ( 1, routine, "StateMod input type being enabled for CDSS." );
-			__source_StateMod_enabled = true;
-		}
+	    // These generally are not going to be used with CDSS
 		Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
 		__source_DIADvisor_enabled = false;
-	    Message.printStatus ( 2, routine, "HECDSS input type being disabled for CDSS." );
-	    __source_HECDSS_enabled = false;
 		Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
 		__source_MexicoCSMN_enabled = false;
 		// TODO SAM 2008-10-02 Evaluate whether to permanently make this change in defaults
@@ -6399,12 +6097,6 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 		//__source_MODSIM_enabled = false;
 		Message.printStatus ( 2, routine, "NDFD input type being disabled for CDSS." );
 		__source_NDFD_enabled = false;
-		Message.printStatus ( 2, routine, "NWSCard input type being disabled for CDSS." );
-		__source_NWSCard_enabled = false;
-		Message.printStatus ( 2, routine, "NWSRFS FS5Files input type being disabled for CDSS." );
-		__source_NWSRFS_FS5Files_enabled = false;
-		Message.printStatus ( 2, routine, "NWSRFS ESPTraceEnsemble input type being disabled for CDSS." );
-		__source_NWSRFS_ESPTraceEnsemble_enabled = false;
 		Message.printStatus ( 2, routine, "RiversideDB data stores being disabled for CDSS." );
 		__source_RiversideDB_enabled = false;
 		Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
@@ -6486,6 +6178,320 @@ private void ui_DataStoreList_Populate ()
     __dataStore_JComboBox.setData(dataStoreNameList);
     // Select the blank
     __dataStore_JComboBox.select("");
+}
+
+/**
+Enable the input and data store types based on the TSTool configuration.  Features will
+ */
+private void ui_EnableInputTypesForConfiguration ()
+{
+    // Determine which data sources are available.  This controls the look
+    // and feel of the GUI.  Alphabetize the checks.  Initialize default
+    // properties for each area if necessary (all other properties are
+    // defaulted after checking the individual input types)...
+
+    // DateValue always enabled by default...
+
+    String prop_value = null;
+    __source_DateValue_enabled = true;
+    
+    // Colorado BNDSS disabled by default (since only used in CDSS)...
+
+    __source_ColoradoBNDSS_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoBNDSSEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_ColoradoBNDSS_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_ColoradoBNDSS_enabled = true;
+        }
+    }
+    
+    // ColoradoSMS not enabled by default (used in CDSS, requires direct SQL Server access)...
+
+    __source_ColoradoSMS_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+        __source_ColoradoSMS_enabled = true;
+    }
+    
+    // State of Colorado HBGuest web service disabled by default
+    // (can be slow at startup due to input filter initialization) but can turn on...
+
+    __source_ColoradoWaterHBGuest_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+        __source_ColoradoWaterHBGuest_enabled = true;
+    }
+    
+    // State of Colorado Water SMS web service enabled by default
+    // (not slow at start because no input filter initialization)...
+
+    __source_ColoradoWaterSMS_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_ColoradoWaterSMS_enabled = false;
+    }
+    if ( __source_HydroBase_enabled ) {
+        // Automatically enable the real-time web services input type...
+        // Use newer notation...
+        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "true" );
+    }
+    else {
+        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "false" );
+    }
+
+    // DIADvisor not enabled by default (only useful for users with DIADvisor)...
+
+    __source_DIADvisor_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_DIADvisor_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_DIADvisor_enabled = true;
+        }
+    }
+    
+    // HEC-DSS enabled by default on Windows and always off on UNIX because DLLs are for Windows.
+    // TODO SAM 2009-04-14 Emailed Bill Charley and waiting on answer for support of other OS.
+
+    __source_HECDSS_enabled = true;
+    if ( IOUtil.isUNIXMachine() ) {
+        // Disable on UNIX
+        __source_HECDSS_enabled = false;
+    }
+    else {
+        prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
+        if ( prop_value != null ) {
+            if ( prop_value.equalsIgnoreCase("false") ) {
+                __source_HECDSS_enabled = false;
+            }
+            else if ( prop_value.equalsIgnoreCase("true") ) {
+                __source_HECDSS_enabled = true;
+            }
+        }
+    }
+
+    // NWSRFS_ESPTraceEnsemble disabled by default...
+
+    __source_NWSRFS_ESPTraceEnsemble_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_NWSRFS_ESPTraceEnsemble_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_NWSRFS_ESPTraceEnsemble_enabled = true;
+        }
+    }
+    // Always disable if not available in the Jar file...
+    if ( !IOUtil.classCanBeLoaded( "RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble") ) {
+        __source_NWSRFS_ESPTraceEnsemble_enabled = false;
+    }
+
+    // NWSRFS_FS5Files disabled by default...
+
+    __source_NWSRFS_FS5Files_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_NWSRFS_FS5Files_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_NWSRFS_FS5Files_enabled = true;
+        }
+    }
+
+    // State of Colorado HydroBase disabled by default (users must have a local HydroBase)...
+
+    __source_HydroBase_enabled = false;
+    // Newer...
+    prop_value = TSToolMain.getPropValue ( "TSTool.HydroBaseEnabled" );
+    if ( prop_value == null ) {
+        // Older...
+        prop_value = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
+    }
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_HydroBase_enabled = false;
+    }
+    if ( __source_HydroBase_enabled ) {
+        // Use newer notation...
+        __props.set ( "TSTool.HydroBaseEnabled", "true" );
+        prop_value = TSToolMain.getPropValue ( "HydroBase.WDIDLength" );
+        if ( (prop_value != null) && StringUtil.isInteger(prop_value)){
+            __props.set ( "HydroBase.WDIDLength", prop_value );
+            // Also set in global location.
+            HydroBase_Util.setPreferredWDIDLength ( StringUtil.atoi ( prop_value ) );
+        }
+        else {
+            // Default...
+            __props.set ( "HydroBase.WDIDLength", "7" );
+        }
+        prop_value = TSToolMain.getPropValue ( "HydroBase.OdbcDsn" );
+        if ( prop_value != null ) {
+            __props.set ( "HydroBase.OdbcDsn", prop_value );
+        }
+    }
+    else {
+        __props.set ( "TSTool.HydroBaseEnabled", "false" );
+    }
+
+    // Mexico CSMN disabled by default...
+
+    __source_MexicoCSMN_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.MexicoCSMNEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_MexicoCSMN_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_MexicoCSMN_enabled = true;
+        }
+    }
+
+    // MODSIM always enabled by default...
+
+    __source_MODSIM_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_MODSIM_enabled = false;
+    }
+
+    // NDFD enabled for RTi, disabled for CDSS by default...
+
+    // FIXME SAM 2010-11-16 Need to decide what to do with NDFD since not functional in code
+    __source_NDFD_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.NDFDEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_NDFD_enabled = false;
+    }
+
+    // NWS Card disabled by default...
+
+    __source_NWSCard_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_NWSCard_enabled = false;
+    }
+
+    // NWSRFS FS5Files disabled by default...
+
+    __source_NWSRFS_FS5Files_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_NWSRFS_FS5Files_enabled = false;
+    }
+    else if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ){
+        __source_NWSRFS_FS5Files_enabled = true;
+        prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
+        if ( prop_value != null ) {
+            __props.set( "NWSRFSFS5Files.UseAppsDefaults",prop_value );
+        }
+        else {
+            // Default is to use files.  If someone has Apps
+            // Defaults configured, this property can be changed.
+            __props.set ( "NWSRFSFS5Files.UseAppsDefaults","false");
+        }
+        prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.InputName" );
+        if ( prop_value != null ) {
+            __props.set( "NWSRFSFS5Files.InputName",prop_value );
+        }
+    }
+    
+    // Reclamation HDB disabled by default...
+
+    __source_ReclamationHDB_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_ReclamationHDB_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_ReclamationHDB_enabled = true;
+        }
+    }
+
+    // RiversideDB disabled by default...
+
+    __source_RiversideDB_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_RiversideDB_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_RiversideDB_enabled = true;
+        }
+    }
+
+    // RiverWare disabled by default...
+
+    __source_RiverWare_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_RiverWare_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_RiverWare_enabled = true;
+        }
+    }
+
+    // SHEF disabled by default...
+
+    __source_SHEF_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_SHEF_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_SHEF_enabled = true;
+        }
+    }
+
+    // StateMod enabled by default (no config file)...
+
+    __source_StateMod_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_StateMod_enabled = false;
+    }
+
+    // StateCU enabled by default (no config file)...
+
+    __source_StateCU_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_StateCU_enabled = false;
+    }
+    
+    // StateCUB enabled by default...
+
+    __source_StateCUB_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_StateCUB_enabled = false;
+    }
+
+    // StateModB enabled by default...
+
+    __source_StateModB_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_StateModB_enabled = false;
+    }
+
+    // USGSNWIS enabled by default...
+
+    __source_USGSNWIS_enabled = true;
+    prop_value = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+        __source_USGSNWIS_enabled = false;
+    }
 }
 
 /**
@@ -8387,9 +8393,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Divide_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Divide_String, this ) );
 
-	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Free_JMenuItem =
-        new SimpleJMenuItem(__Commands_Manipulate_Free_String, this ) );
-
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Multiply_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Multiply_String, this ) );
 
@@ -8404,6 +8407,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Subtract_JMenuItem =
         new SimpleJMenuItem(__Commands_Manipulate_Subtract_String, this ) );
+	
+	__Commands_ManipulateTimeSeries_JMenu.addSeparator();
+    __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Free_JMenuItem =
+        new SimpleJMenuItem(__Commands_Manipulate_Free_String, this ) );
 
 	// "Commands...Analyze Time Series"...
 
@@ -9186,11 +9193,11 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 {	__View_JMenu = new JMenu (__View_String, true);
 	menuBar.add (__View_JMenu);
 
-	__View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem =	new JCheckBoxMenuItem(__View_Map_String) );
-	__View_MapInterface_JCheckBoxMenuItem.setState ( false );
-	__View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
+    __View_JMenu.add ( __View_DataStores_JMenuItem=new SimpleJMenuItem( __View_DataStores_String, this));
 	__View_JMenu.add ( __View_DataUnits_JMenuItem=new SimpleJMenuItem( __View_DataUnits_String, this));
-	__View_JMenu.add ( __View_DataStores_JMenuItem=new SimpleJMenuItem( __View_DataStores_String, this));
+    __View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem =  new JCheckBoxMenuItem(__View_Map_String) );
+    __View_MapInterface_JCheckBoxMenuItem.setState ( false );
+    __View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
 }
 
 /**
