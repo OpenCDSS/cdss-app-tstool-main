@@ -28,9 +28,26 @@ def enforceType ( cellValue, cellType, dataMapType ):
     dataMapType - the cell type from the data map (Python type)
     """
     newCellValue = cellValue
-    if ( (cellType == xlrd.XL_CELL_NUMBER) and (dataMapType is int) ):
-        # Just make sure it is an integer
-        newCellValue = int(cellValue)
+    if ( dataMapType == int ):
+        # Convert to an integer or set to None if not an integer
+        try:
+            newCellValue = int(cellValue)
+        except ValueError:
+            newCellValue = None
+    elif ( dataMapType == float ):
+        # Convert to a float or set to None if not a float
+        logger = logging.getLogger()
+        logger.info("convert to float")
+        try:
+            newCellValue = float(cellValue)
+        except ValueError:
+            newCellValue = None
+    elif ( dataMapType == string ):
+        # Convert to a string, should always work, but maybe str() is not implemented
+        try:
+            newCellValue = str(cellValue)
+        except ValueError:
+            newCellValue = None
     if ( False == True ):
         # Comment this out for now - rely on validateCellContents to point out bad boolean strings
         if ( dataMapType is bool ):

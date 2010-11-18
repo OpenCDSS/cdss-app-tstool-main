@@ -1,9 +1,11 @@
 # Python script to extract time series data from an Excel worksheet
+# This only works for annual data
 
 # Standard modules...
 import logging
 import os
 import sys
+import time
 import traceback
 
 # Only need this if using .NET directly
@@ -56,6 +58,20 @@ def main():
     execfile(mapFile,dataMap,dataMap)
     xlsFile = dataMap["Workbook"]
     sheetName = dataMap["Worksheet"]
+    # What to do if the location is blank ("Exit" or "Skip")
+    ifLocBlank = "Exit"
+    try:
+        ifLocBlank = dataMap["IfLocBlank"]
+    except KeyError:
+        # Default
+        ifLocBlank = "Exit"
+    # Output comment
+    outputComment = ""
+    try:
+        outputComment = dataMap["OutputComment"]
+    except KeyError:
+        # Default
+        outputComment = ""
     # Read the data file that has the lookup information
     locLookupDict = None
     try:
@@ -78,7 +94,7 @@ def main():
     logger.info ( "Opening workbook \"" + xlsFileAbs + "\"." )
     book = xlrd.open_workbook ( xlsFileAbs )
     sheet = book.sheet_by_name(sheetName)
-    logger.info ( "Processing worksheet \"" + sheet.name + "\"." )
+    logger.info ( "Processing worksheet \"" + sheet.name + "\" nrows=" + str(sheet.nrows) + " ncols=" + str(sheet.ncols) )
     # Named cells are for the entire workbook
     namedCells = exceldbutil.readNamedCells ( book, sheet )
     # Get the row for the location named cell (data will be in following row)
@@ -122,16 +138,23 @@ def main():
     # Allocate an array with rows corresponding to date/time and columns to the locations/time series
     locList = []   # List of locations with time series, using time series ID string
     numRows = len(dateTimes)
-    numCols = exceldbutil.countNonBlankCellsInColumn ( sheet, (headerRow + 1),
-        (sheet.nrows - 1), locColumnNumber, True )
+    if ( ifLocBlank == "Exit" ):
+        # Sheet is configured so that first blank is exit of data
+        numCols = exceldbutil.countNonBlankCellsInColumn ( sheet, (headerRow + 1),
+            (sheet.nrows - 1), locColumnNumber, True )
+    else:
+        # Sheet is expected to have blank lines
+        numCols = exceldbutil.countNonBlankCellsInColumn ( sheet, (headerRow + 1),
+            (sheet.nrows - 1), locColumnNumber, False )
     cellValues = [ [None for icol in range(numCols)] for irow in range(numRows) ]
     logger.info("Created data array with " + str(numRows) + " rows for date/times and " +
-        str(numCols) + " columns for locations.")
-    # Start reading first data row and process each row until a blank row is found
-    # Data will be the non-blank rows after that.
+        str(numCols) + " columns for locations (time series).")
+    # Start reading first data row and process each row
+    # Data will be the rows after that.
     # "row" is 0-index whereas logging messages are Excel rows 1+
     row = headerRow
     logger.info("Start reading data rows in Excel row " + str(row + 2) + " headerRow=" + str(headerRow + 1))
+    tsIndex = 0 # needed to handle blank data rows - match non-blank data to data array time series
     while True:
         # Increment the row to read - for first row it will be the row after the headerRow
         row = row + 1
@@ -139,18 +162,30 @@ def main():
         if ( (((row + 1) % 25) == 0) or (row == (headerRow + 1)) or (row == (sheet.nrows - 1)) ):
             # Print a message so user can see progress
             print "Processing Excel row " + str(row + 1)
-        # Read the data from the sheet.  To avoid extra checks, if the first column value is
-        # blank, break
+        # For troubleshooting...
+        #print "Processing Excel row " + str(row + 1)
+        # Read the data from the sheet.  To avoid extra checks, if the location column value is
+        # blank, exit or skip
         # The first check works because row is zero index
-        if ( (row == sheet.nrows) or (sheet.cell_value(row,locColumnNumber) == '') ):
-            # Row is the count prior to this row (since zero indexed)
-            print ( "End processing at Excel row " + str(row + 1) + " since blank or last row found.")
-            logger.info ( "Processed " + str(row) + " rows of data - ending processing since blank row found.")
+        # row is zero index and sheet.nrows is row count so have to subtract 1
+        if ( row == (sheet.nrows - 1) ):
+            print ( "End processing at Excel row " + str(row + 1) + " since last row found.")
+            logger.info ( "Processed " + str(row) + " rows of data - ending processing since last row found.")
             break
+        elif ( sheet.cell_value(row,locColumnNumber) == '' ):
+            # The location cell is blank so check if it should be ignored or should exit
+            if ( ifLocBlank == "Exit" ):
+                # Print and log messages since important to user to know why ending
+                print ( "End processing at Excel row " + str(row + 1) + " since blank location or last row found.")
+                logger.info ( "Processed " + str(row) + " rows of data - ending processing since blank row found.")
+                break
+            elif ( ifLocBlank == "Skip" ):
+                # Blank location may be common depending on sheet formatting so need for message
+                continue
         # Read the location for the row
 	locCell = sheet.cell_value(row,locColumnNumber)
         locList.append ( str(locCell) )
-	# Loop through the years...
+	# Loop through the years in the data row...
         dataColumnCount = -1
         for dataColumnNumber in dataColumnNumbers:
             dataColumnCount = dataColumnCount + 1 # Will be 0+
@@ -165,19 +200,21 @@ def main():
             # in Excel as an integer, so enforce the type here.
             try:
                 cellValue0 = cellValue
-                cellValue = exceldbutil.enforceType ( cellValue, cellType, "float" )
+                cellValue = exceldbutil.enforceType ( cellValue, cellType, float )
+                logger.info("Original cell value=\"" + str(cellValue0) + "\" cellValue=\"" + str(cellValue) + "\"" )
                 if ( (cellValue0 != None) and (cellValue == None) ):
                     # The value was set to none.  This is a data error
                     loggingutil.warning ( logger,"Cell value at Excel row " + str(row + 1) +
                         " and Excel column " + str(excelColumnStringAddressFromNumber (dataColumnNumber)) +
-                        " is invalid - verify that the value is a number." )
+                        " is invalid - verify that the value is a number - setting to None." )
             except:
                 cellValue = None
             # Now set the data array.  Since the original date/times are listed horizontally but
             # the data array is with date/time vertical, reverse the indices
-            cellValues[dataColumnCount][row - headerRow - 1] = cellValue
-            logger.info("Setting [" + str(dataColumnCount) + "][" + str(row - headerRow - 1) +
-                "] = " + str(cellValue) )
+            logger.info("Setting [" + str(dataColumnCount) + "][" + str(tsIndex) + "] = " + str(cellValue) )
+            cellValues[dataColumnCount][tsIndex] = cellValue
+        # If here, then a data row was processed successfully
+        tsIndex = tsIndex + 1
     # Write the values out with date/times in column 1 and each time series in a separate column
     # The time series column names match the location identifiers with no data types or units
     # Use standard output if no output file has been specified
@@ -186,6 +223,8 @@ def main():
     out = sys.stdout
     if ( outputFile != None ):
         out = open(outputFile,"w")
+    # Write the standard header
+    writeOutputHeader ( out, mapFile, xlsFile, sheetName, outputComment )
     out.write("\"Date/time\"")
     locTranslatorBeforeLookup = None
     try:
@@ -348,6 +387,28 @@ def printUsage ():
     print ""
     print "Usage:  ipy " + os.path.basename(sys.argv[0]) + " XLSfile loaderMapFile"
     print ""
+    return
+
+def writeOutputHeader ( out, mapFile, xlsFile, sheetName, outputComment ):
+    """
+    Write a standard output file for the CSV file to identify the file contents.
+    out - open file
+    mapFile - name of map file being used for data mapping
+    xlsFile - name of workbook file
+    sheetName - name of sheet in the workbook
+    outputComment - output comment to add to the top of the file
+    """
+    if ( outputComment == None ):
+        outputComment = ""
+    currentTime = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())
+    out.write ( "# " + outputComment + "\n" )
+    out.write ( "#\n" )
+    out.write ( "# Produced by export-ts.py Python script\n" )
+    out.write ( "# " + currentTime + "\n" )
+    out.write ( "# Data map file: \"" + mapFile + "\"\n" )
+    out.write ( "# Workbook file: \"" + xlsFile + "\"\n" )
+    out.write ( "# Worksheet name: \"" + sheetName + "\"\n" )
+    out.write ( "#\n" )
     return
 
 if __name__ == "__main__":
