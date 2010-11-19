@@ -1285,6 +1285,8 @@ private JMenu
 	__Results_Graph_JMenu = null;
 private JMenuItem
 	__Results_Graph_AnnualTraces_JMenuItem = null,
+	__Results_Graph_Area_JMenuItem = null,
+	__Results_Graph_AreaStacked_JMenuItem = null,
 	__Results_Graph_BarsLeft_JMenuItem = null,
 	__Results_Graph_BarsCenter_JMenuItem = null,
 	__Results_Graph_BarsRight_JMenuItem = null,
@@ -1669,6 +1671,8 @@ private String
 	// Results menu choices (order in GUI)...
 
 	__Results_Graph_AnnualTraces_String = "Graph - Annual Traces...",
+	__Results_Graph_Area_String = "Graph - Area",
+	__Results_Graph_AreaStacked_String = "Graph - Area (stacked)",
 	__Results_Graph_BarsLeft_String = "Graph - Bar (left of date)",
 	__Results_Graph_BarsCenter_String = "Graph - Bar (center on date)",
 	__Results_Graph_BarsRight_String = "Graph - Bar (right of date)",
@@ -1812,9 +1816,15 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	ui_SetInitialWorkingDir (__props.getValue ( "WorkingDir" ));
  
 	addWindowListener ( this );
+	
+	// Read the license information...
+	license_InitializeLicenseFromTSToolProperties ();
 
 	// Initialize the input types and data stores based on the configuration
 	ui_EnableInputTypesForConfiguration ();
+	
+	// Disable input types based on the license (regardless of what is in the configuration file)...
+    ui_CheckInputTypesForLicense ( license_GetLicenseManager() );
 
 	// Values determined at run-time...
 
@@ -1823,10 +1833,6 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	Message.printStatus ( 1, "", "Working directory is " + __props.getValue ( "WorkingDir" ) );
 	__props.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 
-	// Read the license information and disable/enable input types based on the license...
-
-	license_InitializeLicenseFromTSToolProperties ();
-	ui_CheckInputTypesForLicense ( license_GetLicenseManager() );
 	// If the license type is CDSS, the icon will be set to the CDSS icon.
 	// Otherwise, the icon will be set to the RTi icon...
 	TSToolMain.setIcon ( license_GetLicenseManager().getLicenseType() );
@@ -6317,6 +6323,12 @@ private void ui_EnableInputTypesForConfiguration ()
     if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
         __source_HydroBase_enabled = false;
     }
+    else {
+        // No property defined.  Make sure to turn on for CDSS
+        if ( license_GetLicenseManager().getLicenseType().equalsIgnoreCase("CDSS") ) {
+            __source_HydroBase_enabled = true;
+        }
+    }
     if ( __source_HydroBase_enabled ) {
         // Use newer notation...
         __props.set ( "TSTool.HydroBaseEnabled", "true" );
@@ -8964,6 +8976,12 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 	__Results_Graph_AnnualTraces_JMenuItem.setEnabled ( false );
 	*/
 
+    __Results_JMenu.add( __Results_Graph_Area_JMenuItem =
+        new SimpleJMenuItem( __Results_Graph_Area_String, this ) );
+    
+    __Results_JMenu.add( __Results_Graph_AreaStacked_JMenuItem =
+        new SimpleJMenuItem( __Results_Graph_AreaStacked_String, this ) );
+
 	__Results_JMenu.add( __Results_Graph_BarsLeft_JMenuItem =
 		new SimpleJMenuItem( __Results_Graph_BarsLeft_String, this ) );
 
@@ -9029,6 +9047,8 @@ Define the popup menus for results.
 */
 private void ui_InitGUIMenus_ResultsPopup ()
 {	__resultsTS_JPopupMenu = new JPopupMenu("TS Results Actions");
+    __resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Area_String, this ) );
+    __resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_AreaStacked_String, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsLeft_String, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsCenter_String,this));
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_BarsRight_String, this ));
@@ -9055,6 +9075,8 @@ private void ui_InitGUIMenus_ResultsPopup ()
     ActionListener_ResultsEnsembles ens_l = new ActionListener_ResultsEnsembles();
     __resultsTSEnsembles_JPopupMenu = new JPopupMenu("Ensembles Results Actions");
     /* TODO SAM 2008-01-05 Evaluate what to enable, maybe add exceedance plot, etc.
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Area_String, this ) );
+    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_AreaStacked_String, this ) );
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsLeft_String, this ) );
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsCenter_String,this));
     __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsRight_String, this ));
@@ -11031,6 +11053,12 @@ throws Exception
 		}
 		uiAction_GraphTimeSeriesResults("-oannual_traces_graph " + StringUtil.atoi(response) );
 	}
+    else if ( command.equals(__Results_Graph_Area_String) ) {
+        uiAction_GraphTimeSeriesResults("-oarea_graph");
+    }
+    else if ( command.equals(__Results_Graph_AreaStacked_String) ) {
+        uiAction_GraphTimeSeriesResults("-oarea_stacked_graph");
+    }
     else if ( command.equals(__Results_Graph_BarsLeft_String) ) {
     	uiAction_GraphTimeSeriesResults("-obar_graph", "BarsLeftOfDate");
 	}
