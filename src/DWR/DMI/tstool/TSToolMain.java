@@ -465,7 +465,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.10.01beta (2010-11-18)";
+public static final String PROGRAM_VERSION = "9.10.01 (2011-01-09)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -851,6 +851,9 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     String packagePath = "";
     if ( dataStoreType.equalsIgnoreCase("ColoradoBNDSSDataStore") ) {
         packagePath = "rti.tscommandprocessor.commands.bndss.";
+    }
+    else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
+        packagePath = "rti.tscommandprocessor.commands.rccacis.";
     }
     else if ( dataStoreType.equalsIgnoreCase("ReclamationHDBDataStore") ) {
         packagePath = "rti.tscommandprocessor.commands.reclamationhdb.";

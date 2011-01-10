@@ -17,41 +17,42 @@ public class TSTool_ReclamationHDB_TableModel extends JWorksheet_AbstractRowTabl
 /**
 Number of columns in the table model.
 */
-private final int __COLUMNS = 33;
+private final int __COLUMNS = 34;
 
 public final int COL_TYPE = 0;
 public final int COL_SITE_COMMON_NAME = 1;
 public final int COL_SITE_NAME = 2;
 public final int COL_SITE_ID = 3;
-public final int COL_SITE_DESCRIPTION = 4;
-public final int COL_DATA_SOURCE = 5;
-public final int COL_DATA_TYPE = 6;
-public final int COL_TIME_STEP = 7;
-public final int COL_MODEL_NAME = 8;
-public final int COL_MODEL_RUN_NAME = 9;
-public final int COL_MODEL_HYDROLOGIC_INDICATOR = 10;
-public final int COL_MODEL_RUN_DATE = 11;
-public final int COL_UNITS = 12;
-public final int COL_START = 13; // This is actually the min start date/time
-public final int COL_END = 14; // This is actually the max start date/time
-public final int COL_OBJECT_TYPE_ID = 15;
-public final int COL_OBJECT_TYPE_NAME = 16;
-public final int COL_OBJECT_TYPE_TAG = 17;
-public final int COL_PHYSICAL_QUANTITY_NAME = 18;
-public final int COL_SITE_DB_SITE_CODE = 19;
-public final int COL_SITE_NWS_CODE = 20;
-public final int COL_SITE_SCS_ID = 21;
-public final int COL_SITE_SHEF_CODE = 22;
-public final int COL_SITE_USGS_ID = 23;
-public final int COL_SITE_STATE = 24;
-public final int COL_SITE_BASIN = 25;
-public final int COL_SITE_HUC = 26;
-public final int COL_SITE_SEGMENT_NO = 27;
-public final int COL_SITE_RIVER_MILE = 28;
-public final int COL_SITE_LATITUDE = 29;
-public final int COL_SITE_LONGITUDE = 30;
-public final int COL_SITE_ELEVATION = 31;
-public final int COL_DATASTORE_NAME	= 32;
+public final int COL_SITE_DATATYPE_ID = 4;
+public final int COL_SITE_DESCRIPTION = 5;
+public final int COL_DATA_SOURCE = 6;
+public final int COL_DATA_TYPE = 7;
+public final int COL_TIME_STEP = 8;
+public final int COL_MODEL_NAME = 9;
+public final int COL_MODEL_RUN_NAME = 10;
+public final int COL_MODEL_HYDROLOGIC_INDICATOR = 11;
+public final int COL_MODEL_RUN_DATE = 12;
+public final int COL_UNITS = 13;
+public final int COL_START = 14; // This is actually the min start date/time
+public final int COL_END = 15; // This is actually the max start date/time
+public final int COL_OBJECT_TYPE_ID = 16;
+public final int COL_OBJECT_TYPE_NAME = 17;
+public final int COL_OBJECT_TYPE_TAG = 18;
+public final int COL_PHYSICAL_QUANTITY_NAME = 19;
+public final int COL_SITE_DB_SITE_CODE = 20;
+public final int COL_SITE_NWS_CODE = 21;
+public final int COL_SITE_SCS_ID = 22;
+public final int COL_SITE_SHEF_CODE = 23;
+public final int COL_SITE_USGS_ID = 24;
+public final int COL_SITE_STATE = 25;
+public final int COL_SITE_BASIN = 26;
+public final int COL_SITE_HUC = 27;
+public final int COL_SITE_SEGMENT_NO = 28;
+public final int COL_SITE_RIVER_MILE = 29;
+public final int COL_SITE_LATITUDE = 30;
+public final int COL_SITE_LONGITUDE = 31;
+public final int COL_SITE_ELEVATION = 32;
+public final int COL_DATASTORE_NAME	= 33;
 
 /**
 Data store name corresponding to data store used to retrieve the data.
@@ -94,6 +95,7 @@ public Class getColumnClass (int columnIndex) {
 	    case COL_SITE_COMMON_NAME: return String.class;
 		case COL_SITE_NAME: return String.class;
         case COL_SITE_ID: return Integer.class;
+        case COL_SITE_DATATYPE_ID: return Integer.class;
 		case COL_SITE_DESCRIPTION: return String.class;
 		case COL_DATA_SOURCE: return String.class;
 		case COL_DATA_TYPE: return String.class;
@@ -145,6 +147,7 @@ public String getColumnName(int columnIndex) {
 	    case COL_SITE_COMMON_NAME: return "Site Common Name";
 		case COL_SITE_NAME: return "Site Name";
 	    case COL_SITE_ID: return "Site ID";
+	    case COL_SITE_DATATYPE_ID: return "Site Datatype ID";
 	    case COL_SITE_DESCRIPTION: return "Site Description";
 		case COL_DATA_SOURCE: return "Data Source";
 		case COL_DATA_TYPE: return "Data Type";
@@ -186,6 +189,7 @@ Returns the format to display the specified column.
 public String getFormat ( int column ) {
 	switch (column) {
         case COL_SITE_ID: return "%d";
+        case COL_SITE_DATATYPE_ID: return "%d";
         case COL_SITE_RIVER_MILE: return "%.6f";
         case COL_SITE_LATITUDE: return "%.6f";
         case COL_SITE_LONGITUDE: return "%.6f";
@@ -224,6 +228,8 @@ public Object getValueAt(int row, int col) {
 		    return data.getSiteName();
         case COL_SITE_ID:
             return data.getSiteID();
+        case COL_SITE_DATATYPE_ID:
+            return data.getSiteDataTypeID();
         case COL_SITE_DESCRIPTION:
             return data.getDescription();
 		case COL_DATA_SOURCE:
@@ -297,6 +303,7 @@ public int[] getColumnWidths() {
     widths[COL_SITE_COMMON_NAME] = 20;
 	widths[COL_SITE_NAME] = 20;
     widths[COL_SITE_ID] = 4;
+    widths[COL_SITE_DATATYPE_ID] = 10;
     widths[COL_SITE_DESCRIPTION] = 20;
 	widths[COL_DATA_SOURCE] = 11;
 	widths[COL_DATA_TYPE] = 14;

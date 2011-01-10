@@ -79,6 +79,9 @@ import rti.tscommandprocessor.commands.bndss.BNDSS_DMI;
 import rti.tscommandprocessor.commands.bndss.ColoradoBNDSSDataStore;
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
+import rti.tscommandprocessor.commands.rccacis.RccAcisDataStore;
+import rti.tscommandprocessor.commands.rccacis.RccAcisStationTimeSeriesMetadata;
+import rti.tscommandprocessor.commands.rccacis.RccAcis_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStore;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_DMI;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSeriesMetadata;
@@ -828,6 +831,7 @@ private boolean
 	__source_NWSCard_enabled = true,
 	__source_NWSRFS_FS5Files_enabled = false,
 	__source_NWSRFS_ESPTraceEnsemble_enabled = false,
+	__source_RCCACIS_enabled = false,
 	__source_ReclamationHDB_enabled = false,
 	__source_RiversideDB_enabled = false,
 	__source_RiverWare_enabled = true,
@@ -1179,7 +1183,9 @@ JMenuItem
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
     __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
-    __Commands_Table_WriteTableToDelimitedFile_JMenuItem;
+    __Commands_Table_CompareTables_JMenuItem,
+    __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
+    __Commands_Table_WriteTableToHTML_JMenuItem;
 
 // Commands (Template Processing)...
 
@@ -1614,7 +1620,9 @@ private String
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
     __Commands_Table_SetTimeSeriesPropertiesFromTable_String =
         TAB + "SetTimeSeriesPropertiesFromTable()... <set time series properties from table contents>",
+    __Commands_Table_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
+    __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
 
     // Template Commands...
 
@@ -5116,6 +5124,28 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			false, insertOffset );
 		}
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof RccAcisDataStore) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input_name is needed to indicate the database.
+        RccAcisDataStore rccAcisDataStore = (RccAcisDataStore)selectedDataStore;
+        TSTool_RccAcis_TableModel model = (TSTool_RccAcis_TableModel)__query_TableModel;
+        if (model.getSortOrder() != null) {
+            row = model.getSortOrder()[row];
+        }
+        RccAcisStationTimeSeriesMetadata ts = (RccAcisStationTimeSeriesMetadata)model.getData().get(row);
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+            ts.getIDPreferred(true),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_NAME),
+            rccAcisDataStore.translateAcisIntervalToInternal(
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP)),
+            null, // No scenario
+            null, // No sequence number
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
+            "", "",
+            use_alias, insertOffset );
+    }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
@@ -6413,7 +6443,20 @@ private void ui_EnableInputTypesForConfiguration ()
         }
     }
     
-    // Reclamation HDB disabled by default...
+    // RCC ACOS disabled by default (under development)...
+
+    __source_RCCACIS_enabled = false;
+    prop_value = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
+    if ( prop_value != null ) {
+        if ( prop_value.equalsIgnoreCase("false") ) {
+            __source_RCCACIS_enabled = false;
+        }
+        else if ( prop_value.equalsIgnoreCase("true") ) {
+            __source_RCCACIS_enabled = true;
+        }
+    }
+    
+    // Reclamation HDB disabled by default (not many users would have)...
 
     __source_ReclamationHDB_enabled = false;
     prop_value = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
@@ -6634,6 +6677,14 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
         else if ( panel instanceof BNDSS_DataMetaData_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((BNDSS_DataMetaData_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
+        else if ( panel instanceof RccAcis_TimeSeries_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((RccAcis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
                 // Have a match in the data store name so return the panel
                 return panel;
@@ -7386,6 +7437,16 @@ private void ui_InitGUIInputFilters ( final int y )
         			Message.printWarning ( 2, routine, e );
         		}
         	}
+            if ( __source_RCCACIS_enabled && (__tsProcessor.getDataStoresByType(RccAcisDataStore.class).size() > 0) ) {
+                try {
+                    ui_InitGUIInputFiltersRccAcis(__tsProcessor.getDataStoresByType(RccAcisDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing RCC ACIS input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
             if ( __source_ReclamationHDB_enabled && (__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0) ) {
                 try {
                     ui_InitGUIInputFiltersReclamationHDB(__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class), y );
@@ -7926,6 +7987,45 @@ private void ui_InitGUIInputFiltersHydroBase ( HydroBaseDMI hbdmi, int y )
 }
 
 /**
+Initialize the RCC ACIS input filter (may be called at startup).
+@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
+*/
+private void ui_InitGUIInputFiltersRccAcis ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersRccAcis";
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " RCC ACIS data stores." );
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name...
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName() );
+            // If the previous instance is not null, remove it from the list...
+            if ( ifp != null ) {
+                __inputFilterJPanelList.remove ( ifp );
+            }
+            // Create a new panel...
+            RccAcis_TimeSeries_InputFilter_JPanel newIfp =
+                new RccAcis_TimeSeries_InputFilter_JPanel((RccAcisDataStore)dataStore, 3);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            newIfp.setName("RccAcis.InputFilterPanel");
+            __inputFilterJPanelList.add ( newIfp );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for RCC ACIS time series " +
+                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
+        }
+    }
+}
+
+/**
 Initialize the Reclamation HDB input filter (may be called at startup).
 @param dataStoreList the list of data stores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
@@ -7944,7 +8044,7 @@ private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreLis
             }
             // Create a new panel...
             ReclamationHDB_TimeSeries_InputFilter_JPanel newIfp =
-                new ReclamationHDB_TimeSeries_InputFilter_JPanel((ReclamationHDBDataStore)dataStore, null, 3);
+                new ReclamationHDB_TimeSeries_InputFilter_JPanel((ReclamationHDBDataStore)dataStore, 3);
     
             // Add the new panel to the layout and set in the global data...
             int buffer = 3;
@@ -8590,8 +8690,12 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_WriteTableToHTML_String, this ) );
     
     // Commands...Template processing...
     
@@ -9458,7 +9562,7 @@ private void ui_SetInputFilters()
         "\", and data type \"" + selectedDataType + "\"" );
     try {
     if ( selectedDataStore != null ) {
-        // This handles ColoradoBNDSS, ReclamationHDB, and RiversideDB
+        // This handles ColoradoBNDSS, RccAcis, ReclamationHDB, and RiversideDB
         selectedInputFilter_JPanel = ui_GetInputFilterPanelForDataStoreName(selectedDataStore.getName());
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
@@ -10865,8 +10969,14 @@ throws Exception
     else if (command.equals( __Commands_Table_TableTimeSeriesMath_String) ) {
         commandList_EditCommand ( __Commands_Table_TableTimeSeriesMath_String, null, __INSERT_COMMAND );
     }
+    else if (command.equals( __Commands_Table_CompareTables_String) ) {
+        commandList_EditCommand ( __Commands_Table_CompareTables_String, null, __INSERT_COMMAND );
+    }
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals( __Commands_Table_WriteTableToHTML_String) ) {
+        commandList_EditCommand ( __Commands_Table_WriteTableToHTML_String, null, __INSERT_COMMAND );
     }
 	
 	// Template commands...
@@ -11443,6 +11553,9 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof ColoradoBNDSSDataStore ) {
             uiAction_SelectDataStore_ColoradoBNDSS ( (ColoradoBNDSSDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof RccAcisDataStore ) {
+            uiAction_SelectDataStore_RccAcis ( (RccAcisDataStore)selectedDataStore );
+        }
         else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
             uiAction_SelectDataStore_ReclamationHDB ( (ReclamationHDBDataStore)selectedDataStore );
         }
@@ -11639,6 +11752,15 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof RccAcisDataStore)) {
+        // Set intervals for the data type and trigger a select to populate the input filters
+        RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
+        __timeStep_JComboBox.removeAll ();
+        __timeStep_JComboBox.setEnabled ( true );
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.select ( null );
+        __timeStep_JComboBox.select ( 0 );
+    }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore)) {
         // Time steps are determined from the database based on the data type that is selected...
         /** FIXME SAM 2010-10-19 Need to enable
@@ -12156,6 +12278,17 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof RccAcisDataStore) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading RCC ACIS - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders(); 
@@ -12267,7 +12400,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders()
 
         // Get the subject from the where filters.  If not set, warn and don't query
         BNDSSSubjectType subject = null;
-        List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Subject", false, null );
+        List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Subject", null, false, null );
         if ( input.size() == 0 ) {
             Message.printWarning ( 1, rtn, "You must specify the Subject as a Where in the input filter." );
             JGUIUtil.setWaitCursor ( this, false );
@@ -12334,8 +12467,10 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
     try {
         String selectedInputType = ui_GetSelectedInputType();
         // Get the subject from the where filters.  If not set, warn and don't query
-        List<String> inputDivision = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Division", false, null );
-        List<String> inputDistrict = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("District", false, null );
+        List<String> inputDivision =
+            ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Division", null, false, null );
+        List<String> inputDistrict =
+            ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("District", null, false, null );
         if ( (inputDistrict.size() + inputDivision.size()) == 0 ) {
             Message.printWarning ( 1, routine,
                 "You must specify a district or division as a Where in the input filter." );
@@ -12791,27 +12926,27 @@ throws IOException
         String ePartReq = "*";
         String fPartReq = "*";
         // Try to get filter choices for all the parts
-        List inputList = __inputFilterHecDss_JPanel.getInput ( "A part", true, null );
+        List inputList = __inputFilterHecDss_JPanel.getInput ( "A part", null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter...
             aPartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "B part", true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( "B part", null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter...
             bPartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "C part", true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( "C part", null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter...
             cPartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "E part", true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( "E part", null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter...
             ePartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "F part", true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( "F part", null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter...
             fPartReq = (String)inputList.get(0);
@@ -13376,7 +13511,7 @@ throws IOException
 		// Default is to return all IDs...
 		String id_input = "*";
 		// Get the ID from the input filter...
-		List input_Vector = __inputFilterNWSRFSFS5Files_JPanel.getInput ( "ID", true, null );
+		List<String> input_Vector = __inputFilterNWSRFSFS5Files_JPanel.getInput ( "ID", null, true, null );
 		int isize = input_Vector.size();
 		if ( isize > 1 ) {
 			Message.printWarning ( 1, routine, "Only one input filter for ID can be specified." );
@@ -13438,6 +13573,73 @@ throws IOException
 		Message.printWarning ( 2, routine, e );
 		throw new IOException ( message );
 	}
+}
+
+/**
+Read ReclamationHDB time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    DataStore dataStore = ui_GetSelectedDataStore ();
+    // The headers are a list of RccAcisTimeSeriesMetadata
+    try {
+        RccAcisDataStore rccAcisDataStore = (RccAcisDataStore)dataStore;
+        queryResultsList_Clear ();
+
+        String dataType = ui_GetSelectedDataType();
+        String timeStep = ui_GetSelectedTimeStep();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+
+        List<RccAcisStationTimeSeriesMetadata> results = null;
+        // Data type is shown with name so only use the first part of the choice
+        try {
+            results = rccAcisDataStore.readStationTimeSeriesMetadataList(dataType, timeStep,
+                (InputFilter_JPanel)__selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            Message.printWarning(1, rtn, "Error getting time series list from ACIS (" + e + ").");
+            Message.printWarning(3, rtn, e );
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new TSTool_RccAcis_TableModel ( rccAcisDataStore, results );
+            TSTool_RccAcis_CellRenderer cr =
+                new TSTool_RccAcis_CellRenderer( (TSTool_RccAcis_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
 }
 
 /**
@@ -15621,6 +15823,32 @@ throws Exception
 /**
 Refresh the query choices for the currently selected ReclamationHDB data store.
 */
+private void uiAction_SelectDataStore_RccAcis ( RccAcisDataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_RccAcis";
+    RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
+    ui_SetInputNameVisible(false); // Not needed for data stores
+    // Get the list of valid object/data types from the data store
+    List<String> dataTypes = dataStore.getDataTypeStrings ( true );
+    
+    // Populate the list of available data types and select the first
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.setData ( dataTypes );
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+    
+    // Initialize the time series list with blank data list...
+    __query_TableModel = new TSTool_RccAcis_TableModel( dataStore, null);
+    TSTool_RccAcis_CellRenderer cr = new TSTool_RccAcis_CellRenderer((TSTool_RccAcis_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Refresh the query choices for the currently selected ReclamationHDB data store.
+*/
 private void uiAction_SelectDataStore_ReclamationHDB ( ReclamationHDBDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
@@ -17402,7 +17630,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2010\n" +
+        "Copyright 1997-2011\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
@@ -17416,7 +17644,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2010\n" +
+        "Copyright 1997-2011\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
@@ -17668,6 +17896,12 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
     }
     else {
         v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
+    }
+    if ( __source_RCCACIS_enabled ) {
+        v.add ( "RCC ACIS data store is enabled" );
+    }
+    else {
+        v.add ( "RCC ACIS data store is not enabled");
     }
     if ( __source_ReclamationHDB_enabled ) {
         v.add ( "ReclamationHDB data store is enabled" );
