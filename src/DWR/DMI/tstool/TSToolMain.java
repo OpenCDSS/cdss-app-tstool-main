@@ -465,7 +465,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "9.10.01 (2011-01-09)";
+public static final String PROGRAM_VERSION = "9.10.03beta (2011-01-11)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -860,6 +860,9 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
         packagePath = "RTi.DMI.RiversideDB_DMI.";
+    }
+    else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDataStore") ) {
+        packagePath = "rti.tscommandprocessor.commands.usgsnwis.";
     }
     else {
         throw new InvalidParameterException("Data store type \"" + dataStoreType +

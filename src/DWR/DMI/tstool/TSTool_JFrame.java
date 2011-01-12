@@ -88,6 +88,9 @@ import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSer
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
+import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisDataStore;
+import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisSiteTimeSeriesMetadata;
+import rti.tscommandprocessor.commands.usgsnwis.UsgsNwis_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -5206,6 +5209,26 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		"",
 		"", false, insertOffset );
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input_name is needed to indicate the database.
+        UsgsNwisDataStore rccAcisDataStore = (UsgsNwisDataStore)selectedDataStore;
+        TSTool_UsgsNwis_TableModel model = (TSTool_UsgsNwis_TableModel)__query_TableModel;
+        if (model.getSortOrder() != null) {
+            row = model.getSortOrder()[row];
+        }
+        UsgsNwisSiteTimeSeriesMetadata ts = (UsgsNwisSiteTimeSeriesMetadata)model.getData().get(row);
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+            (String)__query_TableModel.getValueAt ( row, model.COL_ID),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            ts.formatDataTypeForTSID(),
+            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+            null, // No scenario
+            null, // No sequence number
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
+            "", "",
+            use_alias, insertOffset );
+    }
 	// The following input types use the generic TSTool_TS_TableModel with
 	// no special considerations.  If the sequence number is non-blank in
 	// the worksheet, it will be transferred.
@@ -6698,6 +6721,14 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
                 return panel;
             }
         }
+        else if ( panel instanceof UsgsNwis_TimeSeries_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((UsgsNwis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
     }
     return null;
 }
@@ -7443,7 +7474,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing RCC ACIS input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing RCC ACIS data store input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7453,7 +7484,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing Reclamation HDB input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing Reclamation HDB data store input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7463,7 +7494,17 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing RiversideDB input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing RiversideDB data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
+            if ( __source_USGSNWIS_enabled && (__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class).size() > 0) ) {
+                try {
+                    ui_InitGUIInputFiltersUsgsNwis(__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing USGS NWIS data store input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -8098,6 +8139,45 @@ private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, 
             Message.printWarning ( 2, routine,
                 "Unable to initialize input filter for RiversideDB time series (MeasType/MeasLoc/Geoloc) " +
                 "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
+        }
+    }
+}
+
+/**
+Initialize the USGS NWIS input filter (may be called at startup).
+@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
+*/
+private void ui_InitGUIInputFiltersUsgsNwis ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwis";
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " USGS NWIS data stores." );
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name...
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName() );
+            // If the previous instance is not null, remove it from the list...
+            if ( ifp != null ) {
+                __inputFilterJPanelList.remove ( ifp );
+            }
+            // Create a new panel...
+            UsgsNwis_TimeSeries_InputFilter_JPanel newIfp =
+                new UsgsNwis_TimeSeries_InputFilter_JPanel((UsgsNwisDataStore)dataStore, 3);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            newIfp.setName("UsgsNwis.InputFilterPanel");
+            __inputFilterJPanelList.add ( newIfp );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for USGS NWIS time series for data store \"" +
+                dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
     }
@@ -9562,7 +9642,7 @@ private void ui_SetInputFilters()
         "\", and data type \"" + selectedDataType + "\"" );
     try {
     if ( selectedDataStore != null ) {
-        // This handles ColoradoBNDSS, RccAcis, ReclamationHDB, and RiversideDB
+        // This handles ColoradoBNDSS, RccAcis, ReclamationHDB, RiversideDB, USGS NWIS
         selectedInputFilter_JPanel = ui_GetInputFilterPanelForDataStoreName(selectedDataStore.getName());
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterHBGuest) ) {
@@ -11559,6 +11639,9 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
             uiAction_SelectDataStore_ReclamationHDB ( (ReclamationHDBDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof UsgsNwisDataStore ) {
+            uiAction_SelectDataStore_UsgsNwis ( (UsgsNwisDataStore)selectedDataStore );
+        }
     }
     catch ( Exception e ) {
         Message.printWarning( 2, routine, "Error selecting data store \"" + selectedDataStore.getName() + "\"" );
@@ -11897,6 +11980,15 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore)) {
+        // Set intervals for the data type and trigger a select to populate the input filters
+        UsgsNwisDataStore dataStore = (UsgsNwisDataStore)selectedDataStore;
+        __timeStep_JComboBox.removeAll ();
+        __timeStep_JComboBox.setEnabled ( true );
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.select ( null );
+        __timeStep_JComboBox.select ( 0 );
+    }
 
 	// Set the filter where clauses based on the data type changing (this only triggers a reset of the
     // input filter for some input types/data stores, like HydroBase, which has different input filters
@@ -12312,6 +12404,17 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading USGS NWIS - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( selectedInputType.equals (__INPUT_TYPE_RiverWare)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
@@ -12369,7 +12472,7 @@ private void uiAction_GetTimeSeriesListClicked()
 	}
 	else if ( selectedInputType.equals (__INPUT_TYPE_USGSNWIS)) {
 		try {
-            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ();
+            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisFileHeaders ();
 		}
 		catch ( Exception e ) {
 			message = "Error reading USGS NWIS file - cannot display time series list (" + e + ").";
@@ -13576,7 +13679,7 @@ throws IOException
 }
 
 /**
-Read ReclamationHDB time series and list in the GUI.
+Read RCC ACIS time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders()
 {   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders";
@@ -14267,9 +14370,76 @@ throws IOException
 }
 
 /**
+Read USGS NWIS web service time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    DataStore dataStore = ui_GetSelectedDataStore ();
+    // The headers are a list of UsgsNwisTimeSeriesMetadata
+    try {
+        UsgsNwisDataStore usgsNwisDataStore = (UsgsNwisDataStore)dataStore;
+        queryResultsList_Clear ();
+
+        String dataType = ui_GetSelectedDataType();
+        String timeStep = ui_GetSelectedTimeStep();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+
+        List<UsgsNwisSiteTimeSeriesMetadata> results = null;
+        // Data type is shown with name so only use the first part of the choice
+        try {
+            results = usgsNwisDataStore.readSiteTimeSeriesMetadataList(dataType, timeStep,
+                (InputFilter_JPanel)__selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            Message.printWarning(1, rtn, "Error getting time series list from USGS NWIS (" + e + ").");
+            Message.printWarning(3, rtn, e );
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new TSTool_UsgsNwis_TableModel ( usgsNwisDataStore, results );
+            TSTool_UsgsNwis_CellRenderer cr =
+                new TSTool_UsgsNwis_CellRenderer( (TSTool_UsgsNwis_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+}
+
+/**
 Read the list of time series from a USGS NWIS file and list in the GUI.
 */
-private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders ()
+private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisFileHeaders ()
 throws IOException
 {	String message, routine = "TSTool_JFrame.readUsgsNwisHeaders";
 
@@ -15821,7 +15991,7 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected ReclamationHDB data store.
+Refresh the query choices for the currently selected RCC ACIS store.
 */
 private void uiAction_SelectDataStore_RccAcis ( RccAcisDataStore selectedDataStore )
 throws Exception
@@ -15957,6 +16127,32 @@ throws Exception
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
     //__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Refresh the query choices for the currently selected USGS NWIS data store.
+*/
+private void uiAction_SelectDataStore_UsgsNwis ( UsgsNwisDataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_RccAcis";
+    UsgsNwisDataStore dataStore = (UsgsNwisDataStore)selectedDataStore;
+    ui_SetInputNameVisible(false); // Not needed for data stores
+    // Get the list of valid object/data types from the data store
+    List<String> dataTypes = dataStore.getDataTypeStrings ( true );
+    
+    // Populate the list of available data types and select the first
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.setData ( dataTypes );
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+    
+    // Initialize the time series list with blank data list...
+    __query_TableModel = new TSTool_UsgsNwis_TableModel( dataStore, null);
+    TSTool_UsgsNwis_CellRenderer cr = new TSTool_UsgsNwis_CellRenderer((TSTool_UsgsNwis_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
