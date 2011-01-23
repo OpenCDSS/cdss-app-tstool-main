@@ -5138,11 +5138,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         RccAcisStationTimeSeriesMetadata ts = (RccAcisStationTimeSeriesMetadata)model.getData().get(row);
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             ts.getIDPreferred(true),
-            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            "ACIS", //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
             //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
-            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_NAME),
-            rccAcisDataStore.translateAcisIntervalToInternal(
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP)),
+            "" + __query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
+            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
             null, // No scenario
             null, // No sequence number
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
@@ -5212,7 +5211,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
-        UsgsNwisDataStore rccAcisDataStore = (UsgsNwisDataStore)selectedDataStore;
         TSTool_UsgsNwis_TableModel model = (TSTool_UsgsNwis_TableModel)__query_TableModel;
         if (model.getSortOrder() != null) {
             row = model.getSortOrder()[row];
@@ -7294,7 +7292,7 @@ private void ui_InitGUI ( )
 			__STATUS_READY );
 	ui_UpdateStatus ( false );
     pack();
-	setSize ( 800, 600 );
+	setSize ( 900, 750 );
 	JGUIUtil.center ( this );
 	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
 	if ( !TSToolMain.isRestletServer() ) {
@@ -15999,7 +15997,7 @@ throws Exception
     RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for data stores
     // Get the list of valid object/data types from the data store
-    List<String> dataTypes = dataStore.getDataTypeStrings ( true );
+    List<String> dataTypes = dataStore.getDataTypeStrings ( true, true );
     
     // Populate the list of available data types and select the first
     __dataType_JComboBox.setEnabled ( true );
@@ -16135,7 +16133,7 @@ Refresh the query choices for the currently selected USGS NWIS data store.
 */
 private void uiAction_SelectDataStore_UsgsNwis ( UsgsNwisDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_RccAcis";
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisDataStore dataStore = (UsgsNwisDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for data stores
     // Get the list of valid object/data types from the data store

@@ -23,38 +23,39 @@ private RccAcisDataStore __dataStore = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 27;
+private int __COLUMNS = 26;
 
 /**
 Absolute column indices, for column lookups (includes the alias).
+ID order provided by Bill Noon, 2011-01-13
 */
-public final int COL_ID_ACIS = 0;
-public final int COL_ID_WBAN = 1;
-public final int COL_ID_COOP = 2;
+public final int COL_ID_COOP = 0;
+public final int COL_ID_ICAO = 1;
+public final int COL_ID_NWSLI = 2;
 public final int COL_ID_FAA = 3;
 public final int COL_ID_WMO = 4;
-public final int COL_ID_ICAO = 5;
-public final int COL_ID_NWSLI = 6;
-public final int COL_ID_THREAD_EX = 7;
-public final int COL_ID_AWDN = 8;
+public final int COL_ID_WBAN = 5;
+public final int COL_ID_THREAD_EX = 6;
+public final int COL_ID_AWDN = 7;
+public final int COL_ID_ACIS = 8;
 public final int COL_NAME = 9; // Station name
-public final int COL_DATA_SOURCE= 10;
-public final int COL_DATA_TYPE_MAJOR = 11;
-public final int COL_DATA_TYPE_NAME = 12;
-public final int COL_METHOD = 13;
-public final int COL_TIME_STEP = 14;
-public final int COL_UNITS = 15;
-public final int COL_START = 16;
-public final int COL_END = 17;
-public final int COL_POSTAL = 18;
-public final int COL_FIPS_COUNTY = 19;
-public final int COL_CLIM_DIV = 20;
-public final int COL_NWS_CWA = 21;
-public final int COL_HUC = 22;
-public final int COL_LONG = 23;
-public final int COL_LAT = 24;
-public final int COL_ELEV = 25;
-public final int COL_DATA_STORE_NAME = 26;
+//public final int COL_DATA_SOURCE = 10; // Do not include this based on Bill Noon feedback (internal)
+public final int COL_DATA_TYPE_MAJOR = 10;
+public final int COL_DATA_TYPE_NAME = 11;
+public final int COL_METHOD = 12;
+public final int COL_TIME_STEP = 13;
+public final int COL_UNITS = 14;
+public final int COL_START = 15;
+public final int COL_END = 16;
+public final int COL_POSTAL = 17;
+public final int COL_FIPS_COUNTY = 18;
+public final int COL_CLIM_DIV = 19;
+public final int COL_NWS_CWA = 20;
+public final int COL_HUC = 21;
+public final int COL_LONG = 22;
+public final int COL_LAT = 23;
+public final int COL_ELEV = 24;
+public final int COL_DATA_STORE_NAME = 25;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
@@ -90,7 +91,7 @@ public Class getColumnClass (int columnIndex) {
 		case COL_ID_THREAD_EX: return String.class;
 		case COL_ID_AWDN: return String.class;
 		case COL_NAME: return String.class;
-		case COL_DATA_SOURCE: return String.class;
+		//case COL_DATA_SOURCE: return String.class;
 		case COL_DATA_TYPE_MAJOR: return String.class;
 		case COL_DATA_TYPE_NAME: return String.class;
 		case COL_METHOD: return String.class;
@@ -135,9 +136,9 @@ public String getColumnName(int columnIndex) {
 	    case COL_ID_THREAD_EX: return "ThreadEx\nID";
 	    case COL_ID_AWDN: return "AWDN\nID";
 		case COL_NAME: return "Name/\nDescription";
-		case COL_DATA_SOURCE: return "Data\nSource";
-		case COL_DATA_TYPE_MAJOR: return "Data Type\n(Major)";
-		case COL_DATA_TYPE_NAME: return "Data Type\n(Name)";
+		//case COL_DATA_SOURCE: return "Data\nSource";
+		case COL_DATA_TYPE_MAJOR: return "Data Type\n(Variable Major)";
+		case COL_DATA_TYPE_NAME: return "Data Name\n(Variable Name)";
 		case COL_METHOD: return "\nMethod";
 		case COL_TIME_STEP: return "Time\nStep";
 		case COL_UNITS: return "\nUnits";
@@ -205,11 +206,12 @@ public Object getValueAt(int row, int col)
 	    case COL_ID_THREAD_EX: return ts.getIDSpecific("ThreadEX");
 	    case COL_ID_AWDN: return ts.getIDSpecific("AWDN");
 		case COL_NAME: return ts.getName();
-		case COL_DATA_SOURCE: return ts.getVariable().getSource();
+		//case COL_DATA_SOURCE: return ts.getVariable().getSource();
 		case COL_DATA_TYPE_MAJOR: return "" + ts.getVariable().getMajor();
 		case COL_DATA_TYPE_NAME: return "" + ts.getVariable().getName();
 	    case COL_METHOD: return ts.getVariable().getMethod();
-		case COL_TIME_STEP: return ts.getVariable().getReportInterval();
+		case COL_TIME_STEP: return __dataStore.translateAcisIntervalToInternal(
+		    ts.getVariable().getReportInterval() );
 		case COL_UNITS: return ts.getVariable().getUnits();
 		case COL_START: return ts.getValid_daterange()[0];
 		case COL_END: return ts.getValid_daterange()[1];
@@ -263,8 +265,8 @@ public int[] getColumnWidths() {
     widths[COL_ID_THREAD_EX] = 6;
     widths[COL_ID_AWDN] = 4;
 	widths[COL_NAME] = 20;
-	widths[COL_DATA_SOURCE] = 10;
-	widths[COL_DATA_TYPE_MAJOR] = 6;
+	//widths[COL_DATA_SOURCE] = 10;
+	widths[COL_DATA_TYPE_MAJOR] = 12;
 	widths[COL_DATA_TYPE_NAME] = 15;
     widths[COL_METHOD] = 4;
 	widths[COL_TIME_STEP] = 4;
