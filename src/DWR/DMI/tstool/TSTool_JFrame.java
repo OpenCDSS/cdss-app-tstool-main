@@ -993,6 +993,7 @@ JMenuItem
 	__Commands_Create_CreateFromList_JMenuItem,
 	__Commands_Create_Delta_JMenuItem,
     __Commands_Create_ResequenceTimeSeriesData_JMenuItem,
+    __Commands_Create_RunningStatisticTimeSeries_JMenuItem,
 	__Commands_Create_TS_ChangeInterval_JMenuItem,
 	__Commands_Create_TS_Copy_JMenuItem,
 	__Commands_Create_TS_Disaggregate_JMenuItem,
@@ -1461,14 +1462,15 @@ private String
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1(+) time series from a list of identifiers>",
 	__Commands_Create_Delta_String = TAB + "Delta()... <create new time series as delta between values>",
     __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()... <resequence years to create new scenarios>",
+    __Commands_Create_RunningStatisticTimeSeries_String = TAB + "RunningStatisticTimeSeries()... <create a statistic time series from a running sample>",
 	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()... <convert time series to one with a different interval>",
 	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()... <copy a time series>",
 	__Commands_Create_TS_Disaggregate_String = TAB + "TS Alias = Disaggregate()... <disaggregate longer interval to shorter>",
 	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String = TAB + "TS Alias = NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
 	__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String = TAB + "TS Alias = NewEndOfMonthTSFromDayTS()... <convert daily data to end of month time series>",
-	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create and initialize a new pattern time series>",
-	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as a repeating statistic from another time series>",
-	__Commands_Create_TS_NewStatisticYearTS_String = TAB + "TS Alias = NewStatisticYearTS()... <create a year time series using a statistic from another time series>",
+	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create a time series with repeating data values>",
+	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as repeating statistics from a time series>",
+	__Commands_Create_TS_NewStatisticYearTS_String = TAB + "TS Alias = NewStatisticYearTS()... <create a year time series using a statistic from a time series>",
 	__Commands_Create_TS_NewTimeSeries_String = TAB + "TS Alias = NewTimeSeries()... <create and initialize a new time series>",
 	__Commands_Create_TS_Normalize_String = TAB + "TS Alias = Normalize()... <Normalize time series to unitless values>",
 	__Commands_Create_TS_RelativeDiff_String = TAB + "TS Alias = RelativeDiff()... <relative difference of time series>",
@@ -2187,6 +2189,8 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
     // This may have been turned off in command processing.
     // Should not need this if set properly in the command processor.
     //Message.setPropValue ( "ShowWarningDialog=true" );
+	
+	// FIXME SAM 2011-02-19 Need to do a better job positioning the cursor in the list after edit
     
 	// Indicate whether the commands are a block of # comments.
 	// If so then need to use a special editor rather than typical one-line editors.
@@ -2385,11 +2389,12 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
         // Redraw the status area
         ui_ShowCurrentCommandListStatus();
     }
-    catch ( Exception e )
-    {
+    catch ( Exception e ) {
+        // TODO SAM 2011-02-17 Need to show warning to user?  With current design, code should have complete input.
         // For now ignore because edit-time input may not be complete...
         String message = "Unable to make discover run - may be OK if partial data.";
         Message.printStatus(2, routine, message);
+        Message.printWarning(3, routine, e);
     }
 }
 
@@ -5707,6 +5712,7 @@ private void ui_CheckGUIState ()
 	    // Some commands are available so enable commands that operate on other time series
 	    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, true);
@@ -5815,6 +5821,7 @@ private void ui_CheckGUIState ()
         // No commands are shown.
 	    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, false );
         JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem,false );
 		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, false);
@@ -8208,50 +8215,54 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=new JMenu(__Commands_CreateTimeSeries_String) );
 
-	// Create...
-
-	__Commands_CreateTimeSeries_JMenu.add( __Commands_Create_CreateFromList_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_CreateFromList_String, this) );
-	
+	// Create (break into logical groups)...
+	// Commands that create new simple data (maybe add functions or random)...
+	   
+    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
+       new SimpleJMenuItem(__Commands_Create_TS_NewPatternTimeSeries_String, this ) );
+    
+    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_NewTimeSeries_String, this ) );
+    
+    __Commands_CreateTimeSeries_JMenu.addSeparator();
+	// Commands that perform other processing and create new time series...
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_ChangeInterval_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_ChangeInterval_String, this) );
+    
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Copy_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_Copy_String, this) );
+    
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_Delta_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Delta_String, this) );
     
+    __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_TS_Disaggregate_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_Disaggregate_String, this) );
+    
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String, this) );
+
+    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String, this ) );
+    
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Normalize_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TS_Normalize_String, this ) );
+
+    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_TS_RelativeDiff_JMenuItem =
+        new SimpleJMenuItem( __Commands_Create_TS_RelativeDiff_String, this ) );
+    
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_ResequenceTimeSeriesData_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ResequenceTimeSeriesData_String, this ) );
-
+    
+    // Statistic commands...
     __Commands_CreateTimeSeries_JMenu.addSeparator();
-	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_ChangeInterval_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_TS_ChangeInterval_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Copy_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_Copy_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add( __Commands_Create_TS_Disaggregate_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_TS_Disaggregate_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String, this) );
-
-	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String, this ) );
-	
-	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
-			new SimpleJMenuItem(__Commands_Create_TS_NewPatternTimeSeries_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_RunningStatisticTimeSeries_String, this ) );
 	
 	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem =
 			new SimpleJMenuItem(__Commands_Create_TS_NewStatisticTimeSeries_String, this ) );
 
 	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewStatisticYearTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_TS_NewStatisticYearTS_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewTimeSeries_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_TS_NewTimeSeries_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Normalize_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_Normalize_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_RelativeDiff_JMenuItem =
-		new SimpleJMenuItem( __Commands_Create_TS_RelativeDiff_String, this ) );
 
 	// Convert...
 
@@ -8321,6 +8332,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Read_SetInputPeriod_String, this ) );
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
+	
+	__Commands_ReadTimeSeries_JMenu.add( __Commands_Create_CreateFromList_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_CreateFromList_String, this) );
+   
+    __Commands_ReadTimeSeries_JMenu.addSeparator ();
 	
     if ( __source_ColoradoBNDSS_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoBNDSS_JMenuItem =
@@ -10514,6 +10530,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Create_ResequenceTimeSeriesData_String) ) {
         commandList_EditCommand ( __Commands_Create_ResequenceTimeSeriesData_String, null, __INSERT_COMMAND );
+    }
+    else if (command.equals(__Commands_Create_RunningStatisticTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Create_RunningStatisticTimeSeries_String, null, __INSERT_COMMAND );
     }
 
 	// Convert TS Identifier to read command...
