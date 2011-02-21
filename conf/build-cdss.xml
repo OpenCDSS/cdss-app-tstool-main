@@ -57,6 +57,7 @@
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<!-- Additional configuration files such as for data stores -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/RCC-ACIS.cfg"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/USGS-NWIS.cfg"/>
     	<mkdir dir="${install.dir}/doc/Training"/>
     	<copy todir="${install.dir}/doc/Training">
     		<fileset dir="doc/Training">
