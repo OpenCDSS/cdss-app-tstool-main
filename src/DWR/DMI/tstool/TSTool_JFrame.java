@@ -7550,7 +7550,7 @@ private void ui_InitGUIInputFilters ( final int y )
 }
 
 /**
-Initialize the RiversideDB input filter (may be called at startup after login or File...Open RiversideDB).
+Initialize the BNDSS input filter.
 @param dataStoreList the list of data stores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
@@ -8144,7 +8144,7 @@ private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, 
             Message.printWarning ( 2, routine,
                 "Unable to initialize input filter for RiversideDB time series (MeasType/MeasLoc/Geoloc) " +
                 "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
-            Message.printWarning ( 2, routine, e );
+            Message.printWarning ( 3, routine, e );
         }
     }
 }
@@ -9819,9 +9819,16 @@ private void ui_SetInputFilters()
 		selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
 	}
     if ( selectedInputFilter_JPanel == null ) {
-        Message.printStatus(2, routine,
-            "Unable to determine input panel to use for input type \"" + selectedInputType +
-            "\".  Using blank panel." );
+        if ( selectedDataStore != null ) {
+            Message.printStatus(2, routine,
+                "Unable to determine input panel to use for data store \"" + selectedDataStoreName +
+                "\".  Using blank panel." );
+        }
+        else {
+            Message.printStatus(2, routine,
+                "Unable to determine input panel to use for input type \"" + selectedInputType +
+                "\".  Using blank panel." ); 
+        }
         selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
     }
     }
@@ -12502,8 +12509,15 @@ private void uiAction_GetTimeSeriesListClicked()
 	    Message.printWarning(1,routine,
 	        "Getting time series list for \"" + selectedInputType + "\" is not implemented." );
 	}
-	Message.printStatus ( 1, routine,
-	"Time series list from " + selectedInputType + " input type are listed in Time Series List area." );
+    if ( selectedDataStore != null ) {
+    	Message.printStatus ( 1, routine,
+    	    "Time series list from input type \"" + selectedDataStore.getName() +
+    	    "\" are listed in Time Series List area." );
+    }
+    else {
+        Message.printStatus ( 1, routine,
+            "Time series list from input type \"" + selectedInputType + "\" are listed in Time Series List area." ); 
+    }
 }
 
 /**
@@ -13847,7 +13861,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 		String dataType = StringUtil.getToken(	__dataType_JComboBox.getSelected()," ",0,0).trim();
 		String timeStep = __timeStep_JComboBox.getSelected();
 		if ( timeStep == null ) {
-			Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+			Message.printWarning ( 1, rtn, "No time series are available for timestep \"" + timeStep + "\"" );
 			JGUIUtil.setWaitCursor ( this, false );
 			return;
 		}
@@ -13862,6 +13876,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 		            (InputFilter_JPanel)__selectedInputFilter_JPanel);
 		}
 		catch ( Exception e ) {
+		    Message.printWarning(3,rtn,e);
 			results = null;
 		}
 
