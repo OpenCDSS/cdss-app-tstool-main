@@ -1,5 +1,49 @@
 # Python script to extract time series data from an Excel worksheet
 # This only works for annual data
+"""
+Extract annual time series from an Excel spreadsheet (.xls, not .xlsx)
+Usage:
+
+python extract-ts.py DataMapFile.py OutputFile.csv
+
+The worksheet specified by the "WorkSheet" variable below must have
+named cells defined for the cells above the data rows.
+The DataMapFile.py is included in this script at runtime and can contain
+the following definitions:
+
+Required/
+Optional  Variable                   Description
+
+Required  Workbook                   Path to the xls workbook file
+Required  Worksheet                  Name of the worksheet (tab) to process.
+Optional  OutputComment              If specified, this note will be added to the comments in the
+                                     output file.
+
+Optional  TimeDirection              'Horizontal' for cases where years progress to the right
+                                     'Vertical' is not supported
+Required  DataColumnNames            A list of named cells for the columns that contain data values.
+Required  DateTimes                  A list of years corresponding to data columns.
+
+Req/Opt   LocColumnName              The named cell for the column that contains location identifiers.
+                                     If not specified, LocList is required.
+Req/Opt   LocList                    The list of locations to use, when a column of location
+                                     identifiers is not available.
+                                     If not specified, LocColumnName is required.
+Optional  IfLocBlank                 Action if the location column is blank (when used with LocColumnName).
+                                     If 'Exit', stop processing data.
+                                     If 'Skip', skip the line during processing - exit when at end of worksheet.
+
+Optional  LocTranslatorAfterLookup   The name of a function to call to translate location identifiers after
+                                     looking up in the lookup table.
+Optional  LocTranslatorBeforeLookup  The name of a function to call to translate location identifiers before
+                                     looking up in the lookup table.
+Optional  LocLookupWorkbook          The workbook file name, used to translate location identifiers found in
+                                     the data sheet to other values (for example to convert a verbose identifier
+                                     to a shorter identifier suitable for data processing).
+Optional  LocLookupWorksheet         The worksheetused to translate location identifiers.
+Optional  LocLookupColumnName        The named cell for the column of the origional location ID to match.
+Optional  LocLookupColumnName2       The named cell for the column of the new location ID to use.
+"""
 
 # Standard modules...
 import logging
@@ -65,6 +109,27 @@ def main():
     except KeyError:
         # Default
         ifLocBlank = "Exit"
+    # Column name for the time series location
+    # If not specified expect LocList to be specified
+    locColumnName = None
+    try:
+        locColumnName = dataMap["LocColumnName"]
+    except KeyError:
+        # Default
+        locColumnName = None
+    locList = None
+    try:
+        locList = dataMap["LocList"]
+    except KeyError:
+        # Default
+        locList = None
+    # Make sure that LocColumnName or LocList are specified
+    if ( (locColumnName == None) and (locList == None) ):
+        print "LocColumnName or LocList must be specified"
+        exit(1)
+    if ( (locColumnName != None) and (locList != None) ):
+        print "LocColumnName or LocList must be specified"
+        exit(1)
     # Output comment
     outputComment = ""
     try:
@@ -72,6 +137,8 @@ def main():
     except KeyError:
         # Default
         outputComment = ""
+    # Data column names
+    dataColumnNames = dataMap["DataColumnNames"]
     # Read the data file that has the lookup information
     locLookupDict = None
     try:
@@ -97,18 +164,23 @@ def main():
     logger.info ( "Processing worksheet \"" + sheet.name + "\" nrows=" + str(sheet.nrows) + " ncols=" + str(sheet.ncols) )
     # Named cells are for the entire workbook
     namedCells = exceldbutil.readNamedCells ( book, sheet )
-    # Get the row for the location named cell (data will be in following row)
-    logger.info ( "Time series location column is in named column \"" + dataMap["LocColumnName"] + "\"" )
-    locXlrdName = lookupNamedCellInList ( dataMap["LocColumnName"], namedCells )
+    # Get the row for the header named cell (data will be in following row)
+    logger.info ( "Time series location column is in named column \"" + str(locColumnName) + "\"" )
+    logger.info ( "Time series first data column is in named column \"" + dataColumnNames[0] + "\"" )
+    if ( locColumnName != None ):
+        # Use the locColumnName to find the header row
+        locXlrdName = lookupNamedCellInList ( locColumnName, namedCells )
+    else:
+        # Use the dataColumnNames[0] to find the header row
+        locXlrdName = lookupNamedCellInList ( dataColumnNames[0], namedCells )
     xsheet, rowxlo, rowxhi, colxlo, colxhi = locXlrdName.area2d()
     # Note that row is 0-index based
     headerRow = rowxlo
-    logger.info ( "Column names are in Excel row " + str(headerRow + 1) +
+    logger.info ( "Column header names are in Excel row " + str(headerRow + 1) +
         ".  Data start in Excel row " + str(headerRow + 2) + "." )
     # Determine the columns for the location and data
     locColumnNumber = colxlo
     dataColumnNumbers = []
-    dataColumnNames = dataMap["DataColumnNames"]
     # Get the date/times corresponding to the data
     dateTimes = dataMap["DateTimes"]
     if ( len(dataColumnNames) != len(dateTimes) ):
@@ -136,7 +208,10 @@ def main():
         loggingutil.warning(logger,message)
         raise RuntimeError(message)
     # Allocate an array with rows corresponding to date/time and columns to the locations/time series
-    locList = []   # List of locations with time series, using time series ID string
+    locIDList = [] # List of locations with time series, using time series ID string
+    if ( locList != None ):
+        # User specified with data map (don't set values below)
+        locIDList = locList
     numRows = len(dateTimes)
     if ( ifLocBlank == "Exit" ):
         # Sheet is configured so that first blank is exit of data
@@ -184,7 +259,8 @@ def main():
                 continue
         # Read the location for the row
 	locCell = sheet.cell_value(row,locColumnNumber)
-        locList.append ( str(locCell) )
+        if ( locList == None ):
+            locIDList.append ( str(locCell) )
 	# Loop through the years in the data row...
         dataColumnCount = -1
         for dataColumnNumber in dataColumnNumbers:
@@ -218,7 +294,7 @@ def main():
     # Write the values out with date/times in column 1 and each time series in a separate column
     # The time series column names match the location identifiers with no data types or units
     # Use standard output if no output file has been specified
-    logger.info("Read " + str(len(locList)) + " locations from file for period " +
+    logger.info("Read " + str(len(locIDList)) + " locations from file for period " +
         dateTimes[0] + " to " + dateTimes[len(dateTimes) - 1] )
     out = sys.stdout
     if ( outputFile != None ):
@@ -238,7 +314,7 @@ def main():
     except KeyError:
         # Translator is not used
         locTranslatorAfterLookup = None
-    for loc in locList:
+    for loc in locIDList:
         # Single quotes are replaced by triple quotes in output if they still exist
         # (but hopefully the translation/lookup results in a "nice" location string)
         #
@@ -262,7 +338,7 @@ def main():
     # Now write the data rows
     for dateTimePos in range(len(dateTimes)):
         out.write(str(dateTimes[dateTimePos]))
-        for locPos in range(len(locList)):
+        for locPos in range(len(locIDList)):
             if ( cellValues[dateTimePos][locPos] == None ):
                 out.write(",")
             else:
