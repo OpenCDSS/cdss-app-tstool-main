@@ -51,6 +51,8 @@
     	<!-- System (configuration) files -->
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system-RTi/TSTool.cfg"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
+        <copy todir="${install.dir}/system" file="resources/runtime/system/USGS-NWIS.cfg"/>
         <!-- System configuration file for CDSS.cfg included because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<!-- Training slideshows under doc/Training -->

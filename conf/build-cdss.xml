@@ -52,6 +52,8 @@
     		</copy>
     	<!-- System (configuration) files -->
     	<copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
+        <copy todir="${install.dir}/system" file="resources/runtime/system/USGS-NWIS.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/TSTool.cfg"/>
     	<!-- System configuration file for CDSS.cfg included because HydroBase may be enabled -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>

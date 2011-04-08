@@ -47,6 +47,8 @@
     	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/TSlite.py"/>
     	<!-- System (configuration) files -->
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
+        <copy todir="${install.dir}/system" file="resources/runtime/system/USGS-NWIS.cfg"/>
     	<copy tofile="${install.dir}/system/TSTool.cfg" file="resources/runtime/system-RTi/TSTool-demo.cfg"/>
         <!-- System configuration file for CDSS.cfg included because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
