@@ -58,14 +58,14 @@ InstallDir "C:\Program Files\RTi\TSTool-${VERSION}"
 InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI defines
-!define MUI_ICON "..\rtibuild\resources\RTi.ico"
+!define MUI_ICON "..\rtibuild\resources\graphics\Riverside.ico"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_NODISABLE
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${REGKEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define MUI_STARTMENUPAGE_DEFAULT_FOLDER RTi
-!define MUI_UNICON "..\rtibuild\resources\RTi.ico"
+!define MUI_UNICON "..\rtibuild\resources\graphics\Riverside.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 !define MUI_ABORTWARNING
 
