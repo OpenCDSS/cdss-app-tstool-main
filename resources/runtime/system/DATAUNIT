@@ -72,6 +72,7 @@ L   |OTHR|CM  |SI | CENTIMETER                          |2|10.      ||
 L   |OTHR|M   |SI | METER                               |2|1000.    ||
 L   |OTHR|KM  |SI | KILOMETER                           |1|1000000. ||
 L   |OTHR|IN  |ENG| INCH                                |2|25.4     ||
+L   |OTHR|INCH|ENG| INCH                                |2|25.4     ||
 L   |OTHR|FT  |ENG| FOOT                                |2|304.8    ||
 L   |OTHR|MI  |ENG| MILE (STATUTE)                      |1|1609344. ||
 L   |OTHR|NM  |ENG| MILE (NAUTICAL)                     |1|1853248. ||
