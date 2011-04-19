@@ -7,6 +7,7 @@ package DWR.DMI.tstool;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -88,6 +89,7 @@ import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSer
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
+import rti.tscommandprocessor.commands.ts.TSID_Command;
 import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisDataStore;
 import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisSiteTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.usgsnwis.UsgsNwis_TimeSeries_InputFilter_JPanel;
@@ -188,6 +190,7 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
 import RTi.Util.GUI.TextResponseJDialog;
+import RTi.Util.IO.AbstractCommand;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
 import RTi.Util.IO.CommandDiscoverable;
@@ -199,6 +202,8 @@ import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandProcessor;
 import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
+import RTi.Util.IO.CommandProgressListener;
+import RTi.Util.IO.CommandSavesMultipleVersions;
 import RTi.Util.IO.CommandStatusProvider;
 import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.CommandStatusUtil;
@@ -254,7 +259,8 @@ ListSelectionListener,
 MessageLogListener, // To handle interaction between log view and command list
 MouseListener,
 WindowListener, // To handle window/app shutdown, in particular if called in headless mode and TSView controls
-CommandProcessorListener // To handle command processor progress updates (to update status messages)
+CommandProcessorListener, // To handle command processor progress updates (when commands start/finish)
+CommandProgressListener // To update the status based on progress within a command
 {
 
 //================================
@@ -611,7 +617,7 @@ private SimpleJButton __ClearCommands_JButton;
 /**
 The list of Command that is used with cut/copy/paste user actions.
 */
-private List __commands_cut_buffer = new Vector(100,100);
+private List<Command> __commandsCutBuffer = new Vector(100,100);
 
 // TODO SAM 2007-11-02 Evaluate putting in the processor
 /**
@@ -817,7 +823,8 @@ This is used in some cases to disable updates during bulk operations to the comm
 private boolean __ignoreListSelectionEvent = false;
 
 /**
-Indicates which data sources are enabled, initialized to defaults.
+Indicates which data sources are enabled.  Defaults are actually definitively set when
+the configuration file properties are evaluated.
 */
 private boolean
     __source_ColoradoBNDSS_enabled = false,
@@ -830,7 +837,6 @@ private boolean
 	__source_HydroBase_enabled = true,
 	__source_MexicoCSMN_enabled = false,
 	__source_MODSIM_enabled = true,
-	__source_NDFD_enabled = true,
 	__source_NWSCard_enabled = true,
 	__source_NWSRFS_FS5Files_enabled = false,
 	__source_NWSRFS_ESPTraceEnsemble_enabled = false,
@@ -916,7 +922,9 @@ private JMenuItem
 	__CommandsPopup_CancelCommandProcessing_JMenuItem,
 
 	__CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
-	__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem;
+	__CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
+    __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,
+    __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem;
 
 // File menu...
 
@@ -936,6 +944,7 @@ private JMenu
 		private JMenuItem
 		__File_Save_Commands_JMenuItem = null,
 		__File_Save_CommandsAs_JMenuItem = null,
+		__File_Save_CommandsAsVersion9_JMenuItem = null,
 		__File_Save_TimeSeriesAs_JMenuItem = null;
 private JMenu
 	__File_Print_JMenu = null;
@@ -968,11 +977,12 @@ private JMenuItem
 	__Edit_SelectAllCommands_JMenuItem = null,
 	__Edit_DeselectAllCommands_JMenuItem = null,
 	// --
-	__Edit_CommandFile_JMenuItem = null,
 	__Edit_CommandWithErrorChecking_JMenuItem = null,
 	// --
 	__Edit_ConvertSelectedCommandsToComments_JMenuItem = null,
-	__Edit_ConvertSelectedCommandsFromComments_JMenuItem = null;
+	__Edit_ConvertSelectedCommandsFromComments_JMenuItem = null,
+    __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem = null,
+    __Edit_ConvertTSIDTo_ReadCommand_JMenuItem = null;
 
 // View menu...
 
@@ -990,48 +1000,30 @@ JMenu
 	__Commands_JMenu = null,
 	__Commands_CreateTimeSeries_JMenu = null;
 JMenuItem
-	__Commands_Create_CreateFromList_JMenuItem,
+    __Commands_Create_NewPatternTimeSeries_JMenuItem,
+    __Commands_Create_NewTimeSeries_JMenuItem,
+	__Commands_Create_ChangeInterval_JMenuItem,
+	__Commands_Create_Copy_JMenuItem,
 	__Commands_Create_Delta_JMenuItem,
+	__Commands_Create_Disaggregate_JMenuItem,
+	__Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,
+	__Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,
+	__Commands_Create_Normalize_JMenuItem,
+	__Commands_Create_RelativeDiff_JMenuItem,
     __Commands_Create_ResequenceTimeSeriesData_JMenuItem,
     __Commands_Create_RunningStatisticTimeSeries_JMenuItem,
-	__Commands_Create_TS_ChangeInterval_JMenuItem,
-	__Commands_Create_TS_Copy_JMenuItem,
-	__Commands_Create_TS_Disaggregate_JMenuItem,
-	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem,
-	__Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem,
-	__Commands_Create_TS_NewPatternTimeSeries_JMenuItem,
-	__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,
-	__Commands_Create_TS_NewStatisticYearTS_JMenuItem,
-	__Commands_Create_TS_NewTimeSeries_JMenuItem,
-	__Commands_Create_TS_Normalize_JMenuItem,
-	__Commands_Create_TS_RelativeDiff_JMenuItem;
-
-// Commands (Convert TSID to Read Command)...
-
-JMenu
-	__Commands_ConvertTSIDToReadCommand_JMenu = null;
-JMenuItem
-	__Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem = null,
-    __Commands_ConvertTSIDTo_ReadDelimitedFile_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadColoradoBNDSS_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadReclamationHDB_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadStateModB_JMenuItem = null,
-	__Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem = null;
+	__Commands_Create_NewStatisticTimeSeries_JMenuItem,
+	__Commands_Create_NewStatisticYearTS_JMenuItem;
 
 // Commands (Read Time Series)...
 
 JMenu
 	__Commands_ReadTimeSeries_JMenu = null;
 JMenuItem
+    __Commands_Read_SetIncludeMissingTS_JMenuItem,
+    __Commands_Read_SetInputPeriod_JMenuItem,
 	//--
-	// NOT TS Alias = commands...
+    __Commands_Read_CreateFromList_JMenuItem,
 	__Commands_Read_ReadDateValue_JMenuItem,
     __Commands_Read_ReadDelimitedFile_JMenuItem,
     __Commands_Read_ReadHecDss_JMenuItem,
@@ -1039,29 +1031,16 @@ JMenuItem
 	__Commands_Read_ReadColoradoBNDSS_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
-	__Commands_Read_ReadNWSRFSFS5Files_JMenuItem,
+	__Commands_Read_ReadNwsrfsFS5Files_JMenuItem,
 	__Commands_Read_ReadReclamationHDB_JMenuItem,
+	__Commands_Read_ReadRiverWare_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
 	__Commands_Read_ReadStateCUB_JMenuItem,
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
-	__Commands_Read_StateModMax_JMenuItem,
-	// TS Alias = commands...
-	__Commands_Read_TS_ReadDateValue_JMenuItem,
-	__Commands_Read_TS_ReadHydroBase_JMenuItem,
-	__Commands_Read_TS_ReadMODSIM_JMenuItem,
-	__Commands_Read_TS_ReadNDFD_JMenuItem,
-	__Commands_Read_TS_ReadNwsCard_JMenuItem,
-	__Commands_Read_TS_ReadNWSRFSFS5Files_JMenuItem,
-	__Commands_Read_TS_ReadRiverWare_JMenuItem,
-	// FIXME SAM 2008-08-21 Enable when read but no need to show users now
-	//__Commands_Read_TS_ReadStateMod_JMenuItem,
-	//__Commands_Read_TS_ReadStateModB_JMenuItem,
-	__Commands_Read_TS_ReadTimeSeries_JMenuItem,
-	__Commands_Read_TS_ReadUsgsNwis_JMenuItem,
-
-	__Commands_Read_SetIncludeMissingTS_JMenuItem,
-	__Commands_Read_SetInputPeriod_JMenuItem;
+	__Commands_Read_ReadTimeSeries_JMenuItem,
+	__Commands_Read_ReadUsgsNwis_JMenuItem,
+	__Commands_Read_StateModMax_JMenuItem;
 
 	// Commands...Fill Time Series....
 JMenu
@@ -1169,8 +1148,8 @@ JMenuItem
     __Commands_Ensemble_NewEnsemble_JMenuItem,
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem,
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem,
-    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
-    __Commands_Ensemble_TS_WeightTraces_JMenuItem,
+    __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
+    __Commands_Ensemble_WeightTraces_JMenuItem,
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem;
 
 // Commands (Table)...
@@ -1267,12 +1246,6 @@ JMenu
 JMenuItem
 	__Commands_HydroBase_OpenHydroBase_JMenuItem;
 
-// Commands (NDFD)...
-JMenu
-	__Commands_NDFD_JMenu = null;
-JMenuItem
-	__Commands_NDFD_openNDFD_JMenuItem;
-
 // Run...
 
 private JMenu
@@ -1351,16 +1324,8 @@ private JMenu
 private JMenuItem
 	__Help_AboutTSTool_JMenuItem = null,
 	__Help_ViewDocumentation_JMenuItem = null,
+	__Help_ViewTrainingMaterials_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
-
-/**
-Used when editing a command - update the command.
-*/
-private final static int __UPDATE_COMMAND = 1;
-/**
-Used when editing a command - insert a new command.
-*/
-private final static int __INSERT_COMMAND = 2;
 
 // String labels for buttons and menus...
 
@@ -1404,7 +1369,8 @@ private String
 			//__File_Save_Commands_ActionString =
 				//"File...Save...Commands...", 
 			__File_Save_Commands_String = "Commands", 
-			__File_Save_CommandsAs_String = "Commands As...", 
+			__File_Save_CommandsAs_String = "Commands As...",
+			__File_Save_CommandsAsVersion9_String = "Commands As (Version 9 Syntax)...", 
 			__File_Save_TimeSeriesAs_String = "Time Series As...", 
 		__File_Print_String = "Print",
 			__File_Print_Commands_ActionString = "File...Print...Commands...", 
@@ -1429,10 +1395,11 @@ private String
 		__Edit_DeleteCommands_String = "Delete Command(s)",
 		__Edit_SelectAllCommands_String ="Select All Commands",
 		__Edit_DeselectAllCommands_String = "Deselect All Commands",
-		__Edit_CommandFile_String = "Command File...",
 		__Edit_CommandWithErrorChecking_String = "Command...",
 		__Edit_ConvertSelectedCommandsToComments_String = "Convert selected commands to # comments",
 		__Edit_ConvertSelectedCommandsFromComments_String =	"Convert selected commands from # comments",
+		__Edit_ConvertTSIDTo_ReadTimeSeries_String = "Convert TSID command to general ReadTimeSeries() command",
+		__Edit_ConvertTSIDTo_ReadCommand_String = "Convert TSID command to specific Read...() command",
 
 	// View menu (order in GUI)...
 
@@ -1445,66 +1412,44 @@ private String
 
 	__Commands_String = "Commands",
 
-	__Commands_ConvertTSIDToReadCommand_String = "Convert TS Identifier to Read Command",
-	__Commands_ConvertTSIDTo_ReadTimeSeries_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadTimeSeries()",
-	__Commands_ConvertTSIDTo_ReadDateValue_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadDateValue()",
-    __Commands_ConvertTSIDTo_ReadDelimitedFile_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadDelimitedFile()",
-	__Commands_ConvertTSIDTo_ReadHydroBase_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadHydroBase()",
-	__Commands_ConvertTSIDTo_ReadMODSIM_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadMODSIM()",
-	__Commands_ConvertTSIDTo_ReadNwsCard_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadNwsCard()",
-	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadNWSRFSFS5Files()",
-	__Commands_ConvertTSIDTo_ReadRiverWare_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadRiverWare()",
-	__Commands_ConvertTSIDTo_ReadStateMod_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadStateMod()",
-	__Commands_ConvertTSIDTo_ReadStateModB_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadStateModB()",
-	__Commands_ConvertTSIDTo_ReadUsgsNwis_String = TAB + "Convert TS Identifier (X.X.X.X.X) to TS Alias = ReadUsgsNwis()",
-
 	__Commands_CreateTimeSeries_String = "Create Time Series",
-	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1(+) time series from a list of identifiers>",
+	__Commands_Create_NewPatternTimeSeries_String = TAB + "NewPatternTimeSeries()... <create a time series with repeating data values>",
+    __Commands_Create_NewTimeSeries_String = TAB + "NewTimeSeries()... <create and initialize a new time series>",
+	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1+ time series using a list of identifiers>",
+	__Commands_Create_ChangeInterval_String = TAB + "ChangeInterval()... <create time series with new interval (timestep)>",
+	__Commands_Create_Copy_String = TAB + "Copy()... <copy a time series>",
 	__Commands_Create_Delta_String = TAB + "Delta()... <create new time series as delta between values>",
+	__Commands_Create_Disaggregate_String = TAB + "Disaggregate()... <disaggregate longer interval to shorter>",
+	__Commands_Create_NewDayTSFromMonthAndDayTS_String = TAB + "NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
+	__Commands_Create_NewEndOfMonthTSFromDayTS_String = TAB + "NewEndOfMonthTSFromDayTS()... <convert daily data to end of month time series>",
+	__Commands_Create_Normalize_String = TAB + "Normalize()... <Normalize time series to unitless values>",
+	__Commands_Create_RelativeDiff_String = TAB + "RelativeDiff()... <relative difference of time series>",
     __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()... <resequence years to create new scenarios>",
     __Commands_Create_RunningStatisticTimeSeries_String = TAB + "RunningStatisticTimeSeries()... <create a statistic time series from a running sample>",
-	__Commands_Create_TS_ChangeInterval_String = TAB + "TS Alias = ChangeInterval()... <convert time series to one with a different interval>",
-	__Commands_Create_TS_Copy_String = TAB + "TS Alias = Copy()... <copy a time series>",
-	__Commands_Create_TS_Disaggregate_String = TAB + "TS Alias = Disaggregate()... <disaggregate longer interval to shorter>",
-	__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String = TAB + "TS Alias = NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
-	__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String = TAB + "TS Alias = NewEndOfMonthTSFromDayTS()... <convert daily data to end of month time series>",
-	__Commands_Create_TS_NewPatternTimeSeries_String = TAB + "TS Alias = NewPatternTimeSeries()... <create a time series with repeating data values>",
-	__Commands_Create_TS_NewStatisticTimeSeries_String = TAB + "TS Alias = NewStatisticTimeSeries()... <create a time series as repeating statistics from a time series>",
-	__Commands_Create_TS_NewStatisticYearTS_String = TAB + "TS Alias = NewStatisticYearTS()... <create a year time series using a statistic from a time series>",
-	__Commands_Create_TS_NewTimeSeries_String = TAB + "TS Alias = NewTimeSeries()... <create and initialize a new time series>",
-	__Commands_Create_TS_Normalize_String = TAB + "TS Alias = Normalize()... <Normalize time series to unitless values>",
-	__Commands_Create_TS_RelativeDiff_String = TAB + "TS Alias = RelativeDiff()... <relative difference of time series>",
+	__Commands_Create_NewStatisticTimeSeries_String = TAB + "NewStatisticTimeSeries()... <create a time series as repeating statistics from a time series>",
+	__Commands_Create_NewStatisticYearTS_String = TAB + "NewStatisticYearTS()... <create a year time series using a statistic from a time series>",
 
 	__Commands_Read_SetIncludeMissingTS_String = TAB + "SetIncludeMissingTS()... <create empty time series if no data>",
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
-    __Commands_Read_ReadColoradoBNDSS_String = TAB + "ReadColoradoBNDSS()... <read 1(+) time series from Colorado's BNDSS database>",
-	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()... <read 1(+) time series from a DateValue file>",
-    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()... <read 1(+) time series from a delimited file (under development)>",
-    __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()... <read 1(+) time series from a HEC-DSS database file>",
-    __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()... <read 1(+) time series from HydroBase>",
-	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()... <read 1(+) time ries from a MODSIM output file>",
-	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1(+) time series from an NWS CARD file>",
-	__Commands_Read_ReadNWSRFSFS5Files_String = TAB + "ReadNWSRFSFS5Files()... <read 1(+) time series from NWSRFS FS5 files>",
-	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1(+) time series from Reclamation's HDB database>",
-	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1(+) time series from a StateCU file>",
-	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()... <read 1(+) time series from a StateCU binary output file>",
-	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1(+) time series from a StateMod file>",
-	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1(+) time series from a StateMod binary output file>",
-	__Commands_Read_StateModMax_String = TAB + "StateModMax()... <generate 1(+) time series as Max() of TS in two StateMod files>",
-
-	__Commands_Read_TS_ReadDateValue_String = TAB +	"TS Alias = ReadDateValue()... <read 1 time series from a DateValue file>",
-	__Commands_Read_TS_ReadHydroBase_String = TAB + "TS Alias = ReadHydroBase()... <read 1 time series from HydroBase>",
-	__Commands_Read_TS_ReadMODSIM_String = TAB + "TS Alias = ReadMODSIM()... <read 1 time series from a MODSIM output file>",
-	__Commands_Read_TS_ReadNDFD_String = TAB + "TS Alias = ReadNDFD()... <read 1 time series from NDFD web service>",
-	__Commands_Read_TS_ReadNwsCard_String = TAB + "TS Alias = ReadNwsCard()... <read 1 time series from an NWS CARD file>",
-	__Commands_Read_TS_ReadNWSRFSFS5Files_String = TAB + "TS Alias = ReadNWSRFSFS5Files()... <read 1 time series from NWSRFS FS5 files>",
-	__Commands_Read_TS_ReadRiverWare_String = TAB +	"TS Alias = ReadRiverWare()... <read 1 time series from a RiverWare file>",
-	__Commands_Read_TS_ReadStateMod_String = TAB + "TS Alias = ReadStateMod()... <read 1 time series from a StateMod file>",
-	__Commands_Read_TS_ReadStateModB_String = TAB + "TS Alias = ReadStateModB()... <read 1 time series from a StateMod binary file>",
-	__Commands_Read_TS_ReadTimeSeries_String = TAB + "TS Alias = ReadTimeSeries()... <read 1 time series given a full TSID>",
-	__Commands_Read_TS_ReadUsgsNwis_String = TAB + "TS Alias = ReadUsgsNwis()... <read 1 time series from a USGS NWIS file>",
+    __Commands_Read_ReadColoradoBNDSS_String = TAB + "ReadColoradoBNDSS()... <read 1+ time series from Colorado's BNDSS database>",
+	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()... <read 1+ time series from a DateValue file>",
+    __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()... <read 1+ time series from a delimited file (under development)>",
+    __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()... <read 1+ time series from a HEC-DSS database file>",
+    __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()... <read 1+ time series from HydroBase>",
+	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()... <read 1+ time ries from a MODSIM output file>",
+	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1+ time series from an NWS CARD file>",
+	__Commands_Read_ReadNwsrfsFS5Files_String = TAB + "ReadNwsrfsFS5Files()... <read 1 time series from NWSRFS FS5 files>",
+	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series from Reclamation's HDB database>",
+	__Commands_Read_ReadRiverWare_String = TAB + "ReadRiverWare()... <read 1 time series from a RiverWare file>",
+	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1+ time series from a StateCU file>",
+	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()... <read 1+ time series from a StateCU binary output file>",
+	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1+ time series from a StateMod file>",
+	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1+ time series from a StateMod binary output file>",
+	__Commands_Read_ReadTimeSeries_String = TAB + "ReadTimeSeries()... <read 1 time series given a full TSID>",
+	__Commands_Read_ReadUsgsNwis_String = TAB + "ReadUsgsNwis()... <read 1 time series from a USGS NWIS file>",
+	__Commands_Read_StateModMax_String = TAB + "StateModMax()... <generate 1+ time series as Max() of TS in two StateMod files>",
 
 	// Commands... Fill Time Series...
 
@@ -1586,7 +1531,7 @@ private String
 	// Commands...Models...
 
 	__Commands_Models_Routing_String = "Models - Routing",
-	__Commands_Models_Routing_LagK_String = "TS Alias = LagK()... <lag and attenuate (route)>",
+	__Commands_Models_Routing_LagK_String = "LagK()... <lag and attenuate (route)>",
 	__Commands_Models_Routing_VariableLagK_String = "VariableLagK()... <lag and attenuate (route)>",
     
 	// HydroBase commands...
@@ -1594,11 +1539,6 @@ private String
 	__Commands_HydroBase_String = "HydroBase",
 	__Commands_HydroBase_OpenHydroBase_String = TAB + "OpenHydroBase()... <open HydroBase database connection>",
 
-	// NDFD commands...
-
-	//__Commands_NDFD_String = "NDFD",
-	//__Commands_NDFD_openNDFD_String = TAB +	"OpenNDFD()... <open NDFD web site connection>",
-    
     // Commands...Ensemble processing...
     
     __Commands_Ensemble_String = "Ensemble Processing",
@@ -1608,8 +1548,8 @@ private String
     __Commands_Ensemble_NewEnsemble_String = TAB + "NewEnsemble()... <create a new ensemble from 0+ time series>",
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()... <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String = TAB + "InsertTimeSeriesIntoEnsemble()... <insert 1+ time series into an ensemble>",
-    __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String = TAB + "TS Alias = NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble>",
-    __Commands_Ensemble_TS_WeightTraces_String = TAB + "TS Alias = WeightTraces()... <weight traces to create a new time series>",
+    __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String = TAB + "NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble>",
+    __Commands_Ensemble_WeightTraces_String = TAB + "WeightTraces()... <weight traces to create a new time series>",
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String = TAB + "WriteNwsrfsEspTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
     
     // Table Commands...
@@ -1749,6 +1689,7 @@ private String
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
 		__Help_ViewDocumentation_String = "View Documentation",
+		__Help_ViewTrainingMaterials_String = "View Training Materials",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
 	// Strings used in popup menu for other components...
@@ -1994,7 +1935,7 @@ public void commandCancelled ( int icommand, int ncommand, Command command, floa
 	// Refresh the results with what is available...
 	//String command_string = command.toString();
 	ui_UpdateStatusTextFields ( 1, routine,	"Cancelled command processing.",
-			//"Cancelled: " + command_string,
+			//"Canceled: " + command_string,
 				null, __STATUS_CANCELLED );
 	uiAction_RunCommands_ShowResults ();
 }
@@ -2174,14 +2115,14 @@ Edit a command in the command list.
 for new commands.  When editing existing commands, command_Vector will contain
 a list of Command class instances.  Normally only the first command will be edited as
 a single-line command.  However, multiple # comment lines can be selected and edited at once.
-@param command_Vector If an update, this contains the current Command instances
+@param commandsToEdit If an update, this contains the current Command instances
 to edit.  If a new command, this is null and the action string will be consulted
 to construct the appropriate command.  The only time that multiple commands will
 be edited are when they are in a {# delimited comment block).
-@param mode the action to take when editing the command (__INSERT_COMMAND for a
-new command or __UPDATE_COMMAND for an existing command).
+@param mode the action to take when editing the command (INSERT for a
+new command or UPDATE for an existing command).
 */
-private void commandList_EditCommand ( String action, List<Command> command_Vector, int mode )
+private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode )
 {	String routine = getClass().getName() + ".editCommand";
 	int dl = 1; // Debug level
 	
@@ -2191,13 +2132,55 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
     //Message.setPropValue ( "ShowWarningDialog=true" );
 	
 	// FIXME SAM 2011-02-19 Need to do a better job positioning the cursor in the list after edit
+	
+	if ( mode == CommandEditType.CONVERT ) {
+	    // Special case for converting TSID commands to Read() commands...
+	    StringBuffer b = new StringBuffer();
+	    Command command;
+	    boolean requireSpecific = false; // OK to use ReadTimeSeries()
+	    if ( !action.equals(__Edit_ConvertTSIDTo_ReadTimeSeries_String)) {
+	        requireSpecific = true; // Need to have specific read command
+	    }
+	    for ( int iCommand = 0; iCommand < commandsToEdit.size(); iCommand++ ) {
+	        // Should only operate on TSID, otherwise ignore
+	        command = commandsToEdit.get(iCommand);
+	        if ( command instanceof TSID_Command ) {
+	            // Create a TSIdent from the command
+	            try {
+	                Command newCommand = TSCommandProcessorUtil.convertTSIDToReadCommand (
+	                    __tsProcessor, command.toString(), requireSpecific );
+	                // Replace the current command with the new command...
+	                int insertPos = commandList_IndexOf(command);
+	                commandList_RemoveCommand(command);
+	                commandList_InsertCommandAt(newCommand,insertPos);
+	                // Run discovery mode on the command...
+	                if ( newCommand instanceof CommandDiscoverable ) {
+	                    commandList_EditCommand_RunDiscovery ( newCommand );
+	                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+	                }
+	            }
+	            catch ( Exception e ) {
+	                if ( b.length() != 0 ) {
+	                    b.append ( ", " );
+	                }
+	                b.append ( "\"" + command.toString() + "\" (" + e + ")" );
+	            }
+	        }
+	    }
+	    if ( b.length() > 0 ) {
+	        b.insert(0, "There were errors converting TSID to Read...() commands:  " );
+	        Message.printWarning(1,routine,b.toString());
+	    }
+	    ui_ShowCurrentCommandListStatus();
+	    return;
+	}
     
 	// Indicate whether the commands are a block of # comments.
 	// If so then need to use a special editor rather than typical one-line editors.
-	boolean is_comment_block = false;
-	if ( mode == __UPDATE_COMMAND ) {
-		is_comment_block = commandList_IsCommentBlock ( __tsProcessor,
-			command_Vector,
+	boolean isCommentBlock = false;
+	if ( mode == CommandEditType.UPDATE ) {
+		isCommentBlock = commandList_IsCommentBlock ( __tsProcessor,
+			commandsToEdit,
 			true,	// All must be comments
 			true );	// Comments must be contiguous
 	}
@@ -2205,10 +2188,10 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
 		// New command, so look for comment actions.
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
 		        action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
-			is_comment_block = true;
+			isCommentBlock = true;
 		}
 	}
-	if ( is_comment_block ) {
+	if ( isCommentBlock ) {
 		Message.printStatus(2, routine, "Command is a comment block.");
 	}
 
@@ -2223,31 +2206,31 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
 	// If a new command is being inserted and a cancel occurs, the command will simply be removed from the list.
 	// If an existing command is being updated and a cancel occurs, the changes need to be ignored.
 	
-	Command command_to_edit_original = null;	// Command being edited (original).
-	Command command_to_edit = null;	// Command being edited (clone).
-	if ( mode == __UPDATE_COMMAND ) {
+	Command commandToEditOriginal = null;	// Command being edited (original).
+	Command commandToEdit = null;	// Command being edited (clone).
+	if ( mode == CommandEditType.UPDATE ) {
 		// Get the command from the processor...
-		if ( is_comment_block ) {
+		if ( isCommentBlock ) {
 			// Use the string-based editor dialog and then convert each
 			// comment line into a command.  Don't do anything to the command list yet
 		}
 		else {
 			// Get the original command...
-			command_to_edit_original = command_Vector.get(0);
+			commandToEditOriginal = commandsToEdit.get(0);
 			// Clone it so that the edit occurs on the copy...
-			command_to_edit = (Command)command_to_edit_original.clone();
-			Message.printStatus(2, routine, "Cloned command to edit: \"" + command_to_edit + "\"" );
+			commandToEdit = (Command)commandToEditOriginal.clone();
+			Message.printStatus(2, routine, "Cloned command to edit: \"" + commandToEdit + "\"" );
 			// Remove the original command...
-			int pos = commandList_IndexOf ( command_to_edit_original );
-			commandList_RemoveCommand ( command_to_edit_original );
+			int pos = commandList_IndexOf ( commandToEditOriginal );
+			commandList_RemoveCommand ( commandToEditOriginal );
 			// Insert the copy during the edit...
-			commandList_InsertCommandAt ( command_to_edit, pos );
+			commandList_InsertCommandAt ( commandToEdit, pos );
 			Message.printStatus(2, routine,
 				"Will edit the copy and restore to the original if the edit is cancelled.");
 		}
 	}
-	else if ( mode == __INSERT_COMMAND ) {
-		if ( is_comment_block ) {
+	else if ( mode == CommandEditType.INSERT ) {
+		if ( isCommentBlock ) {
 			// Don't do anything here.  New comments will be inserted in code below.
 		}
 		else {
@@ -2266,12 +2249,12 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
 						"Using command factory to create new command for \"" + command_string + "\"" );
 			}
 		
-			command_to_edit = commandList_NewCommand( command_string, true );
-			Message.printStatus(2, routine, "Created new command to insert:  \"" + command_to_edit + "\"" );
+			commandToEdit = commandList_NewCommand( command_string, true );
+			Message.printStatus(2, routine, "Created new command to insert:  \"" + commandToEdit + "\"" );
         
 			// Add it to the processor at the insert point of the edit (before the first selected command...
         
-			commandList_InsertCommandBasedOnUI ( command_to_edit );
+			commandList_InsertCommandBasedOnUI ( commandToEdit );
 			Message.printStatus(2, routine, "Inserted command for editing.");
 		}
 	}
@@ -2280,16 +2263,16 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
 
 	boolean edit_completed = false;
 	List<String> new_comments = new Vector();	// Used if comments are edited.
-	if ( is_comment_block ) {
+	if ( isCommentBlock ) {
 		// Edit using the old-style editor...
-		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, command_Vector, new_comments );
+		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, commandsToEdit, new_comments );
 	}
 	else {
 	    // Editing a single one-line command...
         try {
    			// Edit with the new style editors...
    			Message.printStatus(2, routine, "Editing Command with new-style editor.");
-   			edit_completed = commandList_EditCommandNewStyle ( command_to_edit );
+   			edit_completed = commandList_EditCommandNewStyle ( commandToEdit );
         }
         catch ( Exception e ) {
             Message.printWarning (1 , routine, "Unexpected error editing command - refer to log and report to software support." );
@@ -2303,63 +2286,71 @@ private void commandList_EditCommand ( String action, List<Command> command_Vect
     // If the command implements CommandDiscoverable, try to make the discovery run.
 
 	if ( edit_completed ) {
-		if ( mode == __INSERT_COMMAND ) {
-			if ( is_comment_block ) {
+		if ( mode == CommandEditType.INSERT ) {
+			if ( isCommentBlock ) {
 				// Insert the comments at the insert point...
 				commandList_InsertCommentsBasedOnUI ( new_comments );
 			}
 			else {
 				// The command has already been inserted in the list.
-				Message.printStatus(2, routine, "After insert, command is:  \"" + command_to_edit + "\"" );
-                if ( command_to_edit instanceof CommandDiscoverable ) {
-                    commandList_EditCommand_RunDiscovery ( command_to_edit );
+				Message.printStatus(2, routine, "After insert, command is:  \"" + commandToEdit + "\"" );
+                // Connect the command to the UI to handle progress when the command is run.
+                // TODO SAM 2009-03-23 Evaluate whether to define and interface rather than rely on
+                // AbstractCommand here.
+                if ( commandToEdit instanceof AbstractCommand ) {
+                    ((AbstractCommand)commandToEdit).addCommandProgressListener ( this );
+                }
+                if ( commandToEdit instanceof CommandDiscoverable ) {
+                    commandList_EditCommand_RunDiscovery ( commandToEdit );
+                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
                 }
 			}
 			commandList_SetDirty(true);
 		}
-		else if ( mode == __UPDATE_COMMAND ) {
+		else if ( mode == CommandEditType.UPDATE ) {
 			// The command was updated.
-			if ( is_comment_block ) {
+			if ( isCommentBlock ) {
 				// Remove the commands that were selected and insert the new ones.
-				commandList_ReplaceComments ( command_Vector, new_comments );
-				if ( !commandList_CommandsAreEqual(command_Vector,new_comments)) {
+				commandList_ReplaceComments ( commandsToEdit, new_comments );
+				if ( !commandList_CommandsAreEqual(commandsToEdit,new_comments)) {
 					commandList_SetDirty(true);
 				}
 			}
 			else {
 				// The contents of the command will have been modified so there is no need to do anything more.
-				Message.printStatus(2, routine, "After edit, command is:  \"" + command_to_edit + "\"" );
-				if ( !command_to_edit_original.toString().equals(command_to_edit.toString())) {
+				Message.printStatus(2, routine, "After edit, command is:  \"" + commandToEdit + "\"" );
+				if ( !commandToEditOriginal.toString().equals(commandToEdit.toString())) {
 					commandList_SetDirty(true);
 				}
-                if ( command_to_edit instanceof CommandDiscoverable ) {
-                    commandList_EditCommand_RunDiscovery ( command_to_edit );
+                if ( commandToEdit instanceof CommandDiscoverable ) {
+                    commandList_EditCommand_RunDiscovery ( commandToEdit );
+                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
                 }
 			}
 		}
 	}
 	else {
         // The edit was canceled.  If it was a new command being inserted, remove the command from the processor...
-		if ( mode == __INSERT_COMMAND ) {
-			if ( is_comment_block ) {
+		if ( mode == CommandEditType.INSERT ) {
+			if ( isCommentBlock ) {
 				// No comments were inserted at start of edit.  No need to do anything.
 			}
 			else {
 				// A temporary new command was inserted so remove it.
-				commandList_RemoveCommand(command_to_edit);
+				commandList_RemoveCommand(commandToEdit);
 				Message.printStatus(2, routine, "Edit was canceled.  Removing from command list." );
 			}
 		}
-		else if ( mode == __UPDATE_COMMAND ) {
-			if ( is_comment_block ) {
+		else if ( mode == CommandEditType.UPDATE ) {
+			if ( isCommentBlock ) {
 				// The original comments will remain.  No need to do anything.
 			}
 			else {
 				// Else was an update so restore the original command...
 			    Message.printStatus(2, routine, "Edit was canceled.  Restoring pre-edit command." );
-				int pos = commandList_IndexOf(command_to_edit);
-				commandList_RemoveCommand(command_to_edit);
-				commandList_InsertCommandAt(command_to_edit_original, pos);
+				int pos = commandList_IndexOf(commandToEdit);
+				commandList_RemoveCommand(commandToEdit);
+				commandList_InsertCommandAt(commandToEditOriginal, pos);
 			}
 		}
 	}
@@ -2416,7 +2407,7 @@ Edit comments using an old-style editor.
 @return true if the command edits were committed, false if canceled.
 */
 private boolean commandList_EditCommandOldStyleComments (
-	int mode, String action, List<Command> command_Vector, List<String> new_comments )
+	CommandEditType mode, String action, List<Command> command_Vector, List<String> new_comments )
 {	//else if ( action.equals(__Commands_General_Comment_String) ||
 	//	command.startsWith("#") ) {
     List<String> cv = new Vector();
@@ -2491,7 +2482,7 @@ private List<Command> commandList_GetCommandsBasedOnUI ( )
 
 /**
 Get the list of commands to process, as a Vector of String.
-@return the commands as a Vector of String.
+@return the commands as a list of String.
 @param get_all If false, return those that are selected
 unless none are selected, in which case all are returned.  If true, all are
 returned, regardless of which are selected.
@@ -2819,8 +2810,7 @@ private void commandList_RemoveCommandsBasedOnUI ()
 }
 
 /**
-Replace a command with another.  This is used, for example, when converting commands
-to/from comments.
+Replace a command with another.  This is used, for example, when converting commands to/from comments.
 @param old_command Old command to remove.
 @param new_command New command to insert in its place.
 */
@@ -2949,22 +2939,26 @@ from a CommandProcessor that implements CommandListener to listen to a command. 
 level of monitoring is useful if more than one progress indicator is present in an application UI.
 @param istep The number of steps being executed in a command (0+).
 @param nstep The total number of steps to process within a command.
-@param command The reference to the command that is starting to run,
-provided to allow future interaction with the command.
-@param percent_complete If >= 0, the value can be used to indicate progress
+@param command The reference to the command that is running.
+@param percentComplete If >= 0, the value can be used to indicate progress
 running a single command (not the single command).  If less than zero, then
 no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((istep + 1)/nstep)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandProgress ( int istep, int nstep, Command command, float percent_complete, String message )
+public void commandProgress ( int istep, int nstep, Command command, float percentComplete, String message )
 {	if ( istep == 0 ) {
 		// Initialize the limits of the command progress bar.
 		__command_JProgressBar.setMinimum ( 0 );
 		__command_JProgressBar.setMaximum ( nstep );
 	}
 	// Set the current value...
-	__command_JProgressBar.setValue ( istep + 1 );
+    if ( percentComplete > 0.0 ) {
+        __command_JProgressBar.setValue ( (int)(nstep*percentComplete/100.0) );
+    }
+    else {
+        __command_JProgressBar.setValue ( istep + 1 );
+    }
 }
 
 // All of the following methods perform and interaction with the command processor,
@@ -3703,8 +3697,18 @@ public void commandStarted ( int icommand, int ncommand, Command command,
 	// For this method, only reset the bounds of the progress bar and
 	// clear if the first command.
 	String tip = "Running command " + (icommand + 1) + " of " + ncommand;
-	ui_UpdateStatusTextFields ( 1, routine, null, tip + ": \"" + command.getCommandName() + "(...)\"",
-	    __STATUS_BUSY );
+	// If RunCommands() is being run, then also put the input file name to make it easier to understand progress
+	String additionalInfo = "";
+	String commandName = command.getCommandName();
+	if ( commandName.equalsIgnoreCase("RunCommands") ) {
+	    additionalInfo = command.getCommandParameters().getValue("InputFile");
+	    if ( additionalInfo.length() > 30 ) {
+	        additionalInfo = additionalInfo.substring(0,30);
+	    }
+	    additionalInfo += "...";
+	}
+	ui_UpdateStatusTextFields ( 1, routine, null, tip + ": \"" + commandName + "(..." +
+	    additionalInfo + ")\"", __STATUS_BUSY );
 	if ( icommand == 0 ) {
 		__processor_JProgressBar.setMinimum ( 0 );
 		__processor_JProgressBar.setMaximum ( ncommand );
@@ -4833,6 +4837,7 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
     if ( tsid_command instanceof CommandDiscoverable ) {
         // Run discovery on the command to do initial validation and provide data to other commands
         commandList_EditCommand_RunDiscovery ( tsid_command );
+        // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
     }
     ui_ShowCurrentCommandListStatus();
     commandList_SetDirty ( true );
@@ -5315,8 +5320,14 @@ Get the ensemble identifier from a displayed ensemble item, which is in the form
 private TSEnsemble results_Ensembles_GetEnsembleID ( String displayItem )
 {   String routine = getClass().getName() + ".results_Ensembles_GetEnsembleID";
     String message;
-    String s = displayItem.substring(displayItem.indexOf( " " )).trim();
-    String ensembleID = StringUtil.getToken ( s, "-", 0, 0 ).trim();
+    // Get the "N) EnsembleID" string...
+    // This could still be an issue if the ensemble ID has " - " in the name, but at least it is less
+    // likely than just "-"
+    int pos = displayItem.indexOf( " - " );
+    String s = displayItem.substring(0,pos).trim();
+    // Now get the ensemble ID part of the string...
+    pos = displayItem.indexOf( ")" );
+    String ensembleID = s.substring(pos + 1).trim();
     PropList requestParams = new PropList ( "" );
     requestParams.set ( "EnsembleID", ensembleID );
     CommandProcessorRequestResultsBean bean = null;
@@ -5550,11 +5561,11 @@ private void ui_CheckGUIState ()
 		query_list_size = __query_TableModel.getRowCount();
 	}
 
-	int command_list_size = 0;
-	int selected_commands_size = 0;
+	int commandListSize = 0;
+	int selectedCommandsSize = 0;
 	if ( __commands_JListModel != null ) {
-		command_list_size = __commands_JListModel.size();
-		selected_commands_size = JGUIUtil.selectedSize ( ui_GetCommandJList() );
+		commandListSize = __commands_JListModel.size();
+		selectedCommandsSize = JGUIUtil.selectedSize ( ui_GetCommandJList() );
 	}
 
 	int ts_list_size = 0;
@@ -5584,7 +5595,7 @@ private void ui_CheckGUIState ()
 	// File menu...
 
 	enabled = false; // Use for File...Save menu.
-	if ( command_list_size > 0 ) {
+	if ( commandListSize > 0 ) {
 		// Have commands shown...
 		if ( __commandsDirty  ) {
 			JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,true );
@@ -5593,6 +5604,7 @@ private void ui_CheckGUIState ()
             JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem,false );
 		}
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
+		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
 		enabled = true;
@@ -5601,6 +5613,7 @@ private void ui_CheckGUIState ()
 	    // No commands are shown.
 		JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
 	}
@@ -5646,7 +5659,7 @@ private void ui_CheckGUIState ()
 
 	// Edit menu...
 
-	if ( command_list_size > 0 ) {
+	if ( commandListSize > 0 ) {
 		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem, true);
 		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,true);
@@ -5659,7 +5672,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,false);
 		JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,false);
 	}
-	if ( selected_commands_size > 0 ) {
+	if ( selectedCommandsSize > 0 ) {
 		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,true);
 		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem,true);
@@ -5672,6 +5685,10 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,true);
 		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,true);
 		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,true);
+        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
+        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
+        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem,true);
+        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,true);
 	}
 	else {
 		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem, false );
@@ -5686,8 +5703,12 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,false);
 		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,false);
 		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,false);
+        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem,false);
+        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,false);
+        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem,false);
+        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,false);
 	}
-	if ( __commands_cut_buffer.size() > 0 ) {
+	if ( __commandsCutBuffer.size() > 0 ) {
 		// Paste button should be enabled...
 		JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, true );
 		JGUIUtil.setEnabled ( __CommandsPopup_Paste_JMenuItem, true );
@@ -5708,20 +5729,20 @@ private void ui_CheckGUIState ()
 
 	// Commands menu...
 
-	if ( command_list_size > 0 ) {
+	if ( commandListSize > 0 ) {
 	    // Some commands are available so enable commands that operate on other time series
 	    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,	true );
+		JGUIUtil.setEnabled ( __Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, true);
+		JGUIUtil.setEnabled ( __Commands_Create_RelativeDiff_JMenuItem, true);
+	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticTimeSeries_JMenuItem,true);
+	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticYearTS_JMenuItem,true);
         JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem,	true );
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticYearTS_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Normalize_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_RelativeDiff_JMenuItem, true);
 
 		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, true);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
@@ -5794,8 +5815,8 @@ private void ui_CheckGUIState ()
         
         JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_WeightTraces_JMenuItem, true);
         JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,true);
 
 		/* TODO - it is irritating to not be able to run commands
@@ -5808,7 +5829,7 @@ private void ui_CheckGUIState ()
             JGUIUtil.setEnabled ( __run_commands_JButton, false );
 		}
 		*/
-		if ( selected_commands_size > 0 ) {
+		if ( selectedCommandsSize > 0 ) {
 			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, true );
 		}
 		else {
@@ -5821,16 +5842,16 @@ private void ui_CheckGUIState ()
         // No commands are shown.
 	    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, false );
         JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,false);
+		JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, false);
+		JGUIUtil.setEnabled ( __Commands_Create_RelativeDiff_JMenuItem, false);
+	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticTimeSeries_JMenuItem,false );
+	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticYearTS_JMenuItem,false );
         JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem,false );
-		JGUIUtil.setEnabled ( __Commands_Create_TS_ChangeInterval_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Copy_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Disaggregate_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticTimeSeries_JMenuItem,false );
-		JGUIUtil.setEnabled ( __Commands_Create_TS_NewStatisticYearTS_JMenuItem,false );
-		JGUIUtil.setEnabled ( __Commands_Create_TS_Normalize_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_TS_RelativeDiff_JMenuItem, false);
 
 		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,	false);
@@ -5879,8 +5900,8 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
 
-		// TODO SAM 2005-07-11 For now enable because models can create time series...
-		//JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, false );
+		// TODO SAM 2005-07-11 Change if any models are added that don't need input time series...
+		JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, false );
         
 		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
 		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
@@ -5897,26 +5918,26 @@ private void ui_CheckGUIState ()
         
         JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
-        JGUIUtil.setEnabled ( __Commands_Ensemble_TS_WeightTraces_JMenuItem, false);
+        JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
+        JGUIUtil.setEnabled ( __Commands_Ensemble_WeightTraces_JMenuItem, false);
         JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,false);
 
 		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
 		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
 	}
-	if ( selected_commands_size > 0 ) {
-		JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_ConvertTSIDToReadCommand_JMenu,true);
+	if ( selectedCommandsSize > 0 ) {
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,true);
 	}
 	else {
-		JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadDateValue_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_ConvertTSIDToReadCommand_JMenu,false);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,false);
+		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,false);
 	}
 
 	// Run menu...
 	
-	ui_CheckGUIState_RunMenu ( command_list_size, selected_commands_size );
+	ui_CheckGUIState_RunMenu ( commandListSize, selectedCommandsSize );
 
 	// Results menu...
 
@@ -5960,27 +5981,6 @@ private void ui_CheckGUIState ()
 	else {
         JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
 	}
-
-	// Disable all of the following menus until the dialogs can be enabled.
-	// If not enabled below, the command may be phased out or merged with another command...
-
-	// TODO - all of these are new features.  The intent is to convert
-	// a TSID to a specific read command, as available in other menus,
-	// simplifying the conversion from time series browsing, to command language.
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadDateValue_JMenuItem,false);
-    JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadDelimitedFile_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadStateMod_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadStateModB_JMenuItem,false);
-	JGUIUtil.setEnabled ( __Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem,false);
-
-	// TODO SAM 2005-09-02 Proposed new commands
-	//JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateModB_JMenuItem,false);
-	//JGUIUtil.setEnabled(__Commands_Read_TS_ReadStateMod_JMenuItem,false);
 
 	// TODO Not available as a command yet - logic not coded...
 	JGUIUtil.setEnabled(__Commands_Fill_FillMOVE1_JMenuItem,false);
@@ -6136,10 +6136,12 @@ private void ui_CheckHydroBaseFeatures ()
 	}
 }
 
+// TODO SAM 2011-03-21 It would be great to have this go away and rely only on the
+// configuration file properties and plug-in jars
 /**
 Disable input types depending on the license.  For example, if the license type
 is "CDSS", then RTi-developed input types like RiversideDB and DIADvisor are
-disabled.  For the most part, the RTi license should be the default and only
+disabled.  For the most part, input types should all be enabled and only
 CDSS turns input types off in this method.
 @param licenseManager license manager for the session.
 */
@@ -6150,21 +6152,19 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 	String routine = "TSTool_JFrame.checkInputTypesForLicense";
 	if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
 	    // These generally are not going to be used with CDSS
-		Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
-		__source_DIADvisor_enabled = false;
-		Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
-		__source_MexicoCSMN_enabled = false;
+		//Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
+		//__source_DIADvisor_enabled = false;
+		//Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
+		//__source_MexicoCSMN_enabled = false;
 		// TODO SAM 2008-10-02 Evaluate whether to permanently make this change in defaults
 		// Allow MODSIM to be turned on for CDSS since it appears to be a model that might be used
 		// in some parts of the State.
 		//Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
 		//__source_MODSIM_enabled = false;
-		Message.printStatus ( 2, routine, "NDFD input type being disabled for CDSS." );
-		__source_NDFD_enabled = false;
-		Message.printStatus ( 2, routine, "RiversideDB data stores being disabled for CDSS." );
-		__source_RiversideDB_enabled = false;
-		Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
-		__source_SHEF_enabled = false;
+		//Message.printStatus ( 2, routine, "RiversideDB data stores being disabled for CDSS." );
+		//__source_RiversideDB_enabled = false;
+		//Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
+		//__source_SHEF_enabled = false;
 	}
 }
 
@@ -6250,33 +6250,25 @@ Enable the input and data store types based on the TSTool configuration.  Featur
 private void ui_EnableInputTypesForConfiguration ()
 {
     // Determine which data sources are available.  This controls the look
-    // and feel of the GUI.  Alphabetize the checks.  Initialize default
-    // properties for each area if necessary (all other properties are
-    // defaulted after checking the individual input types)...
+    // and feel of the GUI.  Alphabetize the checks.  A default value is set for the case where
+    // the configuration file may not contain a property, and then a check of the string value
+    // is done to set to a value other than the default
 
-    // DateValue always enabled by default...
-
-    String prop_value = null;
-    __source_DateValue_enabled = true;
+    String propValue = null;
     
     // Colorado BNDSS disabled by default (since only used in CDSS)...
 
     __source_ColoradoBNDSS_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoBNDSSEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_ColoradoBNDSS_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_ColoradoBNDSS_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoBNDSSEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_ColoradoBNDSS_enabled = true;
     }
     
     // ColoradoSMS not enabled by default (used in CDSS, requires direct SQL Server access)...
 
     __source_ColoradoSMS_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ColoradoSMS_enabled = true;
     }
     
@@ -6284,101 +6276,61 @@ private void ui_EnableInputTypesForConfiguration ()
     // (can be slow at startup due to input filter initialization) but can turn on...
 
     __source_ColoradoWaterHBGuest_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ColoradoWaterHBGuest_enabled = true;
     }
     
     // State of Colorado Water SMS web service enabled by default
-    // (not slow at start because no input filter initialization)...
+    // (fast startup because no input filter initialization)...
 
     __source_ColoradoWaterSMS_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_ColoradoWaterSMS_enabled = false;
     }
-    if ( __source_HydroBase_enabled ) {
-        // Automatically enable the real-time web services input type...
-        // Use newer notation...
-        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "true" );
-    }
-    else {
-        __props.set ( "TSTool.ColoradoWaterSMSEnabled", "false" );
+    
+    // DateValue enabled by default...
+
+    __source_DateValue_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.DateValueEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_DateValue_enabled = false;
     }
 
-    // DIADvisor not enabled by default (only useful for users with DIADvisor)...
+    // DIADvisor disabled by default (only useful for users with DIADvisor)...
 
     __source_DIADvisor_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_DIADvisor_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_DIADvisor_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_DIADvisor_enabled = true;
     }
     
     // HEC-DSS enabled by default on Windows and always off on UNIX because DLLs are for Windows.
     // TODO SAM 2009-04-14 Emailed Bill Charley and waiting on answer for support of other OS.
 
-    __source_HECDSS_enabled = true;
     if ( IOUtil.isUNIXMachine() ) {
         // Disable on UNIX
         __source_HECDSS_enabled = false;
     }
     else {
-        prop_value = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
-        if ( prop_value != null ) {
-            if ( prop_value.equalsIgnoreCase("false") ) {
-                __source_HECDSS_enabled = false;
-            }
-            else if ( prop_value.equalsIgnoreCase("true") ) {
-                __source_HECDSS_enabled = true;
-            }
+        __source_HECDSS_enabled = true;
+        propValue = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
+        if ( (propValue != null)&& propValue.equalsIgnoreCase("false") ) {
+            __source_HECDSS_enabled = false;
         }
     }
-
-    // NWSRFS_ESPTraceEnsemble disabled by default...
-
-    __source_NWSRFS_ESPTraceEnsemble_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_NWSRFS_ESPTraceEnsemble_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_NWSRFS_ESPTraceEnsemble_enabled = true;
-        }
-    }
-    // Always disable if not available in the Jar file...
-    if ( !IOUtil.classCanBeLoaded( "RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble") ) {
-        __source_NWSRFS_ESPTraceEnsemble_enabled = false;
-    }
-
-    // NWSRFS_FS5Files disabled by default...
-
-    __source_NWSRFS_FS5Files_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_NWSRFS_FS5Files_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_NWSRFS_FS5Files_enabled = true;
-        }
-    }
-
+    
     // State of Colorado HydroBase disabled by default (users must have a local HydroBase)...
 
     __source_HydroBase_enabled = false;
     // Newer...
-    prop_value = TSToolMain.getPropValue ( "TSTool.HydroBaseEnabled" );
-    if ( prop_value == null ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.HydroBaseEnabled" );
+    if ( propValue == null ) {
         // Older...
-        prop_value = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
+        propValue = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
     }
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_HydroBase_enabled = false;
     }
     else {
@@ -6390,19 +6342,19 @@ private void ui_EnableInputTypesForConfiguration ()
     if ( __source_HydroBase_enabled ) {
         // Use newer notation...
         __props.set ( "TSTool.HydroBaseEnabled", "true" );
-        prop_value = TSToolMain.getPropValue ( "HydroBase.WDIDLength" );
-        if ( (prop_value != null) && StringUtil.isInteger(prop_value)){
-            __props.set ( "HydroBase.WDIDLength", prop_value );
+        propValue = TSToolMain.getPropValue ( "HydroBase.WDIDLength" );
+        if ( (propValue != null) && StringUtil.isInteger(propValue)){
+            __props.set ( "HydroBase.WDIDLength", propValue );
             // Also set in global location.
-            HydroBase_Util.setPreferredWDIDLength ( StringUtil.atoi ( prop_value ) );
+            HydroBase_Util.setPreferredWDIDLength ( StringUtil.atoi ( propValue ) );
         }
         else {
             // Default...
             __props.set ( "HydroBase.WDIDLength", "7" );
         }
-        prop_value = TSToolMain.getPropValue ( "HydroBase.OdbcDsn" );
-        if ( prop_value != null ) {
-            __props.set ( "HydroBase.OdbcDsn", prop_value );
+        propValue = TSToolMain.getPropValue ( "HydroBase.OdbcDsn" );
+        if ( propValue != null ) {
+            __props.set ( "HydroBase.OdbcDsn", propValue );
         }
     }
     else {
@@ -6412,167 +6364,137 @@ private void ui_EnableInputTypesForConfiguration ()
     // Mexico CSMN disabled by default...
 
     __source_MexicoCSMN_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.MexicoCSMNEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_MexicoCSMN_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_MexicoCSMN_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.MexicoCSMNEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_MexicoCSMN_enabled = true;
     }
 
     // MODSIM always enabled by default...
 
     __source_MODSIM_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_MODSIM_enabled = false;
     }
+    
+    // NWS Card enabled by default...
 
-    // NDFD enabled for RTi, disabled for CDSS by default...
-
-    // FIXME SAM 2010-11-16 Need to decide what to do with NDFD since not functional in code
-    __source_NDFD_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.NDFDEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-        __source_NDFD_enabled = false;
+    __source_NWSCard_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_NWSCard_enabled = false;
     }
 
-    // NWS Card disabled by default...
+    // NWSRFS_ESPTraceEnsemble disabled by default...
 
-    __source_NWSCard_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-        __source_NWSCard_enabled = false;
+    __source_NWSRFS_ESPTraceEnsemble_enabled = false;
+    propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_NWSRFS_ESPTraceEnsemble_enabled = true;
+    }
+    // Always disable if not available in the Jar file...
+    if ( !IOUtil.classCanBeLoaded( "RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble") ) {
+        __source_NWSRFS_ESPTraceEnsemble_enabled = false;
     }
 
     // NWSRFS FS5Files disabled by default...
 
     __source_NWSRFS_FS5Files_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-        __source_NWSRFS_FS5Files_enabled = false;
-    }
-    else if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ){
+    propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ){
         __source_NWSRFS_FS5Files_enabled = true;
-        prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
-        if ( prop_value != null ) {
-            __props.set( "NWSRFSFS5Files.UseAppsDefaults",prop_value );
+        propValue = TSToolMain.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
+        if ( propValue != null ) {
+            __props.set( "NWSRFSFS5Files.UseAppsDefaults",propValue );
         }
         else {
             // Default is to use files.  If someone has Apps
             // Defaults configured, this property can be changed.
             __props.set ( "NWSRFSFS5Files.UseAppsDefaults","false");
         }
-        prop_value = TSToolMain.getPropValue ( "NWSRFSFS5Files.InputName" );
-        if ( prop_value != null ) {
-            __props.set( "NWSRFSFS5Files.InputName",prop_value );
+        propValue = TSToolMain.getPropValue ( "NWSRFSFS5Files.InputName" );
+        if ( propValue != null ) {
+            __props.set( "NWSRFSFS5Files.InputName",propValue );
         }
     }
     
-    // RCC ACOS disabled by default (under development)...
+    // RCC ACIS disabled by default (under development)...
 
     __source_RCCACIS_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_RCCACIS_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_RCCACIS_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_RCCACIS_enabled = true;
     }
     
     // Reclamation HDB disabled by default (not many users would have)...
 
     __source_ReclamationHDB_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_ReclamationHDB_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_ReclamationHDB_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_ReclamationHDB_enabled = true;
     }
 
     // RiversideDB disabled by default...
 
     __source_RiversideDB_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_RiversideDB_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_RiversideDB_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_RiversideDB_enabled = true;
     }
 
-    // RiverWare disabled by default...
+    // RiverWare enabled by default...
 
-    __source_RiverWare_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_RiverWare_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_RiverWare_enabled = true;
-        }
+    __source_RiverWare_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_RiverWare_enabled = false;
     }
 
     // SHEF disabled by default...
 
     __source_SHEF_enabled = false;
-    prop_value = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
-    if ( prop_value != null ) {
-        if ( prop_value.equalsIgnoreCase("false") ) {
-            __source_SHEF_enabled = false;
-        }
-        else if ( prop_value.equalsIgnoreCase("true") ) {
-            __source_SHEF_enabled = true;
-        }
+    propValue = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_SHEF_enabled = true;
     }
 
-    // StateMod enabled by default (no config file)...
-
-    __source_StateMod_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-        __source_StateMod_enabled = false;
-    }
-
-    // StateCU enabled by default (no config file)...
+    // StateCU enabled by default...
 
     __source_StateCU_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateCU_enabled = false;
     }
     
     // StateCUB enabled by default...
 
     __source_StateCUB_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateCUB_enabled = false;
+    }
+
+    // StateMod enabled by default...
+
+    __source_StateMod_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_StateMod_enabled = false;
     }
 
     // StateModB enabled by default...
 
     __source_StateModB_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateModB_enabled = false;
     }
 
     // USGSNWIS enabled by default...
 
     __source_USGSNWIS_enabled = true;
-    prop_value = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
-    if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+    propValue = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_USGSNWIS_enabled = false;
     }
 }
@@ -8213,117 +8135,60 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );	
 
-	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu=new JMenu(__Commands_CreateTimeSeries_String) );
+	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
+	__Commands_CreateTimeSeries_JMenu.setToolTipText("Create time series from supplied values or other time series.");
 
 	// Create (break into logical groups)...
 	// Commands that create new simple data (maybe add functions or random)...
 	   
-    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_TS_NewPatternTimeSeries_JMenuItem =
-       new SimpleJMenuItem(__Commands_Create_TS_NewPatternTimeSeries_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_NewPatternTimeSeries_JMenuItem =
+       new SimpleJMenuItem(__Commands_Create_NewPatternTimeSeries_String, this ) );
     
-    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewTimeSeries_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_NewTimeSeries_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_NewTimeSeries_String, this ) );
     
     __Commands_CreateTimeSeries_JMenu.addSeparator();
 	// Commands that perform other processing and create new time series...
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_ChangeInterval_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_ChangeInterval_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeInterval_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ChangeInterval_String, this) );
     
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Copy_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_Copy_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_Copy_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_Copy_String, this) );
     
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_Delta_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Delta_String, this) );
     
-    __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_TS_Disaggregate_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_Disaggregate_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_Disaggregate_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_Disaggregate_String, this) );
     
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_NewDayTSFromMonthAndDayTS_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_NewDayTSFromMonthAndDayTS_String, this) );
 
-    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewEndOfMonthTSFromDayTS_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_NewEndOfMonthTSFromDayTS_String, this ) );
     
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_TS_Normalize_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_TS_Normalize_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_Normalize_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_Normalize_String, this ) );
 
-    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_TS_RelativeDiff_JMenuItem =
-        new SimpleJMenuItem( __Commands_Create_TS_RelativeDiff_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_RelativeDiff_JMenuItem =
+        new SimpleJMenuItem( __Commands_Create_RelativeDiff_String, this ) );
     
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_ResequenceTimeSeriesData_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ResequenceTimeSeriesData_String, this ) );
     
     // Statistic commands...
     __Commands_CreateTimeSeries_JMenu.addSeparator();
+	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_NewStatisticTimeSeries_JMenuItem =
+		new SimpleJMenuItem(__Commands_Create_NewStatisticTimeSeries_String, this ) );
+	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewStatisticYearTS_JMenuItem =
+		new SimpleJMenuItem(__Commands_Create_NewStatisticYearTS_String, this ) );
     __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_RunningStatisticTimeSeries_String, this ) );
-	
-	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_TS_NewStatisticTimeSeries_JMenuItem =
-			new SimpleJMenuItem(__Commands_Create_TS_NewStatisticTimeSeries_String, this ) );
-
-	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TS_NewStatisticYearTS_JMenuItem =
-		new SimpleJMenuItem(__Commands_Create_TS_NewStatisticYearTS_String, this ) );
-
-	// Convert...
-
-	__Commands_JMenu.add ( __Commands_ConvertTSIDToReadCommand_JMenu=
-		new JMenu(__Commands_ConvertTSIDToReadCommand_String) );
-
-	__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadTimeSeries_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadTimeSeries_String, this ));
-
-	if ( __source_DateValue_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
-	}
-    //if ( __source_DelimitedFile_enabled ) {
-    //    __Commands_ConvertTSIDToReadCommand_JMenu.add ( __Commands_ConvertTSIDTo_ReadDateValue_JMenuItem =
-    //        new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadDateValue_String, this ));
-    //}
-
-	if ( __source_HydroBase_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadHydroBase_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadHydroBase_String, this ) );
-	}
-
-	if ( __source_MODSIM_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadMODSIM_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadMODSIM_String, this ) );
-	}
-
-	if ( __source_NWSCard_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadNwsCard_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadNwsCard_String, this ) );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadNWSRFSFS5Files_String,this ) );
-	}
-
-	if ( __source_RiverWare_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadRiverWare_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadRiverWare_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadStateMod_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadStateMod_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadStateModB_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadStateModB_String, this ) );
-	}
-
-	if ( __source_StateMod_enabled ) {
-		__Commands_ConvertTSIDToReadCommand_JMenu.add (	__Commands_ConvertTSIDTo_ReadUsgsNwis_JMenuItem =
-			new SimpleJMenuItem(__Commands_ConvertTSIDTo_ReadUsgsNwis_String, this ) );
-	}
 
 	// Read...
 
 	__Commands_JMenu.add ( __Commands_ReadTimeSeries_JMenu=	new JMenu(__Commands_ReadTimeSeries_String) );
+	__Commands_ReadTimeSeries_JMenu.setToolTipText("Read time series from files, databases, and the internet.");
 
 	__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_SetIncludeMissingTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Read_SetIncludeMissingTS_String, this ) );
@@ -8333,7 +8198,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
 	
-	__Commands_ReadTimeSeries_JMenu.add( __Commands_Create_CreateFromList_JMenuItem =
+	__Commands_ReadTimeSeries_JMenu.add( __Commands_Read_CreateFromList_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_CreateFromList_String, this) );
    
     __Commands_ReadTimeSeries_JMenu.addSeparator ();
@@ -8342,135 +8207,72 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoBNDSS_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadColoradoBNDSS_String, this) );
     }
-
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
 	}
-    
-    //if ( __source_DateValue_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelimitedFile_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_ReadDelimitedFile_String, this) );
-    //}
-        
+    __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelimitedFile_JMenuItem =
+        new SimpleJMenuItem(__Commands_Read_ReadDelimitedFile_String, this) );
     if ( __source_HECDSS_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHecDss_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadHecDss_String, this) );
     }
-
-	if ( __source_HydroBase_enabled ) {
+    if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadHydroBase_String, this) );
 	}
-
 	if ( __source_MODSIM_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadMODSIM_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadMODSIM_String, this) );
 	}
-
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadNwsCard_String, this) );
 	}
-
-	/* TODO SAM 2004-09-11 need to enable
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(
-			__Commands_Read_readNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_readNWSRFSFS5Files_String, this) );
-	}
-	*/
-	
+    if ( __source_NWSRFS_FS5Files_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsrfsFS5Files_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadNwsrfsFS5Files_String, this) );
+    }
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationHDB_String, this) );
     }
-
+    if ( __source_RiverWare_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiverWare_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadRiverWare_String, this) );
+    }
 	if ( __source_StateCU_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCU_JMenuItem =
 			new SimpleJMenuItem( __Commands_Read_ReadStateCU_String, this) );
 	}
-	
     if ( __source_StateCUB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCUB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadStateCUB_String, this) );
     }
-
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadStateMod_String, this) );
 	}
-
 	if ( __source_StateModB_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateModB_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadStateModB_String, this) );
 	}
-
+    __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
+    if ( __source_USGSNWIS_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwis_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadUsgsNwis_String, this) );
+    }
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.addSeparator ();
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_StateModMax_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_StateModMax_String, this) );
 	}
 
-	__Commands_ReadTimeSeries_JMenu.addSeparator ();
-
-	if ( __source_DateValue_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadDateValue_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadDateValue_String, this) );
-	}
-
-	if ( __source_HydroBase_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_TS_ReadHydroBase_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadHydroBase_String, this) );
-	}
-
-	if ( __source_MODSIM_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadMODSIM_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadMODSIM_String, this) );
-	}
-
-	if ( __source_NDFD_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadNDFD_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadNDFD_String, this) );
-	}
-
-	if ( __source_NWSCard_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadNwsCard_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadNwsCard_String, this) );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadNWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadNWSRFSFS5Files_String, this) );
-	}
-
-	if ( __source_RiverWare_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadRiverWare_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadRiverWare_String, this) );
-	}
-
-	/* FIXME SAM 2008-08-21 Enable when functionality is added
-	if ( __source_StateMod_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadStateMod_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadStateMod_String, this) );
-	}
-
-	if ( __source_StateModB_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadStateModB_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadStateModB_String, this) );
-	}
-	*/
-
-    __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadTimeSeries_JMenuItem =
-        new SimpleJMenuItem(__Commands_Read_TS_ReadTimeSeries_String, this) );
-	if ( __source_USGSNWIS_enabled ) {
-		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_TS_ReadUsgsNwis_JMenuItem =
-			new SimpleJMenuItem(__Commands_Read_TS_ReadUsgsNwis_String, this) );
-	}
-
 	// "Commands...Fill Time Series"...
 
-	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu=new JMenu(__Commands_FillTimeSeries_String));
+	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu = new JMenu(__Commands_FillTimeSeries_String));
+	__Commands_FillTimeSeries_JMenu.setToolTipText("Fill gaps in time series data.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillConstant_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillConstant_String, this ) );
@@ -8489,13 +8291,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillInterpolate_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillInterpolate_String, this ) );
-
-	/* TODO SAM 2004-02-21 Comment out this menu - it may be added later.
-	__Commands_FillTimeSeries_JMenu.add (
-		__Commands_Fill_fillMOVE1_JMenuItem = new SimpleJMenuItem( 
-		__Commands_Fill_fillMOVE1_String, this ) );
-	__Commands_Fill_fillMOVE1_JMenuItem.setEnabled ( false );
-	*/
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillMixedStation_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillMixedStation_String, this ) );
@@ -8523,13 +8318,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 			new SimpleJMenuItem(__Commands_Fill_FillUsingDiversionComments_String,this ) );
 	}
 
-	/* FIXME DISABLE THIS FOR now - this was an RTi freebie and needs to be reworked
-	_JmenuTSFillWeights = new SimpleJMenuItem(
-		MENU_INTERMEDIATE_FILL_WEIGHTS,
-		this );
-	ts_Jmenu.add( _JmenuTSFillWeights );
-	*/
-
 	__Commands_FillTimeSeries_JMenu.addSeparator();
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetAutoExtendPeriod_JMenuItem =
@@ -8544,6 +8332,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// "Commands...Set Time Series"...
 
 	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=new JMenu(__Commands_SetTimeSeries_String));
+	__Commands_SetTimeSeries_JMenu.setToolTipText("Set time series properties and data values.");
 
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_ReplaceValue_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_ReplaceValue_String, this));
@@ -8571,6 +8360,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// "Commands...Manipulate Time Series"...
 
 	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=new JMenu("Manipulate Time Series"));
+	__Commands_ManipulateTimeSeries_JMenu.setToolTipText("Manipulate time series data values.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Add_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Add_String,this) );
@@ -8621,6 +8411,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// "Commands...Analyze Time Series"...
 
 	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu= new JMenu(__Commands_AnalyzeTimeSeries_String) );
+	__Commands_AnalyzeTimeSeries_JMenu.setToolTipText("Analyze time series data values.");
 	__Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_AnalyzePattern_JMenuItem =
         new SimpleJMenuItem(__Commands_Analyze_AnalyzePattern_String, this ) );
     __Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem =
@@ -8635,6 +8426,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// "Commands...Models"...
 
 	__Commands_JMenu.add ( __Commands_Models_Routing_JMenu = new JMenu(__Commands_Models_Routing_String) );
+	__Commands_Models_Routing_JMenu.setToolTipText("Route time series (lag and attenuate over time).");
 	__Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_LagK_JMenuItem =
         new SimpleJMenuItem( __Commands_Models_Routing_LagK_String, this ) );
    __Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_VariableLagK_JMenuItem =
@@ -8643,6 +8435,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// "Commands...Output Time Series"...
 
 	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=new JMenu(__Commands_OutputTimeSeries_String) );
+	__Commands_OutputTimeSeries_JMenu.setToolTipText("Write time series to files and databases.");
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_DeselectTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_DeselectTimeSeries_String, this ) );
@@ -8714,23 +8507,17 @@ Initialize the GUI "Commands...General".
 private void ui_InitGUIMenus_CommandsGeneral ()
 {	if ( __source_HydroBase_enabled ) {
 		__Commands_JMenu.addSeparator();
-		__Commands_JMenu.add( __Commands_HydroBase_JMenu = new JMenu( __Commands_HydroBase_String, true ) );	
+		__Commands_JMenu.add( __Commands_HydroBase_JMenu = new JMenu( __Commands_HydroBase_String, true ) );
+		__Commands_HydroBase_JMenu.setToolTipText("Additional HydroBase database commands.");
 		__Commands_HydroBase_JMenu.add (__Commands_HydroBase_OpenHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_HydroBase_OpenHydroBase_String, this ) );
 	}
-    /* FIXME SAM 2007-12-23 Need to re-enable when there is time
-	if ( __source_NDFD_enabled ) {
-		__Commands_JMenu.addSeparator();
-		__Commands_JMenu.add( __Commands_NDFD_JMenu =new JMenu( __Commands_NDFD_String, true ) );	
-		__Commands_NDFD_JMenu.add (	__Commands_NDFD_openNDFD_JMenuItem =
-			new SimpleJMenuItem(__Commands_NDFD_openNDFD_String, this ) );
-	}
-    */
 
     // "Commands...Ensemble processing"...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
+    __Commands_Ensemble_JMenu.setToolTipText("Process ensembles (groups of related time series).");
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String, this) );
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CopyEnsemble_JMenuItem =
@@ -8748,11 +8535,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, this) );
     
     __Commands_Ensemble_JMenu.addSeparator();
-    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
-        new SimpleJMenuItem( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, this ) );
+    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String, this ) );
     
-    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_TS_WeightTraces_JMenuItem =
-        new SimpleJMenuItem(__Commands_Ensemble_TS_WeightTraces_String, this ) );
+    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WeightTraces_JMenuItem =
+        new SimpleJMenuItem(__Commands_Ensemble_WeightTraces_String, this ) );
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
         __Commands_Ensemble_JMenu.addSeparator();
         __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem=
@@ -8763,6 +8550,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
+    __Commands_Table_JMenu.setToolTipText("Process tables (columns of data).");
     __Commands_Table_JMenu.add( __Commands_Table_NewTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_CopyTable_JMenuItem =
@@ -8795,6 +8583,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Template_JMenu = new JMenu( __Commands_Template_String, true ) );
+    __Commands_Template_JMenu.setToolTipText("Process templates (to handle dynamic logic and data).");
     __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
     
@@ -8802,6 +8591,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_View_JMenu = new JMenu( __Commands_View_String, true ) );
+    __Commands_View_JMenu.setToolTipText("Process views (representations of results).");
     __Commands_View_JMenu.add( __Commands_View_NewTreeView_JMenuItem =
         new SimpleJMenuItem( __Commands_View_NewTreeView_String, this ) );
     
@@ -8810,15 +8600,14 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 	__Commands_JMenu.addSeparator();   // Separate general commands from others
     
     __Commands_JMenu.add( __Commands_General_CheckingResults_JMenu = new JMenu( __Commands_General_CheckingResults_String, true ) );
-    //FIXME SAM 2009-04-20 Remove when other method of checks tests out.
-    //__Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_OpenCheckFile_JMenuItem =
-    //    new SimpleJMenuItem( __Commands_General_CheckingResults_OpenCheckFile_String, this ) );
+    __Commands_General_CheckingResults_JMenu.setToolTipText("Check time series against criteria.");
     __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_CheckTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_General_CheckingResults_CheckTimeSeries_String, this ) );
     __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_WriteCheckFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_CheckingResults_WriteCheckFile_String, this ) );
 	
     __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
+    __Commands_General_Comments_JMenu.setToolTipText("Insert comments.");
     __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Comment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
@@ -8829,6 +8618,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Comments_EndComment_String, this ) );
     
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
+    __Commands_General_FileHandling_JMenu.setToolTipText("Manipulate files.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_FTPGet_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_FTPGet_String, this ) );
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_WebGet_JMenuItem =
@@ -8838,6 +8628,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
     
 	__Commands_JMenu.add( __Commands_General_Logging_JMenu = new JMenu( __Commands_General_Logging_String, true ) );	
+	__Commands_General_Logging_JMenu.setToolTipText("Control logging (tracking).");
 	__Commands_General_Logging_JMenu.add(__Commands_General_Logging_StartLog_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_StartLog_String, this ) );
 	__Commands_General_Logging_JMenu.add (__Commands_General_Logging_SetDebugLevel_JMenuItem =
@@ -8846,6 +8637,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 		new SimpleJMenuItem(__Commands_General_Logging_SetWarningLevel_String, this ) );
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
+    __Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetProperty_String,this));
     if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -8868,6 +8660,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_General_Running_SetWorkingDir_String, this ) );
 
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
+    __Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteProperty_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteProperty_String, this ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem =
@@ -8913,10 +8706,15 @@ private void ui_InitGUIMenus_CommandsPopup ()
 		new SimpleJMenuItem ( __Edit_SelectAllCommands_String, __Edit_SelectAllCommands_String, this ) );
 	__Commands_JPopupMenu.add( __CommandsPopup_DeselectAll_JMenuItem =
 		new SimpleJMenuItem( __Edit_DeselectAllCommands_String, __Edit_DeselectAllCommands_String, this ) );
+	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem =
 		new SimpleJMenuItem ( __Edit_ConvertSelectedCommandsToComments_String, this ) );
 	__Commands_JPopupMenu.add( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem =
 		new SimpleJMenuItem ( __Edit_ConvertSelectedCommandsFromComments_String, this ) );
+    __Commands_JPopupMenu.add( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem =
+        new SimpleJMenuItem ( __Edit_ConvertTSIDTo_ReadTimeSeries_String, this ) );
+    __Commands_JPopupMenu.add( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem =
+        new SimpleJMenuItem ( __Edit_ConvertTSIDTo_ReadCommand_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Run_AllCommandsCreateOutput_JMenuItem =
 		new SimpleJMenuItem ( "Run " + __Run_AllCommandsCreateOutput_String, __Run_AllCommandsCreateOutput_String, this ) );
@@ -8960,13 +8758,16 @@ private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar )
 
 	__Edit_JMenu.add(
 	    __Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(__Edit_CommandWithErrorChecking_String, this ) );
-	__Edit_JMenu.add( __Edit_CommandFile_JMenuItem = new SimpleJMenuItem (__Edit_CommandFile_String, this ) );
 
 	__Edit_JMenu.addSeparator( );
 	__Edit_JMenu.add(__Edit_ConvertSelectedCommandsToComments_JMenuItem=
 		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsToComments_String, this ) );
 	__Edit_JMenu.add( __Edit_ConvertSelectedCommandsFromComments_JMenuItem =
 		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsFromComments_String, this ) );
+    __Edit_JMenu.add(__Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem=
+        new SimpleJMenuItem (__Edit_ConvertTSIDTo_ReadTimeSeries_String, this ) );
+    __Edit_JMenu.add( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem =
+        new SimpleJMenuItem (__Edit_ConvertTSIDTo_ReadCommand_String, this ) );
 }
 
 /**
@@ -9017,7 +8818,9 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 		//__File_Save_Commands_String,__File_Save_Commands_ActionString,this );
 	__File_Save_JMenu.add ( __File_Save_Commands_JMenuItem = new SimpleJMenuItem( __File_Save_Commands_String, this ) );
 	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem = new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
-
+	__File_Save_JMenu.add ( __File_Save_CommandsAsVersion9_JMenuItem =
+	   new SimpleJMenuItem( __File_Save_CommandsAsVersion9_String, this ) );
+	__File_Save_JMenu.addSeparator();
 	__File_Save_JMenu.add (	__File_Save_TimeSeriesAs_JMenuItem =
         new SimpleJMenuItem(__File_Save_TimeSeriesAs_String, this ) );
 
@@ -9114,6 +8917,7 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	__Help_JMenu.add ( __Help_AboutTSTool_JMenuItem = new SimpleJMenuItem(__Help_AboutTSTool_String,this));
 	__Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ViewDocumentation_JMenuItem = new SimpleJMenuItem(__Help_ViewDocumentation_String,this));
+    __Help_JMenu.add ( __Help_ViewTrainingMaterials_JMenuItem = new SimpleJMenuItem(__Help_ViewTrainingMaterials_String,this));
     __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
 	/* TODO SAM 2004-05-24 Help index features are not working as well now that
@@ -9491,6 +9295,15 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad )
     int numAutoChanges = 0; // Number of lines automatically changed during load
     try {
         numAutoChanges = commandProcessor_ReadCommandFile ( commandFile );
+        // Add progress listeners to the commands
+        for ( Command command : __tsProcessor.getCommands() ) {
+            // Connect the command to the UI to handle progress when the command is run.
+            // TODO SAM 2009-03-23 Evaluate whether to define and interface rather than rely on
+            // AbstractCommand here - too much overhead as is when only some commands implement.
+            if ( command instanceof AbstractCommand ) {
+                ((AbstractCommand)command).addCommandProgressListener ( this );
+            }
+        }
         // Repaint the list to reflect the status of the commands...
         ui_ShowCurrentCommandListStatus();
     }
@@ -9629,8 +9442,7 @@ the location where the command file has been read/saved.
 */
 private void ui_SetInitialWorkingDir ( String initialWorkingDir )
 {	String routine = getClass().getName() + ".ui_SetInitialWorkingDir";
-	Message.printStatus(2, routine, "Setting the initial working directory to \"" +
-			initialWorkingDir + "\"" );
+	Message.printStatus(2, routine, "Setting the initial working directory to \"" + initialWorkingDir + "\"" );
 	__initialWorkingDir = initialWorkingDir;
 	// Also set in the processor...
 	commandProcessor_SetInitialWorkingDir ( initialWorkingDir, true );
@@ -10170,7 +9982,7 @@ throws Exception
             uiAction_OpenCommandFile();
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error reading command file" );
+			Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
 			Message.printWarning( 3, "", e);
 		}
 	}
@@ -10233,27 +10045,36 @@ throws Exception
                         ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
                 }
                 if ( x == ResponseJDialog.OK ) {
-                    uiAction_WriteCommandFile ( __commandFileName,false);
+                    uiAction_WriteCommandFile ( __commandFileName, false, false );
                 }
 			}
 			else {
                 // No command file has been saved - prompt for the name...
-				uiAction_WriteCommandFile ( __commandFileName, true);
+				uiAction_WriteCommandFile ( __commandFileName, true, false );
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error writing command file." );
+			Message.printWarning ( 1, rtn, "Error writing command file (" + e + ")." );
 		}
 	}
 	else if ( o == __File_Save_CommandsAs_JMenuItem ) {
 		try {
             // Prompt for the name...
-			uiAction_WriteCommandFile ( __commandFileName, true);
+			uiAction_WriteCommandFile ( __commandFileName, true, false );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error writing command file." );
+			Message.printWarning ( 1, rtn, "Error writing command file (" + e + ")." );
 		}
 	}
+    else if ( o == __File_Save_CommandsAsVersion9_JMenuItem ) {
+        try {
+            // Prompt for the name...
+            uiAction_WriteCommandFile ( __commandFileName, true, true );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, rtn, "Error writing command file in version 9 format (" + e + ")." );
+        }
+    }
     else if ( command.equals(__File_Save_TimeSeriesAs_String) ) {
 		// Can save in a number of formats.  Allow the user to pick using a file chooser...
 		uiAction_SaveTimeSeries ();
@@ -10264,7 +10085,7 @@ throws Exception
             PrintJGUI.print ( this, commandList_GetCommandStrings(true), null, 10 );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error printing commands." );
+			Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
 		}
 	}
 	else if ( command.equals(__File_Properties_CommandsRun_String) ) {
@@ -10295,9 +10116,6 @@ throws Exception
             v = __smsdmi.getDatabaseProperties();
 		}
 		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
 	}
     else if ( command.equals(__File_Properties_DIADvisor_String) ) {
 		PropList reportProp = new PropList ("DIADvisor.props");
@@ -10309,7 +10127,7 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "DIADvisor Properties" );
-		List v = new Vector();
+		List<String> v = new Vector();
 		v.add ( "DIADvisor Operational Database:" );
 		v.add ( "" );
 		StringUtil.addListToStringList ( v, __DIADvisor_dmi.getDatabaseProperties ( 3 ) );
@@ -10318,9 +10136,6 @@ throws Exception
 		v.add ( "" );
 		StringUtil.addListToStringList ( v, __DIADvisor_archive_dmi.getDatabaseProperties ( 3 ) );
 		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
 	}
     else if ( command.equals(__File_Properties_HydroBase_String) ) {
 		// Simple text display of HydroBase properties.
@@ -10332,7 +10147,7 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "HydroBase Properties" );
-		List v = null;
+		List<String> v = null;
 		if ( __hbdmi == null ) {
 		    v = new Vector(3);
 			v.add ( "HydroBase Properties" );
@@ -10343,9 +10158,6 @@ throws Exception
             v = __hbdmi.getDatabaseProperties();
 		}
 		new ReportJFrame ( v, reportProp );
-		// Clean up...
-		v = null;
-		reportProp = null;
 	}
     else if ( command.equals(__File_Properties_NWSRFSFS5Files_String) ) {
 		PropList reportProp = new PropList ("NWSRFSFS5Files.props");
@@ -10357,7 +10169,7 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "NWSRFS FS5Files Properties" );
-		List v = null;
+		List<String> v = null;
 		if ( __nwsrfs_dmi == null ) {
 			v = new Vector ( 1 );
 			v.add ( "The NWSRFS FS5Files connection is not open." );
@@ -10409,8 +10221,8 @@ throws Exception
             uiAction_ProcessTSProductFile ( true );
 		}
 		catch ( Exception te ) {
-			Message.printWarning ( 1, "", "Error processing TSProduct file." );
-			Message.printWarning ( 2, "", te );
+			Message.printWarning ( 1, "", "Error processing TSProduct file (" + te + ")." );
+			Message.printWarning ( 3, "", te );
 		}
 	}
     else if ( command.equals(__File_Exit_String) ) {
@@ -10423,7 +10235,7 @@ throws Exception
 		}
 		catch ( Exception te ) {
 			Message.printWarning ( 1, "", "Error running test" );
-			Message.printWarning ( 2, "", te );
+			Message.printWarning ( 3, "", te );
 		}
 	}
     else {
@@ -10464,9 +10276,6 @@ throws Exception
 	}
     else if ( command.equals(__Edit_DeselectAllCommands_String) ) {
 		uiAction_DeselectAllCommands();
-	}
-    else if ( command.equals(__Edit_CommandFile_String) ) {
-    	uiAction_EditCommandFile();
 	}
 	else if ( command.equals(__Edit_CommandWithErrorChecking_String) ) {
 		// Edit the first selected item, unless a comment, in which case all are edited...
@@ -10525,29 +10334,33 @@ private void uiAction_ActionPerformed05_CommandsCreateMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	// TODO SAM 2006-05-02
-	// Why is all of this needed?  Should rely on the command factory for
+	// TODO SAM 2006-05-02 Why is all of this needed?  Should rely on the command factory for
 	// commands.  Evaluate this when all commands are in the factory.
 
 	if (command.equals( __Commands_Create_CreateFromList_String)){
-		commandList_EditCommand ( __Commands_Create_CreateFromList_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Create_CreateFromList_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Create_Delta_String)){
-        commandList_EditCommand ( __Commands_Create_Delta_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Create_Delta_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Create_ResequenceTimeSeriesData_String) ) {
-        commandList_EditCommand ( __Commands_Create_ResequenceTimeSeriesData_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Create_ResequenceTimeSeriesData_String, null, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_Create_RunningStatisticTimeSeries_String)){
-        commandList_EditCommand ( __Commands_Create_RunningStatisticTimeSeries_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Create_RunningStatisticTimeSeries_String, null, CommandEditType.INSERT );
     }
 
 	// Convert TS Identifier to read command...
 
-	/* FIXME SAM need to enable
-	else if ( o == __Commands_ConvertTSIDTo_readTimeSeries_JMenuItem ) {
-		commandList_EditCommand ( __Commands_ConvertTSIDTo_readTimeSeries_String, getCommand(), __UPDATE_COMMAND );
+	else if ( command.equals(__Edit_ConvertTSIDTo_ReadTimeSeries_String) ) {
+		commandList_EditCommand ( __Edit_ConvertTSIDTo_ReadTimeSeries_String,
+		    commandList_GetCommandsBasedOnUI(), CommandEditType.CONVERT );
 	}
+    else if ( command.equals(__Edit_ConvertTSIDTo_ReadCommand_String) ) {
+        commandList_EditCommand ( __Edit_ConvertTSIDTo_ReadCommand_String,
+            commandList_GetCommandsBasedOnUI(), CommandEditType.CONVERT );
+    }
+	/*
 	else if ( o == __Commands_ConvertTSIDTo_readDateValue_JMenuItem ) {
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_readDateValue_String, getCommand(), __UPDATE_COMMAND );
 	}
@@ -10576,38 +10389,38 @@ throws Exception
 		commandList_EditCommand ( __Commands_ConvertTSIDTo_readUsgsNwis_String, getCommand(), __UPDATE_COMMAND );
 	}
 	*/
-	else if (command.equals( __Commands_Create_TS_ChangeInterval_String)){
-		commandList_EditCommand ( __Commands_Create_TS_ChangeInterval_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_ChangeInterval_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeInterval_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_Copy_String)){
-		commandList_EditCommand ( __Commands_Create_TS_Copy_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_Copy_String)){
+		commandList_EditCommand ( __Commands_Create_Copy_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_Disaggregate_String)){
-		commandList_EditCommand ( __Commands_Create_TS_Disaggregate_String,	null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_Disaggregate_String)){
+		commandList_EditCommand ( __Commands_Create_Disaggregate_String,	null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_NewDayTSFromMonthAndDayTS_String)){
-		commandList_EditCommand ( __Commands_Create_TS_NewDayTSFromMonthAndDayTS_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_NewDayTSFromMonthAndDayTS_String)){
+		commandList_EditCommand ( __Commands_Create_NewDayTSFromMonthAndDayTS_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals(__Commands_Create_TS_NewEndOfMonthTSFromDayTS_String) ) {
-		commandList_EditCommand ( __Commands_Create_TS_NewEndOfMonthTSFromDayTS_String, null, __INSERT_COMMAND );
+	else if (command.equals(__Commands_Create_NewEndOfMonthTSFromDayTS_String) ) {
+		commandList_EditCommand ( __Commands_Create_NewEndOfMonthTSFromDayTS_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_NewPatternTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Create_TS_NewPatternTimeSeries_String,	null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_NewPatternTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Create_NewPatternTimeSeries_String,	null, CommandEditType.INSERT );
 	}
-	else if (command.equals(__Commands_Create_TS_NewStatisticTimeSeries_String)){
-			commandList_EditCommand ( __Commands_Create_TS_NewStatisticTimeSeries_String, null, __INSERT_COMMAND );
+	else if (command.equals(__Commands_Create_NewStatisticTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Create_NewStatisticTimeSeries_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_NewStatisticYearTS_String)){
-		commandList_EditCommand ( __Commands_Create_TS_NewStatisticYearTS_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_NewStatisticYearTS_String)){
+		commandList_EditCommand ( __Commands_Create_NewStatisticYearTS_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_NewTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Create_TS_NewTimeSeries_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_NewTimeSeries_String)){
+		commandList_EditCommand ( __Commands_Create_NewTimeSeries_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_Normalize_String)){
-		commandList_EditCommand ( __Commands_Create_TS_Normalize_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_Normalize_String)){
+		commandList_EditCommand ( __Commands_Create_Normalize_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_TS_RelativeDiff_String)){
-		commandList_EditCommand ( __Commands_Create_TS_RelativeDiff_String,	null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Create_RelativeDiff_String)){
+		commandList_EditCommand ( __Commands_Create_RelativeDiff_String,	null, CommandEditType.INSERT );
 	}
 	else {
 		// Chain to next actions...
@@ -10625,89 +10438,64 @@ throws Exception
 
 	// Read Time Series...
 
-    if (command.equals( __Commands_Read_ReadColoradoBNDSS_String)){
-        commandList_EditCommand ( __Commands_Read_ReadColoradoBNDSS_String, null, __INSERT_COMMAND );
+    if (command.equals(__Commands_Read_SetIncludeMissingTS_String)){
+        commandList_EditCommand ( __Commands_Read_SetIncludeMissingTS_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Read_SetInputPeriod_String) ) {
+        commandList_EditCommand ( __Commands_Read_SetInputPeriod_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Read_ReadColoradoBNDSS_String)){
+        commandList_EditCommand ( __Commands_Read_ReadColoradoBNDSS_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Read_ReadDateValue_String)){
-		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Read_ReadDelimitedFile_String)){
-        commandList_EditCommand ( __Commands_Read_ReadDelimitedFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Read_ReadDelimitedFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Read_ReadHecDss_String)){
-        commandList_EditCommand ( __Commands_Read_ReadHecDss_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Read_ReadHecDss_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Read_ReadHydroBase_String)){
-		commandList_EditCommand ( __Commands_Read_ReadHydroBase_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadHydroBase_String,	null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Read_ReadMODSIM_String)){
-		commandList_EditCommand ( __Commands_Read_ReadMODSIM_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadMODSIM_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Read_ReadNwsCard_String)){
-		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Read_ReadNWSRFSFS5Files_String)){
-		commandList_EditCommand ( __Commands_Read_ReadNWSRFSFS5Files_String, null, __INSERT_COMMAND );
-	}
-    if (command.equals( __Commands_Read_ReadReclamationHDB_String)){
-        commandList_EditCommand ( __Commands_Read_ReadReclamationHDB_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Read_ReadReclamationHDB_String)){
+        commandList_EditCommand ( __Commands_Read_ReadReclamationHDB_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Read_ReadStateCU_String)){
-		commandList_EditCommand ( __Commands_Read_ReadStateCU_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadStateCU_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Read_ReadStateCUB_String)){
-        commandList_EditCommand ( __Commands_Read_ReadStateCUB_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Read_ReadStateCUB_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Read_ReadStateModB_String)){
-		commandList_EditCommand ( __Commands_Read_ReadStateModB_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadStateModB_String,	null, CommandEditType.INSERT );
 	}
 	// Put after longer versions...
 	else if (command.equals( __Commands_Read_ReadStateMod_String)){
-		commandList_EditCommand ( __Commands_Read_ReadStateMod_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Read_ReadStateMod_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Read_StateModMax_String)){
-		commandList_EditCommand ( __Commands_Read_StateModMax_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Read_ReadNwsrfsFS5Files_String)){
+		commandList_EditCommand ( __Commands_Read_ReadNwsrfsFS5Files_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Read_TS_ReadDateValue_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadDateValue_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Read_ReadRiverWare_String)){
+		commandList_EditCommand ( __Commands_Read_ReadRiverWare_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Read_TS_ReadHydroBase_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadHydroBase_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_ReadMODSIM_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadMODSIM_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_ReadNDFD_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadNDFD_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_ReadNwsCard_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadNwsCard_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_ReadNWSRFSFS5Files_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadNWSRFSFS5Files_String,	null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_ReadRiverWare_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadRiverWare_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_TS_ReadStateModB_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadStateModB_String, null, __INSERT_COMMAND );
-	}
-	// Put after longer versions...
-	else if (command.equals( __Commands_Read_TS_ReadStateMod_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadStateMod_String, null, __INSERT_COMMAND );
-	}
-    else if (command.equals( __Commands_Read_TS_ReadTimeSeries_String)){
-        commandList_EditCommand ( __Commands_Read_TS_ReadTimeSeries_String, null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_Read_ReadTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Read_ReadTimeSeries_String, null, CommandEditType.INSERT );
     }
-	else if (command.equals( __Commands_Read_TS_ReadUsgsNwis_String)){
-		commandList_EditCommand ( __Commands_Read_TS_ReadUsgsNwis_String, null, __INSERT_COMMAND );
+	else if (command.equals( __Commands_Read_ReadUsgsNwis_String)){
+		commandList_EditCommand ( __Commands_Read_ReadUsgsNwis_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals(__Commands_Read_SetIncludeMissingTS_String)){
-		commandList_EditCommand ( __Commands_Read_SetIncludeMissingTS_String, null, __INSERT_COMMAND );
-	}
-	else if (command.equals( __Commands_Read_SetInputPeriod_String) ) {
-		commandList_EditCommand ( __Commands_Read_SetInputPeriod_String, null, __INSERT_COMMAND );
-	}
+    else if (command.equals( __Commands_Read_StateModMax_String)){
+        commandList_EditCommand ( __Commands_Read_StateModMax_String, null, CommandEditType.INSERT );
+    }
 	else {
 		// Chain to next menus
 		uiAction_ActionPerformed07_CommandsFillMenu ( event );
@@ -10723,58 +10511,58 @@ throws Exception
 {	String command = event.getActionCommand();
 
     if (command.equals( __Commands_Fill_FillConstant_String)){
-		commandList_EditCommand ( __Commands_Fill_FillConstant_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillConstant_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String)){
-		commandList_EditCommand ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillFromTS_String)){
-		commandList_EditCommand ( __Commands_Fill_FillFromTS_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillFromTS_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillHistMonthAverage_String)){
-		commandList_EditCommand ( __Commands_Fill_FillHistMonthAverage_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillHistMonthAverage_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillHistYearAverage_String)){
-		commandList_EditCommand ( __Commands_Fill_FillHistYearAverage_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillHistYearAverage_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillInterpolate_String)){
-		commandList_EditCommand ( __Commands_Fill_FillInterpolate_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillInterpolate_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillMixedStation_String)){
-		commandList_EditCommand ( __Commands_Fill_FillMixedStation_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillMixedStation_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillMOVE1_String)){
-		commandList_EditCommand ( __Commands_Fill_FillMOVE1_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillMOVE1_String,	null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillMOVE2_String)){
-		commandList_EditCommand ( __Commands_Fill_FillMOVE2_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillMOVE2_String,	null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillPattern_String) ) {
-		commandList_EditCommand ( __Commands_Fill_FillPattern_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillPattern_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Fill_ReadPatternFile_String) ) {
-        commandList_EditCommand ( __Commands_Fill_ReadPatternFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Fill_ReadPatternFile_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Fill_FillProrate_String) ) {
-		commandList_EditCommand ( __Commands_Fill_FillProrate_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillProrate_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillRegression_String) ) {
-		commandList_EditCommand ( __Commands_Fill_FillRegression_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillRegression_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_FillRepeat_String) ) {
-		commandList_EditCommand ( __Commands_Fill_FillRepeat_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_FillRepeat_String, null, CommandEditType.INSERT );
 	}
 	else if(command.equals(	__Commands_Fill_FillUsingDiversionComments_String)){
-		commandList_EditCommand (__Commands_Fill_FillUsingDiversionComments_String, null, __INSERT_COMMAND );
+		commandList_EditCommand (__Commands_Fill_FillUsingDiversionComments_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Fill_SetAutoExtendPeriod_String)){
-		commandList_EditCommand ( __Commands_Fill_SetAutoExtendPeriod_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_SetAutoExtendPeriod_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_SetAveragePeriod_String) ) {
-		commandList_EditCommand ( __Commands_Fill_SetAveragePeriod_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_SetAveragePeriod_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Fill_SetIgnoreLEZero_String) ) {
-		commandList_EditCommand ( __Commands_Fill_SetIgnoreLEZero_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Fill_SetIgnoreLEZero_String, null, CommandEditType.INSERT );
 	}
 	else {
 		// Chain to other menus
@@ -10791,25 +10579,25 @@ throws Exception
 {	String command = event.getActionCommand();
 
 	if (command.equals( __Commands_Set_ReplaceValue_String)){
-		commandList_EditCommand ( __Commands_Set_ReplaceValue_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Set_ReplaceValue_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Set_SetConstant_String)){
-		commandList_EditCommand ( __Commands_Set_SetConstant_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Set_SetConstant_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Set_SetDataValue_String)){
-		commandList_EditCommand ( __Commands_Set_SetDataValue_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Set_SetDataValue_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Set_SetFromTS_String)){
-		commandList_EditCommand ( __Commands_Set_SetFromTS_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Set_SetFromTS_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Set_SetToMax_String)){
-		commandList_EditCommand ( __Commands_Set_SetToMax_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Set_SetToMax_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Set_SetToMin_String)){
-		commandList_EditCommand ( __Commands_Set_SetToMin_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Set_SetToMin_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Set_SetTimeSeriesProperty_String)){
-        commandList_EditCommand ( __Commands_Set_SetTimeSeriesProperty_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Set_SetTimeSeriesProperty_String, null, CommandEditType.INSERT );
     }
 	else {
 		uiAction_ActionPerformed09_CommandsManipulateMenu ( event );
@@ -10825,49 +10613,49 @@ throws Exception
 {	String command = event.getActionCommand();
 
 	if (command.equals( __Commands_Manipulate_Add_String)){
-		commandList_EditCommand ( __Commands_Manipulate_Add_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Add_String,	null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Manipulate_AddConstant_String)){
-		commandList_EditCommand ( __Commands_Manipulate_AddConstant_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_AddConstant_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Manipulate_AdjustExtremes_String)){
-		commandList_EditCommand ( __Commands_Manipulate_AdjustExtremes_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_AdjustExtremes_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Manipulate_ARMA_String)){
-		commandList_EditCommand ( __Commands_Manipulate_ARMA_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_ARMA_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Manipulate_Blend_String)){
-		commandList_EditCommand ( __Commands_Manipulate_Blend_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Blend_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals(__Commands_Manipulate_ChangePeriod_String)){
-        commandList_EditCommand ( __Commands_Manipulate_ChangePeriod_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Manipulate_ChangePeriod_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_Manipulate_ConvertDataUnits_String)){
-		commandList_EditCommand ( __Commands_Manipulate_ConvertDataUnits_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_ConvertDataUnits_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_Cumulate_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_Cumulate_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Cumulate_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_Divide_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_Divide_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Divide_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_Free_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_Free_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Free_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_Multiply_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_Multiply_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Multiply_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_RunningAverage_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_RunningAverage_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_RunningAverage_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_Scale_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_Scale_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Scale_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_ShiftTimeByInterval_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_ShiftTimeByInterval_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_ShiftTimeByInterval_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Manipulate_Subtract_String)){
-		commandList_EditCommand ( __Commands_Manipulate_Subtract_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Manipulate_Subtract_String, null, CommandEditType.INSERT );
 	}
 	else {
 		// Chain to next actions
@@ -10884,16 +10672,16 @@ throws Exception
 {	String command = event.getActionCommand();
 
 	if (command.equals( __Commands_Analyze_AnalyzePattern_String)){
-		commandList_EditCommand ( __Commands_Analyze_AnalyzePattern_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Analyze_AnalyzePattern_String,	null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Analyze_CalculateTimeSeriesStatistic_String)){
-        commandList_EditCommand ( __Commands_Analyze_CalculateTimeSeriesStatistic_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Analyze_CalculateTimeSeriesStatistic_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Analyze_CompareTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Analyze_CompareTimeSeries_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Analyze_CompareTimeSeries_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Analyze_ComputeErrorTimeSeries_String)){
-        commandList_EditCommand ( __Commands_Analyze_ComputeErrorTimeSeries_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Analyze_ComputeErrorTimeSeries_String, null, CommandEditType.INSERT );
     }
 	else {
 		// Chain to other actions
@@ -10910,10 +10698,10 @@ throws Exception
 {	String command = event.getActionCommand();
 
 	if (command.equals( __Commands_Models_Routing_LagK_String)){
-		commandList_EditCommand ( __Commands_Models_Routing_LagK_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Models_Routing_LagK_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Models_Routing_VariableLagK_String)){
-        commandList_EditCommand ( __Commands_Models_Routing_VariableLagK_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Models_Routing_VariableLagK_String, null, CommandEditType.INSERT );
     }
 	else {
 		// Chain to other actions
@@ -10930,28 +10718,28 @@ throws Exception
 {   String command = event.getActionCommand();
 
     if (command.equals( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String)){
-        commandList_EditCommand ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Ensemble_CopyEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_CopyEnsemble_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_CopyEnsemble_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Ensemble_NewEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_NewEnsemble_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_NewEnsemble_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals(__Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_TS_NewStatisticTimeSeriesFromEnsemble_String, null, __INSERT_COMMAND );
+    else if (command.equals(__Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Ensemble_TS_WeightTraces_String)){
-        commandList_EditCommand ( __Commands_Ensemble_TS_WeightTraces_String, null, __INSERT_COMMAND );
+    else if (command.equals( __Commands_Ensemble_WeightTraces_String)){
+        commandList_EditCommand ( __Commands_Ensemble_WeightTraces_String, null, CommandEditType.INSERT );
     }
     else if(command.equals( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String)){
-        commandList_EditCommand ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String, null, CommandEditType.INSERT );
     }
     else {
         // Chain to other actions
@@ -10968,53 +10756,53 @@ throws Exception
 {	String command = event.getActionCommand();
 
 	if (command.equals( __Commands_Output_DeselectTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_DeselectTimeSeries_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_DeselectTimeSeries_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_SelectTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_SelectTimeSeries_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_SelectTimeSeries_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(
 		__Commands_Output_SetOutputDetailedHeaders_String) ) {
-		commandList_EditCommand (__Commands_Output_SetOutputDetailedHeaders_String, null, __INSERT_COMMAND );
+		commandList_EditCommand (__Commands_Output_SetOutputDetailedHeaders_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_SetOutputPeriod_String) ) {
-		commandList_EditCommand ( __Commands_Output_SetOutputPeriod_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_SetOutputPeriod_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_SetOutputYearType_String) ){
-		commandList_EditCommand ( __Commands_Output_SetOutputYearType_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_SetOutputYearType_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_SortTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_SortTimeSeries_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_SortTimeSeries_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
-		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Output_WriteHecDss_String)){
-        commandList_EditCommand ( __Commands_Output_WriteHecDss_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Output_WriteHecDss_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Output_WriteNwsCard_String)){
-		commandList_EditCommand ( __Commands_Output_WriteNwsCard_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteNwsCard_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Output_WriteReclamationHDB_String)){
-        commandList_EditCommand ( __Commands_Output_WriteReclamationHDB_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Output_WriteReclamationHDB_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
-		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Output_WriteSHEF_String)){
-        commandList_EditCommand ( __Commands_Output_WriteSHEF_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Output_WriteSHEF_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Output_WriteStateCU_String)){
-		commandList_EditCommand ( __Commands_Output_WriteStateCU_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteStateCU_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_WriteStateMod_String)){
-		commandList_EditCommand ( __Commands_Output_WriteStateMod_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteStateMod_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_WriteSummary_String)){
-		commandList_EditCommand ( __Commands_Output_WriteSummary_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_WriteSummary_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_ProcessTSProduct_String)){
-		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, CommandEditType.INSERT );
 	}
 	else {	// Chain to next list of commands...
 		uiAction_ActionPerformed14_CommandsGeneralMenu ( event );
@@ -11033,93 +10821,85 @@ throws Exception
 	// HydroBase commands...
 
 	if (command.equals(__Commands_HydroBase_OpenHydroBase_String)){
-		commandList_EditCommand ( __Commands_HydroBase_OpenHydroBase_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_HydroBase_OpenHydroBase_String, null, CommandEditType.INSERT );
 	}
 
-	// NDFD commands...
-
-	/* TODO SAM 2008-10-01 Enable later
-	else if (command.equals(__Commands_NDFD_openNDFD_String)){
-		commandList_EditCommand ( __Commands_NDFD_openNDFD_String, null, __INSERT_COMMAND );
-	}
-	*/
-    
     // Table commands...
     
     else if (command.equals( __Commands_Table_NewTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_NewTable_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_NewTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_CopyTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_CopyTable_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_CopyTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
-        commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ReadTableFromDBF_String) ) {
-        commandList_EditCommand ( __Commands_Table_ReadTableFromDBF_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_ReadTableFromDBF_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_SetTimeSeriesPropertiesFromTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
-        commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_TableMath_String) ) {
-        commandList_EditCommand ( __Commands_Table_TableMath_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_TableMath_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_TableTimeSeriesMath_String) ) {
-        commandList_EditCommand ( __Commands_Table_TableTimeSeriesMath_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_TableTimeSeriesMath_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_CompareTables_String) ) {
-        commandList_EditCommand ( __Commands_Table_CompareTables_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_CompareTables_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
-        commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_WriteTableToHTML_String) ) {
-        commandList_EditCommand ( __Commands_Table_WriteTableToHTML_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Table_WriteTableToHTML_String, null, CommandEditType.INSERT );
     }
 	
 	// Template commands...
 
     else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
-        commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, CommandEditType.INSERT );
     }
 	
 	// View commands...
 
     else if (command.equals( __Commands_View_NewTreeView_String) ) {
-        commandList_EditCommand ( __Commands_View_NewTreeView_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_View_NewTreeView_String, null, CommandEditType.INSERT );
     }
 	
 	// General commands...
 
 	else if (command.equals( __Commands_General_Logging_StartLog_String) ) {
-		commandList_EditCommand ( __Commands_General_Logging_StartLog_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Logging_StartLog_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_General_Logging_SetDebugLevel_String) ) {
-		commandList_EditCommand ( __Commands_General_Logging_SetDebugLevel_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Logging_SetDebugLevel_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_General_Logging_SetWarningLevel_String) ) {
-		commandList_EditCommand ( __Commands_General_Logging_SetWarningLevel_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Logging_SetWarningLevel_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
-		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals(__Commands_General_CheckingResults_CheckTimeSeries_String) ) {
-        commandList_EditCommand ( __Commands_General_CheckingResults_CheckTimeSeries_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_CheckingResults_CheckTimeSeries_String, null, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_CheckingResults_OpenCheckFile_String) ) {
-        commandList_EditCommand ( __Commands_General_CheckingResults_OpenCheckFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_CheckingResults_OpenCheckFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_CheckingResults_WriteCheckFile_String) ) {
-        commandList_EditCommand ( __Commands_General_CheckingResults_WriteCheckFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_CheckingResults_WriteCheckFile_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
-		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
@@ -11127,64 +10907,64 @@ throws Exception
         // the menu, which has too much verbage.
         List comments = new Vector(1);
         comments.add ( commandList_NewCommand("#@readOnly",true) );
-        commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Comments_StartComment_String) ) {
-		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_General_Comments_EndComment_String) ) {
-		commandList_EditCommand ( __Commands_General_Comments_EndComment_String,	null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Comments_EndComment_String,	null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_General_Running_Exit_String) ) {
-		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String) ) {
-        commandList_EditCommand ( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_SetProperty_String) ) {
-        commandList_EditCommand ( __Commands_General_Running_SetProperty_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_Running_SetProperty_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String) ) {
-        commandList_EditCommand ( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_General_Running_RunCommands_String) ) {
-		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_General_Running_RunProgram_String) ) {
-		commandList_EditCommand ( __Commands_General_Running_RunProgram_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_Running_RunProgram_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_General_Running_RunPython_String) ) {
-        commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_RunDSSUTL_String) ) {
-        commandList_EditCommand ( __Commands_General_Running_RunDSSUTL_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_Running_RunDSSUTL_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_Exit_String) ) {
-        commandList_EditCommand ( __Commands_General_Running_Exit_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_FTPGet_String)){
-        commandList_EditCommand ( __Commands_General_FileHandling_FTPGet_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_FileHandling_FTPGet_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_WebGet_String)){
-        commandList_EditCommand ( __Commands_General_FileHandling_WebGet_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_FileHandling_WebGet_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
-        commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_General_TestProcessing_CompareFiles_String)){
-		commandList_EditCommand ( __Commands_General_TestProcessing_CompareFiles_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_TestProcessing_CompareFiles_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_General_TestProcessing_WriteProperty_String)){
-		commandList_EditCommand ( __Commands_General_TestProcessing_WriteProperty_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_TestProcessing_WriteProperty_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String)){
-        commandList_EditCommand ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String, null, __INSERT_COMMAND );
+        commandList_EditCommand ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_General_TestProcessing_TestCommand_String) ) {
-		commandList_EditCommand ( __Commands_General_TestProcessing_TestCommand_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_TestProcessing_TestCommand_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String) ) {
-		commandList_EditCommand ( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String, null, __INSERT_COMMAND );
+		commandList_EditCommand ( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String, null, CommandEditType.INSERT );
 	}
 	else {
 		// Chain to other actions...
@@ -11535,6 +11315,9 @@ throws Exception
 	else if ( command.equals ( __Help_ViewDocumentation_String )) {
         uiAction_ViewDocumentation ();
     }
+    else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
+        uiAction_ViewTrainingMaterials ();
+    }
 	else if ( command.equals ( __Help_ImportConfiguration_String )) {
         uiAction_ImportConfiguration ( IOUtil.getApplicationHomeDir() + File.separator + "system" +
             File.separator + "TSTool.cfg");
@@ -11610,13 +11393,13 @@ private void uiAction_CopyFromCommandListToCutBuffer ( boolean remove_original )
 	}
 
 	// Clear what may previously have been in the cut buffer...
-	__commands_cut_buffer.clear();
+	__commandsCutBuffer.clear();
 
 	// Transfer Command instances to the cut buffer...
 	Command command = null;	// Command instance to process
 	for ( int i = 0; i < size; i++ ) {
 		command = (Command)__commands_JListModel.get(selected_indices[i]);
-		__commands_cut_buffer.add ( (Command)command.clone() );
+		__commandsCutBuffer.add ( (Command)command.clone() );
 	}
 	
 	if ( remove_original ) {
@@ -12071,47 +11854,7 @@ private void uiAction_EditCommand ()
 			v = new Vector ( 1 );
 			v.add ( command );
 		}
-		commandList_EditCommand ( "", v, __UPDATE_COMMAND ); // No action event from menus
-	}
-}
-
-/**
-Handle Edit...Command File, which uses an external editor to edit the file.
-*/
-private void uiAction_EditCommandFile ()
-{	String routine = getClass().getName() + ".uiAction_EditCommandFile";
-	// Get the name of the file to edit and then use notepad...
-	//
-	// Instantiate a file dialog object with no default...
-	//
-	JFileChooser fc = JFileChooserFactory.createJFileChooser (ui_GetDir_LastCommandFileOpened() );
-	fc.setDialogTitle ( "Select File" );
-	SimpleFileFilter sff = new SimpleFileFilter ( "TSTool", "TSTool Command File" );
-	fc.addChoosableFileFilter ( sff );
-	fc.setFileFilter ( sff );
-	if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-		// Return if no file name is selected...
-		return;
-	}
-	String path = fc.getSelectedFile().getPath();
-	ui_SetDir_LastCommandFileOpened ( fc.getSelectedFile().getParent() );
-	String [] command_array = new String[2];
-	if ( IOUtil.isUNIXMachine() ) {
-		command_array[0] = "nedit";
-	}
-	else {
-        command_array[0] = "notepad";
-	}
-	if ( path != null ) {
-		try {
-            command_array[1] = path;
-			ProcessManager p = new ProcessManager( command_array );
-			Thread thread = new Thread ( p );
-			thread.start ();
-		}
-		catch ( Exception e2 ) {
-			Message.printWarning ( 1, routine, "Unable to edit file \"" + path + "\"" );
-		}
+		commandList_EditCommand ( "", v, CommandEditType.UPDATE ); // No action event from menus
 	}
 }
 
@@ -12183,7 +11926,7 @@ private void uiAction_FileExitClicked ()
 				}
 				else if ( x == ResponseJDialog.YES ) {
 					// Prompt for the name and then save...
-					uiAction_WriteCommandFile (	__commandFileName, true);
+					uiAction_WriteCommandFile (	__commandFileName, true, false );
 				}
 			}
 			else {
@@ -12199,7 +11942,7 @@ private void uiAction_FileExitClicked ()
                     }
                     else {
                         x = new ResponseJDialog ( this,
-                                IOUtil.getProgramName(), "Do you want to save the changes you made to\n\""
+                                IOUtil.getProgramName(), "Do you want to save the changes made to\n\""
                                 + __commandFileName + "\"?",
                                 ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
                     }
@@ -12209,7 +11952,7 @@ private void uiAction_FileExitClicked ()
 					return;
 				}
 				else if ( x == ResponseJDialog.YES ) {
-					uiAction_WriteCommandFile (	__commandFileName, false );
+					uiAction_WriteCommandFile (	__commandFileName, false, false );
 				}
 				// Else if No will just exit below...
 			}
@@ -12774,9 +12517,9 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
         try {
             ColoradoWaterSMS service = new ColoradoWaterSMS();
             // FIXME SAM 2009-11-20 Need to enable input filters for wd, div, abbrev
-            int wd = -1; // Get all
-            int div = -1; // Get all
-            String abbrev = null; // Get all
+            int wd = 0; // <= 0 means get all
+            int div = 0; // <= 0 meand get all
+            String abbrev = "";//null; // Get all
             String stationName = null; // Get all
             String dataProvider = null; // Get all
             tslist = ColoradoWaterSMSAPI.readTimeSeriesHeaderObjects (
@@ -14988,7 +14731,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         }
         else if ( x == ResponseJDialog.YES ) {
             // Prompt for the name and then save...
-            uiAction_WriteCommandFile ( __commandFileName, true);
+            uiAction_WriteCommandFile ( __commandFileName, true, false );
         }
     }
     else {
@@ -14998,7 +14741,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         if ( __commands_JListModel.size() > 0 ) {
             if ( __tsProcessor.getReadOnly() ) {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                    "Do you want to save the changes you made to:\n"
+                    "Do you want to save the changes made to:\n"
                     + "\"" + __commandFileName + "\"?\n\n" +
                     "The commands are marked read-only.\n" +
                     "Press Yes to update the read-only file before opening a new file.\n" +
@@ -15008,7 +14751,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
             }
             else {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                "Do you want to save the changes you made to:\n"
+                "Do you want to save the changes made to:\n"
                 + "\"" + __commandFileName + "\"?",
                 ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
             }
@@ -15017,7 +14760,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
             return false;
         }
         else if ( x == ResponseJDialog.YES ) {
-            uiAction_WriteCommandFile ( __commandFileName,false);
+            uiAction_WriteCommandFile ( __commandFileName, false, false );
         }
         // Else if No or OK will clear before opening the other file...
     }
@@ -15296,11 +15039,11 @@ private void uiAction_PasteFromCutBufferToCommandList ()
 
 	// Transfer the cut buffer starting at one after the last selection...
 
-	int buffersize = __commands_cut_buffer.size();
+	int buffersize = __commandsCutBuffer.size();
 
 	Command command = null;
 	for ( int i = 0; i < buffersize; i++ ) {
-		command = (Command)__commands_cut_buffer.get(i);
+		command = (Command)__commandsCutBuffer.get(i);
 		commandList_InsertCommandAt ( command, (last_selected + 1 + i) );
 	}
 
@@ -15406,8 +15149,11 @@ private void uiAction_ResultsEnsembleProperties ()
     TS ts;
     for ( int i = 0; i < selected.length; i++ ) {
         // Get the ensemble ID from the list...
-        ensembleDisplay = (String)__resultsTSEnsembles_JListModel.get(i);
+        ensembleDisplay = (String)__resultsTSEnsembles_JListModel.get(selected[i]);
         ensemble = results_Ensembles_GetEnsembleID ( ensembleDisplay );
+        if ( ensemble == null ) {
+            continue;
+        }
         ensembleID = ensemble.getEnsembleID();
         if ( ensemble == null ) {
             v.add ( "" );
@@ -18101,12 +17847,6 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
     else {
         v.add ( "MODSIM input type is not enabled" );
     }
-    if ( __source_NDFD_enabled  ) {
-        v.add ( "NDFD input type is enabled" );
-    }
-    else {
-        v.add ( "NDFD input type is not enabled" );
-    }
     if ( __source_NWSCard_enabled  ) {
         v.add ( "NWSCARD input type is enabled" );
     }
@@ -18211,30 +17951,14 @@ private void uiAction_ShowResultsOutputFile ( String selected )
     if ( !( new File( selected ).isAbsolute() ) ) {
         selected = IOUtil.getPathUsingWorkingDir( selected );
     }
-    // TODO SAM 2010-06-06 Need to evaluate when to use system-defined viewers rather than hard-coding file
-    // extensions here.  Probably need to find UNIX code consistent with windows code to determine viewer from extension
-    if ( selected.toUpperCase().endsWith(".HTML") || selected.toUpperCase().endsWith(".PNG") ||
-        selected.toUpperCase().endsWith(".JPG")) {
-        // FIXME SAM 2009-04-21 Use a browser for HTML because the embedded view does not look that good.
-        // ALso use for common image types
-        IOUtil.openURL( selected );
-        /*
-        // Run the simple RTi browser to display the check file
-        // this browser enables html navigation features for viewing the check file
-        try {
-            new SimpleBrowser( selected ).setVisible(true);
-        } 
-        catch ( MalformedURLException e ) {
-            Message.printWarning(2, routine,"Couldn't find file or url: " + selected );
-        }
-        catch (IOException e) {
-            Message.printWarning( 2, routine,"Failed to open browser to view: " + selected );
-            Message.printWarning( 3, routine, e );
-        }
-        */
+    // First try the application that is configured...
+    // TODO SAM 2011-03-31 What if a TSTool command file has been expanded?
+    try {
+        Desktop desktop = Desktop.getDesktop();
+        desktop.open ( new File(selected) );
     }
-    else {
-        // Display a simple text file (will show up in courier fixed width
+    catch ( Exception e ) {
+        // Else display as text (will show up in courier fixed width
         // font, which looks better than the html browser).
         try {
             if ( IOUtil.isUNIXMachine() ) {
@@ -18261,7 +17985,7 @@ private void uiAction_ShowResultsOutputFile ( String selected )
             }
         }
         catch (Exception e2) {
-            Message.printWarning (1, routine, "Unable to view file \"" + selected + "\"" );
+            Message.printWarning (1, routine, "Unable to view file \"" + selected + "\" (" + e2 + ")." );
             Message.printWarning ( 3, routine, e2 );
         }
     }
@@ -18941,7 +18665,7 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 }
 
 /**
-View the documentation by displaying in a web browser.
+View the documentation by displaying using the desktop application.
 */
 private void uiAction_ViewDocumentation ()
 {   String routine = getClass().getName() + ".uiAction_ViewDocumentation";
@@ -18951,20 +18675,49 @@ private void uiAction_ViewDocumentation ()
     docFileName = IOUtil.verifyPathForOS(docFileName, true);
     // Now display using the default application for the file extension
     Message.printStatus(2, routine, "Opening documentation \"" + docFileName + "\"" );
-    IOUtil.openURL(docFileName);
+    try {
+        Desktop desktop = Desktop.getDesktop();
+        desktop.open ( new File(docFileName) );
+    }
+    catch ( Exception e ) {
+        Message.printWarning(1, "", "Unable to display documentation at \"" + docFileName + "\" (" + e + ")." );
+    }
+}
+
+/**
+View the training materials by displaying in file browser.
+*/
+private void uiAction_ViewTrainingMaterials ()
+{   String routine = getClass().getName() + ".uiAction_ViewTrainingMaterials";
+    // The location of the documentation is relative to the application home
+    String trainingFolderName = IOUtil.getApplicationHomeDir() + "/doc/Training";
+    // Convert for the operating system
+    trainingFolderName = IOUtil.verifyPathForOS(trainingFolderName, true);
+    // Now display using the default application for the file extension
+    Message.printStatus(2, routine, "Opening training material folder \"" + trainingFolderName + "\"" );
+    try {
+        Desktop desktop = Desktop.getDesktop();
+        desktop.open ( new File(trainingFolderName) );
+    }
+    catch ( Exception e ) {
+        Message.printWarning(1, "", "Unable to display training materials at \"" +
+            trainingFolderName + "\" (" + e + ")." );
+    }
 }
 
 /**
 Write the current command file list (all lines, whether selected or not) to
 the specified file.  Do not prompt for header comments (and do not add).
-@param prompt_for_file If true, prompt for the file name rather than using the
+@param promptForFile If true, prompt for the file name rather than using the
 value that is passed.  An extension of .TSTool is enforced.
 @param file Command file to write.
+@param saveConsideringVersion whether to save the file considering the software version (this is generally
+only needed when pre-10 TSTool version is saved, which will retain "TS Alias = " command notation
 */
-private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
+private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boolean saveConsideringVersion )
 {	String routine = "TSTool_JFrame.uiAction_WriteCommandFile";
     String directory = null;
-	if ( prompt_for_file ) {
+	if ( promptForFile ) {
 		JFileChooser fc = JFileChooserFactory.createJFileChooser(ui_GetDir_LastCommandFileOpened() );
 		fc.setDialogTitle("Save Command File");
 		// Default name...
@@ -18987,8 +18740,18 @@ private void uiAction_WriteCommandFile ( String file, boolean prompt_for_file )
 	try {
 	    PrintWriter out = new PrintWriter(new FileOutputStream(file));
 		int size = __commands_JListModel.size();
+		Command command;
 		for (int i = 0; i < size; i++) {
-			out.println(((Command)__commands_JListModel.get(i)).toString());
+		    command = (Command)__commands_JListModel.get(i);
+		    if ( saveConsideringVersion && command instanceof CommandSavesMultipleVersions ) {
+		        // TODO SAM This is a work-around to transition from the "TS = " notation
+		        String majorVersion = IOUtil.getProgramVersion().split(".")[0];
+		        CommandSavesMultipleVersions versionCommand = (CommandSavesMultipleVersions)command;
+		        out.println(versionCommand.toString(command.getCommandParameters(),Integer.parseInt(majorVersion)));
+		    }
+		    else {
+		        out.println(command.toString());
+		    }
 		}
 	
 		out.close();
