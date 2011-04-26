@@ -1138,6 +1138,13 @@ JMenuItem
 
     __Commands_Output_ProcessTSProduct_JMenuItem;
 
+JMenu
+    __Commands_Check_CheckTimeSeries_JMenu = null;
+JMenuItem
+    __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem = null,
+    __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem = null,
+    __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem = null;
+
 //Commands...Ensemble Processing...
 
 JMenu
@@ -1194,19 +1201,14 @@ JMenuItem
 	__Commands_General_Logging_SetWarningLevel_JMenuItem = null;
 
 JMenu
-    __Commands_General_CheckingResults_JMenu = null;
-JMenuItem
-    __Commands_General_CheckingResults_CheckTimeSeries_JMenuItem = null,
-    __Commands_General_CheckingResults_OpenCheckFile_JMenuItem = null,
-    __Commands_General_CheckingResults_WriteCheckFile_JMenuItem = null;
-
-JMenu
     __Commands_General_Comments_JMenu = null;
 JMenuItem
 	__Commands_General_Comments_Comment_JMenuItem = null,
-	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
 	__Commands_General_Comments_StartComment_JMenuItem = null,
-	__Commands_General_Comments_EndComment_JMenuItem = null;
+	__Commands_General_Comments_EndComment_JMenuItem = null,
+	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
+	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
+	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null;
 
 JMenu
     __Commands_General_FileHandling_JMenu = null;
@@ -1520,6 +1522,13 @@ private String
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
     __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
 
+    // Commands...Check Time Series...
+    
+    __Commands_Check_CheckingResults_String = "Check Time Series",
+    __Commands_Check_CheckingResults_CheckTimeSeries_String = TAB + "CheckTimeSeries()... <check time series data values>",
+    __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_String = TAB + "CheckTimeSeriesStatistic()... <check time series statistic>",
+    __Commands_Check_CheckingResults_WriteCheckFile_String = TAB + "WriteCheckFile()... <write check file>",
+    
 	// Commands...Analyze Time Series...
 
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
@@ -1580,17 +1589,14 @@ private String
     __Commands_View_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
     
 	// General Commands...
-    
-    __Commands_General_CheckingResults_String = "General - Checking/Testing Results",
-    __Commands_General_CheckingResults_CheckTimeSeries_String = TAB + "CheckTimeSeries()... <check time series>",
-    __Commands_General_CheckingResults_OpenCheckFile_String = TAB + "OpenCheckFile()... <open check file>",
-    __Commands_General_CheckingResults_WriteCheckFile_String = TAB + "WriteCheckFile()... <write check file>",
 
     __Commands_General_Comments_String = "General - Comments",
-    __Commands_General_Comments_Comment_String = TAB + "# comment(s)...",
-    __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <insert read-only comment>",
-    __Commands_General_Comments_StartComment_String = TAB + "/* <start comment block>",
-    __Commands_General_Comments_EndComment_String = TAB + "*/ <end comment block>",
+    __Commands_General_Comments_Comment_String = TAB + "# comment(s) <insert 1+ comments, each starting with #>",
+    __Commands_General_Comments_StartComment_String = TAB + "/* <start multi-line comment section>",
+    __Commands_General_Comments_EndComment_String = TAB + "*/ <end multi-line comment section>",
+    __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <insert read-only comment to protect command file>",
+    __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
+    __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
     
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
@@ -1682,7 +1688,7 @@ private String
 		__Tools_RiversideDB_String = "RiversideDB",
 			__Tools_RiversideDB_TSProductManager_String = "Manage Time Series Products in RiversideDB...",
 		__Tools_SelectOnMap_String = "Select on Map",
-		__Tools_Options_String = "Options",
+		__Tools_Options_String = "Options...",
 
 	// Help menu (order in GUI)...
 
@@ -2187,7 +2193,9 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	else {
 		// New command, so look for comment actions.
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
-		        action.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
+		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
+            action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
+            action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ) {
 			isCommentBlock = true;
 		}
 	}
@@ -5556,9 +5564,9 @@ private void ui_CheckGUIState ()
 
 	// Get the needed list sizes...
 
-	int query_list_size = 0;
+	int queryListSize = 0;
 	if ( __query_TableModel != null ) {
-		query_list_size = __query_TableModel.getRowCount();
+		queryListSize = __query_TableModel.getRowCount();
 	}
 
 	int commandListSize = 0;
@@ -5568,9 +5576,9 @@ private void ui_CheckGUIState ()
 		selectedCommandsSize = JGUIUtil.selectedSize ( ui_GetCommandJList() );
 	}
 
-	int ts_list_size = 0;
+	int tsListSize = 0;
 	if ( __resultsTS_JListModel != null ) {
-		ts_list_size = __resultsTS_JListModel.size();
+		tsListSize = __resultsTS_JListModel.size();
 	}
 	
 	int dataStoreListSize = 0;
@@ -5594,7 +5602,7 @@ private void ui_CheckGUIState ()
 
 	// File menu...
 
-	enabled = false; // Use for File...Save menu.
+	enabled = false;
 	if ( commandListSize > 0 ) {
 		// Have commands shown...
 		if ( __commandsDirty  ) {
@@ -5617,7 +5625,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
 	}
-	if ( ts_list_size > 0 ) {
+	if ( tsListSize > 0 ) {
 		JGUIUtil.setEnabled ( __File_Save_TimeSeriesAs_JMenuItem, true);
 		enabled = true;
 	}
@@ -5659,55 +5667,36 @@ private void ui_CheckGUIState ()
 
 	// Edit menu...
 
+	enabled = false;
 	if ( commandListSize > 0 ) {
-		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem, true);
-		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,true);
+	    enabled = true;
 	}
-	else {
-	    // No commands are shown.
-		JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,false);
-		JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,false);
-	}
+	JGUIUtil.setEnabled ( __Edit_SelectAllCommands_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_SelectAll_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Edit_DeselectAllCommands_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_DeselectAll_JMenuItem,enabled);
+	
+	enabled = false;
 	if ( selectedCommandsSize > 0 ) {
-		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_CommandWithErrorChecking_JMenuItem, true );
-		JGUIUtil.setEnabled ( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,true );
-		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsToComments_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
-        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem,true);
-        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,true);
+	    enabled = true;
 	}
-	else {
-		JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Edit_CommandWithErrorChecking_JMenuItem, false );
-		JGUIUtil.setEnabled ( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,false );
-		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsToComments_JMenuItem,false);
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,false);
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,false);
-        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem,false);
-        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,false);
-        JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem,false);
-        JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,false);
-	}
+	JGUIUtil.setEnabled ( __Edit_CutCommands_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_Cut_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Edit_CopyCommands_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_Copy_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Edit_DeleteCommands_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_Delete_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Edit_CommandWithErrorChecking_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,enabled );
+	JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsToComments_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Edit_ConvertSelectedCommandsFromComments_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,enabled);
+	
 	if ( __commandsCutBuffer.size() > 0 ) {
 		// Paste button should be enabled...
 		JGUIUtil.setEnabled ( __Edit_PasteCommands_JMenuItem, true );
@@ -5729,211 +5718,128 @@ private void ui_CheckGUIState ()
 
 	// Commands menu...
 
+	enabled = false;
 	if ( commandListSize > 0 ) {
 	    // Some commands are available so enable commands that operate on other time series
-	    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,	true );
-		JGUIUtil.setEnabled ( __Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Create_RelativeDiff_JMenuItem, true);
-	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticTimeSeries_JMenuItem,true);
-	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticYearTS_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem, true);
+	    enabled = true;
+	}
+    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,	enabled );
+	JGUIUtil.setEnabled ( __Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_RelativeDiff_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticTimeSeries_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticYearTS_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem, enabled);
 
-		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillHistMonthAverage_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillHistYearAverage_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillInterpolate_JMenuItem, true);
-		// TODO SAM 2005-04-26 This fill method is not enabled - may not be needed.
-		//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE2_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillMixedStation_JMenuItem,true );
-		JGUIUtil.setEnabled ( __Commands_Fill_FillPattern_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillProrate_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillRegression_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillRepeat_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	true);
-		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, true );
+	JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillFromTS_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillHistMonthAverage_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillHistYearAverage_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillInterpolate_JMenuItem, enabled);
+	// TODO SAM 2005-04-26 This fill method is not enabled - may not be needed.
+	//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE2_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillMixedStation_JMenuItem,enabled );
+	JGUIUtil.setEnabled ( __Commands_Fill_FillPattern_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillProrate_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillRegression_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillRepeat_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	enabled);
+	JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, enabled );
 
-		JGUIUtil.setEnabled ( __Commands_Set_ReplaceValue_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetConstant_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, true );
-		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, true );
+	JGUIUtil.setEnabled ( __Commands_Set_ReplaceValue_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetConstant_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, enabled );
 
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Add_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_AddConstant_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_AdjustExtremes_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_ARMA_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Blend_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Commands_Manipulate_ChangePeriod_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_ConvertDataUnits_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Cumulate_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Divide_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Multiply_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_RunningAverage_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Scale_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_ShiftTimeByInterval_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Subtract_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,true);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Add_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_AddConstant_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_AdjustExtremes_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_ARMA_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Blend_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Manipulate_ChangePeriod_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_ConvertDataUnits_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Cumulate_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Divide_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Multiply_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_RunningAverage_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Scale_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_ShiftTimeByInterval_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Manipulate_Subtract_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,enabled);
 
-		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, true);
-	    JGUIUtil.setEnabled ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, true);
+	JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, enabled);
 
-		JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, true);
-        
-		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, true);
-	    JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,true);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,true);
-		if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
-		    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, true );
-		}
-		else {
-		    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false );
-		}
-		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, true);
-		JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem, true);
-        
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_WeightTraces_JMenuItem, true);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,true);
-
-		/* TODO - it is irritating to not be able to run commands
-		  when external input changes (or during debugging)...
-		if (	__commands_dirty ||
-			(!__commands_dirty && (ts_list_size == 0)) ) {
-			JGUIUtil.setEnabled ( __run_commands_JButton, true );
-		}
-		else {
-            JGUIUtil.setEnabled ( __run_commands_JButton, false );
-		}
-		*/
-		if ( selectedCommandsSize > 0 ) {
-			JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, true );
-		}
-		else {
-            JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,false );
-		}
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
+	JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, enabled);
+    
+	JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,enabled);
+	if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
+	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, true );
 	}
 	else {
-        // No commands are shown.
-	    JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, false );
-        JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Create_RelativeDiff_JMenuItem, false);
-	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticTimeSeries_JMenuItem,false );
-	    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticYearTS_JMenuItem,false );
-        JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem,false );
-
-		JGUIUtil.setEnabled ( __Commands_Fill_FillConstant_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem,	false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillFromTS_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillHistMonthAverage_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillHistYearAverage_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillInterpolate_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillMixedStation_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE1_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE2_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillPattern_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillProrate_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillRegression_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillRepeat_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Fill_FillUsingDiversionComments_JMenuItem,	false);
-		JGUIUtil.setEnabled ( __Commands_FillTimeSeries_JMenu, false );
-
-		JGUIUtil.setEnabled ( __Commands_Set_ReplaceValue_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, false );
-		JGUIUtil.setEnabled ( __Commands_SetTimeSeries_JMenu, false );
-
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Add_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_AddConstant_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_AdjustExtremes_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_ARMA_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Blend_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Manipulate_ChangePeriod_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_ConvertDataUnits_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Cumulate_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Divide_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Multiply_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_RunningAverage_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Scale_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_ShiftTimeByInterval_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Manipulate_Subtract_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_ManipulateTimeSeries_JMenu,false);
-
-		JGUIUtil.setEnabled ( __Commands_Analyze_AnalyzePattern_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Analyze_CompareTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_AnalyzeTimeSeries_JMenu, false);
-
-		// TODO SAM 2005-07-11 Change if any models are added that don't need input time series...
-		JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, false );
-        
-		JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, false );
-        JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem,false);
-		JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem,false);
-        
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,false );
-        JGUIUtil.setEnabled ( __Commands_Ensemble_WeightTraces_JMenuItem, false);
-        JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,false);
-
-		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
-		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
-		JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
+	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false );
 	}
+	JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem, enabled);
+    
+    JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_WeightTraces_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,enabled);
+    
+    JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem,enabled);
+
+	/* TODO - it is irritating to not be able to run commands
+	  when external input changes (or during debugging)...
+	if (	__commands_dirty ||
+		(!__commands_dirty && (ts_list_size == 0)) ) {
+		JGUIUtil.setEnabled ( __run_commands_JButton, true );
+	}
+	else {
+        JGUIUtil.setEnabled ( __run_commands_JButton, false );
+	}
+	*/
 	if ( selectedCommandsSize > 0 ) {
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,true);
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,true);
+		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, true );
 	}
 	else {
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,false);
-		JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,false);
+        JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,false );
 	}
+	JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
+	JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
+	
+	enabled = false;
+	if ( selectedCommandsSize > 0 ) {
+	    enabled = true;
+	}
+	JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,enabled);
 
 	// Run menu...
 	
@@ -5941,7 +5847,7 @@ private void ui_CheckGUIState ()
 
 	// Results menu...
 
-	if ( ts_list_size > 0 ) {
+	if ( tsListSize > 0 ) {
 		JGUIUtil.setEnabled ( __Results_JMenu, true );
 	}
 	else {
@@ -5951,7 +5857,7 @@ private void ui_CheckGUIState ()
 
 	// Tools menu...
 
-	if ( ts_list_size > 0 ) {
+	if ( tsListSize > 0 ) {
 		JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, true );
 		JGUIUtil.setEnabled ( __Tools_Report_JMenu, true );
 	}
@@ -5959,7 +5865,7 @@ private void ui_CheckGUIState ()
         JGUIUtil.setEnabled ( __Tools_Analysis_JMenu, false );
 		JGUIUtil.setEnabled ( __Tools_Report_JMenu, false );
 	}
-	if ( (query_list_size > 0) && (__geoview_JFrame != null) ) {
+	if ( (queryListSize > 0) && (__geoview_JFrame != null) ) {
 		JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, true );
 	}
 	else {
@@ -5968,13 +5874,13 @@ private void ui_CheckGUIState ()
 
 	// Enable/disable features related to the query list...
 
-	if ( query_list_size > 0 ) {
+	if ( queryListSize > 0 ) {
 		JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, true );
 	}
 	else {
         JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
 	}
-	if ( (query_list_size > 0) && (__query_JWorksheet != null) &&
+	if ( (queryListSize > 0) && (__query_JWorksheet != null) &&
 		(__query_JWorksheet.getSelectedRowCount() > 0) ) {
 		JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, true );
 	}
@@ -8133,7 +8039,8 @@ Initialize the GUI "Commands" menu.
 private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 {	// "Commands...TS Create/Convert/Read Time Series"...
 
-	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );	
+	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );
+	__Commands_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end.");
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
 	__Commands_CreateTimeSeries_JMenu.setToolTipText("Create time series from supplied values or other time series.");
@@ -8499,13 +8406,23 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_ProcessTSProduct_JMenuItem =
 		new SimpleJMenuItem( __Commands_Output_ProcessTSProduct_String, this ) );
+	
+    __Commands_JMenu.add( __Commands_Check_CheckTimeSeries_JMenu = new JMenu( __Commands_Check_CheckingResults_String, true ) );
+    __Commands_Check_CheckTimeSeries_JMenu.setToolTipText("Check time series against criteria.");
+    __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_Check_CheckingResults_CheckTimeSeries_String, this ) );
+    __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem =
+        new SimpleJMenuItem( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_String, this ) );
+    __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_Check_CheckingResults_WriteCheckFile_String, this ) );
 }
 
 /**
 Initialize the GUI "Commands...General".
 */
 private void ui_InitGUIMenus_CommandsGeneral ()
-{	if ( __source_HydroBase_enabled ) {
+{	__Commands_JMenu.addSeparator(); // Results in double separator
+    if ( __source_HydroBase_enabled ) {
 		__Commands_JMenu.addSeparator();
 		__Commands_JMenu.add( __Commands_HydroBase_JMenu = new JMenu( __Commands_HydroBase_String, true ) );
 		__Commands_HydroBase_JMenu.setToolTipText("Additional HydroBase database commands.");
@@ -8597,25 +8514,24 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     // Commands...General...
 
-	__Commands_JMenu.addSeparator();   // Separate general commands from others
-    
-    __Commands_JMenu.add( __Commands_General_CheckingResults_JMenu = new JMenu( __Commands_General_CheckingResults_String, true ) );
-    __Commands_General_CheckingResults_JMenu.setToolTipText("Check time series against criteria.");
-    __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_CheckTimeSeries_JMenuItem =
-        new SimpleJMenuItem( __Commands_General_CheckingResults_CheckTimeSeries_String, this ) );
-    __Commands_General_CheckingResults_JMenu.add ( __Commands_General_CheckingResults_WriteCheckFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_General_CheckingResults_WriteCheckFile_String, this ) );
+	__Commands_JMenu.addSeparator(); // Separate general commands from others
+	__Commands_JMenu.addSeparator(); // Results in double separator
 	
     __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
     __Commands_General_Comments_JMenu.setToolTipText("Insert comments.");
     __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Comment_String, this ) );
-    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
-        new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_StartComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_StartComment_String, this ) );
     __Commands_General_Comments_JMenu.add( __Commands_General_Comments_EndComment_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Comments_EndComment_String, this ) );
+    __Commands_General_Comments_JMenu.addSeparator();
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusFailureComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusWarningComment_String, this ) );
     
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
     __Commands_General_FileHandling_JMenu.setToolTipText("Manipulate files.");
@@ -10889,23 +10805,39 @@ throws Exception
 	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, CommandEditType.INSERT );
 	}
-    else if (command.equals(__Commands_General_CheckingResults_CheckTimeSeries_String) ) {
-        commandList_EditCommand ( __Commands_General_CheckingResults_CheckTimeSeries_String, null, CommandEditType.INSERT );
+    else if (command.equals(__Commands_Check_CheckingResults_CheckTimeSeries_String) ) {
+        commandList_EditCommand ( __Commands_Check_CheckingResults_CheckTimeSeries_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals(__Commands_General_CheckingResults_OpenCheckFile_String) ) {
-        commandList_EditCommand ( __Commands_General_CheckingResults_OpenCheckFile_String, null, CommandEditType.INSERT );
+    else if (command.equals(__Commands_Check_CheckingResults_CheckTimeSeriesStatistic_String) ) {
+        commandList_EditCommand ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals(__Commands_General_CheckingResults_WriteCheckFile_String) ) {
-        commandList_EditCommand ( __Commands_General_CheckingResults_WriteCheckFile_String, null, CommandEditType.INSERT );
+    else if (command.equals(__Commands_Check_CheckingResults_WriteCheckFile_String) ) {
+        commandList_EditCommand ( __Commands_Check_CheckingResults_WriteCheckFile_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new Vector(1);
+        comments.add ( commandList_NewCommand("#@expectedStatus Failure",true) );
+        commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusFailureComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new Vector(1);
+        comments.add ( commandList_NewCommand("#@expectedStatus Warning",true) );
+        commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusWarningComment_String, comments, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List comments = new Vector(1);
+        List<Command> comments = new Vector(1);
         comments.add ( commandList_NewCommand("#@readOnly",true) );
         commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, CommandEditType.INSERT );
     }
@@ -11888,7 +11820,7 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Unable to save time series." );
+			Message.printWarning ( 1, routine, "Unable to save time series (" + e + ")." );
 		}
 	}
 }
@@ -17611,7 +17543,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "Colorado Water Conservation Board\n" +
         "Send comments about this interface to:\n" +
         "cdss@state.co.us (CDSS)\n" +
-        __RTiSupportEmail + " (general)\n" );
+        __RTiSupportEmail + " (general)\n", true );
     }
     else {
         // A non-CDSS (RTi customer) installation...
@@ -17623,7 +17555,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
         "License expires: " + licenseManager.getLicenseExpires() + "\n" +
-        "Contact support at:  " + __RTiSupportEmail + "\n" );
+        "Contact support at:  " + __RTiSupportEmail + "\n", true );
     }
 }
 
