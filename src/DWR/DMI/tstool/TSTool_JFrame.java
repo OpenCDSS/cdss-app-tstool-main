@@ -1173,6 +1173,7 @@ JMenuItem
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
     __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
+    __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem,
     __Commands_Table_CompareTables_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
     __Commands_Table_WriteTableToHTML_JMenuItem;
@@ -1573,7 +1574,9 @@ private String
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
     __Commands_Table_SetTimeSeriesPropertiesFromTable_String =
-        TAB + "SetTimeSeriesPropertiesFromTable()... <set time series properties from table contents>",
+        TAB + "SetTimeSeriesPropertiesFromTable()... <set time series properties from table>",
+    __Commands_Table_CopyTimeSeriesPropertiesToTable_String =
+        TAB + "CopyTimeSeriesPropertiesToTable()... <copy time series properties to table>",
     __Commands_Table_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
     __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
@@ -8040,7 +8043,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 {	// "Commands...TS Create/Convert/Read Time Series"...
 
 	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );
-	__Commands_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end.");
+	__Commands_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
 	__Commands_CreateTimeSeries_JMenu.setToolTipText("Create time series from supplied values or other time series.");
@@ -8488,6 +8491,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_CopyTimeSeriesPropertiesToTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
@@ -10756,6 +10761,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_SetTimeSeriesPropertiesFromTable_String) ) {
         commandList_EditCommand ( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_CopyTimeSeriesPropertiesToTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_CopyTimeSeriesPropertiesToTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
         commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, CommandEditType.INSERT );
