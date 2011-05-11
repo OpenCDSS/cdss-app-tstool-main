@@ -12473,7 +12473,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
         }
 
         int size = 0;
-        if ( tslist != null ) {
+        if ( (tslist != null) && (tslist.size() > 0) ) {
             size = tslist.size();
             // Does not work??
             //__query_TableModel.setNewData ( results );
