@@ -771,13 +771,11 @@ private JTextField __status_JTextField;
 // General...
 //================================
 
+// TODO SAM 2011-05-18 It may be OK to phase these out in favor of processor properties (like the
+// working directory) in particular since only a select few properties are handled here
 /**
-TSTool application properties.  These control how the GUI behaves before commands are run.
-For example, if the output period is set in the setOutputPeriod_Dialog, then the output period string
-properties can be passed back to this main GUI.  Then, subsequent edit dialogs can
-use the information to display appropriate properties or instructions.
-It may be somewhat difficult to use this because the properties are singular but
-properties can change during a run.
+A subset of TSTool application configuration properties, which are initialized from the configuration file
+and are then updated in the TSTool environment.
 */
 private PropList __props;
 
@@ -3431,9 +3429,12 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
     List match_index_Vector = new Vector();   // List of matching time series indices
     for ( int i = 0; i < indices.length; i++ ) {
         PropList request_params = new PropList ( "" );
-        // String is of format 1) EnsembleID - EnsembleName
-        String EnsembleID = StringUtil.getToken((String)__resultsTSEnsembles_JListModel.elementAt(indices[i]),
-                " -",StringUtil.DELIM_SKIP_BLANKS,1);
+        // String is of format 1) EnsembleID - EnsembleName where Ensemble ID can contain dashes but generally not
+        // dashes and spaces
+        String fullLabel = (String)__resultsTSEnsembles_JListModel.elementAt(indices[i]);
+        int posParen = fullLabel.indexOf(")");
+        int posDash = fullLabel.indexOf(" -");
+        String EnsembleID = fullLabel.substring(posParen + 1, posDash).trim();
         Message.printStatus ( 2, routine, "Getting processor ensemble results for \"" + EnsembleID + "\"" );
         request_params.setUsingObject ( "EnsembleID", EnsembleID );
         CommandProcessorRequestResultsBean bean = null;
@@ -11221,7 +11222,7 @@ throws Exception
 		}
 	}
 	else if ( o == __Tools_Options_JMenuItem ) {
-		new TSTool_Options_JDialog ( this, __props );
+		new TSTool_Options_JDialog ( this, TSToolMain.getConfigFile(), __props );
 		// Reset as necessary...
 		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
 			((TSTool_HydroBase_TableModel)__query_TableModel).

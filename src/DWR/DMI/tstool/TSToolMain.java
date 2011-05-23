@@ -465,7 +465,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.00.01beta (2011-05-11)";
+public static final String PROGRAM_VERSION = "10.00.02beta (2011-05-23)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -529,7 +529,7 @@ from the -home command line parameter during command line parsing (default) and 
 specified with -config File on the command line (typically used to test different configurations).
 @return the full path to the configuration file.
 */
-private static String getConfigFile ()
+public static String getConfigFile ()
 {
     return __configFile;
 }
