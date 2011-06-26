@@ -24,6 +24,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.print.PageFormat;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -184,6 +185,7 @@ import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_Listener;
 import RTi.Util.GUI.ReportJFrame;
+import RTi.Util.GUI.ReportPrinter;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
@@ -216,6 +218,7 @@ import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.LicenseManager;
 import RTi.Util.IO.PrintJGUI;
+import RTi.Util.IO.TextPrinterJob;
 import RTi.Util.IO.ProcessManager;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
@@ -947,7 +950,8 @@ private JMenu
 private JMenu
 	__File_Print_JMenu = null;
 		private JMenuItem
-		__File_Print_Commands_JMenuItem = null;
+		__File_Print_Commands_JMenuItem = null,
+		__File_Print_Commands_New_JMenuItem = null;
 private JMenu
 	__File_Properties_JMenu = null;
 		private JMenuItem
@@ -1214,7 +1218,8 @@ JMenu
 JMenuItem
     __Commands_General_FileHandling_FTPGet_JMenuItem = null,
     __Commands_General_FileHandling_WebGet_JMenuItem = null,
-    __Commands_General_FileHandling_RemoveFile_JMenuItem = null;
+    __Commands_General_FileHandling_RemoveFile_JMenuItem = null,
+    __Commands_General_FileHandling_PrintTextFile_JMenuItem = null;
 
 JMenu
     __Commands_General_Running_JMenu = null;
@@ -1374,8 +1379,8 @@ private String
 			__File_Save_CommandsAsVersion9_String = "Commands As (Version 9 Syntax)...", 
 			__File_Save_TimeSeriesAs_String = "Time Series As...", 
 		__File_Print_String = "Print",
-			__File_Print_Commands_ActionString = "File...Print...Commands...", 
-			__File_Print_Commands_String = "Commands...", 
+			__File_Print_Commands_String = "Commands...",
+			__File_Print_Commands_New_String = "Commands (new, under development)...",
 		__File_Properties_String = "Properties",
 			__File_Properties_CommandsRun_String="Commands Run",
 			__File_Properties_TSToolSession_String="TSTool Session",
@@ -1603,6 +1608,7 @@ private String
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
+    __Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
     
 	__Commands_General_Logging_String = "General - Logging",
 	__Commands_General_Logging_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
@@ -5618,6 +5624,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
+		JGUIUtil.setEnabled ( __File_Print_Commands_New_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
 		enabled = true;
 	}
@@ -5627,6 +5634,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Print_Commands_New_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
 	}
 	if ( tsListSize > 0 ) {
@@ -8548,6 +8556,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
+    __Commands_General_FileHandling_JMenu.addSeparator();
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_PrintTextFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_PrintTextFile_String, this ) );
     
 	__Commands_JMenu.add( __Commands_General_Logging_JMenu = new JMenu( __Commands_General_Logging_String, true ) );	
 	__Commands_General_Logging_JMenu.setToolTipText("Control logging (tracking).");
@@ -8742,13 +8753,16 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem = new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
 	__File_Save_JMenu.add ( __File_Save_CommandsAsVersion9_JMenuItem =
 	   new SimpleJMenuItem( __File_Save_CommandsAsVersion9_String, this ) );
+	__File_Save_CommandsAsVersion9_JMenuItem.setToolTipText ( "Save old TS Alias = Command(...) syntax" );
 	__File_Save_JMenu.addSeparator();
 	__File_Save_JMenu.add (	__File_Save_TimeSeriesAs_JMenuItem =
         new SimpleJMenuItem(__File_Save_TimeSeriesAs_String, this ) );
 
 	__File_JMenu.add( __File_Print_JMenu=new JMenu(__File_Print_String,true));
 	__File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
-		new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_ActionString, this ) );
+		new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_String, this ) );
+   __File_Print_JMenu.add ( __File_Print_Commands_New_JMenuItem =
+        new SimpleJMenuItem( __File_Print_Commands_New_String,__File_Print_Commands_New_String, this ) );
 
 	__File_JMenu.addSeparator( );
 
@@ -9967,6 +9981,7 @@ throws Exception
                         ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
                 }
                 if ( x == ResponseJDialog.OK ) {
+                    // Save most recent version...
                     uiAction_WriteCommandFile ( __commandFileName, false, false );
                 }
 			}
@@ -10001,7 +10016,7 @@ throws Exception
 		// Can save in a number of formats.  Allow the user to pick using a file chooser...
 		uiAction_SaveTimeSeries ();
 	}
-	else if (command.equals(__File_Print_Commands_ActionString) ) {
+	else if (command.equals(__File_Print_Commands_String) ) {
 		// Get all commands as strings for printing
 		try {
             PrintJGUI.print ( this, commandList_GetCommandStrings(true), null, 10 );
@@ -10010,6 +10025,32 @@ throws Exception
 			Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
 		}
 	}
+    else if (command.equals(__File_Print_Commands_New_String) ) {
+        // Get all commands as strings for printing
+        try {
+            new TextPrinterJob ( commandList_GetCommandStrings(true), "TSTool Commands",
+                null, // printer name
+                null, // paper size
+                null, // paper source
+                "Landscape", // page orientation
+                .75, // left margin
+                .75, // right
+                .6, // top
+                .6, // bottom
+                100, // lines per page
+                null, // header
+                null, // footer
+                true, // show line count
+                true, // show page count
+                null, // print all pages
+                false, // double-sided
+                false ); // not batch
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
+            Message.printWarning ( 3, rtn, e );
+        }
+    }
 	else if ( command.equals(__File_Properties_CommandsRun_String) ) {
 		// Simple text display of last commands run data from TSEngine.
 		uiAction_ShowProperties_CommandsRun();
@@ -10891,6 +10932,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_FileHandling_PrintTextFile_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_PrintTextFile_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_General_TestProcessing_CompareFiles_String)){
 		commandList_EditCommand ( __Commands_General_TestProcessing_CompareFiles_String, null, CommandEditType.INSERT );
@@ -18652,10 +18696,10 @@ the specified file.  Do not prompt for header comments (and do not add).
 @param promptForFile If true, prompt for the file name rather than using the
 value that is passed.  An extension of .TSTool is enforced.
 @param file Command file to write.
-@param saveConsideringVersion whether to save the file considering the software version (this is generally
+@param saveVersion9 whether to save the file considering the software version (this is generally
 only needed when pre-10 TSTool version is saved, which will retain "TS Alias = " command notation
 */
-private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boolean saveConsideringVersion )
+private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boolean saveVersion9 )
 {	String routine = "TSTool_JFrame.uiAction_WriteCommandFile";
     String directory = null;
 	if ( promptForFile ) {
@@ -18684,11 +18728,11 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		Command command;
 		for (int i = 0; i < size; i++) {
 		    command = (Command)__commands_JListModel.get(i);
-		    if ( saveConsideringVersion && command instanceof CommandSavesMultipleVersions ) {
-		        // TODO SAM This is a work-around to transition from the "TS = " notation
-		        String majorVersion = IOUtil.getProgramVersion().split(".")[0];
+		    if ( saveVersion9 && command instanceof CommandSavesMultipleVersions ) {
+		        // TODO SAM This is a work-around to transition from the "TS Alias = " notation to
+		        // Command(Alias=...), which was introduced in version 10
 		        CommandSavesMultipleVersions versionCommand = (CommandSavesMultipleVersions)command;
-		        out.println(versionCommand.toString(command.getCommandParameters(),Integer.parseInt(majorVersion)));
+		        out.println(versionCommand.toString(command.getCommandParameters(),9));
 		    }
 		    else {
 		        out.println(command.toString());
@@ -18700,8 +18744,7 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		commandList_SetCommandFileName ( file );
 
 		if ( directory != null ) {
-			// Set the "WorkingDir" property, which will NOT
-			// contain a trailing separator...
+			// Set the "WorkingDir" property, which will NOT contain a trailing separator...
 			IOUtil.setProgramWorkingDir(directory);
 			ui_SetDir_LastCommandFileOpened(directory);
 			__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
@@ -18709,7 +18752,7 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		}
 	}
 	catch ( Exception e ) {
-		Message.printWarning (1, routine, "Error writing file:\n\"" + file + "\"");
+		Message.printWarning (1, routine, "Error writing command file \"" + file + "\" (" + e + ").");
 		// Leave the dirty flag the previous value.
 	}
 	// Update the status information...
