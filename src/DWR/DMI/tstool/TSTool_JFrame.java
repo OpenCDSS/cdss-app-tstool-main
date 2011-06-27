@@ -10030,21 +10030,21 @@ throws Exception
         try {
             new TextPrinterJob ( commandList_GetCommandStrings(true), "TSTool Commands",
                 null, // printer name
-                null, // paper size
+                "na-letter", // paper size
                 null, // paper source
                 "Landscape", // page orientation
                 .75, // left margin
                 .75, // right
                 .6, // top
                 .6, // bottom
-                100, // lines per page
+                0, // lines per page - let called code determine
                 null, // header
                 null, // footer
                 true, // show line count
                 true, // show page count
                 null, // print all pages
                 false, // double-sided
-                false ); // not batch
+                true ); // show print configuration dialog
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
