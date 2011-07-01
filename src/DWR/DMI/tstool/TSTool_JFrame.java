@@ -24,7 +24,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.print.PageFormat;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -185,7 +184,6 @@ import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_Listener;
 import RTi.Util.GUI.ReportJFrame;
-import RTi.Util.GUI.ReportPrinter;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
@@ -950,8 +948,8 @@ private JMenu
 private JMenu
 	__File_Print_JMenu = null;
 		private JMenuItem
-		__File_Print_Commands_JMenuItem = null,
-		__File_Print_Commands_New_JMenuItem = null;
+	    __File_Print_Commands_JMenuItem = null,
+		__File_Print_Commands_Old_JMenuItem = null;
 private JMenu
 	__File_Properties_JMenu = null;
 		private JMenuItem
@@ -1380,7 +1378,7 @@ private String
 			__File_Save_TimeSeriesAs_String = "Time Series As...", 
 		__File_Print_String = "Print",
 			__File_Print_Commands_String = "Commands...",
-			__File_Print_Commands_New_String = "Commands (new, under development)...",
+	        __File_Print_Commands_Old_String = "Commands (old)...",
 		__File_Properties_String = "Properties",
 			__File_Properties_CommandsRun_String="Commands Run",
 			__File_Properties_TSToolSession_String="TSTool Session",
@@ -5624,7 +5622,7 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
-		JGUIUtil.setEnabled ( __File_Print_Commands_New_JMenuItem, true );
+	    JGUIUtil.setEnabled ( __File_Print_Commands_Old_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
 		enabled = true;
 	}
@@ -5633,8 +5631,8 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, false );
-		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __File_Print_Commands_New_JMenuItem, false );
+	    JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
+		JGUIUtil.setEnabled ( __File_Print_Commands_Old_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
 	}
 	if ( tsListSize > 0 ) {
@@ -8759,10 +8757,10 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
         new SimpleJMenuItem(__File_Save_TimeSeriesAs_String, this ) );
 
 	__File_JMenu.add( __File_Print_JMenu=new JMenu(__File_Print_String,true));
-	__File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
-		new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_String, this ) );
-   __File_Print_JMenu.add ( __File_Print_Commands_New_JMenuItem =
-        new SimpleJMenuItem( __File_Print_Commands_New_String,__File_Print_Commands_New_String, this ) );
+   __File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
+        new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_String, this ) );
+   __File_Print_JMenu.add ( __File_Print_Commands_Old_JMenuItem =
+       new SimpleJMenuItem( __File_Print_Commands_Old_String,__File_Print_Commands_Old_String, this ) );
 
 	__File_JMenu.addSeparator( );
 
@@ -10016,7 +10014,7 @@ throws Exception
 		// Can save in a number of formats.  Allow the user to pick using a file chooser...
 		uiAction_SaveTimeSeries ();
 	}
-	else if (command.equals(__File_Print_Commands_String) ) {
+	else if (command.equals(__File_Print_Commands_Old_String) ) {
 		// Get all commands as strings for printing
 		try {
             PrintJGUI.print ( this, commandList_GetCommandStrings(true), null, 10 );
@@ -10025,7 +10023,7 @@ throws Exception
 			Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
 		}
 	}
-    else if (command.equals(__File_Print_Commands_New_String) ) {
+    else if (command.equals(__File_Print_Commands_String) ) {
         // Get all commands as strings for printing
         try {
             new TextPrinterJob ( commandList_GetCommandStrings(true), "TSTool Commands",
