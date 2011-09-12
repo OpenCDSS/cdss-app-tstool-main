@@ -215,7 +215,6 @@ import RTi.Util.IO.FileGenerator;
 import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.LicenseManager;
-import RTi.Util.IO.PrintJGUI;
 import RTi.Util.IO.TextPrinterJob;
 import RTi.Util.IO.ProcessManager;
 import RTi.Util.IO.Prop;
@@ -948,8 +947,7 @@ private JMenu
 private JMenu
 	__File_Print_JMenu = null;
 		private JMenuItem
-	    __File_Print_Commands_JMenuItem = null,
-		__File_Print_Commands_Old_JMenuItem = null;
+	    __File_Print_Commands_JMenuItem = null;
 private JMenu
 	__File_Properties_JMenu = null;
 		private JMenuItem
@@ -1032,6 +1030,7 @@ JMenuItem
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_ReadNwsrfsFS5Files_JMenuItem,
+	__Commands_Read_ReadRccAcis_JMenuItem,
 	__Commands_Read_ReadReclamationHDB_JMenuItem,
 	__Commands_Read_ReadRiverWare_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
@@ -1378,7 +1377,6 @@ private String
 			__File_Save_TimeSeriesAs_String = "Time Series As...", 
 		__File_Print_String = "Print",
 			__File_Print_Commands_String = "Commands...",
-	        __File_Print_Commands_Old_String = "Commands (old)...",
 		__File_Properties_String = "Properties",
 			__File_Properties_CommandsRun_String="Commands Run",
 			__File_Properties_TSToolSession_String="TSTool Session",
@@ -1445,6 +1443,7 @@ private String
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()... <read 1+ time ries from a MODSIM output file>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1+ time series from an NWS CARD file>",
 	__Commands_Read_ReadNwsrfsFS5Files_String = TAB + "ReadNwsrfsFS5Files()... <read 1 time series from NWSRFS FS5 files>",
+	__Commands_Read_ReadRccAcis_String = TAB + "ReadRccAcis()... <read 1+ time series from the RCC ACIS web service>",
 	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series from Reclamation's HDB database>",
 	__Commands_Read_ReadRiverWare_String = TAB + "ReadRiverWare()... <read 1 time series from a RiverWare file>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1+ time series from a StateCU file>",
@@ -2389,6 +2388,7 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
     // Run the discovery...
     Message.printStatus(2, routine, "Running discovery mode on command:  \"" + command_to_edit + "\"" );
     try {
+        JGUIUtil.setWaitCursor ( this, true );
         ((CommandDiscoverable)command_to_edit).runCommandDiscovery(__tsProcessor.indexOf(command_to_edit));
         // Redraw the status area
         ui_ShowCurrentCommandListStatus();
@@ -2399,6 +2399,9 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
         String message = "Unable to make discover run - may be OK if partial data.";
         Message.printStatus(2, routine, message);
         Message.printWarning(3, routine, e);
+    }
+    finally {
+        JGUIUtil.setWaitCursor ( this, false );
     }
 }
 
@@ -5622,7 +5625,6 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, true );
-	    JGUIUtil.setEnabled ( __File_Print_Commands_Old_JMenuItem, true );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, true );
 		enabled = true;
 	}
@@ -5632,7 +5634,6 @@ private void ui_CheckGUIState ()
 		JGUIUtil.setEnabled ( __File_Save_CommandsAs_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Save_CommandsAsVersion9_JMenuItem, false );
 	    JGUIUtil.setEnabled ( __File_Print_Commands_JMenuItem, false );
-		JGUIUtil.setEnabled ( __File_Print_Commands_Old_JMenuItem, false );
 		JGUIUtil.setEnabled ( __File_Print_JMenu, false );
 	}
 	if ( tsListSize > 0 ) {
@@ -8150,6 +8151,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsrfsFS5Files_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadNwsrfsFS5Files_String, this) );
     }
+    if ( __source_RCCACIS_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRccAcis_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadRccAcis_String, this) );
+    }
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationHDB_String, this) );
@@ -8757,10 +8762,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
         new SimpleJMenuItem(__File_Save_TimeSeriesAs_String, this ) );
 
 	__File_JMenu.add( __File_Print_JMenu=new JMenu(__File_Print_String,true));
-   __File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
+    __File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
         new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_String, this ) );
-   __File_Print_JMenu.add ( __File_Print_Commands_Old_JMenuItem =
-       new SimpleJMenuItem( __File_Print_Commands_Old_String,__File_Print_Commands_Old_String, this ) );
 
 	__File_JMenu.addSeparator( );
 
@@ -10014,15 +10017,6 @@ throws Exception
 		// Can save in a number of formats.  Allow the user to pick using a file chooser...
 		uiAction_SaveTimeSeries ();
 	}
-	else if (command.equals(__File_Print_Commands_Old_String) ) {
-		// Get all commands as strings for printing
-		try {
-            PrintJGUI.print ( this, commandList_GetCommandStrings(true), null, 10 );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
-		}
-	}
     else if (command.equals(__File_Print_Commands_String) ) {
         // Get all commands as strings for printing
         try {
@@ -10427,6 +10421,9 @@ throws Exception
 	else if (command.equals(__Commands_Read_ReadNwsCard_String)){
 		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Read_ReadRccAcis_String)){
+        commandList_EditCommand ( __Commands_Read_ReadRccAcis_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Read_ReadReclamationHDB_String)){
         commandList_EditCommand ( __Commands_Read_ReadReclamationHDB_String, null, CommandEditType.INSERT );
     }

@@ -465,7 +465,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.00.03beta (2011-06-06)";
+public static final String PROGRAM_VERSION = "10.00.04beta (2011-07-03)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1232,7 +1232,8 @@ throws Exception
            
 			// Open the log file so that remaining messages will be seen in the log file...
 			openLogFile();
-			Message.printStatus ( 1, routine, "Home directory for TSTool is \"" + __home + "\"" );
+			Message.printStatus ( 1, routine, "Home directory for TSTool from -home command line parameter is \"" +
+			    __home + "\"" );
 			// The default configuration file location is relative to the install home.  This works
 			// as long as the -home argument is first in the command line.
 			setConfigFile ( __home + File.separator + "system" + File.separator + "TSTool.cfg" );
@@ -1544,16 +1545,17 @@ private static void setWorkingDirInitial()
 
 /**
 Set the working directory as the parent of the command file.
+@param commandFileFull the full (absolute) path to the command file
 */
-private static void setWorkingDirUsingCommandFile ( String command_file_full )
-{   File command_file_full_File = new File ( command_file_full );
-    String working_dir = command_file_full_File.getParent();
-    IOUtil.setProgramWorkingDir ( working_dir );
+private static void setWorkingDirUsingCommandFile ( String commandFileFull )
+{   File commandFileFull_File = new File ( commandFileFull );
+    String workingDir = commandFileFull_File.getParent();
+    IOUtil.setProgramWorkingDir ( workingDir );
     // Set the dialog because if the running in batch mode and interaction with the graph
     // occurs, this default for dialogs should be the home of the command file.
-    JGUIUtil.setLastFileDialogDirectory( working_dir );
+    JGUIUtil.setLastFileDialogDirectory( workingDir );
     // Print at level 1 because the log file is not yet initialized.
-    String message = "Setting working directory to command file folder \"" + working_dir + ".\"";
+    String message = "Setting working directory to command file folder \"" + workingDir + ".\"";
     //Message.printStatus ( 1, routine, message );
     System.out.println(message);
 }

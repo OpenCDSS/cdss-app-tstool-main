@@ -11,7 +11,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for time series header information for TS instances from RCC ACIS web services.
 By default the sheet will contain row and column numbers.
 The alias can be treated as a hidden column.
-This class may eventually be moved to the RTi.TS package.
+@TODO SAM 2011-09-02 this class may eventually be moved to the ACIS package.
 */
 public class TSTool_RccAcis_TableModel extends JWorksheet_AbstractRowTableModel
 {
@@ -23,7 +23,7 @@ private RccAcisDataStore __dataStore = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 26;
+private int __COLUMNS = 28;
 
 /**
 Absolute column indices, for column lookups (includes the alias).
@@ -37,25 +37,27 @@ public final int COL_ID_WMO = 4;
 public final int COL_ID_WBAN = 5;
 public final int COL_ID_THREAD_EX = 6;
 public final int COL_ID_AWDN = 7;
-public final int COL_ID_ACIS = 8;
-public final int COL_NAME = 9; // Station name
-//public final int COL_DATA_SOURCE = 10; // Do not include this based on Bill Noon feedback (internal)
-public final int COL_DATA_TYPE_MAJOR = 10;
-public final int COL_DATA_TYPE_NAME = 11;
-public final int COL_METHOD = 12;
-public final int COL_TIME_STEP = 13;
-public final int COL_UNITS = 14;
-public final int COL_START = 15;
-public final int COL_END = 16;
-public final int COL_POSTAL = 17;
-public final int COL_FIPS_COUNTY = 18;
-public final int COL_CLIM_DIV = 19;
-public final int COL_NWS_CWA = 20;
-public final int COL_HUC = 21;
-public final int COL_LONG = 22;
-public final int COL_LAT = 23;
-public final int COL_ELEV = 24;
-public final int COL_DATA_STORE_NAME = 25;
+public final int COL_ID_GHCN = 8;
+public final int COL_ID_CoCoRaHS = 9;
+public final int COL_ID_ACIS = 10;
+public final int COL_NAME = 11; // Station name
+//public final int COL_DATA_SOURCE = 11; // Do not include this based on Bill Noon feedback (internal)
+public final int COL_DATA_TYPE_MAJOR = 12;
+public final int COL_DATA_TYPE_NAME = 13;
+public final int COL_METHOD = 14;
+public final int COL_TIME_STEP = 15;
+public final int COL_UNITS = 16;
+public final int COL_START = 17;
+public final int COL_END = 18;
+public final int COL_POSTAL = 19;
+public final int COL_FIPS_COUNTY = 20;
+public final int COL_CLIM_DIV = 21;
+public final int COL_NWS_CWA = 22;
+public final int COL_HUC = 23;
+public final int COL_LONG = 24;
+public final int COL_LAT = 25;
+public final int COL_ELEV = 26;
+public final int COL_DATA_STORE_NAME = 27;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
@@ -90,6 +92,7 @@ public Class getColumnClass (int columnIndex) {
 		case COL_ID_NWSLI: return String.class;
 		case COL_ID_THREAD_EX: return String.class;
 		case COL_ID_AWDN: return String.class;
+		case COL_ID_CoCoRaHS: return String.class;
 		case COL_NAME: return String.class;
 		//case COL_DATA_SOURCE: return String.class;
 		case COL_DATA_TYPE_MAJOR: return String.class;
@@ -135,6 +138,8 @@ public String getColumnName(int columnIndex) {
 	    case COL_ID_NWSLI: return "NWSLI\nID";
 	    case COL_ID_THREAD_EX: return "ThreadEx\nID";
 	    case COL_ID_AWDN: return "AWDN\nID";
+	    case COL_ID_GHCN: return "GHCN\nID";
+	    case COL_ID_CoCoRaHS: return "CoCoRaHS\nID";
 		case COL_NAME: return "Name/\nDescription";
 		//case COL_DATA_SOURCE: return "Data\nSource";
 		case COL_DATA_TYPE_MAJOR: return "Data Type\n(Variable Major)";
@@ -205,6 +210,8 @@ public Object getValueAt(int row, int col)
 	    case COL_ID_NWSLI: return ts.getIDSpecific("NWSLI");
 	    case COL_ID_THREAD_EX: return ts.getIDSpecific("ThreadEX");
 	    case COL_ID_AWDN: return ts.getIDSpecific("AWDN");
+	    case COL_ID_GHCN: return ts.getIDSpecific("GHCN");
+	    case COL_ID_CoCoRaHS: return ts.getIDSpecific("CoCoRaHS");
 		case COL_NAME: return ts.getName();
 		//case COL_DATA_SOURCE: return ts.getVariable().getSource();
 		case COL_DATA_TYPE_MAJOR: return "" + ts.getVariable().getMajor();
@@ -264,6 +271,8 @@ public int[] getColumnWidths() {
     widths[COL_ID_NWSLI] = 4;
     widths[COL_ID_THREAD_EX] = 6;
     widths[COL_ID_AWDN] = 4;
+    widths[COL_ID_GHCN] = 8;
+    widths[COL_ID_CoCoRaHS] = 7;
 	widths[COL_NAME] = 20;
 	//widths[COL_DATA_SOURCE] = 10;
 	widths[COL_DATA_TYPE_MAJOR] = 12;
