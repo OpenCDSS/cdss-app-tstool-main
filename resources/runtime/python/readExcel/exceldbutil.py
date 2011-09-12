@@ -1,4 +1,5 @@
-# This module contains common functionality related to Excel processing
+# This module contains common functionality related to Excel and database table
+# processing.  The open source XLRD and XLWT modules are used.
 
 import logging
 import os
