@@ -1,0 +1,349 @@
+# This file contains climate divisions used by NCDC and related agencies
+# The data are used in the RCC ACIS input filters
+# Data were provided by Cathy Smith of ESRL
+# See also:,http://www.esrl.noaa.gov/psd/data/usclimdivs/data/map.html
+"State Number","State Name","Climate Division","Name"
+1,Alabama,1,North Valley
+1,Alabama,2,Appalacian Mountain
+1,Alabama,3,Upper Plains
+1,Alabama,4,Eastern Valley
+1,Alabama,5,Piedmont Plateau
+1,Alabama,6,Prairie
+1,Alabama,7,Coastal Plain
+1,Alabama,8,Gulf
+2,Arizona,1,Northwest
+2,Arizona,2,Northeast
+2,Arizona,3,North Central
+2,Arizona,4,East Central
+2,Arizona,5,Southwest
+2,Arizona,6,South Central
+2,Arizona,7,Southeast
+3,Arkansas,1,Northwest
+3,Arkansas,2,North Central
+3,Arkansas,3,Northeast
+3,Arkansas,4,West Central
+3,Arkansas,5,Central
+3,Arkansas,6,East Central
+3,Arkansas,7,Southwest
+3,Arkansas,8,South Central
+3,Arkansas,9,Southeast
+4,California,1,North Coast Drainage
+4,California,2,Sacramento Drainage
+4,California,3,Northeast Interior Basins 
+4,California,4,Central Coast Drainage
+4,California,5,San Jaoquin Drainage
+4,California,6,South Coast Drainage
+4,California,7,Southeast Desert Basin
+5,Colorado,1,Arkansas Drainage
+5,Colorado,2,Colorado Drainage
+5,Colorado,3,Kansas Drainage
+5,Colorado,4,Platte Drainage
+5,Colorado,5,Rio Grande Drainage
+6,Connecticut,1,Northwest
+6,Connecticut,2,Central
+6,Connecticut,3,Coastal
+7,Delaware,1,Northern
+7,Delaware,2,Southern
+8,Florida,1,Northwest
+8,Florida,2,North
+8,Florida,3,North Central
+8,Florida,4,South Central
+8,Florida,5,Everglades and Southwest Co
+8,Florida,6,Lower East Coast
+8,Florida,7,Keys
+9,Georgia,1,Northwest
+9,Georgia,2,North Central
+9,Georgia,3,Northeast
+9,Georgia,4,West Central 
+9,Georgia,5,Central
+9,Georgia,6,East Central 
+9,Georgia,7,Southwest
+9,Georgia,8,South Central
+9,Georgia,9,Southeast
+10,Idaho,1,Panhandle
+10,Idaho,2,North Central Prairies
+10,Idaho,3,North Central Canyons 
+10,Idaho,4,Central Mountains
+10,Idaho,5,Southwestern Valleys
+10,Idaho,6,Southwestern Highlands
+10,Idaho,7,Central Plains
+10,Idaho,8,Northeastern Valleys
+10,Idaho,9,Upper Snake River Plains
+10,Idaho,10,Eastern Highlands
+11,Illinois,1,Northwest
+11,Illinois,2,Northeast
+11,Illinois,3,West
+11,Illinois,4,Central
+11,Illinois,5,East
+11,Illinois,6,West Southwest
+11,Illinois,7,East Southeast
+11,Illinois,8,Southwest
+11,Illinois,9,Southeast
+12,Indiana,1,Northwest
+12,Indiana,2,North Central 
+12,Indiana,3,Northeast
+12,Indiana,4,West Central
+12,Indiana,5,Central
+12,Indiana,6,East Central
+12,Indiana,7,Southwest
+12,Indiana,8,South Central 
+12,Indiana,9,Southeast
+13,Iowa,1,Northwest
+13,Iowa,2,North Central 
+13,Iowa,3,Northeast
+13,Iowa,4,West Central
+13,Iowa,5,Central
+13,Iowa,6,East Central
+13,Iowa,7,Southwest
+13,Iowa,8,South Central 
+13,Iowa,9,Southeast
+14,Kansas,1,Northwest
+14,Kansas,2,North Central 
+14,Kansas,3,Northeast
+14,Kansas,4,West Central
+14,Kansas,5,Central
+14,Kansas,6,East Central
+14,Kansas,7,Southwest
+14,Kansas,8,South Central 
+14,Kansas,9,Southeast
+15,Kentucky,1,Western
+15,Kentucky,2,Central
+15,Kentucky,3,Blue Grass
+15,Kentucky,4,Eastern
+16,Louiasiana,1,Northwest
+16,Louiasiana,2,North Central 
+16,Louiasiana,3,Northeast
+16,Louiasiana,4,West Central
+16,Louiasiana,5,Central
+16,Louiasiana,6,East Central
+16,Louiasiana,7,Southwest
+16,Louiasiana,8,South Central 
+16,Louiasiana,9,Southeast
+17,Maine,1,North
+17,Maine,2,South Interior 
+17,Maine,3,Coastal
+18,Maryland,1,Southeastern Shore
+18,Maryland,2,Central Eastern Shore
+18,Maryland,3,Lower Southern
+18,Maryland,4,Upper Southern
+18,Maryland,5,Northeastern Shore
+18,Maryland,6,North Central 
+18,Maryland,7,Appalacian Mountains
+18,Maryland,8,Alleghney Plateau
+19,Massasachusetts,1,West
+19,Massasachusetts,2,Central
+19,Massasachusetts,3,Coastal
+20,Michigan,1,West Upper
+20,Michigan,2,East Upper
+20,Michigan,3,Northwest Lower
+20,Michigan,4,Northeast Lower
+20,Michigan,5,West Central Lower
+20,Michigan,6,Central Lower
+20,Michigan,7,East Central Lower
+20,Michigan,8,Southwest Lower
+20,Michigan,9,South Central Lower
+20,Michigan,10,Southeast Lower
+21,Minnesota,1,Northwest
+21,Minnesota,2,North Central
+21,Minnesota,3,Northeast
+21,Minnesota,4,West Central
+21,Minnesota,5,Central
+21,Minnesota,6,East Central
+21,Minnesota,7,Southwest
+21,Minnesota,8,South Central
+21,Minnesota,9,Southeast
+22,Mississippi,1,Upper Delata
+22,Mississippi,2,North Central
+22,Mississippi,3,Northeast
+22,Mississippi,4,Lower Delta
+22,Mississippi,5,Central
+22,Mississippi,6,East Central
+22,Mississippi,7,Southwest
+22,Mississippi,8,South Central
+22,Mississippi,9,Southeast
+22,Mississippi,10,Coastal
+23,Missouri,1,Northwest Prairie
+23,Missouri,2,Northeast Prairie
+23,Missouri,3,West Central Plains
+23,Missouri,4,West Ozarks
+23,Missouri,5,East Ozarks
+23,Missouri,6,Bootheel
+24,Montana,1,Western
+24,Montana,2,Southwestern
+24,Montana,3,North Central
+24,Montana,4,Central
+24,Montana,5,South Central
+24,Montana,6,Northeastern
+24,Montana,7,Southeastern
+25,Nebraska,1,Panhandle
+25,Nebraska,2,North Central
+25,Nebraska,3,Northeast
+25,Nebraska,4,Central
+25,Nebraska,5,East Central
+25,Nebraska,6,Southwest
+25,Nebraska,7,South Central
+25,Nebraska,8,Southeast
+26,Nevada,1,Northwestern
+26,Nevada,2,Northeastern
+26,Nevada,3,South Central
+26,Nevada,4,Extreme Southern
+27,New Hampshire,1,State
+27,New Hampshire,2,South
+28,New Jersey,1,Northern
+28,New Jersey,2,Southern
+28,New Jersey,3,Coastal
+29,New Mexico,1,Northwestern Plateau
+29,New Mexico,2,Northern Mountains
+29,New Mexico,3,Northeastern Plains
+29,New Mexico,4,Southwestern Mountains
+29,New Mexico,5,Central Valley 
+29,New Mexico,6,Central Highlands
+29,New Mexico,7,Southeastern Plains
+29,New Mexico,8,Southern Desert
+30,New York,1,Western Plateau
+30,New York,2,Eastern Plateau
+30,New York,3,Northern Plateau
+30,New York,4,Coastal
+30,New York,5,Hudson Valley
+30,New York,6,Mohawk Valley
+30,New York,7,Champlain Valley
+30,New York,8,St. Lawrence Valley
+30,New York,9,Great Lakes
+30,New York,10,Central Lakes
+31,North Carolina,1,Southern Mountains
+31,North Carolina,2,Northern Mountains
+31,North Carolina,3,Northern Piedmont
+31,North Carolina,4,Central Piedmont
+31,North Carolina,5,Southern Piedmont
+31,North Carolina,6,Southern Coastal Plain
+31,North Carolina,7,Central Coastal Plain
+31,North Carolina,8,Northern Coastal Plain
+32,North Dakota,1,Northwest
+32,North Dakota,2,North Central
+32,North Dakota,3,Northeast
+32,North Dakota,4,West Central
+32,North Dakota,5,Central
+32,North Dakota,6,East Central
+32,North Dakota,7,Southwest
+32,North Dakota,8,South Central
+32,North Dakota,9,Southeast
+33,Ohio,1,Northwest
+33,Ohio,2,North Central
+33,Ohio,3,Northeast
+33,Ohio,4,West Central
+33,Ohio,5,Central
+33,Ohio,6,Central Hills
+33,Ohio,7,Northeast Hills
+33,Ohio,8,Southwest
+33,Ohio,9,South Central
+33,Ohio,10,Southeast
+34,Oklahoma,1,Panhandle
+34,Oklahoma,2,North Central
+34,Oklahoma,3,Northeast
+34,Oklahoma,4,West Central
+34,Oklahoma,5,Central
+34,Oklahoma,6,East Central
+34,Oklahoma,7,Southwest
+34,Oklahoma,8,South Central
+34,Oklahoma,9,Southeast
+35,Oregon,1,Coastal Area
+35,Oregon,2,Willamette Valley
+35,Oregon,3,Southwestern Valleys
+35,Oregon,4,Northernern Cascades
+35,Oregon,5,High Plateau
+35,Oregon,6,North Central
+35,Oregon,7,South Central
+35,Oregon,8,Northeast
+35,Oregon,9,Southeast
+36,Pennsylvania,1,Pocono Mountains
+36,Pennsylvania,2,East Central Mountains
+36,Pennsylvania,3,Southeastern Piedmont
+36,Pennsylvania,4,Lower Susquehanna
+36,Pennsylvania,5,Middle Susquehanna
+36,Pennsylvania,6,Upper Susquehanna
+36,Pennsylvania,7,Central Mountains
+36,Pennsylvania,8,South Central Mountains
+36,Pennsylvania,9,Southwest Plateau
+36,Pennsylvania,10,Northwest Plateau
+37,Rhode Island,1,Rhode Island
+38,South Carolina,1,Mountain
+38,South Carolina,2,Northwest
+38,South Carolina,3,North Central
+38,South Carolina,4,Northeast
+38,South Carolina,5,West Central
+38,South Carolina,6,Central
+38,South Carolina,7,Southern
+39,South Dakota,1,Northwest
+39,South Dakota,2,North Central
+39,South Dakota,3,Northeast
+39,South Dakota,4,Black Hills
+39,South Dakota,5,Southwest
+39,South Dakota,6,Central
+39,South Dakota,7,East Central
+39,South Dakota,8,South Central
+39,South Dakota,9,Southeast
+40,Tennessee,1,Eastern
+40,Tennessee,2,Cumberland Plateau
+40,Tennessee,3,Middle 
+40,Tennessee,4,Western
+41,Texas,1,High Plains
+41,Texas,2,Low Rolling Plains
+41,Texas,3,North Central
+41,Texas,4,East Texas
+41,Texas,5,Trans Pecos
+41,Texas,6,Edwards Plateau
+41,Texas,7,South Central
+41,Texas,8,Upper Coast
+41,Texas,9,South
+41,Texas,10,Lower Valley
+42,Utah,1,Western
+42,Utah,2,Dixie
+42,Utah,3,North Central
+42,Utah,4,South Central
+42,Utah,5,Northern Mountains
+42,Utah,6,Uinta Basin
+42,Utah,7,Southeast
+43,Vermont,1,Northeastern
+43,Vermont,2,Western
+43,Vermont,3,Southeastern
+44,Virginia,1,Tidewater
+44,Virginia,2,Eastern Piedmont
+44,Virginia,3,Western Piedmont
+44,Virginia,4,Northern
+44,Virginia,5,Central Mountain
+44,Virginia,6,Southwestern Mountain
+45,Washington,1,West Olympic Coast
+45,Washington,2,North East Olympic San Juan
+45,Washington,3,Puget Sound Lowlands
+45,Washington,4,East Olympic Cascade Foothills 
+45,Washington,5,Cascade Mountains West
+45,Washington,6,East Slope Cascades
+45,Washington,7,Okanogan Big Bend
+45,Washington,8,Central Basin
+45,Washington,9,Northeastern
+45,Washington,10,Plouse Blue Mountains
+46,West Virginia,1,Northwestern
+46,West Virginia,2,North Central
+46,West Virginia,3,Southwestern
+46,West Virginia,4,Central
+46,West Virginia,5,Southern
+46,West Virginia,6,Northeastern
+47,Wisconsin,1,Northwest
+47,Wisconsin,2,North Central
+47,Wisconsin,3,Northeast
+47,Wisconsin,4,West Central
+47,Wisconsin,5,Central
+47,Wisconsin,6,East Central
+47,Wisconsin,7,Southwest
+47,Wisconsin,8,South Central
+47,Wisconsin,9,Southeast
+48,Wyoming,1,Yellowstone Drainage
+48,Wyoming,2,Snake Drainage 
+48,Wyoming,3,Green and Bear Drainage
+48,Wyoming,4,Big Horn
+48,Wyoming,5,"Powder, Little Mo & Tongue Drainage"
+48,Wyoming,6,Belle Fourche Drainage, 
+48,Wyoming,7,Cheyenne Niobrara Drainage
+48,Wyoming,8,Lower Platte
+48,Wyoming,9,Wind River
+48,Wyoming,10,Upper Platte
