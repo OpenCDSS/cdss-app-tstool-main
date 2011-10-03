@@ -51,7 +51,10 @@
     			</fileset>
     		</copy>
     	<!-- System (configuration) files -->
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/ClimateDivisions.csv"/>
+        <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-county.csv"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-state.csv"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/USGS-NWIS.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/TSTool.cfg"/>
