@@ -72,6 +72,7 @@ L   |OTHR|CM  |SI | CENTIMETER                          |2|10.      ||
 L   |OTHR|M   |SI | METER                               |2|1000.    ||
 L   |OTHR|KM  |SI | KILOMETER                           |1|1000000. ||
 L   |OTHR|IN  |ENG| INCH                                |2|25.4     ||
+L   |OTHR|INCH|ENG| INCH                                |2|25.4     ||
 L   |OTHR|FT  |ENG| FOOT                                |2|304.8    ||
 L   |OTHR|MI  |ENG| MILE (STATUTE)                      |1|1609344. ||
 L   |OTHR|NM  |ENG| MILE (NAUTICAL)                     |1|1853248. ||
@@ -103,12 +104,14 @@ L3  |OTHR|FT3 |ENG| CUBIC FOOT                          |1|.000022956||
 L3  |OTHR|CFSD|ENG| CUBIC FOOT PER SECOND-DAY           |1|1.9834973||
 L3  |OTHR|CMSD|SI | CUBIC METER PER SECOND-DAY          |1|70.04533976||
 L3  |OTHR|KAFT|ENG| 1000 ACRE-FEET                      |1|1000.0   ||
+L3  |OTHR|MG  |ENG| MILLION GALLONS                     |1|3.0689   ||
 # DISCHARGE
 L3/T|BASE|AF/D|ENG| ACRE-FOOT PER DAY                   |1|1.       ||
 L3/T|OTHR|CFS |ENG| CUBIC FOOT PER SECOND               |2|1.9835   ||
 L3/T|OTHR|CMS |SI | CUBIC METER PER SECOND              |2|70.04533976||
 L3/T|OTHR|KCFS|ENG| 1000 CUBIC FOOT PER SECOND          |1|1983.5   ||
 L3/T|OTHR|MCSFM|ENG| MILLIONS OF CUBIC FEET PER MINUTE  |3|1.       ||
+L3/T|OTHR|MGD |ENG| MILLION GALLONS PER DAY             |1|3.0689   ||
 # PRESSURE
 #RES|BASE|MB  |   | MILLIBAR                            |2|1.       ||
 PRES|OTHR|MMHG|   | MILLIMETER OF MERCURY               |2|1.33322  ||
