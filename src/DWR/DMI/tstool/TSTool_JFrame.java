@@ -1223,6 +1223,7 @@ JMenu
 JMenuItem
     __Commands_General_Running_SetProperty_JMenuItem = null,
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem = null,
+    __Commands_General_Running_FormatDateTimeProperty_JMenuItem = null,
 	__Commands_General_Running_RunCommands_JMenuItem = null,
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
@@ -1612,10 +1613,11 @@ private String
 	__Commands_General_Logging_SetDebugLevel_String = TAB +	"SetDebugLevel()... <set debug message level>",
 	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
 
-    __Commands_General_Running_String = "General - Running",
+    __Commands_General_Running_String = "General - Running and Properties",
     __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a processor property>",
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
         TAB + "SetPropertyFromNwsrfsAppDefault()... <set a processor property from an NWSRFS App Default>",
+    __Commands_General_Running_FormatDateTimeProperty_String = TAB + "FormatDateTimeProperty()... <format date/time property as string property>",
 	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
@@ -8580,6 +8582,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String,this));
     }
+    __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatDateTimeProperty_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_FormatDateTimeProperty_String,this));
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add (__Commands_General_Running_RunCommands_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
@@ -10904,6 +10908,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String) ) {
         commandList_EditCommand ( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_Running_FormatDateTimeProperty_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_FormatDateTimeProperty_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_General_Running_RunCommands_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, CommandEditType.INSERT );
