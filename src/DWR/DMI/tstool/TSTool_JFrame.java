@@ -484,13 +484,13 @@ private String __inputNameHecDssVisibleLast = null;
 The NWSFFS FS5Files directories that have been selected during the
 session, to allow switching between input types but not losing the list of files.
 */
-private List __input_name_NWSRFS_FS5Files = new Vector();
+private List<String> __input_name_NWSRFS_FS5Files = new Vector();
 
 /**
 The StateCU files that have been selected during the session, to allow switching
 between input types but not losing the list of files. 
 */
-private List __inputNameStateCU = new Vector();
+private List<String> __inputNameStateCU = new Vector();
 
 /**
 The last StateCU file that was selected, to reset after canceling a browse. 
@@ -501,7 +501,7 @@ private String __inputNameStateCULast = null;
 The StateCUB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private List __input_name_StateCUB = new Vector();
+private List<String> __input_name_StateCUB = new Vector();
 
 /**
 The last StateCUB file that was selected, to reset after canceling a browse.
@@ -512,7 +512,7 @@ private String __input_name_StateCUB_last = null;
 The StateModB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private List __input_name_StateModB = new Vector();
+private List<String> __input_name_StateModB = new Vector();
 
 /**
 The last StateModB file that was selected, to reset after canceling a browse.
@@ -991,6 +991,8 @@ private JMenuItem
     __View_DataUnits_JMenuItem = null;
 private JCheckBoxMenuItem
 	__View_MapInterface_JCheckBoxMenuItem = null;
+private JMenuItem
+    __View_CloseAllViewWindows_JMenuItem = null;
 
 // Commands (Create Time Series)...
 
@@ -1410,6 +1412,7 @@ private String
 		__View_DataStores_String = "Data Stores",
 		__View_DataUnits_String = "Data Units",
 	    __View_Map_String = "Map",
+	    __View_CloseAllViewWindows_String = "Close All View Windows",
 
 	// Commands menu (order in GUI)...
 
@@ -5728,6 +5731,12 @@ private void ui_CheckGUIState ()
 	else {
 	    JGUIUtil.setEnabled ( __View_DataStores_JMenuItem, false );
 	}
+    if ( TSViewJFrame.getTSViewWindowManager().getWindowCount() > 0 ) {
+        JGUIUtil.setEnabled ( __View_CloseAllViewWindows_JMenuItem, true );
+    }
+    else {
+        JGUIUtil.setEnabled ( __View_CloseAllViewWindows_JMenuItem, false );
+    }
 
 	// Commands menu...
 
@@ -9163,6 +9172,8 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
     __View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem =  new JCheckBoxMenuItem(__View_Map_String) );
     __View_MapInterface_JCheckBoxMenuItem.setState ( false );
     __View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
+    __View_JMenu.addSeparator();
+    __View_JMenu.add ( __View_CloseAllViewWindows_JMenuItem=new SimpleJMenuItem( __View_CloseAllViewWindows_String, this));
 }
 
 /**
@@ -10270,8 +10281,6 @@ throws Exception
 {   String command = event.getActionCommand();
     //String routine = getClass().getName() + ".uiAction_ActionPerformed3b_ViewMenu";
 
-    // Run menu (order in menu)...
-
     if ( command.equals(__View_DataUnits_String) ) {
         // Show the data units
         uiAction_ShowDataUnits();
@@ -10279,6 +10288,10 @@ throws Exception
     else if ( command.equals(__View_DataStores_String) ) {
         // Show the data stores
         uiAction_ShowDataStores();
+    }
+    else if ( command.equals(__View_CloseAllViewWindows_String) ) {
+        // Show the data stores
+        TSViewJFrame.getTSViewWindowManager().closeAll();
     }
     else {
         // Chain to next set of actions...
