@@ -14277,9 +14277,8 @@ private void uiAction_GraphEnsembleResults ( String graph_type )
                 Message.printWarning ( 3, routine, e );
             }
         }
-        JGUIUtil.setWaitCursor ( this, false );
     }
-    catch ( Exception e ) {
+    finally {
         JGUIUtil.setWaitCursor ( this, false );
     }
 }
