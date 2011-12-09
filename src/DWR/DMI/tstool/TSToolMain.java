@@ -1175,15 +1175,17 @@ throws Exception
 		}
 		else if (args[i].equalsIgnoreCase("-config")) {
 		    // Configuration file name
+		    // TODO SAM 2011-12-07 Need to allow properties like ${UserHome} to read the configuration file from
+		    // a users' home folder, even if TSTool is installed in a central location
             if ((i + 1)== args.length) {
                 Message.printWarning(1,routine, "No argument provided to '-config'");
                 throw new Exception("No argument provided to '-config'");
             }
             i++;
             setConfigFile ( IOUtil.verifyPathForOS(IOUtil.getPathUsingWorkingDir(args[i])) );
-            Message.printStatus(1 , routine, "Using configuration file \"" + getConfigFile() + "\"" );
-            // Read the configuration file specified here.  Defaults read immediately after -home was
-            // parsed will be reset if in both files.
+            Message.printStatus(1 , routine, "Using configuration file from command line: \"" + getConfigFile() + "\"" );
+            // Read the configuration file specified here.  If not specified, the defaults read immediately
+            // after -home is parsed will be reset if in both files.
             readConfigFile(getConfigFile());
 	    }
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
@@ -1249,8 +1251,20 @@ throws Exception
 			Message.printStatus( 2, routine, "Reset java.library.path to \"" +
 			        System.getProperty ( "java.library.path" ) + "\"" );
 	        // Read the configuration file to get default TSTool properties,
-            // so that later command-line parameters can override them...
-            readConfigFile(getConfigFile());
+            // so that later command-line parameters can override them.
+			// If any other command line arguments are -config, then skip the following because a user-specified
+			// command file will be read instead
+			boolean userSpecifiedConfig = false;
+			for ( int iarg2 = 0; iarg2 < args.length; iarg2++ ) {
+			    if ( args[iarg2].equalsIgnoreCase("-config") ) {
+			        userSpecifiedConfig = true;
+			        break;
+			    }
+			}
+			if ( !userSpecifiedConfig ) {
+			    Message.printStatus(1 , routine, "Using default configuration file: \"" + getConfigFile() + "\"" );
+			    readConfigFile(getConfigFile());
+			}
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
@@ -1372,7 +1386,7 @@ Read the configuration file.  This should be done as soon as the application hom
 */
 private static void readConfigFile ( String configFile )
 {	String routine = "TSToolMain.readConfigFile";
-    Message.printStatus ( 2, routine, "Reading TSTool configuration informtion from \"" + configFile + "\"." );
+    Message.printStatus ( 2, routine, "Reading TSTool configuration information from \"" + configFile + "\"." );
 	if ( IOUtil.fileReadable(configFile) ) {
 		__tstool_props = new PropList ( configFile );
 		__tstool_props.setPersistentName ( configFile );
@@ -1387,8 +1401,13 @@ private static void readConfigFile ( String configFile )
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
-			"Error reading TSTool configuration file \"" + configFile + "\".  TSTool may not start." );
+			"Error reading TSTool configuration file \"" + configFile + "\".  TSTool may not start (" + e + ")." );
+			Message.printWarning ( 1, routine, e );
 		}
+	}
+	else {
+	    Message.printWarning ( 1, routine,
+	        "TSTool configuration file \"" + configFile + "\" is not readable.  TSTool may not start." );
 	}
 }
 

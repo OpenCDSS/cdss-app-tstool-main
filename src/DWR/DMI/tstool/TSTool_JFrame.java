@@ -4504,7 +4504,7 @@ private void license_InitializeLicenseFromTSToolProperties ()
     String routine = "TSTool_JFrame.readLicense";
     String warning = "";
 
-    Message.printStatus ( 1, "TSTool.checkLicense", "Checking license" );
+    Message.printStatus ( 1, routine, "Checking license" );
     license_owner = TSToolMain.getPropValue ( "TSTool.LicenseOwner" );
     if ( license_owner == null ) {
         warning += "\nLicenseOwner is not specified in the TSTool license information.";
@@ -4541,6 +4541,7 @@ private void license_InitializeLicenseFromTSToolProperties ()
         //Message.printStatus ( 2, routine, "License manager after initialization:  " + license_GetLicenseManager() );
     }
     catch ( Exception e ) {
+        Message.printWarning ( 3, routine, e );
         license_SetLicenseManager ( null );
     }
 }
