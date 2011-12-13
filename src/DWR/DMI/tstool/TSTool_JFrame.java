@@ -741,13 +741,13 @@ General status string to indicate that the user should wait for the GUI to finis
 */
 private final String __STATUS_BUSY = "Wait";
 /**
-General status string to indicate that command processing is being cancelled.
+General status string to indicate that command processing is being canceled.
 */
 private final String __STATUS_CANCELING = "Canceling";
 /**
-General status string to indicate that command processing has been cancelled.
+General status string to indicate that command processing has been canceled.
 */
-private final String __STATUS_CANCELLED = "Cancelled";
+private final String __STATUS_CANCELED = "Canceled";
 
 /**
 Message area text field (e.g., "Processing commands...") - long and left-most.
@@ -1932,11 +1932,11 @@ public void actionPerformed (ActionEvent event)
 }
 
 /**
-Indicate that a command has been cancelled.  The success/failure of the command
+Indicate that a command has been canceled.  The success/failure of the command
 is not indicated (see CommandStatusProvider).
 @param icommand The command index (0+).
 @param ncommand The total number of commands to process
-@param command The reference to the command that has been cancelled, either the
+@param command The reference to the command that has been canceled, either the
 one that has just been processed, or potentially the next one, depending on when the cancel was requested.
 @param percent_complete If >= 0, the value can be used to indicate progress
 running a list of commands (not the single command).  If less than zero, then
@@ -1944,14 +1944,14 @@ no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandCancelled ( int icommand, int ncommand, Command command, float percent_complete, String message )
-{	String routine = "TSTool_JFrame.commandCancelled";
+public void commandCanceled ( int icommand, int ncommand, Command command, float percent_complete, String message )
+{	String routine = "TSTool_JFrame.commandCanceled";
 	
 	// Refresh the results with what is available...
 	//String command_string = command.toString();
-	ui_UpdateStatusTextFields ( 1, routine,	"Cancelled command processing.",
+	ui_UpdateStatusTextFields ( 1, routine,	"Canceled command processing.",
 			//"Canceled: " + command_string,
-				null, __STATUS_CANCELLED );
+				null, __STATUS_CANCELED );
 	uiAction_RunCommands_ShowResults ();
 }
 
@@ -2243,7 +2243,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 			// Insert the copy during the edit...
 			commandList_InsertCommandAt ( commandToEdit, pos );
 			Message.printStatus(2, routine,
-				"Will edit the copy and restore to the original if the edit is cancelled.");
+				"Will edit the copy and restore to the original if the edit is canceled.");
 		}
 	}
 	else if ( mode == CommandEditType.INSERT ) {
@@ -11003,7 +11003,7 @@ throws Exception
     }
     else if (command.equals(__Run_CancelCommandProcessing_String) ) {
         // Cancel the current processor.  This may take awhile to occur.
-        ui_UpdateStatusTextFields ( 1, routine, "Processing is being cancelled...", null, __STATUS_CANCELING );
+        ui_UpdateStatusTextFields ( 1, routine, "Processing is being canceled...", null, __STATUS_CANCELING );
         ui_UpdateStatus ( true );
         __tsProcessor.setCancelProcessingRequested ( true );
     }
@@ -12597,7 +12597,7 @@ throws IOException
 		fc.addChoosableFileFilter(sff);
 		fc.setFileFilter(dv_sff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
@@ -13028,7 +13028,7 @@ throws IOException
 			fc.addChoosableFileFilter(sff);
 			fc.setFileFilter(sff);
 			if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
-				// Cancelled...
+				// Canceled...
 				return;
 			}
 			String directory = fc.getSelectedFile().getParent();
@@ -13170,7 +13170,7 @@ throws IOException
 		sff = new SimpleFileFilter( "RES", "Reservoir Time Series");
 		fc.addChoosableFileFilter(sff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
@@ -13253,7 +13253,7 @@ throws IOException
 		fc.setFileFilter(filters[filters.length - 1]);
 		
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
@@ -13324,7 +13324,7 @@ throws IOException
 		*/
 		fc.setFileFilter(csff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
@@ -13673,7 +13673,7 @@ throws IOException
 		sff = new SimpleFileFilter( "ts", "RiverWare Time Series");
 		fc.addChoosableFileFilter(sff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		JGUIUtil.setLastFileDialogDirectory ( fc.getSelectedFile().getParent() );
@@ -13918,7 +13918,7 @@ throws Exception
 			StateMod_GUIUtil.addTimeSeriesFilenameFilters(fc, TimeInterval.MONTH, false);
 		}
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		String directory = fc.getSelectedFile().getParent();
@@ -14226,7 +14226,7 @@ throws IOException
 		SimpleFileFilter sff = new SimpleFileFilter( "txt", "USGS NWIS Daily Surface Flow File");
 		fc.addChoosableFileFilter(sff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// Cancelled...
+			// Canceled...
 			return;
 		}
 		JGUIUtil.setLastFileDialogDirectory ( fc.getSelectedFile().getParent() );
@@ -14710,7 +14710,7 @@ private void uiAction_OpenCommandFile ()
 
 /**
 Check whether existing commands need to be saved (called when loading or creating a new command file).
-@return true if the operation (open or new) should continue, or false if user has cancelled.
+@return true if the operation (open or new) should continue, or false if user has canceled.
 */
 private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
 {
@@ -15961,7 +15961,7 @@ throws Exception
         // Only allow recognized extensions...
         fc.setAcceptAllFileFilterUsed ( false );
         if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            // User cancelled - set the file name back to the original and disable other choices...
+            // User canceled - set the file name back to the original and disable other choices...
             if ( inputName != null ) {
                 ui_SetIgnoreItemEvent ( true );
                 __inputName_JComboBox.select(null);
@@ -16086,7 +16086,7 @@ throws Exception
         fc.setDialogTitle("Select NWSRFS FS5Files Directory");
         fc.setFileSelectionMode (JFileChooser.DIRECTORIES_ONLY );
         if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            // User cancelled - set the file name back to the original and disable other choices...
+            // User canceled - set the file name back to the original and disable other choices...
             // Ignore programatic events on the combo boxes...
             ui_SetIgnoreItemEvent ( true );
             if ( inputName != null ) {
@@ -16715,7 +16715,7 @@ throws Exception
 		fc.addChoosableFileFilter(__input_name_StateCU_wsl_FileFilter);
 		fc.setFileFilter(__input_name_StateCU_iwrrep_FileFilter);
 		if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// User cancelled - set the file name back to the original and disable other choices...
+			// User canceled - set the file name back to the original and disable other choices...
 			if ( inputName != null ) {
 				ui_SetIgnoreItemEvent ( true );
 				__inputName_JComboBox.select(null);
@@ -16829,7 +16829,7 @@ throws Exception
         // Only allow recognized extensions...
         fc.setAcceptAllFileFilterUsed ( false );
         if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            // User cancelled - set the file name back to the original and disable other choices...
+            // User canceled - set the file name back to the original and disable other choices...
             if ( input_name != null ) {
                 ui_SetIgnoreItemEvent ( true );
                 __inputName_JComboBox.select(null);
@@ -17009,7 +17009,7 @@ throws Exception
 		// Only allow recognized extensions...
 		fc.setAcceptAllFileFilterUsed ( false );
 		if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-			// User cancelled - set the file name back to the original and disable other choices...
+			// User canceled - set the file name back to the original and disable other choices...
 			if ( inputName != null ) {
 				ui_SetIgnoreItemEvent ( true );
 				__inputName_JComboBox.select(null);
