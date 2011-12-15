@@ -1034,6 +1034,7 @@ JMenuItem
 	__Commands_Read_ReadNwsrfsFS5Files_JMenuItem,
 	__Commands_Read_ReadRccAcis_JMenuItem,
 	__Commands_Read_ReadReclamationHDB_JMenuItem,
+	__Commands_Read_ReadRiversideDB_JMenuItem,
 	__Commands_Read_ReadRiverWare_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
 	__Commands_Read_ReadStateCUB_JMenuItem,
@@ -1131,6 +1132,7 @@ JMenuItem
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
 	__Commands_Output_WriteReclamationHDB_JMenuItem,
+	__Commands_Output_WriteRiversideDB_JMenuItem,
 	__Commands_Output_WriteRiverWare_JMenuItem,
     __Commands_Output_WriteSHEF_JMenuItem,
 	__Commands_Output_WriteStateCU_JMenuItem,
@@ -1448,7 +1450,8 @@ private String
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1+ time series from an NWS CARD file>",
 	__Commands_Read_ReadNwsrfsFS5Files_String = TAB + "ReadNwsrfsFS5Files()... <read 1 time series from NWSRFS FS5 files>",
 	__Commands_Read_ReadRccAcis_String = TAB + "ReadRccAcis()... <read 1+ time series from the RCC ACIS web service>",
-	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series from Reclamation's HDB database>",
+	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series a Reclamation HDB database>",
+	__Commands_Read_ReadRiversideDB_String = TAB + "ReadRiversideDB()... <read 1+ time series from a RiversideDB database>",
 	__Commands_Read_ReadRiverWare_String = TAB + "ReadRiverWare()... <read 1 time series from a RiverWare file>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1+ time series from a StateCU file>",
 	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()... <read 1+ time series from a StateCU binary output file>",
@@ -1519,7 +1522,8 @@ private String
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()... <write time series to DateValue file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
-	__Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to Reclamation HDB database>",
+	__Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to a Reclamation HDB database>",
+	__Commands_Output_WriteRiversideDB_String = TAB + "WriteRiversideDB()... <write time series to RiversideDB database>",
 	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()... <write time series to RiverWare file>",
     __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()... <write time series to SHEF file (under development)>",
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
@@ -5820,6 +5824,12 @@ private void ui_CheckGUIState ()
 	else {
 	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false );
 	}
+    if ( __tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0 ) {
+        JGUIUtil.setEnabled ( __Commands_Output_WriteRiversideDB_JMenuItem, true );
+    }
+    else {
+        JGUIUtil.setEnabled ( __Commands_Output_WriteRiversideDB_JMenuItem, false );
+    }
 	JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, enabled);
@@ -7980,7 +7990,7 @@ private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, 
             }
             // Create a new panel...
             RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel newIfp =
-                new RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel((RiversideDBDataStore)dataStore);
+                new RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel((RiversideDBDataStore)dataStore,6);
     
             // Add the new panel to the layout and set in the global data...
             int buffer = 3;
@@ -8170,6 +8180,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationHDB_String, this) );
+    }
+    if ( __source_RiversideDB_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiversideDB_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadRiversideDB_String, this) );
     }
     if ( __source_RiverWare_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiverWare_JMenuItem =
@@ -8404,6 +8418,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Output_WriteReclamationHDB_String, this ) );
+    }
+    
+    if ( __source_RiversideDB_enabled ) {
+        __Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiversideDB_JMenuItem =
+            new SimpleJMenuItem(__Commands_Output_WriteRiversideDB_String, this ) );
     }
 
 	if ( __source_RiverWare_enabled ) {
@@ -10445,6 +10464,9 @@ throws Exception
 	else if (command.equals( __Commands_Read_ReadReclamationHDB_String)){
         commandList_EditCommand ( __Commands_Read_ReadReclamationHDB_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Read_ReadRiversideDB_String)){
+        commandList_EditCommand ( __Commands_Read_ReadRiversideDB_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Read_ReadStateCU_String)){
 		commandList_EditCommand ( __Commands_Read_ReadStateCU_String, null, CommandEditType.INSERT );
 	}
@@ -10762,6 +10784,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_Output_WriteReclamationHDB_String)){
         commandList_EditCommand ( __Commands_Output_WriteReclamationHDB_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Output_WriteRiversideDB_String)){
+        commandList_EditCommand ( __Commands_Output_WriteRiversideDB_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
 		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, CommandEditType.INSERT );
