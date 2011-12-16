@@ -1834,9 +1834,9 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		uiAction_OpenColoradoSMS ( true );
 	}
 	sms.stop();
-	Message.printDebug(1, "", "JTS - OpenColoradoSMS: " + sms.getSeconds());
+	Message.printDebug(1, rtn, "JTS - OpenColoradoSMS: " + sms.getSeconds());
 	swMain.stop();
-	Message.printDebug(1, "", "JTS - TSTool_JFrame(): " + swMain.getSeconds());
+	Message.printDebug(1, rtn, "JTS - TSTool_JFrame(): " + swMain.getSeconds());
 	
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
 	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration file.
@@ -6269,8 +6269,8 @@ private void ui_EnableInputTypesForConfiguration ()
         // Older...
         propValue = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
     }
-    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
-        __source_HydroBase_enabled = false;
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_HydroBase_enabled = true;
     }
     else {
         // No property defined.  Make sure to turn on for CDSS
