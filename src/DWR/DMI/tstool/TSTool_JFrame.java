@@ -17630,7 +17630,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2011\n" +
+        "Copyright 1997-2012\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
@@ -17644,7 +17644,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2011\n" +
+        "Copyright 1997-2012\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
