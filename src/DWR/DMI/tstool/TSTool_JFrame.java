@@ -847,7 +847,8 @@ private boolean
 	__source_StateCUB_enabled = true,
 	__source_StateMod_enabled = true,
 	__source_StateModB_enabled = true,
-	__source_USGSNWIS_enabled = true;
+	__source_USGSNWIS_enabled = true,
+	__source_WaterML_enabled = false;
 
 /**
 Indicates if the main GUI should be shown.  This is normally true but if false
