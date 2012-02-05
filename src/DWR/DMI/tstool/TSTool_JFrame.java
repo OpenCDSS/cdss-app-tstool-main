@@ -1007,6 +1007,7 @@ JMenuItem
 	__Commands_Create_Copy_JMenuItem,
 	__Commands_Create_Delta_JMenuItem,
 	__Commands_Create_Disaggregate_JMenuItem,
+	__Commands_Create_LookupTimeSeriesFromTable_JMenuItem,
 	__Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,
 	__Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,
 	__Commands_Create_Normalize_JMenuItem,
@@ -1430,6 +1431,7 @@ private String
 	__Commands_Create_Copy_String = TAB + "Copy()... <copy a time series>",
 	__Commands_Create_Delta_String = TAB + "Delta()... <create new time series as delta between values>",
 	__Commands_Create_Disaggregate_String = TAB + "Disaggregate()... <disaggregate longer interval to shorter>",
+	__Commands_Create_LookupTimeSeriesFromTable_String = TAB + "LookupTimeSeriesFromTable()... <create a time series using a lookup table>",
 	__Commands_Create_NewDayTSFromMonthAndDayTS_String = TAB + "NewDayTSFromMonthAndDayTS()... <create daily time series from monthly total and daily pattern>",
 	__Commands_Create_NewEndOfMonthTSFromDayTS_String = TAB + "NewEndOfMonthTSFromDayTS()... <convert daily data to end of month time series>",
 	__Commands_Create_Normalize_String = TAB + "Normalize()... <Normalize time series to unitless values>",
@@ -5758,6 +5760,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_LookupTimeSeriesFromTable_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,	enabled );
 	JGUIUtil.setEnabled ( __Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, enabled);
@@ -8104,6 +8107,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_Disaggregate_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Disaggregate_String, this) );
     
+    __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_LookupTimeSeriesFromTable_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_LookupTimeSeriesFromTable_String, this) );
+    
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_NewDayTSFromMonthAndDayTS_String, this) );
 
@@ -10394,8 +10400,11 @@ throws Exception
 		commandList_EditCommand ( __Commands_Create_Copy_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Create_Disaggregate_String)){
-		commandList_EditCommand ( __Commands_Create_Disaggregate_String,	null, CommandEditType.INSERT );
+		commandList_EditCommand ( __Commands_Create_Disaggregate_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Create_LookupTimeSeriesFromTable_String)){
+        commandList_EditCommand ( __Commands_Create_LookupTimeSeriesFromTable_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Create_NewDayTSFromMonthAndDayTS_String)){
 		commandList_EditCommand ( __Commands_Create_NewDayTSFromMonthAndDayTS_String, null, CommandEditType.INSERT );
 	}
@@ -10403,7 +10412,7 @@ throws Exception
 		commandList_EditCommand ( __Commands_Create_NewEndOfMonthTSFromDayTS_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Create_NewPatternTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Create_NewPatternTimeSeries_String,	null, CommandEditType.INSERT );
+		commandList_EditCommand ( __Commands_Create_NewPatternTimeSeries_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Create_NewStatisticTimeSeries_String)){
 		commandList_EditCommand ( __Commands_Create_NewStatisticTimeSeries_String, null, CommandEditType.INSERT );
@@ -10418,7 +10427,7 @@ throws Exception
 		commandList_EditCommand ( __Commands_Create_Normalize_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Create_RelativeDiff_String)){
-		commandList_EditCommand ( __Commands_Create_RelativeDiff_String,	null, CommandEditType.INSERT );
+		commandList_EditCommand ( __Commands_Create_RelativeDiff_String, null, CommandEditType.INSERT );
 	}
 	else {
 		// Chain to next actions...
