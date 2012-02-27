@@ -172,7 +172,7 @@ import RTi.TS.TS;
 import RTi.TS.TSEnsemble;
 import RTi.TS.TSIdent;
 import RTi.TS.TSUtil;
-import RTi.TS.UsgsNwisTS;
+import RTi.TS.UsgsNwisRdbTS;
 import RTi.Util.GUI.FindInJListJDialog;
 import RTi.Util.GUI.HelpAboutJDialog;
 import RTi.Util.GUI.InputFilter;
@@ -847,8 +847,10 @@ private boolean
 	__source_StateCUB_enabled = true,
 	__source_StateMod_enabled = true,
 	__source_StateModB_enabled = true,
-	__source_USGSNWIS_enabled = true,
-	__source_WaterML_enabled = false;
+	__source_UsgsNwisDaily_enabled = true,
+	__source_UsgsNwisRdb_enabled = true,
+	__source_WaterML_enabled = true,
+	__source_WaterOneFlow_enabled = true;
 
 /**
 Indicates if the main GUI should be shown.  This is normally true but if false
@@ -1043,7 +1045,10 @@ JMenuItem
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
 	__Commands_Read_ReadTimeSeries_JMenuItem,
-	__Commands_Read_ReadUsgsNwis_JMenuItem,
+	__Commands_Read_ReadUsgsNwisDaily_JMenuItem,
+	__Commands_Read_ReadUsgsNwisRdb_JMenuItem,
+	__Commands_Read_ReadWaterML_JMenuItem,
+	__Commands_Read_ReadWaterOneFlow_JMenuItem,
 	__Commands_Read_StateModMax_JMenuItem;
 
 	// Commands...Fill Time Series....
@@ -1462,7 +1467,10 @@ private String
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1+ time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1+ time series from a StateMod binary output file>",
 	__Commands_Read_ReadTimeSeries_String = TAB + "ReadTimeSeries()... <read 1 time series given a full TSID>",
-	__Commands_Read_ReadUsgsNwis_String = TAB + "ReadUsgsNwis()... <read 1 time series from a USGS NWIS file>",
+    __Commands_Read_ReadUsgsNwisDaily_String = TAB + "ReadUsgsNwisDaily()... <read 1+ time series from USGS NWIS daily value web service>",
+	__Commands_Read_ReadUsgsNwisRdb_String = TAB + "ReadUsgsNwisRdb()... <read 1 time series from a USGS NWIS RDB file>",
+    __Commands_Read_ReadWaterML_String = TAB + "ReadWaterML()... <read 1+ time series from a WaterML file>",
+    __Commands_Read_ReadWaterOneFlow_String = TAB + "ReadWaterOneFlow()... <read 1+ time series from a WaterOneFlow web service>",
 	__Commands_Read_StateModMax_String = TAB + "StateModMax()... <generate 1+ time series as Max() of TS in two StateMod files>",
 
 	// Commands... Fill Time Series...
@@ -1743,7 +1751,8 @@ private String
 	__INPUT_TYPE_StateCUB = "StateCUB",
 	__INPUT_TYPE_StateMod = "StateMod",
 	__INPUT_TYPE_StateModB = "StateModB",
-	__INPUT_TYPE_USGSNWIS = "USGSNWIS",
+	__INPUT_TYPE_UsgsNwisRdb = "UsgsNwisRdb",
+	__INPUT_TYPE_WaterML = "WaterML",
 
 	// Time steps for __time_step_JComboBox...
 
@@ -5286,7 +5295,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ||
 		selectedInputType.equals ( __INPUT_TYPE_StateMod ) ||
 		selectedInputType.equals ( __INPUT_TYPE_StateModB ) ||
-		selectedInputType.equals(__INPUT_TYPE_USGSNWIS) ) {
+		selectedInputType.equals(__INPUT_TYPE_UsgsNwisRdb) ) {
 		// The location (id), type, and time step uniquely identify the time series...
 		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 		String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
@@ -6434,13 +6443,42 @@ private void ui_EnableInputTypesForConfiguration ()
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateModB_enabled = false;
     }
+    
+    // UsgsNwisDaily enabled by default...
 
-    // USGSNWIS enabled by default...
-
-    __source_USGSNWIS_enabled = true;
-    propValue = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
+    __source_UsgsNwisDaily_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisDailyEnabled" );
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
-        __source_USGSNWIS_enabled = false;
+        __source_UsgsNwisDaily_enabled = false;
+    }
+
+    // UsgsNwisRdb enabled by default...
+
+    __source_UsgsNwisRdb_enabled = true;
+    // New...
+    propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisRdbEnabled" );
+    // Legacy...
+    if ( propValue == null ) {
+        propValue = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
+    }
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_UsgsNwisRdb_enabled = false;
+    }
+    
+    // WaterML enabled by default...
+
+    __source_WaterML_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.WaterMLEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_WaterML_enabled = false;
+    }
+    
+    // WaterOneFlow enabled by default...
+
+    __source_WaterOneFlow_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.WaterOneFlowEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_WaterOneFlow_enabled = false;
     }
 }
 
@@ -7370,13 +7408,13 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, e);
                 }
             }
-            if ( __source_USGSNWIS_enabled && (__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class).size() > 0) ) {
+            if ( __source_UsgsNwisDaily_enabled && (__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class).size() > 0) ) {
                 try {
-                    ui_InitGUIInputFiltersUsgsNwis(__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class), y );
+                    ui_InitGUIInputFiltersUsgsNwisDaily(__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class), y );
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing USGS NWIS data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing USGS NWIS daily data store input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -8021,10 +8059,10 @@ Initialize the USGS NWIS input filter (may be called at startup).
 @param dataStoreList the list of data stores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
-private void ui_InitGUIInputFiltersUsgsNwis ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwis";
+private void ui_InitGUIInputFiltersUsgsNwisDaily ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisDaily";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " USGS NWIS data stores." );
+        " UsgsNwisDaily data stores." );
     for ( DataStore dataStore: dataStoreList ) {
         try {
             // Try to find an existing input filter panel for the same name...
@@ -8043,12 +8081,12 @@ private void ui_InitGUIInputFiltersUsgsNwis ( List<DataStore> dataStoreList, int
             JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            newIfp.setName("UsgsNwis.InputFilterPanel");
+            newIfp.setName("UsgsNwisDaily.InputFilterPanel");
             __inputFilterJPanelList.add ( newIfp );
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for USGS NWIS time series for data store \"" +
+                "Unable to initialize input filter for USGS NWIS daily time series for data store \"" +
                 dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
@@ -8216,9 +8254,21 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
-    if ( __source_USGSNWIS_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwis_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_ReadUsgsNwis_String, this) );
+    if ( __source_UsgsNwisDaily_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisDaily_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisDaily_String, this) );
+    }
+    if ( __source_UsgsNwisRdb_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisRdb_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisRdb_String, this) );
+    }
+    if ( __source_WaterML_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterML_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadWaterML_String, this) );
+    }
+    if ( __source_WaterOneFlow_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterOneFlow_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadWaterOneFlow_String, this) );
     }
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.addSeparator ();
@@ -9744,8 +9794,8 @@ private void ui_SetInputTypeChoices ()
 	if ( __source_StateModB_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_StateModB );
 	}
-	if ( __source_USGSNWIS_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_USGSNWIS );
+	if ( __source_UsgsNwisRdb_enabled ) {
+		__input_type_JComboBox.add( __INPUT_TYPE_UsgsNwisRdb );
 	}
 
 	// Enable item events again so the events will cascade...
@@ -10503,9 +10553,18 @@ throws Exception
     else if (command.equals( __Commands_Read_ReadTimeSeries_String)){
         commandList_EditCommand ( __Commands_Read_ReadTimeSeries_String, null, CommandEditType.INSERT );
     }
-	else if (command.equals( __Commands_Read_ReadUsgsNwis_String)){
-		commandList_EditCommand ( __Commands_Read_ReadUsgsNwis_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_Read_ReadUsgsNwisDaily_String)){
+        commandList_EditCommand ( __Commands_Read_ReadUsgsNwisDaily_String, null, CommandEditType.INSERT );
+    }
+	else if (command.equals( __Commands_Read_ReadUsgsNwisRdb_String)){
+		commandList_EditCommand ( __Commands_Read_ReadUsgsNwisRdb_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Read_ReadWaterML_String)){
+        commandList_EditCommand ( __Commands_Read_ReadWaterML_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Read_ReadWaterOneFlow_String)){
+        commandList_EditCommand ( __Commands_Read_ReadWaterOneFlow_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Read_StateModMax_String)){
         commandList_EditCommand ( __Commands_Read_StateModMax_String, null, CommandEditType.INSERT );
     }
@@ -11823,7 +11882,7 @@ private void uiAction_DataTypeChoiceClicked()
 		// StateMod binary output file - the time step is set when the
 		// input name is selected so do nothing here.
 	}
-	else if ( selectedInputType.equals(__INPUT_TYPE_USGSNWIS) ) {
+	else if ( selectedInputType.equals(__INPUT_TYPE_UsgsNwisRdb) ) {
 		// USGS NWIS file...
 		__timeStep_JComboBox.removeAll ();
 		__timeStep_JComboBox.add ( __TIMESTEP_AUTO );
@@ -12217,7 +12276,7 @@ private void uiAction_GetTimeSeriesListClicked()
 	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore) ) {
         try {
-            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders(); 
+            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders(); 
         }
         catch ( Exception e ) {
             message = "Error reading USGS NWIS - cannot display time series list (" + e + ").";
@@ -12281,9 +12340,9 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals (__INPUT_TYPE_USGSNWIS)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_UsgsNwisRdb)) {
 		try {
-            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisFileHeaders ();
+            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisRdbHeaders ();
 		}
 		catch ( Exception e ) {
 			message = "Error reading USGS NWIS file - cannot display time series list (" + e + ").";
@@ -14191,8 +14250,8 @@ throws IOException
 /**
 Read USGS NWIS web service time series and list in the GUI.
 */
-private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders";
+private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
@@ -14256,16 +14315,16 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisHeaders()
 }
 
 /**
-Read the list of time series from a USGS NWIS file and list in the GUI.
+Read the list of time series from a USGS NWIS RDB file and list in the GUI.
 */
-private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisFileHeaders ()
+private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisRdbHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.readUsgsNwisHeaders";
+{	String message, routine = "TSTool_JFrame.readUsgsNwisRdbHeaders";
 
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle ( "Select USGS NWIS Daily Surface Flow File");
-		SimpleFileFilter sff = new SimpleFileFilter( "txt", "USGS NWIS Daily Surface Flow File");
+		fc.setDialogTitle ( "Select USGS NWIS RDB File");
+		SimpleFileFilter sff = new SimpleFileFilter( "txt", "USGS NWIS RDB File");
 		fc.addChoosableFileFilter(sff);
 		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
 			// Canceled...
@@ -14274,16 +14333,16 @@ throws IOException
 		JGUIUtil.setLastFileDialogDirectory ( fc.getSelectedFile().getParent() );
 		String path = fc.getSelectedFile().getPath();
 
-		Message.printStatus ( 1, routine, "Reading USGS NWIS file \"" + path + "\"" );
+		Message.printStatus ( 1, routine, "Reading USGS NWIS RDB file \"" + path + "\"" );
 		JGUIUtil.setWaitCursor ( this, true );
-		TS ts = UsgsNwisTS.readTimeSeries(path, null, null, null,false);
+		TS ts = UsgsNwisRdbTS.readTimeSeries(path, null, null, null,false);
 		if ( ts == null ) {
-			message = "Error reading USGS NWIS file \""+path + "\"";
+			message = "Error reading USGS NWIS RDB file \""+path + "\"";
 			Message.printWarning ( 2, routine, message );
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		List tslist = new Vector ( 1 );
+		List<TS> tslist = new Vector ( 1 );
 		tslist.add ( ts );
 		__query_TableModel = new TSTool_TS_TableModel ( tslist );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
@@ -14297,7 +14356,7 @@ throws IOException
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 	catch ( Exception e ) {
-		message = "Error reading USGS NWIS file.";
+		message = "Error reading USGS NWIS RDB file.";
 		Message.printWarning ( 2, routine, message );
 		Message.printWarning ( 2, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
@@ -14611,7 +14670,7 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
     		// Prompt for a StateMod binary file and update choices...
     		uiAction_SelectInputType_StateModB ( true );
     	}
-    	else if ( selectedInputType.equals ( __INPUT_TYPE_USGSNWIS ) ) {
+    	else if ( selectedInputType.equals ( __INPUT_TYPE_UsgsNwisRdb ) ) {
     	    uiAction_SelectInputType_UsgsNwis();
     	}
     	else {
@@ -17962,11 +18021,11 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDMI hbdmi )
     else {
         v.add ( "StateModB input type is not enabled");
     }
-    if ( __source_USGSNWIS_enabled ) {
-        v.add ( "USGSNWIS input type is enabled" );
+    if ( __source_UsgsNwisRdb_enabled ) {
+        v.add ( "UsgsNwisRdb input type is enabled" );
     }
     else {
-        v.add ( "USGSNWIS input type is not enabled");
+        v.add ( "UsgsNwisRdb input type is not enabled");
     }
     
     v.add ( "" );
