@@ -861,8 +861,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     else if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
         packagePath = "RTi.DMI.RiversideDB_DMI.";
     }
-    else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDataStore") ) {
-        packagePath = "rti.tscommandprocessor.commands.usgsnwis.";
+    else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDailyDataStore") ) {
+        packagePath = "rti.tscommandprocessor.commands.usgs.nwis.daily.";
     }
     else {
         throw new InvalidParameterException("Data store type \"" + dataStoreType +

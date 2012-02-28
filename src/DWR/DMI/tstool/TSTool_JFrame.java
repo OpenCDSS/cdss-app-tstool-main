@@ -90,9 +90,9 @@ import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_
 import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.ts.TSID_Command;
-import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisDataStore;
-import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisSiteTimeSeriesMetadata;
-import rti.tscommandprocessor.commands.usgsnwis.UsgsNwis_TimeSeries_InputFilter_JPanel;
+import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisDailyDataStore;
+import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisDaily_TimeSeries_InputFilter_JPanel;
+import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisSiteTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -1735,6 +1735,8 @@ private String
 	__DATA_TYPE_AUTO = "Auto",
 
 	// Input types for the __input_type_JComboBox...
+	// Data stores are NOT listed here; consequently, the following are files or databases
+	// that have not been converted to data stores
 
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_ColoradoWaterHBGuest = "ColoradoWaterHBGuest",
@@ -5263,10 +5265,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		"",
 		"", false, insertOffset );
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore) ) {
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
-        TSTool_UsgsNwis_TableModel model = (TSTool_UsgsNwis_TableModel)__query_TableModel;
+        TSTool_UsgsNwisDaily_TableModel model = (TSTool_UsgsNwisDaily_TableModel)__query_TableModel;
         if (model.getSortOrder() != null) {
             row = model.getSortOrder()[row];
         }
@@ -6634,9 +6636,9 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
                 return panel;
             }
         }
-        else if ( panel instanceof UsgsNwis_TimeSeries_InputFilter_JPanel ) {
+        else if ( panel instanceof UsgsNwisDaily_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
-            DataStore dataStore = ((UsgsNwis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            DataStore dataStore = ((UsgsNwisDaily_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
                 // Have a match in the data store name so return the panel
                 return panel;
@@ -7411,9 +7413,9 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, e);
                 }
             }
-            if ( __source_UsgsNwisDaily_enabled && (__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class).size() > 0) ) {
+            if ( __source_UsgsNwisDaily_enabled && (__tsProcessor.getDataStoresByType(UsgsNwisDailyDataStore.class).size() > 0) ) {
                 try {
-                    ui_InitGUIInputFiltersUsgsNwisDaily(__tsProcessor.getDataStoresByType(UsgsNwisDataStore.class), y );
+                    ui_InitGUIInputFiltersUsgsNwisDaily(__tsProcessor.getDataStoresByType(UsgsNwisDailyDataStore.class), y );
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
@@ -8075,8 +8077,8 @@ private void ui_InitGUIInputFiltersUsgsNwisDaily ( List<DataStore> dataStoreList
                 __inputFilterJPanelList.remove ( ifp );
             }
             // Create a new panel...
-            UsgsNwis_TimeSeries_InputFilter_JPanel newIfp =
-                new UsgsNwis_TimeSeries_InputFilter_JPanel((UsgsNwisDataStore)dataStore, 3);
+            UsgsNwisDaily_TimeSeries_InputFilter_JPanel newIfp =
+                new UsgsNwisDaily_TimeSeries_InputFilter_JPanel((UsgsNwisDailyDataStore)dataStore, 3);
     
             // Add the new panel to the layout and set in the global data...
             int buffer = 3;
@@ -9720,14 +9722,14 @@ private void ui_SetInputNameVisible(boolean isVisible )
 
 /**
 Set the title of the input panel.
-@param title the title for the input/query panel.  If null, use the default of "Input/Query Options" with
+@param title the title for the input/query panel.  If null, use the default of "Input/Query Options..." with
 a black border.
 @param color color of the line border.
 */
 private void ui_SetInputPanelTitle ( String title, Color color )
 {
     if ( title == null ) {
-        title = "Input/Query Options";
+        title = "Input/Query Options (select \"Data store\" or \"Input type\")";
         color = Color.black;
     }
     __queryInput_JPanel.setBorder( BorderFactory.createTitledBorder (
@@ -11560,8 +11562,8 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
             uiAction_SelectDataStore_ReclamationHDB ( (ReclamationHDBDataStore)selectedDataStore );
         }
-        else if ( selectedDataStore instanceof UsgsNwisDataStore ) {
-            uiAction_SelectDataStore_UsgsNwis ( (UsgsNwisDataStore)selectedDataStore );
+        else if ( selectedDataStore instanceof UsgsNwisDailyDataStore ) {
+            uiAction_SelectDataStore_UsgsNwisDaily ( (UsgsNwisDailyDataStore)selectedDataStore );
         }
     }
     catch ( Exception e ) {
@@ -11901,9 +11903,9 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.select ( __TIMESTEP_AUTO );
 		__timeStep_JComboBox.setEnabled ( false );
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore)) {
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore)) {
         // Set intervals for the data type and trigger a select to populate the input filters
-        UsgsNwisDataStore dataStore = (UsgsNwisDataStore)selectedDataStore;
+        UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
         __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
@@ -12285,7 +12287,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDataStore) ) {
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders(); 
         }
@@ -14269,7 +14271,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
     DataStore dataStore = ui_GetSelectedDataStore ();
     // The headers are a list of UsgsNwisTimeSeriesMetadata
     try {
-        UsgsNwisDataStore usgsNwisDataStore = (UsgsNwisDataStore)dataStore;
+        UsgsNwisDailyDataStore usgsNwisDailyDataStore = (UsgsNwisDailyDataStore)dataStore;
         queryResultsList_Clear ();
 
         String dataType = ui_GetSelectedDataType();
@@ -14286,7 +14288,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
         List<UsgsNwisSiteTimeSeriesMetadata> results = null;
         // Data type is shown with name so only use the first part of the choice
         try {
-            results = usgsNwisDataStore.readSiteTimeSeriesMetadataList(dataType, timeStep,
+            results = usgsNwisDailyDataStore.readSiteTimeSeriesMetadataList(dataType, timeStep,
                 (InputFilter_JPanel)__selectedInputFilter_JPanel);
         }
         catch ( Exception e ) {
@@ -14301,9 +14303,9 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
             // TODO Does not work??
             //__query_TableModel.setNewData ( results );
             // Try brute force...
-            __query_TableModel = new TSTool_UsgsNwis_TableModel ( usgsNwisDataStore, results );
-            TSTool_UsgsNwis_CellRenderer cr =
-                new TSTool_UsgsNwis_CellRenderer( (TSTool_UsgsNwis_TableModel)__query_TableModel);
+            __query_TableModel = new TSTool_UsgsNwisDaily_TableModel ( usgsNwisDailyDataStore, results );
+            TSTool_UsgsNwisDaily_CellRenderer cr =
+                new TSTool_UsgsNwisDaily_CellRenderer( (TSTool_UsgsNwisDaily_TableModel)__query_TableModel);
 
             __query_JWorksheet.setCellRenderer ( cr );
             __query_JWorksheet.setModel ( __query_TableModel );
@@ -16022,12 +16024,12 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected USGS NWIS data store.
+Refresh the query choices for the currently selected USGS NWIS daily data store.
 */
-private void uiAction_SelectDataStore_UsgsNwis ( UsgsNwisDataStore selectedDataStore )
+private void uiAction_SelectDataStore_UsgsNwisDaily ( UsgsNwisDailyDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
-    UsgsNwisDataStore dataStore = (UsgsNwisDataStore)selectedDataStore;
+    UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for data stores
     // Get the list of valid object/data types from the data store
     List<String> dataTypes = dataStore.getDataTypeStrings ( true );
@@ -16040,8 +16042,8 @@ throws Exception
     __dataType_JComboBox.select ( 0 );
     
     // Initialize the time series list with blank data list...
-    __query_TableModel = new TSTool_UsgsNwis_TableModel( dataStore, null);
-    TSTool_UsgsNwis_CellRenderer cr = new TSTool_UsgsNwis_CellRenderer((TSTool_UsgsNwis_TableModel)__query_TableModel);
+    __query_TableModel = new TSTool_UsgsNwisDaily_TableModel( dataStore, null);
+    TSTool_UsgsNwisDaily_CellRenderer cr = new TSTool_UsgsNwisDaily_CellRenderer((TSTool_UsgsNwisDaily_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );

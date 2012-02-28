@@ -2,8 +2,8 @@ package DWR.DMI.tstool;
 
 import java.util.List;
 
-import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisDataStore;
-import rti.tscommandprocessor.commands.usgsnwis.UsgsNwisSiteTimeSeriesMetadata;
+import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisDailyDataStore;
+import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisSiteTimeSeriesMetadata;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
@@ -13,13 +13,13 @@ By default the sheet will contain row and column numbers.
 The alias can be treated as a hidden column.
 This class may eventually be moved to the RTi.TS package.
 */
-public class TSTool_UsgsNwis_TableModel extends JWorksheet_AbstractRowTableModel
+public class TSTool_UsgsNwisDaily_TableModel extends JWorksheet_AbstractRowTableModel
 {
     
 /**
 Data store associated with the data.
 */
-private UsgsNwisDataStore __dataStore = null;
+private UsgsNwisDailyDataStore __dataStore = null;
 
 /**
 Number of columns in the table model.
@@ -49,7 +49,7 @@ Constructor.  This builds the model for displaying the given time series data.
 @param data the list of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_UsgsNwis_TableModel ( UsgsNwisDataStore dataStore, List data )
+public TSTool_UsgsNwisDaily_TableModel ( UsgsNwisDailyDataStore dataStore, List data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
