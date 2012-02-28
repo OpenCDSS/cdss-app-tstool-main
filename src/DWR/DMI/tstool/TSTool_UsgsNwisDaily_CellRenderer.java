@@ -3,17 +3,17 @@ package DWR.DMI.tstool;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 
 /**
-This class is used to render cells for TSTool_UsgsNwis_TableModel data.
+This class is used to render cells for TSTool_UsgsNwisDaily_TableModel data.
 */
-public class TSTool_UsgsNwis_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
+public class TSTool_UsgsNwisDaily_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
 
-TSTool_UsgsNwis_TableModel __tableModel = null;	// Table model to render
+TSTool_UsgsNwisDaily_TableModel __tableModel = null;	// Table model to render
 
 /**
 Constructor.
 @param tableModel The TSTool_UsgsNwis_TableModel to render.
 */
-public TSTool_UsgsNwis_CellRenderer ( TSTool_UsgsNwis_TableModel tableModel )
+public TSTool_UsgsNwisDaily_CellRenderer ( TSTool_UsgsNwisDaily_TableModel tableModel )
 {	__tableModel = tableModel;
 }
 
