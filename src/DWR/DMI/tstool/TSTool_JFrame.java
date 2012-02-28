@@ -1145,6 +1145,7 @@ JMenuItem
 	__Commands_Output_WriteStateCU_JMenuItem,
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
+	__Commands_Output_WriteWaterML_JMenuItem,
 
     __Commands_Output_ProcessTSProduct_JMenuItem;
 
@@ -1541,6 +1542,7 @@ private String
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()... <write time series to StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
+	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
     __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
 
     // Commands...Check Time Series...
@@ -5850,6 +5852,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem, enabled);
     
@@ -8506,6 +8509,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteSummary_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteSummary_String, this ) );
+	
+    if ( __source_WaterML_enabled ) {
+        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteWaterML_JMenuItem =
+            new SimpleJMenuItem(__Commands_Output_WriteWaterML_String, this ) );
+    }
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
@@ -10876,6 +10884,9 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteSummary_String)){
 		commandList_EditCommand ( __Commands_Output_WriteSummary_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Output_WriteWaterML_String)){
+        commandList_EditCommand ( __Commands_Output_WriteWaterML_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Output_ProcessTSProduct_String)){
 		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, CommandEditType.INSERT );
 	}
