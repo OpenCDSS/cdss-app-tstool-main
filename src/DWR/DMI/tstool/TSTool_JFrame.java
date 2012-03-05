@@ -6818,7 +6818,7 @@ private void ui_InitGUI ( )
         0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __dataStore_JComboBox = new SimpleJComboBox(false);
     __dataStore_JComboBox.setMaximumRowCount ( 20 );
-    String tooltip = "<html>Configured data stores - select one or select input type and name.</html>";
+    String tooltip = "<html>Configured data stores - select a data store OR select input type and name below.</html>";
     __dataStore_JLabel.setToolTipText(tooltip);
     __dataStore_JComboBox.setToolTipText ( tooltip );
     __dataStore_JComboBox.addItemListener( this );
@@ -6830,7 +6830,7 @@ private void ui_InitGUI ( )
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __input_type_JComboBox = new SimpleJComboBox(false);
     __input_type_JComboBox.setMaximumRowCount ( 20 );
-    tooltip = "<html>The input type is the file/database format being read - select one or select a data store.</html>";
+    tooltip = "<html>The input type is the file/database format being read - select an input type OR select a data store above.</html>";
     label.setToolTipText ( tooltip );
     __input_type_JComboBox.setToolTipText ( tooltip );
 	__input_type_JComboBox.addItemListener( this );
@@ -9729,7 +9729,7 @@ a black border.
 private void ui_SetInputPanelTitle ( String title, Color color )
 {
     if ( title == null ) {
-        title = "Input/Query Options (select \"Data store\" or \"Input type\")";
+        title = "Input/Query Options";
         color = Color.black;
     }
     __queryInput_JPanel.setBorder( BorderFactory.createTitledBorder (
