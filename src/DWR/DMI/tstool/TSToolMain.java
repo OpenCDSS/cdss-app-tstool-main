@@ -848,7 +848,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     String dataStoreType = dataStoreProps.getValue("Type");
     // For now hard-code this here
     // TODO SAM 2010-09-01 Make this more elegant
-    String packagePath = "";
+    String packagePath = ""; // Make sure to include trailing period
     if ( dataStoreType.equalsIgnoreCase("ColoradoBNDSSDataStore") ) {
         packagePath = "rti.tscommandprocessor.commands.bndss.";
     }
@@ -863,6 +863,9 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDailyDataStore") ) {
         packagePath = "rti.tscommandprocessor.commands.usgs.nwis.daily.";
+    }
+    else if ( dataStoreType.equalsIgnoreCase("WaterOneFlowDataStore") ) {
+        packagePath = "rti.tscommandprocessor.commands.wateroneflow.ws.";
     }
     else {
         throw new InvalidParameterException("Data store type \"" + dataStoreType +
