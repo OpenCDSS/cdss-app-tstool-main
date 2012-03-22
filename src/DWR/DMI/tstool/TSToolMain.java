@@ -456,6 +456,7 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.Message.MessageEventQueue;
 import RTi.Util.String.StringUtil;
+import RTi.Util.Time.StopWatch;
 
 /**
 Main (application startup) class for TSTool.  This class will start the TSTool GUI
@@ -465,7 +466,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.05.00beta (2012-02-05)";
+public static final String PROGRAM_VERSION = "10.06.00beta (2012-03-22)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -838,45 +839,85 @@ public static void main ( String args[] )
 
 /**
 Open a data store given its configuration properties.  The data store is also added to the processor.
+The TSTool configuration file properties are checked here to ensure that the data store type is enabled.
+Otherwise, opening data stores takes time and impacts performance.
 @param dataStoreProps data store configuration properties recognized by the data store factory "create" method.
 @param processor time series command processor that will use/manage the data store
 */
 protected static DataStore openDataStore ( PropList dataStoreProps, TSCommandProcessor processor )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
-{
+{   String routine = "TSToolMain.openDataStore";
     // Open the data store depending on the type
     String dataStoreType = dataStoreProps.getValue("Type");
     // For now hard-code this here
     // TODO SAM 2010-09-01 Make this more elegant
-    String packagePath = ""; // Make sure to include trailing period
-    if ( dataStoreType.equalsIgnoreCase("ColoradoBNDSSDataStore") ) {
-        packagePath = "rti.tscommandprocessor.commands.bndss.";
-    }
-    else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
-        packagePath = "rti.tscommandprocessor.commands.rccacis.";
+    String packagePath = ""; // Make sure to include trailing period below
+    // TODO SAM 2012-03-22 The following may be removed if BNDSS generic web services are sufficient
+    //if ( dataStoreType.equalsIgnoreCase("TSTool.ColoradoBNDSSDataStore") ) {
+    //    packagePath = "rti.tscommandprocessor.commands.bndss.";
+    //}
+    //else
+    String propValue = null;
+    if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
+        propValue = getPropValue("TSTool.RCCACISEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.rccacis.";
+        }
     }
     else if ( dataStoreType.equalsIgnoreCase("ReclamationHDBDataStore") ) {
-        packagePath = "rti.tscommandprocessor.commands.reclamationhdb.";
+        propValue = getPropValue("TSTool.ReclamationHDBEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.reclamationhdb.";
+        }
     }
     else if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
-        packagePath = "RTi.DMI.RiversideDB_DMI.";
+        propValue = getPropValue("TSTool.RiversideDBEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "RTi.DMI.RiversideDB_DMI.";
+        }
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDailyDataStore") ) {
-        packagePath = "rti.tscommandprocessor.commands.usgs.nwis.daily.";
+        propValue = getPropValue("TSTool.UsgsNwisDailyEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.usgs.nwis.daily.";
+        }
     }
     else if ( dataStoreType.equalsIgnoreCase("WaterOneFlowDataStore") ) {
-        packagePath = "rti.tscommandprocessor.commands.wateroneflow.ws.";
+        propValue = getPropValue("TSTool.WaterOneFlowEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.wateroneflow.ws.";
+        }
     }
     else {
         throw new InvalidParameterException("Data store type \"" + dataStoreType +
             "\" is not recognized - cannot initialize data store connection." );
     }
-    Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
-    DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
-    DataStore dataStore = factory.create(dataStoreProps);
-    // Add the data store to the processor
-    processor.setPropContents ( "DataStore", dataStore );
-    return dataStore;
+    if ( !packagePath.equals("") ) {
+        StopWatch sw = new StopWatch();
+        sw.start();
+        Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
+        DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
+        propValue = dataStoreProps.getValue("Enabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
+            // Data store is disabled.
+            Message.printStatus(2, routine, "Created data store \"" + dataStoreType + "\", name \"" +
+                dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
+            return null;
+        }
+        else {
+            // Data store is enabled
+            DataStore dataStore = factory.create(dataStoreProps);
+            // Add the data store to the processor
+            processor.setPropContents ( "DataStore", dataStore );
+            sw.stop();
+            Message.printStatus(2, routine, "Opening data store type \"" + dataStoreType + "\", name \"" +
+                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
+            return dataStore;
+        }
+    }
+    else {
+        return null;
+    }
 }
 
 /**

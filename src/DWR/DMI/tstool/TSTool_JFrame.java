@@ -10067,14 +10067,16 @@ throws Exception
 		// Don't save the directory because it is probably a one-off selection and won't be picked again.
 		String path = fc.getSelectedFile().getPath();
 		DataStore dataStore = uiAction_OpenRiversideDB ( path );
-        // Now update the input filters for the open data store list (only pass in the one item so that
-        // existing input filters are not impacted
-        List<DataStore> dataStoreList = new Vector();
-        dataStoreList.add ( dataStore );
-        ui_InitGUIInputFiltersRiversideDB ( dataStoreList, ui_GetInputFilterY() );
-        // Add the data store name to the choices and select the choice, which will cause other events
-        __dataStore_JComboBox.add(dataStore.getName());
-        __dataStore_JComboBox.select(dataStore.getName());
+		if ( dataStore != null ) {
+            // Now update the input filters for the open data store list (only pass in the one item so that
+            // existing input filters are not impacted
+            List<DataStore> dataStoreList = new Vector();
+            dataStoreList.add ( dataStore );
+            ui_InitGUIInputFiltersRiversideDB ( dataStoreList, ui_GetInputFilterY() );
+            // Add the data store name to the choices and select the choice, which will cause other events
+            __dataStore_JComboBox.add(dataStore.getName());
+            __dataStore_JComboBox.select(dataStore.getName());
+		}
 	}
 	else if ( o == __File_Save_Commands_JMenuItem ) {
 		try {
