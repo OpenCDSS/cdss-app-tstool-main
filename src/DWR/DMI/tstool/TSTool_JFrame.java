@@ -5254,13 +5254,14 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		if ( subType.length() > 0 ) {
 		    dataType = dataType + "-" + subType;
 		}
+		String sequenceNumber = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE);
 		numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 		(String)__query_TableModel.getValueAt( row,	model.COL_DATA_SOURCE),
 		dataType,
 		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
 		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
-		null,	// No sequence number
+		sequenceNumber,
 		(String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
 		"",
 		"", false, insertOffset );
@@ -6292,8 +6293,9 @@ private void ui_EnableInputTypesForConfiguration ()
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_HydroBase_enabled = true;
     }
-    else {
-        // No property defined.  Make sure to turn on for CDSS
+    else if ( propValue == null ) {
+        // No property defined.  Make sure to turn on for CDSS installation (false property above will
+        // have disabled).
         if ( license_GetLicenseManager().getLicenseType().equalsIgnoreCase("CDSS") ) {
             __source_HydroBase_enabled = true;
         }
@@ -13753,7 +13755,11 @@ private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
 
 			__query_JWorksheet.setCellRenderer ( cr );
 			__query_JWorksheet.setModel ( __query_TableModel );
-			__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+	        // Remove columns that are not appropriate...
+			if ( !((RiversideDB_DMI)riversideDBDataStore.getDMI()).getMeasTypeHasSequenceNum() ) {
+                __query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
+			}
+    		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 		}
         if ( (results == null) || (size == 0) ) {
 			Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
@@ -15931,12 +15937,12 @@ throws Exception
     // Get the list of timesteps that are valid for the data type
     // Need to trigger a select to populate the input filters
     __timeStep_JComboBox.removeAll ();
-    // FIXME SAM 2010-10-26 Need to handle INSTANT as irregular
     __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
     __timeStep_JComboBox.add ( __TIMESTEP_DAY );
     __timeStep_JComboBox.add ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
-    // FIXME SAM 2010-10-26 Could handle WY as YEAR, but need to think about it
+    __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR ); // Instantaneous handled as irregular
+    // FIXME SAM 2010-10-26 Could handle WY as YEAR, but need to think about it to be consistent with TSTool in general
     __timeStep_JComboBox.select ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.setEnabled ( true );
  

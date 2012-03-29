@@ -33,21 +33,22 @@ public final int COL_DATA_TYPE = 3;
 public final int COL_SUB_TYPE = 4;
 public final int COL_TIME_STEP = 5;
 public final int COL_SCENARIO = 6;
-public final int COL_UNITS = 7;
-public final int COL_START = 8;
-public final int COL_END = 9;
+public final int COL_SEQUENCE = 7; // Added as MeasType.Sequence_num around 2012-01
+public final int COL_UNITS = 8;
+public final int COL_START = 9;
+public final int COL_END = 10;
 // MeasLoc
-public final int COL_STATION_NAME = 10; // station name
+public final int COL_STATION_NAME = 11; // station name
 // Geoloc
-public final int COL_COUNTY = 11;
-public final int COL_STATE = 12;
-public final int COL_LATITUDE = 13;
-public final int COL_LONGITUDE = 14;
-public final int COL_X = 15;
-public final int COL_Y = 16;
-public final int COL_ELEVATION = 17;
+public final int COL_COUNTY = 12;
+public final int COL_STATE = 13;
+public final int COL_LATITUDE = 14;
+public final int COL_LONGITUDE = 15;
+public final int COL_X = 16;
+public final int COL_Y = 17;
+public final int COL_ELEVATION = 18;
 // TSID input type
-public final int COL_DATASTORE_NAME	= 18;
+public final int COL_DATASTORE_NAME	= 19;
 
 /**
 Constructor.  This builds the model for displaying the given RiversideDB time series data.
@@ -80,6 +81,7 @@ public Class getColumnClass (int columnIndex) {
 		case COL_SUB_TYPE: return String.class;
 		case COL_TIME_STEP: return String.class;
 		case COL_SCENARIO: return String.class;
+		case COL_SEQUENCE: return String.class;
 		case COL_UNITS: return String.class;
 		case COL_START: return String.class;
 		case COL_END: return String.class;
@@ -124,6 +126,7 @@ public String getColumnName(int columnIndex) {
 		case COL_SUB_TYPE: return "Subtype";
 		case COL_TIME_STEP: return "Time Step";
 		case COL_SCENARIO: return "Scenario";
+		case COL_SEQUENCE: return "Sequence Number";
 		case COL_UNITS: return "Units";
 		case COL_START: return "Start";
 		case COL_END: return "End";
@@ -224,6 +227,14 @@ public Object getValueAt(int row, int col) {
 			return timestep;
 		case COL_SCENARIO:
 			return mt.getScenario();
+	    case COL_SEQUENCE:
+	        int sequenceNumber = mt.getSequence_num();
+	        if ( DMIUtil.isMissing(sequenceNumber) ) {
+	            return "";
+	        }
+	        else {
+	            return "" + sequenceNumber;
+	        }
 		case COL_UNITS:
 		    return mt.getUnits_abbrev();
 		case COL_START:
@@ -338,6 +349,7 @@ public int[] getColumnWidths() {
 	widths[COL_SUB_TYPE] = 8;
 	widths[COL_TIME_STEP] = 8;
 	widths[COL_SCENARIO] = 8;
+	widths[COL_SEQUENCE] = 10;
 	widths[COL_UNITS] = 8;
 	widths[COL_START] = 10;
 	widths[COL_END] = 10;
