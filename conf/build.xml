@@ -55,7 +55,7 @@
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-state.csv"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system-RTi/TSTool.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
-        <copy todir="${install.dir}/system" file="resources/runtime/system/USGS-NWIS.cfg"/>
+        <copy todir="${install.dir}/system" file="resources/runtime/system/UsgsNwisDaily.cfg"/>
         <!-- System configuration file for CDSS.cfg included because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
     	<!-- Training slideshows under doc/Training -->

@@ -6197,6 +6197,10 @@ private void ui_DataStoreList_Populate ()
     dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
+        if ( dataStore.getName().equalsIgnoreCase("UsgsNwisDaily") ) {
+            // For now disable in the main browser
+            continue;
+        }
         dataStoreNameList.add ( dataStore.getName() );
     }
     __dataStore_JComboBox.setData(dataStoreNameList);
@@ -17670,24 +17674,23 @@ private void uiAction_ShowCommandStatus()
         hTMLViewer.setVisible(true);
       }
       catch(Throwable t){
-        Message.printWarning(1, "uiAction_ShowCommandStatus", "Problem showing Command status");
+        Message.printWarning(1, "uiAction_ShowCommandStatus", "Problem showing Command status (" + t + ").");
         String routine = "TSTool_JFrame.showCommandStatus";
-        Message.printWarning(2, routine, t);
+        Message.printWarning(3, routine, t);
       }
     }
   });
   }
 
 /**
- * Gets Commands status in html - this is currently only a helper for
- * the above method.  Rename if it will be used generically.
- * @return
- */
+Gets Commands status in html - this is currently only a helper for
+the above method.  Rename if it will be used generically.
+@return command status in HTML format
+*/
 private String uiAction_ShowCommandStatus_GetCommandsStatus()
 {
-    List commands = commandList_GetCommandsBasedOnUI();
-    String html = CommandStatusUtil.getHTMLStatusReport(commands);	
-    return html;
+    List<Command> commands = commandList_GetCommandsBasedOnUI();
+    return CommandStatusUtil.getHTMLStatusReport(commands);
 }
 
 /**
