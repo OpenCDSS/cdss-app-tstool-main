@@ -39,11 +39,13 @@
     	<!-- Log file folder -->
     	<mkdir dir="${install.dir}/logs"/>
     	<!-- Python scripts that utilize TSTool -->
-    	<mkdir dir="${install.dir}/python/snotel"/>
-    	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/download-snotel.bat"/>
-    	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/download-snotel.py"/>
-    	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/download-snotel.doc"/>
-    	<copy todir="${install.dir}/python/snotel" file="resources/runtime/python/snotel/TSlite.py"/>
+    	<mkdir dir="${install.dir}/python/nrcs-snotel"/>
+    	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/download-snotel.bat"/>
+    	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/download-snotel.py"/>
+    	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/download-snotel.doc"/>
+    	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/TSlite.py"/>
+    	<mkdir dir="${install.dir}/python/nrcs-snowcourse"/>
+    	<copy todir="${install.dir}/python/nrcs-snowcourse" file="resources/runtime/python/nrcs-snowcourse/snowcourse2csv.py"/>
     	<mkdir dir="${install.dir}/python/table"/>
     	<copy todir="${install.dir}/python/table">
     		<fileset dir="resources/runtime/python/table">
