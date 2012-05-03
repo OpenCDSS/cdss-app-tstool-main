@@ -100,6 +100,7 @@ import us.co.state.dwr.hbguest.ColoradoWaterHBGuestService;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel;
 import us.co.state.dwr.sms.ColoradoWaterSMS;
 import us.co.state.dwr.sms.ColoradoWaterSMSAPI;
+import us.co.state.dwr.sms.datastore.ColoradoWaterSMSDataStore;
 
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -1740,7 +1741,6 @@ private String
 
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_ColoradoWaterHBGuest = "ColoradoWaterHBGuest",
-	__INPUT_TYPE_ColoradoWaterSMS = "ColoradoWaterSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
 	__INPUT_TYPE_HECDSS = "HEC-DSS",
@@ -4975,7 +4975,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
             false, insertOffset );
     }
-    else if ( selectedInputType.equals(__INPUT_TYPE_ColoradoWaterSMS) ) {
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input_name is needed to indicate the database.
+        ColoradoWaterSMSDataStore smsDataStore = (ColoradoWaterSMSDataStore)selectedDataStore;
         TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
@@ -6228,7 +6231,7 @@ private void ui_EnableInputTypesForConfiguration ()
         __source_ColoradoBNDSS_enabled = true;
     }
     
-    // ColoradoSMS not enabled by default (used in CDSS, requires direct SQL Server access)...
+    // ColoradoSMS disabled by default (used in CDSS, requires direct SQL Server access)...
 
     __source_ColoradoSMS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
@@ -6383,7 +6386,7 @@ private void ui_EnableInputTypesForConfiguration ()
         }
     }
     
-    // RCC ACIS disabled by default (under development)...
+    // RCC ACIS disabled by default but distributed configuration file has enabled by default...
 
     __source_RCCACIS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
@@ -6609,16 +6612,9 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
 {
     // This is a bit brute force because the name is embedded in the data store but is not
     // a data member of the input panel
+    // Alphabetize by "instanceof" argument
     for ( JPanel panel : __inputFilterJPanelList ) {
-        if ( panel instanceof RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel ) {
-            // This type of filter uses a DataStore
-            DataStore dataStore = ((RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel)panel).getDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
-                // Have a match in the data store name so return the panel
-                return panel;
-            }
-        }
-        else if ( panel instanceof BNDSS_DataMetaData_InputFilter_JPanel ) {
+        if ( panel instanceof BNDSS_DataMetaData_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((BNDSS_DataMetaData_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
@@ -6626,6 +6622,9 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
                 return panel;
             }
         }
+        // TODO SAM 2012-05-03 - May add input filter later
+        // No input filter panel is used for ColoradoWaterSMS - only the data type is populated
+        //
         else if ( panel instanceof RccAcis_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((RccAcis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
@@ -6637,6 +6636,14 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName )
         else if ( panel instanceof ReclamationHDB_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((ReclamationHDB_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
+        else if ( panel instanceof RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
                 // Have a match in the data store name so return the panel
                 return panel;
@@ -6824,7 +6831,7 @@ private void ui_InitGUI ( )
         0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __dataStore_JComboBox = new SimpleJComboBox(false);
     __dataStore_JComboBox.setMaximumRowCount ( 20 );
-    String tooltip = "<html>Configured data stores - select a data store OR select input type and name below.</html>";
+    String tooltip = "<html>Configured database and web service data stores - select a data store OR select input type and name below.</html>";
     __dataStore_JLabel.setToolTipText(tooltip);
     __dataStore_JComboBox.setToolTipText ( tooltip );
     __dataStore_JComboBox.addItemListener( this );
@@ -9760,9 +9767,6 @@ private void ui_SetInputTypeChoices ()
     if ( __source_ColoradoWaterHBGuest_enabled ) {
         __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterHBGuest );
     }
-    if ( __source_ColoradoWaterSMS_enabled ) {
-        __input_type_JComboBox.add( __INPUT_TYPE_ColoradoWaterSMS );
-    }
 	if ( __source_DateValue_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_DateValue );
 	}
@@ -11558,17 +11562,20 @@ private void uiAction_DataStoreChoiceClicked()
     uiAction_InputTypeChoiceClicked(selectedDataStore);
     // Now fully initialize the input/query information based on the data store
     try {
-        if ( selectedDataStore instanceof RiversideDBDataStore ) {
-            uiAction_SelectDataStore_RiversideDB ( (RiversideDBDataStore)selectedDataStore );
-        }
-        else if ( selectedDataStore instanceof ColoradoBNDSSDataStore ) {
+        if ( selectedDataStore instanceof ColoradoBNDSSDataStore ) {
             uiAction_SelectDataStore_ColoradoBNDSS ( (ColoradoBNDSSDataStore)selectedDataStore );
+        }
+        else if ( selectedDataStore instanceof ColoradoWaterSMSDataStore ) {
+            uiAction_SelectDataStore_ColoradoWaterSMS ( (ColoradoWaterSMSDataStore)selectedDataStore );
         }
         else if ( selectedDataStore instanceof RccAcisDataStore ) {
             uiAction_SelectDataStore_RccAcis ( (RccAcisDataStore)selectedDataStore );
         }
         else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
             uiAction_SelectDataStore_ReclamationHDB ( (ReclamationHDBDataStore)selectedDataStore );
+        }
+        else if ( selectedDataStore instanceof RiversideDBDataStore ) {
+            uiAction_SelectDataStore_RiversideDB ( (RiversideDBDataStore)selectedDataStore );
         }
         else if ( selectedDataStore instanceof UsgsNwisDailyDataStore ) {
             uiAction_SelectDataStore_UsgsNwisDaily ( (UsgsNwisDailyDataStore)selectedDataStore );
@@ -12149,7 +12156,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_ColoradoWaterSMS) ) {
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
         }
@@ -12628,6 +12635,8 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
 
     // The headers are a list of HydroBase_
     try {
+        DataStore dataStore = ui_GetSelectedDataStore ();
+        ColoradoWaterSMSDataStore cwds = (ColoradoWaterSMSDataStore)dataStore;
         String selectedInputType = ui_GetSelectedInputType();
         queryResultsList_Clear ();
 
@@ -12639,7 +12648,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
 
         List<HydroBase_StationGeolocMeasType> tslist = null;
         try {
-            ColoradoWaterSMS service = new ColoradoWaterSMS();
+            ColoradoWaterSMS service = cwds.getColoradoWaterSMS();
             // FIXME SAM 2009-11-20 Need to enable input filters for wd, div, abbrev
             int wd = 0; // <= 0 means get all
             int div = 0; // <= 0 meand get all
@@ -12672,7 +12681,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
             */
             // Stations and structures...
             __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-                __props.getValue( "HydroBase.WDIDLength")), tslist, selectedInputType );
+                __props.getValue( "HydroBase.WDIDLength")), tslist, dataStore.getName() );
             TSTool_HydroBase_CellRenderer cr =
                 new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
             __query_JWorksheet.setCellRenderer ( cr );
@@ -14647,9 +14656,6 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 	    if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterHBGuest ) ) {
             uiAction_SelectInputType_ColoradoWaterHBGuest ();
         }
-        else if ( selectedInputType.equals ( __INPUT_TYPE_ColoradoWaterSMS ) ) {
-            uiAction_SelectInputType_ColoradoWaterSMS ();
-        }
     	else if ( selectedInputType.equals ( __INPUT_TYPE_DateValue ) ) {
     	    uiAction_SelectInputType_DateValue ();
     	}
@@ -15896,6 +15902,50 @@ throws Exception
 }
 
 /**
+Refresh the query choices for the currently selected ColoradoWaterSMS data store.
+*/
+private void uiAction_SelectDataStore_ColoradoWaterSMS ( ColoradoWaterSMSDataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
+    ui_SetInputNameVisible(false); // Not needed for data stores
+    __inputName_JComboBox.removeAll ();
+    __inputName_JComboBox.setEnabled ( false );
+    String selectedInputType = ui_GetSelectedInputType();
+    // Get the distinct list of data types (SMS variables) for all stations...
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    ColoradoWaterSMS service = selectedDataStore.getColoradoWaterSMS();
+    List<String> dataTypes = ColoradoWaterSMSAPI.readDistinctStationVariableList ( service, true );
+    __dataType_JComboBox.removeAll();
+    for ( String dataType : dataTypes  ) {
+        __dataType_JComboBox.add ( dataType );
+    }
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+    
+    // Timestep is irregular (for real-time), and hour and day aggregations
+    __timeStep_JComboBox.setEnabled ( true );
+    __timeStep_JComboBox.removeAll ();
+    __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR );
+    __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
+    __timeStep_JComboBox.select ( 0 );
+
+    // Initialize with blank data vector...
+
+    //__query_TableModel = new TSTool_TS_TableModel(null);
+    //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    __query_TableModel = new TSTool_HydroBase_TableModel(
+        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
+    TSTool_HydroBase_CellRenderer cr =
+        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    // Remove columns that are not appropriate...
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
 Refresh the query choices for the currently selected RCC ACIS store.
 */
 private void uiAction_SelectDataStore_RccAcis ( RccAcisDataStore selectedDataStore )
@@ -16300,7 +16350,7 @@ throws Exception
 }
 
 /**
-Refresh the query choices for a ColoradoWaterSMS web service.
+Refresh the query choices for a ColoradoWaterHBGuest web service.
 */
 private void uiAction_SelectInputType_ColoradoWaterHBGuest ()
 throws Exception
@@ -16329,51 +16379,6 @@ throws Exception
     __dataType_JComboBox.select( null );
     __dataType_JComboBox.select ( "Diversion - DivTotal" );
     
-    //__query_TableModel = new TSTool_TS_TableModel(null);
-    //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
-    __query_TableModel = new TSTool_HydroBase_TableModel(
-        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
-    TSTool_HydroBase_CellRenderer cr =
-        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-}
-
-/**
-Refresh the query choices for a ColoradoWaterSMS web service.
-*/
-private void uiAction_SelectInputType_ColoradoWaterSMS ()
-throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
-    // Input name is not currently used...
-    ui_SetInputNameVisible(false); // Not needed
-    __inputName_JComboBox.removeAll ();
-    __inputName_JComboBox.setEnabled ( false );
-    String selectedInputType = ui_GetSelectedInputType();
-    // Get the distinct list of data types (SMS variables) for all stations...
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
-    ColoradoWaterSMS service = new ColoradoWaterSMS();
-    List<String> dataTypes = ColoradoWaterSMSAPI.readDistinctStationVariableList ( service, true );
-    __dataType_JComboBox.removeAll();
-    for ( String dataType : dataTypes  ) {
-        __dataType_JComboBox.add ( dataType );
-    }
-    __dataType_JComboBox.select ( null );
-    __dataType_JComboBox.select ( 0 );
-    
-    // Timestep is irregular (for real-time), and hour and day aggregations
-    __timeStep_JComboBox.setEnabled ( true );
-    __timeStep_JComboBox.removeAll ();
-    __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR );
-    __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
-    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
-    __timeStep_JComboBox.select ( 0 );
-
-    // Initialize with blank data vector...
-
     //__query_TableModel = new TSTool_TS_TableModel(null);
     //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
     __query_TableModel = new TSTool_HydroBase_TableModel(

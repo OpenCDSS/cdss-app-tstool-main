@@ -858,7 +858,13 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     //}
     //else
     String propValue = null;
-    if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
+    if ( dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore") ) {
+        propValue = getPropValue("TSTool.ColoradoWaterSMSEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "us.co.state.dwr.sms.datastore.";
+        }
+    }
+    else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.rccacis.";
