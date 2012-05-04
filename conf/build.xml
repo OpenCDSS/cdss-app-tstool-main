@@ -52,6 +52,8 @@
     		</copy>
     	<!-- System (configuration) files -->
     	<copy todir="${install.dir}/system" file="resources/runtime/system/ClimateDivisions.csv"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoWaterHBGuest.cfg"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoWaterSMS.cfg"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-county.csv"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-state.csv"/>
