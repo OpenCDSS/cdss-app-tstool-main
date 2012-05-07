@@ -160,7 +160,7 @@ public String getColumnName(int columnIndex) {
 		case COL_COUNTY:		return "County";
 		case COL_STATE:			return "State";
 		case COL_HUC:			return "HUC";
-		case COL_INPUT_TYPE:		return "Input Type";
+		case COL_INPUT_TYPE:		return "Data Store/Input Type";
 		default:			return "";
 	}
 }
@@ -429,7 +429,7 @@ public int[] getColumnWidths() {
 	widths[COL_COUNTY] = 8;
 	widths[COL_STATE] = 3;
 	widths[COL_HUC] = 8;
-	widths[COL_INPUT_TYPE] = 12;
+	widths[COL_INPUT_TYPE] = 15;
 	return widths;
 }
 
