@@ -4967,19 +4967,36 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         "", false, insertOffset );
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
-        TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
-        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-            (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-            "", // No scenario
-            null, // No sequence number
-            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-            "", // No input name
-            (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-            (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-            false, insertOffset );
+        if ( __query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel ) {
+            TSTool_HydroBase_WellLevel_Day_TableModel model = (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+                "", // No scenario
+                null, // No sequence number
+                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+                "", // No input name
+                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+                false, insertOffset );
+        }
+        else if ( __query_TableModel instanceof TSTool_HydroBase_TableModel ) {
+            TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+                "", // No scenario
+                null, // No sequence number
+                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+                "", // No input name
+                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+                false, insertOffset );
+        }
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
         // The location (id), type, and time step uniquely
@@ -6640,7 +6657,7 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName, St
             }
         }
         else if ( (panel instanceof ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel) &&
-            dataType.equalsIgnoreCase("WellLevel") ) {
+            (dataType.equalsIgnoreCase("WellLevelElev") || dataType.equalsIgnoreCase("WellLevelDepth")) ) {
             // This type of filter uses a DataStore
             ColoradoWaterHBGuestDataStore dataStore =
                 ((ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
@@ -12447,7 +12464,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders()
 }
 
 /**
-Read ColoradoWaterSWS time series via web service and list in the GUI.
+Read ColoradoWaterHBGuest time series via web service and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
 {   String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders";
@@ -12472,8 +12489,8 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
         }
         queryResultsList_Clear ();
 
-        String selectedDataType = __dataType_JComboBox.getSelected().trim();
-        String selectedTimeStep = __timeStep_JComboBox.getSelected().trim();
+        String selectedDataType = ui_GetSelectedDataType();
+        String selectedTimeStep = ui_GetSelectedTimeStep();
 
         Message.printStatus ( 2, "", "Datatype = \"" + selectedDataType + "\" timestep = \"" + selectedTimeStep + "\"" );
 
@@ -12552,10 +12569,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
                 __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
             }
             else */
-            if (selectedDataType.equalsIgnoreCase( "WellLevel")) {
+            if ( selectedDataType.equalsIgnoreCase( "WellLevelElev") ||
+                selectedDataType.equalsIgnoreCase( "WellLevelDepth")) {
                 if (selectedTimeStep.equalsIgnoreCase("Day")) {
                     __query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
-                        __query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist );
+                        __query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist,
+                        dataStore.getName());
                     TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
                         new TSTool_HydroBase_WellLevel_Day_CellRenderer(
                         (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel);
@@ -13071,7 +13090,8 @@ throws Exception
 			else if (selectedDataType.equalsIgnoreCase(	"WellLevel")) {
     			if (selectedTimeStep.equalsIgnoreCase("Day")) {
     				__query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
-    					__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist );
+    				__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist,
+    				"HydroBase" );
     				TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
     				new TSTool_HydroBase_WellLevel_Day_CellRenderer(
     				(TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel);
@@ -15913,8 +15933,7 @@ throws Exception
     __dataType_JComboBox.select( null );
     __dataType_JComboBox.select ( "Diversion - DivTotal" );
     
-    //__query_TableModel = new TSTool_TS_TableModel(null);
-    //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
+    // Initialize with blank data - will be reset when a query occurs
     __query_TableModel = new TSTool_HydroBase_TableModel(
         __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
     TSTool_HydroBase_CellRenderer cr =

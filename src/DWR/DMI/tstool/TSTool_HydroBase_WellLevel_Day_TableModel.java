@@ -44,15 +44,19 @@ public final int COL_INPUT_TYPE = 17;
 
 private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
+String __inputType = "";
+
 /**
 Constructor.  This builds the model for displaying the given HydroBase time series data.
 @param worksheet the JWorksheet that displays the data from the table model.
 @param wdid_length Total length to use when formatting WDIDs.
-@param data the Vector of HydroBase_GroundWaterWellsView objects to display in 
+@param data the list of HydroBase_GroundWaterWellsView objects to display in 
 the table (null is allowed - see setData()).
+@param inputType the input type for the TSID, "HydroBase" or a data store name
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_WellLevel_Day_TableModel (JWorksheet worksheet, int wdid_length, List data )
+public TSTool_HydroBase_WellLevel_Day_TableModel (JWorksheet worksheet, int wdid_length, List data,
+    String inputType )
 throws Exception
 {	__wdid_length = wdid_length;
 	if ( data == null ) {
@@ -62,6 +66,7 @@ throws Exception
 	    _rows = data.size();
 	}
 	_data = data;
+	__inputType = inputType;
 }
 
 /**
@@ -108,6 +113,35 @@ public String getColumnName(int columnIndex) {
 		case COL_INPUT_TYPE: return "Input Type";
 		default: return "";
 	}
+}
+
+/**
+Returns column tooltips.
+@return column tooltips
+@param columnIndex column index (0+, using COL_*)
+*/
+public String [] getColumnToolTips ()
+{
+    String [] toolTips = new String[__COLUMNS];
+    toolTips[COL_ID] = "Unique well identifier, typically the data source's primary identifier";
+    toolTips[COL_NAME] = "Well name";
+    toolTips[COL_DATA_SOURCE] = "Current source of the data, organization abbreviation";
+    toolTips[COL_DATA_TYPE] = "Data type used by software, typically consistent with HydroBase";
+    toolTips[COL_TIME_STEP] = "Time step consistent with software";
+    toolTips[COL_UNITS] = "Data units";
+    toolTips[COL_START] = "Start of time series data (time series data records may be more precise)";
+    toolTips[COL_END] = "End of time series data (time series data records may be more precise)";
+    toolTips[COL_MEAS_COUNT] = "Number of observations";
+    toolTips[COL_DIV] = "Water division";
+    toolTips[COL_DIST] = "Water district";
+    toolTips[COL_COUNTY] = "County";
+    toolTips[COL_STATE] = "State";
+    toolTips[COL_HUC] = "Hydrlogic unit code (HUC)";
+    toolTips[COL_BASIN] = "Groundwater basin";
+    toolTips[COL_DSS_AQUIFER1] = "Decision support system (DSS) Aquifer 1";
+    toolTips[COL_DSS_AQUIFER2] = "Decision support system (DSS) Aquifer 2";
+    toolTips[COL_INPUT_TYPE] = "Data store name";
+    return toolTips;
 }
 
 /**
@@ -159,8 +193,8 @@ public Object getValueAt(int row, int col)
 		    return wv.getWell_name();
 		case COL_DATA_SOURCE:
 		    return wv.getData_source();
-		case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
-			return "WellLevel";
+		case COL_DATA_TYPE:
+			return wv.getMeas_type(); // May be WellLevel, WellLevelElev, WellLevelDepth, etc.
 		case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
 			return wv.getTime_step();
 		case COL_UNITS: // The units are not in HydroBase.meas_type but are set by TSTool...
@@ -222,7 +256,7 @@ public Object getValueAt(int row, int col)
 		case COL_DSS_AQUIFER2:
 		    return wv.getDSS_aquifer2();
 		case COL_INPUT_TYPE:
-		    return "HydroBase";
+		    return __inputType;
 		default:
 		    return "";
 	}
