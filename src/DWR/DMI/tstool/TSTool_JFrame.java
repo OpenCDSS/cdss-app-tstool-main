@@ -97,6 +97,7 @@ import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuestService;
+import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel;
 import us.co.state.dwr.hbguest.datastore.ColoradoWaterHBGuestDataStore;
@@ -377,6 +378,11 @@ The currently selected input filter JPanel, used to check input and get the filt
 Not an InputFilter_JPanel because of the generic case where a simple JPanel may need to be inserted.
 */
 private JPanel __selectedInputFilter_JPanel = null;
+
+/**
+InputFilter_JPanel for ColoradoWaterHBGuest station time series.
+*/
+private InputFilter_JPanel __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel = null;
 
 /**
 InputFilter_JPanel for ColoradoWaterHBGuest structure time series.
@@ -6645,6 +6651,15 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName, St
                 return panel;
             }
         }
+        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
+            // This type of filter uses a DataStore
+            ColoradoWaterHBGuestDataStore dataStore =
+                ((ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
         else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel) &&
             (dataType.equalsIgnoreCase("DivTotal") || dataType.equalsIgnoreCase("IDivTotal") ||
             dataType.equalsIgnoreCase("RelTotal") || dataType.equalsIgnoreCase("IRelTotal")) ) {
@@ -7583,25 +7598,25 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataSt
         
         // If the an instance of a panel is not null, remove it from the list and then recreate it.
     
-        // Add input filters for stations...
+        // Add input filters for stations, for historical data (since ColoradoWaterSMS provides access
+        // to real-time data)...
         
-        /*
         try {
-            if ( __inputFilterHydroBaseStation_JPanel != null ) {
-                __inputFilterJPanelList.remove (__inputFilterHydroBaseStation_JPanel );
+            if ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel != null ) {
+                __inputFilterJPanelList.remove ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel );
             }
-            __inputFilterHydroBaseStation_JPanel = new
-            HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel( __hbdmi);
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseStation_JPanel,
+            __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel = new
+                ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel( cwds );
+            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            __inputFilterJPanelList.add (__inputFilterHydroBaseStation_JPanel );
+            __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel.setName ( "ColoradoWaterHBGuest.StationInputFilterPanel");
+            __inputFilterJPanelList.add ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel );
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for HydroBase stations." );
             Message.printWarning ( 2, routine, e );
         }
-        */
         
         // Add input filters for structures - there is one panel for
         // "total" time series and one for water class time series that can be filtered by SFUT...
@@ -15923,7 +15938,7 @@ throws Exception
         //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
         //HydroBase_Util.DATA_TYPE_HARDWARE |
         // Comment out stations until performance is figured out
-        //HydroBase_Util.DATA_TYPE_STATION_ALL |
+        HydroBase_Util.DATA_TYPE_STATION_ALL |
         HydroBase_Util.DATA_TYPE_STRUCTURE_ALL, // |
         //HydroBase_Util.DATA_TYPE_WIS,
         true ); // Add notes
