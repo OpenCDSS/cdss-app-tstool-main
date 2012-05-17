@@ -11,6 +11,7 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
+import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for HydroBase station and structure
@@ -23,7 +24,7 @@ extends JWorksheet_AbstractRowTableModel
 /**
 Number of columns in the table model, including the row number.
 */
-private final int __COLUMNS = 16;
+private final int __COLUMNS = 20;
 
 public final int COL_ID = 0;
 public final int COL_ABBREV = 1;
@@ -40,7 +41,11 @@ public final int COL_DIST = 11;
 public final int COL_COUNTY = 12;
 public final int COL_STATE = 13;
 public final int COL_HUC = 14;
-public final int COL_INPUT_TYPE = 15;
+public final int COL_LONG = 15;
+public final int COL_LAT = 16;
+public final int COL_UTM_X = 17;
+public final int COL_UTM_Y = 18;
+public final int COL_INPUT_TYPE = 19;
 
 private final int __RECORD_TYPE_UNKNOWN = 0;	// Used with __record_type
 private final int __RECORD_TYPE_STATIONS = 1;
@@ -127,7 +132,7 @@ public Class getColumnClass (int columnIndex) {
 		//case COL_END:			return Integer.class;
 		//case COL_DIV:			return Integer.class;
 		//case COL_DIST:		return Integer.class;
-		default:			return String.class;
+		default: return String.class;
 	}
 }
 
@@ -145,24 +150,102 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:			return "ID";
-		case COL_ABBREV:		return "CO Abbrev.";
-		case COL_NAME:			return "Name/Description";
-		case COL_DATA_SOURCE:		return "Data Source";
-		case COL_DATA_TYPE:		return "Data Type";
-		case COL_TIME_STEP:		return "Time Step";
-		case COL_UNITS:			return "Units";
-		case COL_START:			return "Start";
-		case COL_END:			return "End";
-		case COL_MEAS_COUNT:		return "Meas. Count";
-		case COL_DIV:			return "Div.";
-		case COL_DIST:			return "Dist.";
-		case COL_COUNTY:		return "County";
-		case COL_STATE:			return "State";
-		case COL_HUC:			return "HUC";
-		case COL_INPUT_TYPE:		return "Data Store/Input Type";
-		default:			return "";
+		case COL_ID: return "ID";
+		case COL_ABBREV: return "CO Abbrev.";
+		case COL_NAME: return "Name/Description";
+		case COL_DATA_SOURCE: return "Data Source";
+		case COL_DATA_TYPE: return "Data Type";
+		case COL_TIME_STEP: return "Time Step";
+		case COL_UNITS: return "Units";
+		case COL_START: return "Start";
+		case COL_END: return "End";
+		case COL_MEAS_COUNT: return "Meas. Count";
+		case COL_DIV: return "Div.";
+		case COL_DIST: return "Dist.";
+		case COL_COUNTY: return "County";
+		case COL_STATE: return "State";
+		case COL_HUC: return "HUC";
+        case COL_LONG: return "Longtitude";
+        case COL_LAT: return "Latitude";
+		case COL_UTM_X: return "UTM X";
+		case COL_UTM_Y: return "UTM Y";
+		case COL_INPUT_TYPE: return "Data Store/Input Type";
+		default: return "";
 	}
+}
+
+/**
+Returns an array containing the column widths (in number of characters).
+@return an integer array containing the widths for each field.
+*/
+public String[] getColumnToolTips() {
+    String[] tips = new String[__COLUMNS];
+    String locType = "";
+    if ( __record_type == __RECORD_TYPE_STATIONS ) {
+        locType = "Station";
+    }
+    else if ( __record_type == __RECORD_TYPE_STRUCTURES ) {
+        locType = "Structure";
+    }
+    else if ( __record_type == __RECORD_TYPE_WELL ) {
+        locType = "Well";
+    }
+    if ( locType.equals("") ) {
+        tips[COL_ID] = "";
+    }
+    else {
+        tips[COL_ID] = locType + " identifier from primary data provider";
+    }
+    tips[COL_ABBREV] =
+        "Station abbreviation used with Satellite Monitoring System (River3+Place3+State2, like \"PLAKERCO\").";
+    tips[COL_NAME] = locType + " name";
+    tips[COL_DATA_SOURCE] = "Organization/agency abbreviation";
+    tips[COL_DATA_TYPE] = "Data type";
+    tips[COL_TIME_STEP] = "Time step";
+    tips[COL_UNITS] = "Data units";
+    tips[COL_START] = "Starting date/time of available data";
+    tips[COL_END] = "Ending date/time of available data";
+    tips[COL_MEAS_COUNT] = "Count of available measurements";
+    tips[COL_DIV] = "Water division";
+    tips[COL_DIST] = "Water district";
+    tips[COL_COUNTY] = "County name";
+    tips[COL_STATE] = "State abbreviation";
+    tips[COL_HUC] = "Hydrologic Unit Code";
+    tips[COL_LONG] = "Longitude decimal degrees";
+    tips[COL_LAT] = "Latitude decimal degrees";
+    tips[COL_UTM_X] = "UTM X, meters";
+    tips[COL_UTM_Y] = "UTM Y, meters";
+    tips[COL_INPUT_TYPE] = "Input type";
+    return tips;
+}
+
+/**
+Returns an array containing the column widths (in number of characters).
+@return an integer array containing the widths for each field.
+*/
+public int[] getColumnWidths() {
+    int[] widths = new int[__COLUMNS];
+    widths[COL_ID] = 12;
+    widths[COL_ABBREV] = 7;
+    widths[COL_NAME] = 20;
+    widths[COL_DATA_SOURCE] = 10;
+    widths[COL_DATA_TYPE] = 15;
+    widths[COL_TIME_STEP] = 8;
+    widths[COL_UNITS] = 8;
+    widths[COL_START] = 10;
+    widths[COL_END] = 10;
+    widths[COL_MEAS_COUNT] = 8;
+    widths[COL_DIV] = 5;
+    widths[COL_DIST] = 5;
+    widths[COL_COUNTY] = 8;
+    widths[COL_STATE] = 3;
+    widths[COL_HUC] = 8;
+    widths[COL_LONG] = 8;
+    widths[COL_LAT] = 8;
+    widths[COL_UTM_X] = 8;
+    widths[COL_UTM_Y] = 8;
+    widths[COL_INPUT_TYPE] = 15;
+    return widths;
 }
 
 /**
@@ -172,7 +255,7 @@ Returns the format to display the specified column.
 */
 public String getFormat ( int column ) {
 	switch (column) {
-		default:  return "%s"; // All are strings.
+		default: return "%s"; // All are strings.
 	}
 }
 
@@ -195,73 +278,114 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	int i;	// Use for integer data.
+	int i; // Use for integer data.
+	double d; // Use for double data
 
 	if ( __record_type == __RECORD_TYPE_STATIONS ) {
 		HydroBase_StationGeolocMeasType mt = (HydroBase_StationGeolocMeasType)_data.get(row);
 		switch (col) {
 			// case 0 handled above.
-			case COL_ID:		return mt.getStation_id();
-			case COL_ABBREV:	return mt.getAbbrev();
-			case COL_NAME: 		return mt.getStation_name();
-			case COL_DATA_SOURCE:	// Station also has source but want the meas_type source.
-						return mt.getData_source();
-			case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
-						return mt.getMeas_type();
-			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
-						return mt.getTime_step();
-			case COL_UNITS: // The units are not in HydroBase.meas_type but are set by TSTool...
-						//return mt.getData_units();
+			case COL_ID: return mt.getStation_id();
+			case COL_ABBREV: return mt.getAbbrev();
+			case COL_NAME: return mt.getStation_name();
+			case COL_DATA_SOURCE:
+			    // Station also has source but want the meas_type source.
+				return mt.getData_source();
+			case COL_DATA_TYPE:
+			    // TSTool translates to values from the TSTool interface...
+				return mt.getMeas_type();
+			case COL_TIME_STEP:
+			    // TSTool translates HydroBase values to nicer values...
+				return mt.getTime_step();
+			case COL_UNITS:
+			    // The units are not in HydroBase.meas_type but are set by TSTool...
+				//return mt.getData_units();
 			    String units = HydroBase_Util.getTimeSeriesDataUnits(null, mt.getMeas_type(), mt.getTime_step());
 			    if ( units == null ) {
 			        units = "";
 			    }
 			    return units;
-			case COL_START:		//return new Integer(mt.getStart_year() );
-						i = mt.getStart_year();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_END: //return new Integer (mt.getEnd_year() );
-						i = mt.getEnd_year();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
+			case COL_START:
+			    //return new Integer(mt.getStart_year() );
+				i = mt.getStart_year();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_END:
+			    //return new Integer (mt.getEnd_year() );
+				i = mt.getEnd_year();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
 			case COL_MEAS_COUNT:
-			            i = mt.getMeas_count();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_DIV: //return new Integer ( mt.getDiv() );
-						i = mt.getDiv();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_DIST: //return new Integer ( mt.getWD() );
-						i = mt.getWD();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_COUNTY:	return mt.getCounty();
-			case COL_STATE:		return mt.getST();
-			case COL_HUC:		return mt.getHUC();
-			case COL_INPUT_TYPE:	return __inputType;
-			default:		return "";
+	            i = mt.getMeas_count();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_DIV:
+			    //return new Integer ( mt.getDiv() );
+				i = mt.getDiv();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_DIST:
+			    //return new Integer ( mt.getWD() );
+				i = mt.getWD();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_COUNTY: return mt.getCounty();
+			case COL_STATE: return mt.getST();
+			case COL_HUC: return mt.getHUC();
+            case COL_LONG:
+                d = mt.getLongdecdeg();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.6f");
+                }
+            case COL_LAT:
+                d = mt.getLatdecdeg();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.6f");
+                }
+	        case COL_UTM_X:
+                d = mt.getUtm_x();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.3f");
+                }
+            case COL_UTM_Y:
+                d = mt.getUtm_y();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.3f");
+                }
+			case COL_INPUT_TYPE: return __inputType;
+			default: return "";
 		}
 	}
 	else if ( __record_type == __RECORD_TYPE_STRUCTURES ) {
@@ -269,168 +393,222 @@ public Object getValueAt(int row, int col)
 		switch (col) {
 			// case 0 handled above.
 			case COL_ID:
-			            if ( mt.getCommon_id().length() > 0 ) {
-							// Well with a different identifier to display.
-							return
-							mt.getCommon_id();
-						}
-						else {
-						    // A structure other than wells...
-							return
-							HydroBase_WaterDistrict.formWDID (__wdid_length, mt.getWD(), mt.getID() );
-						}
-			case COL_NAME: 		return mt.getStr_name();
-			case COL_DATA_SOURCE:	return mt.getData_source();
-			case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
-						return mt.getMeas_type();
-			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
-						return mt.getTime_step();
-			case COL_UNITS:		// The units are not in HydroBase.meas_type but are set by TSTool...
-						return mt.getData_units();
-			case COL_START:		//return new Integer(mt.getStart_year() );
-						i = mt.getStart_year();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_END: //return new Integer ( mt.getEnd_year() );
-						i = mt.getEnd_year();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_MEAS_COUNT:	i = mt.getMeas_count();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_DIV: //return new Integer ( mt.getDiv() );
-						i = mt.getDiv();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_DIST: //return new Integer ( mt.getWD() );
-						i = mt.getWD();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_COUNTY:	return mt.getCounty();
-			case COL_STATE:		return mt.getST();
-			case COL_HUC:		return mt.getHUC();
-			case COL_INPUT_TYPE:	return __inputType;
-			default:		return "";
+	            if ( mt.getCommon_id().length() > 0 ) {
+					// Well with a different identifier to display.
+					return
+					mt.getCommon_id();
+				}
+				else {
+				    // A structure other than wells...
+					return
+					HydroBase_WaterDistrict.formWDID (__wdid_length, mt.getWD(), mt.getID() );
+				}
+			case COL_NAME: return mt.getStr_name();
+			case COL_DATA_SOURCE: return mt.getData_source();
+			case COL_DATA_TYPE:
+			    // TSTool translates to values from the TSTool interface...
+				return mt.getMeas_type();
+			case COL_TIME_STEP:
+			    // TSTool translates HydroBase values to nicer values...
+				return mt.getTime_step();
+			case COL_UNITS:
+			    // The units are not in HydroBase.meas_type but are set by TSTool...
+				return mt.getData_units();
+			case COL_START:
+			    //return new Integer(mt.getStart_year() );
+				i = mt.getStart_year();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_END:
+			    //return new Integer ( mt.getEnd_year() );
+				i = mt.getEnd_year();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_MEAS_COUNT:
+			    i = mt.getMeas_count();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_DIV:
+			    //return new Integer ( mt.getDiv() );
+				i = mt.getDiv();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_DIST:
+			    //return new Integer ( mt.getWD() );
+				i = mt.getWD();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_COUNTY: return mt.getCounty();
+			case COL_STATE: return mt.getST();
+			case COL_HUC: return mt.getHUC();
+            case COL_LONG:
+                d = mt.getLongdecdeg();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.6f");
+                }
+            case COL_LAT:
+                d = mt.getLongdecdeg();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.6f");
+                }
+            case COL_UTM_X:
+                d = mt.getUtm_x();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.3f");
+                }
+            case COL_UTM_Y:
+                d = mt.getUtm_y();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.3f");
+                }
+			case COL_INPUT_TYPE: return __inputType;
+			default: return "";
 		}
 	}
-	// XJTSX
 	else if ( __record_type == __RECORD_TYPE_WELL) {
 		HydroBase_GroundWaterWellsView wv = (HydroBase_GroundWaterWellsView) _data.get(row);
 
 		switch (col) {
 			// case 0 handled above.
 			case COL_ID:		
-						if ( wv.getIdentifier().length() > 0 ) {
-							// Well with a different identifier to display.
-							return
-							wv.getIdentifier();
-						}
-						else {
-						    // A structure other than wells...
-							return HydroBase_WaterDistrict.formWDID (__wdid_length, wv.getWD(), wv.getID() );
-						}
-			case COL_NAME: 		return wv.getWell_name();
-			case COL_DATA_SOURCE:	return wv.getData_source();
-			case COL_DATA_TYPE:	// TSTool translates to values from the TSTool interface...
-						return "WellLevel";
-			case COL_TIME_STEP:	// TSTool translates HydroBase values to nicer values...
-						return wv.getTime_step();
-			case COL_UNITS: // The units are not in HydroBase.meas_type but are set by TSTool...
-						return wv.getData_units();
-			case COL_START: //return new Integer(wv.getStart_year() );
-						i = wv.getStart_year();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_END: //return new Integer (wv.getEnd_year() );
-						i = wv.getEnd_year();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_MEAS_COUNT:	i = wv.getMeas_count();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_DIV: //return new Integer ( wv.getDiv() );
-						i = wv.getDiv();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_DIST: //return new Integer ( wv.getWD() );
-						i = wv.getWD();
-						if ( DMIUtil.isMissing(i) ) {
-							return "";
-						}
-						else {
-						    return "" + i;
-						}
-			case COL_COUNTY:	return wv.getCounty();
-			case COL_STATE:		return wv.getST();
-			case COL_HUC:		return wv.getHUC();
+				if ( wv.getIdentifier().length() > 0 ) {
+					// Well with a different identifier to display.
+					return
+					wv.getIdentifier();
+				}
+				else {
+				    // A structure other than wells...
+					return HydroBase_WaterDistrict.formWDID (__wdid_length, wv.getWD(), wv.getID() );
+				}
+			case COL_NAME: return wv.getWell_name();
+			case COL_DATA_SOURCE: return wv.getData_source();
+			case COL_DATA_TYPE:
+			    // TSTool translates to values from the TSTool interface...
+				return "WellLevel";
+			case COL_TIME_STEP:
+			    // TSTool translates HydroBase values to nicer values...
+				return wv.getTime_step();
+			case COL_UNITS:
+			    // The units are not in HydroBase.meas_type but are set by TSTool...
+				return wv.getData_units();
+			case COL_START:
+			    //return new Integer(wv.getStart_year() );
+				i = wv.getStart_year();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_END:
+			    //return new Integer (wv.getEnd_year() );
+				i = wv.getEnd_year();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_MEAS_COUNT:
+			    i = wv.getMeas_count();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_DIV:
+			    //return new Integer ( wv.getDiv() );
+				i = wv.getDiv();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_DIST:
+			    //return new Integer ( wv.getWD() );
+				i = wv.getWD();
+				if ( DMIUtil.isMissing(i) ) {
+					return "";
+				}
+				else {
+				    return "" + i;
+				}
+			case COL_COUNTY: return wv.getCounty();
+			case COL_STATE: return wv.getST();
+			case COL_HUC: return wv.getHUC();
+            case COL_LONG:
+                d = wv.getLongdecdeg();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.6f");
+                }
+            case COL_LAT:
+                d = wv.getLongdecdeg();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.6f");
+                }
+            case COL_UTM_X:
+                d = wv.getUtm_x();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.3f");
+                }
+            case COL_UTM_Y:
+                d = wv.getUtm_y();
+                if ( DMIUtil.isMissing(d) ) {
+                    return "";
+                }
+                else {
+                    return "" + StringUtil.formatString(d,"%.3f");
+                }
 			case COL_INPUT_TYPE: return __inputType;
-			default:		return "";
+			default: return "";
 		}
 	}
 	else {
 	    return "";
 	}
-}
-
-/**
-Returns an array containing the column widths (in number of characters).
-@return an integer array containing the widths for each field.
-*/
-public int[] getColumnWidths() {
-	int[] widths = new int[__COLUMNS];
-	widths[COL_ID] = 12;
-	widths[COL_ABBREV] = 7;
-	widths[COL_NAME] = 20;
-	widths[COL_DATA_SOURCE] = 10;
-	widths[COL_DATA_TYPE] = 15;
-	widths[COL_TIME_STEP] = 8;
-	widths[COL_UNITS] = 8;
-	widths[COL_START] = 10;
-	widths[COL_END] = 10;
-	widths[COL_MEAS_COUNT] = 8;
-	widths[COL_DIV] = 5;
-	widths[COL_DIST] = 5;
-	widths[COL_COUNTY] = 8;
-	widths[COL_STATE] = 3;
-	widths[COL_HUC] = 8;
-	widths[COL_INPUT_TYPE] = 15;
-	return widths;
 }
 
 /**

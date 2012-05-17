@@ -8,6 +8,7 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
+import RTi.Util.String.StringUtil;
 
 /**
 This class is a table model for time series header information for HydroBase
@@ -21,7 +22,7 @@ extends JWorksheet_AbstractRowTableModel
 /**
 Number of columns in the table model, including the row number.
 */
-private final int __COLUMNS = 18;
+private final int __COLUMNS = 22;
 
 public final int COL_ID = 0;
 public final int COL_NAME = 1;
@@ -40,7 +41,11 @@ public final int COL_HUC = 13;
 public final int COL_BASIN = 14;
 public final int COL_DSS_AQUIFER1 =	15;
 public final int COL_DSS_AQUIFER2 = 16;
-public final int COL_INPUT_TYPE = 17;
+public final int COL_LONG = 17;
+public final int COL_LAT = 18;
+public final int COL_UTM_X = 19;
+public final int COL_UTM_Y = 20;
+public final int COL_INPUT_TYPE = 21;
 
 private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
@@ -110,6 +115,10 @@ public String getColumnName(int columnIndex) {
 		case COL_BASIN: return "Basin";
 		case COL_DSS_AQUIFER1: return "DSS Aquifer 1";
 		case COL_DSS_AQUIFER2: return "DSS Aquifer 2";
+        case COL_LONG: return "Longtitude";
+        case COL_LAT: return "Latitude";
+        case COL_UTM_X: return "UTM X";
+        case COL_UTM_Y: return "UTM Y";
 		case COL_INPUT_TYPE: return "Input Type";
 		default: return "";
 	}
@@ -140,6 +149,10 @@ public String [] getColumnToolTips ()
     toolTips[COL_BASIN] = "Groundwater basin";
     toolTips[COL_DSS_AQUIFER1] = "Decision support system (DSS) Aquifer 1";
     toolTips[COL_DSS_AQUIFER2] = "Decision support system (DSS) Aquifer 2";
+    toolTips[COL_LONG] = "Longitude decimal degrees";
+    toolTips[COL_LAT] = "Latitude decimal degrees";
+    toolTips[COL_UTM_X] = "UTM X, meters";
+    toolTips[COL_UTM_Y] = "UTM Y, meters";
     toolTips[COL_INPUT_TYPE] = "Data store name";
     return toolTips;
 }
@@ -175,6 +188,7 @@ public Object getValueAt(int row, int col)
 	}
 
 	int i; // Use for integer data.
+	double d; // Use for double data.
 
 	HydroBase_GroundWaterWellsView wv = (HydroBase_GroundWaterWellsView) _data.get(row);
 
@@ -255,6 +269,38 @@ public Object getValueAt(int row, int col)
 		    return wv.getDSS_aquifer1();
 		case COL_DSS_AQUIFER2:
 		    return wv.getDSS_aquifer2();
+        case COL_LONG:
+            d = wv.getLongdecdeg();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.6f");
+            }
+        case COL_LAT:
+            d = wv.getLatdecdeg();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.6f");
+            }
+        case COL_UTM_X:
+            d = wv.getUtm_x();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.3f");
+            }
+        case COL_UTM_Y:
+            d = wv.getUtm_y();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.3f");
+            }
 		case COL_INPUT_TYPE:
 		    return __inputType;
 		default:
@@ -285,6 +331,10 @@ public int[] getColumnWidths() {
 	widths[COL_BASIN] = 20; // Basin
 	widths[COL_DSS_AQUIFER1] = 10; // DSS Aquifer 1
 	widths[COL_DSS_AQUIFER2] = 10; // DSS Aquifer 2
+    widths[COL_LONG] = 8;
+    widths[COL_LAT] = 8;
+    widths[COL_UTM_X] = 8;
+    widths[COL_UTM_Y] = 8;
 	widths[COL_INPUT_TYPE] = 12; // Input Type
 	return widths;
 }
