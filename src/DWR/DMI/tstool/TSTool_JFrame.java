@@ -15934,7 +15934,7 @@ throws Exception
     __dataType_JComboBox.removeAll();
     ColoradoWaterHBGuestService service = selectedDataStore.getColoradoWaterHBGuestService();
     List<String> dataTypes = service.getTimeSeriesDataTypes (
-        //HydroBase_Util.DATA_TYPE_AGRICULTURE |
+        HydroBase_Util.DATA_TYPE_AGRICULTURE |
         //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
         //HydroBase_Util.DATA_TYPE_HARDWARE |
         // Comment out stations until performance is figured out
@@ -15978,6 +15978,7 @@ throws Exception
     for ( String dataType : dataTypes  ) {
         __dataType_JComboBox.add ( dataType );
     }
+    __dataType_JComboBox.add ( "*" ); // Allow users to list all available data
     __dataType_JComboBox.select ( null );
     __dataType_JComboBox.select ( 0 );
     
