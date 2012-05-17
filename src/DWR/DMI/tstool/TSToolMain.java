@@ -1363,7 +1363,9 @@ throws Exception
 		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else {
-		    // Assume that a command file has been specified on the command line
+		    // Assume that a command file has been specified on the command line - normally this is triggered
+		    // by a double-click on a file with a *.TSTool extension.  In this case the GUI will start and
+		    // load the command file.
 		    setupUsingCommandFile ( args[i], false );
 		}
 	}
