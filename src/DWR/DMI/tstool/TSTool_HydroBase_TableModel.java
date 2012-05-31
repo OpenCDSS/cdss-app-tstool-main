@@ -47,13 +47,13 @@ public final int COL_UTM_X = 17;
 public final int COL_UTM_Y = 18;
 public final int COL_INPUT_TYPE = 19;
 
-private final int __RECORD_TYPE_UNKNOWN = 0;	// Used with __record_type
+private final int __RECORD_TYPE_UNKNOWN = 0; // Used with __record_type
 private final int __RECORD_TYPE_STATIONS = 1;
 private final int __RECORD_TYPE_STRUCTURES = 2;
 private final int __RECORD_TYPE_WELL = 3;
-//private final int __RECORD_TYPE_WIS = 4;	// TODO SAM REVISIT NOT CURRENTLY USED
+//private final int __RECORD_TYPE_WIS = 4; // TODO SAM REVISIT NOT CURRENTLY USED
 
-private int __record_type = __RECORD_TYPE_UNKNOWN;	// Type of records being listed, for use with getValueAt().
+private int __record_type = __RECORD_TYPE_UNKNOWN; // Type of records being listed, for use with getValueAt().
 
 private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
@@ -215,7 +215,7 @@ public String[] getColumnToolTips() {
     tips[COL_LAT] = "Latitude decimal degrees";
     tips[COL_UTM_X] = "UTM X, meters";
     tips[COL_UTM_Y] = "UTM Y, meters";
-    tips[COL_INPUT_TYPE] = "Input type";
+    tips[COL_INPUT_TYPE] = "Input type or data store name";
     return tips;
 }
 
