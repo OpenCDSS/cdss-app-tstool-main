@@ -466,7 +466,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.09.00beta (2012-05-15)";
+public static final String PROGRAM_VERSION = "10.10.00beta (2012-06-12)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -869,6 +869,11 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "us.co.state.dwr.sms.datastore.";
         }
+    }
+    else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
+        // No need to check whether enabled or not since a generic connection
+        // Specific configuration files will indicate if enabled
+        packagePath = "riverside.datastore.";
     }
     else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
