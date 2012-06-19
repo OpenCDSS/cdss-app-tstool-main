@@ -1,0 +1,138 @@
+#!/bin/bash
+#
+# Script to build a Linux installer for TSTool
+# The build uses files in the development "dist" folder, assumed to
+# be on Windows.  This allows a Linux build to be created without installing
+# the full development environment on Linux.
+#
+# The functionality of this builder needs to be integrated with the build.xml
+# process and use product.properties configuration properties.
+#
+
+# Make sure that the script is being run on Linux
+
+os="$(uname)"
+if [ "$os" != "Linux" ]
+	then
+	echo ""
+	echo "This script must be run on Linux (found:  $os)"
+	echo ""
+	exit 1
+fi
+
+# Get the necessary arguments from the command line
+
+# Name of the developer "dist" folder, which should contain files from either:
+#  * the dist folder prior to building the Windows installer (e.g., C:\Develop\TSTool_SourceBuild\TSTool\dist\install-cdss)
+#  * the installed Windows software (e.g., C:\CDSS\TSTool-10.10.00beta)
+# For example, copy the entire "distFolder" contents from Windows to Linux using a Samba mount point
+#distFolder=$1
+distFolder="/home/sam/TSTool-buildLinux/dist/install-cdss-10.10.00beta"
+
+# The folder containing the Linux JRE to use in the distribution
+#linuxJreFolder=$2
+# Use previous install
+linuxJreFolder="/opt/RTi/TSTool-09.09.00/jre_16"
+
+# The folder where the Linux distribution should be installed
+# This is the location on the system where the Linux version should be created
+# The contents from "distFolder" and "linuxJreFolder" are used to create the following
+#linuxDistFolder=$3
+linuxDistFolder="/opt/RTi/TSTool-10.10.00beta"
+
+# The file to be created with the installation files
+# The file will be located in /tmp
+installFile="TSTool_CDSS_10.10.00beta_Setup_Linux.tar.gz"
+
+# Make sure that the user wants to delete and rebuild the Linux distribution folder
+
+echo ""
+echo "Folder for TSTool distribution (files to use):  $distFolder"
+echo "Folder for Linux JRE to use:  $linuxJreFolder"
+echo "Folder for Linux distribution:  $linuxDistFolder"
+echo ""
+echo "Are you sure that you want to remove and rebuild $linuxDistFolder (y/n)?"
+echo ""
+
+read answer
+
+if [ "$answer" != "y" ]
+	then
+	echo ""
+	echo "Exiting without building"
+	exit 0
+else
+	echo ""
+	echo "Continuing with build"
+fi
+
+# Remove the destination folder if it exists
+
+if [ -d "$linuxDistFolder" ]
+	then
+	echo "Removing existing Linux distribution folder:  $linuxDistFolder"
+	rm -fr "$linuxDistFolder"
+fi
+
+# Create the destination folder
+
+echo "Creating Linux distribution folder:  $linuxDistFolder"
+mkdir "$linuxDistFolder"
+
+# Copy some folders recursively as is with no modification...
+
+folders=("bin" "doc" "examples" "$linuxJreFolder" "python" "system" )
+for folder in "${folders[@]}"
+do
+	folderFrom="$distFolder/$folder"
+	if [ "$(echo $folder | cut -c1)" == "/" ]
+		then
+		# Absolute path to input so just use the name as is
+		folderFrom="$folder"
+	fi
+	folderTo="$linuxDistFolder"
+	echo "Copying as is $folderFrom to $folderTo"
+	cp -rp "$folderFrom" "$folderTo"
+done
+
+# Special handling of logs folder - want empty folder
+
+folderTo="$linuxDistFolder/logs"
+echo "Creating empty folder $folderTo"
+mkdir "$folderTo"
+chmod a+rwx "$folderTo"
+
+# Remove some files from bin that are not used on Linux
+
+files=( "*.DLL" "*.log" "*.dll" "TSTool.bat" "TSTool.exe" "TSTool.l4j.ini" )
+for file in "${files[@]}"
+do
+	removeFile="$linuxDistFolder/$file"
+	echo "Removing unneeded file $removeFile"
+	rm -rf "$removeFile"
+done
+
+# Make sure that the "tstool" script is executable
+chmod a+rx "$linuxDistFolder/bin/tstool"
+
+# Create a tar.gz file that contains the installed software
+
+installFileTmp="/tmp/$installFile"
+if [ -f "$installFileTmp" ]
+	then
+	# Remove the old file so there is no confusion
+	echo "Removing old distribution file $installFileTmp"
+	rm -f "$installFileTmp"
+fi
+# Position so that the tar is relative and includes the top TSTool version
+# folder as its entry point
+cd "$linuxDistFolder"
+cd ..
+echo "Current folder is $(pwd)"
+linuxDistFolderBasename="$(basename "$linuxDistFolder")"
+echo "Distribution folder is $linuxDistFolderBasename"
+echo "Creating tar.gz for distribution..."
+tar -czvf "$installFileTmp" $linuxDistFolderBasename
+echo "Distribution file is $installFileTmp"
+
+exit 0
