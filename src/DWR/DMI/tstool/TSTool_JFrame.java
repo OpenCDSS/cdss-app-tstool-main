@@ -5224,11 +5224,15 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             row = model.getSortOrder()[row];
         }
         RccAcisStationTimeSeriesMetadata ts = (RccAcisStationTimeSeriesMetadata)model.getData().get(row);
+        String dataType = "" + __query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_ELEM);
+        if ( rccAcisDataStore.getAPIVersion() == 1 ) {
+            dataType = "" + __query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR);
+        }
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             ts.getIDPreferred(true),
             "ACIS", //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
             //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
-            "" + __query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
+            dataType,
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
             null, // No scenario
             null, // No sequence number
