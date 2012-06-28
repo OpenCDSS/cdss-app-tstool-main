@@ -302,8 +302,8 @@ public Object getValueAt(int row, int col)
 		case COL_TIME_STEP: return __dataStore.translateAcisIntervalToInternal(
 		    ts.getVariable().getReportInterval() );
 		case COL_UNITS: return ts.getVariable().getUnits();
-		case COL_START: return ts.getValid_daterange()[0];
-		case COL_END: return ts.getValid_daterange()[1];
+		case COL_START: return ts.getValid_daterange()[0][0];
+		case COL_END: return ts.getValid_daterange()[0][1];
 		case COL_STATE: return ts.getState();
 	    case COL_FIPS_COUNTY: return ts.getCounty();
 	    case COL_CLIM_DIV: return "";
