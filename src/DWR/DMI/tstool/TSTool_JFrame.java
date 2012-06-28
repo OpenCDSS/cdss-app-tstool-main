@@ -74,10 +74,6 @@ import rti.tscommandprocessor.core.TimeSeriesTreeView;
 import rti.tscommandprocessor.core.TimeSeriesTreeView_JTree;
 import rti.tscommandprocessor.core.TimeSeriesView;
 
-import rti.tscommandprocessor.commands.bndss.BNDSSSubjectType;
-import rti.tscommandprocessor.commands.bndss.BNDSS_DataMetaData_InputFilter_JPanel;
-import rti.tscommandprocessor.commands.bndss.BNDSS_DMI;
-import rti.tscommandprocessor.commands.bndss.ColoradoBNDSSDataStore;
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
 import rti.tscommandprocessor.commands.rccacis.RccAcisDataStore;
@@ -4950,29 +4946,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int numCommandsAdded = 0; // Used when inserting blocks of time series
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore(); 
-    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoBNDSSDataStore) ) {
-        // The location (id), type, and time step uniquely
-        // identify the time series, but the input_name is needed to indicate the database.
-        TSTool_ColoradoBNDSS_TableModel model = (TSTool_ColoradoBNDSS_TableModel)__query_TableModel;
-        // TSID data type is formed from separate database values
-        String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
-        String subType = (String)__query_TableModel.getValueAt( row, model.COL_SUB_TYPE);
-        String method = (String)__query_TableModel.getValueAt( row, model.COL_METHOD);
-        String subMethod = (String)__query_TableModel.getValueAt( row, model.COL_SUB_METHOD);
-        String dataTypeFull = dataType + "-" + subType + "-" + method + "-" + subMethod;
-        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
-        __query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
-        (String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_ID ),
-        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
-        dataTypeFull,
-        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
-        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
-        null,   // No sequence number
-        (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
-        "",
-        "", false, insertOffset );
-    }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
+    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
         if ( __query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel ) {
             TSTool_HydroBase_WellLevel_Day_TableModel model = (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
@@ -6647,15 +6621,7 @@ private JPanel ui_GetInputFilterPanelForDataStoreName ( String dataStoreName, St
     // a data member of the input panel
     // Alphabetize by "instanceof" argument
     for ( JPanel panel : __inputFilterJPanelList ) {
-        if ( panel instanceof BNDSS_DataMetaData_InputFilter_JPanel ) {
-            // This type of filter uses a DataStore
-            DataStore dataStore = ((BNDSS_DataMetaData_InputFilter_JPanel)panel).getDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(dataStoreName) ) {
-                // Have a match in the data store name so return the panel
-                return panel;
-            }
-        }
-        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
+        if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
             ColoradoWaterHBGuestDataStore dataStore =
                 ((ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
@@ -7332,16 +7298,6 @@ private void ui_InitGUIInputFilters ( final int y )
         	}
         	__inputFilterJPanelList.clear();
         	// Now add the input filters for input types that are enabled, all on top of each other
-            if ( __source_ColoradoBNDSS_enabled && (__tsProcessor.getDataStoresByType(ColoradoBNDSSDataStore.class).size() > 0) ) {
-                try {
-                    ui_InitGUIInputFiltersColoradoBNDSS(__tsProcessor.getDataStoresByType(ColoradoBNDSSDataStore.class), y );
-                }
-                catch ( Throwable e ) {
-                    // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing Colorado BNDSS input filters (" + e + ").");
-                    Message.printWarning(3, routine, e);
-                }
-            }
             if ( __source_ColoradoWaterHBGuest_enabled &&
                 (__tsProcessor.getDataStoresByType(ColoradoWaterHBGuestDataStore.class).size() > 0) ) {
                 try {
@@ -7532,45 +7488,6 @@ private void ui_InitGUIInputFilters ( final int y )
     else 
     {
         SwingUtilities.invokeLater ( r );
-    }
-}
-
-/**
-Initialize the BNDSS input filter.
-@param dataStoreList the list of data stores for which input filter panels are to be added.
-@param y the position in the input panel that the filter should be added
-*/
-private void ui_InitGUIInputFiltersColoradoBNDSS ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersColoradoBNDSS";
-    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " Colorado BNDSS data stores." );
-    for ( DataStore dataStore: dataStoreList ) {
-        try {
-            // Try to find an existing input filter panel for the same name...
-            String selectedDataType = ui_GetSelectedDataType();
-            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType );
-            // If the previous instance is not null, remove it from the list...
-            if ( ifp != null ) {
-                __inputFilterJPanelList.remove ( ifp );
-            }
-            // Create a new panel...
-            BNDSS_DataMetaData_InputFilter_JPanel newIfp =
-                new BNDSS_DataMetaData_InputFilter_JPanel((ColoradoBNDSSDataStore)dataStore, null, 3);
-            // Add the new panel to the layout and set in the global data...
-            int buffer = 3;
-            Insets insets = new Insets(0,buffer,0,0);
-            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            newIfp.setName ( "ColoradoBNDSS.InputFilterPanel" );
-            __inputFilterJPanelList.add ( newIfp );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for Colorado BNDSS time series " +
-                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
-            Message.printWarning ( 2, routine, e );
-        }
     }
 }
 
@@ -11577,10 +11494,7 @@ private void uiAction_DataStoreChoiceClicked()
     uiAction_InputTypeChoiceClicked(selectedDataStore);
     // Now fully initialize the input/query information based on the data store
     try {
-        if ( selectedDataStore instanceof ColoradoBNDSSDataStore ) {
-            uiAction_SelectDataStore_ColoradoBNDSS ( (ColoradoBNDSSDataStore)selectedDataStore );
-        }
-        else if ( selectedDataStore instanceof ColoradoWaterHBGuestDataStore ) {
+        if ( selectedDataStore instanceof ColoradoWaterHBGuestDataStore ) {
             uiAction_SelectDataStore_ColoradoWaterHBGuest ( (ColoradoWaterHBGuestDataStore)selectedDataStore );
         }
         else if ( selectedDataStore instanceof ColoradoWaterSMSDataStore ) {
@@ -11635,14 +11549,7 @@ private void uiAction_DataTypeChoiceClicked()
 
 	// Set the appropriate settings for the current data input type and data type...
 
-    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoBNDSSDataStore)) {
-        // Time steps is always year...
-        __timeStep_JComboBox.removeAll ();
-        __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
-        __timeStep_JComboBox.select ( 0 );
-        __timeStep_JComboBox.setEnabled ( true );
-    }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
+    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
 	    ColoradoWaterHBGuestDataStore cwds = (ColoradoWaterHBGuestDataStore)selectedDataStore;
         List<String> time_steps = cwds.getColoradoWaterHBGuestService().getTimeSeriesTimeSteps (
             selectedDataType,
@@ -12155,18 +12062,7 @@ private void uiAction_GetTimeSeriesListClicked()
 	// area.  Return if an error occurs because the message at the bottom
 	// should only be printed if successful.
 
-    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoBNDSSDataStore) ) {
-        try {
-            uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders(); 
-        }
-        catch ( Exception e ) {
-            message = "Error reading ColoradoBNDSS - cannot display time series list (" + e + ").";
-            Message.printWarning ( 1, routine, message );
-            Message.printWarning ( 3, routine, e );
-            return;
-        }
-    }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
+    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders ();
         }
@@ -12412,73 +12308,6 @@ private void uiAction_GetTimeSeriesListClicked()
     else {
         Message.printStatus ( 1, routine,
             "Time series list from input type \"" + selectedInputType + "\" are listed in Time Series List area." ); 
-    }
-}
-
-/**
-Read ColoradoBNDSS time series and list in the GUI.
-*/
-private void uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoBNDSSHeaders";
-    JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
-
-    // The headers are a list of DataMetaData
-    try {
-        queryResultsList_Clear ();
-
-        // Get the subject from the where filters.  If not set, warn and don't query
-        BNDSSSubjectType subject = null;
-        List<String> input = ((InputFilter_JPanel)__selectedInputFilter_JPanel).getInput("Subject", null, false, null );
-        if ( input.size() == 0 ) {
-            Message.printWarning ( 1, rtn, "You must specify the Subject as a Where in the input filter." );
-            JGUIUtil.setWaitCursor ( this, false );
-            return;
-        }
-        //Message.printStatus(2, "", "Input is \"" + input.get(0) );
-        subject = BNDSSSubjectType.valueOfIgnoreCase(StringUtil.getToken(input.get(0),";",0,1));
-
-        List results = null;
-        // Data type is shown with name so only use the first part of the choice
-        DataStore dataStore = null;
-        try {
-            dataStore = ui_GetSelectedDataStore ();
-            BNDSS_DMI dmi = (BNDSS_DMI)((ColoradoBNDSSDataStore)dataStore).getDMI();
-            results = dmi.readDataMetaDataList( (InputFilter_JPanel)__selectedInputFilter_JPanel, subject );
-        }
-        catch ( Exception e ) {
-            results = null;
-        }
-
-        int size = 0;
-        if ( results != null ) {
-            size = results.size();
-            // TODO Does not work??
-            //__query_TableModel.setNewData ( results );
-            // Try brute force...
-            __query_TableModel = new TSTool_ColoradoBNDSS_TableModel (
-                (ColoradoBNDSSDataStore)dataStore, results );
-            TSTool_ColoradoBNDSS_CellRenderer cr =
-                new TSTool_ColoradoBNDSS_CellRenderer( (TSTool_ColoradoBNDSS_TableModel)__query_TableModel);
-
-            __query_JWorksheet.setCellRenderer ( cr );
-            __query_JWorksheet.setModel ( __query_TableModel );
-            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-        }
-        if ( (results == null) || (size == 0) ) {
-            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
-        }
-        else {
-            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
-        }
-        ui_UpdateStatus ( false );
-
-        JGUIUtil.setWaitCursor ( this, false );
-    }
-    catch ( Exception e ) {
-        // Messages elsewhere but catch so we can get the cursor back...
-        Message.printWarning ( 3, rtn, e );
-        JGUIUtil.setWaitCursor ( this, false );
     }
 }
 
@@ -15820,105 +15649,6 @@ Select all commands in the commands list.  This occurs in response to a user sel
 private void uiAction_SelectAllCommands()
 {	JGUIUtil.selectAll(ui_GetCommandJList());
 	ui_UpdateStatus ( true );
-}
-
-/**
-Refresh the query choices for the currently selected ColoradoBNDSS data store.
-*/
-private void uiAction_SelectDataStore_ColoradoBNDSS ( ColoradoBNDSSDataStore selectedDataStore )
-throws Exception
-{   String routine = getClass().getName() + "uiAction_SelectDataStore_ColoradoBNDSS";
-    // Get the DMI instances for the matching data store
-    BNDSS_DMI dmi = (BNDSS_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
-    ui_SetInputNameVisible(false); // Not needed
-    __dataType_JComboBox.setEnabled ( false );
-    __dataType_JComboBox.removeAll ();
-    
-    // Timestep is always year
-    __timeStep_JComboBox.setEnabled ( true );
-    __timeStep_JComboBox.removeAll ();
-    __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
-    __timeStep_JComboBox.select ( 0 );
- 
-    // Initialize with blank data vector...
-
-    __query_TableModel = new TSTool_ColoradoBNDSS_TableModel((ColoradoBNDSSDataStore)selectedDataStore, null);
-    TSTool_ColoradoBNDSS_CellRenderer cr =
-        new TSTool_ColoradoBNDSS_CellRenderer((TSTool_ColoradoBNDSS_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    //__query_JWorksheet.removeColumn (((TSTool_ColoradoBNDSS_TableModel)__query_TableModel).COL_SEQUENCE );
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-    
-    /*
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
-    List<RiversideDB_MeasType> mts = null;
-    List<RiversideDB_DataType> dts = null;
-    try {
-        mts = dmi.readMeasTypeListForDistinctData_type();
-        dts = dmi.readDataTypeList();
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 1, routine, "Error getting time series choices (" + e + ")." );
-        Message.printWarning ( 3, routine, e );
-        Message.printWarning ( 3, routine, dmi.getLastSQLString() );
-        mts = null;
-    }
-    int size = 0;
-    if ( mts != null ) {
-        size = mts.size();
-    }
-    if ( size > 0 ) {
-        RiversideDB_MeasType mt = null;
-        int pos;
-        String data_type;
-        for ( int i = 0; i < size; i++ ) {
-            mt = mts.get(i);
-            pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
-            if ( pos < 0 ) {
-                __dataType_JComboBox.add(mt.getData_type() );
-            }
-            else {
-                data_type = mt.getData_type() + " - " + dts.get(pos).getDescription();
-                if ( data_type.length() > 30 ) {
-                    __dataType_JComboBox.add( data_type.substring(0,30) + "..." );
-                }
-                else {
-                    __dataType_JComboBox.add( data_type );
-                }
-            }
-        }
-        __dataType_JComboBox.select ( null );
-        __dataType_JComboBox.select ( 0 );
-    }
-    */
-
-    // Default to first in the list...
-    //__data_type_JComboBox.select( 0 );
-
-    /* TODO
-    __where_JComboBox.setEnabled ( true );
-    __where_JComboBox.removeAll ();
-    // SAMX Need to decide what to put here...
-    __where_JComboBox.add("Data Source");
-        __where_JComboBox.add("Location ID");
-    __where_JComboBox.add("Location Name");
-    __where_JComboBox.select ( 2 );
-    */
-
-    // Initialize with blank data vector...
-/*
-    __query_TableModel = new TSTool_ColoradoBNDSS_TableModel(null);
-    TSTool_ColoradoBNDSS_CellRenderer cr =
-        new TSTool_ColoradoBNDSS_CellRenderer((TSTool_ColoradoBNDSS_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    //__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-    */
 }
 
 /**
