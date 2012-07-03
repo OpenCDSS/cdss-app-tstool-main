@@ -6752,11 +6752,15 @@ private String ui_GetSelectedDataType ()
         ((selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore)) ||
         selectedInputType.equals(__INPUT_TYPE_HydroBase) || selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
         // Data type group is first and data type second.
-        // ColoradoWaterHBGuest:  "Station - Precip"
         // HydroBase:  "Climate - Precip"
         // StateModB (old, group the types to help user):  "Water Supply - Total_Supply"
         if ( selectedDataTypeFull.indexOf('-') >= 0 ) {
             selectedDataType = StringUtil.getToken( selectedDataTypeFull, "-", 0, 1).trim();
+            int pos = selectedDataType.indexOf(' ');
+            if ( pos >= 0 ) {
+                // Special case "Well - WellLevel (phasing out)"
+                selectedDataType = selectedDataType.substring(0,pos).trim();
+            }
         }
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
@@ -12934,8 +12938,8 @@ throws Exception
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
-			// XJTSX
-			else if (selectedDataType.equalsIgnoreCase(	"WellLevel")) {
+			else if (selectedDataType.equalsIgnoreCase( "WellLevel") || selectedDataType.equalsIgnoreCase( "WellLevelElev")||
+			    selectedDataType.equalsIgnoreCase( "WellLevelDepth") ) {
     			if (selectedTimeStep.equalsIgnoreCase("Day")) {
     				__query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
     				__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist,
@@ -12946,7 +12950,6 @@ throws Exception
     				__query_JWorksheet.setCellRenderer ( cr );
     				__query_JWorksheet.setModel(__query_TableModel);
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-    
     			}
     			else {
     				// original table model
