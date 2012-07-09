@@ -2,7 +2,15 @@
 rem ---------------------------------------------------------------------------
 rem Batch Program to run the TSTool
 rem ---------------------------------------------------------------------------
-rem Notes:	(1)	This batch file is updated during the installation
+rem Notes:
+rem		(0)	This batch file is NOT normally used to run TSTool.
+rem			Instead, use the TSTool.exe program, which provides a
+rem			more integrated start-up.  Use this batch file for
+rem			troubleshooting issues.  Because the batch file is not
+rem			used in production, it may be out of date compared with
+rem			recent development.
+rem
+rem		(1)	This batch file is updated during the installation
 rem			process, with the environment settings taken from
 rem			the installation process.
 rem
