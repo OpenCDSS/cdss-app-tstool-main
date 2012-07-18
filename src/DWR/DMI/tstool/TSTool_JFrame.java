@@ -1176,6 +1176,7 @@ JMenuItem
     __Commands_Ensemble_NewEnsemble_JMenuItem,
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem,
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem,
+    __Commands_Ensemble_NewStatisticEnsemble_JMenuItem,
     __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
     __Commands_Ensemble_WeightTraces_JMenuItem,
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem;
@@ -1590,6 +1591,7 @@ private String
     __Commands_Ensemble_NewEnsemble_String = TAB + "NewEnsemble()... <create a new ensemble from 0+ time series>",
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()... <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String = TAB + "InsertTimeSeriesIntoEnsemble()... <insert 1+ time series into an ensemble>",
+    __Commands_Ensemble_NewStatisticEnsemble_String = TAB + "NewStatisticEnsemble()... <create an ensemble of statistic time series>",
     __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String = TAB + "NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble>",
     __Commands_Ensemble_WeightTraces_String = TAB + "WeightTraces()... <weight traces to create a new time series>",
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String = TAB + "WriteNwsrfsEspTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
@@ -5871,6 +5873,7 @@ private void ui_CheckGUIState ()
     JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticEnsemble_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_WeightTraces_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,enabled);
@@ -8585,8 +8588,10 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Ensemble_JMenu.addSeparator();
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, this) );
-    
+
     __Commands_Ensemble_JMenu.addSeparator();
+    __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_NewStatisticEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_NewStatisticEnsemble_String, this ) );
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String, this ) );
     
@@ -10761,6 +10766,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_Ensemble_NewStatisticEnsemble_String)){
+        commandList_EditCommand ( __Commands_Ensemble_NewStatisticEnsemble_String, null, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String, null, CommandEditType.INSERT );
