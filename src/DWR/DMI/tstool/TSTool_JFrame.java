@@ -1239,6 +1239,7 @@ JMenu
 JMenuItem
     __Commands_General_FileHandling_FTPGet_JMenuItem = null,
     __Commands_General_FileHandling_WebGet_JMenuItem = null,
+    __Commands_General_FileHandling_AppendFile_JMenuItem = null,
     __Commands_General_FileHandling_RemoveFile_JMenuItem = null,
     __Commands_General_FileHandling_PrintTextFile_JMenuItem = null;
 
@@ -1639,6 +1640,7 @@ private String
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
+    __Commands_General_FileHandling_AppendFile_String = TAB + "AppendFile()... <append file(s)>",
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
     __Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
     
@@ -3007,6 +3009,7 @@ public void commandProgress ( int istep, int nstep, Command command, float perce
 	}
 	// Set the current value...
     if ( percentComplete > 0.0 ) {
+        // Calling code is providing the percent complete
         __command_JProgressBar.setValue ( (int)(nstep*percentComplete/100.0) );
     }
     else {
@@ -8684,6 +8687,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_WebGet_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_WebGet_String, this ) );
     __Commands_General_FileHandling_JMenu.addSeparator();
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_AppendFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_AppendFile_String, this ) );
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
     __Commands_General_FileHandling_JMenu.addSeparator();
@@ -11016,6 +11021,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_FileHandling_WebGet_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_WebGet_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_FileHandling_AppendFile_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_AppendFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, CommandEditType.INSERT );
