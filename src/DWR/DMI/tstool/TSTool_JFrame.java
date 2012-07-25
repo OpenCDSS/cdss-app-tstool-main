@@ -3013,6 +3013,7 @@ public void commandProgress ( int istep, int nstep, Command command, float perce
         __command_JProgressBar.setValue ( (int)(nstep*percentComplete/100.0) );
     }
     else {
+        // Calling code wants percentage to be computed here
         __command_JProgressBar.setValue ( istep + 1 );
     }
 }
