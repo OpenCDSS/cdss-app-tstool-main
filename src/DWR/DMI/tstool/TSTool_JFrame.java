@@ -1246,9 +1246,11 @@ JMenuItem
 JMenu
     __Commands_General_Running_JMenu = null;
 JMenuItem
+    __Commands_General_Running_ReadPropertiesFromFile_JMenuItem = null,
     __Commands_General_Running_SetProperty_JMenuItem = null,
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem = null,
     __Commands_General_Running_FormatDateTimeProperty_JMenuItem = null,
+    __Commands_General_Running_WritePropertiesToFile_JMenuItem = null,
 	__Commands_General_Running_RunCommands_JMenuItem = null,
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
@@ -1261,7 +1263,6 @@ JMenu
     __Commands_General_TestProcessing_JMenu = null;
 JMenuItem
     __Commands_General_TestProcessing_CompareFiles_JMenuItem = null,
-    __Commands_General_TestProcessing_WriteProperty_JMenuItem = null,
     __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem = null,
     //-- separator ---
     __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem = null,
@@ -1650,11 +1651,13 @@ private String
 	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
 
     __Commands_General_Running_String = "General - Running and Properties",
+    __Commands_General_Running_ReadPropertiesFromFile_String = TAB + "ReadPropertiesFromFile()... <read processor properties from file>",
     __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a processor property>",
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
         TAB + "SetPropertyFromNwsrfsAppDefault()... <set a processor property from an NWSRFS App Default>",
     __Commands_General_Running_FormatDateTimeProperty_String = TAB + "FormatDateTimeProperty()... <format date/time property as string property>",
-	__Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
+    __Commands_General_Running_WritePropertiesToFile_String = TAB + "WritePropertiesToFile()... <write processor properties to file>",
+    __Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
     __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
@@ -8707,6 +8710,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
     __Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_ReadPropertiesFromFile_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_ReadPropertiesFromFile_String, this ) );
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetProperty_String,this));
     if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -8715,6 +8720,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     }
     __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatDateTimeProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_FormatDateTimeProperty_String,this));
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_WritePropertiesToFile_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_WritePropertiesToFile_String, this ) );
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add (__Commands_General_Running_RunCommands_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
@@ -8732,8 +8739,6 @@ private void ui_InitGUIMenus_CommandsGeneral ()
 
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
     __Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
-    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteProperty_JMenuItem =
-        new SimpleJMenuItem(__Commands_General_TestProcessing_WriteProperty_String, this ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesProperty_String, this ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareFiles_JMenuItem =
@@ -10993,6 +10998,9 @@ throws Exception
     else if (command.equals( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String) ) {
         commandList_EditCommand ( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_General_Running_ReadPropertiesFromFile_String)){
+        commandList_EditCommand ( __Commands_General_Running_ReadPropertiesFromFile_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_General_Running_SetProperty_String) ) {
         commandList_EditCommand ( __Commands_General_Running_SetProperty_String, null, CommandEditType.INSERT );
     }
@@ -11001,6 +11009,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_Running_FormatDateTimeProperty_String) ) {
         commandList_EditCommand ( __Commands_General_Running_FormatDateTimeProperty_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_Running_WritePropertiesToFile_String)){
+        commandList_EditCommand ( __Commands_General_Running_WritePropertiesToFile_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_General_Running_RunCommands_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_RunCommands_String, null, CommandEditType.INSERT );
