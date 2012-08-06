@@ -15918,7 +15918,7 @@ throws Exception
     UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for data stores
     // Get the list of valid object/data types from the data store
-    List<String> dataTypes = dataStore.getDataTypeStrings ( true );
+    List<String> dataTypes = dataStore.getParameterStrings ( true );
     
     // Populate the list of available data types and select the first
     __dataType_JComboBox.setEnabled ( true );
