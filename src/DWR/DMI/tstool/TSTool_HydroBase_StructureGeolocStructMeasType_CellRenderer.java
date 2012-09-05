@@ -3,18 +3,18 @@ package DWR.DMI.tstool;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 
 /**
-This class is used to render cells for TSTool_HydroBase_StationGeolocMeasType_TableModel data.
+This class is used to render cells for TSTool_HydroBase_StructureGeolocStructMeasType_TableModel data.
 */
-public class TSTool_HydroBase_StationGeolocMeasType_CellRenderer
+public class TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer
 extends JWorksheet_DefaultTableCellRenderer {
 
-TSTool_HydroBase_StationGeolocMeasType_TableModel __table_model = null;	// Table model to render
+TSTool_HydroBase_StructureGeolocStructMeasType_TableModel __table_model = null;	// Table model to render
 
 /**
 Constructor.
 @param table_model The TSTool_HydroBase_TableModel to render.
 */
-public TSTool_HydroBase_StationGeolocMeasType_CellRenderer ( TSTool_HydroBase_StationGeolocMeasType_TableModel table_model )
+public TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer ( TSTool_HydroBase_StructureGeolocStructMeasType_TableModel table_model )
 {	__table_model = table_model;
 }
 

@@ -111,7 +111,9 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel;
+import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
+import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
 import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
@@ -182,6 +184,7 @@ import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JScrollWorksheet;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
+import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 import RTi.Util.GUI.JWorksheet_Listener;
 import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.ResponseJDialog;
@@ -3993,7 +3996,6 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List selected
     	TableRecord rec = null; // Lookup table record.
     	String geolayer_name = null;
     	TSTool_TS_TableModel generic_tm = null;
-    	TSTool_HydroBase_TableModel HydroBase_tm = null;
     	String ts_inputtype = null; // The TS input type from lookup file
     	String ts_datatype = null; // The TS data type from lookup file
     	String ts_interval = null; // The TS interval from lookup file
@@ -4147,13 +4149,30 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List selected
     					tslist_datatype = (String)generic_tm.getValueAt(its, generic_tm.COL_DATA_TYPE );
     					tslist_interval = (String)generic_tm.getValueAt(its, generic_tm.COL_TIME_STEP );
     				}
-    				else if(__query_TableModel instanceof TSTool_HydroBase_TableModel ) {
-    					HydroBase_tm = (TSTool_HydroBase_TableModel)__query_TableModel;
-    					tslist_id = (String)HydroBase_tm.getValueAt(its, HydroBase_tm.COL_ID );
-    					tslist_datasource =(String)HydroBase_tm.getValueAt(its,HydroBase_tm.COL_DATA_SOURCE);
-    					tslist_datatype = (String)HydroBase_tm.getValueAt(its,HydroBase_tm.COL_DATA_TYPE);
-    					tslist_interval = (String)HydroBase_tm.getValueAt(its,HydroBase_tm.COL_TIME_STEP);
+    				else if(__query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel ) {
+    				    TSTool_HydroBase_StationGeolocMeasType_TableModel model =
+    				        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
+    					tslist_id = (String)model.getValueAt(its, model.COL_ID );
+    					tslist_datasource =(String)model.getValueAt(its,model.COL_DATA_SOURCE);
+    					tslist_datatype = (String)model.getValueAt(its,model.COL_DATA_TYPE);
+    					tslist_interval = (String)model.getValueAt(its,model.COL_TIME_STEP);
     				}
+                    else if(__query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel ) {
+                        TSTool_HydroBase_StructureGeolocStructMeasType_TableModel model =
+                            (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel;
+                        tslist_id = (String)model.getValueAt(its, model.COL_ID );
+                        tslist_datasource =(String)model.getValueAt(its,model.COL_DATA_SOURCE);
+                        tslist_datatype = (String)model.getValueAt(its,model.COL_DATA_TYPE);
+                        tslist_interval = (String)model.getValueAt(its,model.COL_TIME_STEP);
+                    }
+                    else if(__query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel ) {
+                        TSTool_HydroBase_GroundWaterWellsView_TableModel model =
+                            (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel;
+                        tslist_id = (String)model.getValueAt(its, model.COL_ID );
+                        tslist_datasource =(String)model.getValueAt(its,model.COL_DATA_SOURCE);
+                        tslist_datatype = (String)model.getValueAt(its,model.COL_DATA_TYPE);
+                        tslist_interval = (String)model.getValueAt(its,model.COL_TIME_STEP);
+                    }
     				// Check the attributes against that in the map.  Use some of the look interval
     				// information for data type and interval, unless that is supplied in a layer attribute.
     				// TODO SAM 2006-03-02 Optimize/refactor
@@ -4971,8 +4990,41 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
                 false, insertOffset );
         }
-        else if ( __query_TableModel instanceof TSTool_HydroBase_TableModel ) {
-            TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
+        else if ( __query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel ) {
+            TSTool_HydroBase_StationGeolocMeasType_TableModel model =
+                (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+                "", // No scenario
+                null, // No sequence number
+                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+                "", // No input name
+                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+                false, insertOffset );
+        }
+        else if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel ) {
+            TSTool_HydroBase_StructureGeolocStructMeasType_TableModel model =
+                (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+                "", // No scenario
+                null, // No sequence number
+                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+                "", // No input name
+                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+                false, insertOffset );
+        }
+        else if ( __query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel ) {
+            TSTool_HydroBase_GroundWaterWellsView_TableModel model =
+                (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel;
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
                 (String)__query_TableModel.getValueAt( row, model.COL_ID ),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
@@ -4990,7 +5042,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
-        TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
+        TSTool_HydroBase_StationGeolocMeasType_TableModel model =
+            (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
             (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
@@ -5068,9 +5121,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
     }
 	else if ( selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
-		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
-		    // Time series for most stations and structures
-			TSTool_HydroBase_TableModel model = (TSTool_HydroBase_TableModel)__query_TableModel;
+		if ( __query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel){
+		    // Station time series
+		    TSTool_HydroBase_StationGeolocMeasType_TableModel model =
+		        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
 			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
@@ -5084,6 +5138,40 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt (	row, model.COL_NAME),
 				false, insertOffset );
 		}
+		else if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel){
+	        // Structure time series
+		    TSTool_HydroBase_StructureGeolocStructMeasType_TableModel model =
+	            (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+                "", // No scenario
+                null,   // No sequence number
+                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+                "", // No input name
+                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+                false, insertOffset );
+        }
+        else if ( __query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel){
+            // Structure time series
+            TSTool_HydroBase_GroundWaterWellsView_TableModel model =
+                (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+                "", // No scenario
+                null,   // No sequence number
+                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+                "", // No input name
+                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
+                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
+                false, insertOffset );
+        }
 		else if (__query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel) {
 			TSTool_HydroBase_WellLevel_Day_TableModel model =
 			    (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
@@ -11375,10 +11463,14 @@ throws Exception
 	else if ( o == __Tools_Options_JMenuItem ) {
 		new TSTool_Options_JDialog ( this, TSToolMain.getConfigFile(), __props );
 		// Reset as necessary...
-		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
-			((TSTool_HydroBase_TableModel)__query_TableModel).
-			setWDIDLength(StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")));
+		if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel){
+			((TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel).setWDIDLength(
+			    StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")));
 		}
+		else if ( __query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel){
+            ((TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel).setWDIDLength(
+                StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")));
+        }
 		else if ( __query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel){
 			((TSTool_HydroBase_WellLevel_Day_TableModel)
 			__query_TableModel).setWDIDLength(StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")));
@@ -12464,7 +12556,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
     
                 }
                 else {
-                    // Real-time data original table model
+                    // Real-time stations table model
                     /*
                     __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
                         __props.getValue( "HydroBase.WDIDLength")), tslist );
@@ -12479,19 +12571,30 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
                 }
             }
             else {
-                // Stations and structures...
-                __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-                    __props.getValue( "HydroBase.WDIDLength")), tslist );
-                ((TSTool_HydroBase_TableModel)__query_TableModel).setInputType(dataStore.getName());
-                TSTool_HydroBase_CellRenderer cr =
-                    new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
+                // Stations and structures.  Figure out from returned data which table model needs to be used.
+                // At least one object will have been returned based on checks above
+                Object o = (Object)tslist.get(0);
+                JWorksheet_DefaultTableCellRenderer cr = null;
+                if ( o instanceof HydroBase_StationGeolocMeasType ) {
+                    __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+                        __query_JWorksheet, tslist );
+                    cr = new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+                        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
+                }
+                else if ( o instanceof HydroBase_StructureGeolocStructMeasType ) {
+                    __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel (
+                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
+                    cr = new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
+                        (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
+                }
+                else if (o instanceof HydroBase_GroundWaterWellsView) {
+                    __query_TableModel = new TSTool_HydroBase_GroundWaterWellsView_TableModel (
+                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
+                    cr = new TSTool_HydroBase_GroundWaterWellsView_CellRenderer(
+                        (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel);
+                }
                 __query_JWorksheet.setCellRenderer ( cr );
                 __query_JWorksheet.setModel(__query_TableModel);
-                // Turn off columns in the table model that do not apply...
-                if ( !(tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
-                    // Structures so have no abbreviation
-                    __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
-                }
                 __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
             }
         }
@@ -12562,20 +12665,18 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
             __query_JWorksheet.setModel ( __query_TableModel );
             __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
             */
+            // TODO SAM 2012-09-05 Should only be stations so no need to handle structures?
             // Stations and structures...
-            __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-                __props.getValue( "HydroBase.WDIDLength")), tslist, dataStore.getName() );
-            TSTool_HydroBase_CellRenderer cr =
-                new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
+            __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel (
+                __query_JWorksheet, tslist, dataStore.getName() );
+            TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
+                new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+                    (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
             __query_JWorksheet.setCellRenderer ( cr );
             __query_JWorksheet.setModel(__query_TableModel);
             // Turn off columns in the table model that do not apply...
-            if ( (tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
-                __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ID );
-            }
-            else if ( !(tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
-                __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
-            }
+            // TODO SAM 2012-09-05 Should ID be allowed to cross-reference USGS and other external IDs? 
+            __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel).COL_ID );
             __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
         }
         if ( (tslist == null) || (size == 0) ) {
@@ -12969,6 +13070,7 @@ throws Exception
 			else if (selectedDataType.equalsIgnoreCase( "WellLevel") || selectedDataType.equalsIgnoreCase( "WellLevelElev")||
 			    selectedDataType.equalsIgnoreCase( "WellLevelDepth") ) {
     			if (selectedTimeStep.equalsIgnoreCase("Day")) {
+    			    // Well level data...
     				__query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
     				__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist,
     				"HydroBase" );
@@ -12980,30 +13082,45 @@ throws Exception
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
     			}
     			else {
-    				// original table model
-    				__query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-    					__props.getValue( "HydroBase.WDIDLength")), tslist );
-    				TSTool_HydroBase_CellRenderer cr =
-    					new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
+    				// Real-time well elevation as station
+    				__query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel (
+    				    __query_JWorksheet, tslist );
+    				TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
+    					new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+    					    (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
     				__query_JWorksheet.setCellRenderer ( cr );
     				__query_JWorksheet.setModel(__query_TableModel);
+    				// TODO SAM 2012-09-05 Verify that Abbrev should be on since station
     				// Turn off columns in the table model that do not apply...
-    				__query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
+    				//__query_JWorksheet.removeColumn ( ((TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel).COL_ABBREV );
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
     			}
 			}
 			else {
-			    // Stations and structures...
-				__query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-					__props.getValue( "HydroBase.WDIDLength")), tslist );
-				TSTool_HydroBase_CellRenderer cr =
-					new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
+			    // Stations and structures.  Figure out from returned data which table model needs to be used.
+			    // At least one object will have been returned based on checks above
+			    Object o = (Object)tslist.get(0);
+			    JWorksheet_DefaultTableCellRenderer cr = null;
+	            if ( o instanceof HydroBase_StationGeolocMeasType ) {
+	                __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+	                    __query_JWorksheet, tslist );
+                    cr = new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+                        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
+	            }
+	            else if ( o instanceof HydroBase_StructureGeolocStructMeasType ) {
+	                __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel (
+	                    __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
+                    cr = new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
+                        (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
+	            }
+	            else if (o instanceof HydroBase_GroundWaterWellsView) {
+	                __query_TableModel = new TSTool_HydroBase_GroundWaterWellsView_TableModel (
+	                    __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
+                    cr = new TSTool_HydroBase_GroundWaterWellsView_CellRenderer(
+                        (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel);
+	            }
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
-				// Turn off columns in the table model that do not apply...
-				if ( !(tslist.get(0) instanceof HydroBase_StationGeolocMeasType) ) {
-					__query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
-				}
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
 		}
@@ -15713,11 +15830,12 @@ throws Exception
     __dataType_JComboBox.select( null );
     __dataType_JComboBox.select ( "Diversion - DivTotal" );
     
-    // Initialize with blank data - will be reset when a query occurs
-    __query_TableModel = new TSTool_HydroBase_TableModel(
+    // Initialize with blank DivTotal data - will be reset when a query occurs
+    __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel(
         __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
-    TSTool_HydroBase_CellRenderer cr =
-        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+    TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer cr =
+        new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
+            (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
@@ -15759,10 +15877,11 @@ throws Exception
 
     //__query_TableModel = new TSTool_TS_TableModel(null);
     //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
-    __query_TableModel = new TSTool_HydroBase_TableModel(
-        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
-    TSTool_HydroBase_CellRenderer cr =
-        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+    __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+        __query_JWorksheet, null, selectedInputType);
+    TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
+        new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+            (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
@@ -16344,13 +16463,18 @@ private void uiAction_SelectInputType_HydroBase ()
     __dataType_JComboBox.select( null );
     __dataType_JComboBox.select(HydroBase_Util.getDefaultTimeSeriesDataType(__hbdmi, true ) );
 
-    // Initialize with blank data vector...
+    // Initialize with blank data list
+    // TODO SAM 2012-09-05 Initialize with correct table model - for now use stations because it will get reset
+    // when data are read (different table model might confuse user)
 
     try {
-        __query_TableModel = new TSTool_HydroBase_TableModel(
-        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null);
-        TSTool_HydroBase_CellRenderer cr =
-        new TSTool_HydroBase_CellRenderer((TSTool_HydroBase_TableModel)__query_TableModel);
+        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+            __query_JWorksheet,
+            //StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")),
+            null);
+        TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
+            new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+                (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
         __query_JWorksheet.setCellRenderer ( cr );
         __query_JWorksheet.setModel ( __query_TableModel );
         __query_JWorksheet.setColumnWidths (cr.getColumnWidths() );
@@ -17231,13 +17355,27 @@ throws Exception
 			datasource_col = model.COL_DATA_SOURCE;
 			interval_col = model.COL_TIME_STEP;
 		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_TableModel){
-			TSTool_HydroBase_TableModel model =	(TSTool_HydroBase_TableModel)__query_TableModel;
+		else if ( __query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel){
+		    TSTool_HydroBase_StationGeolocMeasType_TableModel model =
+		        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
 			location_col = model.COL_ID;
 			datasource_col = model.COL_DATA_SOURCE;
 			interval_col = model.COL_TIME_STEP;
 		}
+        else if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel){
+            TSTool_HydroBase_StructureGeolocStructMeasType_TableModel model =
+                (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel;
+            location_col = model.COL_ID;
+            datasource_col = model.COL_DATA_SOURCE;
+            interval_col = model.COL_TIME_STEP;
+        }
+        else if ( __query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel){
+            TSTool_HydroBase_GroundWaterWellsView_TableModel model =
+                (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel;
+            location_col = model.COL_ID;
+            datasource_col = model.COL_DATA_SOURCE;
+            interval_col = model.COL_TIME_STEP;
+        }
 	}
 
 	// Get the selected rows or all if none are selected...
@@ -18470,55 +18608,8 @@ private void uiAction_TimeStepChoiceClicked()
 	if ( Message.isDebugOn ) {
 		Message.printStatus ( 2, rtn, "Time step has been selected:  \"" + selectedTimeStep + "\"" );
 	}
-
+	// Show the input filters that are appropriate for data time and timestep choices
 	ui_SetInputFilters();
-/* TODO SAM 2010-09-07 What is this?  Can it be removed?
-	else if ( dsource.equals(__INPUT_TYPE_RiversideDB) ) {
-		// Get the selected MeasType that match the choices so far
-		// and add to the data type modifiers (sub-data type)...
-		Vector v = null;
-		String data_type = StringUtil.getToken(
-			__data_type_JComboBox.getSelected(),
-			" ",0,0).trim();
-		try {	v = __rdmi.readMeasTypeListForTSIdent (
-				".." + data_type + "." +
-				__time_step_JComboBox.getSelected() + "." );
-		}
-		catch ( Exception e ) {
-			v = null;
-		}
-		int size = 0;
-		if ( v != null ) {
-			size = v.size();
-		}
-		String subtype = "";
-		RiversideDB_MeasType mt;
-		if ( size > 0 ) {
-			for ( int i = 0; i < size; i++ ) {
-				mt = (RiversideDB_MeasType)v.elementAt(i);
-				// Only add if not already listed.
-				// Alternatively - add a "distinct" query
-				subtype = mt.getSub_type();
-				if ( subtype.equals("") ) {
-					continue;
-				}
-				if (	!JGUIUtil.isSimpleJComboBoxItem(
-					__data_type_mod_JComboBox,
-					subtype, JGUIUtil.NONE, null, null)){
-					__data_type_mod_JComboBox.add (
-					subtype );
-				}
-			}
-			if ( __data_type_mod_JComboBox.getItemCount() == 0 ) {
-				__data_type_mod_JComboBox.add ( _MOD_NONE );
-			}
-			__data_type_mod_JComboBox.setEnabled ( true );
-		}
-		else {	__data_type_mod_JComboBox.setEnabled ( false );
-			__data_type_mod_JComboBox.add ( _MOD_NONE );
-		}
-	}
-*/
 }
 
 /**
