@@ -875,6 +875,12 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         // Specific configuration files will indicate if enabled
         packagePath = "riverside.datastore.";
     }
+    else if ( dataStoreType.equalsIgnoreCase("HydroBaseDataStore") ) {
+        propValue = getPropValue("TSTool.HydroBaseEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "DWR.DMI.HydroBaseDMI.";
+        }
+    }
     else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
@@ -946,7 +952,7 @@ In the UI, the user may subsequently open new connections (File...Open...Riversi
 openRiversideDB() method will be called directly (no need to deal with the main TSTool configuration file).
 */
 protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
-{   String routine = "TSToolMain.openDataStoreStartup";
+{   String routine = "TSToolMain.openDataStoresAtStartup";
     String configFile = getConfigFile();
 
     // Use the configuration file to get RiversideDB properties...
