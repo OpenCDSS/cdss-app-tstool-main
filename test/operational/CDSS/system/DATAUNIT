@@ -51,6 +51,10 @@ DLES|OTHR|PPM |ENG| PARTS PER MILLION                   |3|1.       ||
 DLES|OTHR|MBTU|ENG| MILLIIONS OF BRITISH THERMAL UNITS  |3|1.       ||
 DLES|OTHR|LB  |ENG| POUNDS                              |2|1.       ||
 DLES|OTHR|LB/MBTU|ENG| POUNDS PER MILLIONS BTU          |3|1.       ||
+#
+DLES|OTHR|PERSON|| PERSONS (POPULATION)                 |0|1.       ||
+DLES|OTHR|PERSONS|| PERSONS (POPULATION)                |0|1.       ||
+DLES|OTHR|HEAD|| LIVESTOCK HEAD                         |0|1.       ||
 # ENERGY
 E   |BASE|KWH |   | KILOWATT HOURS                      |1|1.       ||
 E   |OTHR|KKWH|   | THOUSAND KILOWATT HOURS             |1|1000.    ||
