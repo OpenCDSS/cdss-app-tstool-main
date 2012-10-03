@@ -5124,7 +5124,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
     }
-	else if ( selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
+	else if ( ((selectedDataStore != null) && (selectedDataStore instanceof HydroBaseDataStore)) ||
+	    selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel){
 		    // Station time series
 		    TSTool_HydroBase_StationGeolocMeasType_TableModel model =
@@ -5427,8 +5428,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
 	}
 	else {
-	    String routine = getClass().getName() +
-	    ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
+	    String routine = getClass().getName() + ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
 	    Message.printWarning(1, routine, "Transfer from query list to commands has not been implemented for \"" +
             selectedInputType + "\" input type." );
 	    numCommandsAdded = 0;
@@ -6780,7 +6780,9 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel hbpanel =
                 (HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel)panel;
             HydroBaseDMI hbdmi = (HydroBaseDMI)hbpanel.getDataStore().getDMI();
-            if ( hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) ) {
+            // Do not want to match the legacy DMI
+            if ( hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
+                !hbpanel.getDataStore().getIsLegacyDMI() ) {
                 if ( HydroBase_Util.isGroundWaterWellTimeSeriesDataType ( hbdmi, hbMeasType) &&
                     selectedTimeStep.equalsIgnoreCase("Irregular")) {
                     //Message.printStatus(2, routine, "Setting station (groundwater) input filter panel visible.");
@@ -6799,7 +6801,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel hbpanel =
                 (HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel)panel;
             HydroBaseDMI hbdmi = (HydroBaseDMI)hbpanel.getDataStore().getDMI();
-            if ( hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) ) {
+            if ( hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 //Message.printStatus(2, routine, "Panel includSFUT=" + hbpanel.getIncludeSFUT());
                 if ( !hbpanel.getIncludeSFUT() && HydroBase_Util.isStructureTimeSeriesDataType ( hbdmi, hbMeasType) &&
                     !HydroBase_Util.isStructureSFUTTimeSeriesDataType ( hbdmi, hbMeasType) ) {
@@ -6822,7 +6825,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 // Message.printStatus(2, routine, "Setting CASS crop stats input filter panel visible.");
                 return panel;
             }
@@ -6835,7 +6839,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 // Message.printStatus(2, routine, "Setting CASS livestock stats input filter panel visible.");
                 return panel;
             }
@@ -6848,7 +6853,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isCUPopulationTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isCUPopulationTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 //Message.printStatus(2, routine, "Setting CU population input filter panel visible.");
                 return panel;
             }
@@ -6861,7 +6867,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI() ) {
                 //Message.printStatus(2, routine, "Setting NASS crop stats input filter panel visible.");
                 return panel;
             }
@@ -6874,7 +6881,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isIrrigSummaryTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isIrrigSummaryTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 //Message.printStatus(2, routine, "Setting irrig summary input filter panel visible.");
                 return panel;
             }
@@ -6888,7 +6896,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isGroundWaterWellTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isGroundWaterWellTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 // Message.printStatus(2, routine, "Setting groundwater wells input filter panel visible.");
                 return panel;
             }
@@ -6901,7 +6910,8 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
             String hbMeasType = hb_mt[0];
             if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isWISTimeSeriesDataType ( hbdmi, hbMeasType) ) {
+                HydroBase_Util.isWISTimeSeriesDataType ( hbdmi, hbMeasType) &&
+                !hbpanel.getDataStore().getIsLegacyDMI()) {
                 // Message.printStatus(2, routine, "Setting WIS input filter panel visible.");
                 return panel;
             }
@@ -7617,64 +7627,14 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
             }
         	if ( __source_MexicoCSMN_enabled ) {
-                List<InputFilter> input_filters = null;
-                InputFilter filter = null;
-        		// Add input filters using text fields...
-        		// Later may put this code in the MexicoCSMN package since it may be used by other interfaces...
-        		input_filters = new Vector(2);
-        		List<String> statenum_Vector = new Vector (32);
-        		statenum_Vector.add ( "01 - Aguascalientes" );
-        		statenum_Vector.add ( "02 - Baja California" );
-        		statenum_Vector.add ( "03 - Baja California Sur" );
-        		statenum_Vector.add ( "04 - Campeche" );
-        		statenum_Vector.add ( "05 - Coahuila" );
-        		statenum_Vector.add ( "06 - Colima" );
-        		statenum_Vector.add ( "07 - Chiapas" );
-        		statenum_Vector.add ( "08 - Chihuahua" );
-        		statenum_Vector.add ( "09 - Distrito Federal" );
-        		statenum_Vector.add ( "10 - Durango" );
-        		statenum_Vector.add ( "11 - Guanajuato" );
-        		statenum_Vector.add ( "12 - Guerrero" );
-        		statenum_Vector.add ( "13 - Hidalgo" );
-        		statenum_Vector.add ( "14 - Jalisco" );
-        		statenum_Vector.add ( "15 - Mexico" );
-        		statenum_Vector.add ( "16 - Michoacan" );
-        		statenum_Vector.add ( "17 - Morelos" );
-        		statenum_Vector.add ( "18 - Nayarit" );
-        		statenum_Vector.add ( "19 - Nuevo Leon" );
-        		statenum_Vector.add ( "20 - Oaxaca" );
-        		statenum_Vector.add ( "21 - Puebla" );
-        		statenum_Vector.add ( "22 - Queretaro" );
-        		statenum_Vector.add ( "23 - Quintana Roo" );
-        		statenum_Vector.add ( "24 - San Luis Potosi" );
-        		statenum_Vector.add ( "25 - Sinaloa" );
-        		statenum_Vector.add ( "26 - Sonora" );
-        		statenum_Vector.add ( "27 - Tabasco" );
-        		statenum_Vector.add ( "28 - Tamaulipas" );
-        		statenum_Vector.add ( "29 - Tlaxcala" );
-        		statenum_Vector.add ( "30 - Veracruz" );
-        		statenum_Vector.add ( "31 - Yucatan" );
-        		statenum_Vector.add ( "32 - Zacatecas" );
-        		input_filters.add ( new InputFilter (
-        			"", "",
-        			StringUtil.TYPE_STRING,
-        			null, null, true ) );	// Blank to disable filter
-        		input_filters.add ( new InputFilter ( "Station Name", "Station Name",
-        			StringUtil.TYPE_STRING,
-        			null, null, true ) );
-        		filter = new InputFilter ( "State Number", "Station Number",
-        			StringUtil.TYPE_INTEGER,
-        			statenum_Vector, statenum_Vector, true );
-        		filter.setTokenInfo("-",0);
-        		input_filters.add ( filter );
-                JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMexicoCSMN_JPanel =
-        			new InputFilter_JPanel ( input_filters, 2, -1 ), 
-        			0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-        			GridBagConstraints.WEST );
-        		__inputFilterMexicoCSMN_JPanel.setToolTipText (
-        			"<html>Mexico CSMN queries can be filtered<br>based on station data.</html>" );
-        		__inputFilterMexicoCSMN_JPanel.setName ( "MexicoCSMN.InputFilterPanel" );
-        		__inputFilterJPanelList.add ( __inputFilterMexicoCSMN_JPanel );
+                try {
+                    ui_InitGUIInputFiltersMexicoCSMN( y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing Mexico CSMN data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
         	}
          	if ( __source_NWSRFS_FS5Files_enabled ) {
         		// Add input filters for NWSRFS FS5 files.
@@ -7763,12 +7723,10 @@ private void ui_InitGUIInputFilters ( final int y )
         	repaint();
         }
     };
-    if ( SwingUtilities.isEventDispatchThread() )
-    {
+    if ( SwingUtilities.isEventDispatchThread() ) {
         r.run();
     }
-    else 
-    {
+    else {
         SwingUtilities.invokeLater ( r );
     }
 }
@@ -8042,7 +8000,7 @@ private void ui_InitGUIInputFiltersHydroBaseLegacy ( HydroBaseDataStore dataStor
             __inputFilterJPanelList.remove (__inputFilterHydroBaseStation_JPanel );
         }
         __inputFilterHydroBaseStation_JPanel = new
-        HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel( ui_GetHydroBaseDataStoreLegacy() );
+            HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel( ui_GetHydroBaseDataStoreLegacy() );
         JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseStation_JPanel,
             0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             GridBagConstraints.WEST );
@@ -8440,6 +8398,73 @@ private void ui_InitGUIInputFiltersHydroBase ( List<DataStore> dataStoreList, in
             Message.printWarning ( 2, routine, e );
         }
     }
+}
+
+/**
+Initialize the Mexico CSMN input filters.
+*/
+private void ui_InitGUIInputFiltersMexicoCSMN ( int y )
+{   //String routine = getClass().getName() + ".ui_InitGUIInputFiltersMexicoCSMN";
+    int buffer = 3;
+    Insets insets = new Insets(0,buffer,0,0);
+    List<InputFilter> input_filters = null;
+    InputFilter filter = null;
+    // Add input filters using text fields...
+    // Later may put this code in the MexicoCSMN package since it may be used by other interfaces...
+    input_filters = new Vector(2);
+    List<String> statenum_Vector = new Vector (32);
+    statenum_Vector.add ( "01 - Aguascalientes" );
+    statenum_Vector.add ( "02 - Baja California" );
+    statenum_Vector.add ( "03 - Baja California Sur" );
+    statenum_Vector.add ( "04 - Campeche" );
+    statenum_Vector.add ( "05 - Coahuila" );
+    statenum_Vector.add ( "06 - Colima" );
+    statenum_Vector.add ( "07 - Chiapas" );
+    statenum_Vector.add ( "08 - Chihuahua" );
+    statenum_Vector.add ( "09 - Distrito Federal" );
+    statenum_Vector.add ( "10 - Durango" );
+    statenum_Vector.add ( "11 - Guanajuato" );
+    statenum_Vector.add ( "12 - Guerrero" );
+    statenum_Vector.add ( "13 - Hidalgo" );
+    statenum_Vector.add ( "14 - Jalisco" );
+    statenum_Vector.add ( "15 - Mexico" );
+    statenum_Vector.add ( "16 - Michoacan" );
+    statenum_Vector.add ( "17 - Morelos" );
+    statenum_Vector.add ( "18 - Nayarit" );
+    statenum_Vector.add ( "19 - Nuevo Leon" );
+    statenum_Vector.add ( "20 - Oaxaca" );
+    statenum_Vector.add ( "21 - Puebla" );
+    statenum_Vector.add ( "22 - Queretaro" );
+    statenum_Vector.add ( "23 - Quintana Roo" );
+    statenum_Vector.add ( "24 - San Luis Potosi" );
+    statenum_Vector.add ( "25 - Sinaloa" );
+    statenum_Vector.add ( "26 - Sonora" );
+    statenum_Vector.add ( "27 - Tabasco" );
+    statenum_Vector.add ( "28 - Tamaulipas" );
+    statenum_Vector.add ( "29 - Tlaxcala" );
+    statenum_Vector.add ( "30 - Veracruz" );
+    statenum_Vector.add ( "31 - Yucatan" );
+    statenum_Vector.add ( "32 - Zacatecas" );
+    input_filters.add ( new InputFilter (
+        "", "",
+        StringUtil.TYPE_STRING,
+        null, null, true ) );   // Blank to disable filter
+    input_filters.add ( new InputFilter ( "Station Name", "Station Name",
+        StringUtil.TYPE_STRING,
+        null, null, true ) );
+    filter = new InputFilter ( "State Number", "Station Number",
+        StringUtil.TYPE_INTEGER,
+        statenum_Vector, statenum_Vector, true );
+    filter.setTokenInfo("-",0);
+    input_filters.add ( filter );
+    JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMexicoCSMN_JPanel =
+        new InputFilter_JPanel ( input_filters, 2, -1 ), 
+        0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+        GridBagConstraints.WEST );
+    __inputFilterMexicoCSMN_JPanel.setToolTipText (
+        "<html>Mexico CSMN queries can be filtered<br>based on station data.</html>" );
+    __inputFilterMexicoCSMN_JPanel.setName ( "MexicoCSMN.InputFilterPanel" );
+    __inputFilterJPanelList.add ( __inputFilterMexicoCSMN_JPanel );
 }
 
 /**
@@ -9100,12 +9125,14 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_CopyTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CopyTable_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDataStore_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDBF_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDBF_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
@@ -9123,6 +9150,7 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
@@ -9964,7 +9992,7 @@ private void ui_SetHydroBaseDataStoreLegacy ( HydroBaseDMI hbdmi )
         __hbDataStoreLegacy = null;
     }
     else {
-        __hbDataStoreLegacy = new HydroBaseDataStore( "HydroBase", "State of Colorado HydroBase database", hbdmi );
+        __hbDataStoreLegacy = new HydroBaseDataStore( "HydroBase", "State of Colorado HydroBase database", hbdmi, true );
     }
 }
 
@@ -10022,6 +10050,7 @@ when a data store is opened.
 private void ui_SetInputFilterForSelections()
 {	String routine = getClass().getName() + ".ui_SetInputFiltersForSelections";
     String selectedDataStoreName = null;
+    // Get the selected data store from the user selections....
     DataStore selectedDataStore = ui_GetSelectedDataStore();
     if ( selectedDataStore != null ) {
         selectedDataStoreName = selectedDataStore.getName();
@@ -12147,8 +12176,17 @@ private void uiAction_DataTypeChoiceClicked()
         // HEC-DSS database file - the time step is set when the
         // input name is selected so do nothing here.
     }
-	else if ( selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
-	    List<String> time_steps = HydroBase_Util.getTimeSeriesTimeSteps (ui_GetHydroBaseDMILegacy(),
+	else if ( ((selectedDataStore != null) && (selectedDataStore instanceof HydroBaseDataStore)) ||
+	    selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
+	    HydroBaseDMI hbdmi = null;
+	    if ( selectedDataStore != null ) {
+	        HydroBaseDataStore ds = (HydroBaseDataStore)selectedDataStore;
+	        hbdmi = (HydroBaseDMI)ds.getDMI();
+	    }
+	    else {
+	        hbdmi = ui_GetHydroBaseDMILegacy();
+	    }
+	    List<String> time_steps = HydroBase_Util.getTimeSeriesTimeSteps (hbdmi,
 	        selectedDataType,
 			HydroBase_Util.DATA_TYPE_AGRICULTURE |
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
