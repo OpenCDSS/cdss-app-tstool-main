@@ -13035,19 +13035,22 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
                 JWorksheet_DefaultTableCellRenderer cr = null;
                 if ( o instanceof HydroBase_StationGeolocMeasType ) {
                     __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
-                        __query_JWorksheet, tslist );
+                        __query_JWorksheet, tslist,
+                        dataStore.getName() );
                     cr = new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
                         (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
                 }
                 else if ( o instanceof HydroBase_StructureGeolocStructMeasType ) {
                     __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel (
-                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
+                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist,
+                        dataStore.getName() );
                     cr = new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
                         (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
                 }
                 else if (o instanceof HydroBase_GroundWaterWellsView) {
                     __query_TableModel = new TSTool_HydroBase_GroundWaterWellsView_TableModel (
-                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
+                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist,
+                        dataStore.getName());
                     cr = new TSTool_HydroBase_GroundWaterWellsView_CellRenderer(
                         (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel);
                 }
@@ -19088,7 +19091,7 @@ throws Exception
 		// Write the shapefile...
 
 		layer.writeShapefile ( "F:\\home\\beware\\sam\\testflow", false, false, null );
-		table.writeDelimitedFile ("F:\\home\\beware\\sam\\testflow.csv", ",", true, null );
+		table.writeDelimitedFile ("F:\\home\\beware\\sam\\testflow.csv", ",", true, null, "" );
 	}
 	else if ( test_num == 9 ) {
 		// Read a DateValue file and test creating a graph.
