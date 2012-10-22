@@ -466,7 +466,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.12.00beta (2012-10-01)";
+public static final String PROGRAM_VERSION = "10.13.00beta (2012-10-03)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -903,6 +903,12 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         propValue = getPropValue("TSTool.UsgsNwisDailyEnabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.usgs.nwis.daily.";
+        }
+    }
+    else if ( dataStoreType.equalsIgnoreCase("UsgsNwisGroundwaterDataStore") ) {
+        propValue = getPropValue("TSTool.UsgsNwisGroundwaterEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.usgs.nwis.groundwater.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("WaterOneFlowDataStore") ) {
