@@ -911,6 +911,12 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             packagePath = "rti.tscommandprocessor.commands.usgs.nwis.groundwater.";
         }
     }
+    else if ( dataStoreType.equalsIgnoreCase("UsgsNwisInstantaneousDataStore") ) {
+        propValue = getPropValue("TSTool.UsgsNwisInstantaneousEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.usgs.nwis.instantaneous.";
+        }
+    }
     else if ( dataStoreType.equalsIgnoreCase("WaterOneFlowDataStore") ) {
         propValue = getPropValue("TSTool.WaterOneFlowEnabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
