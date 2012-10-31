@@ -91,6 +91,8 @@ import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisDaily_TimeSeries_
 import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisSiteTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.usgs.nwis.groundwater.UsgsNwisGroundwaterDataStore;
 import rti.tscommandprocessor.commands.usgs.nwis.groundwater.UsgsNwisGroundwater_TimeSeries_InputFilter_JPanel;
+import rti.tscommandprocessor.commands.usgs.nwis.instantaneous.UsgsNwisInstantaneousDataStore;
+import rti.tscommandprocessor.commands.usgs.nwis.instantaneous.UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
@@ -870,6 +872,7 @@ private boolean
 	__source_StateModB_enabled = true,
 	__source_UsgsNwisDaily_enabled = true,
 	__source_UsgsNwisGroundwater_enabled = true,
+	__source_UsgsNwisInstantaneous_enabled = true,
 	__source_UsgsNwisRdb_enabled = true,
 	__source_WaterML_enabled = true,
 	__source_WaterOneFlow_enabled = true;
@@ -1073,6 +1076,7 @@ JMenuItem
 	__Commands_Read_ReadTimeSeries_JMenuItem,
 	__Commands_Read_ReadUsgsNwisDaily_JMenuItem,
 	__Commands_Read_ReadUsgsNwisGroundwater_JMenuItem,
+	__Commands_Read_ReadUsgsNwisInstantaneous_JMenuItem,
 	__Commands_Read_ReadUsgsNwisRdb_JMenuItem,
 	__Commands_Read_ReadWaterML_JMenuItem,
 	__Commands_Read_ReadWaterOneFlow_JMenuItem,
@@ -1131,7 +1135,6 @@ JMenuItem
 	__Commands_Manipulate_Divide_JMenuItem,
 	__Commands_Manipulate_Free_JMenuItem,
 	__Commands_Manipulate_Multiply_JMenuItem,
-	__Commands_Manipulate_RunningAverage_JMenuItem,
 	__Commands_Manipulate_Scale_JMenuItem,
 	__Commands_Manipulate_ShiftTimeByInterval_JMenuItem,
 	__Commands_Manipulate_Subtract_JMenuItem;
@@ -1296,7 +1299,8 @@ JMenuItem
 JMenu
 	__Commands_Deprecated_JMenu = null;
 JMenuItem
-	__Commands_Deprecated_OpenHydroBase_JMenuItem;
+	__Commands_Deprecated_OpenHydroBase_JMenuItem,
+	__Commands_Deprecated_RunningAverage_JMenuItem;
 
 // Run...
 
@@ -1503,8 +1507,9 @@ private String
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1+ time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1+ time series from a StateMod binary output file>",
 	__Commands_Read_ReadTimeSeries_String = TAB + "ReadTimeSeries()... <read 1 time series given a full TSID>",
-    __Commands_Read_ReadUsgsNwisDaily_String = TAB + "ReadUsgsNwisDaily()... <read 1+ time series from USGS NWIS daily value web service>",
+    __Commands_Read_ReadUsgsNwisDaily_String = TAB + "ReadUsgsNwisDaily()... <read 1+ time series from USGS NWIS daily values web service>",
     __Commands_Read_ReadUsgsNwisGroundwater_String = TAB + "ReadUsgsNwisGroundwater()... <read 1+ time series from USGS NWIS groundwater web service>",
+    __Commands_Read_ReadUsgsNwisInstantaneous_String = TAB + "ReadUsgsNwisInstantaneous()... <read 1+ time series from USGS NWIS instantaneous values web service>",
 	__Commands_Read_ReadUsgsNwisRdb_String = TAB + "ReadUsgsNwisRdb()... <read 1 time series from a USGS NWIS RDB file>",
     __Commands_Read_ReadWaterML_String = TAB + "ReadWaterML()... <read 1+ time series from a WaterML file>",
     __Commands_Read_ReadWaterOneFlow_String = TAB + "ReadWaterOneFlow()... <read 1+ time series from a WaterOneFlow web service>",
@@ -1554,7 +1559,6 @@ private String
 	__Commands_Manipulate_Divide_String = TAB +	"Divide()... <divide one TS by another TS>",
 	__Commands_Manipulate_Free_String = TAB + "Free()... <free time series>", 
 	__Commands_Manipulate_Multiply_String = TAB + "Multiply()... <multiply one TS by another TS>",
-	__Commands_Manipulate_RunningAverage_String = TAB +	"RunningAverage()... <convert TS to running average>",
 	__Commands_Manipulate_Scale_String = TAB + "Scale()... <scale TS by a constant>",
 	__Commands_Manipulate_ShiftTimeByInterval_String = TAB + "ShiftTimeByInterval()... <shift TS by an even interval>",
 	__Commands_Manipulate_Subtract_String = TAB + "Subtract()... <subtract one or more TS from another>",
@@ -1698,6 +1702,7 @@ private String
 
     __Commands_Deprecated_String = "Deprecated Commands",
     __Commands_Deprecated_OpenHydroBase_String = TAB + "OpenHydroBase()... <open HydroBase database connection - PHASING OUT>",
+    __Commands_Deprecated_RunningAverage_String = TAB + "RunningAverage()... <convert TS to running average - PHASING OUT>",
     
 	// Results menu choices (order in GUI)...
 
@@ -5444,6 +5449,25 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             "", "",
             use_alias, insertOffset );
     }
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input_name is needed to indicate the database.
+        TSTool_UsgsNwisInstantaneous_TableModel model = (TSTool_UsgsNwisInstantaneous_TableModel)__query_TableModel;
+        if (model.getSortOrder() != null) {
+            row = model.getSortOrder()[row];
+        }
+        UsgsNwisSiteTimeSeriesMetadata ts = (UsgsNwisSiteTimeSeriesMetadata)model.getData().get(row);
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+            (String)__query_TableModel.getValueAt ( row, model.COL_ID),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            ts.formatDataTypeForTSID(),
+            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+            null, // No scenario
+            null, // No sequence number
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
+            "", "",
+            use_alias, insertOffset );
+    }
 	// The following input types use the generic TSTool_TS_TableModel with
 	// no special considerations.  If the sequence number is non-blank in
 	// the worksheet, it will be transferred.
@@ -5978,7 +6002,6 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Divide_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Multiply_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( __Commands_Manipulate_RunningAverage_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Scale_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_ShiftTimeByInterval_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Subtract_JMenuItem, enabled);
@@ -6027,6 +6050,8 @@ private void ui_CheckGUIState ()
     
     JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem,enabled);
+    
+    JGUIUtil.setEnabled ( __Commands_Deprecated_RunningAverage_JMenuItem, enabled);
 
 	/* TODO - it is irritating to not be able to run commands
 	  when external input changes (or during debugging)...
@@ -6358,8 +6383,10 @@ private void ui_DataStoreList_Populate ()
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
         if ( dataStore.getClass().getName().endsWith(".UsgsNwisDailyDataStore") ||
-            dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore")) {
+            dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
+            dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
             // For now disable in the main browser since no interactive browsing ability
+            // FIXME SAM 2012-10-26 Enable when USGS site service is enabled.
             continue;
         }
         dataStoreNameList.add ( dataStore.getName() );
@@ -6630,6 +6657,14 @@ private void ui_EnableInputTypesForConfiguration ()
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisGroundwaterEnabled" );
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_UsgsNwisGroundwater_enabled = false;
+    }
+    
+    // UsgsNwisInstantaneous enabled by default...
+
+    __source_UsgsNwisInstantaneous_enabled = true;
+    propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisInstantaneousEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+        __source_UsgsNwisInstantaneous_enabled = false;
     }
 
     // UsgsNwisRdb enabled by default...
@@ -7011,6 +7046,14 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
         else if ( panel instanceof UsgsNwisGroundwater_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((UsgsNwisGroundwater_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+                // Have a match in the data store name so return the panel
+                return panel;
+            }
+        }
+        else if ( panel instanceof UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
                 // Have a match in the data store name so return the panel
                 return panel;
@@ -7765,6 +7808,17 @@ private void ui_InitGUIInputFilters ( final int y )
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
                     Message.printWarning(3, routine, "Error initializing USGS NWIS groundwater data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
+            if ( __source_UsgsNwisInstantaneous_enabled && (__tsProcessor.getDataStoresByType(UsgsNwisInstantaneousDataStore.class).size() > 0) ) {
+                try {
+                    ui_InitGUIInputFiltersUsgsNwisInstantaneous(
+                        __tsProcessor.getDataStoresByType(UsgsNwisInstantaneousDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing USGS NWIS instantaneous data store input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -8753,6 +8807,48 @@ private void ui_InitGUIInputFiltersUsgsNwisGroundwater ( List<DataStore> dataSto
 }
 
 /**
+Initialize the USGS NWIS instantaneous values input filter (may be called at startup).
+@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
+*/
+private void ui_InitGUIInputFiltersUsgsNwisInstantaneous ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisInstantaneous";
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " UsgsNwisInstantaneous data stores." );
+    String selectedDataType = ui_GetSelectedDataType();
+    String selectedTimeStep = ui_GetSelectedTimeStep();
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name...
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName (
+                dataStore.getName(), selectedDataType, selectedTimeStep );
+            // If the previous instance is not null, remove it from the list...
+            if ( ifp != null ) {
+                __inputFilterJPanelList.remove ( ifp );
+            }
+            // Create a new panel...
+            UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel newIfp =
+                new UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel((UsgsNwisInstantaneousDataStore)dataStore, 3);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            newIfp.setName("UsgsNwisInstantaneous.InputFilterPanel");
+            __inputFilterJPanelList.add ( newIfp );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for USGS NWIS instantaneous time series for data store \"" +
+                dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
+        }
+    }
+}
+
+/**
 Initialize the GUI menus.
 */
 private void ui_InitGUIMenus ()
@@ -8921,6 +9017,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisGroundwater_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisGroundwater_String, this) );
     }
+    if ( __source_UsgsNwisInstantaneous_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisInstantaneous_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisInstantaneous_String, this) );
+    }
     if ( __source_UsgsNwisRdb_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisRdb_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisRdb_String, this) );
@@ -9061,9 +9161,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Multiply_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Multiply_String, this ) );
-
-	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_RunningAverage_JMenuItem =
-		new SimpleJMenuItem(__Commands_Manipulate_RunningAverage_String, this ) );
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Scale_JMenuItem =
         new SimpleJMenuItem(__Commands_Manipulate_Scale_String, this ) );
@@ -9382,17 +9479,17 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_General_TestProcessing_TestCommand_String, this ) );
 
     // Add the deprecated menu if any data stores are enabled that have deprecated commands...
-    if ( __source_HydroBase_enabled ) {
-        __Commands_JMenu.addSeparator();
-        __Commands_JMenu.addSeparator();
-        __Commands_JMenu.add( __Commands_Deprecated_JMenu = new JMenu( __Commands_Deprecated_String, true ) );
-    }
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_Deprecated_JMenu = new JMenu( __Commands_Deprecated_String, true ) );
     // Handle each data store type separately under the main menu...
     if ( __source_HydroBase_enabled ) {
         __Commands_Deprecated_JMenu.setToolTipText("Commands that are slated for removal.");
         __Commands_Deprecated_JMenu.add (__Commands_Deprecated_OpenHydroBase_JMenuItem =
             new SimpleJMenuItem(__Commands_Deprecated_OpenHydroBase_String, this ) );
     }
+    __Commands_Deprecated_JMenu.add ( __Commands_Deprecated_RunningAverage_JMenuItem =
+        new SimpleJMenuItem(__Commands_Deprecated_RunningAverage_String, this ) );
 }
 
 /**
@@ -11189,6 +11286,9 @@ throws Exception
     else if (command.equals( __Commands_Read_ReadUsgsNwisGroundwater_String)){
         commandList_EditCommand ( __Commands_Read_ReadUsgsNwisGroundwater_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Read_ReadUsgsNwisInstantaneous_String)){
+        commandList_EditCommand ( __Commands_Read_ReadUsgsNwisInstantaneous_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Read_ReadUsgsNwisRdb_String)){
 		commandList_EditCommand ( __Commands_Read_ReadUsgsNwisRdb_String, null, CommandEditType.INSERT );
 	}
@@ -11349,9 +11449,6 @@ throws Exception
 	}
 	else if (command.equals(__Commands_Manipulate_Multiply_String) ) {
 		commandList_EditCommand ( __Commands_Manipulate_Multiply_String, null, CommandEditType.INSERT );
-	}
-	else if (command.equals(__Commands_Manipulate_RunningAverage_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_RunningAverage_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals(__Commands_Manipulate_Scale_String) ) {
 		commandList_EditCommand ( __Commands_Manipulate_Scale_String, null, CommandEditType.INSERT );
@@ -11716,6 +11813,9 @@ throws Exception
 
 	else if (command.equals(__Commands_Deprecated_OpenHydroBase_String)){
         commandList_EditCommand ( __Commands_Deprecated_OpenHydroBase_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_Deprecated_RunningAverage_String) ) {
+        commandList_EditCommand ( __Commands_Deprecated_RunningAverage_String, null, CommandEditType.INSERT );
     }
 	else {
 		// Chain to other actions...
@@ -12219,6 +12319,9 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof UsgsNwisGroundwaterDataStore ) {
             uiAction_SelectDataStore_UsgsNwisGroundwater ( (UsgsNwisGroundwaterDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof UsgsNwisInstantaneousDataStore ) {
+            uiAction_SelectDataStore_UsgsNwisInstantaneous ( (UsgsNwisInstantaneousDataStore)selectedDataStore );
+        }
     }
     catch ( Exception e ) {
         Message.printWarning( 2, routine, "Error selecting data store \"" + selectedDataStore.getName() + "\"" );
@@ -12574,6 +12677,15 @@ private void uiAction_DataTypeChoiceClicked()
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisGroundwaterDataStore)) {
         // Set intervals for the data type and trigger a select to populate the input filters
         UsgsNwisGroundwaterDataStore dataStore = (UsgsNwisGroundwaterDataStore)selectedDataStore;
+        __timeStep_JComboBox.removeAll ();
+        __timeStep_JComboBox.setEnabled ( true );
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.select ( null );
+        __timeStep_JComboBox.select ( 0 );
+    }
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore)) {
+        // Set intervals for the data type and trigger a select to populate the input filters
+        UsgsNwisInstantaneousDataStore dataStore = (UsgsNwisInstantaneousDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
         __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
@@ -12980,6 +13092,17 @@ private void uiAction_GetTimeSeriesListClicked()
         }
         catch ( Exception e ) {
             message = "Error reading USGS NWIS groundwater - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading USGS NWIS instantaneous values - cannot display time series list (" + e + ").";
             Message.printWarning ( 1, routine, message );
             Message.printWarning ( 3, routine, e );
             return;
@@ -14920,7 +15043,7 @@ throws IOException
 }
 
 /**
-Read USGS NWIS web service time series and list in the GUI.
+Read USGS NWIS daily values web service time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
 {   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders";
@@ -14986,7 +15109,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
 }
 
 /**
-Read USGS NWIS web service time series and list in the GUI.
+Read USGS NWIS groundwater web service time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders()
 {   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders";
@@ -15030,6 +15153,72 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders()
             __query_TableModel = new TSTool_UsgsNwisGroundwater_TableModel ( usgsNwisGroundwaterDataStore, results );
             TSTool_UsgsNwisGroundwater_CellRenderer cr =
                 new TSTool_UsgsNwisGroundwater_CellRenderer( (TSTool_UsgsNwisGroundwater_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+}
+
+/**
+Read USGS NWIS instantaneous values web service time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    DataStore dataStore = ui_GetSelectedDataStore ();
+    // The headers are a list of UsgsNwisTimeSeriesMetadata
+    try {
+        UsgsNwisInstantaneousDataStore usgsNwisInstantaneousDataStore = (UsgsNwisInstantaneousDataStore)dataStore;
+        queryResultsList_Clear ();
+
+        String dataType = ui_GetSelectedDataType();
+        String timeStep = ui_GetSelectedTimeStep();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+
+        List<UsgsNwisSiteTimeSeriesMetadata> results = null;
+        // Data type is shown with name so only use the first part of the choice
+        try {
+            results = usgsNwisInstantaneousDataStore.readSiteTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            Message.printWarning(1, rtn, "Error getting time series list from USGS NWIS (" + e + ").");
+            Message.printWarning(3, rtn, e );
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new TSTool_UsgsNwisInstantaneous_TableModel ( usgsNwisInstantaneousDataStore, results );
+            TSTool_UsgsNwisInstantaneous_CellRenderer cr =
+                new TSTool_UsgsNwisInstantaneous_CellRenderer( (TSTool_UsgsNwisInstantaneous_TableModel)__query_TableModel);
 
             __query_JWorksheet.setCellRenderer ( cr );
             __query_JWorksheet.setModel ( __query_TableModel );
@@ -16841,6 +17030,32 @@ throws Exception
     // Initialize the time series list with blank data list...
     __query_TableModel = new TSTool_UsgsNwisGroundwater_TableModel( dataStore, null);
     TSTool_UsgsNwisGroundwater_CellRenderer cr = new TSTool_UsgsNwisGroundwater_CellRenderer((TSTool_UsgsNwisGroundwater_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Refresh the query choices for the currently selected USGS NWIS instantaneous data store.
+*/
+private void uiAction_SelectDataStore_UsgsNwisInstantaneous ( UsgsNwisInstantaneousDataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
+    UsgsNwisInstantaneousDataStore dataStore = (UsgsNwisInstantaneousDataStore)selectedDataStore;
+    ui_SetInputNameVisible(false); // Not needed for data stores
+    // Get the list of valid object/data types from the data store
+    List<String> dataTypes = dataStore.getParameterStrings ( true );
+    
+    // Populate the list of available data types and select the first
+    __dataType_JComboBox.setEnabled ( true );
+    __dataType_JComboBox.removeAll ();
+    __dataType_JComboBox.setData ( dataTypes );
+    __dataType_JComboBox.select ( null );
+    __dataType_JComboBox.select ( 0 );
+    
+    // Initialize the time series list with blank data list...
+    __query_TableModel = new TSTool_UsgsNwisInstantaneous_TableModel( dataStore, null);
+    TSTool_UsgsNwisInstantaneous_CellRenderer cr = new TSTool_UsgsNwisInstantaneous_CellRenderer((TSTool_UsgsNwisInstantaneous_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
