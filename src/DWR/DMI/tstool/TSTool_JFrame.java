@@ -858,6 +858,7 @@ private boolean
 	__source_HydroBase_enabled = true,
 	__source_MexicoCSMN_enabled = false,
 	__source_MODSIM_enabled = true,
+	__source_NrcsAwdb_enabled = true,
 	__source_NWSCard_enabled = true,
 	__source_NWSRFS_FS5Files_enabled = false,
 	__source_NWSRFS_ESPTraceEnsemble_enabled = false,
@@ -1063,6 +1064,7 @@ JMenuItem
 	__Commands_Read_ReadHydroBase_JMenuItem,
 	__Commands_Read_ReadColoradoBNDSS_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
+	__Commands_Read_ReadNrcsAwdb_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
 	__Commands_Read_ReadNwsrfsFS5Files_JMenuItem,
 	__Commands_Read_ReadRccAcis_JMenuItem,
@@ -1496,6 +1498,7 @@ private String
     __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()... <read 1+ time series from a HEC-DSS database file>",
     __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()... <read 1+ time series from HydroBase>",
 	__Commands_Read_ReadMODSIM_String = TAB + "ReadMODSIM()... <read 1+ time ries from a MODSIM output file>",
+	__Commands_Read_ReadNrcsAwdb_String = TAB + "ReadNrcsAwdb()... <read 1+ time series from an NRCS AWDB datastore>",
 	__Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1+ time series from an NWS CARD file>",
 	__Commands_Read_ReadNwsrfsFS5Files_String = TAB + "ReadNwsrfsFS5Files()... <read 1 time series from NWSRFS FS5 files>",
 	__Commands_Read_ReadRccAcis_String = TAB + "ReadRccAcis()... <read 1+ time series from the RCC ACIS web service>",
@@ -6383,7 +6386,7 @@ private void ui_DataStoreList_Populate ()
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
         if ( dataStore.getClass().getName().endsWith(".UsgsNwisDailyDataStore") ||
-            dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
+            //dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
             // For now disable in the main browser since no interactive browsing ability
             // FIXME SAM 2012-10-26 Enable when USGS site service is enabled.
@@ -8967,6 +8970,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadMODSIM_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadMODSIM_String, this) );
 	}
+    if ( __source_NrcsAwdb_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNrcsAwdb_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadNrcsAwdb_String, this) );
+    }
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadNwsCard_String, this) );
@@ -11249,6 +11256,9 @@ throws Exception
 	else if (command.equals(__Commands_Read_ReadNwsCard_String)){
 		commandList_EditCommand ( __Commands_Read_ReadNwsCard_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals(__Commands_Read_ReadNrcsAwdb_String)){
+        commandList_EditCommand ( __Commands_Read_ReadNrcsAwdb_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Read_ReadRccAcis_String)){
         commandList_EditCommand ( __Commands_Read_ReadRccAcis_String, null, CommandEditType.INSERT );
     }

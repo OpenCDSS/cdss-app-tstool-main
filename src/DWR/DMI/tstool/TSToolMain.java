@@ -881,6 +881,12 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             packagePath = "DWR.DMI.HydroBaseDMI.";
         }
     }
+    else if ( dataStoreType.equalsIgnoreCase("NrcsAwdbDataStore") ) {
+        propValue = getPropValue("TSTool.NrcsAwdbEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.nrcs.awdb.";
+        }
+    }
     else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
@@ -941,6 +947,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
         else {
             // Data store is enabled
+            // Create the datastore instance using the properties in the configuration file
             DataStore dataStore = factory.create(dataStoreProps);
             // Add the data store to the processor
             processor.setPropContents ( "DataStore", dataStore );
@@ -1055,6 +1062,10 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
                 try {
                     // Get the properties from the file
                     dataStoreProps.readPersistent();
+                    // Also assign the configuration file path property to facilitate file processing later
+                    // (e.g., tolocate related files referenced in the configuration file, such as lists of data
+                    // that are not available from web services)
+                    dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                     openDataStore ( dataStoreProps, processor );
                 }
                 catch ( ClassNotFoundException e ) {
