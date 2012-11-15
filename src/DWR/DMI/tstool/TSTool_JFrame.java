@@ -1219,6 +1219,7 @@ JMenuItem
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_ReadTableFromDBF_JMenuItem,
     __Commands_Table_TimeSeriesToTable_JMenuItem,
+    __Commands_Table_TableToTimeSeries_JMenuItem,
     __Commands_Table_ManipulateTableString_JMenuItem,
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
@@ -1636,6 +1637,7 @@ private String
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
+    __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
     __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
@@ -9361,6 +9363,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_TableToTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_TableToTimeSeries_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
@@ -11665,6 +11669,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
         commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_TableToTimeSeries_String) ) {
+        commandList_EditCommand ( __Commands_Table_TableToTimeSeries_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
