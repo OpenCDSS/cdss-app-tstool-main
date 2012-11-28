@@ -22,7 +22,7 @@ extends JWorksheet_AbstractRowTableModel
 /**
 Number of columns in the table model, including the row number.
 */
-private final int __COLUMNS = 22;
+private final int __COLUMNS = 63;
 
 public final int COL_ID = 0;
 public final int COL_NAME = 1;
@@ -39,13 +39,55 @@ public final int COL_COUNTY = 11;
 public final int COL_STATE = 12;
 public final int COL_HUC = 13;
 public final int COL_BASIN = 14;
-public final int COL_DSS_AQUIFER1 =	15;
-public final int COL_DSS_AQUIFER2 = 16;
-public final int COL_LONG = 17;
-public final int COL_LAT = 18;
-public final int COL_UTM_X = 19;
-public final int COL_UTM_Y = 20;
-public final int COL_INPUT_TYPE = 21;
+public final int COL_MD = 15;
+public final int COL_DSS_AQUIFER1 =	16;
+public final int COL_DSS_AQUIFER2 = 17;
+public final int COL_DSS_AQUIFER_COMMENT = 18;
+public final int COL_AQUIFER1 = 19;
+public final int COL_AQUIFER2 = 20;
+public final int COL_AQUIFER_COMMENT = 21;
+public final int COL_LONG = 22;
+public final int COL_LAT = 23;
+public final int COL_UTM_X = 24;
+public final int COL_UTM_Y = 25;
+public final int COL_SPOTTER_VERSION = 26;
+public final int COL_LOC_ACCURACY = 27;
+public final int COL_PM = 28;
+public final int COL_TS = 29;
+public final int COL_TDIR = 30;
+public final int COL_TSA = 31;
+public final int COL_RNG = 32;
+public final int COL_RDIR = 33;
+public final int COL_RNGA = 34;
+public final int COL_SEC = 35;
+public final int COL_SECA = 36;
+public final int COL_Q160 = 37;
+public final int COL_Q40 = 38;
+public final int COL_Q10 = 39;
+public final int COL_COORDSNS = 40;
+public final int COL_COORDSNS_DIR = 41;
+public final int COL_COORDSEW = 42;
+public final int COL_COORDSWE_DIR = 43;
+public final int COL_ELEV = 44;
+public final int COL_ELEV_ACCURACY = 45;
+public final int COL_WELL_DEPTH = 46;
+public final int COL_TPERF = 47;
+public final int COL_BPERF = 48;
+public final int COL_YIELD = 49;
+public final int COL_BEDROCK_ELEV = 50;
+public final int COL_SAT_1965 = 51;
+public final int COL_REMARKS1 = 52;
+public final int COL_REMARKS2 = 53;
+// HydroBase data that might be useful but which may be all missing
+public final int COL_DATA_SOURCE_IDENTIFIER = 54;
+public final int COL_IDENTIFIER = 55;
+public final int COL_RECEIPT = 56;
+public final int COL_PERMITNO = 57;
+public final int COL_PERMITSUF = 58;
+public final int COL_PERMITRPL = 59;
+public final int COL_LOCNUM = 60;
+public final int COL_SITE_ID = 61;
+public final int COL_INPUT_TYPE = 62;
 
 private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
@@ -113,12 +155,53 @@ public String getColumnName(int columnIndex) {
 		case COL_STATE: return "State";
 		case COL_HUC: return "HUC";
 		case COL_BASIN: return "Basin";
+		case COL_MD: return "MD";
 		case COL_DSS_AQUIFER1: return "DSS Aquifer 1";
 		case COL_DSS_AQUIFER2: return "DSS Aquifer 2";
+		case COL_DSS_AQUIFER_COMMENT: return "DSS Aquifer Comment";
+		case COL_AQUIFER1: return "Aquifer 1";
+		case COL_AQUIFER2: return "Aquifer 2";
+		case COL_AQUIFER_COMMENT: return "Aquifer Comment";
         case COL_LONG: return "Longtitude";
         case COL_LAT: return "Latitude";
         case COL_UTM_X: return "UTM X";
         case COL_UTM_Y: return "UTM Y";
+        case COL_SPOTTER_VERSION: return "Spotter Version";
+        case COL_LOC_ACCURACY: return "Loc Acc";
+        case COL_PM: return "PM";
+        case COL_TS: return "TS";
+        case COL_TDIR: return "TSDir";
+        case COL_TSA: return "TSA";
+        case COL_RNG: return "Rng";
+        case COL_RDIR: return "RngDir";
+        case COL_RNGA: return "RngA";
+        case COL_SEC: return "Sec";
+        case COL_SECA: return "SecA";
+        case COL_Q160: return "Q160";
+        case COL_Q40: return "Q40";
+        case COL_Q10: return "Q10";
+        case COL_COORDSNS: return "CoordsNS";
+        case COL_COORDSNS_DIR: return "CoordsNS Dir";
+        case COL_COORDSEW: return "CoordsEW";
+        case COL_COORDSWE_DIR: return "CoordsEW Dir";
+        case COL_ELEV: return "Elevation";
+        case COL_ELEV_ACCURACY: return "Elev Acc";
+        case COL_WELL_DEPTH: return "Depth";
+        case COL_TPERF: return "Tperf";
+        case COL_BPERF: return "Bperf";
+        case COL_YIELD: return "Yield";
+        case COL_BEDROCK_ELEV: return "Bedrock Elev";
+        case COL_SAT_1965: return "Sat 1965";
+        case COL_REMARKS1: return "Remarks 1";
+        case COL_REMARKS2: return "Remarks 2";
+        case COL_DATA_SOURCE_IDENTIFIER: return "Data Source Identifier";
+        case COL_IDENTIFIER: return "Identifier";
+        case COL_RECEIPT: return "Receipt";
+        case COL_PERMITNO: return "Permit No";
+        case COL_PERMITSUF: return "Permit Suffix";
+        case COL_PERMITRPL: return "Permit Repl";
+        case COL_LOCNUM: return "USBR Locnum";
+        case COL_SITE_ID: return "USGS Site ID";
 		case COL_INPUT_TYPE: return "Input Type";
 		default: return "";
 	}
@@ -132,7 +215,8 @@ Returns column tooltips.
 public String [] getColumnToolTips ()
 {
     String [] toolTips = new String[__COLUMNS];
-    toolTips[COL_ID] = "Unique well identifier, typically the data source's primary identifier";
+    toolTips[COL_ID] = "Unique well identifier, typically the data source's primary identifier " +
+    	"(data source impacts identifier format)";
     toolTips[COL_NAME] = "Well name";
     toolTips[COL_DATA_SOURCE] = "Current source of the data, organization abbreviation";
     toolTips[COL_DATA_TYPE] = "Data type used by software, typically consistent with HydroBase";
@@ -147,12 +231,53 @@ public String [] getColumnToolTips ()
     toolTips[COL_STATE] = "State";
     toolTips[COL_HUC] = "Hydrlogic unit code (HUC)";
     toolTips[COL_BASIN] = "Groundwater basin";
-    toolTips[COL_DSS_AQUIFER1] = "Decision support system (DSS) Aquifer 1";
-    toolTips[COL_DSS_AQUIFER2] = "Decision support system (DSS) Aquifer 2";
+    toolTips[COL_MD] = "Management district code";
+    toolTips[COL_DSS_AQUIFER1] = "Decision support system (DSS) aquifer 1";
+    toolTips[COL_DSS_AQUIFER2] = "Decision support system (DSS) aquifer 2";
+    toolTips[COL_DSS_AQUIFER_COMMENT] = "Decision support system (DSS) aquifer comment";
+    toolTips[COL_AQUIFER1] = "Aquifer 1";
+    toolTips[COL_AQUIFER2] = "Aquifer 2";
+    toolTips[COL_AQUIFER_COMMENT] = "Aquifer comment";
     toolTips[COL_LONG] = "Longitude decimal degrees";
     toolTips[COL_LAT] = "Latitude decimal degrees";
     toolTips[COL_UTM_X] = "UTM X, meters";
     toolTips[COL_UTM_Y] = "UTM Y, meters";
+    toolTips[COL_SPOTTER_VERSION] = "Spotter version for coordinates";
+    toolTips[COL_LOC_ACCURACY] = "Accuracy of UTM coordinates";
+    toolTips[COL_PM] = "Principal meridian";
+    toolTips[COL_TS] = "Township number";
+    toolTips[COL_TDIR] = "Township direction";
+    toolTips[COL_TSA] = "Half township indicator";
+    toolTips[COL_RNG] = "Range number";
+    toolTips[COL_RDIR] = "Range direction";
+    toolTips[COL_RNGA] = "Half range indicator";
+    toolTips[COL_SEC] = "Section number";
+    toolTips[COL_SECA] = "Upper section indicator";
+    toolTips[COL_Q160] = "160 acre quarter section";
+    toolTips[COL_Q40] = "40 acre quarter section";
+    toolTips[COL_Q10] = "10 acre quarter section";
+    toolTips[COL_COORDSNS] = "Distance from north/south section line (feet)";
+    toolTips[COL_COORDSNS_DIR] = "Direction of measurement from north/south section line";
+    toolTips[COL_COORDSEW] = "Distance from east/west section line (feet)";
+    toolTips[COL_COORDSWE_DIR] = "Direction of measurement from east/west section line";
+    toolTips[COL_ELEV] = "Surface elevation (feet)";
+    toolTips[COL_ELEV_ACCURACY] = "Accuracy of surface elevation";
+    toolTips[COL_WELL_DEPTH] = "Completed depth of well (feet)";
+    toolTips[COL_TPERF] = "Depth to first perforated casing (feet)";
+    toolTips[COL_BPERF] = "Depth to base of last perforated casing (feet)";
+    toolTips[COL_YIELD] = "Actual pumping rate (gpm)";
+    toolTips[COL_BEDROCK_ELEV] = "Elevation of bedrock (feet)";
+    toolTips[COL_SAT_1965] = "Well's physical characteristics included in Senate Bill 5 modeling effort";
+    toolTips[COL_REMARKS1] = "Generic remarks";
+    toolTips[COL_REMARKS2] = "Generic remarks";
+    toolTips[COL_DATA_SOURCE_IDENTIFIER] = "Unique identifier used by data source to identify well";
+    toolTips[COL_IDENTIFIER] = "Other identifier for the measurement type, typically the primary data source's unique identifier";
+    toolTips[COL_RECEIPT] = "Unique well application (permit) identifier, generated by cash register";
+    toolTips[COL_PERMITNO] = "Well permit number";
+    toolTips[COL_PERMITSUF] = "Well suffix code";
+    toolTips[COL_PERMITRPL] = "Well replacement code ('A' for exempt, 'R' for non-exempt)";
+    toolTips[COL_LOCNUM] = "USBR location identifier string based on the well's PLSS location";
+    toolTips[COL_SITE_ID] = "USGS site identifier";
     toolTips[COL_INPUT_TYPE] = "Data store name";
     return toolTips;
 }
@@ -265,10 +390,20 @@ public Object getValueAt(int row, int col)
 		    return wv.getHUC();
 		case COL_BASIN:
 		    return wv.getBasin();
+		case COL_MD:
+            return wv.getMD();
 		case COL_DSS_AQUIFER1:
 		    return wv.getDSS_aquifer1();
 		case COL_DSS_AQUIFER2:
 		    return wv.getDSS_aquifer2();
+		case COL_DSS_AQUIFER_COMMENT:
+            return wv.getDSS_aquifer_comment();
+        case COL_AQUIFER1:
+            return wv.getAquifer1();
+        case COL_AQUIFER2:
+            return wv.getAquifer2();
+        case COL_AQUIFER_COMMENT:
+            return wv.getAquifer_comment();
         case COL_LONG:
             d = wv.getLongdecdeg();
             if ( DMIUtil.isMissing(d) ) {
@@ -301,6 +436,168 @@ public Object getValueAt(int row, int col)
             else {
                 return "" + StringUtil.formatString(d,"%.3f");
             }
+        case COL_SPOTTER_VERSION:
+            return wv.getSpotter_version();
+        case COL_LOC_ACCURACY:
+            i = wv.getLoc_accuracy();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_PM:
+            return wv.getPM();
+        case COL_TS:
+            i = wv.getTS();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_TDIR:
+            return wv.getTdir();
+        case COL_TSA:
+            return wv.getTsa();
+        case COL_RNG:
+            i = wv.getRng();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_RDIR:
+            return wv.getRdir();
+        case COL_RNGA:
+            return wv.getRnga();
+        case COL_SEC:
+            i = wv.getSec();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_SECA:
+            return wv.getSeca();
+        case COL_Q160:
+            return wv.getQ160();
+        case COL_Q40:
+            return wv.getQ40();
+        case COL_Q10:
+            return wv.getQ10();
+        case COL_COORDSNS:
+            i = wv.getCoordsns();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_COORDSNS_DIR:
+            return wv.getCoordsns_dir();
+        case COL_COORDSEW:
+            i = wv.getCoordsew();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_COORDSWE_DIR:
+            return wv.getCoordsew_dir();
+        case COL_ELEV:
+            d = wv.getElev();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.0f");
+            }
+        case COL_ELEV_ACCURACY:
+            d = wv.getElev_accuracy();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.0f");
+            }
+        case COL_WELL_DEPTH:
+            i = wv.getWell_depth();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_TPERF:
+            i = wv.getTperf();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_BPERF:
+            i = wv.getBperf();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_YIELD:
+            d = wv.getYield();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.2f");
+            }
+        case COL_BEDROCK_ELEV:
+            d = wv.getBedrock_elev();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.0f");
+            }
+        case COL_SAT_1965:
+            d = wv.getSat_1965();
+            if ( DMIUtil.isMissing(d) ) {
+                return "";
+            }
+            else {
+                return "" + StringUtil.formatString(d,"%.0f");
+            }
+        case COL_REMARKS1:
+            return wv.getRemarks1();
+        case COL_REMARKS2:
+            return wv.getRemarks2();
+        case COL_DATA_SOURCE_IDENTIFIER:
+            return wv.getData_source_id();
+        case COL_IDENTIFIER:
+            return wv.getIdentifier();
+        case COL_RECEIPT:
+            return wv.getReceipt();
+        case COL_PERMITNO:
+            i = wv.getPermitno();
+            if ( DMIUtil.isMissing(i) ) {
+                return "";
+            }
+            else {
+                return "" + i;
+            }
+        case COL_PERMITSUF:
+            return wv.getPermitsuf();
+        case COL_PERMITRPL:
+            return wv.getPermitrpl();
+        case COL_LOCNUM:
+            return wv.getLoc_num();
+        case COL_SITE_ID:
+            return wv.getSite_id();
 		case COL_INPUT_TYPE:
 		    return __inputType;
 		default:
@@ -329,13 +626,54 @@ public int[] getColumnWidths() {
 	widths[COL_STATE] = 3; // State
 	widths[COL_HUC] = 8; // HUC
 	widths[COL_BASIN] = 20; // Basin
-	widths[COL_DSS_AQUIFER1] = 10; // DSS Aquifer 1
-	widths[COL_DSS_AQUIFER2] = 10; // DSS Aquifer 2
+	widths[COL_MD] = 2;
+	widths[COL_DSS_AQUIFER1] = 9; // DSS Aquifer 1
+	widths[COL_DSS_AQUIFER2] = 9; // DSS Aquifer 2
+	widths[COL_DSS_AQUIFER_COMMENT] = 15;
+	widths[COL_AQUIFER1] = 6;
+	widths[COL_AQUIFER2] = 6;
+	widths[COL_AQUIFER_COMMENT] = 11;
     widths[COL_LONG] = 8;
     widths[COL_LAT] = 8;
     widths[COL_UTM_X] = 8;
     widths[COL_UTM_Y] = 8;
-	widths[COL_INPUT_TYPE] = 12; // Input Type
+    widths[COL_SPOTTER_VERSION] = 10;
+    widths[COL_LOC_ACCURACY] = 5;
+    widths[COL_PM] = 2;
+    widths[COL_TS] = 2;
+    widths[COL_TDIR] = 4;
+    widths[COL_TSA] = 3;
+    widths[COL_RNG] = 3;
+    widths[COL_RDIR] = 4;
+    widths[COL_RNGA] = 4;
+    widths[COL_SEC] = 2;
+    widths[COL_SECA] = 4;
+    widths[COL_Q160] = 3;
+    widths[COL_Q40] = 3;
+    widths[COL_Q10] = 3;
+    widths[COL_COORDSNS] = 6;
+    widths[COL_COORDSNS_DIR] = 9;
+    widths[COL_COORDSEW] = 7;
+    widths[COL_COORDSWE_DIR] = 9;
+    widths[COL_ELEV] = 5;
+    widths[COL_ELEV_ACCURACY] = 5;
+    widths[COL_WELL_DEPTH] = 5;
+    widths[COL_TPERF] = 5;
+    widths[COL_BPERF] = 5;
+    widths[COL_YIELD] = 5;
+    widths[COL_BEDROCK_ELEV] = 8;
+    widths[COL_SAT_1965] = 5;
+    widths[COL_REMARKS1] = 10;
+    widths[COL_REMARKS2] = 10;
+    widths[COL_DATA_SOURCE_IDENTIFIER] = 15;
+    widths[COL_IDENTIFIER] = 10;
+    widths[COL_RECEIPT] = 8;
+    widths[COL_PERMITNO] = 8;
+    widths[COL_PERMITSUF] = 8;
+    widths[COL_PERMITRPL] = 7;
+    widths[COL_LOCNUM] = 12;
+    widths[COL_SITE_ID] = 12;
+	widths[COL_INPUT_TYPE] = 12;
 	return widths;
 }
 
