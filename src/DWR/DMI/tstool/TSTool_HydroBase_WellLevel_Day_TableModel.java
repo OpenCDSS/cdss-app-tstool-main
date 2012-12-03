@@ -324,9 +324,12 @@ public Object getValueAt(int row, int col)
 				// Well with a different identifier to display.
 				return wv.getIdentifier();
 			}
+			else if ( (wv.getWD() > 0) && (wv.getID() > 0) ) {
+			    return HydroBase_WaterDistrict.formWDID (__wdid_length, wv.getWD(), wv.getID() );
+			}
 			else {
 			    // A structure other than wells...
-				return HydroBase_WaterDistrict.formWDID (__wdid_length, wv.getWD(), wv.getID() );
+				return wv.formatLatLongID();
 			}
 		case COL_NAME:
 		    return wv.getWell_name();
