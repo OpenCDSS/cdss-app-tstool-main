@@ -61,6 +61,7 @@
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-county.csv"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-state.csv"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/HydroBase.cfg"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/HydroBase-HBGuest.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/NrcsAwdb.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/UsgsNwisDaily.cfg"/>
