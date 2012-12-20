@@ -6387,12 +6387,14 @@ private void ui_DataStoreList_Populate ()
     dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
-        if ( dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
+        if ( dataStore.getClass().getName().endsWith(".GenericDatabaseDataStore") ||
+            dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisDailyDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
             // For now disable in the main browser since no interactive browsing ability has been implemented
-            // FIXME SAM 2012-10-26 Enable when USGS site service is enabled.
+            // FIXME SAM 2012-10-26 For USGS enable when USGS site service is enabled.
+            // FIXME SAM 2012-12-18 Enable with filter panel is developed specific to web services.
             continue;
         }
         dataStoreNameList.add ( dataStore.getName() );
@@ -13913,7 +13915,7 @@ throws Exception
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 	catch ( Exception e ) {
-		message = "Error reading time series list from HydroBase.";
+		message = "Error reading time series list from HydroBase (" + e + ").";
 		Message.printWarning ( 2, routine, message );
 		Message.printWarning ( 2, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
