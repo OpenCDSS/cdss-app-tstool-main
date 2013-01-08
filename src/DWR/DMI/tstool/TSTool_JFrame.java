@@ -1031,6 +1031,11 @@ private JMenuItem
 
 JMenu
 	__Commands_JMenu = null,
+	__Commands_SelectTimeSeries_JMenu = null;
+JMenuItem
+    __Commands_Select_DeselectTimeSeries_JMenuItem,
+    __Commands_Select_SelectTimeSeries_JMenuItem;
+JMenu
 	__Commands_CreateTimeSeries_JMenu = null;
 JMenuItem
     __Commands_Create_NewPatternTimeSeries_JMenuItem,
@@ -1161,11 +1166,9 @@ JMenuItem
 JMenu
 	__Commands_OutputTimeSeries_JMenu = null;
 JMenuItem
-	__Commands_Output_DeselectTimeSeries_JMenuItem,
 	__Commands_Output_SetOutputDetailedHeaders_JMenuItem,
 	__Commands_Output_SetOutputPeriod_JMenuItem,
 	__Commands_Output_SetOutputYearType_JMenuItem,
-	__Commands_Output_SelectTimeSeries_JMenuItem,
 	__Commands_Output_SortTimeSeries_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_WriteHecDss_JMenuItem,
@@ -1470,6 +1473,10 @@ private String
 	// Commands menu (order in GUI)...
 
 	__Commands_String = "Commands",
+	
+	__Commands_SelectTimeSeries_String = "Select Time Series",
+	__Commands_Select_DeselectTimeSeries_String = TAB + "DeselectTimeSeries()... <deselect time series for output/processing>",
+	__Commands_Select_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_NewPatternTimeSeries_String = TAB + "NewPatternTimeSeries()... <create a time series with repeating data values>",
@@ -1570,8 +1577,6 @@ private String
 	// Commands...Output Series menu...
 
 	__Commands_OutputTimeSeries_String = "Output Time Series",
-	__Commands_Output_DeselectTimeSeries_String = TAB +	"DeselectTimeSeries()... <deselect time series for output/processing>",
-	__Commands_Output_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
@@ -5956,6 +5961,9 @@ private void ui_CheckGUIState ()
 	    // Some commands are available so enable commands that operate on other time series
 	    enabled = true;
 	}
+    JGUIUtil.setEnabled ( __Commands_Select_DeselectTimeSeries_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Select_SelectTimeSeries_JMenuItem, enabled);
+	    
     JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, enabled);
@@ -6042,8 +6050,6 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( __Commands_Output_DeselectTimeSeries_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( __Commands_Output_SelectTimeSeries_JMenuItem, enabled);
     
     JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, enabled);
@@ -8882,6 +8888,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );
 	__Commands_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
 
+	__Commands_JMenu.add ( __Commands_SelectTimeSeries_JMenu = new JMenu(__Commands_SelectTimeSeries_String) );
+	__Commands_SelectTimeSeries_JMenu.setToolTipText("Select time series for processing (use with TSList=SelectedTS).");
+    __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_DeselectTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Select_DeselectTimeSeries_String, this ) );
+    __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_SelectTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Select_SelectTimeSeries_String, this ) );
+    __Commands_JMenu.addSeparator();
+
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
 	__Commands_CreateTimeSeries_JMenu.setToolTipText("Create time series from supplied values or other time series.");
 
@@ -9216,10 +9230,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=new JMenu(__Commands_OutputTimeSeries_String) );
 	__Commands_OutputTimeSeries_JMenu.setToolTipText("Write time series to files and databases.");
 
-	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_DeselectTimeSeries_JMenuItem =
-		new SimpleJMenuItem(__Commands_Output_DeselectTimeSeries_String, this ) );
-	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SelectTimeSeries_JMenuItem =
-		new SimpleJMenuItem(__Commands_Output_SelectTimeSeries_String, this ) );
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SetOutputDetailedHeaders_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputDetailedHeaders_String, this ) );
 	__Commands_OutputTimeSeries_JMenu.add(	__Commands_Output_SetOutputPeriod_JMenuItem =
@@ -11117,7 +11127,27 @@ throws Exception
     }
     else {
         // Chain to next set of actions...
-        uiAction_ActionPerformed05_CommandsCreateMenu(event);
+        uiAction_ActionPerformed04b_CommandsSelectMenu(event);
+    }
+}
+
+/**
+Handle a group of actions for the Commands...Select... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed04b_CommandsSelectMenu (ActionEvent event)
+throws Exception
+{   String command = event.getActionCommand();
+
+    if (command.equals( __Commands_Select_DeselectTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Select_DeselectTimeSeries_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Select_SelectTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Select_SelectTimeSeries_String, null, CommandEditType.INSERT );
+    }
+    else {
+        // Chain to next actions...
+        uiAction_ActionPerformed05_CommandsCreateMenu ( event );
     }
 }
 
@@ -11577,13 +11607,7 @@ private void uiAction_ActionPerformed13_CommandsOutputMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	if (command.equals( __Commands_Output_DeselectTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_DeselectTimeSeries_String, null, CommandEditType.INSERT );
-	}
-	else if (command.equals( __Commands_Output_SelectTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_SelectTimeSeries_String, null, CommandEditType.INSERT );
-	}
-	else if (command.equals(
+    if (command.equals(
 		__Commands_Output_SetOutputDetailedHeaders_String) ) {
 		commandList_EditCommand (__Commands_Output_SetOutputDetailedHeaders_String, null, CommandEditType.INSERT );
 	}
