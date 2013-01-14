@@ -18748,7 +18748,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2012\n" +
+        "Copyright 1997-2013 State of CO\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
@@ -18762,7 +18762,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2012\n" +
+        "Copyright 1997-2013\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
@@ -19832,7 +19832,7 @@ private void uiAction_ViewDocumentation ( String command )
     else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol2-CommandReference.pdf";
     }
-    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ) {
+    else if ( command.equals(__Help_ViewDocumentation_Vol3DatastoreReference_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol3-DatastoreReference.pdf";
     }
     // Convert for the operating system
