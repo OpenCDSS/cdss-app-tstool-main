@@ -742,6 +742,11 @@ filenames associated with __resultsOutputFiles_JList).
 private DefaultListModel __resultsOutputFiles_JListModel;
 
 /**
+Label for output file list, to indicate how many files.
+*/
+private JLabel __resultsOutputFiles_JLabel = null;
+
+/**
 Panel for results views.
 */
 private JPanel __resultsViews_JPanel;
@@ -1386,6 +1391,10 @@ private JMenu
 private JMenuItem
 	__Help_AboutTSTool_JMenuItem = null,
 	__Help_ViewDocumentation_JMenuItem = null,
+	__Help_ViewDocumentation_ReleaseNotes_JMenuItem = null,
+	__Help_ViewDocumentation_Vol1UserManual_JMenuItem = null,
+	__Help_ViewDocumentation_Vol2CommandReference_JMenuItem = null,
+	__Help_ViewDocumentation_Vol3DatastoreReference_JMenuItem = null,
 	__Help_ViewTrainingMaterials_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
@@ -1785,6 +1794,10 @@ private String
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
 		__Help_ViewDocumentation_String = "View Documentation",
+		__Help_ViewDocumentation_ReleaseNotes_String = "View Documentation - Release Notes",
+		__Help_ViewDocumentation_Vol1UserManual_String = "View Documentation - Vol1 User Manual",
+		__Help_ViewDocumentation_Vol2CommandReference_String = "View Documentation - Vol2 Command Reference",
+		__Help_ViewDocumentation_Vol3DatastoreReference_String = "View Documentation - Vol3 Datastore Reference",
 		__Help_ViewTrainingMaterials_String = "View Training Materials",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
@@ -7500,7 +7513,8 @@ private void ui_InitGUI ( )
     results_files_JPanel.setLayout(gbl);
     JGUIUtil.addComponent(center_JPanel, results_files_JPanel,
         0, 3, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
-    JGUIUtil.addComponent(results_files_JPanel, new JLabel ("Output files:"),
+    __resultsOutputFiles_JLabel = new JLabel ( "Output files:");
+    JGUIUtil.addComponent(results_files_JPanel, __resultsOutputFiles_JLabel,
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __resultsOutputFiles_JListModel = new DefaultListModel();
     __resultsOutputFiles_JList = new JList ( __resultsOutputFiles_JListModel );
@@ -9757,8 +9771,24 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	//menu_bar.setHelpMenu ( _help_JMenu );
 	__Help_JMenu.add ( __Help_AboutTSTool_JMenuItem = new SimpleJMenuItem(__Help_AboutTSTool_String,this));
 	__Help_JMenu.addSeparator();
-    __Help_JMenu.add ( __Help_ViewDocumentation_JMenuItem = new SimpleJMenuItem(__Help_ViewDocumentation_String,this));
-    __Help_JMenu.add ( __Help_ViewTrainingMaterials_JMenuItem = new SimpleJMenuItem(__Help_ViewTrainingMaterials_String,this));
+	File docFile = new File(IOUtil.verifyPathForOS(IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf",true));
+	if ( docFile.exists() ) {
+	    // Old single-PDF help document
+	    // TODO SAM 2013-01-08 Remove this when CDSS is only version of TSTool
+	    __Help_JMenu.add ( __Help_ViewDocumentation_JMenuItem = new SimpleJMenuItem(__Help_ViewDocumentation_String,this));
+	}
+	else {
+	    // Newer convention where documents are split apart.
+	    __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotes_JMenuItem =
+	       new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotes_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_Vol1UserManual_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_Vol1UserManual_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_Vol2CommandReference_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_Vol2CommandReference_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_Vol3DatastoreReference_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_Vol3DatastoreReference_String,this));
+	}
+	__Help_JMenu.add ( __Help_ViewTrainingMaterials_JMenuItem = new SimpleJMenuItem(__Help_ViewTrainingMaterials_String,this));
     __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
 	/* TODO SAM 2004-05-24 Help index features are not working as well now that
@@ -10654,7 +10684,15 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		commandList_GetFailureCount() + " with failures, " + commandList_GetWarningCount() + " with warnings)") );
 	}
 	
-	// Results (currently only update title for time series tab...
+	// Results ... Output Files
+	
+	int nof = 0;
+	if ( __resultsOutputFiles_JListModel != null ) { 
+	    nof = __resultsOutputFiles_JListModel.size();
+	}
+	__resultsOutputFiles_JLabel.setText ( "" + nof + " output files:");
+	
+	// Results ... Time Series
 	
 	selected_indices = __resultsTS_JList.getSelectedIndices();
 	selected_size = 0;
@@ -12217,8 +12255,12 @@ throws Exception
 	if ( command.equals ( __Help_AboutTSTool_String )) {
 		uiAction_ShowHelpAbout ( license_GetLicenseManager() );
 	}
-	else if ( command.equals ( __Help_ViewDocumentation_String )) {
-        uiAction_ViewDocumentation ();
+	else if ( command.equals ( __Help_ViewDocumentation_String ) ||
+	    command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ||
+        command.equals(__Help_ViewDocumentation_Vol1UserManual_String) ||
+        command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ||
+        command.equals(__Help_ViewDocumentation_Vol3DatastoreReference_String) ) {
+        uiAction_ViewDocumentation ( command );
     }
     else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
         uiAction_ViewTrainingMaterials ();
@@ -19772,21 +19814,46 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 
 /**
 View the documentation by displaying using the desktop application.
+@param command the string from the action event (menu string).
 */
-private void uiAction_ViewDocumentation ()
+private void uiAction_ViewDocumentation ( String command )
 {   String routine = getClass().getName() + ".uiAction_ViewDocumentation";
     // The location of the documentation is relative to the application home
-    String docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf";
+    String docFileName = "";
+    if ( command.equals(__Help_ViewDocumentation_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf";
+    }
+    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes.pdf";
+    }
+    else if ( command.equals(__Help_ViewDocumentation_Vol1UserManual_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol1-UserManual.pdf";
+    }
+    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol2-CommandReference.pdf";
+    }
+    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol3-DatastoreReference.pdf";
+    }
     // Convert for the operating system
     docFileName = IOUtil.verifyPathForOS(docFileName, true);
-    // Now display using the default application for the file extension
-    Message.printStatus(2, routine, "Opening documentation \"" + docFileName + "\"" );
-    try {
-        Desktop desktop = Desktop.getDesktop();
-        desktop.open ( new File(docFileName) );
+    File f = new File(docFileName);
+    if ( f.exists() && !f.canRead() ) {
+        Message.printWarning(1, "", "Unable to display documentation.  File permissions don't allow reading: \"" + docFileName + "\"" );
     }
-    catch ( Exception e ) {
-        Message.printWarning(1, "", "Unable to display documentation at \"" + docFileName + "\" (" + e + ")." );
+    else if ( !f.exists() ) {
+        Message.printWarning(1, "", "Unable to display documentation.  File does not exist: \"" + docFileName + "\"" );
+    }
+    else {
+        // Now display using the default application for the file extension
+        Message.printStatus(2, routine, "Opening documentation \"" + docFileName + "\"" );
+        try {
+            Desktop desktop = Desktop.getDesktop();
+            desktop.open ( new File(docFileName) );
+        }
+        catch ( Exception e ) {
+            Message.printWarning(1, "", "Unable to display documentation at \"" + docFileName + "\" (" + e + ")." );
+        }
     }
 }
 
