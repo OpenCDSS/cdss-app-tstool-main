@@ -1039,7 +1039,8 @@ JMenu
 	__Commands_SelectTimeSeries_JMenu = null;
 JMenuItem
     __Commands_Select_DeselectTimeSeries_JMenuItem,
-    __Commands_Select_SelectTimeSeries_JMenuItem;
+    __Commands_Select_SelectTimeSeries_JMenuItem,
+    __Commands_Select_Free_JMenuItem;
 JMenu
 	__Commands_CreateTimeSeries_JMenu = null;
 JMenuItem
@@ -1145,7 +1146,6 @@ JMenuItem
 	__Commands_Manipulate_ConvertDataUnits_JMenuItem,
 	__Commands_Manipulate_Cumulate_JMenuItem,
 	__Commands_Manipulate_Divide_JMenuItem,
-	__Commands_Manipulate_Free_JMenuItem,
 	__Commands_Manipulate_Multiply_JMenuItem,
 	__Commands_Manipulate_Scale_JMenuItem,
 	__Commands_Manipulate_ShiftTimeByInterval_JMenuItem,
@@ -1235,7 +1235,8 @@ JMenuItem
     __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem,
     __Commands_Table_CompareTables_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
-    __Commands_Table_WriteTableToHTML_JMenuItem;
+    __Commands_Table_WriteTableToHTML_JMenuItem,
+    __Commands_Table_FreeTable_JMenuItem;
 
 // Commands (Template Processing)...
 
@@ -1292,7 +1293,8 @@ JMenuItem
     __Commands_General_Running_RunPython_JMenuItem = null,
     __Commands_General_Running_RunDSSUTL_JMenuItem = null,
     __Commands_General_Running_Exit_JMenuItem = null,
-    __Commands_General_Running_SetWorkingDir_JMenuItem = null;
+    __Commands_General_Running_SetWorkingDir_JMenuItem = null,
+    __Commands_General_Running_ProfileCommands_JMenuItem = null;
 
 //Commands (General - Test Processing)...
 JMenu
@@ -1483,9 +1485,10 @@ private String
 
 	__Commands_String = "Commands",
 	
-	__Commands_SelectTimeSeries_String = "Select Time Series",
+	__Commands_SelectTimeSeries_String = "Select/Free Time Series",
 	__Commands_Select_DeselectTimeSeries_String = TAB + "DeselectTimeSeries()... <deselect time series for output/processing>",
 	__Commands_Select_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
+	__Commands_Select_Free_String = TAB + "Free()... <free time series (will not be available to later commands)>", 
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_NewPatternTimeSeries_String = TAB + "NewPatternTimeSeries()... <create a time series with repeating data values>",
@@ -1577,7 +1580,6 @@ private String
 	__Commands_Manipulate_ConvertDataUnits_String = TAB + "ConvertDataUnits()... <convert data units>",
 	__Commands_Manipulate_Cumulate_String = TAB + "Cumulate()... <cumulate values over time>",
 	__Commands_Manipulate_Divide_String = TAB +	"Divide()... <divide one TS by another TS>",
-	__Commands_Manipulate_Free_String = TAB + "Free()... <free time series>", 
 	__Commands_Manipulate_Multiply_String = TAB + "Multiply()... <multiply one TS by another TS>",
 	__Commands_Manipulate_Scale_String = TAB + "Scale()... <scale TS by a constant>",
 	__Commands_Manipulate_ShiftTimeByInterval_String = TAB + "ShiftTimeByInterval()... <shift TS by an even interval>",
@@ -1662,6 +1664,7 @@ private String
     __Commands_Table_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
     __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
+    __Commands_Table_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
 
     // Template Commands...
 
@@ -1708,6 +1711,7 @@ private String
     __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
     __Commands_General_Running_Exit_String = TAB + "Exit() <to end processing>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
+    __Commands_General_Running_ProfileCommands_String = TAB + "ProfileCommands()... <profile command performance>",
  
     __Commands_General_TestProcessing_String = "General - Test Processing",
     __Commands_General_TestProcessing_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
@@ -3636,7 +3640,7 @@ throws IOException
 	// If any lines in the file are different from the commands, mark the file as dirty.
 	// Changes may automatically occur during the load because of automated updates to commands.
 	BufferedReader in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( path )) );
-	List strings = new Vector();
+	List<String> strings = new Vector<String>();
 	String line;
 	while ( true ) {
 	    line = in.readLine();
@@ -3657,11 +3661,11 @@ throws IOException
 	CommandStatusProvider csp = null;
 	int numAutoChanges = 0;
 	for ( int i = 0; i < size_orig; i++ ) {
-	    line = (String)strings.get(i);
+	    line = strings.get(i);
 	    command = __tsProcessor.get(i);
 	    if ( !line.equals(command.toString()) ) {
 	        Message.printStatus( 2, routine, "Command " + (i + 1) +
-	            " was automatically updated during load (usually due to software update)." );
+	            " was automatically updated during load (usually due to software update or manually-edited command file)." );
 	        commandList_SetDirty ( true );
 	        ++numAutoChanges;
 	        if ( command instanceof CommandStatusProvider ) {
@@ -3670,7 +3674,8 @@ throws IOException
 	            // Add a message that the command was updated during load.
 	            csp.getCommandStatus().addToLog ( CommandPhaseType.INITIALIZATION,
 	                new CommandLogRecord(CommandStatusType.UNKNOWN,
-	                    "Command was automatically updated during load (usually due to software update).",
+	                    "Command was automatically updated during load (usually due " +
+	                    "to software update or manually-edited command file).",
 	                    "Should not need to do anything." ) );
 	        }
 	    }
@@ -5976,6 +5981,7 @@ private void ui_CheckGUIState ()
 	}
     JGUIUtil.setEnabled ( __Commands_Select_DeselectTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Select_SelectTimeSeries_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Select_Free_JMenuItem,enabled);
 	    
     JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
@@ -6026,7 +6032,6 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Manipulate_ConvertDataUnits_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Cumulate_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Divide_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( __Commands_Manipulate_Free_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Multiply_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Scale_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_ShiftTimeByInterval_JMenuItem,enabled);
@@ -8908,6 +8913,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Select_DeselectTimeSeries_String, this ) );
     __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_SelectTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Select_SelectTimeSeries_String, this ) );
+    __Commands_SelectTimeSeries_JMenu.addSeparator();
+    __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_Free_JMenuItem =
+        new SimpleJMenuItem(__Commands_Select_Free_String, this ) );
     __Commands_JMenu.addSeparator();
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
@@ -9211,10 +9219,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Subtract_JMenuItem =
         new SimpleJMenuItem(__Commands_Manipulate_Subtract_String, this ) );
 	
-	__Commands_ManipulateTimeSeries_JMenu.addSeparator();
-    __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Free_JMenuItem =
-        new SimpleJMenuItem(__Commands_Manipulate_Free_String, this ) );
-
 	// "Commands...Analyze Time Series"...
 
 	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu= new JMenu(__Commands_AnalyzeTimeSeries_String) );
@@ -9411,6 +9415,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToHTML_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_FreeTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_FreeTable_String, this ) );
     
     // Commands...Template processing...
     
@@ -9501,6 +9508,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
 	__Commands_General_Running_JMenu.add(__Commands_General_Running_SetWorkingDir_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetWorkingDir_String, this ) );
+   __Commands_General_Running_JMenu.add(__Commands_General_Running_ProfileCommands_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_ProfileCommands_String, this ) );
 
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
     __Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
@@ -11183,6 +11192,9 @@ throws Exception
     else if (command.equals( __Commands_Select_SelectTimeSeries_String)){
         commandList_EditCommand ( __Commands_Select_SelectTimeSeries_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals(__Commands_Select_Free_String) ) {
+        commandList_EditCommand ( __Commands_Select_Free_String, null, CommandEditType.INSERT );
+    }
     else {
         // Chain to next actions...
         uiAction_ActionPerformed05_CommandsCreateMenu ( event );
@@ -11529,9 +11541,6 @@ throws Exception
 	else if (command.equals(__Commands_Manipulate_Divide_String) ) {
 		commandList_EditCommand ( __Commands_Manipulate_Divide_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals(__Commands_Manipulate_Free_String) ) {
-		commandList_EditCommand ( __Commands_Manipulate_Free_String, null, CommandEditType.INSERT );
-	}
 	else if (command.equals(__Commands_Manipulate_Multiply_String) ) {
 		commandList_EditCommand ( __Commands_Manipulate_Multiply_String, null, CommandEditType.INSERT );
 	}
@@ -11755,6 +11764,9 @@ throws Exception
     else if (command.equals( __Commands_Table_WriteTableToHTML_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToHTML_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Table_FreeTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_FreeTable_String, null, CommandEditType.INSERT );
+    }
 	
 	// Template commands...
 
@@ -11782,6 +11794,9 @@ throws Exception
 	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_General_Running_ProfileCommands_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_ProfileCommands_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_Check_CheckingResults_CheckTimeSeries_String) ) {
         commandList_EditCommand ( __Commands_Check_CheckingResults_CheckTimeSeries_String, null, CommandEditType.INSERT );
     }
