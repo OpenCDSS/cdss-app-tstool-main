@@ -466,7 +466,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.16.01beta (2013-02-14)";
+public static final String PROGRAM_VERSION = "10.17.00 (2013-02-18)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -496,7 +496,14 @@ private static boolean __isRestletServer = false;
 /**
 Indicates whether the command file should run after loading, when used in GUI mode.
 */
-private static boolean __run_commands_on_load = false;  
+private static boolean __run_commands_on_load = false;
+
+/**
+Indicates whether commands should have discovery run when commands are loaded.
+Running discovery is a performance hit, especially for very large command files that are generated from
+templates, and is generally unnecessary in batch mode.
+*/
+private static boolean __runDiscoveryOnLoad = true;
 
 /**
 Indicates whether the main GUI is shown, for cases where TSTool is run in in batch mode,
@@ -747,13 +754,13 @@ public static void main ( String args[] )
         // reading the command file because commands may try to run discovery during load.
         openDataStoresAtStartup ( runner.getProcessor() );
 		try {
-		    String command_file_full = getCommandFile();
-		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + command_file_full + "\"" );
-			runner.readCommandFile ( command_file_full );
+		    String commandFileFull = getCommandFile();
+		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + commandFileFull + "\"" );
+			runner.readCommandFile ( commandFileFull, __runDiscoveryOnLoad );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error reading command file \"" +
-					getCommandFile() + "\".  Unable to run commands." );
+			    getCommandFile() + "\".  Unable to run commands." );
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
@@ -792,7 +799,7 @@ public static void main ( String args[] )
                         if ( frameArray[i].isVisible() ) {
                             openWindowFound = true;
                             Message.printStatus(2,routine,
-                                    "Open, visible window detected.  Waiting for close of window to exit.");
+                                "Open, visible window detected.  Waiting for close of window to exit.");
                             break;
                         }
                     }
@@ -1239,7 +1246,7 @@ Parse command line arguments.
 public static void parseArgs ( String[] args )
 throws Exception
 {	String routine = "TSToolMain.parseArgs";
-	int pos = 0;	// Position in a string.
+	int pos = 0; // Position in a string.
 
     // Allow setting of -home via system property "tstool.home". This
     // can be supplied by passing the -Dtstool.home=HOME option to the java vm.
@@ -1356,6 +1363,11 @@ throws Exception
 			    readConfigFile(getConfigFile());
 			}
 		}
+        else if (args[i].equalsIgnoreCase("-nodiscovery")) {
+            // Don't run commands in discovery mode on initial load (should only be used in large batch runs)...
+            Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
+            __runDiscoveryOnLoad = false;
+        }
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if (args[i].equalsIgnoreCase("-nomaingui")) {
 			// Don't make the main GUI visible...
@@ -1443,7 +1455,7 @@ public static void printUsage ( )
 	PROGRAM_NAME + " CommandFile" + nl +
 	"                Opens up the main GUI and loads the command file." + nl +
 	"" + nl+
-	"See the documentation for more information." + nl + nl;
+	"See the TSTool documentation for more information." + nl + nl;
 	System.out.println ( usage );
 	Message.printStatus ( 1, routine, usage );
 	quitProgram(0);

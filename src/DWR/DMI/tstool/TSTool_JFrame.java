@@ -972,6 +972,7 @@ private JMenu
 	JMenu __File_Open_JMenu = null;
 		private JMenuItem
 		__File_Open_CommandFile_JMenuItem = null,
+		__File_Open_CommandFileNoDiscovery_JMenuItem = null,
 		__File_Open_DIADvisor_JMenuItem = null,
 		__File_Open_HydroBase_JMenuItem = null,
 		__File_Open_RiversideDB_JMenuItem = null;
@@ -1216,6 +1217,11 @@ JMenuItem
 JMenu
     __Commands_Spatial_JMenu = null;
 
+//Commands (Spreadsheet)...
+
+JMenu
+    __Commands_Spreadsheet_JMenu = null;
+
 // Commands (Table)...
 
 JMenu
@@ -1434,13 +1440,12 @@ private String
 	   __File_New_String = "New",
            __File_New_CommandFile_String = "Command File", 
 		__File_Open_String = "Open",
-			__File_Open_CommandFile_String = "Command File...", 
+			__File_Open_CommandFile_String = "Command File...",
+			__File_Open_CommandFileNoDiscovery_String = "Command File (no discovery)...",
 			__File_Open_DIADvisor_String = "DIADvisor...",
 			__File_Open_HydroBase_String = "HydroBase...",
 			__File_Open_RiversideDB_String = "RiversideDB...",
 		__File_Save_String = "Save",
-			//__File_Save_Commands_ActionString =
-				//"File...Save...Commands...", 
 			__File_Save_Commands_String = "Commands", 
 			__File_Save_CommandsAs_String = "Commands As...",
 			__File_Save_CommandsAsVersion9_String = "Commands As (Version 9 Syntax)...", 
@@ -1643,6 +1648,10 @@ private String
     // Spatial Commands...
 
     __Commands_Spatial_String = "Spatial Processing",
+    
+    // Spreadsheet Commands...
+
+    __Commands_Spreadsheet_String = "Spreadsheet Processing",
     
     // Table Commands...
 
@@ -1998,8 +2007,9 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// normally want to see the main window so handle with a special case...
 
 	// TSTool has been started with a command file so try to open and display.  It should already be absolute.
+	boolean runDiscoveryOnLoad = true;
 	if ( (command_file != null) && (command_file.length() > 0) ) {
-	    ui_LoadCommandFile ( command_file, run_on_load );
+	    ui_LoadCommandFile ( command_file, run_on_load, runDiscoveryOnLoad );
 	}
 }
 
@@ -3623,17 +3633,20 @@ private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, Pro
 /**
 Read and load a command file into the processor.
 @param path Absolute path to the command file to read.
+@param runDiscoveryOnLoad if true, run discovery on the commands as they are loaded (the normal case);
+if false (may be useful for very large command files), do not run discovery when loading commands
 @return the number of lines that are automatically changed during the read (1 if the size is
 different after read).
 @exception IOException if there is an error reading the command file.
 */
-private int commandProcessor_ReadCommandFile ( String path )
+private int commandProcessor_ReadCommandFile ( String path, boolean runDiscoveryOnLoad )
 throws IOException
 {	String routine = "TSTool_JFrame.commandProcessor_ReadCommandFile";
-    // Set the command file for use with output...
+    // Read the command file for use with output...
 	__tsProcessor.readCommandFile ( path,
-			true,	// Create UnknownCommand instances for unrecognized commands
-			false );// Do not append to the current processor contents
+			true, // Create UnknownCommand instances for unrecognized commands
+			false, // Do not append to the current processor contents
+			runDiscoveryOnLoad );
     // Refresh the GUI list to show the status done in call to this method
 	
 	// TODO SAM 2008-05-11 Evaluate whether to move this to the readCommandFile() method.
@@ -9374,6 +9387,12 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
     __Commands_Spatial_JMenu.setToolTipText("Process spatial data (under development).");
     
+    // Commands...Spreadsheet processing...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_Spreadsheet_JMenu = new JMenu( __Commands_Spreadsheet_String, true ) );
+    __Commands_Spreadsheet_JMenu.setToolTipText("Process spreadsheet data (under development).");
+    
     // Commands...Table processing...
     
     __Commands_JMenu.addSeparator();
@@ -9648,6 +9667,10 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 
 	__File_Open_JMenu.add( __File_Open_CommandFile_JMenuItem =
 		new SimpleJMenuItem( __File_Open_CommandFile_String, this ) );
+    __File_Open_JMenu.add( __File_Open_CommandFileNoDiscovery_JMenuItem =
+        new SimpleJMenuItem( __File_Open_CommandFileNoDiscovery_String, this ) );
+    __File_Open_CommandFileNoDiscovery_JMenuItem.setToolTipText(
+        "For faster loading...use for large command files that will not be interactively edited.");
 
 	boolean separator_added = false;
 	if ( __source_DIADvisor_enabled ) {
@@ -10173,14 +10196,16 @@ private void ui_InitToolbar ()
 
 /**
 Load a command file and display in the command list.
-@param commandFile Full path to command file to load.
-@param runOnLoad If true, the commands will be run after loading.
+@param commandFile full path to command file to load
+@param runOnLoad if true, the commands will be run after loading
+@param runDiscoveryOnLoad if true, run discovery on the commands as they are loaded (the normal case);
+if false (may be useful for very large command files), do not run discovery when loading commands
 */
-private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad )
+private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean runDiscoveryOnLoad )
 {   String routine = "TSTool_JFrame.ui_LoadCommandFile";
     int numAutoChanges = 0; // Number of lines automatically changed during load
     try {
-        numAutoChanges = commandProcessor_ReadCommandFile ( commandFile );
+        numAutoChanges = commandProcessor_ReadCommandFile ( commandFile, runDiscoveryOnLoad );
         // Add progress listeners to the commands
         for ( Command command : __tsProcessor.getCommands() ) {
             // Connect the command to the UI to handle progress when the command is run.
@@ -10808,13 +10833,22 @@ throws Exception
     }
 	else if ( o == __File_Open_CommandFile_JMenuItem ) {
 		try {
-            uiAction_OpenCommandFile();
+            uiAction_OpenCommandFile ( true );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
 			Message.printWarning( 3, "", e);
 		}
 	}
+    else if ( o == __File_Open_CommandFileNoDiscovery_JMenuItem ) {
+        try {
+            uiAction_OpenCommandFile ( false );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
+            Message.printWarning( 3, "", e);
+        }
+    }
 	else if ( command.equals ( __File_Open_DIADvisor_String )) {
 		// Open a connections to the DIADvisor operational and archive
 		// databases - currently assumed to be MS Access. 
@@ -15790,8 +15824,10 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 Open a command file and read into the list of commands.  A check is made to
 see if the list contains anything and if it does the user is prompted as to
 whether need to save the previous commands.
+@param runDiscoveryOnLoad if true, run discovery on the commands as they are loaded (the normal case);
+if false (may be useful for very large command files), do not run discovery when loading commands
 */
-private void uiAction_OpenCommandFile ()
+private void uiAction_OpenCommandFile ( boolean runDiscoveryOnLoad )
 {	String routine = getClass().getName() + ".openCommandFile";
 	// See whether the old commands need to be saved/cleared...
     if ( !uiAction_OpenCommandFile_CheckForSavingCommands() ) {
@@ -15822,7 +15858,7 @@ private void uiAction_OpenCommandFile ()
 		    "Working directory (and initial working directory) from command file is \"" +
 		    IOUtil.getProgramWorkingDir() );
 		// Load but do not automatically run.
-		ui_LoadCommandFile ( path, false );
+		ui_LoadCommandFile ( path, false, runDiscoveryOnLoad );
 	}
 	// New file has been opened or there was a cancel/error and the old list remains.
 	//Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
@@ -16659,6 +16695,7 @@ private void uiAction_RunCommands_ShowResultsViews()
 
 /**
 Run a command file, independent of what is shown in the UI.
+This is essentially a way to do a batch run with a separate processor
 */
 private void uiAction_RunCommandFile ()
 {	String routine = getClass().getName() + ".uiAction_RunCommandFile";
@@ -16677,7 +16714,8 @@ private void uiAction_RunCommandFile ()
 		try { TSCommandFileRunner runner = new TSCommandFileRunner();
 			JGUIUtil.setWaitCursor ( this, true );
 			// Read the file
-			runner.readCommandFile ( path );
+			boolean runDiscoveryOnLoad = false; // No need for discovery since run independently
+			runner.readCommandFile ( path, runDiscoveryOnLoad );
 			// Set the DMI information...
 			HydroBaseDMI hbdmi = null;
 			if ( ui_GetHydroBaseDataStoreLegacy() != null ) {
