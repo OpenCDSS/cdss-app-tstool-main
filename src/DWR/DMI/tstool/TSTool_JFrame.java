@@ -1221,6 +1221,8 @@ JMenu
 
 JMenu
     __Commands_Spreadsheet_JMenu = null;
+JMenuItem
+    __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem;
 
 // Commands (Table)...
 
@@ -1652,6 +1654,7 @@ private String
     // Spreadsheet Commands...
 
     __Commands_Spreadsheet_String = "Spreadsheet Processing",
+    __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
     
     // Table Commands...
 
@@ -9391,7 +9394,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spreadsheet_JMenu = new JMenu( __Commands_Spreadsheet_String, true ) );
-    __Commands_Spreadsheet_JMenu.setToolTipText("Process spreadsheet data (under development).");
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
     
     // Commands...Table processing...
     
@@ -11743,7 +11747,8 @@ throws Exception
 }
 
 /**
-Handle a group of actions for the Commands...General... menu.
+Handle a group of actions for the "Commands...Spreadsheet Processing",
+"Commands...Table Processing" and "Commands...General..." menu.
 Also include a couple of special open commands for input types.
 @param event Event to handle.
 */
@@ -11751,9 +11756,15 @@ private void uiAction_ActionPerformed14_CommandsGeneralMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
+    // Spreadsheet commands...
+
+    if (command.equals( __Commands_Spreadsheet_ReadTableFromExcel_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_ReadTableFromExcel_String, null, CommandEditType.INSERT );
+    }
+
     // Table commands...
     
-    if (command.equals( __Commands_Table_NewTable_String) ) {
+    else if (command.equals( __Commands_Table_NewTable_String) ) {
         commandList_EditCommand ( __Commands_Table_NewTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_CopyTable_String) ) {
