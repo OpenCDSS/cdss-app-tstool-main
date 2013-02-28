@@ -312,12 +312,12 @@ private String __COMMANDS_FONT = "Lucida Console";
 //================================
 
 /**
-Label for data stores, necessary because label will be set not visible if no data stores.
+Label for datastores, necessary because label will be set not visible if no datastores.
 */
 private JLabel __dataStore_JLabel = null;
 
 /**
-Available data stores.
+Available datastores.
 */
 private SimpleJComboBox __dataStore_JComboBox = null;
 
@@ -327,7 +327,7 @@ Available input types including enabled file and databases.
 private SimpleJComboBox	__input_type_JComboBox = null;
 
 /**
-Input name choice label.  This may be set (in)visible depending on selected data store or input type.
+Input name choice label.  This may be set (in)visible depending on selected datastore or input type.
 */
 private JLabel __inputName_JLabel = null;
 
@@ -372,7 +372,7 @@ private SimpleFileFilter
 
 /**
 List of InputFilter_JPanel.
-One of these will be visible at any time to provide query filter capability.  Each input type or data store
+One of these will be visible at any time to provide query filter capability.  Each input type or datastore
 can have 1+ input filter panels, based on the data type and interval.  If no input filter is relevant, then the
 generic input filter with only text label (blank) is shown.
 */
@@ -1242,9 +1242,11 @@ JMenuItem
     __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
     __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem,
     __Commands_Table_CompareTables_JMenuItem,
+    __Commands_Table_WriteTableToDataStore_JMenuItem,
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
     __Commands_Table_WriteTableToHTML_JMenuItem,
-    __Commands_Table_FreeTable_JMenuItem;
+    __Commands_Table_FreeTable_JMenuItem,
+    __Commands_Table_RemoveTableRowsFromDataStore_JMenuItem;
 
 // Commands (Template Processing)...
 
@@ -1661,7 +1663,7 @@ private String
     __Commands_Table_String = "Table Processing",
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
-    __Commands_Table_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database data store>",
+    __Commands_Table_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
@@ -1674,9 +1676,11 @@ private String
     __Commands_Table_CopyTimeSeriesPropertiesToTable_String =
         TAB + "CopyTimeSeriesPropertiesToTable()... <copy time series properties to table>",
     __Commands_Table_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
+    __Commands_Table_WriteTableToDataStore_String = TAB + "WriteTableToDataStore()... <write a table to a database datastore>",
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
     __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
     __Commands_Table_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
+    __Commands_Table_RemoveTableRowsFromDataStore_String = TAB + "RemoveTableRowsFromDataStore()... <remove rows from table in datastore>",
 
     // Template Commands...
 
@@ -1826,8 +1830,8 @@ private String
 	__DATA_TYPE_AUTO = "Auto",
 
 	// Input types for the __input_type_JComboBox...
-	// Data stores are NOT listed here; consequently, the following are files or databases
-	// that have not been converted to data stores
+	// Datastores are NOT listed here; consequently, the following are files or databases
+	// that have not been converted to datastores
 
 	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
@@ -1900,7 +1904,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// Read the license information...
 	license_InitializeLicenseFromTSToolProperties ();
 
-	// Initialize the input types and data stores based on the configuration
+	// Initialize the input types and datastores based on the configuration
 	ui_EnableInputTypesForConfiguration ();
 	
 	// Disable input types based on the license (regardless of what is in the configuration file)...
@@ -1969,16 +1973,16 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		}
 	}
 
-	// Open remaining data stores.
-	// TODO SAM 2010-09-03 migrate more input types to data stores
+	// Open remaining datastores.
+	// TODO SAM 2010-09-03 migrate more input types to datastores
 	try {
 	    TSToolMain.openDataStoresAtStartup(__tsProcessor);
 	}
 	catch ( Exception e ) {
-	    Message.printStatus ( 1, rtn, "Error opening data stores (" + e + ")." );
+	    Message.printStatus ( 1, rtn, "Error opening datastores (" + e + ")." );
 	}
 	
-	// Populate the data store choices in the UI.
+	// Populate the datastore choices in the UI.
 	
 	ui_DataStoreList_Populate ();
 	
@@ -4435,13 +4439,13 @@ public void itemStateChanged ( ItemEvent evt )
     	// List in the order of the GUI...
     
         if ( (o == __dataStore_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
-            // New data store selected...
+            // New datastore selected...
             uiAction_DataStoreChoiceClicked();
         }
         else if ( (o == __input_type_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
     		// New input type selected...
     		queryResultsList_Clear();
-    		uiAction_InputTypeChoiceClicked(null); // null indicates data store selection is not driving action
+    		uiAction_InputTypeChoiceClicked(null); // null indicates datastore selection is not driving action
     	}
     	else if((o == __inputName_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
     		// New input name selected...
@@ -5852,8 +5856,8 @@ private void ui_CheckGUIState ()
 	    dataStoreListSize = __tsProcessor.getDataStores().size();
 	}
 	
-	// If no data stores are available, don't even show the data store choices - this should hopefully
-	// minimize confusion between data stores and input type/name selections
+	// If no datastores are available, don't even show the datastore choices - this should hopefully
+	// minimize confusion between datastores and input type/name selections
 	
 	if ( dataStoreListSize == 0 ) {
 	    __dataStore_JLabel.setVisible(false);
@@ -6351,7 +6355,7 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 		// in some parts of the State.
 		//Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
 		//__source_MODSIM_enabled = false;
-		//Message.printStatus ( 2, routine, "RiversideDB data stores being disabled for CDSS." );
+		//Message.printStatus ( 2, routine, "RiversideDB datastores being disabled for CDSS." );
 		//__source_RiversideDB_enabled = false;
 		//Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
 		//__source_SHEF_enabled = false;
@@ -6418,7 +6422,7 @@ private String ui_CreateAbbreviatedVisibleFilename(String fullFilename)
 }
 
 /**
-Populate the data store list from available processor data stores.
+Populate the datastore list from available processor datastores.
 */
 private void ui_DataStoreList_Populate ()
 {
@@ -6445,7 +6449,7 @@ private void ui_DataStoreList_Populate ()
 }
 
 /**
-Enable the input and data store types based on the TSTool configuration.  Features will
+Enable the input and datastore types based on the TSTool configuration.  Features will
  */
 private void ui_EnableInputTypesForConfiguration ()
 {
@@ -6866,18 +6870,18 @@ private InputFilter_JPanel ui_GetInputFilterMessageJPanel ( String text )
 }
 
 /**
-Return the input filter panel for the specified data store name.  By design, this method should only be called
-when working with data stores.  Eventually all the "database" input types will
+Return the input filter panel for the specified datastore name.  By design, this method should only be called
+when working with datastores.  Eventually all the "database" input types will
 be handled (including binary files and relational databases).
-@param selectedDataStoreName name of data store to match
+@param selectedDataStoreName name of datastore to match
 @param selectedDataType the selected data type (e.g., "Streamflow)
 @param selectedTimeStep the selected time step (e.g., "Day")
-@return the input filter panel that matches the data store name, or null if not found
+@return the input filter panel that matches the datastore name, or null if not found
 */
 private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selectedDataStoreName,
     String selectedDataType, String selectedTimeStep )
 {   String routine = getClass().getName() + ".ui_GetInputFilterPanelForDataStoreName";
-    // This is a bit brute force because the name is embedded in the data store but is not
+    // This is a bit brute force because the name is embedded in the datastore but is not
     // a data member of the input panel
     // Alphabetize by "instanceof" argument
     Message.printStatus ( 2, routine, "Setting input filter for current selections" );
@@ -6887,7 +6891,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             ColoradoWaterHBGuestDataStore dataStore =
                 ((ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -6898,7 +6902,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             ColoradoWaterHBGuestDataStore dataStore =
                 ((ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -6908,7 +6912,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             ColoradoWaterHBGuestDataStore dataStore =
                 ((ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7063,7 +7067,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             DataStore dataStore = ((RccAcis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7071,7 +7075,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             DataStore dataStore = ((ReclamationHDB_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7079,7 +7083,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             DataStore dataStore = ((RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7087,7 +7091,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             DataStore dataStore = ((UsgsNwisDaily_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7095,7 +7099,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             DataStore dataStore = ((UsgsNwisGroundwater_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7103,7 +7107,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             DataStore dataStore = ((UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the data store name so return the panel
+                // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
@@ -7136,15 +7140,15 @@ private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
 }
 
 /**
-Return the data store for the selected data store name.
-@return the data store for the selected data store name, or null if the selected name is blank (or for some
+Return the datastore for the selected datastore name.
+@return the datastore for the selected datastore name, or null if the selected name is blank (or for some
 reason is not in the processor - should not happen if data are being kept consistent).
 */
 private DataStore ui_GetSelectedDataStore ()
 {
-    // TODO SAM 2010-09-02 How to ensure that name is unique until data stores are handled consistently?
+    // TODO SAM 2010-09-02 How to ensure that name is unique until datastores are handled consistently?
     String dataStoreName = __dataStore_JComboBox.getSelected();
-    Message.printStatus(2, "ui_GetSelectedDataStore", "Getting data store for selected name \"" +
+    Message.printStatus(2, "ui_GetSelectedDataStore", "Getting datastore for selected name \"" +
         dataStoreName + "\"" );
     if ( (dataStoreName == null) || dataStoreName.equals("") ) {
         // No need to request from processor
@@ -7311,7 +7315,7 @@ private void ui_InitGUI ( )
 		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __inputName_JComboBox = new SimpleJComboBox(false);
     __inputName_JComboBox.setMaximumRowCount ( 20 );
-    // Set a blank entry to work with data store handling
+    // Set a blank entry to work with datastore handling
     __inputName_JComboBox.add ( "" );
     tooltip = "<html>The input name is the name of the file or database" +
     " being read.<br>It will default or be prompted for after selecting the input type.</html>";
@@ -7779,7 +7783,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing HydroBase data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing HydroBase datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7789,7 +7793,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing Mexico CSMN data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing Mexico CSMN datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
         	}
@@ -7814,7 +7818,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing RCC ACIS data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing RCC ACIS datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7824,7 +7828,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing Reclamation HDB data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing Reclamation HDB datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7834,7 +7838,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing RiversideDB data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing RiversideDB datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7845,7 +7849,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing USGS NWIS daily data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing USGS NWIS daily datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7856,7 +7860,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing USGS NWIS groundwater data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing USGS NWIS groundwater datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7867,7 +7871,7 @@ private void ui_InitGUIInputFilters ( final int y )
                 }
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing USGS NWIS instantaneous data store input filters (" + e + ").");
+                    Message.printWarning(3, routine, "Error initializing USGS NWIS instantaneous datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7931,7 +7935,7 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataSt
                 __inputFilterJPanelList.remove ( ifp );
             }
             else {
-                // No more filters matching the data store
+                // No more filters matching the datastore
                 break;
             }
         }
@@ -8648,13 +8652,13 @@ private void ui_InitGUIInputFiltersMexicoCSMN ( int y )
 
 /**
 Initialize the RCC ACIS input filter (may be called at startup).
-@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersRccAcis ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersRccAcis";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " RCC ACIS data stores." );
+        " RCC ACIS datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
@@ -8681,7 +8685,7 @@ private void ui_InitGUIInputFiltersRccAcis ( List<DataStore> dataStoreList, int 
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
                 "Unable to initialize input filter for RCC ACIS time series " +
-                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+                "for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
     }
@@ -8689,13 +8693,13 @@ private void ui_InitGUIInputFiltersRccAcis ( List<DataStore> dataStoreList, int 
 
 /**
 Initialize the Reclamation HDB input filter (may be called at startup).
-@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersReclamationHDB";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " ReclamationHDB data stores." );
+        " ReclamationHDB datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
@@ -8723,7 +8727,7 @@ private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreLis
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
                 "Unable to initialize input filter for Reclamation HDB time series " +
-                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+                "for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
     }
@@ -8731,13 +8735,13 @@ private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreLis
 
 /**
 Initialize the RiversideDB input filter (may be called at startup after login or File...Open RiversideDB).
-@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersRiversideDB";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " RiversideDB data stores." );
+        " RiversideDB datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
@@ -8765,7 +8769,7 @@ private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, 
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
                 "Unable to initialize input filter for RiversideDB time series (MeasType/MeasLoc/Geoloc) " +
-                "for data store \"" + dataStore.getName() + "\" (" + e + ")." );
+                "for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 3, routine, e );
         }
     }
@@ -8773,13 +8777,13 @@ private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, 
 
 /**
 Initialize the USGS NWIS input filter (may be called at startup).
-@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersUsgsNwisDaily ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisDaily";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " UsgsNwisDaily data stores." );
+        " UsgsNwisDaily datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
@@ -8806,7 +8810,7 @@ private void ui_InitGUIInputFiltersUsgsNwisDaily ( List<DataStore> dataStoreList
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for USGS NWIS daily time series for data store \"" +
+                "Unable to initialize input filter for USGS NWIS daily time series for datastore \"" +
                 dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
@@ -8815,13 +8819,13 @@ private void ui_InitGUIInputFiltersUsgsNwisDaily ( List<DataStore> dataStoreList
 
 /**
 Initialize the USGS NWIS groundwater datastore input filter (may be called at startup).
-@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersUsgsNwisGroundwater ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisGroundwater";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " UsgsNwisGroundwater data stores." );
+        " UsgsNwisGroundwater datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
@@ -8848,7 +8852,7 @@ private void ui_InitGUIInputFiltersUsgsNwisGroundwater ( List<DataStore> dataSto
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for USGS NWIS groundwater time series for data store \"" +
+                "Unable to initialize input filter for USGS NWIS groundwater time series for datastore \"" +
                 dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
@@ -8857,13 +8861,13 @@ private void ui_InitGUIInputFiltersUsgsNwisGroundwater ( List<DataStore> dataSto
 
 /**
 Initialize the USGS NWIS instantaneous values input filter (may be called at startup).
-@param dataStoreList the list of data stores for which input filter panels are to be added.
+@param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersUsgsNwisInstantaneous ( List<DataStore> dataStoreList, int y )
 {   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisInstantaneous";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " UsgsNwisInstantaneous data stores." );
+        " UsgsNwisInstantaneous datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
@@ -8890,7 +8894,7 @@ private void ui_InitGUIInputFiltersUsgsNwisInstantaneous ( List<DataStore> dataS
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for USGS NWIS instantaneous time series for data store \"" +
+                "Unable to initialize input filter for USGS NWIS instantaneous time series for datastore \"" +
                 dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
@@ -9434,6 +9438,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDataStore_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_WriteTableToDataStore_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
@@ -9441,6 +9447,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_FreeTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_FreeTable_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_RemoveTableRowsFromDataStore_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_RemoveTableRowsFromDataStore_String, this ) );
     
     // Commands...Template processing...
     
@@ -9548,11 +9557,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_TestCommand_JMenuItem =
         new SimpleJMenuItem( __Commands_General_TestProcessing_TestCommand_String, this ) );
 
-    // Add the deprecated menu if any data stores are enabled that have deprecated commands...
+    // Add the deprecated menu if any datastores are enabled that have deprecated commands...
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Deprecated_JMenu = new JMenu( __Commands_Deprecated_String, true ) );
-    // Handle each data store type separately under the main menu...
+    // Handle each datastore type separately under the main menu...
     if ( __source_HydroBase_enabled ) {
         __Commands_Deprecated_JMenu.setToolTipText("Commands that are slated for removal.");
         __Commands_Deprecated_JMenu.add (__Commands_Deprecated_OpenHydroBase_JMenuItem =
@@ -10372,12 +10381,12 @@ private void ui_SetInitialWorkingDir ( String initialWorkingDir )
 /**
 Set the input filters based on the current settings (input type and name, datastore name, data type).
 This sets the appropriate input filter visible since all input filters are created at startup or
-when a data store is opened.
+when a datastore is opened.
 */
 private void ui_SetInputFilterForSelections()
 {	String routine = getClass().getName() + ".ui_SetInputFiltersForSelections";
     String selectedDataStoreName = null;
-    // Get the selected data store from the user selections....
+    // Get the selected datastore from the user selections....
     DataStore selectedDataStore = ui_GetSelectedDataStore();
     if ( selectedDataStore != null ) {
         selectedDataStoreName = selectedDataStore.getName();
@@ -10386,12 +10395,12 @@ private void ui_SetInputFilterForSelections()
     String selectedInputType = ui_GetSelectedInputType();
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
-    Message.printStatus(2, routine, "Setting input filter based on selected data store \"" +
+    Message.printStatus(2, routine, "Setting input filter based on selected datastore \"" +
         selectedDataStoreName + "\", input type \"" + selectedInputType +
         "\", and data type \"" + selectedDataType + "\"" );
     try {
     if ( selectedDataStore != null ) {
-        // This handles input filters associated with data stores, including the new HydroBase datastores
+        // This handles input filters associated with datastores, including the new HydroBase datastores
         selectedInputFilter_JPanel =
             ui_GetInputFilterPanelForDataStoreName(selectedDataStoreName, selectedDataType, selectedTimeStep);
     }
@@ -10489,7 +10498,7 @@ private void ui_SetInputFilterForSelections()
     if ( selectedInputFilter_JPanel == null ) {
         if ( selectedDataStore != null ) {
             Message.printStatus(2, routine,
-                "Unable to determine input panel to use for data store \"" + selectedDataStoreName +
+                "Unable to determine input panel to use for datastore \"" + selectedDataStoreName +
                 "\".  Using blank panel." );
         }
         else {
@@ -10524,7 +10533,7 @@ private void ui_SetInputFilterForSelections()
 }
 
 /**
-Set the "Input name" label and choices visible.  This is called when a data store or input type is selected
+Set the "Input name" label and choices visible.  This is called when a datastore or input type is selected
 because input name is only used by some.
 */
 private void ui_SetInputNameVisible(boolean isVisible )
@@ -10562,7 +10571,7 @@ private void ui_SetInputTypeChoices ()
 	if ( __input_type_JComboBox.getItemCount() > 0 ) {
 		__input_type_JComboBox.removeAll ();
 	}
-	// Add a blank choice to allow working with data stores
+	// Add a blank choice to allow working with datastores
 	__input_type_JComboBox.add ( "" );
 	if ( __source_DateValue_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_DateValue );
@@ -10880,7 +10889,7 @@ throws Exception
 		// Read a RiverTrak config file, get the RiversideDB properties, and open the database...
 		JFileChooser fc = JFileChooserFactory.createJFileChooser( JGUIUtil.getLastFileDialogDirectory() );
 		fc.setDialogTitle( "Select a RiversideDB Configuration File" );
-		SimpleFileFilter sff = new SimpleFileFilter ( "cfg", "RiversideDB Data Store Configuration File" );
+		SimpleFileFilter sff = new SimpleFileFilter ( "cfg", "RiversideDB Datastore Configuration File" );
         fc.addChoosableFileFilter ( sff );
 		sff = new SimpleFileFilter ( "cfg", "RiverTrak/TSTool Configuration File" );
 		fc.addChoosableFileFilter ( sff );
@@ -10892,12 +10901,12 @@ throws Exception
 		String path = fc.getSelectedFile().getPath();
 		DataStore dataStore = uiAction_OpenRiversideDB ( path );
 		if ( dataStore != null ) {
-            // Now update the input filters for the open data store list (only pass in the one item so that
+            // Now update the input filters for the open datastore list (only pass in the one item so that
             // existing input filters are not impacted
             List<DataStore> dataStoreList = new Vector();
             dataStoreList.add ( dataStore );
             ui_InitGUIInputFiltersRiversideDB ( dataStoreList, ui_GetInputFilterY() );
-            // Add the data store name to the choices and select the choice, which will cause other events
+            // Add the datastore name to the choices and select the choice, which will cause other events
             __dataStore_JComboBox.add(dataStore.getName());
             __dataStore_JComboBox.select(dataStore.getName());
 		}
@@ -11076,14 +11085,14 @@ throws Exception
 		reportProp.set ( "DisplaySize", "11" );
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "RiversideDB Data Store Properties" );
+		reportProp.set ( "Title", "RiversideDB Datastore Properties" );
 		List<DataStore> dataStoreList = __tsProcessor.getDataStoresByType(RiversideDBDataStore.class);
 		List<String> v = new Vector();
-        v.add ( "RiversideDB Data Store Properties" );
+        v.add ( "RiversideDB Datastore Properties" );
         v.add ( "" );
 		for ( DataStore dataStore : dataStoreList ) {
-		    v.add ( "Data store name:  " + dataStore.getName() );
-		    v.add ( "Data store description:  " + dataStore.getDescription() );
+		    v.add ( "Datastore name:  " + dataStore.getName() );
+		    v.add ( "Datastore description:  " + dataStore.getDescription() );
 		    v.add ( "" );
 		    RiversideDB_DMI rdmi = (RiversideDB_DMI)((RiversideDBDataStore)dataStore).getDMI();
 		    v.addAll ( rdmi.getDatabaseProperties ( 3 ) );
@@ -11203,11 +11212,11 @@ throws Exception
         uiAction_ShowDataUnits();
     }
     else if ( command.equals(__View_DataStores_String) ) {
-        // Show the data stores
+        // Show the datastores
         uiAction_ShowDataStores();
     }
     else if ( command.equals(__View_CloseAllViewWindows_String) ) {
-        // Show the data stores
+        // Show the datastores
         TSViewJFrame.getTSViewWindowManager().closeAll();
     }
     else {
@@ -11803,6 +11812,9 @@ throws Exception
     else if (command.equals( __Commands_Table_CompareTables_String) ) {
         commandList_EditCommand ( __Commands_Table_CompareTables_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Table_WriteTableToDataStore_String) ) {
+        commandList_EditCommand ( __Commands_Table_WriteTableToDataStore_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, CommandEditType.INSERT );
     }
@@ -11811,6 +11823,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_FreeTable_String) ) {
         commandList_EditCommand ( __Commands_Table_FreeTable_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_RemoveTableRowsFromDataStore_String) ) {
+        commandList_EditCommand ( __Commands_Table_RemoveTableRowsFromDataStore_String, null, CommandEditType.INSERT );
     }
 	
 	// Template commands...
@@ -12416,30 +12431,30 @@ private void uiAction_CopyFromCommandListToCutBuffer ( boolean remove_original )
 }
 
 /**
-The data store choice has been clicked so process the event.
+The datastore choice has been clicked so process the event.
 The only entry point to this method is if the user actually clicks on the choice.
 In this case, the input type/name choices will be set to blank because the user has
-made a decision to work with a data store.  If they subsequently choose to work with an input type, then
-they would select an input and the data store choice would be blanked.
+made a decision to work with a datastore.  If they subsequently choose to work with an input type, then
+they would select an input and the datastore choice would be blanked.
 */
 private void uiAction_DataStoreChoiceClicked()
 {   String routine = getClass().getName() + ".uiAction_DataStoreChoiceClicked";
     if ( __dataStore_JComboBox == null ) {
         if ( Message.isDebugOn ) {
-            Message.printDebug ( 1, routine, "Data store has been selected but GUI is not yet initialized.");
+            Message.printDebug ( 1, routine, "Datastore has been selected but GUI is not yet initialized.");
         }
         return; // Not done initializing.
     }
     String selectedDataStoreName = __dataStore_JComboBox.getSelected();
-    Message.printStatus(2, routine, "Selected data store \"" + selectedDataStoreName + "\"." );
+    Message.printStatus(2, routine, "Selected datastore \"" + selectedDataStoreName + "\"." );
     if ( selectedDataStoreName.equals("") ) {
         // Selected blank for some reason - do nothing
         return;
     }
     DataStore selectedDataStore = ui_GetSelectedDataStore();
-    // This will select blank input type and name so that the focus is on the selected data store...
+    // This will select blank input type and name so that the focus is on the selected datastore...
     uiAction_InputTypeChoiceClicked(selectedDataStore);
-    // Now fully initialize the input/query information based on the data store
+    // Now fully initialize the input/query information based on the datastore
     try {
         if ( selectedDataStore instanceof ColoradoWaterHBGuestDataStore ) {
             uiAction_SelectDataStore_ColoradoWaterHBGuest ( (ColoradoWaterHBGuestDataStore)selectedDataStore );
@@ -12470,7 +12485,7 @@ private void uiAction_DataStoreChoiceClicked()
         }
     }
     catch ( Exception e ) {
-        Message.printWarning( 2, routine, "Error selecting data store \"" + selectedDataStore.getName() + "\"" );
+        Message.printWarning( 2, routine, "Error selecting datastore \"" + selectedDataStore.getName() + "\"" );
         Message.printWarning ( 3, routine, e );
     }
 }
@@ -12840,7 +12855,7 @@ private void uiAction_DataTypeChoiceClicked()
     }
 
 	// Set the filter where clauses based on the data type changing (this only triggers a reset of the
-    // input filter for some input types/data stores, like HydroBase, which has different input filters
+    // input filter for some input types/datastores, like HydroBase, which has different input filters
     // for different data types)...
 
 	ui_SetInputFilterForSelections();
@@ -15588,7 +15603,7 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
 	String selectedInputNameVisible = selectedInputName;
 	
     if ( selectedDataStore != null ) {
-        Message.printStatus(2, routine, "Blanking out input type because data store \"" +
+        Message.printStatus(2, routine, "Blanking out input type because datastore \"" +
             selectedDataStore.getName() + "\" has been selected." );
         // Set the input name to blank, adding the blank item if necessary
         if ( __inputName_JComboBox.getItemCount() == 0 ) {
@@ -15641,8 +15656,8 @@ Reset the query options choices based on the selected input type.  Other
 method calls are cascaded to fully reset the choices.  This method also
 shows/hides columns in the query results multilist to be appropriate for the data input source.
 @param selectedDataStore if not null, then the input type choice is being cascaded through from
-a data store selection and just needs to futher cascade to the input type, setting both to blank.
-If null, then input type and name are fully processed, ignoring the data store.
+a datastore selection and just needs to futher cascade to the input type, setting both to blank.
+If null, then input type and name are fully processed, ignoring the datastore.
 */
 private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 {	String routine = "TSTool_JFrame.inputTypeChoiceClicked";
@@ -15653,7 +15668,7 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 		return;	// Not done initializing.
 	}
 	if ( selectedDataStore != null ) {
-	    Message.printStatus(2, routine, "Blanking out input type because data store \"" +
+	    Message.printStatus(2, routine, "Blanking out input type because datastore \"" +
 	        selectedDataStore.getName() + "\" has been selected." );
 	    // Set the input type to blank, adding the blank item if necessary
         if ( __input_type_JComboBox.getItemCount() == 0 ) {
@@ -15679,7 +15694,7 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 		}
 		return;
 	}
-	// If here, make sure to blank out the selection on the data store so that the user is not confused by
+	// If here, make sure to blank out the selection on the datastore so that the user is not confused by
 	// seeing both
 	ui_SetIgnoreItemEvent(true);
 	__dataStore_JComboBox.select ( "" );
@@ -15985,7 +16000,7 @@ private void uiAction_OpenDIADvisor ()
 }
 
 /**
-TODO SAM 2010-09-13 Streamline this when HydroBase is converted to a data store from input type/name
+TODO SAM 2010-09-13 Streamline this when HydroBase is converted to a datastore from input type/name
 Open a connection to the HydroBase database.
 @param startup if true, then the connection is being made at software startup.  In this case
 if AutoConnect=True in the configuration, the dialog will not be shown.
@@ -16893,12 +16908,12 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected ColoradoWaterSMS data store.
+Refresh the query choices for the currently selected ColoradoWaterSMS datastore.
 */
 private void uiAction_SelectDataStore_ColoradoWaterSMS ( ColoradoWaterSMSDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
-    ui_SetInputNameVisible(false); // Not needed for data stores
+    ui_SetInputNameVisible(false); // Not needed for datastores
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
     String selectedInputType = ui_GetSelectedInputType();
@@ -17000,8 +17015,8 @@ private void uiAction_SelectDataStore_RccAcis ( RccAcisDataStore selectedDataSto
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_RccAcis";
     RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
-    ui_SetInputNameVisible(false); // Not needed for data stores
-    // Get the list of valid object/data types from the data store
+    ui_SetInputNameVisible(false); // Not needed for datastores
+    // Get the list of valid object/data types from the datastore
     List<String> dataTypes = dataStore.getDataTypeStrings ( true, true );
     
     // Populate the list of available data types and select the first
@@ -17020,12 +17035,12 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected ReclamationHDB data store.
+Refresh the query choices for the currently selected ReclamationHDB datastore.
 */
 private void uiAction_SelectDataStore_ReclamationHDB ( ReclamationHDBDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
-    // Get the DMI instances for the matching data store
+    // Get the DMI instances for the matching datastore
     ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
     ui_SetInputNameVisible(false); // Not needed for HDB
     __dataType_JComboBox.removeAll ();
@@ -17058,12 +17073,12 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected RiversideDB data store.
+Refresh the query choices for the currently selected RiversideDB datastore.
 */
 private void uiAction_SelectDataStore_RiversideDB ( RiversideDBDataStore selectedDataStore )
 throws Exception
 {   String routine = getClass().getName() + "uiAction_SelectDataStore_RiversideDB";
-    // Get the DMI instances for the matching data store
+    // Get the DMI instances for the matching datastore
     RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
     ui_SetInputNameVisible(false); // Not needed
     __dataType_JComboBox.setEnabled ( true );
@@ -17134,14 +17149,14 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected USGS NWIS daily data store.
+Refresh the query choices for the currently selected USGS NWIS daily datastore.
 */
 private void uiAction_SelectDataStore_UsgsNwisDaily ( UsgsNwisDailyDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
-    ui_SetInputNameVisible(false); // Not needed for data stores
-    // Get the list of valid object/data types from the data store
+    ui_SetInputNameVisible(false); // Not needed for datastores
+    // Get the list of valid object/data types from the datastore
     List<String> dataTypes = dataStore.getParameterStrings ( true );
     
     // Populate the list of available data types and select the first
@@ -17160,14 +17175,14 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected USGS NWIS groundwater data store.
+Refresh the query choices for the currently selected USGS NWIS groundwater datastore.
 */
 private void uiAction_SelectDataStore_UsgsNwisGroundwater ( UsgsNwisGroundwaterDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisGroundwaterDataStore dataStore = (UsgsNwisGroundwaterDataStore)selectedDataStore;
-    ui_SetInputNameVisible(false); // Not needed for data stores
-    // Get the list of valid object/data types from the data store
+    ui_SetInputNameVisible(false); // Not needed for datastores
+    // Get the list of valid object/data types from the datastore
     List<String> dataTypes = dataStore.getParameterStrings ( true );
     
     // Populate the list of available data types and select the first
@@ -17186,14 +17201,14 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected USGS NWIS instantaneous data store.
+Refresh the query choices for the currently selected USGS NWIS instantaneous datastore.
 */
 private void uiAction_SelectDataStore_UsgsNwisInstantaneous ( UsgsNwisInstantaneousDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisInstantaneousDataStore dataStore = (UsgsNwisInstantaneousDataStore)selectedDataStore;
-    ui_SetInputNameVisible(false); // Not needed for data stores
-    // Get the list of valid object/data types from the data store
+    ui_SetInputNameVisible(false); // Not needed for datastores
+    // Get the list of valid object/data types from the datastore
     List<String> dataTypes = dataStore.getParameterStrings ( true );
     
     // Populate the list of available data types and select the first
@@ -18776,7 +18791,7 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
 }
 
 /**
-Show the data stores.
+Show the datastores.
 */
 private void uiAction_ShowDataStores ()
 {   String routine = getClass().getName() + "uiAction_ShowDataStores";
@@ -18784,7 +18799,7 @@ private void uiAction_ShowDataStores ()
         new DataStores_JFrame ( "Datastores", __tsProcessor.getDataStores() );
     }
     catch ( Exception e ) {
-        Message.printWarning ( 1, routine, "Error displaying data stores (" + e + ")." );
+        Message.printWarning ( 1, routine, "Error displaying datastores (" + e + ")." );
     }
 }
 
@@ -19011,10 +19026,10 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     v.add ( "Input types and whether enabled:" );
     v.add ( "" );
     if ( __source_ColoradoBNDSS_enabled ) {
-        v.add ( "ColoradoBNDSS data store is enabled" );
+        v.add ( "ColoradoBNDSS datastore is enabled" );
     }
     else {
-        v.add ( "ColoradoBNDSS data store is not enabled");
+        v.add ( "ColoradoBNDSS datastore is not enabled");
     }
     if ( __source_ColoradoSMS_enabled ) {
         v.add ( "ColoradoSMS input type is enabled" );
@@ -19077,22 +19092,22 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
         v.add ( "NWSRFS_ESPTraceEnsemble input type is not enabled" );
     }
     if ( __source_RCCACIS_enabled ) {
-        v.add ( "RCC ACIS data store is enabled" );
+        v.add ( "RCC ACIS datastore is enabled" );
     }
     else {
-        v.add ( "RCC ACIS data store is not enabled");
+        v.add ( "RCC ACIS datastore is not enabled");
     }
     if ( __source_ReclamationHDB_enabled ) {
-        v.add ( "ReclamationHDB data store is enabled" );
+        v.add ( "ReclamationHDB datastore is enabled" );
     }
     else {
-        v.add ( "ReclamationHDB data store is not enabled");
+        v.add ( "ReclamationHDB datastore is not enabled");
     }
     if ( __source_RiversideDB_enabled ) {
-        v.add ( "RiversideDB data store is enabled" );
+        v.add ( "RiversideDB datastore is enabled" );
     }
     else {
-        v.add ( "RiversideDB data store is not enabled");
+        v.add ( "RiversideDB datastore is not enabled");
     }
     if ( __source_RiverWare_enabled ) {
         v.add ( "RiverWare input type is enabled" );
