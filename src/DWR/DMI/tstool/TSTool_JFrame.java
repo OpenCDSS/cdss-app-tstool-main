@@ -19810,7 +19810,7 @@ throws Exception
 		// Write the shapefile...
 
 		layer.writeShapefile ( "F:\\home\\beware\\sam\\testflow", false, false, null );
-		table.writeDelimitedFile ("F:\\home\\beware\\sam\\testflow.csv", ",", true, null, "", false );
+		table.writeDelimitedFile ("F:\\home\\beware\\sam\\testflow.csv", ",", true, null, "", false, null );
 	}
 	else if ( test_num == 9 ) {
 		// Read a DateValue file and test creating a graph.
