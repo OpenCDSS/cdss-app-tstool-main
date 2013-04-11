@@ -21,7 +21,7 @@ extends JWorksheet_AbstractRowTableModel
 /**
 Number of columns in the table model, including the row number.
 */
-private final int __COLUMNS = 19;
+private final int __COLUMNS = 22;
 
 public final int COL_ID = 0;
 public final int COL_NAME = 1;
@@ -41,7 +41,10 @@ public final int COL_LONG = 14;
 public final int COL_LAT = 15;
 public final int COL_UTM_X = 16;
 public final int COL_UTM_Y = 17;
-public final int COL_INPUT_TYPE = 18;
+public final int COL_STR_TYPE = 18;
+public final int COL_STRTYPE = 19;
+public final int COL_WDID = 20;
+public final int COL_INPUT_TYPE = 21;
 
 private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs.
 
@@ -140,6 +143,9 @@ public String getColumnName(int columnIndex) {
         case COL_LAT: return "Latitude";
 		case COL_UTM_X: return "UTM X";
 		case COL_UTM_Y: return "UTM Y";
+		case COL_STR_TYPE: return "DSS Structure Type";
+		case COL_STRTYPE: return "Structure Type";
+		case COL_WDID: return "WDID";
 		case COL_INPUT_TYPE: return "Data Store/Input Type";
 		default: return "";
 	}
@@ -169,6 +175,11 @@ public String[] getColumnToolTips() {
     tips[COL_LAT] = "Latitude decimal degrees";
     tips[COL_UTM_X] = "UTM X, meters";
     tips[COL_UTM_Y] = "UTM Y, meters";
+    tips[COL_STR_TYPE] = "Type of structure in broad DSS categories.";
+    tips[COL_STRTYPE] = "A means to describe an administrative structure's " +
+    	"physical diversion point in detail or a way to define a group of structures " +
+    	"(e.g., augmentation plan, well field).";
+    tips[COL_WDID] = "Water district identifier";
     tips[COL_INPUT_TYPE] = "Input type or data store name";
     return tips;
 }
@@ -197,6 +208,9 @@ public int[] getColumnWidths() {
     widths[COL_LAT] = 8;
     widths[COL_UTM_X] = 8;
     widths[COL_UTM_Y] = 8;
+    widths[COL_STR_TYPE] = 13;
+    widths[COL_STRTYPE] = 10;
+    widths[COL_WDID] = 5;
     widths[COL_INPUT_TYPE] = 15;
     return widths;
 }
@@ -338,6 +352,9 @@ public Object getValueAt(int row, int col)
             else {
                 return "" + StringUtil.formatString(d,"%.3f");
             }
+        case COL_STR_TYPE: return mt.getStr_type();
+        case COL_STRTYPE: return mt.getSTRTYPE();
+        case COL_WDID: return mt.getWDID();
 		case COL_INPUT_TYPE: return __inputType;
 		default: return "";
 	}
