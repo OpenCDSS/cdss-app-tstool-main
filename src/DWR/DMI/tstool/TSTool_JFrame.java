@@ -311,15 +311,27 @@ private String __COMMANDS_FONT = "Lucida Console";
 // Query area...
 //================================
 
+// TODO SAM 2013-04-15 Make local if tabbed pane works well for datastores and input types
 /**
 Label for datastores, necessary because label will be set not visible if no datastores.
 */
 private JLabel __dataStore_JLabel = null;
 
+// TODO SAM phase in file datastore at some point
+/**
+Tabbed panel to keep datastores and input types separate.
+*/
+private JTabbedPane __dataStore_JTabbedPane = null;
+
 /**
 Available datastores.
 */
 private SimpleJComboBox __dataStore_JComboBox = null;
+
+/**
+Label to show at startup.
+*/
+private JPanel __dataStoreInitializing_JPanel = null;
 
 /**
 Available input types including enabled file and databases.
@@ -1959,6 +1971,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		if ( ui_GetHydroBaseDMILegacy() != null ) {
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select (__INPUT_TYPE_HydroBase);
+			__dataStore_JTabbedPane.setSelectedIndex(1);
 		}
 	}
 	if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -2025,7 +2038,7 @@ Handle action events (menu and button actions).
 @param event Event to handle.
 */
 public void actionPerformed (ActionEvent event)
-{	
+{
 	if ( ui_GetIgnoreActionEvent() ) {
 		// Ignore ActionEvent for programmatic modification of data models.
 		return;
@@ -5856,7 +5869,7 @@ private void ui_CheckGUIState ()
 	
 	// If no datastores are available, don't even show the datastore choices - this should hopefully
 	// minimize confusion between datastores and input type/name selections
-	
+	/* TODO SAM 2013-04-15 Remove this if the tabbed pane works well for data stores and input types
 	if ( dataStoreListSize == 0 ) {
 	    __dataStore_JLabel.setVisible(false);
 	    __dataStore_JComboBox.setVisible(false);
@@ -5865,6 +5878,7 @@ private void ui_CheckGUIState ()
 	    __dataStore_JLabel.setVisible(true);
 	    __dataStore_JComboBox.setVisible(true);
 	}
+	*/
 
 	// List menus in the order of the GUI.  Popup menu items are checked as needed mixed in below...
 
@@ -7282,35 +7296,59 @@ private void ui_InitGUI ( )
 	ui_SetInputPanelTitle (null, Color.black );
 	
     query_JPanel.add("West", __queryInput_JPanel);
- 
-	y=0;
-	__dataStore_JLabel = new JLabel("Datastore:");
-    JGUIUtil.addComponent(__queryInput_JPanel, __dataStore_JLabel, 
-        0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+
+    y=-1;
+
+    __dataStore_JTabbedPane = new JTabbedPane ();
+    __dataStore_JTabbedPane.setVisible(false); // Let the initializing panel show first
+    JGUIUtil.addComponent(__queryInput_JPanel, __dataStore_JTabbedPane, 
+        0, ++y, 2, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
+    // The following will display during startup to wait for datastores to initialize, and will then
+    // be set not visible...
+    JPanel __dataStoreInitializing_JPanel = new JPanel();
+    __dataStoreInitializing_JPanel.setLayout(gbl);
+    JLabel dataStoreInitializing_JLabel = new JLabel("<html><b>Wait...initializing data connections...</html>");
+    JGUIUtil.addComponent(__dataStoreInitializing_JPanel, dataStoreInitializing_JLabel, 
+        0, 0, 1, 2, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    // Add at same location and __dataStore_JTabbedPane, which is not visible at start
+    JGUIUtil.addComponent(__queryInput_JPanel, __dataStoreInitializing_JPanel, 
+        0, y, 2, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
+
+    JPanel dataStore_JPanel = new JPanel();
+    dataStore_JPanel.setLayout(gbl);
+    int yDataStore = -1;
+    __dataStore_JLabel = new JLabel("Datastore:");
+    JGUIUtil.addComponent(dataStore_JPanel, __dataStore_JLabel, 
+        0, ++yDataStore, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __dataStore_JComboBox = new SimpleJComboBox(false);
     __dataStore_JComboBox.setMaximumRowCount ( 20 );
-    String tooltip = "<html>Configured database and web service datastores - select a datastore OR select input type and name below.</html>";
+    String tooltip = "<html>Configured database and web service datastores - select a datastore OR input type.</html>";
     __dataStore_JLabel.setToolTipText(tooltip);
     __dataStore_JComboBox.setToolTipText ( tooltip );
     __dataStore_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__queryInput_JPanel, __dataStore_JComboBox, 
-        1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(dataStore_JPanel, __dataStore_JComboBox, 
+        1, yDataStore, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    __dataStore_JTabbedPane.addTab ( "Datastore", dataStore_JPanel );
 
+    JPanel inputType_JPanel = new JPanel();
+    inputType_JPanel.setLayout(gbl);
+    int yInputType = -1;
     JLabel label = new JLabel("Input type:");
-    JGUIUtil.addComponent(__queryInput_JPanel, label, 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JGUIUtil.addComponent(inputType_JPanel, label, 
+		0, ++yInputType, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __input_type_JComboBox = new SimpleJComboBox(false);
     __input_type_JComboBox.setMaximumRowCount ( 20 );
-    tooltip = "<html>The input type is the file/database format being read - select an input type OR select a datastore above.</html>";
+    tooltip = "<html>The input type is the file/database format being read - select an input type OR datastore.</html>";
     label.setToolTipText ( tooltip );
     __input_type_JComboBox.setToolTipText ( tooltip );
 	__input_type_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__queryInput_JPanel, __input_type_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(inputType_JPanel, __input_type_JComboBox, 
+		1, yInputType, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    __dataStore_JTabbedPane.addTab ( "Input type", inputType_JPanel );
 
     __inputName_JLabel = new JLabel("Input name:" );
-    JGUIUtil.addComponent(__queryInput_JPanel, __inputName_JLabel, 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JGUIUtil.addComponent(inputType_JPanel, __inputName_JLabel, 
+		0, ++yInputType, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __inputName_JComboBox = new SimpleJComboBox(false);
     __inputName_JComboBox.setMaximumRowCount ( 20 );
     // Set a blank entry to work with datastore handling
@@ -7320,12 +7358,12 @@ private void ui_InitGUI ( )
     label.setToolTipText ( tooltip );
     __inputName_JComboBox.setToolTipText ( tooltip );
 	__inputName_JComboBox.addItemListener( this );
-        JGUIUtil.addComponent(__queryInput_JPanel, __inputName_JComboBox, 
-		1, y++, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(inputType_JPanel, __inputName_JComboBox, 
+		1, yInputType, 2, 1, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     label = new JLabel("Data type:");
     JGUIUtil.addComponent(__queryInput_JPanel, label, 
-		0, y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__dataType_JComboBox = new SimpleJComboBox(false);
     __dataType_JComboBox.setMaximumRowCount ( 20 );
     tooltip = "<html>The data type is used to filter the list of time series.</html>";
@@ -7698,10 +7736,12 @@ private void ui_InitGUI ( )
 		// Select HydroBase for CDSS use...
 		__input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
+		__dataStore_JTabbedPane.setSelectedIndex(1);
 	}
 	else {
         __input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_DateValue );
+		__dataStore_JTabbedPane.setSelectedIndex(1);
 	}
 }
 
@@ -7900,6 +7940,10 @@ private void ui_InitGUIInputFilters ( final int y )
         	// Because a component is added to the original GUI, need to refresh the GUI layout...
         	ui_SetInputFilterForSelections();
             ui_SetInputPanelTitle (null, Color.black );
+            if ( __dataStoreInitializing_JPanel != null ) { // TODO SAM 2013-04-05 Why is this null here?
+                __dataStoreInitializing_JPanel.setVisible(false); // No longer need to show message
+            }
+            __dataStore_JTabbedPane.setVisible(true); // This should now be visible
         	validate();
         	repaint();
         }
@@ -10630,11 +10674,13 @@ private void ui_SetInputTypeChoices ()
 		// If enabled and available, select it because the users probably want it as the choice...
 		__input_type_JComboBox.select( null );
 		__input_type_JComboBox.select( __INPUT_TYPE_HydroBase );
+		__dataStore_JTabbedPane.setSelectedIndex(1);
 	}
 	else {
         // Select the DateValue format, which is generic...
 		__input_type_JComboBox.select ( null );
 		__input_type_JComboBox.select ( __INPUT_TYPE_DateValue );
+		__dataStore_JTabbedPane.setSelectedIndex(1);
 	}
 }
 
@@ -10868,6 +10914,7 @@ throws Exception
 		if ( (__DIADvisor_dmi != null) && (__DIADvisor_archive_dmi != null) ) {
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select ( __INPUT_TYPE_DIADvisor);
+			__dataStore_JTabbedPane.setSelectedIndex(1);
 		}
 	}
 	else if ( command.equals ( __File_Open_HydroBase_String )) {
@@ -10880,6 +10927,7 @@ throws Exception
 		if ( ui_GetHydroBaseDataStoreLegacy() != null ) {
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select (__INPUT_TYPE_HydroBase);
+			__dataStore_JTabbedPane.setSelectedIndex(1);
 		}
 	}
 	else if ( command.equals ( __File_Open_RiversideDB_String )) {
