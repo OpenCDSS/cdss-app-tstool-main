@@ -1289,6 +1289,7 @@ JMenuItem
 	__Commands_General_Comments_Comment_JMenuItem = null,
 	__Commands_General_Comments_StartComment_JMenuItem = null,
 	__Commands_General_Comments_EndComment_JMenuItem = null,
+	__Commands_General_Comments_EnabledComment_JMenuItem = null,
 	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null;
@@ -1710,7 +1711,8 @@ private String
     __Commands_General_Comments_Comment_String = TAB + "# comment(s) <insert 1+ comments, each starting with #>",
     __Commands_General_Comments_StartComment_String = TAB + "/* <start multi-line comment section>",
     __Commands_General_Comments_EndComment_String = TAB + "*/ <end multi-line comment section>",
-    __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <insert read-only comment to protect command file>",
+    __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <protect command file from saving>",
+    __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
     
@@ -2331,6 +2333,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	else {
 		// New command, so look for comment actions.
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
+		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
 		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ) {
@@ -9525,6 +9528,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
+    __Commands_General_Comments_JMenu.addSeparator();
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_EnabledComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusFailureComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
@@ -11915,6 +11921,14 @@ throws Exception
 	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals(__Commands_General_Comments_EnabledComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new Vector(1);
+        comments.add ( commandList_NewCommand("#@enabled False",true) );
+        commandList_EditCommand ( __Commands_General_Comments_EnabledComment_String, comments, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
