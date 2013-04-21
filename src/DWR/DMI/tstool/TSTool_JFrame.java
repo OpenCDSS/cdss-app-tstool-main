@@ -18904,9 +18904,8 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
         "Colorado Water Conservation Board\n" +
-        "Send comments about this interface to:\n" +
-        "cdss@state.co.us (CDSS)\n" +
-        __RTiSupportEmail + " (general)\n", true );
+        "Send questions and comments to:\n" +
+        "cdss@state.co.us\n", true );
     }
     else {
         // A non-CDSS (RTi customer) installation...
