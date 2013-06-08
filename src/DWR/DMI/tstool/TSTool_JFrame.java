@@ -1100,6 +1100,7 @@ JMenuItem
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
 	__Commands_Read_ReadTimeSeries_JMenuItem,
+	__Commands_Read_ReadTimeSeriesList_JMenuItem,
 	__Commands_Read_ReadUsgsNwisDaily_JMenuItem,
 	__Commands_Read_ReadUsgsNwisGroundwater_JMenuItem,
 	__Commands_Read_ReadUsgsNwisInstantaneous_JMenuItem,
@@ -1198,6 +1199,8 @@ JMenuItem
 	__Commands_Output_WriteStateCU_JMenuItem,
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
+	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem,
+	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
 	__Commands_Output_WriteWaterML_JMenuItem,
 
     __Commands_Output_ProcessTSProduct_JMenuItem;
@@ -1224,10 +1227,19 @@ JMenuItem
     __Commands_Ensemble_WeightTraces_JMenuItem,
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem;
 
+//Commands (Network)...
+
+JMenu
+    __Commands_Network_JMenu = null;
+JMenuItem
+    __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem;
+
 // Commands (Spatial)...
 
 JMenu
     __Commands_Spatial_JMenu = null;
+JMenuItem
+    __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
 
 //Commands (Spreadsheet)...
 
@@ -1248,6 +1260,7 @@ JMenuItem
     __Commands_Table_ReadTableFromDBF_JMenuItem,
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_TableToTimeSeries_JMenuItem,
+    __Commands_Table_FormatTableString_JMenuItem,
     __Commands_Table_ManipulateTableString_JMenuItem,
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
@@ -1552,6 +1565,7 @@ private String
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1+ time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1+ time series from a StateMod binary output file>",
 	__Commands_Read_ReadTimeSeries_String = TAB + "ReadTimeSeries()... <read 1 time series given a full TSID>",
+	__Commands_Read_ReadTimeSeriesList_String = TAB + "ReadTimeSeriesList()... <read 1+ time series using location IDs from a table>",
     __Commands_Read_ReadUsgsNwisDaily_String = TAB + "ReadUsgsNwisDaily()... <read 1+ time series from USGS NWIS daily values web service>",
     __Commands_Read_ReadUsgsNwisGroundwater_String = TAB + "ReadUsgsNwisGroundwater()... <read 1+ time series from USGS NWIS groundwater web service>",
     __Commands_Read_ReadUsgsNwisInstantaneous_String = TAB + "ReadUsgsNwisInstantaneous()... <read 1+ time series from USGS NWIS instantaneous values web service>",
@@ -1624,6 +1638,8 @@ private String
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()... <write time series to StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
+	__Commands_Output_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
+	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
     __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
 
@@ -1662,9 +1678,15 @@ private String
     __Commands_Ensemble_WeightTraces_String = TAB + "WeightTraces()... <weight traces to create a new time series>",
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String = TAB + "WriteNwsrfsEspTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
 
+    // Network Commands...
+
+    __Commands_Network_String = "Network Processing",
+    __Commands_Network_AnalyzeNetworkPointFlow_String = TAB + "AnalyzeNetworkPointFlow()... <perform point flow analysis>",
+    
     // Spatial Commands...
 
     __Commands_Spatial_String = "Spatial Processing",
+    __Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
     
     // Spreadsheet Commands...
 
@@ -1681,6 +1703,7 @@ private String
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
+    __Commands_Table_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
     __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
@@ -6102,6 +6125,8 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML_JMenuItem, enabled);
     
     JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
@@ -6116,6 +6141,8 @@ private void ui_CheckGUIState ()
     JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem,enabled);
     
     JGUIUtil.setEnabled ( __Commands_Deprecated_RunningAverage_JMenuItem, enabled);
+    
+    JGUIUtil.setEnabled ( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem, enabled);
 
 	/* TODO - it is irritating to not be able to run commands
 	  when external input changes (or during debugging)...
@@ -9122,6 +9149,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
+    __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesList_JMenuItem =
+        new SimpleJMenuItem(__Commands_Read_ReadTimeSeriesList_String, this) );
     if ( __source_UsgsNwisDaily_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisDaily_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisDaily_String, this) );
@@ -9371,6 +9400,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteSummary_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteSummary_String, this ) );
+    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem =
+        new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStore_String, this ) );
+    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem =
+        new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToJson_String, this ) );
 	
     if ( __source_WaterML_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteWaterML_JMenuItem =
@@ -9433,11 +9466,21 @@ private void ui_InitGUIMenus_CommandsGeneral ()
             new SimpleJMenuItem(__Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String,this ));
     }
     
+    // Commands...Network processing...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_Network_JMenu = new JMenu( __Commands_Network_String, true ) );
+    __Commands_Network_JMenu.setToolTipText("Process time series associated with network of nodes and links.");
+    __Commands_Network_JMenu.add( __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem =
+        new SimpleJMenuItem( __Commands_Network_AnalyzeNetworkPointFlow_String, this ) );
+    
     // Commands...Spatial processing...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
-    __Commands_Spatial_JMenu.setToolTipText("Process spatial data (under development).");
+    __Commands_Spatial_JMenu.setToolTipText("Process spatial data).");
+    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
     
     // Commands...Spreadsheet processing...
     
@@ -9468,8 +9511,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_TableToTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TableToTimeSeries_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_FormatTableString_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_FormatTableString_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_TableMath_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TableMath_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_TableTimeSeriesMath_JMenuItem =
@@ -11476,6 +11522,9 @@ throws Exception
     else if (command.equals( __Commands_Read_ReadTimeSeries_String)){
         commandList_EditCommand ( __Commands_Read_ReadTimeSeries_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Read_ReadTimeSeriesList_String)){
+        commandList_EditCommand ( __Commands_Read_ReadTimeSeriesList_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Read_ReadUsgsNwisDaily_String)){
         commandList_EditCommand ( __Commands_Read_ReadUsgsNwisDaily_String, null, CommandEditType.INSERT );
     }
@@ -11796,6 +11845,12 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteSummary_String)){
 		commandList_EditCommand ( __Commands_Output_WriteSummary_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Output_WriteTimeSeriesToDataStore_String)){
+        commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Output_WriteTimeSeriesToJson_String)){
+        commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToJson_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Output_WriteWaterML_String)){
         commandList_EditCommand ( __Commands_Output_WriteWaterML_String, null, CommandEditType.INSERT );
     }
@@ -11808,7 +11863,8 @@ throws Exception
 }
 
 /**
-Handle a group of actions for the "Commands...Spreadsheet Processing",
+Handle a group of actions for the "Commands...Network Processing", "Commands...Spatial Processing",
+"Commands...Spreadsheet Processing",
 "Commands...Table Processing" and "Commands...General..." menu.
 Also include a couple of special open commands for input types.
 @param event Event to handle.
@@ -11817,9 +11873,21 @@ private void uiAction_ActionPerformed14_CommandsGeneralMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
+    // Network commands...
+    
+    if (command.equals( __Commands_Network_AnalyzeNetworkPointFlow_String) ) {
+        commandList_EditCommand ( __Commands_Network_AnalyzeNetworkPointFlow_String, null, CommandEditType.INSERT );
+    }
+    
+    // Spatical commands...
+    
+    if (command.equals( __Commands_Spatial_WriteTimeSeriesToKml_String) ) {
+        commandList_EditCommand ( __Commands_Spatial_WriteTimeSeriesToKml_String, null, CommandEditType.INSERT );
+    }
+
     // Spreadsheet commands...
 
-    if (command.equals( __Commands_Spreadsheet_ReadTableFromExcel_String) ) {
+    else if (command.equals( __Commands_Spreadsheet_ReadTableFromExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_ReadTableFromExcel_String, null, CommandEditType.INSERT );
     }
 
@@ -11851,6 +11919,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_TableToTimeSeries_String) ) {
         commandList_EditCommand ( __Commands_Table_TableToTimeSeries_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_FormatTableString_String) ) {
+        commandList_EditCommand ( __Commands_Table_FormatTableString_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
