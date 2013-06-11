@@ -19432,7 +19432,7 @@ private void uiAction_ShowTableProperties ()
             }
             for ( int i = 0; i < sel.length; i++ ) {
                 // TODO SAM 2012-10-15 Evaluate putting this in DataTable class for general use
-                String displayString = (String)__resultsTables_JList.getModel().getElementAt(i);
+                String displayString = (String)__resultsTables_JList.getModel().getElementAt(sel[i]);
                 String tableId = uiAction_ShowResultsTable_GetTableID ( displayString );
                 DataTable t = commandProcessor_GetTable ( tableId );
                 v.add ( "" );
