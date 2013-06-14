@@ -15986,6 +15986,24 @@ if false (may be useful for very large command files), do not run discovery when
 */
 private void uiAction_OpenCommandFile ( boolean runDiscoveryOnLoad )
 {	String routine = getClass().getName() + ".openCommandFile";
+    // It is possible that the last command processor run is still going
+    TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
+    if ( processor.getIsRunning() ) {
+        // TODO SAM 2013 figure out status of processing (percent complete)
+        int x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+        "The previous commands are still running.\n" +
+        "Do you want to load a new command file?\n\n" +
+        "Yes - load new command file - old commands will run in background until complete\n" +
+        "No - continue working with current command file (also can cancel)",
+        ResponseJDialog.YES|ResponseJDialog.NO).response();
+        if ( x == ResponseJDialog.NO ) {
+            return;
+        }
+        else if ( x == ResponseJDialog.YES ) {
+            // Prompt for the name and then save...
+            uiAction_WriteCommandFile ( __commandFileName, true, false );
+        }
+    }
 	// See whether the old commands need to be saved/cleared...
     if ( !uiAction_OpenCommandFile_CheckForSavingCommands() ) {
         return;
