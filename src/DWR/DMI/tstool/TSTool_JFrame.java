@@ -1255,6 +1255,7 @@ JMenu
 JMenuItem
     __Commands_Table_NewTable_JMenuItem,
     __Commands_Table_CopyTable_JMenuItem,
+    __Commands_Table_AppendTable_JMenuItem,
     __Commands_Table_ReadTableFromDataStore_JMenuItem,
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_ReadTableFromDBF_JMenuItem,
@@ -1698,6 +1699,7 @@ private String
     __Commands_Table_String = "Table Processing",
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
+    __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's records to another table>",
     __Commands_Table_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
@@ -9498,6 +9500,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_CopyTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CopyTable_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_AppendTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDataStore_String, this ) );
@@ -11898,6 +11902,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_CopyTable_String) ) {
         commandList_EditCommand ( __Commands_Table_CopyTable_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_AppendTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_AppendTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ReadTableFromDataStore_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDataStore_String, null, CommandEditType.INSERT );
