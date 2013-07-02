@@ -11878,14 +11878,14 @@ throws Exception
 {	String command = event.getActionCommand();
 
     // Network commands...
-    
+
     if (command.equals( __Commands_Network_AnalyzeNetworkPointFlow_String) ) {
         commandList_EditCommand ( __Commands_Network_AnalyzeNetworkPointFlow_String, null, CommandEditType.INSERT );
     }
     
-    // Spatical commands...
+    // Spatial commands...
     
-    if (command.equals( __Commands_Spatial_WriteTimeSeriesToKml_String) ) {
+    else if (command.equals( __Commands_Spatial_WriteTimeSeriesToKml_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTimeSeriesToKml_String, null, CommandEditType.INSERT );
     }
 
