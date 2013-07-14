@@ -239,7 +239,6 @@ import RTi.Util.Message.MessageLogListener;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.DataTable_JFrame;
-import RTi.Util.Table.DataTable_JPanel;
 import RTi.Util.Table.TableColumnType;
 import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
