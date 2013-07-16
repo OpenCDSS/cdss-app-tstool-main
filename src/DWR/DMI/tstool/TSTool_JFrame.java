@@ -19076,7 +19076,8 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
         "Copyright 1997-2013 State of CO\n" +
-        "Developed by Riverside Technology, inc.\n" +
+        "Developed by the Open Water Foundation and\n" +
+        "Riverside Technology, inc.\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
         "Colorado Water Conservation Board\n" +
