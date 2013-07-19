@@ -1108,6 +1108,7 @@ JMenuItem
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
 	__Commands_Read_ReadTimeSeries_JMenuItem,
+	__Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem,
 	__Commands_Read_ReadTimeSeriesList_JMenuItem,
 	__Commands_Read_ReadUsgsNwisDaily_JMenuItem,
 	__Commands_Read_ReadUsgsNwisGroundwater_JMenuItem,
@@ -1574,6 +1575,7 @@ private String
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1+ time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1+ time series from a StateMod binary output file>",
 	__Commands_Read_ReadTimeSeries_String = TAB + "ReadTimeSeries()... <read 1 time series given a full TSID>",
+	__Commands_Read_ReadTimeSeriesFromDataStore_String = TAB + "ReadTimeSeriesFromDataStore()... <read 1+ time series from a database datastore>",
 	__Commands_Read_ReadTimeSeriesList_String = TAB + "ReadTimeSeriesList()... <read 1+ time series using location IDs from a table>",
     __Commands_Read_ReadUsgsNwisDaily_String = TAB + "ReadUsgsNwisDaily()... <read 1+ time series from USGS NWIS daily values web service>",
     __Commands_Read_ReadUsgsNwisGroundwater_String = TAB + "ReadUsgsNwisGroundwater()... <read 1+ time series from USGS NWIS groundwater web service>",
@@ -9194,6 +9196,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
+    __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Read_ReadTimeSeriesFromDataStore_String, this) );
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesList_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeriesList_String, this) );
     if ( __source_UsgsNwisDaily_enabled ) {
@@ -11568,6 +11572,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_Read_ReadTimeSeries_String)){
         commandList_EditCommand ( __Commands_Read_ReadTimeSeries_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Read_ReadTimeSeriesFromDataStore_String)){
+        commandList_EditCommand ( __Commands_Read_ReadTimeSeriesFromDataStore_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Read_ReadTimeSeriesList_String)){
         commandList_EditCommand ( __Commands_Read_ReadTimeSeriesList_String, null, CommandEditType.INSERT );
