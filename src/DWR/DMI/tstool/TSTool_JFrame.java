@@ -1061,7 +1061,8 @@ JMenu
 JMenuItem
     __Commands_Select_DeselectTimeSeries_JMenuItem,
     __Commands_Select_SelectTimeSeries_JMenuItem,
-    __Commands_Select_Free_JMenuItem;
+    __Commands_Select_Free_JMenuItem,
+    __Commands_Select_SortTimeSeries_JMenuItem;
 JMenu
 	__Commands_CreateTimeSeries_JMenu = null;
 JMenuItem
@@ -1197,7 +1198,6 @@ JMenuItem
 	__Commands_Output_SetOutputDetailedHeaders_JMenuItem,
 	__Commands_Output_SetOutputPeriod_JMenuItem,
 	__Commands_Output_SetOutputYearType_JMenuItem,
-	__Commands_Output_SortTimeSeries_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
@@ -1210,9 +1210,7 @@ JMenuItem
 	__Commands_Output_WriteSummary_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
-	__Commands_Output_WriteWaterML_JMenuItem,
-
-    __Commands_Output_ProcessTSProduct_JMenuItem;
+	__Commands_Output_WriteWaterML_JMenuItem;
 
 JMenu
     __Commands_Check_CheckTimeSeries_JMenu = null;
@@ -1220,6 +1218,15 @@ JMenuItem
     __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem = null,
     __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem = null,
     __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem = null;
+
+//Commands (Data Visualization)...
+
+JMenu
+    __Commands_DataVisualization_JMenu = null;
+JMenuItem
+    __Commands_DataVisualization_ProcessTSProduct_JMenuItem,
+    __Commands_DataVisualization_ProcessRasterGraph_JMenuItem,
+    __Commands_DataVisualization_NewTreeView_JMenuItem;
 
 //Commands...Ensemble Processing...
 
@@ -1289,13 +1296,6 @@ JMenu
     __Commands_Template_JMenu = null;
 JMenuItem
     __Commands_Template_ExpandTemplateFile_JMenuItem;
-
-//Commands (View Processing)...
-
-JMenu
-    __Commands_View_JMenu = null;
-JMenuItem
-    __Commands_View_NewTreeView_JMenuItem;
 
 // Commands (General)...
 
@@ -1530,10 +1530,11 @@ private String
 
 	__Commands_String = "Commands",
 	
-	__Commands_SelectTimeSeries_String = "Select/Free Time Series",
+	__Commands_SelectTimeSeries_String = "Select/Free/Sort Time Series",
 	__Commands_Select_DeselectTimeSeries_String = TAB + "DeselectTimeSeries()... <deselect time series for output/processing>",
 	__Commands_Select_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
-	__Commands_Select_Free_String = TAB + "Free()... <free time series (will not be available to later commands)>", 
+	__Commands_Select_Free_String = TAB + "Free()... <free time series (will not be available to later commands)>",
+	__Commands_Select_SortTimeSeries_String = TAB + "SortTimeSeries()... <sort time series>",
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_NewPatternTimeSeries_String = TAB + "NewPatternTimeSeries()... <create a time series with repeating data values>",
@@ -1638,7 +1639,6 @@ private String
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
-	__Commands_Output_SortTimeSeries_String = TAB +	"SortTimeSeries()... <sort time series>",
 	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()... <write time series to DateValue file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
@@ -1652,7 +1652,6 @@ private String
 	__Commands_Output_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
 	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
-    __Commands_Output_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
 
     // Commands...Check Time Series...
     
@@ -1674,6 +1673,13 @@ private String
 	__Commands_Models_Routing_String = "Models - Routing",
 	__Commands_Models_Routing_LagK_String = "LagK()... <lag and attenuate (route)>",
 	__Commands_Models_Routing_VariableLagK_String = "VariableLagK()... <lag and attenuate (route)>",
+	
+    // Data visualization commands...
+
+    __Commands_DataVisualization_String = "Data Visualization",
+    __Commands_DataVisualization_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
+    __Commands_DataVisualization_ProcessRasterGraph_String = TAB + "ProcessRasterGraph()... <process time series product file for raster graph>",
+    __Commands_DataVisualization_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
     
     // Commands...Ensemble processing...
     
@@ -1734,11 +1740,6 @@ private String
 
     __Commands_Template_String = "Template Processing",
     __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
-    
-    // View Commands...
-
-    __Commands_View_String = "View Processing",
-    __Commands_View_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
     
 	// General Commands...
 
@@ -6052,6 +6053,7 @@ private void ui_CheckGUIState ()
     JGUIUtil.setEnabled ( __Commands_Select_DeselectTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Select_SelectTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Select_Free_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Select_SortTimeSeries_JMenuItem, enabled);
 	    
     JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
@@ -6116,7 +6118,6 @@ private void ui_CheckGUIState ()
 
 	JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, enabled);
     
-	JGUIUtil.setEnabled ( __Commands_Output_SortTimeSeries_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,enabled);
@@ -9055,6 +9056,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     __Commands_SelectTimeSeries_JMenu.addSeparator();
     __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_Free_JMenuItem =
         new SimpleJMenuItem(__Commands_Select_Free_String, this ) );
+    __Commands_SelectTimeSeries_JMenu.addSeparator();
+    __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_SortTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Select_SortTimeSeries_String, this ) );
     __Commands_JMenu.addSeparator();
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
@@ -9400,10 +9404,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
-	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SortTimeSeries_JMenuItem =
-		new SimpleJMenuItem(__Commands_Output_SortTimeSeries_String, this ) );
-
-	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
 
@@ -9461,9 +9461,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
-	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_ProcessTSProduct_JMenuItem =
-		new SimpleJMenuItem( __Commands_Output_ProcessTSProduct_String, this ) );
-	
     __Commands_JMenu.add( __Commands_Check_CheckTimeSeries_JMenu = new JMenu( __Commands_Check_CheckingResults_String, true ) );
     __Commands_Check_CheckTimeSeries_JMenu.setToolTipText("Check time series against criteria.");
     __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem =
@@ -9479,6 +9476,20 @@ Initialize the GUI "Commands...General".
 */
 private void ui_InitGUIMenus_CommandsGeneral ()
 {	__Commands_JMenu.addSeparator(); // Results in double separator
+
+
+    // Commands...Data Visualization...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_DataVisualization_JMenu = new JMenu( __Commands_DataVisualization_String, true ) );
+    __Commands_DataVisualization_JMenu.setToolTipText("Automate creation of data visualization products.");
+    __Commands_DataVisualization_JMenu.add ( __Commands_DataVisualization_ProcessTSProduct_JMenuItem =
+        new SimpleJMenuItem( __Commands_DataVisualization_ProcessTSProduct_String, this ) );
+    __Commands_DataVisualization_JMenu.add ( __Commands_DataVisualization_ProcessRasterGraph_JMenuItem =
+        new SimpleJMenuItem( __Commands_DataVisualization_ProcessRasterGraph_String, this ) );
+    __Commands_DataVisualization_JMenu.addSeparator();
+    __Commands_DataVisualization_JMenu.add( __Commands_DataVisualization_NewTreeView_JMenuItem =
+        new SimpleJMenuItem( __Commands_DataVisualization_NewTreeView_String, this ) );
 
     // "Commands...Ensemble processing"...
     
@@ -9600,14 +9611,6 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Template_JMenu.setToolTipText("Process templates (to handle dynamic logic and data).");
     __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
-    
-    // Commands...View processing...
-    
-    __Commands_JMenu.addSeparator();
-    __Commands_JMenu.add( __Commands_View_JMenu = new JMenu( __Commands_View_String, true ) );
-    __Commands_View_JMenu.setToolTipText("Process views (representations of results).");
-    __Commands_View_JMenu.add( __Commands_View_NewTreeView_JMenuItem =
-        new SimpleJMenuItem( __Commands_View_NewTreeView_String, this ) );
     
     // Commands...General...
 
@@ -11391,6 +11394,9 @@ throws Exception
     else if (command.equals(__Commands_Select_Free_String) ) {
         commandList_EditCommand ( __Commands_Select_Free_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Select_SortTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Select_SortTimeSeries_String, null, CommandEditType.INSERT );
+    }
     else {
         // Chain to next actions...
         uiAction_ActionPerformed05_CommandsCreateMenu ( event );
@@ -11866,9 +11872,6 @@ throws Exception
 	else if (command.equals( __Commands_Output_SetOutputYearType_String) ){
 		commandList_EditCommand ( __Commands_Output_SetOutputYearType_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Output_SortTimeSeries_String)){
-		commandList_EditCommand ( __Commands_Output_SortTimeSeries_String, null, CommandEditType.INSERT );
-	}
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
 		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, CommandEditType.INSERT );
 	}
@@ -11908,9 +11911,6 @@ throws Exception
     else if (command.equals( __Commands_Output_WriteWaterML_String)){
         commandList_EditCommand ( __Commands_Output_WriteWaterML_String, null, CommandEditType.INSERT );
     }
-	else if (command.equals( __Commands_Output_ProcessTSProduct_String)){
-		commandList_EditCommand ( __Commands_Output_ProcessTSProduct_String, null, CommandEditType.INSERT );
-	}
 	else {	// Chain to next list of commands...
 		uiAction_ActionPerformed14_CommandsGeneralMenu ( event );
 	}
@@ -11927,9 +11927,22 @@ private void uiAction_ActionPerformed14_CommandsGeneralMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
+
+    // Data visualization commands...
+
+    if (command.equals( __Commands_DataVisualization_ProcessTSProduct_String)){
+        commandList_EditCommand ( __Commands_DataVisualization_ProcessTSProduct_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_DataVisualization_ProcessRasterGraph_String)){
+        commandList_EditCommand ( __Commands_DataVisualization_ProcessRasterGraph_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_DataVisualization_NewTreeView_String) ) {
+        commandList_EditCommand ( __Commands_DataVisualization_NewTreeView_String, null, CommandEditType.INSERT );
+    }
+
     // Network commands...
 
-    if (command.equals( __Commands_Network_AnalyzeNetworkPointFlow_String) ) {
+    else if (command.equals( __Commands_Network_AnalyzeNetworkPointFlow_String) ) {
         commandList_EditCommand ( __Commands_Network_AnalyzeNetworkPointFlow_String, null, CommandEditType.INSERT );
     }
     
@@ -12012,12 +12025,6 @@ throws Exception
 
     else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
         commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, CommandEditType.INSERT );
-    }
-	
-	// View commands...
-
-    else if (command.equals( __Commands_View_NewTreeView_String) ) {
-        commandList_EditCommand ( __Commands_View_NewTreeView_String, null, CommandEditType.INSERT );
     }
 	
 	// General commands...
