@@ -1398,6 +1398,7 @@ private JMenuItem
 	__Results_Graph_PredictedValue_JMenuItem = null,
 	__Results_Graph_PredictedValueResidual_JMenuItem = null,
 	__Results_Graph_XYScatter_JMenuItem = null,
+	__Results_Graph_Raster_JMenuItem = null,
 	__Results_Table_JMenuItem = null,
 	__Results_Report_Summary_JMenuItem = null,
 	__Results_TimeSeriesProperties_JMenuItem = null;
@@ -1809,6 +1810,7 @@ private String
 	__Results_Graph_Point_String = "Graph - Point",
 	__Results_Graph_PredictedValue_String =	"Graph - Predicted Value (under development)",
 	__Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
+	__Results_Graph_Raster_String = "Graph - Raster (day and month interval only)",
 	__Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 	
 	__Results_Ensemble_Graph_Line_String = "Graph - Line",
@@ -10093,6 +10095,9 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 
 	__Results_JMenu.add(__Results_Graph_XYScatter_JMenuItem =
         new SimpleJMenuItem(__Results_Graph_XYScatter_String, this ) );
+	
+   __Results_JMenu.add(__Results_Graph_Raster_JMenuItem =
+        new SimpleJMenuItem(__Results_Graph_Raster_String, this ) );
 
 	__Results_JMenu.addSeparator();
 	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( __Results_Table_String, this ) );
@@ -10125,6 +10130,7 @@ private void ui_InitGUIMenus_ResultsPopup ()
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Point_String, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValue_String, this));
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_PredictedValueResidual_String, this));
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_Raster_String, this));
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Graph_XYScatter_String, this));
 	__resultsTS_JPopupMenu.addSeparator();
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_Table_String, this ) );
@@ -12304,6 +12310,9 @@ throws Exception
     else if (command.equals(__Results_Graph_PredictedValueResidual_String)){
     	uiAction_GraphTimeSeriesResults("-oPredictedValueResidual_graph" );
 	}
+    else if ( command.equals(__Results_Graph_Raster_String) ) {
+        uiAction_GraphTimeSeriesResults("-oraster_graph" );
+    }
     else if ( command.equals(__Results_Graph_XYScatter_String) ) {
     	uiAction_GraphTimeSeriesResults("-oxyscatter_graph" );
 	}
