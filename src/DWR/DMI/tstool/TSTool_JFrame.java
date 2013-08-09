@@ -1272,6 +1272,7 @@ JMenuItem
     __Commands_Table_NewTable_JMenuItem,
     __Commands_Table_CopyTable_JMenuItem,
     __Commands_Table_AppendTable_JMenuItem,
+    __Commands_Table_JoinTables_JMenuItem,
     __Commands_Table_ReadTableFromDataStore_JMenuItem,
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_ReadTableFromDBF_JMenuItem,
@@ -1279,6 +1280,7 @@ JMenuItem
     __Commands_Table_TableToTimeSeries_JMenuItem,
     __Commands_Table_FormatTableString_JMenuItem,
     __Commands_Table_ManipulateTableString_JMenuItem,
+    __Commands_Table_SetTableValues_JMenuItem,
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
     __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
@@ -1288,7 +1290,7 @@ JMenuItem
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
     __Commands_Table_WriteTableToHTML_JMenuItem,
     __Commands_Table_FreeTable_JMenuItem,
-    __Commands_Table_RemoveTableRowsFromDataStore_JMenuItem;
+    __Commands_Table_RemoveDataStoreTableRows_JMenuItem;
 
 // Commands (Template Processing)...
 
@@ -1717,6 +1719,7 @@ private String
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
     __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's records to another table>",
+    __Commands_Table_JoinTables_String = TAB + "JoinTables()... <join a table's records to another table by matching column value(s)>",
     __Commands_Table_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
@@ -1724,6 +1727,7 @@ private String
     __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
     __Commands_Table_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
     __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
+    __Commands_Table_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
     __Commands_Table_SetTimeSeriesPropertiesFromTable_String =
@@ -1735,7 +1739,7 @@ private String
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
     __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
     __Commands_Table_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
-    __Commands_Table_RemoveTableRowsFromDataStore_String = TAB + "RemoveTableRowsFromDataStore()... <remove rows from table in datastore>",
+    __Commands_Table_RemoveDataStoreTableRows_String = TAB + "RemoveDataStoreTableRows()... <remove datastore table rows>",
 
     // Template Commands...
 
@@ -9562,6 +9566,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_CopyTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_AppendTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_JoinTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_JoinTables_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDataStore_String, this ) );
@@ -9579,6 +9585,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_FormatTableString_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_SetTableValues_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_SetTableValues_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_TableMath_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TableMath_String, this ) );
@@ -9603,8 +9611,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_FreeTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_FreeTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_RemoveTableRowsFromDataStore_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_RemoveTableRowsFromDataStore_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_RemoveDataStoreTableRows_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_RemoveDataStoreTableRows_String, this ) );
     
     // Commands...Template processing...
     
@@ -11975,6 +11983,9 @@ throws Exception
     else if (command.equals( __Commands_Table_AppendTable_String) ) {
         commandList_EditCommand ( __Commands_Table_AppendTable_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Table_JoinTables_String) ) {
+        commandList_EditCommand ( __Commands_Table_JoinTables_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Table_ReadTableFromDataStore_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDataStore_String, null, CommandEditType.INSERT );
     }
@@ -12002,6 +12013,9 @@ throws Exception
     else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Table_SetTableValues_String) ) {
+        commandList_EditCommand ( __Commands_Table_SetTableValues_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Table_TableMath_String) ) {
         commandList_EditCommand ( __Commands_Table_TableMath_String, null, CommandEditType.INSERT );
     }
@@ -12023,8 +12037,8 @@ throws Exception
     else if (command.equals( __Commands_Table_FreeTable_String) ) {
         commandList_EditCommand ( __Commands_Table_FreeTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_RemoveTableRowsFromDataStore_String) ) {
-        commandList_EditCommand ( __Commands_Table_RemoveTableRowsFromDataStore_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_Table_RemoveDataStoreTableRows_String) ) {
+        commandList_EditCommand ( __Commands_Table_RemoveDataStoreTableRows_String, null, CommandEditType.INSERT );
     }
 	
 	// Template commands...
