@@ -1209,6 +1209,7 @@ JMenuItem
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem,
+	__Commands_Output_WriteTimeSeriesToDataStream_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
 	__Commands_Output_WriteWaterML_JMenuItem;
 
@@ -1653,6 +1654,7 @@ private String
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()... <write time series to StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
 	__Commands_Output_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
+	__Commands_Output_WriteTimeSeriesToDataStream_String = TAB + "WriteTimeSeriesToDataStream()... <write time series as stream of data records>",
 	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
 
@@ -6145,6 +6147,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateMod_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML_JMenuItem, enabled);
     
@@ -9457,6 +9460,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Output_WriteSummary_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStore_String, this ) );
+    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem =
+        new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStream_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToJson_String, this ) );
 	
@@ -11918,6 +11923,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_Output_WriteTimeSeriesToDataStore_String)){
         commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Output_WriteTimeSeriesToDataStream_String)){
+        commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToDataStream_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Output_WriteTimeSeriesToJson_String)){
         commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToJson_String, null, CommandEditType.INSERT );
