@@ -12401,7 +12401,8 @@ throws Exception
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series results (accessed by the procesor)...
 		try {
-			new FillMixedStation_JDialog ( this, commandProcessor_GetCommandProcessor(), this );
+		    // TODO SAM 2013-08-17 MixedStationAnalysis tool is no longer available - only command is available.  Need to remove this.
+			// new FillMixedStation_JDialog ( this, commandProcessor_GetCommandProcessor(), this );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error in Mixed Station Analysis tool (" + e + ")." );
