@@ -6992,7 +6992,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
     // This is a bit brute force because the name is embedded in the datastore but is not
     // a data member of the input panel
     // Alphabetize by "instanceof" argument
-    Message.printStatus ( 2, routine, "Setting input filter for current selections" );
+    Message.printStatus ( 2, routine, "Setting input filter for current selected data store \"" + selectedDataStoreName + "\"" );
     for ( InputFilter_JPanel panel : __inputFilterJPanelList ) {
         if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
@@ -7003,7 +7003,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
                 return panel;
             }
         }
-        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel) &&
+        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel) && (selectedDataType != null) &&
             (selectedDataType.equalsIgnoreCase("DivTotal") || selectedDataType.equalsIgnoreCase("IDivTotal") ||
             selectedDataType.equalsIgnoreCase("RelTotal") || selectedDataType.equalsIgnoreCase("IRelTotal")) ) {
             // This type of filter uses a DataStore
@@ -7014,7 +7014,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
                 return panel;
             }
         }
-        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel) &&
+        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel) && (selectedDataType != null) &&
             (selectedDataType.equalsIgnoreCase("WellLevelElev") || selectedDataType.equalsIgnoreCase("WellLevelDepth")) ) {
             // This type of filter uses a DataStore
             ColoradoWaterHBGuestDataStore dataStore =
@@ -8383,7 +8383,7 @@ private void ui_InitGUIInputFiltersGenericDatabaseDataStore ( List<DataStore> da
             JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            newIfp.setName("GenericDatabaseDataStore.InputFilterPanel");
+            newIfp.setName("GenericDatabaseDataStore." + dataStore.getName());
             __inputFilterJPanelList.add ( newIfp );
         }
         catch ( Exception e ) {
@@ -10786,11 +10786,13 @@ private void ui_SetInputFilterForSelections()
 	}
     if ( selectedInputFilter_JPanel == null ) {
         if ( selectedDataStore != null ) {
+            // Dealing with datastore
             Message.printStatus(2, routine,
                 "Unable to determine input panel to use for datastore \"" + selectedDataStoreName +
                 "\".  Using blank panel." );
         }
         else {
+            // Dealing with input type
             Message.printStatus(2, routine,
                 "Unable to determine input panel to use for input type \"" + selectedInputType +
                 "\".  Using blank panel." ); 
@@ -12842,6 +12844,8 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof UsgsNwisInstantaneousDataStore ) {
             uiAction_SelectDataStore_UsgsNwisInstantaneous ( (UsgsNwisInstantaneousDataStore)selectedDataStore );
         }
+        // The above does not select the input filter so do that next...
+        ui_SetInputFilterForSelections();
     }
     catch ( Exception e ) {
         Message.printWarning( 2, routine, "Error selecting datastore \"" + selectedDataStore.getName() + "\"" );
@@ -17459,20 +17463,39 @@ Refresh the query choices for the currently selected ReclamationHDB datastore.
 */
 private void uiAction_SelectDataStore_GenericDatabaseDataStore ( GenericDatabaseDataStore ds )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
+{   String routine = "TSTool_JFrame.uiAction_SelectDataStore_ReclamationHDB";
     ui_SetInputNameVisible(false); // Not needed for HDB
     __dataType_JComboBox.removeAll ();
     // Get the list of valid object/data types from the database
-    List<String> dataTypes = ds.readTimeSeriesMetaDataTypeList ( false, null, null, null, null, null );
+    List<String> dataTypes = new Vector<String>();
+    try {
+        dataTypes = ds.getTimeSeriesMetaDataTypeList ( false, null, null, null, null, null );
+    }
+    catch ( Exception e ) {
+        Message.printWarning(3, routine, e);
+    }
     __dataType_JComboBox.setData ( dataTypes );
+    if ( __dataType_JComboBox.getItemCount() > 0 ) {
+        __dataType_JComboBox.select(0);
+    }
     __dataType_JComboBox.setEnabled ( true );
     
     // Get the list of timesteps that are valid for the data type
     // Need to trigger a select to populate the input filters
     __timeStep_JComboBox.removeAll ();
-    List<String> timeSteps = ds.readTimeSeriesMetaIntervalList ( null, null, null, dataTypes.get(0), null );
+    List<String> timeSteps = new Vector<String>();
+    try {
+        if ( dataTypes.size() > 0 ) {
+            timeSteps = ds.readTimeSeriesMetaIntervalList ( null, null, null, dataTypes.get(0), null );
+        }
+    }
+    catch ( Exception e ) {
+        Message.printWarning(3, routine, e);
+    }
     __timeStep_JComboBox.setData(timeSteps);
-    __timeStep_JComboBox.select ( 0 );
+    if ( __timeStep_JComboBox.getItemCount() > 0 ) {
+        __timeStep_JComboBox.select ( 0 );
+    }
     __timeStep_JComboBox.setEnabled ( true );
  
     // Initialize results with null list...
