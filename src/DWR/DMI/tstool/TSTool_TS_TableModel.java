@@ -38,7 +38,7 @@ public final int COL_INPUT_NAME	= 12;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is allowed).
+@param data the list of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
 public TSTool_TS_TableModel ( List data )
@@ -71,20 +71,20 @@ column.  All values are treated as strings.
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return String.class;
-		case COL_ALIAS:		return String.class;
-		case COL_NAME:		return String.class;
-		case COL_DATA_SOURCE:	return String.class;
-		case COL_DATA_TYPE:	return String.class;
-		case COL_TIME_STEP:	return String.class;
-		case COL_SCENARIO:	return String.class;
-		case COL_SEQUENCE:	return String.class;
-		case COL_UNITS:		return String.class;
-		case COL_START:		return String.class;
-		case COL_END:		return String.class;
-		case COL_INPUT_TYPE:	return String.class;
-		case COL_INPUT_NAME:	return String.class;
-		default:		return String.class;
+		case COL_ID: return String.class;
+		case COL_ALIAS: return String.class;
+		case COL_NAME: return String.class;
+		case COL_DATA_SOURCE: return String.class;
+		case COL_DATA_TYPE: return String.class;
+		case COL_TIME_STEP: return String.class;
+		case COL_SCENARIO: return String.class;
+		case COL_SEQUENCE: return String.class;
+		case COL_UNITS: return String.class;
+		case COL_START: return String.class;
+		case COL_END: return String.class;
+		case COL_INPUT_TYPE: return String.class;
+		case COL_INPUT_NAME: return String.class;
+		default: return String.class;
 	}
 }
 
@@ -102,20 +102,20 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return "\nID";
-		case COL_ALIAS:		return "\nAlias";
-		case COL_NAME:		return "Name/\nDescription";
-		case COL_DATA_SOURCE:	return "Data\nSource";
-		case COL_DATA_TYPE:	return "Data\nType";
-		case COL_TIME_STEP:	return "Time\nStep";
-		case COL_SCENARIO:	return "\nScenario";
-		case COL_SEQUENCE:	return "Sequence\nNumber";
-		case COL_UNITS:		return "\nUnits";
-		case COL_START:		return "\nStart";
-		case COL_END:		return "\nEnd";
-		case COL_INPUT_TYPE:	return "Input\nType";
-		case COL_INPUT_NAME:	return "Input\nName";
-		default:		return "";
+		case COL_ID: return "\nID";
+		case COL_ALIAS: return "\nAlias";
+		case COL_NAME: return "Name/\nDescription";
+		case COL_DATA_SOURCE: return "Data\nSource";
+		case COL_DATA_TYPE: return "Data\nType";
+		case COL_TIME_STEP: return "Time\nStep";
+		case COL_SCENARIO: return "\nScenario";
+		case COL_SEQUENCE: return "Sequence\nNumber";
+		case COL_UNITS: return "\nUnits";
+		case COL_START: return "\nStart";
+		case COL_END: return "\nEnd";
+		case COL_INPUT_TYPE: return "Input\nType";
+		case COL_INPUT_NAME: return "Input\nName";
+		default: return "";
 	}
 }
 
@@ -155,25 +155,32 @@ public Object getValueAt(int row, int col)
 		return "";
 	}
 	switch (col) {
-		case COL_ID:		return ts.getIdentifier().getLocation();
-		case COL_ALIAS:		return ts.getAlias();
-		case COL_NAME: 		return ts.getDescription();
-		case COL_DATA_SOURCE:	return ts.getIdentifier().getSource();
-		case COL_DATA_TYPE: 	return ts.getDataType();
-		case COL_TIME_STEP:	return ts.getIdentifier().getInterval();
-		case COL_SCENARIO:	return ts.getIdentifier().getScenario();
-		case COL_SEQUENCE:	if ( ts.getSequenceNumber() < 0 ) {
-						return "";
-					}
-					else {
-					    return "" + ts.getSequenceNumber();
-					}
-		case COL_UNITS:		return ts.getDataUnits();
-		case COL_START:		return ts.getDate1();
-		case COL_END:		return ts.getDate2();
-		case COL_INPUT_TYPE:	return ts.getIdentifier().getInputType();
-		case COL_INPUT_NAME:	return ts.getIdentifier().getInputName();
-		default:	return "";
+		case COL_ID: return ts.getIdentifier().getLocation();
+		case COL_ALIAS: return ts.getAlias();
+		case COL_NAME: return ts.getDescription();
+		case COL_DATA_SOURCE: return ts.getIdentifier().getSource();
+		case COL_DATA_TYPE: return ts.getDataType();
+		case COL_TIME_STEP: return ts.getIdentifier().getInterval();
+		case COL_SCENARIO: return ts.getIdentifier().getScenario();
+		case COL_SEQUENCE:
+		    if ( ts.getSequenceNumber() < 0 ) {
+				return "";
+			}
+			else {
+			    return "" + ts.getSequenceNumber();
+			}
+		case COL_UNITS:
+		    return ts.getDataUnits();
+		case COL_START:
+		    return ts.getDate1();
+		case COL_END:
+		    return ts.getDate2();
+		case COL_INPUT_TYPE:
+		    return ts.getIdentifier().getInputType();
+		case COL_INPUT_NAME:
+		    return ts.getIdentifier().getInputName();
+		default:
+		    return "";
 	}
 }
 
