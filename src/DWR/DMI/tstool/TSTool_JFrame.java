@@ -65,6 +65,11 @@ import javax.swing.filechooser.FileFilter;
 
 import riverside.datastore.DataStore;
 import riverside.datastore.DataStores_JFrame;
+import riverside.datastore.GenericDatabaseDataStore;
+import riverside.datastore.GenericDatabaseDataStore_TS_CellRenderer;
+import riverside.datastore.GenericDatabaseDataStore_TS_TableModel;
+import riverside.datastore.GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel;
+import riverside.datastore.TimeSeriesMeta;
 import rti.tscommandprocessor.core.TSCommandFactory;
 import rti.tscommandprocessor.core.TSCommandFileRunner;
 import rti.tscommandprocessor.core.TSCommandProcessor;
@@ -84,7 +89,6 @@ import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStore;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_DMI;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
-import rti.tscommandprocessor.commands.ts.FillMixedStation_JDialog;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.ts.TSID_Command;
 import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisDailyDataStore;
@@ -139,6 +143,7 @@ import DWR.StateMod.StateMod_ReservoirRight;
 import DWR.StateMod.StateMod_TS;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
+import RTi.DMI.DMI;
 import RTi.DMI.DMIUtil;
 import RTi.DMI.DatabaseDataStore;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
@@ -391,7 +396,7 @@ One of these will be visible at any time to provide query filter capability.  Ea
 can have 1+ input filter panels, based on the data type and interval.  If no input filter is relevant, then the
 generic input filter with only text label (blank) is shown.
 */
-private List<InputFilter_JPanel> __inputFilterJPanelList = new Vector();
+private List<InputFilter_JPanel> __inputFilterJPanelList = new Vector<InputFilter_JPanel>();
 
 /**
 The currently selected input filter JPanel, used to check input and get the filter information for queries.
@@ -1109,7 +1114,7 @@ JMenuItem
 	__Commands_Read_ReadStateMod_JMenuItem,
 	__Commands_Read_ReadStateModB_JMenuItem,
 	__Commands_Read_ReadTimeSeries_JMenuItem,
-	__Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem,
+    __Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem, // Duplicate of menu in __Commands_Datastore...
 	__Commands_Read_ReadTimeSeriesList_JMenuItem,
 	__Commands_Read_ReadUsgsNwisDaily_JMenuItem,
 	__Commands_Read_ReadUsgsNwisGroundwater_JMenuItem,
@@ -1208,7 +1213,7 @@ JMenuItem
 	__Commands_Output_WriteStateCU_JMenuItem,
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
-	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem,
+	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, // Also duplicated as __Commands_Datastore_WriteTimeSeriesToDataStore
 	__Commands_Output_WriteTimeSeriesToDataStream_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
 	__Commands_Output_WriteWaterML_JMenuItem;
@@ -1220,16 +1225,19 @@ JMenuItem
     __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem = null,
     __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem = null;
 
-//Commands (Data Visualization)...
+// Commands...Datastore Processing...
 
 JMenu
-    __Commands_DataVisualization_JMenu = null;
+    __Commands_Datastore_JMenu = null;
 JMenuItem
-    __Commands_DataVisualization_ProcessTSProduct_JMenuItem,
-    __Commands_DataVisualization_ProcessRasterGraph_JMenuItem,
-    __Commands_DataVisualization_NewTreeView_JMenuItem;
+    __Commands_Datastore_ReadTableFromDataStore_JMenuItem,
+    __Commands_Datastore_WriteTableToDataStore_JMenuItem,
+    __Commands_Datastore_RemoveDataStoreTableRows_JMenuItem,
+    __Commands_Datastore_RunSql_JMenuItem,
+    __Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem,
+    __Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem;
 
-//Commands...Ensemble Processing...
+// Commands...Ensemble Processing...
 
 JMenu
     __Commands_Ensemble_JMenu = null;
@@ -1274,9 +1282,10 @@ JMenuItem
     __Commands_Table_CopyTable_JMenuItem,
     __Commands_Table_AppendTable_JMenuItem,
     __Commands_Table_JoinTables_JMenuItem,
-    __Commands_Table_ReadTableFromDataStore_JMenuItem,
+    __Commands_Table_ReadTableFromDataStore_JMenuItem, // Uses string from __Commands_Datastore_ReadTableFromDataStore
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_ReadTableFromDBF_JMenuItem,
+    __Commands_Table_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_TableToTimeSeries_JMenuItem,
     __Commands_Table_FormatTableString_JMenuItem,
@@ -1287,11 +1296,10 @@ JMenuItem
     __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
     __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem,
     __Commands_Table_CompareTables_JMenuItem,
-    __Commands_Table_WriteTableToDataStore_JMenuItem,
+    __Commands_Table_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
     __Commands_Table_WriteTableToHTML_JMenuItem,
-    __Commands_Table_FreeTable_JMenuItem,
-    __Commands_Table_RemoveDataStoreTableRows_JMenuItem;
+    __Commands_Table_FreeTable_JMenuItem;
 
 // Commands (Template Processing)...
 
@@ -1299,6 +1307,15 @@ JMenu
     __Commands_Template_JMenu = null;
 JMenuItem
     __Commands_Template_ExpandTemplateFile_JMenuItem;
+
+// Commands (visualization)...
+
+JMenu
+    __Commands_Visualization_JMenu = null;
+JMenuItem
+    __Commands_Visualization_ProcessTSProduct_JMenuItem,
+    __Commands_Visualization_ProcessRasterGraph_JMenuItem,
+    __Commands_Visualization_NewTreeView_JMenuItem;
 
 // Commands (General)...
 
@@ -1580,7 +1597,7 @@ private String
 	__Commands_Read_ReadStateMod_String = TAB +	"ReadStateMod()... <read 1+ time series from a StateMod file>",
 	__Commands_Read_ReadStateModB_String = TAB + "ReadStateModB()... <read 1+ time series from a StateMod binary output file>",
 	__Commands_Read_ReadTimeSeries_String = TAB + "ReadTimeSeries()... <read 1 time series given a full TSID>",
-	__Commands_Read_ReadTimeSeriesFromDataStore_String = TAB + "ReadTimeSeriesFromDataStore()... <read 1+ time series from a database datastore>",
+	// See also __Commands_Datastore_ReadTimeSeriesFromDataStore() - which is added in this menu slot
 	__Commands_Read_ReadTimeSeriesList_String = TAB + "ReadTimeSeriesList()... <read 1+ time series using location IDs from a table>",
     __Commands_Read_ReadUsgsNwisDaily_String = TAB + "ReadUsgsNwisDaily()... <read 1+ time series from USGS NWIS daily values web service>",
     __Commands_Read_ReadUsgsNwisGroundwater_String = TAB + "ReadUsgsNwisGroundwater()... <read 1+ time series from USGS NWIS groundwater web service>",
@@ -1653,7 +1670,7 @@ private String
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
 	__Commands_Output_WriteStateMod_String = TAB + "WriteStateMod()... <write time series to StateMod file>",
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
-	__Commands_Output_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
+	// See __Commands_Datastore_WriteTimeSeriesToDataStore, which is used for this menu
 	__Commands_Output_WriteTimeSeriesToDataStream_String = TAB + "WriteTimeSeriesToDataStream()... <write time series as stream of data records>",
 	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
@@ -1679,12 +1696,15 @@ private String
 	__Commands_Models_Routing_LagK_String = "LagK()... <lag and attenuate (route)>",
 	__Commands_Models_Routing_VariableLagK_String = "VariableLagK()... <lag and attenuate (route)>",
 	
-    // Data visualization commands...
-
-    __Commands_DataVisualization_String = "Data Visualization",
-    __Commands_DataVisualization_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
-    __Commands_DataVisualization_ProcessRasterGraph_String = TAB + "ProcessRasterGraph()... <process time series product file for raster graph>",
-    __Commands_DataVisualization_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
+	// Commands...Datastore processing...
+	
+    __Commands_Datastore_String = "Datastore Processing",
+    __Commands_Datastore_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
+    __Commands_Datastore_WriteTableToDataStore_String = TAB + "WriteTableToDataStore()... <write a table to a database datastore>",
+    __Commands_Datastore_RemoveDataStoreTableRows_String = TAB + "RemoveDataStoreTableRows()... <remove database datastore table rows>",
+    __Commands_Datastore_RunSql_String = TAB + "RunSql()... <run an SQL statement for a database datastore>",
+    __Commands_Datastore_ReadTimeSeriesFromDataStore_String = TAB + "ReadTimeSeriesFromDataStore()... <read 1+ time series from a database datastore>",
+    __Commands_Datastore_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
     
     // Commands...Ensemble processing...
     
@@ -1722,7 +1742,7 @@ private String
     __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
     __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's records to another table>",
     __Commands_Table_JoinTables_String = TAB + "JoinTables()... <join a table's records to another table by matching column value(s)>",
-    __Commands_Table_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
+    // Menu inserted here uses __Commands_Datastore_ReadTableFromDataStore string
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
@@ -1737,16 +1757,22 @@ private String
     __Commands_Table_CopyTimeSeriesPropertiesToTable_String =
         TAB + "CopyTimeSeriesPropertiesToTable()... <copy time series properties to table>",
     __Commands_Table_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
-    __Commands_Table_WriteTableToDataStore_String = TAB + "WriteTableToDataStore()... <write a table to a database datastore>",
+    // See __Commands_Datastore_WriteTableToDataStore, which is used to define menu here
     __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
     __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
     __Commands_Table_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
-    __Commands_Table_RemoveDataStoreTableRows_String = TAB + "RemoveDataStoreTableRows()... <remove datastore table rows>",
 
     // Template Commands...
 
     __Commands_Template_String = "Template Processing",
     __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
+    
+    // Visualization commands...
+
+    __Commands_Visualization_String = "Visualization Processing",
+    __Commands_Visualization_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
+    __Commands_Visualization_ProcessRasterGraph_String = TAB + "ProcessRasterGraph()... <process time series product file for raster graph>",
+    __Commands_Visualization_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
     
 	// General Commands...
 
@@ -3919,7 +3945,6 @@ public void commandStarted ( int icommand, int ncommand, Command command,
 		__processor_JProgressBar.setMinimum ( 0 );
 		__processor_JProgressBar.setMaximum ( ncommand );
 		__processor_JProgressBar.setValue ( 0 );
-		Message.printStatus(2, getClass().getName()+".commandStarted", "Setting processor progress bar limits to 0 to " + ncommand );
 	}
 	// Set the tooltip text for the progress bar to indicate the numbers
 	__processor_JProgressBar.setToolTipText ( tip );
@@ -5248,6 +5273,26 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			use_alias, insertOffset );
 		}
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof GenericDatabaseDataStore) ) {
+        // TODO SAM 2013-08-27 Try this model but need to deal with location type
+        GenericDatabaseDataStore_TS_TableModel model = (GenericDatabaseDataStore_TS_TableModel)__query_TableModel;
+        String locType = (String)__query_TableModel.getValueAt( row, model.COL_LOC_TYPE );
+        if ( !locType.equals("") ) {
+            // Add the separator
+            locType += TSIdent.LOC_TYPE_SEPARATOR;
+        }
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+            locType + (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
+            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
+            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+            (String)__query_TableModel.getValueAt ( row, model.COL_SCENARIO),
+            null, // No sequence number
+            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+            "", // No input name
+            "",
+            false, insertOffset );
+    }
 	else if (  selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
 	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns
 	    // Currently essentially the same as the generic model but have custom headings
@@ -6495,8 +6540,7 @@ private void ui_DataStoreList_Populate ()
     dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
-        if ( dataStore.getClass().getName().endsWith(".GenericDatabaseDataStore") ||
-            dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
+        if ( dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisDailyDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
@@ -6975,6 +7019,16 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             // This type of filter uses a DataStore
             ColoradoWaterHBGuestDataStore dataStore =
                 ((ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+                // Have a match in the datastore name so return the panel
+                return panel;
+            }
+        }
+        else if ( panel instanceof GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore.
+            DataStore dataStore = ((GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            Message.printStatus(2,routine,"Selected data store is \"" + selectedDataStoreName +
+                "\" checking filter panel data store name \"" + dataStore.getName() );
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
                 // Have a match in the datastore name so return the panel
                 return panel;
@@ -7873,6 +7927,16 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, e);
                 }
             }
+            if ( __tsProcessor.getDataStoresByType(GenericDatabaseDataStore.class).size() > 0 ) {
+                try {
+                    ui_InitGUIInputFiltersGenericDatabaseDataStore(__tsProcessor.getDataStoresByType(GenericDatabaseDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing GenericDatabaseDataStore input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
             if ( __source_HECDSS_enabled ) {
                 // Add input filters for HEC-DSS files.
                 try {
@@ -8286,6 +8350,47 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataSt
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoWaterHBGuest structures." );
             Message.printWarning ( 3, routine, e );
+        }
+    }
+}
+
+/**
+Initialize the GenericDataBaseDataStore input filter (may be called at startup).
+@param dataStoreList the list of datastores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
+*/
+private void ui_InitGUIInputFiltersGenericDatabaseDataStore ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersGenericDatabaseDataStore";
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " GenericDatabaseDataStore datastores." );
+    String selectedDataType = ui_GetSelectedDataType();
+    String selectedTimeStep = ui_GetSelectedTimeStep();
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name...
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType, selectedTimeStep );
+            // If the previous instance is not null, remove it from the list...
+            if ( ifp != null ) {
+                __inputFilterJPanelList.remove ( ifp );
+            }
+            // Create a new panel...
+            GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel newIfp =
+                new GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel((GenericDatabaseDataStore)dataStore, 3);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            newIfp.setName("GenericDatabaseDataStore.InputFilterPanel");
+            __inputFilterJPanelList.add ( newIfp );
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for GenericDatabaseDataStore time series " +
+                "for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
         }
     }
 }
@@ -9209,8 +9314,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
+    // Duplicate this menu from the Datastore menus because of common use
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem =
-        new SimpleJMenuItem(__Commands_Read_ReadTimeSeriesFromDataStore_String, this) );
+        new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesList_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeriesList_String, this) );
     if ( __source_UsgsNwisDaily_enabled ) {
@@ -9459,7 +9565,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteSummary_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteSummary_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem =
-        new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStore_String, this ) );
+        new SimpleJMenuItem( __Commands_Datastore_WriteTimeSeriesToDataStore_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStream_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem =
@@ -9488,20 +9594,25 @@ Initialize the GUI "Commands...General".
 private void ui_InitGUIMenus_CommandsGeneral ()
 {	__Commands_JMenu.addSeparator(); // Results in double separator
 
-
-    // Commands...Data Visualization...
+    // "Commands...Datastore processing"...
     
     __Commands_JMenu.addSeparator();
-    __Commands_JMenu.add( __Commands_DataVisualization_JMenu = new JMenu( __Commands_DataVisualization_String, true ) );
-    __Commands_DataVisualization_JMenu.setToolTipText("Automate creation of data visualization products.");
-    __Commands_DataVisualization_JMenu.add ( __Commands_DataVisualization_ProcessTSProduct_JMenuItem =
-        new SimpleJMenuItem( __Commands_DataVisualization_ProcessTSProduct_String, this ) );
-    __Commands_DataVisualization_JMenu.add ( __Commands_DataVisualization_ProcessRasterGraph_JMenuItem =
-        new SimpleJMenuItem( __Commands_DataVisualization_ProcessRasterGraph_String, this ) );
-    __Commands_DataVisualization_JMenu.addSeparator();
-    __Commands_DataVisualization_JMenu.add( __Commands_DataVisualization_NewTreeView_JMenuItem =
-        new SimpleJMenuItem( __Commands_DataVisualization_NewTreeView_String, this ) );
-
+    __Commands_JMenu.add ( __Commands_Datastore_JMenu = new JMenu(__Commands_Datastore_String) );
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTableFromDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_ReadTableFromDataStore_String, this) );
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTableToDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_WriteTableToDataStore_String, this) );
+    __Commands_Datastore_JMenu.addSeparator();
+    __Commands_Datastore_JMenu.add( __Commands_Datastore_RunSql_JMenuItem =
+        new SimpleJMenuItem( __Commands_Datastore_RunSql_String, this ) );
+    __Commands_Datastore_JMenu.add( __Commands_Datastore_RemoveDataStoreTableRows_JMenuItem =
+        new SimpleJMenuItem( __Commands_Datastore_RemoveDataStoreTableRows_String, this ) );
+    __Commands_Datastore_JMenu.addSeparator();
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_WriteTimeSeriesToDataStore_String, this) );
+    
     // "Commands...Ensemble processing"...
     
     __Commands_JMenu.addSeparator();
@@ -9569,17 +9680,19 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_CopyTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CopyTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_AppendTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_JoinTables_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_JoinTables_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDataStore_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_ReadTableFromDataStore_String, this ) );
+        new SimpleJMenuItem( __Commands_Datastore_ReadTableFromDataStore_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDBF_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDBF_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_AppendTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_JoinTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_JoinTables_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
@@ -9603,11 +9716,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CopyTimeSeriesPropertiesToTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDataStore_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_WriteTableToDataStore_String, this ) );
+        new SimpleJMenuItem( __Commands_Datastore_WriteTableToDataStore_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
@@ -9615,9 +9725,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_FreeTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_FreeTable_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_RemoveDataStoreTableRows_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_RemoveDataStoreTableRows_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
     
     // Commands...Template processing...
     
@@ -9626,6 +9735,19 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Template_JMenu.setToolTipText("Process templates (to handle dynamic logic and data).");
     __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
+    
+    // Commands...Visualization Processing...
+    
+    __Commands_JMenu.addSeparator();
+    __Commands_JMenu.add( __Commands_Visualization_JMenu = new JMenu( __Commands_Visualization_String, true ) );
+    __Commands_Visualization_JMenu.setToolTipText("Automate creation of data visualization products.");
+    __Commands_Visualization_JMenu.add ( __Commands_Visualization_ProcessTSProduct_JMenuItem =
+        new SimpleJMenuItem( __Commands_Visualization_ProcessTSProduct_String, this ) );
+    __Commands_Visualization_JMenu.add ( __Commands_Visualization_ProcessRasterGraph_JMenuItem =
+        new SimpleJMenuItem( __Commands_Visualization_ProcessRasterGraph_String, this ) );
+    __Commands_Visualization_JMenu.addSeparator();
+    __Commands_Visualization_JMenu.add( __Commands_Visualization_NewTreeView_JMenuItem =
+        new SimpleJMenuItem( __Commands_Visualization_NewTreeView_String, this ) );
     
     // Commands...General...
 
@@ -11598,9 +11720,6 @@ throws Exception
     else if (command.equals( __Commands_Read_ReadTimeSeries_String)){
         commandList_EditCommand ( __Commands_Read_ReadTimeSeries_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Read_ReadTimeSeriesFromDataStore_String)){
-        commandList_EditCommand ( __Commands_Read_ReadTimeSeriesFromDataStore_String, null, CommandEditType.INSERT );
-    }
     else if (command.equals( __Commands_Read_ReadTimeSeriesList_String)){
         commandList_EditCommand ( __Commands_Read_ReadTimeSeriesList_String, null, CommandEditType.INSERT );
     }
@@ -11921,9 +12040,7 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteSummary_String)){
 		commandList_EditCommand ( __Commands_Output_WriteSummary_String, null, CommandEditType.INSERT );
 	}
-    else if (command.equals( __Commands_Output_WriteTimeSeriesToDataStore_String)){
-        commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
-    }
+    // See also __Commands_Datastore_WriteTimeSeriesToDataStore which duplicates the output menu
     else if (command.equals( __Commands_Output_WriteTimeSeriesToDataStream_String)){
         commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToDataStream_String, null, CommandEditType.INSERT );
     }
@@ -11949,17 +12066,25 @@ private void uiAction_ActionPerformed14_CommandsGeneralMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
+    // Datastore commands...
 
-    // Data visualization commands...
-
-    if (command.equals( __Commands_DataVisualization_ProcessTSProduct_String)){
-        commandList_EditCommand ( __Commands_DataVisualization_ProcessTSProduct_String, null, CommandEditType.INSERT );
+    if (command.equals( __Commands_Datastore_ReadTableFromDataStore_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_ReadTableFromDataStore_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_DataVisualization_ProcessRasterGraph_String)){
-        commandList_EditCommand ( __Commands_DataVisualization_ProcessRasterGraph_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_Datastore_WriteTableToDataStore_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_WriteTableToDataStore_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_DataVisualization_NewTreeView_String) ) {
-        commandList_EditCommand ( __Commands_DataVisualization_NewTreeView_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_Datastore_RemoveDataStoreTableRows_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_RemoveDataStoreTableRows_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Datastore_RunSql_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_RunSql_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Datastore_ReadTimeSeriesFromDataStore_String)){
+        commandList_EditCommand ( __Commands_Datastore_ReadTimeSeriesFromDataStore_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Datastore_WriteTimeSeriesToDataStore_String)){
+        commandList_EditCommand ( __Commands_Datastore_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
     }
 
     // Network commands...
@@ -11994,9 +12119,7 @@ throws Exception
     else if (command.equals( __Commands_Table_JoinTables_String) ) {
         commandList_EditCommand ( __Commands_Table_JoinTables_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_ReadTableFromDataStore_String) ) {
-        commandList_EditCommand ( __Commands_Table_ReadTableFromDataStore_String, null, CommandEditType.INSERT );
-    }
+    // See __Commands_Tble_ReadTableFromDataStore, which is duplicated in Table menu
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, CommandEditType.INSERT );
     }
@@ -12033,9 +12156,6 @@ throws Exception
     else if (command.equals( __Commands_Table_CompareTables_String) ) {
         commandList_EditCommand ( __Commands_Table_CompareTables_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_WriteTableToDataStore_String) ) {
-        commandList_EditCommand ( __Commands_Table_WriteTableToDataStore_String, null, CommandEditType.INSERT );
-    }
     else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
         commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, CommandEditType.INSERT );
     }
@@ -12045,14 +12165,23 @@ throws Exception
     else if (command.equals( __Commands_Table_FreeTable_String) ) {
         commandList_EditCommand ( __Commands_Table_FreeTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_RemoveDataStoreTableRows_String) ) {
-        commandList_EditCommand ( __Commands_Table_RemoveDataStoreTableRows_String, null, CommandEditType.INSERT );
-    }
 	
 	// Template commands...
 
     else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
         commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, CommandEditType.INSERT );
+    }
+    
+    // Data visualization commands...
+
+    if (command.equals( __Commands_Visualization_ProcessTSProduct_String)){
+        commandList_EditCommand ( __Commands_Visualization_ProcessTSProduct_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Visualization_ProcessRasterGraph_String)){
+        commandList_EditCommand ( __Commands_Visualization_ProcessRasterGraph_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Visualization_NewTreeView_String) ) {
+        commandList_EditCommand ( __Commands_Visualization_NewTreeView_String, null, CommandEditType.INSERT );
     }
 	
 	// General commands...
@@ -12688,6 +12817,9 @@ private void uiAction_DataStoreChoiceClicked()
         }
         else if ( selectedDataStore instanceof ColoradoWaterSMSDataStore ) {
             uiAction_SelectDataStore_ColoradoWaterSMS ( (ColoradoWaterSMSDataStore)selectedDataStore );
+        }
+        else if ( selectedDataStore instanceof GenericDatabaseDataStore ) {
+            uiAction_SelectDataStore_GenericDatabaseDataStore ( (GenericDatabaseDataStore)selectedDataStore );
         }
         else if ( selectedDataStore instanceof HydroBaseDataStore ) {
             uiAction_SelectDataStore_HydroBase ( (HydroBaseDataStore)selectedDataStore );
@@ -13325,6 +13457,17 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof GenericDatabaseDataStore) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading GenericDatabaseDataStore - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( selectedInputType.equals (__INPUT_TYPE_DIADvisor)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
@@ -14036,6 +14179,70 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 		Message.printWarning ( 2, rtn, e );
         JGUIUtil.setWaitCursor ( this, false );
 	}
+}
+
+/**
+Read ReclamationHDB time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
+    try {
+        GenericDatabaseDataStore ds = (GenericDatabaseDataStore)ui_GetSelectedDataStore();
+        DMI dmi = (DMI)ds.getDMI();
+        queryResultsList_Clear ();
+        String dataType = __dataType_JComboBox.getSelected(); // Object type - common data type
+        String timeStep = __timeStep_JComboBox.getSelected();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+
+        List<TimeSeriesMeta> results = null;
+        // Data type is shown with name so only use the first part of the choice
+        try {
+            results = ds.readTimeSeriesMetaList(dataType, timeStep,
+                (GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel)__selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new GenericDatabaseDataStore_TS_TableModel ( results, ds );
+            GenericDatabaseDataStore_TS_CellRenderer cr =
+                new GenericDatabaseDataStore_TS_CellRenderer( (GenericDatabaseDataStore_TS_TableModel)__query_TableModel);
+
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
 }
 
 /**
@@ -17244,6 +17451,36 @@ throws Exception
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
+Refresh the query choices for the currently selected ReclamationHDB datastore.
+*/
+private void uiAction_SelectDataStore_GenericDatabaseDataStore ( GenericDatabaseDataStore ds )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
+    ui_SetInputNameVisible(false); // Not needed for HDB
+    __dataType_JComboBox.removeAll ();
+    // Get the list of valid object/data types from the database
+    List<String> dataTypes = ds.readTimeSeriesMetaDataTypeList ( false, null, null, null, null, null );
+    __dataType_JComboBox.setData ( dataTypes );
+    __dataType_JComboBox.setEnabled ( true );
+    
+    // Get the list of timesteps that are valid for the data type
+    // Need to trigger a select to populate the input filters
+    __timeStep_JComboBox.removeAll ();
+    List<String> timeSteps = ds.readTimeSeriesMetaIntervalList ( null, null, null, dataTypes.get(0), null );
+    __timeStep_JComboBox.setData(timeSteps);
+    __timeStep_JComboBox.select ( 0 );
+    __timeStep_JComboBox.setEnabled ( true );
+ 
+    // Initialize results with null list...
+    __query_TableModel = new GenericDatabaseDataStore_TS_TableModel( null, ds );
+    GenericDatabaseDataStore_TS_CellRenderer cr =
+        new GenericDatabaseDataStore_TS_CellRenderer((GenericDatabaseDataStore_TS_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
