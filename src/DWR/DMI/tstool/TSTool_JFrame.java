@@ -6549,6 +6549,13 @@ private void ui_DataStoreList_Populate ()
             // FIXME SAM 2012-12-18 Enable with filter panel is developed specific to web services.
             continue;
         }
+        else if ( dataStore.getClass().getName().endsWith(".GenericDatabaseDataStore") ) {
+            // Only populate if configured for time series
+            GenericDatabaseDataStore ds = (GenericDatabaseDataStore)dataStore;
+            if ( !ds.hasTimeSeriesInterface(true) ) {
+                continue;
+            }
+        }
         dataStoreNameList.add ( dataStore.getName() );
     }
     __dataStore_JComboBox.setData(dataStoreNameList);
