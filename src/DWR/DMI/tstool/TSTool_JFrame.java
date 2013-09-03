@@ -17477,6 +17477,8 @@ throws Exception
     List<String> dataTypes = new Vector<String>();
     try {
         dataTypes = ds.getTimeSeriesMetaDataTypeList ( false, null, null, null, null, null );
+        // Also add "*" to get all types, for example, when location type is selected
+        dataTypes.add ( "*" );
     }
     catch ( Exception e ) {
         Message.printWarning(3, routine, e);
