@@ -1288,6 +1288,7 @@ JMenuItem
     __Commands_Table_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_TableToTimeSeries_JMenuItem,
+    __Commands_Table_CreateTimeSeriesEventTable_JMenuItem,
     __Commands_Table_FormatTableString_JMenuItem,
     __Commands_Table_ManipulateTableString_JMenuItem,
     __Commands_Table_SetTableValues_JMenuItem,
@@ -1747,6 +1748,7 @@ private String
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
+    __Commands_Table_CreateTimeSeriesEventTable_String = TAB + "CreateTimeSeriesEventTable()... <create time series event table>",
     __Commands_Table_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
     __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
     __Commands_Table_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
@@ -9705,6 +9707,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_TableToTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TableToTimeSeries_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_CreateTimeSeriesEventTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_CreateTimeSeriesEventTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_FormatTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_FormatTableString_String, this ) );
@@ -12146,6 +12150,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_TableToTimeSeries_String) ) {
         commandList_EditCommand ( __Commands_Table_TableToTimeSeries_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_CreateTimeSeriesEventTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_CreateTimeSeriesEventTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_FormatTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_FormatTableString_String, null, CommandEditType.INSERT );
