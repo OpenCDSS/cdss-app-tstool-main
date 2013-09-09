@@ -1232,7 +1232,7 @@ JMenu
 JMenuItem
     __Commands_Datastore_ReadTableFromDataStore_JMenuItem,
     __Commands_Datastore_WriteTableToDataStore_JMenuItem,
-    __Commands_Datastore_RemoveDataStoreTableRows_JMenuItem,
+    __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem,
     __Commands_Datastore_RunSql_JMenuItem,
     __Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem,
     __Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem;
@@ -1702,7 +1702,7 @@ private String
     __Commands_Datastore_String = "Datastore Processing",
     __Commands_Datastore_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
     __Commands_Datastore_WriteTableToDataStore_String = TAB + "WriteTableToDataStore()... <write a table to a database datastore>",
-    __Commands_Datastore_RemoveDataStoreTableRows_String = TAB + "RemoveDataStoreTableRows()... <remove database datastore table rows>",
+    __Commands_Datastore_DeleteDataStoreTableRows_String = TAB + "DeleteDataStoreTableRows()... <delete database datastore table rows>",
     __Commands_Datastore_RunSql_String = TAB + "RunSql()... <run an SQL statement for a database datastore>",
     __Commands_Datastore_ReadTimeSeriesFromDataStore_String = TAB + "ReadTimeSeriesFromDataStore()... <read 1+ time series from a database datastore>",
     __Commands_Datastore_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
@@ -9614,8 +9614,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add( __Commands_Datastore_RunSql_JMenuItem =
         new SimpleJMenuItem( __Commands_Datastore_RunSql_String, this ) );
-    __Commands_Datastore_JMenu.add( __Commands_Datastore_RemoveDataStoreTableRows_JMenuItem =
-        new SimpleJMenuItem( __Commands_Datastore_RemoveDataStoreTableRows_String, this ) );
+    __Commands_Datastore_JMenu.add( __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem =
+        new SimpleJMenuItem( __Commands_Datastore_DeleteDataStoreTableRows_String, this ) );
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
@@ -12087,8 +12087,8 @@ throws Exception
     else if (command.equals( __Commands_Datastore_WriteTableToDataStore_String) ) {
         commandList_EditCommand ( __Commands_Datastore_WriteTableToDataStore_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Datastore_RemoveDataStoreTableRows_String) ) {
-        commandList_EditCommand ( __Commands_Datastore_RemoveDataStoreTableRows_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_Datastore_DeleteDataStoreTableRows_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_DeleteDataStoreTableRows_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Datastore_RunSql_String) ) {
         commandList_EditCommand ( __Commands_Datastore_RunSql_String, null, CommandEditType.INSERT );
