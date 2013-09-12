@@ -26,45 +26,52 @@ fi
 JAR_HOME="$INSTALL_HOME/bin"
 # Classpath for TSTool, including all Jar files needed for runtime features
 # List core files first for rapid access with less used features later.
+# These can be compared with the TSTool Help...About TSTool...Show Software/System Details
+# output for the classpath, which is a list of jar files in the "bin" folder under the
+# TSTool install.  Manually resort a few to have primary jar files at the top and third-party
+# libraries after that.
 TSTOOL_CP="\
 $JAR_HOME/TSTool_16.jar:\
+$JAR_HOME/RTi_Common_16.jar:\
+$JAR_HOME/TSCommandProcessor_16.jar:\
 $JAR_HOME/cdss.domain_16.jar:\
 $JAR_HOME/HydroBaseDMI_16.jar:\
+$JAR_HOME/StateMod_16.jar:\
 $JAR_HOME/NWSRFS_DMI_16.jar:\
 $JAR_HOME/RiversideDB_DMI_16.jar:\
-$JAR_HOME/RTi_Common_16.jar:\
 $JAR_HOME/SatmonSysDMI_16.jar:\
-$JAR_HOME/StateMod_16.jar:\
-$JAR_HOME/TSCommandProcessor_16.jar:\
-$JAR_HOME/hec.jar:\
-$JAR_HOME/heclib.jar:\
-$JAR_HOME/rma.jar:\
-$JAR_HOME/Blowfish_142.jar:\
-$JAR_HOME/h2.jar:\
-$JAR_HOME/freemarker.jar:\
-$JAR_HOME/jcommon.jar:\
-$JAR_HOME/jfreechart.jar:\
-$JAR_HOME/jsr173_1.0_api.jar:\
-$JAR_HOME/jython.jar:\
-$JAR_HOME/libXMLJava.jar:\
-$JAR_HOME/msbase.jar:\
-$JAR_HOME/mssqlserver.jar:\
-$JAR_HOME/msutil.jar:\
 $JAR_HOME/batik-awt-util.jar:\
 $JAR_HOME/batik-dom.jar:\
 $JAR_HOME/batik-ext.jar:\
 $JAR_HOME/batik-svggen.jar:\
 $JAR_HOME/batik-util.jar:\
-$JAR_HOME/xbean.jar:\
-$JAR_HOME/xerces.jar:\
-$JAR_HOME/commons-net-1.2.2.jar:\
-$JAR_HOME/jakarta-oro-2.0.8.jar:\
+$JAR_HOME/batik-xml.jar:\
+$JAR_HOME/Blowfish_142.jar:\
 $JAR_HOME/com.noelios.restlet.jar:\
-$JAR_HOME/org.restlet.jar:\
+$JAR_HOME/commons-codec-1.5.jar:\
+$JAR_HOME/commons-logging-1.1.jar:\
+$JAR_HOME/commons-math3-3.0.jar:\
+$JAR_HOME/commons-net-3.3.jar:\
+$JAR_HOME/dom4j-1.6.1.jar:\
+$JAR_HOME/freemarker.jar:\
+$JAR_HOME/gson-2.2.1.jar:\
+$JAR_HOME/h2.jar$JAR_HOME/bin\hec.jar:\
+$JAR_HOME/heclib.jar:\
+$JAR_HOME/jakarta-oro-2.0.8.jar:\
+$JAR_HOME/jcommon.jar:\
+$JAR_HOME/jfreechart.jar:\
+$JAR_HOME/jython.jar:\
+$JAR_HOME/log4j-1.2.13.jar:\
 $JAR_HOME/ojdbc6.jar:\
+$JAR_HOME/org.restlet.jar:\
+$JAR_HOME/poi-3.9-20121203.jar:\
+$JAR_HOME/poi-ooxml-3.9-20121203.jar:\
+$JAR_HOME/poi-ooxml-schemas-3.9-20121203.jar:\
+$JAR_HOME/rma.jar:\
 $JAR_HOME/sqljdbc4.jar:\
-$JAR_HOME/gson-1.6.jar:\
-"
+$JAR_HOME/stax-api-1.0.1.jar:\
+$JAR_HOME/xerces.jar:\
+$JAR_HOME/xmlbeans-2.3.0.jar"
 
 # If TSTool is running out of memory, increase the -Xmx option below
 # (maximum megabytes of memory allowed for TSTool).  This seems to go up to 
@@ -77,6 +84,11 @@ $JAR_HOME/gson-1.6.jar:\
 # system proxy settings automatically so that web services work
 # (actually this is an OK default):
 #  -Djava.net.useSystemProxies=true
+#
+# If running in headless mode, the following may be needed (see http://www.jfree.org/phpBB2/viewtopic.php?t=1012):
+#  -Djava.awt.headless=true
+#
+# The above will interfere with GUI mode so a separate batch file may be needed.
 #
 JAVA_COMMAND="$JAVA_EXE -Xmx1024m -Djava.net.useSystemProxies=true"
 
