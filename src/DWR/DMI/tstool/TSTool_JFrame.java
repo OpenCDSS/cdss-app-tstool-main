@@ -12478,6 +12478,8 @@ throws Exception
     	uiAction_GraphTimeSeriesResults("-oPredictedValueResidual_graph" );
 	}
     else if ( command.equals(__Results_Graph_Raster_String) ) {
+        // TODO SAM 2013-09-11 allow raster if one time series and interval is day or month
+        // currently check is buried deep and not bubbled up
         uiAction_GraphTimeSeriesResults("-oraster_graph" );
     }
     else if ( command.equals(__Results_Graph_XYScatter_String) ) {
