@@ -1280,12 +1280,13 @@ JMenu
 JMenuItem
     __Commands_Table_NewTable_JMenuItem,
     __Commands_Table_CopyTable_JMenuItem,
-    __Commands_Table_AppendTable_JMenuItem,
-    __Commands_Table_JoinTables_JMenuItem,
     __Commands_Table_ReadTableFromDataStore_JMenuItem, // Uses string from __Commands_Datastore_ReadTableFromDataStore
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_ReadTableFromDBF_JMenuItem,
     __Commands_Table_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
+    __Commands_Table_AppendTable_JMenuItem,
+    __Commands_Table_JoinTables_JMenuItem,
+    __Commands_Table_SortTable_JMenuItem,
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_TableToTimeSeries_JMenuItem,
     __Commands_Table_CreateTimeSeriesEventTable_JMenuItem,
@@ -1741,11 +1742,12 @@ private String
     __Commands_Table_String = "Table Processing",
     __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
-    __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's records to another table>",
-    __Commands_Table_JoinTables_String = TAB + "JoinTables()... <join a table's records to another table by matching column value(s)>",
     // Menu inserted here uses __Commands_Datastore_ReadTableFromDataStore string
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
+    __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
+    __Commands_Table_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
+    __Commands_Table_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
     __Commands_Table_CreateTimeSeriesEventTable_String = TAB + "CreateTimeSeriesEventTable()... <create time series event table>",
@@ -9702,6 +9704,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_JoinTables_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_JoinTables_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_SortTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_SortTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
@@ -12131,6 +12135,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_JoinTables_String) ) {
         commandList_EditCommand ( __Commands_Table_JoinTables_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_SortTable_String) ) {
+        commandList_EditCommand ( __Commands_Table_SortTable_String, null, CommandEditType.INSERT );
     }
     // See __Commands_Tble_ReadTableFromDataStore, which is duplicated in Table menu
     else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
