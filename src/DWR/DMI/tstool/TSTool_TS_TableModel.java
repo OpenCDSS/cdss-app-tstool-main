@@ -109,7 +109,7 @@ public String getColumnName(int columnIndex) {
 		case COL_DATA_TYPE: return "Data\nType";
 		case COL_TIME_STEP: return "Time\nStep";
 		case COL_SCENARIO: return "\nScenario";
-		case COL_SEQUENCE: return "Sequence\nNumber";
+		case COL_SEQUENCE: return "Sequence\nID";
 		case COL_UNITS: return "\nUnits";
 		case COL_START: return "\nStart";
 		case COL_END: return "\nEnd";
@@ -162,25 +162,13 @@ public Object getValueAt(int row, int col)
 		case COL_DATA_TYPE: return ts.getDataType();
 		case COL_TIME_STEP: return ts.getIdentifier().getInterval();
 		case COL_SCENARIO: return ts.getIdentifier().getScenario();
-		case COL_SEQUENCE:
-		    if ( ts.getSequenceNumber() < 0 ) {
-				return "";
-			}
-			else {
-			    return "" + ts.getSequenceNumber();
-			}
-		case COL_UNITS:
-		    return ts.getDataUnits();
-		case COL_START:
-		    return ts.getDate1();
-		case COL_END:
-		    return ts.getDate2();
-		case COL_INPUT_TYPE:
-		    return ts.getIdentifier().getInputType();
-		case COL_INPUT_NAME:
-		    return ts.getIdentifier().getInputName();
-		default:
-		    return "";
+		case COL_SEQUENCE: return ts.getIdentifier().getSequenceID();
+		case COL_UNITS: return ts.getDataUnits();
+		case COL_START: return ts.getDate1();
+		case COL_END: return ts.getDate2();
+		case COL_INPUT_TYPE: return ts.getIdentifier().getInputType();
+		case COL_INPUT_NAME: return ts.getIdentifier().getInputName();
+		default: return "";
 	}
 }
 

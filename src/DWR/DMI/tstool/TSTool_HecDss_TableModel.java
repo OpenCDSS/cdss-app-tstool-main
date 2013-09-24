@@ -169,12 +169,7 @@ public Object getValueAt(int row, int col)
 		case COL_SCENARIO:
 		    return ts.getIdentifier().getScenario();
 		case COL_SEQUENCE:
-		    if ( ts.getSequenceNumber() < 0 ) {
-				return "";
-			}
-			else {
-				 return "" + ts.getSequenceNumber();
-			}
+		    return ts.getIdentifier().getSequenceID();
 		case COL_UNITS:
 		    return ts.getDataUnits();
 		case COL_START:

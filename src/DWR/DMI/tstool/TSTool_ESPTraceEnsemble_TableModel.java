@@ -75,20 +75,20 @@ From AbstractTableModel.  Returns the class of the data stored in a given column
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return String.class;
-		case COL_ALIAS:		return String.class;
-		case COL_NAME:		return String.class;
-		case COL_DATA_SOURCE:	return String.class;
-		case COL_DATA_TYPE:	return String.class;
-		case COL_TIME_STEP:	return String.class;
-		case COL_SCENARIO:	return String.class;
-		case COL_SEQUENCE:	return Integer.class;
-		case COL_UNITS:		return String.class;
-		case COL_START:		return String.class;
-		case COL_END:		return String.class;
-		case COL_INPUT_TYPE:	return String.class;
-		case COL_INPUT_NAME:	return String.class;
-		default:		return String.class;
+		case COL_ID: return String.class;
+		case COL_ALIAS: return String.class;
+		case COL_NAME: return String.class;
+		case COL_DATA_SOURCE: return String.class;
+		case COL_DATA_TYPE: return String.class;
+		case COL_TIME_STEP: return String.class;
+		case COL_SCENARIO: return String.class;
+		case COL_SEQUENCE: return Integer.class;
+		case COL_UNITS: return String.class;
+		case COL_START: return String.class;
+		case COL_END: return String.class;
+		case COL_INPUT_TYPE: return String.class;
+		case COL_INPUT_NAME: return String.class;
+		default: return String.class;
 	}
 }
 
@@ -106,20 +106,20 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return "ID\n(Location)";
-		case COL_ALIAS:		return "Alias";
-		case COL_NAME:		return "Name/Description";
-		case COL_DATA_SOURCE:	return "Data\nSource";
-		case COL_DATA_TYPE:	return "Data\nType";
-		case COL_TIME_STEP:	return "Time\nStep";
-		case COL_SCENARIO:	return "Scenario";
-		case COL_SEQUENCE:	return "Trace #\n(Year)";
-		case COL_UNITS:		return "Units";
-		case COL_START:		return "Start";
-		case COL_END:		return "End";
-		case COL_INPUT_TYPE:	return "Input Type";
-		case COL_INPUT_NAME:	return "Input File";
-		default:		return "";
+		case COL_ID: return "ID\n(Location)";
+		case COL_ALIAS: return "Alias";
+		case COL_NAME: return "Name/Description";
+		case COL_DATA_SOURCE: return "Data\nSource";
+		case COL_DATA_TYPE: return "Data\nType";
+		case COL_TIME_STEP: return "Time\nStep";
+		case COL_SCENARIO: return "Scenario";
+		case COL_SEQUENCE: return "Trace #\n(Year)";
+		case COL_UNITS: return "Units";
+		case COL_START: return "Start";
+		case COL_END: return "End";
+		case COL_INPUT_TYPE: return "Input Type";
+		case COL_INPUT_NAME: return "Input File";
+		default: return "";
 	}
 }
 
@@ -130,7 +130,7 @@ Returns the format to display the specified column.
 */
 public String getFormat ( int column ) {
 	switch (column) {
-		default:	return "%s";	// All are strings.
+		default: return "%s"; // All are strings.
 	}
 }
 
@@ -156,20 +156,20 @@ public Object getValueAt(int row, int col) {
 
 	TS ts = (TS)_data.get(row);
 	switch (col) {
-		case COL_ID:		return ts.getIdentifier().getLocation();
-		case COL_ALIAS:		return ts.getAlias();
-		case COL_NAME: 		return ts.getDescription();
-		case COL_DATA_SOURCE:	return ts.getIdentifier().getSource();
-		case COL_DATA_TYPE: 	return ts.getDataType();
-		case COL_TIME_STEP:	return ts.getIdentifier().getInterval();
-		case COL_SCENARIO:	return ts.getIdentifier().getScenario();
-		case COL_SEQUENCE:	return "" + ts.getSequenceNumber();
-		case COL_UNITS:		return ts.getDataUnits();
-		case COL_START:		return ts.getDate1();
-		case COL_END:		return ts.getDate2();
-		case COL_INPUT_TYPE:	return ts.getIdentifier().getInputType();
-		case COL_INPUT_NAME:	return ts.getIdentifier().getInputName();
-		default:	return "";
+		case COL_ID: return ts.getIdentifier().getLocation();
+		case COL_ALIAS: return ts.getAlias();
+		case COL_NAME: return ts.getDescription();
+		case COL_DATA_SOURCE: return ts.getIdentifier().getSource();
+		case COL_DATA_TYPE: return ts.getDataType();
+		case COL_TIME_STEP: return ts.getIdentifier().getInterval();
+		case COL_SCENARIO: return ts.getIdentifier().getScenario();
+		case COL_SEQUENCE: return ts.getSequenceID();
+		case COL_UNITS: return ts.getDataUnits();
+		case COL_START: return ts.getDate1();
+		case COL_END: return ts.getDate2();
+		case COL_INPUT_TYPE: return ts.getIdentifier().getInputType();
+		case COL_INPUT_NAME: return ts.getIdentifier().getInputName();
+		default: return "";
 	}
 }
 
