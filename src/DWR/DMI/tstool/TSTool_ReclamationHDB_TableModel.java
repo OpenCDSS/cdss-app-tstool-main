@@ -17,7 +17,7 @@ public class TSTool_ReclamationHDB_TableModel extends JWorksheet_AbstractRowTabl
 /**
 Number of columns in the table model.
 */
-private final int __COLUMNS = 34;
+private final int __COLUMNS = 35;
 
 public final int COL_TYPE = 0;
 public final int COL_SITE_COMMON_NAME = 1;
@@ -32,27 +32,28 @@ public final int COL_MODEL_NAME = 9;
 public final int COL_MODEL_RUN_NAME = 10;
 public final int COL_MODEL_HYDROLOGIC_INDICATOR = 11;
 public final int COL_MODEL_RUN_DATE = 12;
-public final int COL_UNITS = 13;
-public final int COL_START = 14; // This is actually the min start date/time
-public final int COL_END = 15; // This is actually the max start date/time
-public final int COL_OBJECT_TYPE_ID = 16;
-public final int COL_OBJECT_TYPE_NAME = 17;
-public final int COL_OBJECT_TYPE_TAG = 18;
-public final int COL_PHYSICAL_QUANTITY_NAME = 19;
-public final int COL_SITE_DB_SITE_CODE = 20;
-public final int COL_SITE_NWS_CODE = 21;
-public final int COL_SITE_SCS_ID = 22;
-public final int COL_SITE_SHEF_CODE = 23;
-public final int COL_SITE_USGS_ID = 24;
-public final int COL_SITE_STATE = 25;
-public final int COL_SITE_BASIN = 26;
-public final int COL_SITE_HUC = 27;
-public final int COL_SITE_SEGMENT_NO = 28;
-public final int COL_SITE_RIVER_MILE = 29;
-public final int COL_SITE_LATITUDE = 30;
-public final int COL_SITE_LONGITUDE = 31;
-public final int COL_SITE_ELEVATION = 32;
-public final int COL_DATASTORE_NAME	= 33;
+public final int COL_MODEL_RUN_ID = 13;
+public final int COL_UNITS = 14;
+public final int COL_START = 15; // This is actually the min start date/time
+public final int COL_END = 16; // This is actually the max start date/time
+public final int COL_OBJECT_TYPE_ID = 17;
+public final int COL_OBJECT_TYPE_NAME = 18;
+public final int COL_OBJECT_TYPE_TAG = 19;
+public final int COL_PHYSICAL_QUANTITY_NAME = 20;
+public final int COL_SITE_DB_SITE_CODE = 21;
+public final int COL_SITE_NWS_CODE = 22;
+public final int COL_SITE_SCS_ID = 23;
+public final int COL_SITE_SHEF_CODE = 24;
+public final int COL_SITE_USGS_ID = 25;
+public final int COL_SITE_STATE = 26;
+public final int COL_SITE_BASIN = 27;
+public final int COL_SITE_HUC = 28;
+public final int COL_SITE_SEGMENT_NO = 29;
+public final int COL_SITE_RIVER_MILE = 30;
+public final int COL_SITE_LATITUDE = 31;
+public final int COL_SITE_LONGITUDE = 32;
+public final int COL_SITE_ELEVATION = 33;
+public final int COL_DATASTORE_NAME	= 34;
 
 /**
 Data store name corresponding to data store used to retrieve the data.
@@ -104,6 +105,7 @@ public Class getColumnClass (int columnIndex) {
 	    case COL_MODEL_RUN_NAME: return String.class;
 	    case COL_MODEL_HYDROLOGIC_INDICATOR: return String.class;
 	    case COL_MODEL_RUN_DATE: return String.class;
+	    case COL_MODEL_RUN_ID: return Integer.class;
 		case COL_UNITS: return String.class;
 		case COL_START: return String.class;
 		case COL_END: return String.class;
@@ -156,6 +158,7 @@ public String getColumnName(int columnIndex) {
 		case COL_MODEL_RUN_NAME: return "Model Run";
 		case COL_MODEL_HYDROLOGIC_INDICATOR: return "Model Hydrologic Indicator";
 		case COL_MODEL_RUN_DATE: return "Model Run Date";
+		case COL_MODEL_RUN_ID: return "Model Run ID";
 		case COL_UNITS: return "Units";
 		case COL_START: return "Start";
 		case COL_END: return "End";
@@ -190,12 +193,12 @@ public String getFormat ( int column ) {
 	switch (column) {
         case COL_SITE_ID: return "%d";
         case COL_SITE_DATATYPE_ID: return "%d";
+        case COL_MODEL_RUN_ID: return "%d";
         case COL_SITE_RIVER_MILE: return "%.6f";
         case COL_SITE_LATITUDE: return "%.6f";
         case COL_SITE_LONGITUDE: return "%.6f";
         case COL_SITE_ELEVATION: return "%.2f";
-		default:
-		    return "%s"; // All else are strings.
+		default: return "%s"; // All else are strings.
 	}
 }
 
@@ -246,6 +249,8 @@ public Object getValueAt(int row, int col) {
             return data.getHydrologicIndicator();
         case COL_MODEL_RUN_DATE:
             return data.getModelRunDate();
+        case COL_MODEL_RUN_ID:
+            return data.getModelRunID();
 		case COL_UNITS:
 		    return data.getUnitCommonName();
 		case COL_START:
@@ -312,6 +317,7 @@ public int[] getColumnWidths() {
 	widths[COL_MODEL_RUN_NAME] = 12;
 	widths[COL_MODEL_HYDROLOGIC_INDICATOR] = 18;
 	widths[COL_MODEL_RUN_DATE] = 12;
+	widths[COL_MODEL_RUN_ID] = 10;
 	widths[COL_UNITS] = 8;
 	widths[COL_START] = 10;
 	widths[COL_END] = 10;

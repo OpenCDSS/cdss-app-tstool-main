@@ -5511,40 +5511,84 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
         TSTool_ReclamationHDB_TableModel model = (TSTool_ReclamationHDB_TableModel)__query_TableModel;
+        ReclamationHDBDataStore ds = (ReclamationHDBDataStore)selectedDataStore;
+        ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
+        // Format the TSID using the older format that uses common names, but these are not guaranteed unique
         String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE);
-        String scenario = "";
-        if ( tsType.equalsIgnoreCase("Model") ) {
-            String modelRunDate = "" + (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
-            // Trim off the hundredths of a second since that interferes with the TSID conventions.  It always
-            // appears to be ".0"
-            int pos = modelRunDate.indexOf(".");
-            if ( pos > 0 ) {
-                modelRunDate = modelRunDate.substring(0,pos);
+        if ( dmi.getTSIDStyleSDI() ) {
+            // Format the TSID using the newer SDI and MRI style
+            String loc, scenario = "";
+            if ( tsType.equalsIgnoreCase("Model") ) {
+                loc = "" + (Integer)__query_TableModel.getValueAt( row, model.COL_SITE_DATATYPE_ID ) + "-" +
+                    (Integer)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_ID );
+                String modelName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME );
+                modelName = modelName.replace('.', ' ').replace('-',' ');
+                String modelRunName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME );
+                modelRunName = modelRunName.replace('.', ' ').replace('-',' ');
+                String hydrologicIndicator = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_HYDROLOGIC_INDICATOR );
+                hydrologicIndicator = hydrologicIndicator.replace('.', ' ').replace('-',' ');
+                String modelRunDate = "" + (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
+                // Trim off the hundredths of a second since that interferes with the TSID conventions.  It always
+                // appears to be ".0", also remove seconds :00 at end
+                int pos = modelRunDate.indexOf(".");
+                if ( pos > 0 ) {
+                    modelRunDate = modelRunDate.substring(0,pos - 3);
+                }
+                // The following should uniquely identify a model time series (in addition to other TSID parts)
+                scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
             }
-            // Replace "." with "?" in the model information so as to not conflict with TSID conventions - will
-            // switch again later.
-            String modelName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME );
-            modelName = modelName.replace('.', '?');
-            String modelRunName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME );
-            modelRunName = modelRunName.replace('.', '?');
-            String hydrologicIndicator = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_HYDROLOGIC_INDICATOR );
-            hydrologicIndicator = hydrologicIndicator.replace('.', '?');
-            // The following should uniquely identify a model time series (in addition to other TSID parts)
-            scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
+            else {
+                loc = "" + (Integer)__query_TableModel.getValueAt( row, model.COL_SITE_DATATYPE_ID );
+            }
+            // Use data type common name as FYI and make sure no periods are in it because they will interfere
+            // with TSID syntax
+            String dataType = ((String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE)).replace("."," ");
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+                (String)__query_TableModel.getValueAt( row, model.COL_OBJECT_TYPE_NAME ) + ":" + loc,
+                (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+                dataType,
+                (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
+                scenario,
+                null,   // No sequence number
+                (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
+                "",
+                "", false, insertOffset );
         }
-        String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
-        String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
-        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
-        //(String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
-        tsType + ":" + loc.replace('.','?'), // Replace period because it will interfere with TSID
-        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
-        dataType,
-        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
-        scenario,
-        null,   // No sequence number
-        (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
-        "",
-        "", false, insertOffset );
+        else {
+            String scenario = "";
+            if ( tsType.equalsIgnoreCase("Model") ) {
+                String modelRunDate = "" + (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
+                // Trim off the hundredths of a second since that interferes with the TSID conventions.  It always
+                // appears to be ".0"
+                int pos = modelRunDate.indexOf(".");
+                if ( pos > 0 ) {
+                    modelRunDate = modelRunDate.substring(0,pos);
+                }
+                // Replace "." with "?" in the model information so as to not conflict with TSID conventions - will
+                // switch again later.
+                String modelName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME );
+                modelName = modelName.replace('.', '?');
+                String modelRunName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME );
+                modelRunName = modelRunName.replace('.', '?');
+                String hydrologicIndicator = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_HYDROLOGIC_INDICATOR );
+                hydrologicIndicator = hydrologicIndicator.replace('.', '?');
+                // The following should uniquely identify a model time series (in addition to other TSID parts)
+                scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
+            }
+            String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
+            String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+            //(String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
+            tsType + ":" + loc.replace('.','?'), // Replace period because it will interfere with TSID
+            (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+            dataType,
+            (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
+            scenario,
+            null,   // No sequence number
+            (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
+            "",
+            "", false, insertOffset );
+        }
     }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		// The location (id), type, and time step uniquely
@@ -6179,7 +6223,7 @@ private void ui_CheckGUIState ()
     JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,enabled);
 	if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
-	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, true );
+	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, enabled );
 	}
 	else {
 	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false );
@@ -17482,11 +17526,11 @@ throws Exception
 }
 
 /**
-Refresh the query choices for the currently selected ReclamationHDB datastore.
+Refresh the query choices for the currently selected gernic database datastore.
 */
 private void uiAction_SelectDataStore_GenericDatabaseDataStore ( GenericDatabaseDataStore ds )
 throws Exception
-{   String routine = "TSTool_JFrame.uiAction_SelectDataStore_ReclamationHDB";
+{   String routine = "TSTool_JFrame.uiAction_SelectDataStore_GenericDatabaseDataStore";
     ui_SetInputNameVisible(false); // Not needed for HDB
     __dataType_JComboBox.removeAll ();
     // Get the list of valid object/data types from the database
@@ -17634,10 +17678,17 @@ throws Exception
     // Need to trigger a select to populate the input filters
     __timeStep_JComboBox.removeAll ();
     __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( "2" + __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( "3" + __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( "4" + __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( "6" + __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( "12" + __TIMESTEP_HOUR );
+    __timeStep_JComboBox.add ( "24" + __TIMESTEP_HOUR );
     __timeStep_JComboBox.add ( __TIMESTEP_DAY );
     __timeStep_JComboBox.add ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
     __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR ); // Instantaneous handled as irregular
+    __timeStep_JComboBox.setMaximumRowCount(__timeStep_JComboBox.getItemCount());
     // FIXME SAM 2010-10-26 Could handle WY as YEAR, but need to think about it to be consistent with TSTool in general
     __timeStep_JComboBox.select ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.setEnabled ( true );
