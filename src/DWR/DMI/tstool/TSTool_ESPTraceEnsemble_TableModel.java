@@ -59,14 +59,14 @@ public TSTool_ESPTraceEnsemble_TableModel (	NWSRFS_ESPTraceEnsemble ensemble, bo
 throws Exception
 {	//TODO SAM
 	//__ensemble = ensemble;
-	if ( (ensemble == null) || (ensemble.getTimeSeriesVector() == null) ) {
+	if ( (ensemble == null) || (ensemble.getTimeSeriesList() == null) ) {
 		_rows = 0;
 	}
 	else {
-	    _rows = ensemble.getTimeSeriesVector().size();
+	    _rows = ensemble.getTimeSeriesList().size();
 	}
 	// TODO - should _data be set to "ensemble"?
-	_data = ensemble.getTimeSeriesVector();
+	_data = ensemble.getTimeSeriesList();
 }
 
 /**

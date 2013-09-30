@@ -14898,7 +14898,7 @@ throws IOException
 		try {
             ensemble = new NWSRFS_ESPTraceEnsemble ( path, false );
 			// Get the array of time series...
-			tslist = ensemble.getTimeSeriesVector ();
+			tslist = ensemble.getTimeSeriesList ();
 		}
 		catch ( Exception e ) {
 			message = "Error reading NWSRFS ESPTraceEnsemble file.";
