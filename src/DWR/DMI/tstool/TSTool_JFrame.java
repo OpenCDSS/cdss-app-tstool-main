@@ -5518,6 +5518,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         if ( dmi.getTSIDStyleSDI() ) {
             // Format the TSID using the newer SDI and MRI style
             String loc, scenario = "";
+            String siteCommonName = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
+            siteCommonName = siteCommonName.replace('.', ' ').replace('-',' ');
             if ( tsType.equalsIgnoreCase("Model") ) {
                 loc = "" + (Integer)__query_TableModel.getValueAt( row, model.COL_SITE_DATATYPE_ID ) + "-" +
                     (Integer)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_ID );
@@ -5535,10 +5537,11 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                     modelRunDate = modelRunDate.substring(0,pos - 3);
                 }
                 // The following should uniquely identify a model time series (in addition to other TSID parts)
-                scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
+                scenario = siteCommonName + "-" + modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
             }
             else {
                 loc = "" + (Integer)__query_TableModel.getValueAt( row, model.COL_SITE_DATATYPE_ID );
+                scenario = siteCommonName;
             }
             // Use data type common name as FYI and make sure no periods are in it because they will interfere
             // with TSID syntax
