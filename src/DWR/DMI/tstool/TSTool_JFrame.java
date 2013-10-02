@@ -5545,7 +5545,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             }
             // Use data type common name as FYI and make sure no periods are in it because they will interfere
             // with TSID syntax
-            String dataType = ((String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE)).replace("."," ");
+            String dataType = ((String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE_COMMON_NAME)).replace("."," ");
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
                 (String)__query_TableModel.getValueAt( row, model.COL_OBJECT_TYPE_NAME ) + ":" + loc,
                 (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
@@ -5579,7 +5579,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
             }
             String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
-            String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
+            String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE_COMMON_NAME);
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
             //(String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
             tsType + ":" + loc.replace('.','?'), // Replace period because it will interfere with TSID
