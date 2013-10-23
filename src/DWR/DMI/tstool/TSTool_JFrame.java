@@ -1204,6 +1204,7 @@ JMenuItem
 	__Commands_Output_SetOutputPeriod_JMenuItem,
 	__Commands_Output_SetOutputYearType_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
+	__Commands_Output_WriteDelimitedFile_JMenuItem,
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
 	__Commands_Output_WriteReclamationHDB_JMenuItem,
@@ -1271,7 +1272,8 @@ JMenuItem
 JMenu
     __Commands_Spreadsheet_JMenu = null;
 JMenuItem
-    __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem;
+    __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem,
+    __Commands_Spreadsheet_WriteTableToExcel_JMenuItem;
 
 // Commands (Table)...
 
@@ -1299,6 +1301,7 @@ JMenuItem
     __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem,
     __Commands_Table_CompareTables_JMenuItem,
     __Commands_Table_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
+    __Commands_Table_WriteTableToExcel_JMenuItem, // Also duplicated in __Commands_Spreadsheet_WriteTableToExcel
     __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
     __Commands_Table_WriteTableToHTML_JMenuItem,
     __Commands_Table_FreeTable_JMenuItem;
@@ -1662,7 +1665,8 @@ private String
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
-	__Commands_Output_WriteDateValue_String = TAB +	"WriteDateValue()... <write time series to DateValue file>",
+	__Commands_Output_WriteDateValue_String = TAB + "WriteDateValue()... <write time series to DateValue file>",
+	__Commands_Output_WriteDelimitedFile_String = TAB + "WriteDelimitedFile()... <write time series to a delimited file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
 	__Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to a Reclamation HDB database>",
@@ -1736,6 +1740,7 @@ private String
 
     __Commands_Spreadsheet_String = "Spreadsheet Processing",
     __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
+    __Commands_Spreadsheet_WriteTableToExcel_String = TAB + "WriteTableToExcel()... <write a table to an Excel file>",
     
     // Table Commands...
 
@@ -6223,6 +6228,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, enabled);
     
 	JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteDelimitedFile_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,enabled);
 	if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
@@ -9579,6 +9585,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
+    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteDelimitedFile_JMenuItem =
+        new SimpleJMenuItem(__Commands_Output_WriteDelimitedFile_String, this ) );
 
     if ( __source_HECDSS_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteHecDss_JMenuItem =
@@ -9728,6 +9736,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.add( __Commands_Spreadsheet_JMenu = new JMenu( __Commands_Spreadsheet_String, true ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableToExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
     
     // Commands...Table processing...
     
@@ -9782,6 +9792,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Datastore_WriteTableToDataStore_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_WriteTableToHTML_String, this ) );
     __Commands_Table_JMenu.addSeparator();
@@ -12077,6 +12089,9 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
 		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Output_WriteDelimitedFile_String)){
+        commandList_EditCommand ( __Commands_Output_WriteDelimitedFile_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Output_WriteHecDss_String)){
         commandList_EditCommand ( __Commands_Output_WriteHecDss_String, null, CommandEditType.INSERT );
     }
@@ -12167,6 +12182,9 @@ throws Exception
 
     else if (command.equals( __Commands_Spreadsheet_ReadTableFromExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_ReadTableFromExcel_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_WriteTableToExcel_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_WriteTableToExcel_String, null, CommandEditType.INSERT );
     }
 
     // Table commands...
