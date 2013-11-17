@@ -57,6 +57,7 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -141,6 +142,8 @@ import DWR.StateMod.StateMod_GUIUtil;
 import DWR.StateMod.StateMod_InstreamFlowRight;
 import DWR.StateMod.StateMod_ReservoirRight;
 import DWR.StateMod.StateMod_TS;
+import DWR.StateMod.StateMod_TS_CellRenderer;
+import DWR.StateMod.StateMod_TS_TableModel;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
 import RTi.DMI.DMI;
@@ -1273,7 +1276,8 @@ JMenu
     __Commands_Spreadsheet_JMenu = null;
 JMenuItem
     __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem,
-    __Commands_Spreadsheet_WriteTableToExcel_JMenuItem;
+    __Commands_Spreadsheet_WriteTableToExcel_JMenuItem,
+    __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem;
 
 // Commands (Table)...
 
@@ -1466,6 +1470,7 @@ private JMenuItem
 	__Help_AboutTSTool_JMenuItem = null,
 	__Help_ViewDocumentation_JMenuItem = null,
 	__Help_ViewDocumentation_ReleaseNotes_JMenuItem = null,
+	__Help_ViewDocumentation_ReleaseNotesOld_JMenuItem = null,
 	__Help_ViewDocumentation_Vol1UserManual_JMenuItem = null,
 	__Help_ViewDocumentation_Vol2CommandReference_JMenuItem = null,
 	__Help_ViewDocumentation_Vol3DatastoreReference_JMenuItem = null,
@@ -1741,6 +1746,7 @@ private String
     __Commands_Spreadsheet_String = "Spreadsheet Processing",
     __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
     __Commands_Spreadsheet_WriteTableToExcel_String = TAB + "WriteTableToExcel()... <write a table to an Excel file>",
+    __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
     
     // Table Commands...
 
@@ -1908,9 +1914,10 @@ private String
 		__Help_AboutTSTool_String = "About TSTool",
 		__Help_ViewDocumentation_String = "View Documentation",
 		__Help_ViewDocumentation_ReleaseNotes_String = "View Documentation - Release Notes",
-		__Help_ViewDocumentation_Vol1UserManual_String = "View Documentation - Vol1 User Manual",
-		__Help_ViewDocumentation_Vol2CommandReference_String = "View Documentation - Vol2 Command Reference",
-		__Help_ViewDocumentation_Vol3DatastoreReference_String = "View Documentation - Vol3 Datastore Reference",
+		__Help_ViewDocumentation_ReleaseNotesOld_String = "View Documentation - Release Notes (Old Versions)",
+		__Help_ViewDocumentation_Vol1UserManual_String = "View Documentation - Volume 1 - User Manual",
+		__Help_ViewDocumentation_Vol2CommandReference_String = "View Documentation - Volume 2 - Command Reference",
+		__Help_ViewDocumentation_Vol3DatastoreReference_String = "View Documentation - Volume 3 - Datastore Reference",
 		__Help_ViewTrainingMaterials_String = "View Training Materials",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
@@ -5620,6 +5627,39 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		"",
 		"", false, insertOffset );
 	}
+	else if ( selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
+	    // Most time series are still handled generically but XOP time series have additional columns in the table
+	    if ( __query_TableModel instanceof StateMod_TS_TableModel ) {
+	        // The location (id), type, and time step uniquely identify the time series...
+            StateMod_TS_TableModel model = (StateMod_TS_TableModel)__query_TableModel;
+            String scenario = null;
+            String seqnum = null;
+            numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+            (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+            (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+            (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+            (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
+            scenario, seqnum, // Not used
+            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
+	    }
+	    else {
+	        // The location (id), type, and time step uniquely identify the time series...
+	        TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
+	        String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
+	        if ( seqnum.length() == 0 ) {
+	            seqnum = null;
+	        }
+	        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+	        (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+	        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+	        (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+	        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
+	        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
+	        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+	        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
+	    }
+	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
@@ -5677,9 +5717,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             "", "",
             use_alias, insertOffset );
     }
-	// The following input types use the generic TSTool_TS_TableModel with
-	// no special considerations.  If the sequence number is non-blank in
-	// the worksheet, it will be transferred.
+	// The following input types use the generic TSTool_TS_TableModel with no special considerations.
+    // If the sequence number is non-blank in the worksheet, it will be transferred.
 	else if (
 	    selectedInputType.equals(__INPUT_TYPE_DIADvisor) ||
 	    selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ||
@@ -5690,7 +5729,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		selectedInputType.equals ( __INPUT_TYPE_RiverWare ) ||
 		selectedInputType.equals ( __INPUT_TYPE_StateCU ) ||
 		selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ||
-		selectedInputType.equals ( __INPUT_TYPE_StateMod ) ||
 		selectedInputType.equals ( __INPUT_TYPE_StateModB ) ||
 		selectedInputType.equals(__INPUT_TYPE_UsgsNwisRdb) ) {
 		// The location (id), type, and time step uniquely identify the time series...
@@ -7418,7 +7456,6 @@ private String ui_GetSelectedTimeStep()
 
 /**
 Initialize the GUI.
-@param show_main Indicates if the main interface should be shown.
 */
 private void ui_InitGUI ( )
 {	String routine = "TSTool_JFrame.initGUI";
@@ -7426,13 +7463,27 @@ private void ui_InitGUI ( )
 	int y;
 	
 	try {
-        JGUIUtil.setSystemLookAndFeel(true);
+	    String propval = TSToolMain.getPropValue("TSTool.UILookAndFeel" );
+	    if ( propval != null ) {
+	        // Use the look and feel that is in the TSTool configuration file, useful for Linux
+	        try {
+	            Message.printStatus(2,routine,"Setting UI look and feel to: " + propval );
+	            UIManager.setLookAndFeel(propval);
+	        }
+	        catch ( Exception e ) {
+	            // Default to the system look and feel
+	            JGUIUtil.setSystemLookAndFeel(true);
+	        }
+	    }
+	    else {
+	        JGUIUtil.setSystemLookAndFeel(true);
+	    }
 	}
 	catch (Exception e) {
 		Message.printWarning ( 2, routine, e );
 	}
 
-	// Need this even if no main GUI (why? secondary windows?)...
+	// TODO SAM 2013-11-16 Old note: need this even if no main GUI (why? secondary windows?)...
 
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 
@@ -9738,6 +9789,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, this ) );
     
     // Commands...Table processing...
     
@@ -10185,6 +10238,8 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	    // Newer convention where documents are split apart.
 	    __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotes_JMenuItem =
 	       new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotes_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotesOld_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotesOld_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_Vol1UserManual_JMenuItem =
            new SimpleJMenuItem(__Help_ViewDocumentation_Vol1UserManual_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_Vol2CommandReference_JMenuItem =
@@ -12186,6 +12241,9 @@ throws Exception
     else if (command.equals( __Commands_Spreadsheet_WriteTableToExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTableToExcel_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, null, CommandEditType.INSERT );
+    }
 
     // Table commands...
     
@@ -12778,6 +12836,7 @@ throws Exception
 	}
 	else if ( command.equals ( __Help_ViewDocumentation_String ) ||
 	    command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ||
+	    command.equals(__Help_ViewDocumentation_ReleaseNotesOld_String) ||
         command.equals(__Help_ViewDocumentation_Vol1UserManual_String) ||
         command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ||
         command.equals(__Help_ViewDocumentation_Vol3DatastoreReference_String) ) {
@@ -15644,17 +15703,27 @@ throws Exception
 		int size = 0;
 		if ( tslist != null ) {
 			size = tslist.size();
-			__query_TableModel = new TSTool_TS_TableModel ( tslist);
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel(__query_TableModel);
-			// Turn off columns in the table model that do not apply...
-			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
-			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
-			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
-			__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+			if ( path.toUpperCase().endsWith("XOP") ) {
+			    // Use a table model that has columns more specific than the general table model
+	            __query_TableModel = new StateMod_TS_TableModel ( tslist, "XOP" );
+                StateMod_TS_CellRenderer cr = new StateMod_TS_CellRenderer( (StateMod_TS_TableModel)__query_TableModel);
+                __query_JWorksheet.setCellRenderer ( cr );
+                __query_JWorksheet.setModel(__query_TableModel);
+			}
+			else {
+			    // Use generic table model
+    			__query_TableModel = new TSTool_TS_TableModel ( tslist);
+    			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
+    	
+    			__query_JWorksheet.setCellRenderer ( cr );
+    			__query_JWorksheet.setModel(__query_TableModel);
+    			// Turn off columns in the table model that do not apply...
+    			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
+    			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_DATA_SOURCE );
+    			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_DATA_TYPE );
+    			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_SCENARIO);
+    			__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+			}
 		}
         if ( (tslist == null) || (size == 0) ) {
 			Message.printStatus ( 1, routine, "No StateMod time series were read." );
@@ -18820,8 +18889,8 @@ throws Exception
     __dataType_JComboBox.select ( null );
     __dataType_JComboBox.select ( 0 );
 
-    // Initialize with blank data vector...
-
+    // Initialize with blank data list...
+    // The table model will be reset when actual data are read, for example, if an XOP file is picked.
     __query_TableModel = new TSTool_TS_TableModel(null);
     TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
@@ -20574,6 +20643,9 @@ private void uiAction_ViewDocumentation ( String command )
     }
     else if ( command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes.pdf";
+    }
+    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotesOld_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes-Old.pdf";
     }
     else if ( command.equals(__Help_ViewDocumentation_Vol1UserManual_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol1-UserManual.pdf";

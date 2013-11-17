@@ -14,6 +14,7 @@
 		<antcall target="create-user-manual-cdss-Vol2-CommandReference" inheritall="true"></antcall>
 		<antcall target="create-user-manual-cdss-Vol3-DatastoreReference" inheritall="true"></antcall>
 		<copy file="${pdfsrc.dir}/82_Appendix_ReleaseNotes.pdf" tofile="doc/UserManual/dist_CDSS/TSTool-ReleaseNotes.pdf"/>
+		<copy file="${pdfsrc.dir}/82_Appendix_ReleaseNotes_Old.pdf" tofile="doc/UserManual/dist_CDSS/TSTool-ReleaseNotes-Old.pdf"/>
 	</target>
 	<target name="create-user-manual-cdss-Vol1-Manual" description="Merges PDF documentation into doc/dist_CDSS folder" >
 		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_CDSS_Vol1_Manual_fileList.txt" />
@@ -45,6 +46,7 @@
     	<!-- Documentation -->
     	<mkdir dir="${install.dir}/doc/UserManual"/>
         <copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_CDSS/TSTool-ReleaseNotes.pdf"/>
+    	<copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_CDSS/TSTool-ReleaseNotes-Old.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_CDSS/TSTool-Vol1-UserManual.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_CDSS/TSTool-Vol2-CommandReference.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_CDSS/TSTool-Vol3-DatastoreReference.pdf"/>
