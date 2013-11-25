@@ -1268,6 +1268,7 @@ JMenuItem
 JMenu
     __Commands_Spatial_JMenu = null;
 JMenuItem
+    __Commands_Spatial_WriteTableToKml_JMenuItem,
     __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
 
 //Commands (Spreadsheet)...
@@ -1739,6 +1740,7 @@ private String
     // Spatial Commands...
 
     __Commands_Spatial_String = "Spatial Processing",
+    __Commands_Spatial_WriteTableToKml_String = TAB + "WriteTableToKml()... <write table to a KML file>",
     __Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
     
     // Spreadsheet Commands...
@@ -9778,6 +9780,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
     __Commands_Spatial_JMenu.setToolTipText("Process spatial data).");
+    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToKml_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spatial_WriteTableToKml_String, this ) );
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
     
@@ -12228,7 +12232,10 @@ throws Exception
     }
     
     // Spatial commands...
-    
+
+    else if (command.equals( __Commands_Spatial_WriteTableToKml_String) ) {
+        commandList_EditCommand ( __Commands_Spatial_WriteTableToKml_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Spatial_WriteTimeSeriesToKml_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTimeSeriesToKml_String, null, CommandEditType.INSERT );
     }
@@ -19906,6 +19913,8 @@ private void uiAction_ShowResultsOutputFile ( String selected )
     catch ( Exception e ) {
         // Else display as text (will show up in courier fixed width
         // font, which looks better than the html browser).
+        Message.printWarning ( 3, routine, "Unable to view file \"" + selected + "\" using desktop default (" + e + ")." );
+        Message.printWarning ( 3, routine, e );
         try {
             if ( IOUtil.isUNIXMachine() ) {
                 // Use a built in viewer (may be slow)...
