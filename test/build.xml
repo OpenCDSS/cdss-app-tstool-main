@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="TSTool-test" default="all-tests" basedir="..">
     
-    <import file="../../rtibuild/common-test.xml"/>
+    <import file="../../cdss-util-buildtools/common-test.xml"/>
     
     <property name="emma.filter" value="rti.*, RTi.*, DWR.*, cdss.*"/>
 

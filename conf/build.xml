@@ -7,9 +7,9 @@
 	<!-- Create the TSTool RTi PDF user manual -->
 	<target name="create-user-manual-rti"
 	 description="Merges PDF documentation into doc/dist_RTi folder" >
-		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_RTi_fileList.txt" />
-		<property name="pdfsrc.dir" location="doc/UserManual/Word" />
-		<property name="pdf_file" location="doc/UserManual/dist_RTi/TSTool.pdf" />
+		<property name="filelist" location="../cdss-app-tstool-doc/doc/UserManual/merge_PDF/UserManual_RTi_fileList.txt" />
+		<property name="pdfsrc.dir" location="../cdss-app-tstool-doc/doc/UserManual/Word" />
+		<property name="pdf_file" location="../cdss-app-tstool-doc/doc/UserManual/dist_RTi/TSTool.pdf" />
 		<antcall target="mergePDF" inheritall="true"></antcall>
 	</target>
 
@@ -20,13 +20,13 @@
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
     	<!-- Binary files needed for HEC-DSS support beyond the jar files, which are handled automatically. -->
-    	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/javaHeclib.dll"/>
-    	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/rmaUtil.dll"/>
-    	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/DFORMDD.DLL"/>
-    	<copy todir="${install.dir}/bin" file="../TSCommandProcessor/lib/heclib/MSVCRTD.DLL"/>
+    	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
+    	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/rmaUtil.dll"/>
+    	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/DFORMDD.DLL"/>
+    	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/MSVCRTD.DLL"/>
     	<!-- Documentation -->
     	<mkdir dir="${install.dir}/doc/UserManual"/>
-        <copy todir="${install.dir}/doc/UserManual" file="doc/UserManual/dist_RTi/TSTool.pdf"/>
+        <copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_RTi/TSTool.pdf"/>
     	<!-- Examples -->
     	<mkdir dir="${install.dir}/examples"/>
         <copy todir="${install.dir}/examples">
@@ -72,7 +72,7 @@
     	<!-- Omit big files that can be regenerated, but otherwise include files for users to poke around -->
     	<mkdir dir="${install.dir}/doc/Training"/>
     	<copy todir="${install.dir}/doc/Training">
-    		<fileset dir="doc/Training">
+    		<fileset dir="../cdss-app-tstool-doc/doc/Training">
     			<include name="**/*.*"/>
     			<exclude name="**/*.chk"/>
     			<exclude name="**/*.log"/>
