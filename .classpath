@@ -4,13 +4,13 @@
 	<classpathentry kind="src" path="test/unit/src"/>
 	<classpathentry kind="src" path="test/regression/src/Abbot"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/HydroBaseDMI"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/NWSRFS_DMI"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TSCommandProcessor"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/RiversideDB_DMI"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/SatmonSysDMI"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/StateMod"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/RTi_Common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-hydrobase-java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-nwsrfs-java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-processor-ts-java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-riversidedb-java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-satmonsys-java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-models-java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-common-java"/>
 	<classpathentry kind="lib" path="lib/Blowfish/Blowfish_142.jar"/>
 	<classpathentry kind="lib" path="lib/restlet/com.noelios.restlet.jar"/>
 	<classpathentry kind="lib" path="lib/restlet/org.restlet.jar"/>

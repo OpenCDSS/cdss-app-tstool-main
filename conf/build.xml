@@ -1,8 +1,12 @@
 <project name="TSTool" default="compile" basedir="../">
     
-    <import file="../../rtibuild/common-build.xml"/>
-    <import file="../../rtibuild/common-doc.xml"/>
-    <import file="../../rtibuild/common-installer.xml"/>
+    <import file="../../cdss-util-buildtools/common-build.xml"/>
+    <import file="../../cdss-util-buildtools/common-doc.xml"/>
+    <import file="../../cdss-util-buildtools/common-installer.xml"/>
+	
+	<!-- Put this target in so don't get compile warning (started complaining with Eclipse Kepler) -->
+	<target name="compile">
+	</target>
 	
 	<!-- Create the TSTool RTi PDF user manual -->
 	<target name="create-user-manual-rti"
