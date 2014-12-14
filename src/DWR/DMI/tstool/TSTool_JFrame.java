@@ -7,6 +7,7 @@ package DWR.DMI.tstool;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -56,6 +58,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
@@ -1161,6 +1164,7 @@ JMenuItem
 	__Commands_Set_SetConstant_JMenuItem,
 	__Commands_Set_SetDataValue_JMenuItem,
     __Commands_Set_SetFromTS_JMenuItem,
+    __Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem,
 	__Commands_Set_SetToMax_JMenuItem,
 	__Commands_Set_SetToMin_JMenuItem,
     __Commands_Set_SetTimeSeriesProperty_JMenuItem;
@@ -1239,7 +1243,8 @@ JMenuItem
     __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem,
     __Commands_Datastore_RunSql_JMenuItem,
     __Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem,
-    __Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem;
+    __Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem,
+    __Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem;
 
 // Commands...Ensemble Processing...
 
@@ -1276,8 +1281,11 @@ JMenuItem
 JMenu
     __Commands_Spreadsheet_JMenu = null;
 JMenuItem
+    __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem,    
     __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem,
+    __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTableToExcel_JMenuItem,
+    __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem;
 
 // Commands (Table)...
@@ -1297,8 +1305,10 @@ JMenuItem
     __Commands_Table_TimeSeriesToTable_JMenuItem,
     __Commands_Table_TableToTimeSeries_JMenuItem,
     __Commands_Table_CreateTimeSeriesEventTable_JMenuItem,
+    __Commands_Table_FormatTableDateTime_JMenuItem,
     __Commands_Table_FormatTableString_JMenuItem,
     __Commands_Table_ManipulateTableString_JMenuItem,
+    __Commands_Table_InsertTableRow_JMenuItem,
     __Commands_Table_SetTableValues_JMenuItem,
     __Commands_Table_TableMath_JMenuItem,
     __Commands_Table_TableTimeSeriesMath_JMenuItem,
@@ -1316,7 +1326,8 @@ JMenuItem
 JMenu
     __Commands_Template_JMenu = null;
 JMenuItem
-    __Commands_Template_ExpandTemplateFile_JMenuItem;
+    __Commands_Template_ExpandTemplateFile_JMenuItem,
+    __Commands_Template_Comments_Template_JMenuItem;
 
 // Commands (visualization)...
 
@@ -1334,7 +1345,8 @@ JMenu
 JMenuItem
 	__Commands_General_Logging_StartLog_JMenuItem = null,
 	__Commands_General_Logging_SetDebugLevel_JMenuItem = null,
-	__Commands_General_Logging_SetWarningLevel_JMenuItem = null;
+	__Commands_General_Logging_SetWarningLevel_JMenuItem = null,
+	__Commands_General_Logging_Message_JMenuItem = null;
 
 JMenu
     __Commands_General_Comments_JMenu = null;
@@ -1353,6 +1365,8 @@ JMenuItem
     __Commands_General_FileHandling_FTPGet_JMenuItem = null,
     __Commands_General_FileHandling_WebGet_JMenuItem = null,
     __Commands_General_FileHandling_AppendFile_JMenuItem = null,
+    __Commands_General_FileHandling_CopyFile_JMenuItem = null,
+    __Commands_General_FileHandling_ListFiles_JMenuItem = null,
     __Commands_General_FileHandling_RemoveFile_JMenuItem = null,
     __Commands_General_FileHandling_PrintTextFile_JMenuItem = null;
 
@@ -1368,6 +1382,8 @@ JMenuItem
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
     __Commands_General_Running_RunDSSUTL_JMenuItem = null,
+    __Commands_General_Running_If_JMenuItem = null,
+    __Commands_General_Running_EndIf_JMenuItem = null,
     __Commands_General_Running_Exit_JMenuItem = null,
     __Commands_General_Running_SetWorkingDir_JMenuItem = null,
     __Commands_General_Running_ProfileCommands_JMenuItem = null;
@@ -1645,6 +1661,7 @@ private String
 	__Commands_Set_SetConstant_String = TAB + "SetConstant()... <set all values to constant in TS>",
 	__Commands_Set_SetDataValue_String = TAB + "SetDataValue()... <set a single data value in a TS>",
 	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()... <set time series values from another time series>",
+	__Commands_Set_SetTimeSeriesValuesFromLookupTable_String = TAB + "SetTimeSeriesValuesFromLookupTable()... <set values using lookup table>",
 	__Commands_Set_SetToMax_String = TAB + "SetToMax()... <set values to maximum of time series>",
 	__Commands_Set_SetToMin_String = TAB + "SetToMin()... <set values to minimum of time series>",
     __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()... <set time series properties>",
@@ -1717,6 +1734,7 @@ private String
     __Commands_Datastore_RunSql_String = TAB + "RunSql()... <run an SQL statement for a database datastore>",
     __Commands_Datastore_ReadTimeSeriesFromDataStore_String = TAB + "ReadTimeSeriesFromDataStore()... <read 1+ time series from a database datastore>",
     __Commands_Datastore_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
+    __Commands_Datastore_CreateDataStoreDataDictionary_String = TAB + "CreateDataStoreDataDictionary()... <create a data dictionary for a datastore>",
     
     // Commands...Ensemble processing...
     
@@ -1746,8 +1764,11 @@ private String
     // Spreadsheet Commands...
 
     __Commands_Spreadsheet_String = "Spreadsheet Processing",
+    __Commands_Spreadsheet_NewExcelWorkbook_String = TAB + "NewExcelWorkbook()... <create a new Excel workbook file>",
     __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
+    __Commands_Spreadsheet_ReadTableCellsFromExcel_String = TAB + "ReadTableCellsFromExcel()... <read a table's cells from an Excel file>",
     __Commands_Spreadsheet_WriteTableToExcel_String = TAB + "WriteTableToExcel()... <write a table to an Excel file>",
+    __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
     
     // Table Commands...
@@ -1764,8 +1785,10 @@ private String
     __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
     __Commands_Table_CreateTimeSeriesEventTable_String = TAB + "CreateTimeSeriesEventTable()... <create time series event table>",
+    __Commands_Table_FormatTableDateTime_String = TAB + "FormatTableDateTime()... <format table date/time column into output column>",
     __Commands_Table_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
     __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
+    __Commands_Table_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
     __Commands_Table_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
@@ -1783,6 +1806,7 @@ private String
 
     __Commands_Template_String = "Template Processing",
     __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
+    __Commands_Template_Comments_Template_String = TAB + "#@template <comment that indicates a template command file>",
     
     // Visualization commands...
 
@@ -1806,6 +1830,8 @@ private String
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
     __Commands_General_FileHandling_AppendFile_String = TAB + "AppendFile()... <append file(s)>",
+    __Commands_General_FileHandling_CopyFile_String = TAB + "CopyFile()... <copy file(s)>",
+    __Commands_General_FileHandling_ListFiles_String = TAB + "ListFiles()... <list file(s) to a table>",
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
     __Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
     
@@ -1813,6 +1839,7 @@ private String
 	__Commands_General_Logging_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
 	__Commands_General_Logging_SetDebugLevel_String = TAB +	"SetDebugLevel()... <set debug message level>",
 	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
+	__Commands_General_Logging_Message_String = TAB + "Message()... <print a message>",
 
     __Commands_General_Running_String = "General - Running and Properties",
     __Commands_General_Running_ReadPropertiesFromFile_String = TAB + "ReadPropertiesFromFile()... <read processor properties from file>",
@@ -1825,6 +1852,8 @@ private String
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
     __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
+    __Commands_General_Running_If_String = TAB + "If() <check a condition and start a block of commands>",
+    __Commands_General_Running_EndIf_String = TAB + "EndIf() <end an If() block>",
     __Commands_General_Running_Exit_String = TAB + "Exit() <to end processing>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
     __Commands_General_Running_ProfileCommands_String = TAB + "ProfileCommands()... <profile command performance>",
@@ -2424,7 +2453,8 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
 		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
-            action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ) {
+            action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ||
+            action.equals(__Commands_Template_Comments_Template_String) ) {
 			isCommentBlock = true;
 		}
 	}
@@ -6239,6 +6269,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Set_SetConstant_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, enabled );
@@ -9534,19 +9565,16 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_ReplaceValue_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_ReplaceValue_String, this));
 	__Commands_SetTimeSeries_JMenu.addSeparator();
-
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetConstant_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_SetConstant_String, this ));
-
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetDataValue_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetDataValue_String, this ) );
-
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetFromTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetFromTS_String, this ) );
-
+    __Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetTimeSeriesValuesFromLookupTable_String, this ) );
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMax_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetToMax_String, this ) );
-	
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMin_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetToMin_String, this ) );
     
@@ -9731,6 +9759,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
     __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_WriteTimeSeriesToDataStore_String, this) );
+    __Commands_Datastore_JMenu.addSeparator();
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_CreateDataStoreDataDictionary_String, this) );
     
     // "Commands...Ensemble processing"...
     
@@ -9789,10 +9820,18 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spreadsheet_JMenu = new JMenu( __Commands_Spreadsheet_String, true ) );
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_NewExcelWorkbook_String, this ) );
+    __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableCellsToExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, this ) );
     
@@ -9828,10 +9867,15 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_CreateTimeSeriesEventTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_CreateTimeSeriesEventTable_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_FormatTableDateTime_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_FormatTableDateTime_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_FormatTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_FormatTableString_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
+    __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_InsertTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_InsertTableRow_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_SetTableValues_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_SetTableValues_String, this ) );
     __Commands_Table_JMenu.addSeparator();
@@ -9866,6 +9910,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Template_JMenu.setToolTipText("Process templates (to handle dynamic logic and data).");
     __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
+    __Commands_Template_JMenu.addSeparator();
+    __Commands_Template_JMenu.add (__Commands_Template_Comments_Template_JMenuItem =
+        new SimpleJMenuItem( __Commands_Template_Comments_Template_String, this ) );
     
     // Commands...Visualization Processing...
     
@@ -9913,6 +9960,10 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_AppendFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_AppendFile_String, this ) );
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_CopyFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_CopyFile_String, this ) );
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_ListFiles_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_ListFiles_String, this ) );
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
     __Commands_General_FileHandling_JMenu.addSeparator();
@@ -9927,6 +9978,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Logging_SetDebugLevel_String, this ) );
 	__Commands_General_Logging_JMenu.add ( __Commands_General_Logging_SetWarningLevel_JMenuItem =
 		new SimpleJMenuItem(__Commands_General_Logging_SetWarningLevel_String, this ) );
+	__Commands_General_Logging_JMenu.addSeparator();
+    __Commands_General_Logging_JMenu.add ( __Commands_General_Logging_Message_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Logging_Message_String, this ) );
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
     __Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
@@ -9951,6 +10005,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunDSSUTL_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunDSSUTL_String,this));
+    __Commands_General_Running_JMenu.addSeparator();
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_If_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_If_String, this ) );
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_EndIf_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_EndIf_String, this ) );
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
@@ -10616,7 +10675,6 @@ private void ui_InitToolbar ()
             Save_CommandFile_String,
             Save_CommandFile_String,
             none, false, this);
-
     }
 
     if ( __toolbarSave_JButton != null ) {
@@ -10640,6 +10698,8 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
 {   String routine = "TSTool_JFrame.ui_LoadCommandFile";
     int numAutoChanges = 0; // Number of lines automatically changed during load
     try {
+        ui_UpdateStatusTextFields ( 2, null, null, "Reading the selected command file.", __STATUS_BUSY );
+        ui_StartWaitCursor();
         numAutoChanges = commandProcessor_ReadCommandFile ( commandFile, runDiscoveryOnLoad );
         // Add progress listeners to the commands
         for ( Command command : __tsProcessor.getCommands() ) {
@@ -10675,6 +10735,9 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
         "Unexpected error reading command file \"" + commandFile +
         "\".  Displaying commands that could be read." );
         Message.printWarning ( 3, routine, e );
+    }
+    finally {
+        ui_StopWaitCursor();
     }
     // If successful the TSCommandProcessor, as the data model, will
     // have fired actions to make the JList update.
@@ -11084,6 +11147,24 @@ private void ui_ShowCurrentCommandListStatus ()
 }
 
 /**
+Display the wait cursor above everything else.
+*/
+private void ui_StartWaitCursor() {
+    RootPaneContainer root = (RootPaneContainer)this.getRootPane().getTopLevelAncestor();
+    root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    root.getGlassPane().setVisible(true);
+}
+
+/**
+Stop displaying the wait cursor above everything else.
+*/
+private void ui_StopWaitCursor() {
+    RootPaneContainer root = (RootPaneContainer)this.getRootPane().getTopLevelAncestor();
+    root.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+    root.getGlassPane().setVisible(false);
+}
+
+/**
 Update the main status information when the list contents have changed.  This
 method should be called after any change to the query, command, or time series results list.
 Interface tasks include:
@@ -11191,7 +11272,7 @@ all text fields like the number of commands, etc.
 @param level Message level.  If > 0 and the message is not null, call
 Message.printStatus() to record a message.
 @param routine Routine name used if Message.printStatus() is called.
-@param commandPanelStatus 
+@param commandPanelStatus currently ignored (intended that if not null set the status for the text in the command panel border)
 @param message If not null, update the __message_JTextField to contain this
 text.  If null, leave the contents as previously shown.  Specify "" to clear the text.
 @param status If not null, update the __status_JTextField to contain
@@ -11973,6 +12054,9 @@ throws Exception
 	else if (command.equals( __Commands_Set_SetFromTS_String)){
 		commandList_EditCommand ( __Commands_Set_SetFromTS_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Set_SetTimeSeriesValuesFromLookupTable_String)){
+        commandList_EditCommand ( __Commands_Set_SetTimeSeriesValuesFromLookupTable_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Set_SetToMax_String)){
 		commandList_EditCommand ( __Commands_Set_SetToMax_String, null, CommandEditType.INSERT );
 	}
@@ -12224,6 +12308,9 @@ throws Exception
     else if (command.equals( __Commands_Datastore_WriteTimeSeriesToDataStore_String)){
         commandList_EditCommand ( __Commands_Datastore_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Datastore_CreateDataStoreDataDictionary_String)){
+        commandList_EditCommand ( __Commands_Datastore_CreateDataStoreDataDictionary_String, null, CommandEditType.INSERT );
+    }
 
     // Network commands...
 
@@ -12242,11 +12329,20 @@ throws Exception
 
     // Spreadsheet commands...
 
+    else if (command.equals( __Commands_Spreadsheet_NewExcelWorkbook_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_NewExcelWorkbook_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Spreadsheet_ReadTableFromExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_ReadTableFromExcel_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Spreadsheet_ReadTableCellsFromExcel_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Spreadsheet_WriteTableToExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTableToExcel_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_WriteTableCellsToExcel_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_WriteTableCellsToExcel_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, null, CommandEditType.INSERT );
@@ -12291,11 +12387,17 @@ throws Exception
     else if (command.equals( __Commands_Table_CreateTimeSeriesEventTable_String) ) {
         commandList_EditCommand ( __Commands_Table_CreateTimeSeriesEventTable_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Table_FormatTableDateTime_String) ) {
+        commandList_EditCommand ( __Commands_Table_FormatTableDateTime_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Table_FormatTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_FormatTableString_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_InsertTableRow_String) ) {
+        commandList_EditCommand ( __Commands_Table_InsertTableRow_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_SetTableValues_String) ) {
         commandList_EditCommand ( __Commands_Table_SetTableValues_String, null, CommandEditType.INSERT );
@@ -12324,6 +12426,14 @@ throws Exception
     else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
         commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals(__Commands_Template_Comments_Template_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<Command>(1);
+        comments.add ( commandList_NewCommand("#@template",true) );
+        commandList_EditCommand ( __Commands_Template_Comments_Template_String, comments, CommandEditType.INSERT );
+    }
     
     // Data visualization commands...
 
@@ -12338,7 +12448,7 @@ throws Exception
     }
 	
 	// General commands...
-
+    // General - Logging commands...
 	else if (command.equals( __Commands_General_Logging_StartLog_String) ) {
 		commandList_EditCommand ( __Commands_General_Logging_StartLog_String, null, CommandEditType.INSERT );
 	}
@@ -12348,6 +12458,10 @@ throws Exception
 	else if (command.equals( __Commands_General_Logging_SetWarningLevel_String) ) {
 		commandList_EditCommand ( __Commands_General_Logging_SetWarningLevel_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_General_Logging_Message_String) ) {
+        commandList_EditCommand ( __Commands_General_Logging_Message_String, null, CommandEditType.INSERT );
+    }
+    // General - Running commands...
 	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_SetWorkingDir_String, null, CommandEditType.INSERT );
 	}
@@ -12404,6 +12518,12 @@ throws Exception
 	else if (command.equals(__Commands_General_Comments_EndComment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_EndComment_String,	null, CommandEditType.INSERT );
 	}
+    else if (command.equals(__Commands_General_Running_If_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_If_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Running_EndIf_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_EndIf_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals(__Commands_General_Running_Exit_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );
 	}
@@ -12437,9 +12557,6 @@ throws Exception
     else if (command.equals( __Commands_General_Running_RunDSSUTL_String) ) {
         commandList_EditCommand ( __Commands_General_Running_RunDSSUTL_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_General_Running_Exit_String) ) {
-        commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );
-    }
     else if (command.equals( __Commands_General_FileHandling_FTPGet_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_FTPGet_String, null, CommandEditType.INSERT );
     }
@@ -12448,6 +12565,12 @@ throws Exception
     }
     else if (command.equals( __Commands_General_FileHandling_AppendFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_AppendFile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_FileHandling_CopyFile_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_CopyFile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_FileHandling_ListFiles_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_ListFiles_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_RemoveFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_RemoveFile_String, null, CommandEditType.INSERT );
@@ -19494,7 +19617,7 @@ private void uiAction_ShowCommandStatus()
         HTMLViewer hTMLViewer = new HTMLViewer();
         hTMLViewer.setTitle ( "TSTool - Command Status" );
         hTMLViewer.setHTML(status);
-        hTMLViewer.setSize(700,400);
+        hTMLViewer.setSize(750,600);
         hTMLViewer.setVisible(true);
       }
       catch(Throwable t){
@@ -19554,7 +19677,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2013 State of CO\n" +
+        "Copyright 1997-2014 State of CO\n" +
         "Developed by the Open Water Foundation and\n" +
         "Riverside Technology, inc.\n" +
         "Funded by:\n" +
@@ -19568,7 +19691,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2013\n" +
+        "Copyright 1997-2014\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
