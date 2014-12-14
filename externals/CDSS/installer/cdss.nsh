@@ -52,8 +52,8 @@ Name "${DISPLAYNAME}"
     !define NAMEVERSION ${CODENAME}-${VERSION}
 !endif
 !define REGKEY "Software\State of Colorado\CDSS\${NAMEVERSION}"
-!define COMPANY RTi
-!define URL http://www.riverside.com
+!define COMPANY OWF
+!define URL http://www.openwaterfoundation.org
 !define EXTERNALS_DIR "externals"
 !define INSTALL_IS_CDSS "true"
 !ifndef INST_BUILD_DIR
@@ -61,7 +61,7 @@ Name "${DISPLAYNAME}"
 !endif
 
 SetCompressor lzma
-BrandingText "Riverside Technology, inc."
+BrandingText "Open Water Foundation"
 
 # Included files
 !include "UMUI.nsh"

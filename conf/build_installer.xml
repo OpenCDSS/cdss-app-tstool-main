@@ -719,13 +719,13 @@
 	
     <jar jarfile="${dist.dir}/${jarfname}" basedir="${buildwork.dir}" >
 	<manifest >
-    	<attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
-      	<attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
-      	<attribute name="Address2"  value="Fort Collins, CO 80525"/>
-        <attribute name="Phone"     value="970-484-7573"/>
-	    <attribute name="Web"       value="http://www.riverside.com"/>
+    	<attribute name="Author"    value="Open Water Foundation"/>
+      	<attribute name="Address1"  value="320 East Vine Drive, Suite 315"/>
+      	<attribute name="Address2"  value="Fort Collins, CO 80524"/>
+        <attribute name="Phone"     value="970-286-7439"/>
+	    <attribute name="Web"       value="http://www.openwaterfoundation.org"/>
 	    <attribute name="BuildDate" value="${jarDate}"/>
-        <attribute name="Contents"  value="Contains tstool Classes"/>
+        <attribute name="Contents"  value="Contains TSTool Classes"/>
       </manifest>
     </jar>
 	
