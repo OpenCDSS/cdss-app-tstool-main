@@ -1311,6 +1311,7 @@ JMenuItem
     __Commands_Table_FormatTableDateTime_JMenuItem,
     __Commands_Table_FormatTableString_JMenuItem,
     __Commands_Table_ManipulateTableString_JMenuItem,
+    __Commands_Table_InsertTableColumn_JMenuItem,
     __Commands_Table_InsertTableRow_JMenuItem,
     __Commands_Table_SetTableValues_JMenuItem,
     __Commands_Table_TableMath_JMenuItem,
@@ -1387,6 +1388,8 @@ JMenuItem
     __Commands_General_Running_RunDSSUTL_JMenuItem = null,
     __Commands_General_Running_If_JMenuItem = null,
     __Commands_General_Running_EndIf_JMenuItem = null,
+    __Commands_General_Running_For_JMenuItem = null,
+    __Commands_General_Running_EndFor_JMenuItem = null,
     __Commands_General_Running_Exit_JMenuItem = null,
     __Commands_General_Running_SetWorkingDir_JMenuItem = null,
     __Commands_General_Running_ProfileCommands_JMenuItem = null;
@@ -1794,6 +1797,7 @@ private String
     __Commands_Table_FormatTableDateTime_String = TAB + "FormatTableDateTime()... <format table date/time column into output column>",
     __Commands_Table_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
     __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
+    __Commands_Table_InsertTableColumn_String = TAB + "InsertTableColumn()... <insert table column>",
     __Commands_Table_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
     __Commands_Table_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
@@ -1860,6 +1864,8 @@ private String
     __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
     __Commands_General_Running_If_String = TAB + "If() <check a condition and start a block of commands>",
     __Commands_General_Running_EndIf_String = TAB + "EndIf() <end an If() block>",
+    __Commands_General_Running_For_String = TAB + "For() <repeatedly execute a block of commands>",
+    __Commands_General_Running_EndFor_String = TAB + "EndFor() <end a For() block>",
     __Commands_General_Running_Exit_String = TAB + "Exit() <to end processing>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
     __Commands_General_Running_ProfileCommands_String = TAB + "ProfileCommands()... <profile command performance>",
@@ -9889,6 +9895,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
     __Commands_Table_JMenu.addSeparator();
+    __Commands_Table_JMenu.add( __Commands_Table_InsertTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_InsertTableColumn_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_InsertTableRow_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_InsertTableRow_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_SetTableValues_JMenuItem =
@@ -10025,6 +10033,11 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem(__Commands_General_Running_If_String, this ) );
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_EndIf_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_EndIf_String, this ) );
+    __Commands_General_Running_JMenu.addSeparator();
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_For_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_For_String, this ) );
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_EndFor_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_EndFor_String, this ) );
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
@@ -12420,6 +12433,9 @@ throws Exception
     else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
         commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Table_InsertTableColumn_String) ) {
+        commandList_EditCommand ( __Commands_Table_InsertTableColumn_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Table_InsertTableRow_String) ) {
         commandList_EditCommand ( __Commands_Table_InsertTableRow_String, null, CommandEditType.INSERT );
     }
@@ -12547,6 +12563,12 @@ throws Exception
     }
     else if (command.equals(__Commands_General_Running_EndIf_String) ) {
         commandList_EditCommand ( __Commands_General_Running_EndIf_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Running_For_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_For_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Running_EndFor_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_EndFor_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Running_Exit_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );

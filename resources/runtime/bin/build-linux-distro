@@ -1,0 +1,187 @@
+#!/bin/bash
+#
+# Build the Linux distribution for TSTool.
+# This script was developed for Ubuntu
+#
+# Usage: see usage()
+#
+# The script typically is run on a Linux computer that has access
+# to a Windows installation of TSTool, for example a Linux virtual
+# machine running in VirtualBox that has access to the TSTool installation
+# via a shared folder.
+#
+# The script performs the following steps:
+#
+# 1) Copy all the files from WindowsTSToolInstallFolder to the current directory.
+# 2) Remove the Windows JRE and replace with the contents of JREInstallFolder.
+# 3) Update the bin/tstool script:
+#    - make sure it adss all current java files to the CLASSPATH
+#    - make sure that the JRE uses the one from step 2
+# 4) Create a tar.gz file that can be distributed
+#
+
+function usage () {
+	echo ""
+	echo "Usage: build-linux-distro -w WindowsTSToolInstallFolder -j JREInstallFolder -z Distro.tar.gz"
+	echo ""
+	echo "WindowsTSToolInstallFolder = path to the TSTool install folder"
+	echo "JREInstallFolder = path to the JRE install folder"
+	echo "Distro.tar.gz = tar.gz file to create (specify .tar.gz to avoid confusion)"
+	echo ""
+	exit 0
+}
+
+# Default values
+windowsTstoolInstallFolder=""
+jreFolder=""
+zipFile="TSTool-Linux.tar.gz"
+# Whether to copy the files (can be slow)
+doCopy="yes"
+
+while getopts "hj:nw:z:" opt
+do
+	case "$opt" in
+		h) usage;;
+		j) jreFolder="$OPTARG";;
+		n) doCopy="no";;
+		w) windowsTstoolInstallFolder="$OPTARG";;
+		z) zipFile="$OPTARG";;
+		\?) usage;;
+	esac
+done
+
+echo ""
+echo "Original TSTool files are in folder: $windowsTstoolInstallFolder"
+echo "JRE files are in folder: $jreFolder"
+echo "TSTool distribution file (tar gz) is: $zipFile"
+echo ""
+
+if [ -z "$windowsTstoolInstallFolder" ]
+	then
+	usage
+fi
+if [ -z "$jreFolder" ]
+	then
+	usage
+fi
+
+# Make sure input exists
+
+if [ ! -d "$windowsTstoolInstallFolder" ]
+	then
+	echo "" 1>&2
+	echo "Original TSTool installation $windowsTstoolInstallFolder does not exist" 1>&2
+	usage
+fi
+
+if [ ! -d "$jreFolder" ]
+	then
+	echo "" 1>&2
+	echo "JRE installation $jreFolder does not exist" 1>&2
+	usage
+fi
+
+# Build folder is the same as the Windows folder but without the leading path
+
+buildFolder=$(basename "$windowsTstoolInstallFolder")
+echo "Build folder:  $buildFolder"
+jreFolderBasename=$(basename "$jreFolder")
+
+# Make sure the build folder is not the same as the original
+
+if [ "$windowsTstoolInstallFolder" == "$buildFolder" ]
+	then
+	echo "" 1>&2
+	echo "Original TSTool folder $windowsTstoolInstallFolder and output build folder are the same" 1>&2
+fi
+
+# Copy the files from the original install to the build folder
+
+if [ "$doCopy" == "yes" ]
+	then
+	if [ -d "$buildFolder" ]
+		then
+		# Remove local copy of the distribution folder
+		# Let the script prompt to protect against accidents (can make silent later)
+		echo "Removing files from old build in $buildFolder"
+		rm -rI "$buildFolder"
+	fi
+	echo "Copying files from $windowsTstoolInstallFolder to $buildFolder"
+	cp -r "$windowsTstoolInstallFolder" "$buildFolder"
+fi
+
+# Remove files don't need to be distributed with Linux
+# This could be put in the above if statement but leave here during development
+
+echo "Removing Windows files that don't need to be included in Linux distribution..."
+#echo "${buildFolder}/Uninstall_${buildFolder}.exe"
+rm -f "${buildFolder}/Uninstall_${buildFolder}.exe"
+rm -f "${buildFolder}/bin/DFORMDD.DLL"
+rm -f "${buildFolder}/bin/rmaUtil.dll"
+rm -f "${buildFolder}/bin/TSTool.bat"
+rm -f "${buildFolder}/bin/TSTool.exe"
+rm -f "${buildFolder}/bin/TSTool.l4j.ini"
+rm -f ${buildFolder}/logs/*.log
+
+# Replace the old JRE with the specified one
+
+echo "Removing Windows JRE..."
+rm -rf ${buildFolder}/jre*
+
+echo "Copying Linux JRE ${jreFolder} to distribution folder ${buildFolder}"
+cp -rp ${jreFolder} ${buildFolder}
+
+# Update the tstool script to have the specified JRE
+# TODO SAM 2013-11-13
+# Figure out this better later.  For now know that jre_16 is in file
+#sed "s/JAVA_HOME=.*$/JAVA_HOME=\"\$INSTALL_HOME\/${jreFolderBasename}\"/g" ${buildFolder}/bin/tstool > ${buildFolder}/bin/tstool2
+sed "s/jre_16/${jreFolderBasename}/g" ${buildFolder}/bin/tstool > tstool2
+
+# Remove lines with jar:, which are the classpath lines
+sed "/jar:/d" tstool2 > tstool3
+# Remove the single double quote indicating end of classpath with placeholders to replace
+sed "s/^\"$/STANDARD_JARS\nOTHER_JARS\n\"/g" tstool3 > tstool4
+
+# Now insert the desired content.  For now hard-code the main TSTool tar files at the top of the classpath
+insert1='$JAR_HOME\/TSTool_16.jar:\\\n$JAR_HOME\/RTi_Common_16.jar:\\\n$JAR_HOME\/TSCommandProcessor_16.jar:\\\n$JAR_HOME\/cdss.domain_16.jar:\\\n$JAR_HOME\/HydroBaseDMI_16.jar:\\\n$JAR_HOME\/StateMod_16.jar:\\\n$JAR_HOME\/NWSRFS_DMI_16.jar:\\\n$JAR_HOME\/RiversideDB_DMI_16.jar:\\\n$JAR_HOME\/SatmonSysDMI_16.jar:\\\n$JAR_HOME\/Blowfish_142.jar:\\'
+echo $insert1
+sed s/STANDARD_JARS/"$insert1"/g tstool4 > tstool5
+
+# Next insert all remaining jar files but exclude the _16 and _142 files that are the main ones included above
+ls ${buildFolder}/bin/*jar > junk1
+sed '/_16/d' junk1 > junk2
+sed '/_142/d' junk2 > junk3
+# Remove specific version with generic string
+sed s/"$buildFolder"/\$JAR_HOME/g junk3 > junk4
+# Replace "/bin" since not needed
+sed 's/\/bin//g' junk4 > junk5
+# Escape forward slashes
+sed 's/\//\\\//g' junk5 > junk6
+# Escape string at end
+sed 's/$/:\\\\/g' junk6 > junk7
+# Replace newline with representation that can be handed to sed
+sed -e :a -e N -e 's/\n/\\n/' -e ta junk7 > junk8
+insert2=$(cat junk8)
+echo $insert2
+sed s/OTHER_JARS/"$insert2"/g tstool5 > tstool6
+
+# Replace the original tstool file with the new version
+mv tstool6 $buildFolder/bin/tstool
+chmod a+x $buildFolder/bin/tstool
+
+# Make sure the log folder is writeable
+chmod a+w $buildFolder/logs
+
+# Make sure directories are executable
+chmod -R +rX $buildFolder
+
+# Cleanup (comment out if troubleshooting this script)
+rm junk* tstool*
+
+# Compress the install
+
+tar -czvf $zipFile $buildFolder
+
+# Exit script
+
+exit 0

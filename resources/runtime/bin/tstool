@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Script to run TSTool on UNIX
 # Set the INSTALL_HOME to the main installation folder.
@@ -55,7 +55,8 @@ $JAR_HOME/commons-net-3.3.jar:\
 $JAR_HOME/dom4j-1.6.1.jar:\
 $JAR_HOME/freemarker.jar:\
 $JAR_HOME/gson-2.2.1.jar:\
-$JAR_HOME/h2.jar$JAR_HOME/bin\hec.jar:\
+$JAR_HOME/h2.jar:\
+$JAR_HOME/bin\hec.jar:\
 $JAR_HOME/heclib.jar:\
 $JAR_HOME/jakarta-oro-2.0.8.jar:\
 $JAR_HOME/jcommon.jar:\
@@ -71,7 +72,10 @@ $JAR_HOME/rma.jar:\
 $JAR_HOME/sqljdbc4.jar:\
 $JAR_HOME/stax-api-1.0.1.jar:\
 $JAR_HOME/xerces.jar:\
-$JAR_HOME/xmlbeans-2.3.0.jar"
+$JAR_HOME/xmlbeans-2.3.0.jar:\
+"
+# Make sure the line above this is a double quote
+# This allows processing of the Linux distribution
 
 # If TSTool is running out of memory, increase the -Xmx option below
 # (maximum megabytes of memory allowed for TSTool).  This seems to go up to 
