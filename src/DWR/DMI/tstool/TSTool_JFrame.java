@@ -1091,6 +1091,7 @@ JMenuItem
     __Commands_Create_ResequenceTimeSeriesData_JMenuItem,
     __Commands_Create_RunningStatisticTimeSeries_JMenuItem,
 	__Commands_Create_NewStatisticTimeSeries_JMenuItem,
+	__Commands_Create_NewStatisticMonthTimeSeries_JMenuItem,
 	__Commands_Create_NewStatisticYearTS_JMenuItem;
 
 // Commands (Read Time Series)...
@@ -1238,6 +1239,7 @@ JMenuItem
 JMenu
     __Commands_Datastore_JMenu = null;
 JMenuItem
+    __Commands_Datastore_NewDerbyDatabase_JMenuItem,  
     __Commands_Datastore_ReadTableFromDataStore_JMenuItem,
     __Commands_Datastore_WriteTableToDataStore_JMenuItem,
     __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem,
@@ -1299,6 +1301,7 @@ JMenuItem
     __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_Table_ReadTableFromDBF_JMenuItem,
     __Commands_Table_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
+    __Commands_Table_ReadTableFromFixedFormatFile_JMenuItem,
     __Commands_Table_AppendTable_JMenuItem,
     __Commands_Table_JoinTables_JMenuItem,
     __Commands_Table_SortTable_JMenuItem,
@@ -1600,7 +1603,8 @@ private String
     __Commands_Create_ResequenceTimeSeriesData_String = TAB + "ResequenceTimeSeriesData()... <resequence years to create new scenarios>",
     __Commands_Create_RunningStatisticTimeSeries_String = TAB + "RunningStatisticTimeSeries()... <create a statistic time series from a running sample>",
 	__Commands_Create_NewStatisticTimeSeries_String = TAB + "NewStatisticTimeSeries()... <create a time series as repeating statistics from a time series>",
-	__Commands_Create_NewStatisticYearTS_String = TAB + "NewStatisticYearTS()... <create a year time series using a statistic from a time series>",
+	__Commands_Create_NewStatisticMonthTimeSeries_String = TAB + "NewStatisticMonthTimeSeries()... <create a time series where each Month value is a statistic>",
+	__Commands_Create_NewStatisticYearTS_String = TAB + "NewStatisticYearTS()... <create a time series where Year value is a statistic>",
 
 	__Commands_Read_SetIncludeMissingTS_String = TAB + "SetIncludeMissingTS()... <create empty time series if no data>",
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
@@ -1728,6 +1732,7 @@ private String
 	// Commands...Datastore processing...
 	
     __Commands_Datastore_String = "Datastore Processing",
+    __Commands_Datastore_NewDerbyDatabase_String = TAB + "NewDerbyDatabase()... <create a Derby database (built-in Java database)>",
     __Commands_Datastore_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
     __Commands_Datastore_WriteTableToDataStore_String = TAB + "WriteTableToDataStore()... <write a table to a database datastore>",
     __Commands_Datastore_DeleteDataStoreTableRows_String = TAB + "DeleteDataStoreTableRows()... <delete database datastore table rows>",
@@ -1779,6 +1784,7 @@ private String
     // Menu inserted here uses __Commands_Datastore_ReadTableFromDataStore string
     __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
+    __Commands_Table_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
     __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
     __Commands_Table_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
     __Commands_Table_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
@@ -1994,6 +2000,7 @@ private String
 
 // Columns in the time series list.
 
+// TODO SAM 2014-04-06 Need to move this to a separate class and evaluate whether to even support DIADvisor
 private final static int
 	//__DIADvisor_COL_ROW_COUNT	= 0,
 	__DIADvisor_COL_ID = 1,	// Sensor ID
@@ -6245,6 +6252,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Create_Normalize_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_RelativeDiff_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Create_NewStatisticTimeSeries_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Create_NewStatisticMonthTimeSeries_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Create_NewStatisticYearTS_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem, enabled);
 
@@ -9371,6 +9379,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     __Commands_CreateTimeSeries_JMenu.addSeparator();
 	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_NewStatisticTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_NewStatisticTimeSeries_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewStatisticMonthTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_NewStatisticMonthTimeSeries_String, this ) );
 	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewStatisticYearTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_NewStatisticYearTS_String, this ) );
     __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem =
@@ -9745,6 +9755,9 @@ private void ui_InitGUIMenus_CommandsGeneral ()
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Datastore_JMenu = new JMenu(__Commands_Datastore_String) );
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_NewDerbyDatabase_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_NewDerbyDatabase_String, this) );
+    __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTableFromDataStore_String, this) );
     __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTableToDataStore_JMenuItem =
@@ -9852,6 +9865,8 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Table_ReadTableFromDBF_String, this ) );
     __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
+    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromFixedFormatFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_Table_ReadTableFromFixedFormatFile_String, this ) );
     __Commands_Table_JMenu.addSeparator();
     __Commands_Table_JMenu.add( __Commands_Table_AppendTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
@@ -11847,6 +11862,9 @@ throws Exception
 	else if (command.equals(__Commands_Create_NewStatisticTimeSeries_String)){
 		commandList_EditCommand ( __Commands_Create_NewStatisticTimeSeries_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_Create_NewStatisticMonthTimeSeries_String)){
+        commandList_EditCommand ( __Commands_Create_NewStatisticMonthTimeSeries_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Create_NewStatisticYearTS_String)){
 		commandList_EditCommand ( __Commands_Create_NewStatisticYearTS_String, null, CommandEditType.INSERT );
 	}
@@ -12290,7 +12308,10 @@ throws Exception
 
     // Datastore commands...
 
-    if (command.equals( __Commands_Datastore_ReadTableFromDataStore_String) ) {
+    if (command.equals( __Commands_Datastore_NewDerbyDatabase_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_NewDerbyDatabase_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Datastore_ReadTableFromDataStore_String) ) {
         commandList_EditCommand ( __Commands_Datastore_ReadTableFromDataStore_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Datastore_WriteTableToDataStore_String) ) {
@@ -12371,6 +12392,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Table_ReadTableFromDBF_String) ) {
         commandList_EditCommand ( __Commands_Table_ReadTableFromDBF_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Table_ReadTableFromFixedFormatFile_String) ) {
+        commandList_EditCommand ( __Commands_Table_ReadTableFromFixedFormatFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Table_SetTimeSeriesPropertiesFromTable_String) ) {
         commandList_EditCommand ( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, null, CommandEditType.INSERT );
@@ -14463,7 +14487,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders()
 }
 
 /**
-Read ReclamationHDB time series and list in the GUI.
+Read GenericDatabaseDatastore time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders()
 {   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders";
@@ -15318,12 +15342,36 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
         }
 
         List<ReclamationHDB_SiteTimeSeriesMetadata> results = null;
-        // Data type is shown with name so only use the first part of the choice
-        try {
-            results = dmi.readSiteTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
+        if ( timeStep.equals("*") ) {
+            // Read the time series for each of the major intervals and then concatenate the results
+            String [] timeSteps = { __TIMESTEP_HOUR, __TIMESTEP_DAY, __TIMESTEP_MONTH, __TIMESTEP_YEAR, __TIMESTEP_IRREGULAR };
+            results = new ArrayList<ReclamationHDB_SiteTimeSeriesMetadata>();
+            List<ReclamationHDB_SiteTimeSeriesMetadata> results2 = null;
+            for ( int i = 0; i < timeSteps.length; i++ ) {
+                try {
+                    results2 = dmi.readSiteTimeSeriesMetadataList(dataType, timeSteps[i], __selectedInputFilter_JPanel);
+                    if ( results2 != null ) {
+                        for ( ReclamationHDB_SiteTimeSeriesMetadata result : results2 ) {
+                            results.add ( result );
+                        }
+                    }
+                }
+                catch ( Exception e ) {
+                    // Just skip the timestep
+                }
+            }
+            if ( results.size() == 0 ) {
+                results = null; // Handle warning below
+            }
         }
-        catch ( Exception e ) {
-            results = null;
+        else {
+            // Data type is shown with name so only use the first part of the choice
+            try {
+                results = dmi.readSiteTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
+            }
+            catch ( Exception e ) {
+                results = null;
+            }
         }
 
         int size = 0;
@@ -15332,7 +15380,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
             // TODO Does not work??
             //__query_TableModel.setNewData ( results );
             // Try brute force...
-            __query_TableModel = new TSTool_ReclamationHDB_TableModel ( hdbDataStore, timeStep, results );
+            __query_TableModel = new TSTool_ReclamationHDB_TableModel ( hdbDataStore, results );
             TSTool_ReclamationHDB_CellRenderer cr =
                 new TSTool_ReclamationHDB_CellRenderer( (TSTool_ReclamationHDB_TableModel)__query_TableModel);
 
@@ -17908,13 +17956,14 @@ throws Exception
     __timeStep_JComboBox.add ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.add ( __TIMESTEP_YEAR );
     __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR ); // Instantaneous handled as irregular
+    __timeStep_JComboBox.add ( "*" ); // This will query hour, day, month, year, and irregular in sequence and concatenate the lists
     __timeStep_JComboBox.setMaximumRowCount(__timeStep_JComboBox.getItemCount());
     // FIXME SAM 2010-10-26 Could handle WY as YEAR, but need to think about it to be consistent with TSTool in general
     __timeStep_JComboBox.select ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.setEnabled ( true );
  
     // Initialize with blank data vector...
-    __query_TableModel = new TSTool_ReclamationHDB_TableModel( (ReclamationHDBDataStore)selectedDataStore, null, null);
+    __query_TableModel = new TSTool_ReclamationHDB_TableModel( (ReclamationHDBDataStore)selectedDataStore, null);
     TSTool_ReclamationHDB_CellRenderer cr =
         new TSTool_ReclamationHDB_CellRenderer((TSTool_ReclamationHDB_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
