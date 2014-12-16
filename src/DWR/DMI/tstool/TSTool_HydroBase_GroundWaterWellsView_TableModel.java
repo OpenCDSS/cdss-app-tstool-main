@@ -316,7 +316,7 @@ public Object getValueAt(int row, int col)
                 return "" + StringUtil.formatString(d,"%.6f");
             }
         case COL_LAT:
-            d = wv.getLongdecdeg();
+            d = wv.getLatdecdeg();
             if ( DMIUtil.isMissing(d) ) {
                 return "";
             }
