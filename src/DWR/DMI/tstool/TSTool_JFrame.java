@@ -297,6 +297,11 @@ to access this data member.
 private LicenseManager __licenseManager = null;
 
 /**
+TSTool session information, used to track command file open history, etc.
+*/
+private TSToolSession session = null;
+
+/**
 Support email when contacting RTi.
 */
 private final String __RTiSupportEmail = "support@riverside.com";
@@ -309,17 +314,22 @@ private GeoViewJFrame __geoview_JFrame = null;
 /**
 Path to icons/graphics in class path.
 */
-private String __TOOL_ICON_PATH = "/DWR/DMI/tstool";
+private final String __TOOL_ICON_PATH = "/DWR/DMI/tstool";
+
+/**
+Maximum number of files in recent files.
+*/
+private final int MAX_RECENT_FILES = 10;
 
 /**
 Fixed-width font - courier
 */
-private String __FIXED_WIDTH_FONT = "Courier";
+private final String __FIXED_WIDTH_FONT = "Courier";
 
 /**
 Command font - looks better than courier
 */
-private String __COMMANDS_FONT = "Lucida Console";
+private final String __COMMANDS_FONT = "Lucida Console";
 
 //================================
 // Query area...
@@ -1004,6 +1014,7 @@ private JMenu
 		private JMenuItem
 		__File_Open_CommandFile_JMenuItem = null,
 		__File_Open_CommandFileNoDiscovery_JMenuItem = null,
+		__File_Open_CommandFileRecent_JMenuItem[] = null,
 		__File_Open_DIADvisor_JMenuItem = null,
 		__File_Open_HydroBase_JMenuItem = null,
 		__File_Open_RiversideDB_JMenuItem = null;
@@ -1536,6 +1547,7 @@ private String
 		__File_Open_String = "Open",
 			__File_Open_CommandFile_String = "Command File...",
 			__File_Open_CommandFileNoDiscovery_String = "Command File (no discovery)...",
+			__File_Open_CommandFileRecent_String[], // Initialize to MAX_RECENT_FILES when configuring menus
 			__File_Open_DIADvisor_String = "DIADvisor...",
 			__File_Open_HydroBase_String = "HydroBase...",
 			__File_Open_RiversideDB_String = "RiversideDB...",
@@ -2035,6 +2047,9 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// Let the Message class know the frame so that message dialogs can popu up.
 	
 	Message.setTopLevel ( this );
+	
+	// Start a session to track which files are open
+	this.session = new TSToolSession ();
    
 	// Set the initial working directory up front because it is used in the
 	// command processor and edit dialogs.
@@ -7141,7 +7156,7 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
     // This is a bit brute force because the name is embedded in the datastore but is not
     // a data member of the input panel
     // Alphabetize by "instanceof" argument
-    Message.printStatus ( 2, routine, "Setting input filter for current selected data store \"" + selectedDataStoreName + "\"" );
+    Message.printStatus ( 2, routine, "Setting input filter for current selected datastore \"" + selectedDataStoreName + "\"" );
     for ( InputFilter_JPanel panel : __inputFilterJPanelList ) {
         if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
@@ -10187,6 +10202,13 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
         new SimpleJMenuItem( __File_Open_CommandFileNoDiscovery_String, this ) );
     __File_Open_CommandFileNoDiscovery_JMenuItem.setToolTipText(
         "For faster loading...use for large command files that will not be interactively edited.");
+    __File_Open_JMenu.addSeparator();
+    __File_Open_CommandFileRecent_JMenuItem = new JMenuItem[this.MAX_RECENT_FILES];
+    for ( int i = 0; i < this.MAX_RECENT_FILES; i++ ) {
+	    __File_Open_JMenu.add( __File_Open_CommandFileRecent_JMenuItem[i] =
+	    	new SimpleJMenuItem( "", this ) );
+    }
+    ui_InitGUIMenus_File_OpenRecentFiles();
 
 	boolean separator_added = false;
 	if ( __source_DIADvisor_enabled ) {
@@ -10307,6 +10329,28 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 
 	__File_JMenu.addSeparator( );
 	__File_JMenu.add( new SimpleJMenuItem( __File_Exit_String, this ) );
+}
+
+/**
+Reset the File...Open...Comand Files (Recent) menu items to recent files.
+*/
+private void ui_InitGUIMenus_File_OpenRecentFiles ()
+{
+	List<String> history = this.session.readHistory();
+	for ( int i = 0; i < this.MAX_RECENT_FILES; i++ ) {
+		String filename = "";
+		if ( i >= history.size() ) {
+			filename = "";
+		}
+		else {
+			// Long filenames will make the menu unwieldy so show the front and the back
+			filename = history.get(i);
+		}
+		// TODO SAM 2014-12-19 Find a way to replace parts of the path with "..." to shorten the menu
+		// Maybe add as an IOUtil method
+		__File_Open_CommandFileRecent_JMenuItem[i].setText(filename);
+		__File_Open_CommandFileRecent_JMenuItem[i].setToolTipText(filename);
+	}
 }
 
 /**
@@ -10897,7 +10941,7 @@ This sets the appropriate input filter visible since all input filters are creat
 when a datastore is opened.
 */
 private void ui_SetInputFilterForSelections()
-{	String routine = getClass().getName() + ".ui_SetInputFiltersForSelections";
+{	String routine = getClass().getName() + ".ui_SetInputFilterForSelections";
     String selectedDataStoreName = null;
     // Get the selected datastore from the user selections....
     DataStore selectedDataStore = ui_GetSelectedDataStore();
@@ -11032,14 +11076,14 @@ private void ui_SetInputFilterForSelections()
         selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
     }
     __selectedInputFilter_JPanel = selectedInputFilter_JPanel;
-	// Now loop through the available input filter panels and set visible the selected one...
+	// Loop through the available input filter panels and set not visible all others...
+    if ( __selectedInputFilter_JPanel != null ) {
+        __selectedInputFilter_JPanel.setVisible ( true );
+        Message.printStatus(2, routine, "Set input filter panel \"" + __selectedInputFilter_JPanel.getName() +
+            "\" visible TRUE." );
+    }
 	for ( JPanel input_filter_JPanel: __inputFilterJPanelList ) {
-		if ( input_filter_JPanel == __selectedInputFilter_JPanel ) {
-			input_filter_JPanel.setVisible ( true );
-			Message.printStatus(2, routine, "Set input filter panel \"" + input_filter_JPanel.getName() +
-			    "\" visible TRUE." );
-		}
-		else {
+	    if ( input_filter_JPanel != __selectedInputFilter_JPanel ) {
 		    input_filter_JPanel.setVisible ( false );
 		    Message.printStatus(2, routine, "Set input filter panel \"" + input_filter_JPanel.getName() +
             "\" visible FALSE." );
@@ -11381,7 +11425,7 @@ throws Exception
     }
 	else if ( o == __File_Open_CommandFile_JMenuItem ) {
 		try {
-            uiAction_OpenCommandFile ( true );
+            uiAction_OpenCommandFile ( null, true );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
@@ -11390,7 +11434,7 @@ throws Exception
 	}
     else if ( o == __File_Open_CommandFileNoDiscovery_JMenuItem ) {
         try {
-            uiAction_OpenCommandFile ( false );
+            uiAction_OpenCommandFile ( null, false );
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
@@ -11661,6 +11705,10 @@ throws Exception
 	}
     else if ( command.equals(__File_Exit_String) ) {
 		uiAction_FileExitClicked();
+    }
+    else if ( command.toUpperCase().endsWith(".TSTOOL")) {
+    	// TSTool command file in recent files, treat as open
+    	uiAction_OpenCommandFile ( command, true );
     }
 	else if (command.equals("Test") ) {
 		// Test code...
@@ -16645,11 +16693,13 @@ private void uiAction_OpenColoradoSMS ( boolean startup )
 Open a command file and read into the list of commands.  A check is made to
 see if the list contains anything and if it does the user is prompted as to
 whether need to save the previous commands.
+@param commandFile command file to open, specified if null if file selector dialog
+should display, or as the full, path to the command file if a recent file has been selected
 @param runDiscoveryOnLoad if true, run discovery on the commands as they are loaded (the normal case);
 if false (may be useful for very large command files), do not run discovery when loading commands
 */
-private void uiAction_OpenCommandFile ( boolean runDiscoveryOnLoad )
-{	String routine = getClass().getName() + ".openCommandFile";
+private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscoveryOnLoad )
+{	String routine = getClass().getSimpleName() + ".openCommandFile";
     // It is possible that the last command processor run is still going
     TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
     if ( processor.getIsRunning() ) {
@@ -16675,30 +16725,46 @@ private void uiAction_OpenCommandFile ( boolean runDiscoveryOnLoad )
 
 	// Get the file.  Do not clear the list until the file has been chosen and is readable...
 
-	String initial_dir = ui_GetDir_LastCommandFileOpened();
-	Message.printStatus ( 2, routine, "Initial directory for browsing:  \"" + initial_dir + "\"" );
-	JFileChooser fc = JFileChooserFactory.createJFileChooser ( initial_dir );
-	fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Command File");
-	SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Command File");
-	fc.addChoosableFileFilter(sff);
-	fc.setFileFilter(sff);
-	if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-		// If the user approves a selection do the following...
-		String directory = fc.getSelectedFile().getParent();
-		String path = fc.getSelectedFile().getPath();
-
-		// TODO - is this necessary in Swing?
-		// Set the "WorkingDir" property, which will NOT contain a trailing separator...
+    if ( commandFile == null ) {
+		String initial_dir = ui_GetDir_LastCommandFileOpened();
+		Message.printStatus ( 2, routine, "Initial directory for browsing:  \"" + initial_dir + "\"" );
+		JFileChooser fc = JFileChooserFactory.createJFileChooser ( initial_dir );
+		fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Command File");
+		SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Command File");
+		fc.addChoosableFileFilter(sff);
+		fc.setFileFilter(sff);
+		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+			// If the user approves a selection do the following...
+			String directory = fc.getSelectedFile().getParent();
+			String path = fc.getSelectedFile().getPath();
+	
+			// TODO - is this necessary in Swing?
+			// Set the "WorkingDir" property, which will NOT contain a trailing separator...
+			IOUtil.setProgramWorkingDir(directory);
+			ui_SetDir_LastCommandFileOpened(directory);
+			__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
+			ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
+			Message.printStatus(2, routine,
+			    "Working directory (and initial working directory) from command file is \"" +
+			    IOUtil.getProgramWorkingDir() );
+			// Save in the session
+			this.session.pushHistory(path);
+			// Load but do not automatically run.
+			ui_LoadCommandFile ( path, false, runDiscoveryOnLoad );
+		}
+    }
+    else {
+    	// Set some state information. similar to above
+    	// TODO SAM 2014-12-19 maybe this information should be saved in the TSToolSession instance
+    	File f = new File(commandFile);
+    	String directory = f.getParent();
 		IOUtil.setProgramWorkingDir(directory);
 		ui_SetDir_LastCommandFileOpened(directory);
 		__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());
 		ui_SetInitialWorkingDir ( __props.getValue ( "WorkingDir" ) );
-		Message.printStatus(2, routine,
-		    "Working directory (and initial working directory) from command file is \"" +
-		    IOUtil.getProgramWorkingDir() );
-		// Load but do not automatically run.
-		ui_LoadCommandFile ( path, false, runDiscoveryOnLoad );
-	}
+    	// Load but do not automatically run.
+    	ui_LoadCommandFile ( commandFile, false, runDiscoveryOnLoad );
+    }
 	// New file has been opened or there was a cancel/error and the old list remains.
 	//Message.printStatus ( 2, routine, "Done reading commands.  Calling ui_UpdateStatus...");
 	ui_UpdateStatus ( true );
