@@ -14,6 +14,12 @@ public class TSToolSession
 {
 
 /**
+Global value that indicates if the file is being written.
+Need to handle because if the file is being modified at the same time exceptions will be thrown.
+*/
+private boolean historyBeingWritten = false;
+
+/**
 Construct the instance.
 */
 public TSToolSession ()
@@ -63,19 +69,21 @@ Read the history of command files that have been opened.
 @return list of command files recently opened, newest first
 */
 public List<String> readHistory()
-{
+{	String routine = getClass().getSimpleName() + ".readHistory";
 	try {
 		List<String> history = IOUtil.fileToStringList(getHistoryFile());
 		// Remove comment lines
-		for ( String f : history ) {
+		for ( int i = (history.size() - 1); i >= 0; i-- ) {
+			String f = history.get(i);
 			if ( f.startsWith("#") ) {
-				history.remove(f);
+				history.remove(i);
 			}
 		}
 		return history;
 	}
 	catch ( Exception e ) {
 		// For now just swallow exception
+		Message.printWarning(3,routine,e);
 		return new ArrayList<String>();
 	}
 }
@@ -88,24 +96,40 @@ private void writeHistory ( List<String> history )
 	String nl = System.getProperty("line.separator");
 	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between TSTool instances" );
 
-	for ( String s : history ) {
-		sb.append(nl + s);
-	}
-	// Create the history folder if necessary
-	File f = new File(getHistoryFile());
-	File folder = f.getParentFile();
-	if ( !folder.exists() ) {
-		if ( !folder.mkdir() ) {
-			// Unable to make folder
-			return;
+	long ms = System.currentTimeMillis();
+	while ( this.historyBeingWritten ) {
+		// Need to wait until another operation finishes writing
+		// But don't wait longer than a couple of seconds before moving on
+		if ( (System.currentTimeMillis() - ms) > 2000 ) {
+			break;
 		}
 	}
+	// Now can continue
 	try {
-		Message.printStatus(1, "", "Writing history: " + sb );
-		IOUtil.writeFile ( f.getPath(), sb.toString() );
+	
+		for ( String s : history ) {
+			sb.append(nl + s);
+		}
+		// Create the history folder if necessary
+		File f = new File(getHistoryFile());
+		File folder = f.getParentFile();
+		if ( !folder.exists() ) {
+			if ( !folder.mkdir() ) {
+				// Unable to make folder
+				return;
+			}
+		}
+		try {
+			//Message.printStatus(1, "", "Writing history: " + sb );
+			IOUtil.writeFile ( f.getPath(), sb.toString() );
+		}
+		catch ( Exception e ) {
+			// Absorb exception for now
+		}
 	}
-	catch ( Exception e ) {
-		// Absorb exception for now
+	finally {
+		// Make sure to do the following so don't lock up
+		this.historyBeingWritten = false;
 	}
 }
 
