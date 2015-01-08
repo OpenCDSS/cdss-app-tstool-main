@@ -10344,10 +10344,10 @@ private void ui_InitGUIMenus_File_OpenRecentFiles ()
 		}
 		else {
 			// Long filenames will make the menu unwieldy so show the front and the back
+			// TODO SAM 2014-12-19 Find a way to replace parts of the path with "..." to shorten the menu
+			// Maybe add as an IOUtil method
 			filename = history.get(i);
 		}
-		// TODO SAM 2014-12-19 Find a way to replace parts of the path with "..." to shorten the menu
-		// Maybe add as an IOUtil method
 		__File_Open_CommandFileRecent_JMenuItem[i].setText(filename);
 		__File_Open_CommandFileRecent_JMenuItem[i].setToolTipText(filename);
 	}
@@ -16749,12 +16749,14 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
 			    IOUtil.getProgramWorkingDir() );
 			// Save in the session
 			this.session.pushHistory(path);
+			// Update the recent files in the File...Open menu, for the next menu access
+			ui_InitGUIMenus_File_OpenRecentFiles();
 			// Load but do not automatically run.
 			ui_LoadCommandFile ( path, false, runDiscoveryOnLoad );
 		}
     }
     else {
-    	// Set some state information. similar to above
+    	// Set some state information, similar to above, but no need to update menus since picking from visible choice
     	// TODO SAM 2014-12-19 maybe this information should be saved in the TSToolSession instance
     	File f = new File(commandFile);
     	String directory = f.getParent();
@@ -19814,7 +19816,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "TSTool - Time Series Tool\n" +
         "A component of CDSS\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2014 State of CO\n" +
+        "Copyright 1997-2015 State of CO\n" +
         "Developed by the Open Water Foundation\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
@@ -19827,7 +19829,7 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2014\n" +
+        "Copyright 1997-2015\n" +
         "Developed by Riverside Technology, inc.\n" +
         "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
         "License type: " + licenseManager.getLicenseType() + "\n" +
