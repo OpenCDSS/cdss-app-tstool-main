@@ -466,7 +466,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "10.31.00 (2014-08-05)";
+public static final String PROGRAM_VERSION = "11.00.00 (2015-01-07)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1486,6 +1486,7 @@ public static void quitProgram ( int status )
 
 /**
 Read the configuration file.  This should be done as soon as the application home is known.
+TODO SAM 2015-01-07 need to store configuration information in a generic "session" object to be developed.
 @param configFile Name of the configuration file.
 */
 private static void readConfigFile ( String configFile )
@@ -1501,6 +1502,10 @@ private static void readConfigFile ( String configFile )
             for ( int i = 0; i < size; i++ ) {
                 Prop prop = __tstool_props.elementAt(i);
                 Message.printStatus( 2, routine, prop.getKey() + "=" + prop.getValue() );
+                if ( prop.getKey().equalsIgnoreCase("TSTool.DiffProgram") ) {
+                	// Also set global properties that are used more generically
+                	IOUtil.setProp("DiffProgram", prop.getValue());
+                }
             }
 		}
 		catch ( Exception e ) {
