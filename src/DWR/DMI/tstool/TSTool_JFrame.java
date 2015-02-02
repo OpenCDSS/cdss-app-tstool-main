@@ -1301,41 +1301,6 @@ JMenuItem
     __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem;
 
-// Commands (Table)...
-
-JMenu
-    __Commands_Table_JMenu = null;
-JMenuItem
-    __Commands_Table_NewTable_JMenuItem,
-    __Commands_Table_CopyTable_JMenuItem,
-    __Commands_Table_ReadTableFromDataStore_JMenuItem, // Uses string from __Commands_Datastore_ReadTableFromDataStore
-    __Commands_Table_ReadTableFromDelimitedFile_JMenuItem,
-    __Commands_Table_ReadTableFromDBF_JMenuItem,
-    __Commands_Table_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
-    __Commands_Table_ReadTableFromFixedFormatFile_JMenuItem,
-    __Commands_Table_AppendTable_JMenuItem,
-    __Commands_Table_JoinTables_JMenuItem,
-    __Commands_Table_SortTable_JMenuItem,
-    __Commands_Table_TimeSeriesToTable_JMenuItem,
-    __Commands_Table_TableToTimeSeries_JMenuItem,
-    __Commands_Table_CreateTimeSeriesEventTable_JMenuItem,
-    __Commands_Table_FormatTableDateTime_JMenuItem,
-    __Commands_Table_FormatTableString_JMenuItem,
-    __Commands_Table_ManipulateTableString_JMenuItem,
-    __Commands_Table_InsertTableColumn_JMenuItem,
-    __Commands_Table_InsertTableRow_JMenuItem,
-    __Commands_Table_SetTableValues_JMenuItem,
-    __Commands_Table_TableMath_JMenuItem,
-    __Commands_Table_TableTimeSeriesMath_JMenuItem,
-    __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem,
-    __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem,
-    __Commands_Table_CompareTables_JMenuItem,
-    __Commands_Table_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
-    __Commands_Table_WriteTableToExcel_JMenuItem, // Also duplicated in __Commands_Spreadsheet_WriteTableToExcel
-    __Commands_Table_WriteTableToDelimitedFile_JMenuItem,
-    __Commands_Table_WriteTableToHTML_JMenuItem,
-    __Commands_Table_FreeTable_JMenuItem;
-
 // Commands (Template Processing)...
 
 JMenu
@@ -1423,6 +1388,61 @@ JMenu
 JMenuItem
 	__Commands_Deprecated_OpenHydroBase_JMenuItem,
 	__Commands_Deprecated_RunningAverage_JMenuItem;
+
+// Commands (Table)
+JMenu
+	__Commands_Table_JMenu = null;
+JMenu
+	__Commands_TableCreate_JMenu = null;
+JMenuItem
+    __Commands_TableCreate_NewTable_JMenuItem,
+    __Commands_TableCreate_CopyTable_JMenuItem,
+	__Commands_TableCreate_FreeTable_JMenuItem;
+JMenu
+	__Commands_TableRead_JMenu = null;
+JMenuItem
+    __Commands_TableRead_ReadTableFromDataStore_JMenuItem, // Uses string from __Commands_Datastore_ReadTableFromDataStore
+    __Commands_TableRead_ReadTableFromDelimitedFile_JMenuItem,
+    __Commands_TableRead_ReadTableFromDBF_JMenuItem,
+    __Commands_TableRead_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
+    __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem;
+JMenu
+	__Commands_TableJoin_JMenu = null;
+JMenuItem
+    __Commands_TableJoin_AppendTable_JMenuItem,
+    __Commands_TableJoin_JoinTables_JMenuItem,
+    __Commands_TableManipulate_SortTable_JMenuItem;
+JMenu
+	__Commands_TableTimeSeries_JMenu = null;
+JMenuItem
+    __Commands_TableTimeSeries_TimeSeriesToTable_JMenuItem,
+    __Commands_TableTimeSeries_TableToTimeSeries_JMenuItem,
+    __Commands_TableTimeSeries_CreateTimeSeriesEventTable_JMenuItem,
+	__Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_JMenuItem,
+	__Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_JMenuItem;
+JMenu
+	__Commands_TableManipulate_JMenu = null;
+JMenuItem
+    __Commands_TableManipulate_FormatTableDateTime_JMenuItem,
+    __Commands_TableManipulate_FormatTableString_JMenuItem,
+    __Commands_TableManipulate_ManipulateTableString_JMenuItem,
+    __Commands_TableManipulate_InsertTableColumn_JMenuItem,
+    __Commands_TableManipulate_InsertTableRow_JMenuItem,
+    __Commands_TableManipulate_SetTableValues_JMenuItem,
+    __Commands_TableManipulate_SplitTableRowIntoSequence_JMenuItem,
+    __Commands_TableManipulate_TableMath_JMenuItem,
+    __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem;
+JMenu
+	__Commands_TableAnalyze_JMenu;
+JMenuItem
+    __Commands_TableAnalyze_CompareTables_JMenuItem;
+JMenu
+	__Commands_TableOutput_JMenu;
+JMenuItem
+    __Commands_TableOutput_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
+    __Commands_TableOutput_WriteTableToExcel_JMenuItem, // Also duplicated in __Commands_Spreadsheet_WriteTableToExcel
+    __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem,
+    __Commands_TableOutput_WriteTableToHTML_JMenuItem;
 
 // Run...
 
@@ -1791,39 +1811,6 @@ private String
     __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
     
-    // Table Commands...
-
-    __Commands_Table_String = "Table Processing",
-    __Commands_Table_NewTable_String = TAB + "NewTable()... <create a new empty table>",
-    __Commands_Table_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
-    // Menu inserted here uses __Commands_Datastore_ReadTableFromDataStore string
-    __Commands_Table_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
-    __Commands_Table_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
-    __Commands_Table_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
-    __Commands_Table_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
-    __Commands_Table_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
-    __Commands_Table_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
-    __Commands_Table_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
-    __Commands_Table_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
-    __Commands_Table_CreateTimeSeriesEventTable_String = TAB + "CreateTimeSeriesEventTable()... <create time series event table>",
-    __Commands_Table_FormatTableDateTime_String = TAB + "FormatTableDateTime()... <format table date/time column into output column>",
-    __Commands_Table_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
-    __Commands_Table_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
-    __Commands_Table_InsertTableColumn_String = TAB + "InsertTableColumn()... <insert table column>",
-    __Commands_Table_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
-    __Commands_Table_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
-    __Commands_Table_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
-    __Commands_Table_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
-    __Commands_Table_SetTimeSeriesPropertiesFromTable_String =
-        TAB + "SetTimeSeriesPropertiesFromTable()... <set time series properties from table>",
-    __Commands_Table_CopyTimeSeriesPropertiesToTable_String =
-        TAB + "CopyTimeSeriesPropertiesToTable()... <copy time series properties to table>",
-    __Commands_Table_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
-    // See __Commands_Datastore_WriteTableToDataStore, which is used to define menu here
-    __Commands_Table_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
-    __Commands_Table_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
-    __Commands_Table_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
-
     // Template Commands...
 
     __Commands_Template_String = "Template Processing",
@@ -1895,6 +1882,47 @@ private String
     __Commands_Deprecated_String = "Deprecated Commands",
     __Commands_Deprecated_OpenHydroBase_String = TAB + "OpenHydroBase()... <open HydroBase database connection - PHASING OUT>",
     __Commands_Deprecated_RunningAverage_String = TAB + "RunningAverage()... <convert TS to running average - PHASING OUT>",
+    
+    // Table Commands...
+
+    __Commands_Table_String = "Commands/Table",
+    __Commands_TableCreate_String = "Create/Copy/Free Table",
+    __Commands_TableCreate_NewTable_String = TAB + "NewTable()... <create a new empty table>",
+    __Commands_TableCreate_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
+    __Commands_TableRead_String = "Read Table",
+    // Menu inserted here uses __Commands_Datastore_ReadTableFromDataStore string
+    __Commands_TableRead_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
+    __Commands_TableRead_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
+    __Commands_TableRead_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
+    __Commands_TableJoin_String = "Append/Join Tables",
+    __Commands_TableJoin_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
+    __Commands_TableJoin_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
+    __Commands_TableTimeSeries_String = "Table/TimeSeries Processing",
+    __Commands_TableTimeSeries_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
+    __Commands_TableTimeSeries_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
+	__Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String =
+        TAB + "SetTimeSeriesPropertiesFromTable()... <set time series properties from table>",
+    __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String =
+        TAB + "CopyTimeSeriesPropertiesToTable()... <copy time series properties to table>",
+    __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String = TAB + "CreateTimeSeriesEventTable()... <create time series event table>",
+    __Commands_TableManipulate_String = "Manipulate Table Values",
+    __Commands_TableManipulate_FormatTableDateTime_String = TAB + "FormatTableDateTime()... <format table date/time column into output column>",
+    __Commands_TableManipulate_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
+    __Commands_TableManipulate_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
+    __Commands_TableManipulate_InsertTableColumn_String = TAB + "InsertTableColumn()... <insert table column>",
+    __Commands_TableManipulate_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
+    __Commands_TableManipulate_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
+    __Commands_TableManipulate_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
+    __Commands_TableManipulate_SplitTableRowIntoSequence_String = TAB + "SplitTableRowIntoSequence()... <split a row into a sequence of rows>",
+    __Commands_TableManipulate_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
+    __Commands_TableManipulate_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
+    __Commands_TableAnalyze_String = "Analyze Table",
+    __Commands_TableAnalyze_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
+    __Commands_TableOutput_String = "Output Table",
+    // See __Commands_Datastore_WriteTableToDataStore, which is used to define menu here
+    __Commands_TableOutput_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
+    __Commands_TableOutput_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
+    __Commands_TableCreate_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
     
 	// Results menu choices (order in GUI)...
 
@@ -9321,7 +9349,7 @@ private void ui_InitGUIMenus ()
 	ui_InitGUIMenus_Edit ( menu_bar );
 	ui_InitGUIMenus_View ( menu_bar );
 	ui_InitGUIMenus_Commands ( menu_bar );
-	ui_InitGUIMenus_CommandsGeneral ();
+	ui_InitGUIMenus_CommandsGeneral ( menu_bar );
 	ui_InitGUIMenus_Run ( menu_bar );
 	ui_InitGUIMenus_Results ( menu_bar );
 	ui_InitGUIMenus_Tools ( menu_bar );
@@ -9767,9 +9795,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 }
 
 /**
-Initialize the GUI "Commands...General".
+Initialize the GUI "Commands...General" and Commands/Table (top level)
 */
-private void ui_InitGUIMenus_CommandsGeneral ()
+private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
 {	__Commands_JMenu.addSeparator(); // Results in double separator
 
     // "Commands...Datastore processing"...
@@ -9870,76 +9898,94 @@ private void ui_InitGUIMenus_CommandsGeneral ()
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, this ) );
     
     // Commands...Table processing...
-    
-    __Commands_JMenu.addSeparator();
-    __Commands_JMenu.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
-    __Commands_Table_JMenu.setToolTipText("Process tables (columns of data).");
-    __Commands_Table_JMenu.add( __Commands_Table_NewTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_NewTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_CopyTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_CopyTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDataStore_JMenuItem =
+
+    menu_bar.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
+	__Commands_Table_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
+	
+    __Commands_Table_JMenu.add( __Commands_TableCreate_JMenu = new JMenu( __Commands_TableCreate_String, true ) );
+    __Commands_TableCreate_JMenu.setToolTipText("Create new tables.");
+    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_NewTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableCreate_NewTable_String, this ) );
+    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_CopyTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableCreate_CopyTable_String, this ) );
+    __Commands_TableCreate_JMenu.addSeparator();
+    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_FreeTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableCreate_FreeTable_String, this ) );
+ 
+    __Commands_Table_JMenu.add( __Commands_TableRead_JMenu = new JMenu( __Commands_TableRead_String, true ) );
+    __Commands_TableRead_JMenu.setToolTipText("Read tables.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Datastore_ReadTableFromDataStore_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDelimitedFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_ReadTableFromDelimitedFile_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromDBF_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_ReadTableFromDBF_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromExcel_JMenuItem =
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDBF_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromDBF_String, this ) );
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDelimitedFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromDelimitedFile_String, this ) );
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_ReadTableFromFixedFormatFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_ReadTableFromFixedFormatFile_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_AppendTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_AppendTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_JoinTables_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_JoinTables_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_SortTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_SortTable_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_TimeSeriesToTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_TimeSeriesToTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_TableToTimeSeries_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_TableToTimeSeries_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_CreateTimeSeriesEventTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_CreateTimeSeriesEventTable_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_FormatTableDateTime_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_FormatTableDateTime_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_FormatTableString_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_FormatTableString_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_ManipulateTableString_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_ManipulateTableString_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_InsertTableColumn_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_InsertTableColumn_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_InsertTableRow_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_InsertTableRow_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_SetTableValues_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_SetTableValues_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_TableMath_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_TableMath_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_TableTimeSeriesMath_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_TableTimeSeriesMath_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_SetTimeSeriesPropertiesFromTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_CopyTimeSeriesPropertiesToTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_CopyTimeSeriesPropertiesToTable_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDataStore_JMenuItem =
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromFixedFormatFile_String, this ) );
+
+    __Commands_Table_JMenu.add( __Commands_TableJoin_JMenu = new JMenu( __Commands_TableJoin_String, true ) );
+    __Commands_TableJoin_JMenu.setToolTipText("Append/join tables.");
+    __Commands_TableJoin_JMenu.add( __Commands_TableJoin_AppendTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableJoin_AppendTable_String, this ) );
+    __Commands_TableJoin_JMenu.add( __Commands_TableJoin_JoinTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableJoin_JoinTables_String, this ) );
+
+    __Commands_Table_JMenu.add( __Commands_TableTimeSeries_JMenu = new JMenu( __Commands_TableTimeSeries_String, true ) );
+    __Commands_TableTimeSeries_JMenu.setToolTipText("Processing tables to/from time series.");
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_TimeSeriesToTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_TimeSeriesToTable_String, this ) );
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_TableToTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_TableToTimeSeries_String, this ) );
+    __Commands_TableTimeSeries_JMenu.addSeparator();
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String, this ) );
+    __Commands_TableTimeSeries_JMenu.addSeparator();
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String, this ) );
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String, this ) );
+    
+    __Commands_Table_JMenu.add( __Commands_TableManipulate_JMenu = new JMenu( __Commands_TableManipulate_String, true ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
+    __Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableDateTime_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_FormatTableDateTime_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableString_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_FormatTableString_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_ManipulateTableString_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_ManipulateTableString_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableValues_JMenuItem =
+            new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableMath_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_TableMath_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_TableTimeSeriesMath_String, this ) );
+    __Commands_TableManipulate_JMenu.addSeparator();
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableRow_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SortTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SortTable_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRowIntoSequence_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRowIntoSequence_String, this ) );
+    
+    __Commands_Table_JMenu.add( __Commands_TableAnalyze_JMenu = new JMenu( __Commands_TableAnalyze_String, true ) );
+    __Commands_TableAnalyze_JMenu.setToolTipText("Analyze table.");
+    __Commands_TableAnalyze_JMenu.add( __Commands_TableAnalyze_CompareTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableAnalyze_CompareTables_String, this ) );
+ 
+    __Commands_Table_JMenu.add( __Commands_TableOutput_JMenu = new JMenu( __Commands_TableOutput_String, true ) );
+    __Commands_TableOutput_JMenu.setToolTipText("Output table.");
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Datastore_WriteTableToDataStore_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToDelimitedFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_WriteTableToDelimitedFile_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToExcel_JMenuItem =
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToDelimitedFile_String, this ) );
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_WriteTableToHTML_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_WriteTableToHTML_String, this ) );
-    __Commands_Table_JMenu.addSeparator();
-    __Commands_Table_JMenu.add( __Commands_Table_FreeTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_FreeTable_String, this ) );
-    __Commands_Table_JMenu.add( __Commands_Table_CompareTables_JMenuItem =
-        new SimpleJMenuItem( __Commands_Table_CompareTables_String, this ) );
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToHTML_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToHTML_String, this ) );
     
     // Commands...Template processing...
     
@@ -12432,81 +12478,84 @@ throws Exception
 
     // Table commands...
     
-    else if (command.equals( __Commands_Table_NewTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_NewTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableCreate_NewTable_String) ) {
+        commandList_EditCommand ( __Commands_TableCreate_NewTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_CopyTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_CopyTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableCreate_CopyTable_String) ) {
+        commandList_EditCommand ( __Commands_TableCreate_CopyTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_AppendTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_AppendTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableJoin_AppendTable_String) ) {
+        commandList_EditCommand ( __Commands_TableJoin_AppendTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_JoinTables_String) ) {
-        commandList_EditCommand ( __Commands_Table_JoinTables_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableJoin_JoinTables_String) ) {
+        commandList_EditCommand ( __Commands_TableJoin_JoinTables_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_SortTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_SortTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_SortTable_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_SortTable_String, null, CommandEditType.INSERT );
     }
     // See __Commands_Tble_ReadTableFromDataStore, which is duplicated in Table menu
-    else if (command.equals( __Commands_Table_ReadTableFromDelimitedFile_String) ) {
-        commandList_EditCommand ( __Commands_Table_ReadTableFromDelimitedFile_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableRead_ReadTableFromDelimitedFile_String) ) {
+        commandList_EditCommand ( __Commands_TableRead_ReadTableFromDelimitedFile_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_ReadTableFromDBF_String) ) {
-        commandList_EditCommand ( __Commands_Table_ReadTableFromDBF_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableRead_ReadTableFromDBF_String) ) {
+        commandList_EditCommand ( __Commands_TableRead_ReadTableFromDBF_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_ReadTableFromFixedFormatFile_String) ) {
-        commandList_EditCommand ( __Commands_Table_ReadTableFromFixedFormatFile_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableRead_ReadTableFromFixedFormatFile_String) ) {
+        commandList_EditCommand ( __Commands_TableRead_ReadTableFromFixedFormatFile_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_SetTimeSeriesPropertiesFromTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_SetTimeSeriesPropertiesFromTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String) ) {
+        commandList_EditCommand ( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_CopyTimeSeriesPropertiesToTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_CopyTimeSeriesPropertiesToTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String) ) {
+        commandList_EditCommand ( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_TimeSeriesToTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_TimeSeriesToTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableTimeSeries_TimeSeriesToTable_String) ) {
+        commandList_EditCommand ( __Commands_TableTimeSeries_TimeSeriesToTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_TableToTimeSeries_String) ) {
-        commandList_EditCommand ( __Commands_Table_TableToTimeSeries_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableTimeSeries_TableToTimeSeries_String) ) {
+        commandList_EditCommand ( __Commands_TableTimeSeries_TableToTimeSeries_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_CreateTimeSeriesEventTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_CreateTimeSeriesEventTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String) ) {
+        commandList_EditCommand ( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_FormatTableDateTime_String) ) {
-        commandList_EditCommand ( __Commands_Table_FormatTableDateTime_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_FormatTableDateTime_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_FormatTableDateTime_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_FormatTableString_String) ) {
-        commandList_EditCommand ( __Commands_Table_FormatTableString_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_FormatTableString_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_FormatTableString_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_ManipulateTableString_String) ) {
-        commandList_EditCommand ( __Commands_Table_ManipulateTableString_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_ManipulateTableString_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_ManipulateTableString_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_InsertTableColumn_String) ) {
-        commandList_EditCommand ( __Commands_Table_InsertTableColumn_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_InsertTableColumn_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_InsertTableColumn_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_InsertTableRow_String) ) {
-        commandList_EditCommand ( __Commands_Table_InsertTableRow_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_InsertTableRow_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_InsertTableRow_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_SetTableValues_String) ) {
-        commandList_EditCommand ( __Commands_Table_SetTableValues_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_SetTableValues_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_SetTableValues_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_TableMath_String) ) {
-        commandList_EditCommand ( __Commands_Table_TableMath_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_SplitTableRowIntoSequence_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_SplitTableRowIntoSequence_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_TableTimeSeriesMath_String) ) {
-        commandList_EditCommand ( __Commands_Table_TableTimeSeriesMath_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_TableMath_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_TableMath_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_CompareTables_String) ) {
-        commandList_EditCommand ( __Commands_Table_CompareTables_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_TableTimeSeriesMath_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_TableTimeSeriesMath_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_WriteTableToDelimitedFile_String) ) {
-        commandList_EditCommand ( __Commands_Table_WriteTableToDelimitedFile_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableAnalyze_CompareTables_String) ) {
+        commandList_EditCommand ( __Commands_TableAnalyze_CompareTables_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_WriteTableToHTML_String) ) {
-        commandList_EditCommand ( __Commands_Table_WriteTableToHTML_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableOutput_WriteTableToDelimitedFile_String) ) {
+        commandList_EditCommand ( __Commands_TableOutput_WriteTableToDelimitedFile_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Table_FreeTable_String) ) {
-        commandList_EditCommand ( __Commands_Table_FreeTable_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableOutput_WriteTableToHTML_String) ) {
+        commandList_EditCommand ( __Commands_TableOutput_WriteTableToHTML_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableCreate_FreeTable_String) ) {
+        commandList_EditCommand ( __Commands_TableCreate_FreeTable_String, null, CommandEditType.INSERT );
     }
 	
 	// Template commands...
@@ -21021,6 +21070,8 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		out.close();
 		commandList_SetDirty(false);
 		commandList_SetCommandFileName ( file );
+		// Save the file in the history
+		this.session.pushHistory(file);
 
 		if ( directory != null ) {
 			// Set the "WorkingDir" property, which will NOT contain a trailing separator...

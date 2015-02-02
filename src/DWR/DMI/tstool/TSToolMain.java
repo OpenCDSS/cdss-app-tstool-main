@@ -845,7 +845,8 @@ public static void main ( String args[] )
 }
 
 /**
-Open a data store given its configuration properties.  The data store is also added to the processor.
+Open a data store given its configuration properties.  The data store is also added to the processor
+(if the open fails then the datastore should set status=1).
 The TSTool configuration file properties are checked here to ensure that the data store type is enabled.
 Otherwise, opening data stores takes time and impacts performance.
 @param dataStoreProps data store configuration properties recognized by the data store factory "create" method.
