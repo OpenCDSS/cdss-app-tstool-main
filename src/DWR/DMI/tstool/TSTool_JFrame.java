@@ -1299,7 +1299,8 @@ JMenuItem
     __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTableToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem,
-    __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem;
+    __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem,
+    __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem;
 
 // Commands (Template Processing)...
 
@@ -1442,7 +1443,8 @@ JMenuItem
     __Commands_TableOutput_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
     __Commands_TableOutput_WriteTableToExcel_JMenuItem, // Also duplicated in __Commands_Spreadsheet_WriteTableToExcel
     __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem,
-    __Commands_TableOutput_WriteTableToHTML_JMenuItem;
+    __Commands_TableOutput_WriteTableToHTML_JMenuItem,
+    __Commands_TableOutput_CloseExcelWorkbook_JMenuItem;
 
 // Run...
 
@@ -1810,6 +1812,7 @@ private String
     __Commands_Spreadsheet_WriteTableToExcel_String = TAB + "WriteTableToExcel()... <write a table to an Excel file>",
     __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
+    __Commands_Spreadsheet_CloseExcelWorkbook_String = TAB + "CloseExcelWorkbook()... <close an Excel file>",
     
     // Template Commands...
 
@@ -9896,6 +9899,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableCellsToExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.addSeparator();
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_CloseExcelWorkbook_String, this ) );
     
     // Commands...Table processing...
 
@@ -12474,6 +12480,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_CloseExcelWorkbook_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_CloseExcelWorkbook_String, null, CommandEditType.INSERT );
     }
 
     // Table commands...
