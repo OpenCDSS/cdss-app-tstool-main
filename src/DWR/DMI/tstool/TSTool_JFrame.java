@@ -1297,6 +1297,7 @@ JMenuItem
     __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem,    
     __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem,
     __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem,
+    __Commands_Spreadsheet_SetExcelWorksheetViewProperties_JMenuItem,
     __Commands_Spreadsheet_WriteTableToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem,
@@ -1809,6 +1810,7 @@ private String
     __Commands_Spreadsheet_NewExcelWorkbook_String = TAB + "NewExcelWorkbook()... <create a new Excel workbook file>",
     __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
     __Commands_Spreadsheet_ReadTableCellsFromExcel_String = TAB + "ReadTableCellsFromExcel()... <read a table's cells from an Excel file>",
+    __Commands_Spreadsheet_SetExcelWorksheetViewProperties_String = TAB + "SetExcelWorksheetViewProperties()... <set Excel view properties>",
     __Commands_Spreadsheet_WriteTableToExcel_String = TAB + "WriteTableToExcel()... <write a table to an Excel file>",
     __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
@@ -9893,6 +9895,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.addSeparator();
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_SetExcelWorksheetViewProperties_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_SetExcelWorksheetViewProperties_String, this ) );
+    __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem =
@@ -12471,6 +12476,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Spreadsheet_ReadTableCellsFromExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_SetExcelWorksheetViewProperties_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_SetExcelWorksheetViewProperties_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spreadsheet_WriteTableToExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTableToExcel_String, null, CommandEditType.INSERT );
