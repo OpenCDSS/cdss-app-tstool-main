@@ -1431,7 +1431,8 @@ JMenuItem
     __Commands_TableManipulate_InsertTableColumn_JMenuItem,
     __Commands_TableManipulate_InsertTableRow_JMenuItem,
     __Commands_TableManipulate_SetTableValues_JMenuItem,
-    __Commands_TableManipulate_SplitTableRowIntoSequence_JMenuItem,
+    __Commands_TableManipulate_SplitTableColumn_JMenuItem,
+    __Commands_TableManipulate_SplitTableRow_JMenuItem,
     __Commands_TableManipulate_TableMath_JMenuItem,
     __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem;
 JMenu
@@ -1917,8 +1918,9 @@ private String
     __Commands_TableManipulate_InsertTableColumn_String = TAB + "InsertTableColumn()... <insert table column>",
     __Commands_TableManipulate_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
     __Commands_TableManipulate_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
+    __Commands_TableManipulate_SplitTableColumn_String = TAB + "SplitTableColumn()... <split a column into multiple columns>",
     __Commands_TableManipulate_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
-    __Commands_TableManipulate_SplitTableRowIntoSequence_String = TAB + "SplitTableRowIntoSequence()... <split a row into a sequence of rows>",
+    __Commands_TableManipulate_SplitTableRow_String = TAB + "SplitTableRow()... <split a row into multiple rows>",
     __Commands_TableManipulate_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_TableManipulate_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
     __Commands_TableAnalyze_String = "Analyze Table",
@@ -9969,7 +9971,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_ManipulateTableString_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableValues_JMenuItem =
-            new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
+        new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableColumn_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableMath_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_TableMath_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem =
@@ -9979,8 +9983,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_TableManipulate_InsertTableRow_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SortTable_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_SortTable_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRowIntoSequence_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRowIntoSequence_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRow_String, this ) );
     
     __Commands_Table_JMenu.add( __Commands_TableAnalyze_JMenu = new JMenu( __Commands_TableAnalyze_String, true ) );
     __Commands_TableAnalyze_JMenu.setToolTipText("Analyze table.");
@@ -12553,8 +12557,11 @@ throws Exception
     else if (command.equals( __Commands_TableManipulate_SetTableValues_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_SetTableValues_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_TableManipulate_SplitTableRowIntoSequence_String) ) {
-        commandList_EditCommand ( __Commands_TableManipulate_SplitTableRowIntoSequence_String, null, CommandEditType.INSERT );
+    else if (command.equals( __Commands_TableManipulate_SplitTableColumn_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_SplitTableColumn_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableManipulate_SplitTableRow_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_SplitTableRow_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableManipulate_TableMath_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_TableMath_String, null, CommandEditType.INSERT );

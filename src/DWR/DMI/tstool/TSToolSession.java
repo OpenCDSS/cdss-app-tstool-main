@@ -48,6 +48,7 @@ public void pushHistory ( String commandFile )
 	// Add in the first position
 	history.add(0, commandFile);
 	// Remove any duplicates and over the maximum
+	// Process from the back so that old duplicates are removed and recent access is always at the top of the list
 	// TODO SAM 2014-12-17 use a TSTool configuration file property to set cap
 	int max = 100;
 	for ( int i = history.size() - 1; i >= 1; i-- ) {
