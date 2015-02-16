@@ -25,6 +25,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -83,7 +85,6 @@ import rti.tscommandprocessor.core.TSCommandProcessorUtil;
 import rti.tscommandprocessor.core.TimeSeriesTreeView;
 import rti.tscommandprocessor.core.TimeSeriesTreeView_JTree;
 import rti.tscommandprocessor.core.TimeSeriesView;
-
 import rti.tscommandprocessor.commands.hecdss.HecDssAPI;
 import rti.tscommandprocessor.commands.hecdss.HecDssTSInputFilter_JPanel;
 import rti.tscommandprocessor.commands.rccacis.RccAcisDataStore;
@@ -113,7 +114,6 @@ import us.co.state.dwr.hbguest.datastore.ColoradoWaterHBGuestDataStore;
 import us.co.state.dwr.sms.ColoradoWaterSMS;
 import us.co.state.dwr.sms.ColoradoWaterSMSAPI;
 import us.co.state.dwr.sms.datastore.ColoradoWaterSMSDataStore;
-
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBaseDataStore;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
@@ -152,6 +152,7 @@ import DWR.StateMod.StateMod_WellRight;
 import RTi.DMI.DMI;
 import RTi.DMI.DMIUtil;
 import RTi.DMI.DatabaseDataStore;
+import RTi.DMI.ERDiagram_JFrame;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
 import RTi.DMI.DIADvisorDMI.DIADvisor_SensorDef;
 import RTi.DMI.DIADvisorDMI.DIADvisor_SysConfig;
@@ -618,6 +619,11 @@ private SimpleJButton __CopyAllToCommands_JButton;
 Panel for input options.
 */
 private JPanel __queryInput_JPanel;
+
+/**
+Text field indicating that datastores are initializing.
+*/
+private JLabel __dataStoreInitializing_JLabel;
 
 /**
 Panel to hold results of time series header lists.
@@ -1257,6 +1263,7 @@ JMenuItem
     __Commands_Datastore_RunSql_JMenuItem,
     __Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem,
     __Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem,
+    __Commands_Datastore_CloseDataStore_JMenuItem,
     __Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem;
 
 // Commands...Ensemble Processing...
@@ -1369,6 +1376,7 @@ JMenuItem
     __Commands_General_Running_For_JMenuItem = null,
     __Commands_General_Running_EndFor_JMenuItem = null,
     __Commands_General_Running_Exit_JMenuItem = null,
+    __Commands_General_Running_Wait_JMenuItem = null,
     __Commands_General_Running_SetWorkingDir_JMenuItem = null,
     __Commands_General_Running_ProfileCommands_JMenuItem = null;
 
@@ -1498,6 +1506,10 @@ private JMenu
 private JMenuItem
 	__Tools_Analysis_PrincipalComponentAnalysis_JMenuItem = null,
 	__Tools_Analysis_MixedStationAnalysis_JMenuItem = null;
+private JMenu
+	__Tools_Datastore_JMenu = null;
+private JMenuItem
+	__Tools_Datastore_ERDiagram_JMenuItem = null;
 private JMenu
 	__Tools_Report_JMenu = null;
 private JMenuItem
@@ -1778,6 +1790,7 @@ private String
     __Commands_Datastore_RunSql_String = TAB + "RunSql()... <run an SQL statement for a database datastore>",
     __Commands_Datastore_ReadTimeSeriesFromDataStore_String = TAB + "ReadTimeSeriesFromDataStore()... <read 1+ time series from a database datastore>",
     __Commands_Datastore_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
+   	__Commands_Datastore_CloseDataStore_String = TAB + "CloseDataStore()... <close a database datastore>",
     __Commands_Datastore_CreateDataStoreDataDictionary_String = TAB + "CreateDataStoreDataDictionary()... <create a data dictionary for a datastore>",
     
     // Commands...Ensemble processing...
@@ -1871,7 +1884,8 @@ private String
     __Commands_General_Running_EndIf_String = TAB + "EndIf() <end an If() block>",
     __Commands_General_Running_For_String = TAB + "For() <repeatedly execute a block of commands>",
     __Commands_General_Running_EndFor_String = TAB + "EndFor() <end a For() block>",
-    __Commands_General_Running_Exit_String = TAB + "Exit() <to end processing>",
+    __Commands_General_Running_Exit_String = TAB + "Exit() <end processing>",
+    __Commands_General_Running_Wait_String = TAB + "Wait() <pause processing within the command>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
     __Commands_General_Running_ProfileCommands_String = TAB + "ProfileCommands()... <profile command performance>",
  
@@ -1984,6 +1998,8 @@ private String
 		__Tools_Analysis_String = "Analysis",
 			__Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
 			__Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
+		__Tools_Datastore_String = "Datastore",
+			__Tools_Datastore_ERDiagram_String = "Entity Relationship Diagram (under development)",
 		__Tools_Report_String = "Report",
 			__Tools_Report_DataCoverageByYear_String = "Data Coverage by Year...",
 			__Tools_Report_DataLimitsSummary_String = "Data Limits Summary...",
@@ -5619,6 +5635,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         // identify the time series, but the input_name is needed to indicate the database.
         TSTool_ReclamationHDB_TableModel model = (TSTool_ReclamationHDB_TableModel)__query_TableModel;
         ReclamationHDBDataStore ds = (ReclamationHDBDataStore)selectedDataStore;
+        // Check the connection in case timeouts, etc.
+        ds.checkDatabaseConnection();
         ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
         // Format the TSID using the older format that uses common names, but these are not guaranteed unique
         String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE);
@@ -6730,6 +6748,7 @@ private void ui_DataStoreList_Populate ()
     __dataStore_JComboBox.removeAll();
     List<String> dataStoreNameList = new Vector();
     dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
+    // Get all enabled datastores, even those not active - the View ... Datastores menu can be used to show errors
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
         if ( dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
@@ -6748,7 +6767,12 @@ private void ui_DataStoreList_Populate ()
                 continue;
             }
         }
-        dataStoreNameList.add ( dataStore.getName() );
+        String name = dataStore.getName();
+        if ( dataStore.getStatus() != 0 ) {
+        	// Show the user but make sure they know there is a problem so they avoid selecting
+        	name = name + " (ERROR)";
+        }
+        dataStoreNameList.add ( name );
     }
     __dataStore_JComboBox.setData(dataStoreNameList);
     // Select the blank
@@ -7625,8 +7649,8 @@ private void ui_InitGUI ( )
     // be set not visible...
     JPanel __dataStoreInitializing_JPanel = new JPanel();
     __dataStoreInitializing_JPanel.setLayout(gbl);
-    JLabel dataStoreInitializing_JLabel = new JLabel("<html><b>Wait...initializing data connections...</html>");
-    JGUIUtil.addComponent(__dataStoreInitializing_JPanel, dataStoreInitializing_JLabel, 
+    __dataStoreInitializing_JLabel = new JLabel("<html><b>Wait...initializing data connections...</html>");
+    JGUIUtil.addComponent(__dataStoreInitializing_JPanel, __dataStoreInitializing_JLabel, 
         0, 0, 1, 2, 1.0, 0.0, insetsNNNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     // Add at same location and __dataStore_JTabbedPane, which is not visible at start
     JGUIUtil.addComponent(__queryInput_JPanel, __dataStoreInitializing_JPanel, 
@@ -7640,7 +7664,7 @@ private void ui_InitGUI ( )
         0, ++yDataStore, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __dataStore_JComboBox = new SimpleJComboBox(false);
     __dataStore_JComboBox.setMaximumRowCount ( 20 );
-    String tooltip = "<html>Configured database and web service datastores - select a datastore OR input type.</html>";
+    String tooltip = "<html>Configured database and web service datastores <b>with no errors</b> - select a datastore OR input type.  See View...Datastores for status.</html>";
     __dataStore_JLabel.setToolTipText(tooltip);
     __dataStore_JComboBox.setToolTipText ( tooltip );
     __dataStore_JComboBox.addItemListener( this );
@@ -9829,6 +9853,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_WriteTimeSeriesToDataStore_String, this) );
     __Commands_Datastore_JMenu.addSeparator();
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_CloseDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_CloseDataStore_String, this) );
+    __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_CreateDataStoreDataDictionary_String, this) );
     
@@ -10117,6 +10144,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_Wait_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_Wait_String, this ) );
+    __Commands_General_Running_JMenu.addSeparator();
 	__Commands_General_Running_JMenu.add(__Commands_General_Running_SetWorkingDir_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetWorkingDir_String, this ) );
    __Commands_General_Running_JMenu.add(__Commands_General_Running_ProfileCommands_JMenuItem =
@@ -10687,6 +10717,10 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 
 	__Tools_Analysis_JMenu.add(	__Tools_Analysis_PrincipalComponentAnalysis_JMenuItem =
 		new SimpleJMenuItem(__Tools_Analysis_PrincipalComponentAnalysis_String, this ) );
+	
+	__Tools_JMenu.add ( __Tools_Datastore_JMenu = new JMenu(__Tools_Datastore_String, true ) );
+	__Tools_Datastore_JMenu.add(__Tools_Datastore_ERDiagram_JMenuItem =
+		new SimpleJMenuItem(__Tools_Datastore_ERDiagram_String, this ) );
 
 	__Tools_JMenu.add ( __Tools_Report_JMenu = new JMenu(__Tools_Report_String, true ) );
 
@@ -12451,6 +12485,9 @@ throws Exception
     else if (command.equals( __Commands_Datastore_WriteTimeSeriesToDataStore_String)){
         commandList_EditCommand ( __Commands_Datastore_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Datastore_CloseDataStore_String)){
+        commandList_EditCommand ( __Commands_Datastore_CloseDataStore_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Datastore_CreateDataStoreDataDictionary_String)){
         commandList_EditCommand ( __Commands_Datastore_CreateDataStoreDataDictionary_String, null, CommandEditType.INSERT );
     }
@@ -12693,6 +12730,9 @@ throws Exception
     }
 	else if (command.equals(__Commands_General_Running_Exit_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );
+	}
+	else if (command.equals(__Commands_General_Running_Wait_String) ) {
+		commandList_EditCommand ( __Commands_General_Running_Wait_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String) ) {
         commandList_EditCommand ( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String, null, CommandEditType.INSERT );
@@ -12983,6 +13023,33 @@ throws Exception
 			Message.printWarning ( 3, routine, e );
 		}
 	}
+	else if ( o == __Tools_Datastore_ERDiagram_JMenuItem ) {
+		// Create the dialog using the available time series results (accessed by the procesor)...
+		try {
+			// TODO SAM 2015-02-14 need to pick the DMI to use - for now hard-code to HydroBase
+			DMI dmi = commandProcessor_GetHydroBaseDMIList().get(0);
+			String tablesTableName = null; // Table in database containing the list of tables - need to switch to DataTable or list?
+			String tableNameField = null; // Column in tablesTableName that has the name of the tables
+			String erdXField = null; // Column in tablesTableName that contains ER Diagram x-coordinate
+			String erdYField = null; // Column in tablesTableName that contains ER Diagram y-coordinate
+			List referenceTables = null; // List of tables in tablesTableName that are reference tables
+			PageFormat pageFormat = new PageFormat();
+			Paper paper = new Paper();
+			double w = 72*17.0;
+			double h = 72*11.0;
+			paper.setSize(w,h);
+			pageFormat.setPaper(paper);
+			pageFormat.setOrientation(PageFormat.LANDSCAPE);
+			boolean debug = true;
+		    new ERDiagram_JFrame(dmi, tablesTableName, tableNameField,
+		    		erdXField, erdYField, referenceTables, 
+		    		pageFormat, debug);
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error in Enity Relationship Diagram tool (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
     else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
 		try {
@@ -13247,6 +13314,9 @@ private void uiAction_DataStoreChoiceClicked()
         }
         return; // Not done initializing.
     }
+    // TODO SAM 2015-02-15 Need a graceful way to hide the following but set text to blank as work-around.
+    // Otherwise, some of the text shows through behind the datastore panel.
+    __dataStoreInitializing_JLabel.setText("");
     String selectedDataStoreName = __dataStore_JComboBox.getSelected();
     Message.printStatus(2, routine, "Selected datastore \"" + selectedDataStoreName + "\"." );
     if ( selectedDataStoreName.equals("") ) {
@@ -15469,8 +15539,10 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
     DataStore dataStore = ui_GetSelectedDataStore ();
     // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
     try {
-        ReclamationHDBDataStore hdbDataStore = (ReclamationHDBDataStore)dataStore;
-        ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)hdbDataStore.getDMI();
+        ReclamationHDBDataStore ds = (ReclamationHDBDataStore)dataStore;
+        // Check the connection in case the connection timed out.
+        ds.checkDatabaseConnection();
+        ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
         queryResultsList_Clear ();
 
         String dataType = __dataType_JComboBox.getSelected(); // Object type - common data type
@@ -15523,7 +15595,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
             // TODO Does not work??
             //__query_TableModel.setNewData ( results );
             // Try brute force...
-            __query_TableModel = new TSTool_ReclamationHDB_TableModel ( hdbDataStore, results );
+            __query_TableModel = new TSTool_ReclamationHDB_TableModel ( ds, results );
             TSTool_ReclamationHDB_CellRenderer cr =
                 new TSTool_ReclamationHDB_CellRenderer( (TSTool_ReclamationHDB_TableModel)__query_TableModel);
 
@@ -18094,8 +18166,11 @@ Refresh the query choices for the currently selected ReclamationHDB datastore.
 private void uiAction_SelectDataStore_ReclamationHDB ( ReclamationHDBDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
-    // Get the DMI instances for the matching datastore
-    ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
+    // Get the DMI instance for the matching datastore
+    ReclamationHDBDataStore ds = (ReclamationHDBDataStore)selectedDataStore;
+    // Check the connection in case the connection timed out.
+    ds.checkDatabaseConnection();
+    ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
     ui_SetInputNameVisible(false); // Not needed for HDB
     __dataType_JComboBox.removeAll ();
     // Get the list of valid object/data types from the database
@@ -18126,7 +18201,7 @@ throws Exception
     __timeStep_JComboBox.setEnabled ( true );
  
     // Initialize with blank data vector...
-    __query_TableModel = new TSTool_ReclamationHDB_TableModel( (ReclamationHDBDataStore)selectedDataStore, null);
+    __query_TableModel = new TSTool_ReclamationHDB_TableModel( ds, null);
     TSTool_ReclamationHDB_CellRenderer cr =
         new TSTool_ReclamationHDB_CellRenderer((TSTool_ReclamationHDB_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
