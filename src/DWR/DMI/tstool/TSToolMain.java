@@ -425,8 +425,15 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
-
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.awt.Frame;
+
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 
@@ -435,19 +442,15 @@ import org.restlet.data.Parameter;
 import riverside.datastore.DataStore;
 import riverside.datastore.DataStoreFactory;
 import rti.app.tstoolrestlet.TSToolServer;
-
 import rti.tscommandprocessor.core.TSCommandFileRunner;
 import rti.tscommandprocessor.core.TSCommandProcessor;
-
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
-
 import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
 import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
 import RTi.GRTS.TSViewGraphJFrame;
 import RTi.GRTS.TSViewSummaryJFrame;
 import RTi.GRTS.TSViewTableJFrame;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -466,7 +469,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.00.00 (2015-01-07)";
+public static final String PROGRAM_VERSION = "11.00.00 (2015-02-15)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -477,6 +480,12 @@ private static TSTool_JFrame __tstool_JFrame;
 Home directory for system install.
 */
 private static String __home = null;
+
+/**
+Timeout when running in batch mode.  TSTool will exit if processing has not finished
+(usually because of web service hang-up, etc.)
+*/
+private static int __batchTimeoutSeconds = 0;
 
 /**
 Path to the configuration file.  This cannot be defaulted until the -home command line parameter is processed.
@@ -521,6 +530,15 @@ private static boolean __noMainGUIArgSpecified = false;
 Command file being processed when run in batch mode with -commands File.
 */
 private static String __commandFile = null;
+
+/**
+Return the command file that is being processed, or null if not being run in batch mode.
+@return the path to the command file to run.
+*/
+private static int getBatchTimeout ()
+{
+	return __batchTimeoutSeconds;
+}
 
 /**
 Return the command file that is being processed, or null if not being run in batch mode.
@@ -747,6 +765,8 @@ public static void main ( String args[] )
 	if ( IOUtil.isBatch() ) {
 		// Running like "tstool -commands file" (possibly with -nomaingui)
 		TSCommandFileRunner runner = new TSCommandFileRunner();
+		// If the global timeout is set, start a thread that will time out when the batch run is complete.
+		startTimeoutThread ( getBatchTimeout());
 	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
 		// reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner.getProcessor() );
@@ -938,7 +958,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
     }
     else {
-        throw new InvalidParameterException("Data store type \"" + dataStoreType +
+        throw new InvalidParameterException("Datastore type \"" + dataStoreType +
             "\" is not recognized - cannot initialize data store connection." );
     }
     if ( !packagePath.equals("") ) {
@@ -949,13 +969,15 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         propValue = dataStoreProps.getValue("Enabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
             // Data store is disabled.
-            Message.printStatus(2, routine, "Created data store \"" + dataStoreType + "\", name \"" +
+            Message.printStatus(2, routine, "Created datastore \"" + dataStoreType + "\", name \"" +
                 dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
             return null;
         }
         else {
             // Data store is enabled
             // Create the datastore instance using the properties in the configuration file
+        	// Add to the processor even if it does not successfully open so that UI can show
+        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens
             DataStore dataStore = factory.create(dataStoreProps);
             // Add the data store to the processor
             processor.setPropContents ( "DataStore", dataStore );
@@ -1077,22 +1099,22 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
                     openDataStore ( dataStoreProps, processor );
                 }
                 catch ( ClassNotFoundException e ) {
-                    Message.printWarning (2,routine, "Data store class \"" + dataStoreClassName +
+                    Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
                         "\" is not in the class path - report to software support (" + e + ")." );
                     Message.printWarning(2, routine, e);
                 }
                 catch( InstantiationException e ) {
-                    Message.printWarning (2,routine, "Error instantiating data store for class \"" + dataStoreClassName +
+                    Message.printWarning (2,routine, "Error instantiating datastore for class \"" + dataStoreClassName +
                         "\" - report to software support (" + e + ")." );
                     Message.printWarning(2, routine, e);
                 }
                 catch( IllegalAccessException e ) {
-                    Message.printWarning (2,routine, "Data store for class \"" + dataStoreClassName +
+                    Message.printWarning (2,routine, "Datastore for class \"" + dataStoreClassName +
                         "\" needs a no-argument constructor - report to software support (" + e + ")." );
                     Message.printWarning(2, routine, e);
                 }
                 catch ( Exception e ) {
-                    Message.printWarning (2,routine,"Error reading data store configuration file \"" +
+                    Message.printWarning (2,routine,"Error reading datastore configuration file \"" +
                         dataStoreFileFull + "\" - not opening data store (" + e + ")." );
                     Message.printWarning(2, routine, e);
                 }
@@ -1246,7 +1268,7 @@ Parse command line arguments.
 */
 public static void parseArgs ( String[] args )
 throws Exception
-{	String routine = "TSToolMain.parseArgs";
+{	String routine = "TSToolMain.parseArgs", message;
 	int pos = 0; // Position in a string.
 
     // Allow setting of -home via system property "tstool.home". This
@@ -1265,19 +1287,40 @@ throws Exception
 		if (args[i].equalsIgnoreCase("-commands")) {
 		    // Command file name
 			if ((i + 1)== args.length) {
-				Message.printWarning(1,routine, "No argument provided to '-commands'");
-				throw new Exception("No argument provided to '-commands'");
+				message = "No argument provided to '-commands'";
+				Message.printWarning(1,routine, message);
+				throw new Exception(message);
 			}
 			i++;
 			setupUsingCommandFile ( args[i], true );
+		}
+		else if (args[i].equalsIgnoreCase("-batchTimeout")) {
+		    // Batch timeout in seconds
+			if ((i + 1)== args.length) {
+				message = "No argument provided to '-batchTimeout'";
+				Message.printWarning(1,routine,message);
+				throw new Exception(message);
+			}
+			else {
+				try {
+					__batchTimeoutSeconds = Integer.parseInt(args[i + 1]);
+				}
+				catch ( NumberFormatException e ) {
+					message = "-batchTimeout argument \"" + args[i + 1] + " is not an integer.";
+					Message.printWarning(1,routine,message);
+					throw new Exception(message);
+				}
+			}
+			i++;
 		}
 		else if (args[i].equalsIgnoreCase("-config")) {
 		    // Configuration file name
 		    // TODO SAM 2011-12-07 Need to allow properties like ${UserHome} to read the configuration file from
 		    // a users' home folder, even if TSTool is installed in a central location
             if ((i + 1)== args.length) {
-                Message.printWarning(1,routine, "No argument provided to '-config'");
-                throw new Exception("No argument provided to '-config'");
+            	message = "No argument provided to '-config'";
+                Message.printWarning(1,routine,message);
+                throw new Exception(message);
             }
             i++;
             setConfigFile ( IOUtil.verifyPathForOS(IOUtil.getPathUsingWorkingDir(args[i])) );
@@ -1322,8 +1365,9 @@ throws Exception
 	        // a executable launcher.  Therefore this should be processed before any user command line
 	        // parameters and the log file should open up before much else is done.
 			if ((i + 1)== args.length) {
-				Message.printWarning(1,routine, "No argument provided to '-home'");
-				throw new Exception("No argument provided to '-home'");
+				message = "No argument provided to '-home'";
+				Message.printWarning(1,routine,message);
+				throw new Exception(message);
 			}
 			i++;
            
@@ -1689,4 +1733,77 @@ private static void setWorkingDirUsingCommandFile ( String commandFileFull )
     System.out.println(message);
 }
 
+/**
+Start the timeout thread, which will exit TSTool if it is not finished within the timeout.
+This is needed in cases where something in the code hangs and TSTool never exits.
+Ideally those situations can be handled with granular timeouts but that is sometimes not possible
+due to limitations in the packages that are called.
+*/
+private static void startTimeoutThread ( int timeoutSeconds )
+{	String routine = "startTimeoutThread";
+	ExecutorService executor = Executors.newSingleThreadExecutor();
+	Future<String> future = executor.submit(new SleepTask(timeoutSeconds));
+	try {
+		Message.printStatus(2, routine, "Starting thread to time-out TSTool if not done after " + timeoutSeconds + " seconds.");
+		// Actually the task that is run above should sleep the number of seconds so specifying the seconds below is redundant
+		future.get(timeoutSeconds,TimeUnit.SECONDS);
+		Message.printStatus(2, routine, "Exiting TSTool after waiting " + timeoutSeconds + " seconds.");
+		quitProgram(1); // TODO SAM 2015-02-14 need to evaluate a standard set of exit codes
+	}
+	catch ( TimeoutException e ) {
+		Message.printWarning(2, routine, e );
+	}
+	catch ( InterruptedException e ) {
+		Message.printWarning(2, routine, e );
+	}
+	catch ( ExecutionException e ) {
+		Message.printWarning(2, routine, e );
+	}
+	// Shutdown the tasks managed by executor.
+	executor.shutdownNow();
+	
+	/*
+    Runnable r = new Runnable() {
+        public void run() {
+            try {
+                // Put in some protection against injection by checking for keywords other than SELECT
+                Thread.sleep(freqms);
+            }
+            catch ( Exception e ) {
+                // OK since don't care about results but output to troubleshoot (typical user won't see).
+                Message.printWarning(3, "keepAlive.run", e);
+            }
+        }
+    };
+    */
+}
+
+}
+
+/**
+Class used to run a timeout task, which is optional to end TSTool when running in batch mode.
+*/
+class SleepTask implements Callable<String>
+{
+	/**
+	Number of seconds the task should sleep before timing out.
+	*/
+	private int sleepSeconds = 0;
+	
+	/**
+	Construct with the timeout.
+	*/
+	public SleepTask ( int sleepSeconds )
+	{
+		this.sleepSeconds = sleepSeconds;
+	}
+	
+	/**
+	Callable task.
+	*/
+	@Override
+	public String call () throws Exception {
+		Thread.sleep(this.sleepSeconds*1000); // Task will wait the timeout and then return
+		return "Slept " + sleepSeconds;
+	}
 }
