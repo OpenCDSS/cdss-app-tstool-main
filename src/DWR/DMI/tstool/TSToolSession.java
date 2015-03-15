@@ -45,22 +45,24 @@ public void pushHistory ( String commandFile )
 {
 	// Read the history file from the .tstool-history file
 	List<String> history = readHistory();
-	// Add in the first position
+	// Add in the first position so it will show up first in the File...Open... menu
 	history.add(0, commandFile);
-	// Remove any duplicates and over the maximum
 	// Process from the back so that old duplicates are removed and recent access is always at the top of the list
 	// TODO SAM 2014-12-17 use a TSTool configuration file property to set cap
 	int max = 100;
+	String old;
 	for ( int i = history.size() - 1; i >= 1; i-- ) {
+		old = history.get(i);
 		if ( i >= max ) {
+			// Trim the history to the maximum
 			history.remove(i);
 		}
-		else if ( history.get(i).equals(commandFile) || history.get(i).equals("") ||
-			history.get(i).startsWith("#")) {
-			history.remove(i);
+		else if ( old.equals(commandFile) || old.equals("") || old.startsWith("#")) {
+			// Ignore comments, blank lines and duplicate to most recent access
+			history.remove(i--);
 		}
 	}
-	Message.printStatus(1,"", "History length is " + history.size());
+	//Message.printStatus(2,"", "History length is " + history.size());
 	// Write the updated history
 	writeHistory(history);
 }
