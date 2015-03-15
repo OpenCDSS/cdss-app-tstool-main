@@ -469,7 +469,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.00.00 (2015-02-15)";
+public static final String PROGRAM_VERSION = "11.00.00beta (2015-03-13)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1387,9 +1387,10 @@ throws Exception
 			IOUtil.setApplicationHomeDir(__home);
 			// Also reset the java.library.path system property to include the application
 			// home + "/bin" so that DLLs installed with TSTool are found
+			// TODO SAM 2015-03-14 Figure this out - may not work by design - JRE may only use the java.library.path from startup
 			String javaLibraryPath = System.getProperty ( "java.library.path" );
 			System.setProperty( "java.library.path",
-			         __home + "/bin" + System.getProperty("path.separator") + javaLibraryPath );
+			         __home + File.separatorChar + "bin" + System.getProperty("path.separator") + javaLibraryPath );
 			Message.printStatus( 2, routine, "Reset java.library.path to \"" +
 			        System.getProperty ( "java.library.path" ) + "\"" );
 	        // Read the configuration file to get default TSTool properties,
