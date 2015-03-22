@@ -440,6 +440,7 @@ import javax.swing.JFrame;
 import org.restlet.data.Parameter;
 
 import riverside.datastore.DataStore;
+import riverside.datastore.DataStoreConnectionUIProvider;
 import riverside.datastore.DataStoreFactory;
 import rti.app.tstoolrestlet.TSToolServer;
 import rti.tscommandprocessor.core.TSCommandFileRunner;
@@ -469,7 +470,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.00.00 (2015-03-16)";
+public static final String PROGRAM_VERSION = "11.01.00 (2015-03-17)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -770,9 +771,9 @@ public static void main ( String args[] )
 	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
 		// reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner.getProcessor() );
-        // Open data stores in a generic way if the configuration file specifies the information.  Do this before
+        // Open datastores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
-        openDataStoresAtStartup ( runner.getProcessor() );
+        openDataStoresAtStartup ( runner.getProcessor(), true );
 		try {
 		    String commandFileFull = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + commandFileFull + "\"" );
@@ -865,17 +866,18 @@ public static void main ( String args[] )
 }
 
 /**
-Open a data store given its configuration properties.  The data store is also added to the processor
+Open a datastore given its configuration properties.  The datastore is also added to the processor
 (if the open fails then the datastore should set status=1).
-The TSTool configuration file properties are checked here to ensure that the data store type is enabled.
-Otherwise, opening data stores takes time and impacts performance.
-@param dataStoreProps data store configuration properties recognized by the data store factory "create" method.
-@param processor time series command processor that will use/manage the data store
+The TSTool configuration file properties are checked here to ensure that the datastore type is enabled.
+Otherwise, opening datastores takes time and impacts performance.
+@param dataStoreProps datastore configuration properties recognized by the datastore factory "create" method.
+@param processor time series command processor that will use/manage the datastore
+@param isBatch indicate whether running in batch mode - if true, do not open datastores with login of "prompt"
 */
-protected static DataStore openDataStore ( PropList dataStoreProps, TSCommandProcessor processor )
+protected static DataStore openDataStore ( PropList dataStoreProps, TSCommandProcessor processor, boolean isBatch )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
 {   String routine = "TSToolMain.openDataStore";
-    // Open the data store depending on the type
+    // Open the datastore depending on the type
     String dataStoreType = dataStoreProps.getValue("Type");
     // For now hard-code this here
     // TODO SAM 2010-09-01 Make this more elegant
@@ -959,7 +961,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else {
         throw new InvalidParameterException("Datastore type \"" + dataStoreType +
-            "\" is not recognized - cannot initialize data store connection." );
+            "\" is not recognized - cannot initialize datastore connection." );
     }
     if ( !packagePath.equals("") ) {
         StopWatch sw = new StopWatch();
@@ -968,23 +970,66 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
         propValue = dataStoreProps.getValue("Enabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
-            // Data store is disabled.
+            // Datastore is disabled.
             Message.printStatus(2, routine, "Created datastore \"" + dataStoreType + "\", name \"" +
                 dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
             return null;
         }
         else {
-            // Data store is enabled
-            // Create the datastore instance using the properties in the configuration file
-        	// Add to the processor even if it does not successfully open so that UI can show
-        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens
-            DataStore dataStore = factory.create(dataStoreProps);
-            // Add the data store to the processor
-            processor.setPropContents ( "DataStore", dataStore );
-            sw.stop();
-            Message.printStatus(2, routine, "Opening data store type \"" + dataStoreType + "\", name \"" +
-                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
-            return dataStore;
+            // Datastore is enabled - check for a login of "prompt"
+        	String systemLogin = dataStoreProps.getValue("SystemLogin");
+        	String systemPassword = dataStoreProps.getValue("SystemPassword");
+            if ( ((systemLogin != null) && systemLogin.equalsIgnoreCase("prompt")) ||
+            	((systemPassword != null) && systemPassword.equalsIgnoreCase("prompt"))	) {
+                // If in batch mode, skip
+            	if ( isBatch ) {
+                    Message.printStatus(2, routine, "Skipping datastore \"" + dataStoreType + "\", name \"" +
+                        dataStoreProps.getValue("Name") + "\" because in batch mode.  Will prompt for login when not in batch mode." );
+                    return null;
+            	}
+            	else {
+            		// Not in batch mode - open the datastore using a prompt initiated from the TSTool UI
+            		if ( factory instanceof DataStoreConnectionUIProvider ) {
+        	            // Create the datastore instance using the properties in the configuration file
+            			// supplemented by login/password from interactive input
+        	        	// Add to the processor even if it does not successfully open so that UI can show
+        	        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens
+            			Message.printStatus(2, routine, "Opening datastore \"" + dataStoreType + "\", name \"" +
+                            dataStoreProps.getValue("Name") + "\" via prompt from TSTool GUI." );
+            			DataStoreConnectionUIProvider uip = (DataStoreConnectionUIProvider)factory;
+        	            DataStore dataStore = uip.openDataStoreConnectionUI(dataStoreProps,getJFrame());
+        	            sw.stop();
+        	            if ( dataStore == null ) {
+        	            	Message.printStatus(2, routine, "Datastore \"" + dataStoreProps.getValue("Name") +
+        	            		"\" is null after opening from TSTool GUI - this is unexpected." );
+        	            }
+        	            else {
+	        	            // Add the datastore to the processor
+	        	            processor.setPropContents ( "DataStore", dataStore );
+	        	            Message.printStatus(2, routine, "Opening datastore type \"" + dataStoreType + "\", name \"" +
+	        	                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
+        	            }
+        	            return dataStore;
+            		}
+                	else {
+        	            Message.printStatus(2, routine, "Not opening datastore type \"" + dataStoreType + "\", name \"" +
+        	            	dataStoreProps.getValue("Name") + "\" because prompt is requested but datastore does not offer interface." );
+                		return null;
+                	}
+            	}
+            }
+            else {
+	            // Create the datastore instance using the properties in the configuration file
+	        	// Add to the processor even if it does not successfully open so that UI can show
+	        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens
+	            DataStore dataStore = factory.create(dataStoreProps);
+	            // Add the datastore to the processor
+	            processor.setPropContents ( "DataStore", dataStore );
+	            sw.stop();
+	            Message.printStatus(2, routine, "Opening datastore type \"" + dataStoreType + "\", name \"" +
+	                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
+	            return dataStore;
+            }
         }
     }
     else {
@@ -993,23 +1038,26 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 }
 
 /**
-Open the data stores (e.g., RiversideDB connection(s)) using the TSTool configuration file information and set
+Open the datastores (e.g., RiversideDB connection(s)) using the TSTool configuration file information and set
 in the command processor.  The configuration file is used to determine the database server and
 name properties to use for the initial connection(s).  This method can be called from the UI code
 to automatically establish database startup database connections.
 In the UI, the user may subsequently open new connections (File...Open...RiversideDB) in which case the
 openRiversideDB() method will be called directly (no need to deal with the main TSTool configuration file).
+@param processor command processor that will have datastores opened
+@param isBatch is the software running in batch mode?  If in batch mode do not open up datastores
+that have a login of "prompt".
 */
-protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
+protected static void openDataStoresAtStartup ( TSCommandProcessor processor, boolean isBatch )
 {   String routine = "TSToolMain.openDataStoresAtStartup";
     String configFile = getConfigFile();
 
     // Use the configuration file to get RiversideDB properties...
     Message.printStatus(2, routine, "TSTool configuration file \"" + configFile +
-    "\" is being used to open data stores at startup." );
+    "\" is being used to open datastores at startup." );
     
     // Legacy properties allowed on RiversideDB to be configured from the main TSTool.cfg file
-    // Support this approach to open a default "RiversideDB" data store name
+    // Support this approach to open a default "RiversideDB" datastore name
     String name = "RiversideDB";
     String description = "Default RiversideDB";
     String databaseEngine = getPropValue ( "RiversideDB.DatabaseEngine" );
@@ -1019,8 +1067,8 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
     String systemLogin = getPropValue ( "RiversideDB.SystemLogin" ); // OK if null
     String systemPassword = getPropValue ( "RiversideDB.SystemPassword" ); // OK if null
     if ( (databaseEngine == null) && (databaseServer == null) && (databaseName == null) ) {
-        // Most likely because using new data store conventions
-        // Open below with the generic data store code
+        // Most likely because using new datastore conventions
+        // Open below with the generic datastore code
     }
     else {
         // Have some data so check for the individual properties
@@ -1057,8 +1105,8 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
         }
     }
     
-    // Also allow multiple database connections via the new convention using data store configuration files
-    // The following code processes all data stores, although RiversideDB is the first implementation using
+    // Also allow multiple database connections via the new convention using datastore configuration files
+    // The following code processes all datastores, although RiversideDB is the first implementation using
     // this approach.
     
     // TODO SAM 2010-09-01 DataStore:*ConfigFile does not work
@@ -1073,9 +1121,9 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
             if ( !StringUtil.endsWithIgnoreCase(prop.getKey(),".ConfigFile") ) {
                 continue;
             }
-            // Get the filename that defines the data store - absolute or relative to the system folder
+            // Get the filename that defines the datastore - absolute or relative to the system folder
             String dataStoreFile = prop.getValue();
-            Message.printStatus ( 2, routine, "Opening data store using properties in \"" + dataStoreFile + "\".");
+            Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
             // Read the properties from the configuration file
             PropList dataStoreProps = new PropList("");
             String dataStoreFileFull = dataStoreFile;
@@ -1083,8 +1131,8 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
                 dataStoreFileFull = __home + File.separator + "system" + File.separator + dataStoreFile;
             }
             if ( !IOUtil.fileExists(dataStoreFileFull) ) {
-                Message.printWarning(3, routine, "Data store configuration file \"" + dataStoreFileFull +
-                    "\" does not exist - not opening data store." );
+                Message.printWarning(3, routine, "Datastore configuration file \"" + dataStoreFileFull +
+                    "\" does not exist - not opening datastore." );
             }
             else {
                 dataStoreProps.setPersistentName(dataStoreFileFull);
@@ -1093,10 +1141,10 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
                     // Get the properties from the file
                     dataStoreProps.readPersistent();
                     // Also assign the configuration file path property to facilitate file processing later
-                    // (e.g., tolocate related files referenced in the configuration file, such as lists of data
+                    // (e.g., to locate related files referenced in the configuration file, such as lists of data
                     // that are not available from web services)
                     dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
-                    openDataStore ( dataStoreProps, processor );
+                    openDataStore ( dataStoreProps, processor, isBatch );
                 }
                 catch ( ClassNotFoundException e ) {
                     Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
@@ -1115,14 +1163,14 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor )
                 }
                 catch ( Exception e ) {
                     Message.printWarning (2,routine,"Error reading datastore configuration file \"" +
-                        dataStoreFileFull + "\" - not opening data store (" + e + ")." );
+                        dataStoreFileFull + "\" - not opening datastore (" + e + ")." );
                     Message.printWarning(2, routine, e);
                 }
             }
         }
     }
     
-    // TODO SAM 2010-09-01 Transition HydroBase and other data stores here
+    // TODO SAM 2010-09-01 Transition HydroBase and other datastores here
 }
 
 // TODO SAM 2010-02-03 Evaluate whether non-null HydroBaseDMI return is OK or whether
@@ -1202,8 +1250,8 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
 
 /**
 Open a single RiversideDB connection using the specified information.  This method will add the connection
-to the list of data stores used by the processor.  This method is used with the legacy information stored
-in the TSTool.cfg file.  New conventions use a data store configuration file.
+to the list of datastores used by the processor.  This method is used with the legacy information stored
+in the TSTool.cfg file.  New conventions use a datastore configuration file.
 */
 protected static void openRiversideDB ( TSCommandProcessor processor, String name, String description,
     String databaseEngine, String databaseServer, String databaseName, String systemLogin, String systemPassword )
@@ -1218,7 +1266,7 @@ protected static void openRiversideDB ( TSCommandProcessor processor, String nam
             systemPassword ); // OK if null - use read-only guest
         rdmi.open();
         DataStore dataStore = new RiversideDBDataStore(name, description, rdmi);
-        // This adds a data store to the processor
+        // This adds a datastore to the processor
         processor.setPropContents ( "DataStore", dataStore );
     }
     catch ( Exception e ) {

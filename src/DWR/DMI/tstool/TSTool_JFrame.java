@@ -2196,10 +2196,11 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 		}
 	}
 
-	// Open remaining datastores.
+	// Open remaining datastores, displaying dialog if SystemLogin or SystemPassword property is "prompt"
 	// TODO SAM 2010-09-03 migrate more input types to datastores
 	try {
-	    TSToolMain.openDataStoresAtStartup(__tsProcessor);
+		Message.printStatus(2, rtn, "Opening datastores from TSTool GUI...");
+	    TSToolMain.openDataStoresAtStartup(__tsProcessor,false);
 	}
 	catch ( Exception e ) {
 	    Message.printStatus ( 1, rtn, "Error opening datastores (" + e + ")." );
@@ -17264,7 +17265,7 @@ throws Exception
     PropList rprops = new PropList("");
     rprops.setPersistentName ( configFile );
     rprops.readPersistent ();
-    return TSToolMain.openDataStore( rprops, __tsProcessor );
+    return TSToolMain.openDataStore( rprops, __tsProcessor, false );
 }
 
 /**
