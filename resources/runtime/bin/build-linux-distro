@@ -3,6 +3,10 @@
 # Build the Linux distribution for TSTool.
 # This script was developed for Ubuntu
 #
+# History:
+# 2015-04-08 Steve Malers, OWF    Update for TSTool 11.00.00, which uses Java 7 and Git/Eclipse names for jars.
+# 2014-04-19 Steve Malers, OWF    Original version of this script to streamline Linux builds.
+#
 # Usage: see usage()
 #
 # The script typically is run on a Linux computer that has access
@@ -15,7 +19,7 @@
 # 1) Copy all the files from WindowsTSToolInstallFolder to the current directory.
 # 2) Remove the Windows JRE and replace with the contents of JREInstallFolder.
 # 3) Update the bin/tstool script:
-#    - make sure it adss all current java files to the CLASSPATH
+#    - make sure it adds all current java files to the CLASSPATH
 #    - make sure that the JRE uses the one from step 2
 # 4) Create a tar.gz file that can be distributed
 #
@@ -123,6 +127,15 @@ rm -f "${buildFolder}/bin/TSTool.exe"
 rm -f "${buildFolder}/bin/TSTool.l4j.ini"
 rm -f ${buildFolder}/logs/*.log
 
+# The sequence of "tstool" script verions is:
+# tstool - original that is distributed with the software
+# tstool2 - location of JRE
+# tstool3 - original script without jar classpath lines
+# tstool4 - tstool3 without the single quote at the end of the classpath
+# tstool5 - tstool4 with the main jar files added to the classpath 
+# tstool6 - tstool5 with the third-party jar files added to the classpath 
+# tstool - copy tstool6 onto the original tstool
+
 # Replace the old JRE with the specified one
 
 echo "Removing Windows JRE..."
@@ -133,23 +146,35 @@ cp -rp ${jreFolder} ${buildFolder}
 
 # Update the tstool script to have the specified JRE
 # TODO SAM 2013-11-13
-# Figure out this better later.  For now know that jre_16 is in file
+# Figure out this better later.  For now know that jre_17 is in file
 #sed "s/JAVA_HOME=.*$/JAVA_HOME=\"\$INSTALL_HOME\/${jreFolderBasename}\"/g" ${buildFolder}/bin/tstool > ${buildFolder}/bin/tstool2
-sed "s/jre_16/${jreFolderBasename}/g" ${buildFolder}/bin/tstool > tstool2
+sed "s/jre_17/${jreFolderBasename}/g" ${buildFolder}/bin/tstool > tstool2
 
 # Remove lines with jar:, which are the classpath lines
 sed "/jar:/d" tstool2 > tstool3
 # Remove the single double quote indicating end of classpath with placeholders to replace
 sed "s/^\"$/STANDARD_JARS\nOTHER_JARS\n\"/g" tstool3 > tstool4
 
+# Next insert all remaining jar files but exclude the _16 and _142 files that are the main ones included above
+# insert1 - the text to insert in the classpath with main jar files (deals with escaping characters so sed can handle)
+# insert2 - the text to insert in the classpath with othe jar files (deals with escaping characters so sed can handle)
+# junk1 - list of jar files in the TSTool bin folder, sorted alphabetically (from "ls")
+# junk2 - list of jar files minus those with _17 (the jars from TSTool code)
+# junk3 - list of jar files minus those with _17 and _142 (add the Blowfish library used for encryption for RiversideDB)
+# junk4 - replace leading part of path in junk3 with $JAR_HOME (but still has /bin in path)
+# junk5 - remove /bin from path from junk4 since $JAR_HOME includes
+# junk6 - the classpath for third-party jars, with forward slashes escaped for sed insert
+# junk7 - the classpath for third-party jars, with escaping of continuation character at end for sed insert
+# junk8 - the classpath for third-party jars (same as insert2)
+
 # Now insert the desired content.  For now hard-code the main TSTool tar files at the top of the classpath
-insert1='$JAR_HOME\/TSTool_16.jar:\\\n$JAR_HOME\/RTi_Common_16.jar:\\\n$JAR_HOME\/TSCommandProcessor_16.jar:\\\n$JAR_HOME\/cdss.domain_16.jar:\\\n$JAR_HOME\/HydroBaseDMI_16.jar:\\\n$JAR_HOME\/StateMod_16.jar:\\\n$JAR_HOME\/NWSRFS_DMI_16.jar:\\\n$JAR_HOME\/RiversideDB_DMI_16.jar:\\\n$JAR_HOME\/SatmonSysDMI_16.jar:\\\n$JAR_HOME\/Blowfish_142.jar:\\'
+insert1='$JAR_HOME\/cdss-app-tstool-main_17.jar:\\\n$JAR_HOME\/cdss-lib-common-java_17.jar:\\\n$JAR_HOME\/cdss-lib-processor-ts-java_17.jar:\\\n$JAR_HOME\/cdss-lib-cdss-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-hydrobase-java_17.jar:\\\n$JAR_HOME\/cdss-lib-models-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-nwsrfs-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-riversidedb-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-satmonsys-java_17.jar:\\\n$JAR_HOME\/Blowfish_142.jar:\\'
 echo $insert1
+echo $insert1 > insert1
 sed s/STANDARD_JARS/"$insert1"/g tstool4 > tstool5
 
-# Next insert all remaining jar files but exclude the _16 and _142 files that are the main ones included above
 ls ${buildFolder}/bin/*jar > junk1
-sed '/_16/d' junk1 > junk2
+sed '/_17/d' junk1 > junk2
 sed '/_142/d' junk2 > junk3
 # Remove specific version with generic string
 sed s/"$buildFolder"/\$JAR_HOME/g junk3 > junk4
@@ -162,11 +187,11 @@ sed 's/$/:\\\\/g' junk6 > junk7
 # Replace newline with representation that can be handed to sed
 sed -e :a -e N -e 's/\n/\\n/' -e ta junk7 > junk8
 insert2=$(cat junk8)
-echo $insert2
+echo $insert2 > insert2
 sed s/OTHER_JARS/"$insert2"/g tstool5 > tstool6
 
-# Replace the original tstool file with the new version
-mv tstool6 $buildFolder/bin/tstool
+# Replace the original tstool file with the new version, in the distribution
+cp -f tstool6 $buildFolder/bin/tstool
 chmod a+x $buildFolder/bin/tstool
 
 # Make sure the log folder is writeable
@@ -176,7 +201,7 @@ chmod a+w $buildFolder/logs
 chmod -R +rX $buildFolder
 
 # Cleanup (comment out if troubleshooting this script)
-rm junk* tstool*
+rm junk* insert* tstool*
 
 # Compress the install
 

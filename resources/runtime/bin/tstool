@@ -4,6 +4,9 @@
 # Set the INSTALL_HOME to the main installation folder.
 # Set the JAVA_EXE to the "java" program that is the Java Runtime Environment
 #
+# History:
+# 2015-04-08 Steve Malers, OWF    Update for TSTool 11.00.00, which uses Java 7 and Git/Eclipse names for jars.
+# 2014-04-19 Steve Malers, OWF    Original version of this script to streamline Linux builds.
 
 # Installation home for TSTool, under which will be bin, logs, system, etc.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -11,9 +14,9 @@ INSTALL_HOME="$SCRIPT_DIR/.."
 
 # Location of Java runtime environment
 # Typical Linux install (JRE distributed with TSTool)...
-JRE_HOME="$INSTALL_HOME/jre_16"
+JRE_HOME="$INSTALL_HOME/jre_17"
 JAVA_EXE="$JRE_HOME/bin/java"
-# Or, use the one on the operating system (must be 1.6+)...
+# Or, use the one on the operating system (must be 1.7+)...
 # Use this by default for Mac OS X
 if [[ "$(uname)" == "Darwin" ]]
 then
@@ -31,15 +34,15 @@ JAR_HOME="$INSTALL_HOME/bin"
 # TSTool install.  Manually resort a few to have primary jar files at the top and third-party
 # libraries after that.
 TSTOOL_CP="\
-$JAR_HOME/TSTool_16.jar:\
-$JAR_HOME/RTi_Common_16.jar:\
-$JAR_HOME/TSCommandProcessor_16.jar:\
-$JAR_HOME/cdss.domain_16.jar:\
-$JAR_HOME/HydroBaseDMI_16.jar:\
-$JAR_HOME/StateMod_16.jar:\
-$JAR_HOME/NWSRFS_DMI_16.jar:\
-$JAR_HOME/RiversideDB_DMI_16.jar:\
-$JAR_HOME/SatmonSysDMI_16.jar:\
+$JAR_HOME/cdss-app-tstool-main_17.jar:\
+$JAR_HOME/cdss-lib-common-java_17.jar:\
+$JAR_HOME/cdss-lib-processor-ts-java_17.jar:\
+$JAR_HOME/cdss-lib-cdss-java_17.jar:\
+$JAR_HOME/cdss-lib-dmi-hydrobase-java_17.jar:\
+$JAR_HOME/cdss-lib-models-java_17.jar:\
+$JAR_HOME/cdss-lib-dmi-nwsrfs-java_17.jar:\
+$JAR_HOME/cdss-lib-dmi-riversidedb-java_17.jar:\
+$JAR_HOME/cdss-lib-dmi-satmonsys-java_17.jar:\
 $JAR_HOME/batik-awt-util.jar:\
 $JAR_HOME/batik-dom.jar:\
 $JAR_HOME/batik-ext.jar:\
@@ -56,7 +59,7 @@ $JAR_HOME/dom4j-1.6.1.jar:\
 $JAR_HOME/freemarker.jar:\
 $JAR_HOME/gson-2.2.1.jar:\
 $JAR_HOME/h2.jar:\
-$JAR_HOME/bin\hec.jar:\
+$JAR_HOME/hec.jar:\
 $JAR_HOME/heclib.jar:\
 $JAR_HOME/jakarta-oro-2.0.8.jar:\
 $JAR_HOME/jcommon.jar:\
@@ -68,18 +71,22 @@ $JAR_HOME/org.restlet.jar:\
 $JAR_HOME/poi-3.9-20121203.jar:\
 $JAR_HOME/poi-ooxml-3.9-20121203.jar:\
 $JAR_HOME/poi-ooxml-schemas-3.9-20121203.jar:\
+$JAR_HOME/postgresql-9.3-1102.jdbc4.jar:\
 $JAR_HOME/rma.jar:\
 $JAR_HOME/sqljdbc4.jar:\
 $JAR_HOME/stax-api-1.0.1.jar:\
 $JAR_HOME/xerces.jar:\
 $JAR_HOME/xmlbeans-2.3.0.jar:\
 "
+
 # Make sure the line above this is a double quote
 # This allows processing of the Linux distribution
 
 # If TSTool is running out of memory, increase the -Xmx option below
 # (maximum megabytes of memory allowed for TSTool).  This seems to go up to 
 # about 1200mx maximum on 32bit operating systems.
+# On the other hand, if an error is being shown that the Java virtual machine can't start,
+# may need to reduce the value because Java 7 takes up more memory.
 #
 # If graphics misbehave, try using the following:
 #  -Dsun.java2d.noddraw=true
@@ -106,11 +113,11 @@ if [ ! -d "$INSTALL_HOME" ]
     exit 1
 fi
 # Verify that an expected software file exists
-if [ ! -e "$INSTALL_HOME/bin/TSTool_16.jar" ]
+if [ ! -e "$INSTALL_HOME/bin/cdss-app-tstool-main_17.jar" ]
     then
     echo ""
     echo "Configured INSTALL_HOME=$INSTALL_HOME does not seem correct."
-    echo "Unable to find bin/TSTool_16.jar in this folder."
+    echo "Unable to find bin/cdss-app-tstool-main_17.jar in this folder."
     echo ""
     exit 1
 fi
