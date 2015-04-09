@@ -31,7 +31,7 @@ Return the name of the TSTool history file.
 */
 public String getHistoryFile ()
 {
-	String historyFile = System.getProperty("user.home") + File.separator + ".tstool\\command-file-history.txt";
+	String historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.pathSeparator + "command-file-history.txt";
 	Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
 }
@@ -85,8 +85,8 @@ public List<String> readHistory()
 		return history;
 	}
 	catch ( Exception e ) {
-		// For now just swallow exception
-		Message.printWarning(3,routine,e);
+		// For now just swallow exception - may be because the history folder does not exist
+		//Message.printWarning(3,routine,e);
 		return new ArrayList<String>();
 	}
 }
