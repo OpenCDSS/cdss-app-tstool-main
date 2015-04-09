@@ -31,7 +31,7 @@ Return the name of the TSTool history file.
 */
 public String getHistoryFile ()
 {
-	String historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.pathSeparator + "command-file-history.txt";
+	String historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "command-file-history.txt";
 	Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
 }
