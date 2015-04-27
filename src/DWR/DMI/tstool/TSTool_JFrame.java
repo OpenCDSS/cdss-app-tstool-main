@@ -91,6 +91,7 @@ import rti.tscommandprocessor.commands.rccacis.RccAcisDataStore;
 import rti.tscommandprocessor.commands.rccacis.RccAcisStationTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.rccacis.RccAcis_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStore;
+import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStoreFactory;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_DMI;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
@@ -1023,6 +1024,7 @@ private JMenu
 		__File_Open_CommandFileRecent_JMenuItem[] = null,
 		__File_Open_DIADvisor_JMenuItem = null,
 		__File_Open_HydroBase_JMenuItem = null,
+		__File_Open_ReclamationHDB_JMenuItem = null,
 		__File_Open_RiversideDB_JMenuItem = null;
 private JMenu
 	__File_Save_JMenu = null;
@@ -1418,7 +1420,8 @@ JMenuItem
     __Commands_TableRead_ReadTableFromDelimitedFile_JMenuItem,
     __Commands_TableRead_ReadTableFromDBF_JMenuItem,
     __Commands_TableRead_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
-    __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem;
+    __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem,
+    __Commands_TableRead_ReadTableFromXML_JMenuItem;
 JMenu
 	__Commands_TableJoin_JMenu = null;
 JMenuItem
@@ -1593,6 +1596,7 @@ private String
 			__File_Open_CommandFileRecent_String[], // Initialize to MAX_RECENT_FILES when configuring menus
 			__File_Open_DIADvisor_String = "DIADvisor...",
 			__File_Open_HydroBase_String = "HydroBase...",
+			__File_Open_ReclamationHDB_String = "Reclamation HDB...",
 			__File_Open_RiversideDB_String = "RiversideDB...",
 		__File_Save_String = "Save",
 			__File_Save_Commands_String = "Commands", 
@@ -1924,6 +1928,7 @@ private String
     __Commands_TableRead_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_TableRead_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_TableRead_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
+    __Commands_TableRead_ReadTableFromXML_String = TAB + "ReadTableFromXML()... <read a table from an XML file>",
     __Commands_TableJoin_String = "Append/Join Tables",
     __Commands_TableJoin_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
     __Commands_TableJoin_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
@@ -1998,7 +2003,7 @@ private String
 	__Run_AllCommandsIgnoreOutput_String = "All Commands (ignore output commands)",
 	__Run_SelectedCommandsCreateOutput_String =	"Selected Commands (create all output)",
 	__Run_SelectedCommandsIgnoreOutput_String =	"Selected Commands (ignore output commands)",
-	__Run_CancelCommandProcessing_String = "Cancel Command Processing",
+	__Run_CancelCommandProcessing_String = "Cancel Command Processing (wait for command to finish)",
 	__Run_CancelAllCommandProcesses_String = "Cancel All Command Processes",
 	__Run_CommandsFromFile_String = "Commands From File...",
 	__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
@@ -9185,16 +9190,48 @@ private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreLis
         " ReclamationHDB datastores." );
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
+    boolean repaint = false;
     for ( DataStore dataStore: dataStoreList ) {
         try {
-            // Try to find an existing input filter panel for the same name...
+            // Try to find an existing input filter panel for the same name.
+        	// The following will return null if the first time setup.
             JPanel ifp = ui_GetInputFilterPanelForDataStoreName (
                 dataStore.getName(), selectedDataType, selectedTimeStep );
-            // If the previous instance is not null, remove it from the list...
             if ( ifp != null ) {
-                __inputFilterJPanelList.remove ( ifp );
+                ReclamationHDB_TimeSeries_InputFilter_JPanel rifp = (ReclamationHDB_TimeSeries_InputFilter_JPanel)ifp;
+                // Get the DMI instances to check
+                DMI dmi = ((ReclamationHDBDataStore)dataStore).getDMI();
+                if ( (dataStore == rifp.getDataStore()) && (dmi == rifp.getDataStore().getDMI()) ) {
+                    // If the found input filter panel datastore and DMI is the same as the iterator instance it has not changed - leave it
+                	Message.printStatus(2, routine, "New datastore is same as previous - not resetting filter ReclamationHDB panel.");
+                	continue;
+                }
+                else {
+	                // Else if the previous instance is not null and is new, remove the old one from the list because it has been replaced...
+                	Message.printStatus(2, routine, "New datastore name is same as previous but datastore differs - removing old filter panel to replace.");
+                	Message.printStatus(2, routine, "Filter panel list size before removing=" + __inputFilterJPanelList.size() );
+	                __inputFilterJPanelList.remove ( ifp );
+	                Message.printStatus(2, routine, "Filter panel list size after removing=" + __inputFilterJPanelList.size() );
+	                // Also remove from the component
+	                Component [] comps = __queryInput_JPanel.getComponents();
+	                Message.printStatus(2, routine, "Panel component list size before removing=" + comps.length );
+	                String oldName = "ReclamationHDB.InputFilterPanel." + dataStore.getName();
+	                for ( int i = 0; i < comps.length; i++ ) {
+	                	Message.printStatus(2, routine, "Comparing panel component [" + i + "] \"" + comps[i].getName() + "\" with old name \"" + oldName + "\"" );
+	                	if ( (comps[i].getName() != null) && comps[i].getName().equalsIgnoreCase(oldName) ) {
+	                		Message.printStatus(2, routine, "Removing panel component [" + i + "] \"" + comps[i].getName() + "\"" );
+	                		__queryInput_JPanel.remove(comps[i]);
+	                		repaint = true;
+	                		break;
+	                	}
+	                }
+	                Message.printStatus(2, routine, "Panel component list size after removing=" + __queryInput_JPanel.getComponents().length );
+                }
             }
-            // Create a new panel...
+            else {
+            	Message.printStatus(2, routine, "No previous datastore found with name \"" + dataStore.getName() + "\"");
+            }
+            // In here, create a new panel because datastore and/or DMI have changed and query results may also be different for filters...
             ReclamationHDB_TimeSeries_InputFilter_JPanel newIfp =
                 new ReclamationHDB_TimeSeries_InputFilter_JPanel((ReclamationHDBDataStore)dataStore, 3);
     
@@ -9204,8 +9241,12 @@ private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreLis
             JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            newIfp.setName("ReclamationHDB.InputFilterPanel");
+            newIfp.setName("ReclamationHDB.InputFilterPanel." + dataStore.getName());
             __inputFilterJPanelList.add ( newIfp );
+            if ( repaint ) {
+        		__queryInput_JPanel.validate();
+        		__queryInput_JPanel.repaint();
+            }
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
@@ -9981,6 +10022,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
     __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem =
         new SimpleJMenuItem( __Commands_TableRead_ReadTableFromFixedFormatFile_String, this ) );
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromXML_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromXML_String, this ) );
 
     __Commands_Table_JMenu.add( __Commands_TableJoin_JMenu = new JMenu( __Commands_TableJoin_String, true ) );
     __Commands_TableJoin_JMenu.setToolTipText("Append/join tables.");
@@ -10341,6 +10384,14 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 		}
 		__File_Open_JMenu.add (
 			__File_Open_HydroBase_JMenuItem = new SimpleJMenuItem( __File_Open_HydroBase_String, this ) );
+	}
+	if ( __source_ReclamationHDB_enabled ) {
+		if ( !separator_added ) {
+			__File_Open_JMenu.addSeparator( );
+			separator_added = true;
+		}
+		__File_Open_JMenu.add (
+			__File_Open_ReclamationHDB_JMenuItem = new SimpleJMenuItem( __File_Open_ReclamationHDB_String, this ) );
 	}
 
 	if ( __source_RiversideDB_enabled ) {
@@ -11201,10 +11252,16 @@ private void ui_SetInputFilterForSelections()
         Message.printStatus(2, routine, "Set input filter panel \"" + __selectedInputFilter_JPanel.getName() +
             "\" visible TRUE." );
     }
+    int i = -1;
 	for ( JPanel input_filter_JPanel: __inputFilterJPanelList ) {
-	    if ( input_filter_JPanel != __selectedInputFilter_JPanel ) {
+		++i;
+	    if ( input_filter_JPanel == __selectedInputFilter_JPanel ) {
+	    	Message.printStatus(2, routine, "Set input filter panel [" + i + "] \"" + input_filter_JPanel.getName() +
+	            "\" visible TRUE." );
+	    }
+	    else {
 		    input_filter_JPanel.setVisible ( false );
-		    Message.printStatus(2, routine, "Set input filter panel \"" + input_filter_JPanel.getName() +
+		    Message.printStatus(2, routine, "Set input filter panel [" + i + "] \"" + input_filter_JPanel.getName() +
             "\" visible FALSE." );
 		}
 	}
@@ -11582,6 +11639,54 @@ throws Exception
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select (__INPUT_TYPE_HydroBase);
 			__dataStore_JTabbedPane.setSelectedIndex(1);
+		}
+	}
+	else if ( command.equals ( __File_Open_ReclamationHDB_String )) {
+		// This is used only to re-login to an existing data store
+		// The datastore with server, database, etc. must be configured in a datastore configuration file
+		ReclamationHDBDataStoreFactory factory = new ReclamationHDBDataStoreFactory();
+		// Get the list of ReclamationHDB datastores that are open and send to the dialog
+		// The user will be able to pick one and then re-login.  The updated datastore will be returned.
+		TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
+		List<DataStore> dslist = processor.getDataStoresByType(ReclamationHDBDataStore.class, false); // Returns all, even non-active
+		DataStore ds = factory.openDataStoreConnectionUI(dslist, this);
+		ReclamationHDBDataStore newrds = (ReclamationHDBDataStore)ds;
+		DMI newdmi = newrds.getDMI();
+		if ( (newdmi != null) && newdmi.isOpen() ) {
+			// New datastore login was successful.
+			// Get the old matching datastore, if any, in order to close the old DMI
+			// TODO SAM 2015-03-22 Setting the processor property may do this
+			ReclamationHDBDataStore oldds = (ReclamationHDBDataStore)__tsProcessor.getDataStoreForName ( newrds.getName(), ReclamationHDBDataStore.class );
+			DMI olddmi = oldds.getDMI();
+			if ( (oldds == newrds) && (olddmi == newdmi) ) {
+				// Don't need to do anything - likely a cancel out of the login with no change
+				Message.printStatus(2,rtn,"New ReclamationHDB datastore is same as previous - leaving as is.");
+			}
+			else {
+				Message.printStatus(2,rtn,"New ReclamationHDB datastore is different, resetting in processor and updating filter panel.");
+				// Get the currently selected datastore
+				String selectedDataStoreName = __dataStore_JComboBox.getSelected();
+				if ( olddmi.isOpen() ) {
+					try {
+						olddmi.close();
+					}
+					catch ( Exception e ) {
+						// May be a timeout, in which case just continue
+					}
+				}
+				// Once re-opened, reset in the command processor and refresh the UI components that depend on the datastore
+				__tsProcessor.setPropContents("DataStore", newrds);
+				// Reset the input panel in the user interface
+				List<DataStore> dsList = new ArrayList<DataStore>();
+				dsList.add(ds);
+				ui_InitGUIInputFiltersReclamationHDB(dsList, ui_GetInputFilterY());
+				// Reset the filters if the current selection is the one that was updated
+				if ( selectedDataStoreName.equalsIgnoreCase(newrds.getName()) ) {
+					Message.printStatus(2,rtn,"Setting the input filters for current selections because new Reclamation HDB datastore is selected.");
+					ui_SetInputFilterForSelections();
+					//__queryInput_JPanel.repaint(); // See if this helps - without the filters don't always redraw
+				}
+			}
 		}
 	}
 	else if ( command.equals ( __File_Open_RiversideDB_String )) {
@@ -12590,6 +12695,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableRead_ReadTableFromFixedFormatFile_String) ) {
         commandList_EditCommand ( __Commands_TableRead_ReadTableFromFixedFormatFile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableRead_ReadTableFromXML_String) ) {
+        commandList_EditCommand ( __Commands_TableRead_ReadTableFromXML_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String) ) {
         commandList_EditCommand ( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String, null, CommandEditType.INSERT );
@@ -20002,9 +20110,9 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         // CDSS installation...
         new HelpAboutJDialog ( this, "About TSTool",
         "TSTool - Time Series Tool\n" +
-        "A component of CDSS\n" +
+        "A component of Colorado's Decision Support Systems (CDSS)\n" +
         IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2015 State of CO\n" +
+        "Copyright 1997-2015 State of Colorado\n" +
         "Developed by the Open Water Foundation\n" +
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
