@@ -1244,7 +1244,8 @@ JMenuItem
 	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, // Also duplicated as __Commands_Datastore_WriteTimeSeriesToDataStore
 	__Commands_Output_WriteTimeSeriesToDataStream_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
-	__Commands_Output_WriteWaterML_JMenuItem;
+	__Commands_Output_WriteWaterML_JMenuItem,
+	__Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem; // Also duplicated in testing commands __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile
 
 JMenu
     __Commands_Check_CheckTimeSeries_JMenu = null;
@@ -1306,6 +1307,7 @@ JMenuItem
     __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem,    
     __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem,
     __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem,
+    __Commands_Spreadsheet_ReadPropertiesFromExcel_JMenuItem,
     __Commands_Spreadsheet_SetExcelCell_JMenuItem,
     __Commands_Spreadsheet_SetExcelWorksheetViewProperties_JMenuItem,
     __Commands_Spreadsheet_WriteTableToExcel_JMenuItem,
@@ -1390,6 +1392,7 @@ JMenu
     __Commands_General_TestProcessing_JMenu = null;
 JMenuItem
     __Commands_General_TestProcessing_CompareFiles_JMenuItem = null,
+    __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_JMenuItem = null,
     __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem = null,
     //-- separator ---
     __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem = null,
@@ -1769,6 +1772,7 @@ private String
 	__Commands_Output_WriteTimeSeriesToDataStream_String = TAB + "WriteTimeSeriesToDataStream()... <write time series as stream of data records>",
 	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
+	// See __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, which is used for this menu
 
     // Commands...Check Time Series...
     
@@ -1835,6 +1839,7 @@ private String
     __Commands_Spreadsheet_NewExcelWorkbook_String = TAB + "NewExcelWorkbook()... <create a new Excel workbook file>",
     __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
     __Commands_Spreadsheet_ReadTableCellsFromExcel_String = TAB + "ReadTableCellsFromExcel()... <read a table's cells from an Excel file>",
+    __Commands_Spreadsheet_ReadPropertiesFromExcel_String = TAB + "ReadPropertiesFromExcel()... <read processor properties from an Excel file>",
     __Commands_Spreadsheet_SetExcelCell_String = TAB + "SetExcelCell()... <set single Excel value and formatting>",
     __Commands_Spreadsheet_SetExcelWorksheetViewProperties_String = TAB + "SetExcelWorksheetViewProperties()... <set Excel view properties>",
     __Commands_Spreadsheet_WriteTableToExcel_String = TAB + "WriteTableToExcel()... <write a table to an Excel file>",
@@ -1907,6 +1912,7 @@ private String
     __Commands_General_TestProcessing_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
 	__Commands_General_TestProcessing_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
 	__Commands_General_TestProcessing_WriteProperty_String = TAB + "WriteProperty()... <write processor property, to test software>",
+	__Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String = TAB + "WriteTimeSeriesPropertiesToFile()... <write time series properties to file>",
 	__Commands_General_TestProcessing_WriteTimeSeriesProperty_String = TAB + "WriteTimeSeriesProperty()... <write time series property, to test software>",
 	__Commands_General_TestProcessing_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to test software>",
     __Commands_General_TestProcessing_TestCommand_String = TAB + "TestCommand()... <to test software>",
@@ -9868,6 +9874,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     }
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
+	
+	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, this ) );
 
     __Commands_JMenu.add( __Commands_Check_CheckTimeSeries_JMenu = new JMenu( __Commands_Check_CheckingResults_String, true ) );
     __Commands_Check_CheckTimeSeries_JMenu.setToolTipText("Check time series against criteria.");
@@ -9977,6 +9986,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, this ) );
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadPropertiesFromExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_ReadPropertiesFromExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_SetExcelCell_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_SetExcelCell_String, this ) );
@@ -10221,6 +10232,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
 
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
     __Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, this ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesProperty_String, this ) );
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareFiles_JMenuItem =
@@ -12575,6 +12588,7 @@ throws Exception
     else if (command.equals( __Commands_Output_WriteWaterML_String)){
         commandList_EditCommand ( __Commands_Output_WriteWaterML_String, null, CommandEditType.INSERT );
     }
+    // __Commands_Output_WriteTimeSeriesPropertiesToFile handled in testing commands.
 	else {	// Chain to next list of commands...
 		uiAction_ActionPerformed14_CommandsGeneralMenu ( event );
 	}
@@ -12646,6 +12660,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Spreadsheet_ReadTableCellsFromExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_ReadPropertiesFromExcel_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_ReadPropertiesFromExcel_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spreadsheet_SetExcelCell_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_SetExcelCell_String, null, CommandEditType.INSERT );
@@ -12935,6 +12952,9 @@ throws Exception
 	else if (command.equals( __Commands_General_TestProcessing_WriteProperty_String)){
 		commandList_EditCommand ( __Commands_General_TestProcessing_WriteProperty_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals( __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String)){
+        commandList_EditCommand ( __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String)){
         commandList_EditCommand ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_String, null, CommandEditType.INSERT );
     }
