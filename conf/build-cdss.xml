@@ -36,8 +36,7 @@
     <target name="-install-local">
     	<!-- Run-time binary files. -->
         <copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/TSTool.bat"/>
-    	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
-        <copy todir="${install.dir}/bin" file="resources/runtime/bin/TSTool.l4j.ini"/>
+        <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
     	<!-- The following is a useful utility to help create a Linux distribution from a Windows distribution -->
         <copy todir="${install.dir}/bin" file="resources/runtime/bin/build-linux-distro"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
