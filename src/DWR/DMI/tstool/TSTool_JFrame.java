@@ -1185,6 +1185,7 @@ JMenuItem
 	__Commands_Set_SetDataValue_JMenuItem,
     __Commands_Set_SetFromTS_JMenuItem,
     __Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem,
+    __Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem,
 	__Commands_Set_SetToMax_JMenuItem,
 	__Commands_Set_SetToMin_JMenuItem,
     __Commands_Set_SetTimeSeriesProperty_JMenuItem;
@@ -1314,6 +1315,7 @@ JMenuItem
     __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcelFormatted_JMenuItem,
+    __Commands_Spreadsheet_FormatExcelTable_JMenuItem,
     __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem;
 
 // Commands (Template Processing)...
@@ -1462,8 +1464,7 @@ JMenuItem
     __Commands_TableOutput_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
     __Commands_TableOutput_WriteTableToExcel_JMenuItem, // Also duplicated in __Commands_Spreadsheet_WriteTableToExcel
     __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem,
-    __Commands_TableOutput_WriteTableToHTML_JMenuItem,
-    __Commands_TableOutput_CloseExcelWorkbook_JMenuItem;
+    __Commands_TableOutput_WriteTableToHTML_JMenuItem;
 JMenu
 	__Commands_TableRunning_JMenu;
 JMenuItem
@@ -1731,6 +1732,7 @@ private String
 	__Commands_Set_SetDataValue_String = TAB + "SetDataValue()... <set a single data value in a TS>",
 	__Commands_Set_SetFromTS_String = TAB + "SetFromTS()... <set time series values from another time series>",
 	__Commands_Set_SetTimeSeriesValuesFromLookupTable_String = TAB + "SetTimeSeriesValuesFromLookupTable()... <set values using lookup table>",
+	__Commands_Set_SetTimeSeriesValuesFromTable_String = TAB + "SetTimeSeriesValuesFromTable()... <set values using table>",
 	__Commands_Set_SetToMax_String = TAB + "SetToMax()... <set values to maximum of time series>",
 	__Commands_Set_SetToMin_String = TAB + "SetToMin()... <set values to minimum of time series>",
     __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()... <set time series properties>",
@@ -1846,6 +1848,7 @@ private String
     __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcelFormatted_String = TAB + "WriteTimeSeriesToExcelFormatted()... <write 1+ time series to an Excel file - with formatting>",
+    __Commands_Spreadsheet_FormatExcelTable_String = TAB + "FormatExcelTable()... <format cells in Excel table>",
     __Commands_Spreadsheet_CloseExcelWorkbook_String = TAB + "CloseExcelWorkbook()... <close an Excel file>",
     
     // Template Commands...
@@ -6376,6 +6379,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Set_SetDataValue_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetFromTS_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetToMax_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Set_SetToMin_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Set_SetTimeSeriesProperty_JMenuItem, enabled );
@@ -9723,6 +9727,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Set_SetFromTS_String, this ) );
     __Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetTimeSeriesValuesFromLookupTable_String, this ) );
+    __Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem =
+        new SimpleJMenuItem(__Commands_Set_SetTimeSeriesValuesFromTable_String, this ) );
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMax_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetToMax_String, this ) );
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMin_JMenuItem =
@@ -10002,6 +10008,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcelFormatted_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcelFormatted_String, this ) );
+    __Commands_Spreadsheet_JMenu.addSeparator();
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_FormatExcelTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_FormatExcelTable_String, this ) );
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_CloseExcelWorkbook_String, this ) );
@@ -12373,6 +12382,9 @@ throws Exception
     else if (command.equals( __Commands_Set_SetTimeSeriesValuesFromLookupTable_String)){
         commandList_EditCommand ( __Commands_Set_SetTimeSeriesValuesFromLookupTable_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Set_SetTimeSeriesValuesFromTable_String)){
+        commandList_EditCommand ( __Commands_Set_SetTimeSeriesValuesFromTable_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals( __Commands_Set_SetToMax_String)){
 		commandList_EditCommand ( __Commands_Set_SetToMax_String, null, CommandEditType.INSERT );
 	}
@@ -12681,6 +12693,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Spreadsheet_WriteTimeSeriesToExcelFormatted_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTimeSeriesToExcelFormatted_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_FormatExcelTable_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_FormatExcelTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spreadsheet_CloseExcelWorkbook_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_CloseExcelWorkbook_String, null, CommandEditType.INSERT );
