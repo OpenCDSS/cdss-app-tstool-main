@@ -1353,6 +1353,7 @@ JMenuItem
 	__Commands_General_Comments_EndComment_JMenuItem = null,
 	__Commands_General_Comments_EnabledComment_JMenuItem = null,
 	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
+	__Commands_General_Comments_TemplateComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null;
 
@@ -1871,6 +1872,7 @@ private String
     __Commands_General_Comments_StartComment_String = TAB + "/* <start multi-line comment section>",
     __Commands_General_Comments_EndComment_String = TAB + "*/ <end multi-line comment section>",
     __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <protect command file from saving>",
+   	__Commands_General_Comments_TemplateComment_String = TAB + "#@template <indicate that command file is a template file>",
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
@@ -2558,6 +2560,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
 		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
 		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
+		    action.equals(__Commands_General_Comments_TemplateComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ||
             action.equals(__Commands_Template_Comments_Template_String) ) {
@@ -10154,6 +10157,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_TemplateComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_TemplateComment_String, this ) );
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_EnabledComment_String, this ) );
@@ -11745,9 +11750,17 @@ throws Exception
                 int x = ResponseJDialog.OK;
                 if ( __tsProcessor.getReadOnly() ) {
                     x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                        "The commands are marked read-only.\n" +
+                        "The commands are marked read-only (#@readOnly comment).\n" +
                         "Press Cancel and save to a new name if desired.  Press OK to update the read-only file.",
                         ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
+                }
+                else if ( __tsProcessor.areCommandsTemplate() ) {
+                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                        "The commands are marked as a template (#@template comment).\n" +
+                        "TSTool does not currently support editing template command files.  You must use a text editor.\n" +
+                        "Functionality is being evaluated and may be enabled in the future to allow editing template command files.\n" +
+                        "Press CANCEL to ensure that the template is not modified in unexpected ways by TSTool.",
+                        ResponseJDialog.CANCEL).response();
                 }
                 if ( x == ResponseJDialog.OK ) {
                     // Save most recent version...
@@ -12879,9 +12892,17 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new Vector(1);
-        comments.add ( commandList_NewCommand("#@readOnly",true) );
+        List<Command> comments = new ArrayList<Command>(1);
+        comments.add ( commandList_NewCommand("#@readOnly - command file is not intended to be saved from within TSTool",true) );
         commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_TemplateComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<Command>(1);
+        comments.add ( commandList_NewCommand("#@template - command file is not intended to be saved from within TSTool - use a text editor to edit",true) );
+        commandList_EditCommand ( __Commands_General_Comments_TemplateComment_String, comments, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Comments_StartComment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, CommandEditType.INSERT );
@@ -14014,6 +14035,7 @@ private void uiAction_FileExitClicked ()
 	// This code is also in openCommandFile - might be able to remove
 	// copy once all actions are implemented...
 	int x = ResponseJDialog.YES;	// Default for batch mode
+	boolean commandsAreTemplate = false;
 	if ( !TSToolMain.isRestletServer() && !IOUtil.isBatch() ) {
 		if ( __commandsDirty ) {
 			if ( __commandFileName == null ) {
@@ -14022,10 +14044,18 @@ private void uiAction_FileExitClicked ()
 				if ( __commands_JListModel.size() > 0 ) {
 	                if ( __tsProcessor.getReadOnly() ) {
 	                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-	                            "The command file is marked read-only.\n" +
+	                            "The command file is marked read-only (#@readOnly comment).\n" +
 	                            "Press Cancel and then save to a new name if desired." +
 	                            "Press YES to update the read-only file.",
 	                            ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+	                }
+	                else if ( commandsAreTemplate = __tsProcessor.areCommandsTemplate() ) {
+	                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+	                            "The commands are marked as a template (#@template comment).\n" +
+	                            "TSTool does not currently support editing template command files.  You must use a text editor.\n" +
+	                            "Functionality is being evaluated and may be enabled in the future to allow editing template command files.\n" +
+	                            "Press OK to continue with exit without saving or Cancel to return to TSTool.",
+	                            ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
 	                }
 	                else {
 	                     x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
@@ -14037,7 +14067,7 @@ private void uiAction_FileExitClicked ()
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
-				else if ( x == ResponseJDialog.YES ) {
+				else if ( !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
 					// Prompt for the name and then save...
 					uiAction_WriteCommandFile (	__commandFileName, true, false );
 				}
@@ -14049,8 +14079,16 @@ private void uiAction_FileExitClicked ()
 				if ( __commands_JListModel.size() > 0 ) {
 				    if ( __tsProcessor.getReadOnly() ) {
                         x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                                "The command file is marked read-only.  Changes cannot be saved.\n" +
+                                "The command file is marked read-only (#@readOnly comment).  Changes cannot be saved.\n" +
                                 "Press Cancel and then save to a new name if desired.",
+                                ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
+                    }
+				    else if ( commandsAreTemplate = __tsProcessor.areCommandsTemplate() ) {
+                        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+                        		"The commands are marked as a template (#@template comment).\n" +
+	                            "TSTool does not currently support editing template command files.  You must use a text editor.\n" +
+	                            "Functionality is being evaluated and may be enabled in the future to allow editing template command files.\n" +
+	                            "Press Ok to exit without saving or Cancel to return to TSTool.",
                                 ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
                     }
                     else {
@@ -14064,7 +14102,7 @@ private void uiAction_FileExitClicked ()
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
-				else if ( x == ResponseJDialog.YES ) {
+				else if ( !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
 					uiAction_WriteCommandFile (	__commandFileName, false, false );
 				}
 				// Else if No will just exit below...
@@ -17113,7 +17151,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
     }
     if ( __commandFileName == null ) {
         // Have not been saved before.
-        // Always allow save, even if read-only comment is set (since first save).
+        // Always allow save, even if read-only comment or template is set (since first save).
         int x = ResponseJDialog.NO;
         if ( __commands_JListModel.size() > 0 ) {
             x = new ResponseJDialog ( this, IOUtil.getProgramName(),
@@ -17132,16 +17170,25 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         // A command file exists...  Warn the user.  They can save to the existing file name or can cancel and
         // File...Save As... to a different name.
         int x = ResponseJDialog.NO;
+        boolean commandsAreTemplate = false;
         if ( __commands_JListModel.size() > 0 ) {
             if ( __tsProcessor.getReadOnly() ) {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
                     "Do you want to save the changes made to:\n"
                     + "\"" + __commandFileName + "\"?\n\n" +
-                    "The commands are marked read-only.\n" +
+                    "The commands are marked read-only (#@readOnly comment).\n" +
                     "Press Yes to update the read-only file before opening a new file.\n" +
                     "Press No to discard edits before opening a new file.\n" +
                     "Press Cancel and then save to a new name if desired.\n",
                     ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
+            }
+            else if ( commandsAreTemplate = __tsProcessor.areCommandsTemplate() ) {
+                x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+            		"The commands are marked as a template (#@template comment).\n" +
+                    "TSTool does not currently support editing template command files.  You must use a text editor.\n" +
+                    "Functionality is being evaluated and may be enabled in the future to allow editing template command files.\n" +
+                    "Press Ok to continue without saving or Cancel to return to TSTool.",
+                    ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
             }
             else {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
@@ -17153,7 +17200,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         if ( x == ResponseJDialog.CANCEL ) {
             return false;
         }
-        else if ( x == ResponseJDialog.YES ) {
+        else if ( !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
             uiAction_WriteCommandFile ( __commandFileName, false, false );
         }
         // Else if No or OK will clear before opening the other file...
@@ -21354,6 +21401,8 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		commandList_SetCommandFileName ( file );
 		// Save the file in the history
 		this.session.pushHistory(file);
+		// Do this here because the write may be in a sequence of steps.
+		ui_InitGUIMenus_File_OpenRecentFiles();
 
 		if ( directory != null ) {
 			// Set the "WorkingDir" property, which will NOT contain a trailing separator...
