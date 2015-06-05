@@ -1355,7 +1355,8 @@ JMenuItem
 	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
 	__Commands_General_Comments_TemplateComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
-	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null;
+	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null,
+	__Commands_General_Comments_Empty_JMenuItem = null;
 
 JMenu
     __Commands_General_FileHandling_JMenu = null;
@@ -1876,6 +1877,7 @@ private String
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
+    __Commands_General_Comments_Empty_String = TAB + "<empty line>",
     
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
@@ -2482,8 +2484,9 @@ private Vector commandList_GetCommand ()
 
 /**
 Edit a command in the command list.
-@param action the string containing the event's action value.  This is checked
-for new commands.  When editing existing commands, command_Vector will contain
+@param action the string containing the event's action value.
+Typically this is the command name and a description: "CommandName() <description>".  This is checked
+for new commands.  When editing existing commands, commandsToEdit will contain
 a list of Command class instances.  Normally only the first command will be edited as
 a single-line command.  However, multiple # comment lines can be selected and edited at once.
 @param commandsToEdit If an update, this contains the current Command instances
@@ -2494,7 +2497,7 @@ be edited are when they are in a {# delimited comment block).
 new command or UPDATE for an existing command).
 */
 private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode )
-{	String routine = getClass().getName() + ".editCommand";
+{	String routine = getClass().getSimpleName() + ".editCommand";
 	int dl = 1; // Debug level
 	
     // Make absolutely sure that warning level 1 messages are shown to the user in a dialog.
@@ -2609,6 +2612,16 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		if ( isCommentBlock ) {
 			// Don't do anything here.  New comments will be inserted in code below.
 		}
+		else if ( action.equals(__Commands_General_Comments_Empty_String) ) {
+			// Blank line
+			commandToEdit = commandList_NewCommand( "", true );
+			Message.printStatus(2, routine, "Created new command to insert:  \"" + commandToEdit + "\"" );
+        
+			// Add it to the processor at the insert point of the edit (before the first selected command...
+        
+			commandList_InsertCommandBasedOnUI ( commandToEdit );
+			Message.printStatus(2, routine, "Inserted command for editing.");
+		}
 		else {
 			// New command so create a command as a place-holder for editing (filled out during the editing).
 			// Get everything before the ) in the command and then re-add the ").
@@ -2621,8 +2634,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 			//  5) Don't allow edit of /* */ comments - just insert/delete
 			String command_string = StringUtil.getToken(action,")",0,0)+ ")";
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-						"Using command factory to create new command for \"" + command_string + "\"" );
+				Message.printDebug ( dl, routine, "Using command factory to create new command for \"" + command_string + "\"" );
 			}
 		
 			commandToEdit = commandList_NewCommand( command_string, true );
@@ -2671,7 +2683,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 				// The command has already been inserted in the list.
 				Message.printStatus(2, routine, "After insert, command is:  \"" + commandToEdit + "\"" );
                 // Connect the command to the UI to handle progress when the command is run.
-                // TODO SAM 2009-03-23 Evaluate whether to define and interface rather than rely on
+                // TODO SAM 2009-03-23 Evaluate whether to define an interface rather than rely on
                 // AbstractCommand here.
                 if ( commandToEdit instanceof AbstractCommand ) {
                     ((AbstractCommand)commandToEdit).addCommandProgressListener ( this );
@@ -3891,7 +3903,7 @@ different after read).
 */
 private int commandProcessor_ReadCommandFile ( String path, boolean runDiscoveryOnLoad )
 throws IOException
-{	String routine = "TSTool_JFrame.commandProcessor_ReadCommandFile";
+{	String routine = getClass().getSimpleName() + ".commandProcessor_ReadCommandFile";
     // Read the command file for use with output...
 	__tsProcessor.readCommandFile ( path,
 			true, // Create UnknownCommand instances for unrecognized commands
@@ -10166,6 +10178,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusFailureComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusWarningComment_String, this ) );
+    __Commands_General_Comments_JMenu.addSeparator();
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_Empty_String, this ) );
     
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
     __Commands_General_FileHandling_JMenu.setToolTipText("Manipulate files.");
@@ -12909,6 +12924,9 @@ throws Exception
 	}
 	else if (command.equals(__Commands_General_Comments_EndComment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_EndComment_String,	null, CommandEditType.INSERT );
+	}
+	else if (command.equals(__Commands_General_Comments_Empty_String) ) {
+		commandList_EditCommand ( __Commands_General_Comments_Empty_String,	null, CommandEditType.INSERT );
 	}
     else if (command.equals(__Commands_General_Running_If_String) ) {
         commandList_EditCommand ( __Commands_General_Running_If_String, null, CommandEditType.INSERT );
