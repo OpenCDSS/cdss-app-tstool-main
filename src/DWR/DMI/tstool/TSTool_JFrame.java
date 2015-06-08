@@ -1470,7 +1470,8 @@ JMenuItem
 JMenu
 	__Commands_TableRunning_JMenu;
 JMenuItem
-	__Commands_TableRunning_SetPropertyFromTable_JMenuItem;
+	__Commands_TableRunning_SetPropertyFromTable_JMenuItem,
+	__Commands_TableRunning_CopyPropertiesToTable_JMenuItem;
 
 // Run...
 
@@ -1974,6 +1975,7 @@ private String
     __Commands_TableCreate_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
     __Commands_TableRunning_String = "Running and Properties",
     __Commands_TableRunning_SetPropertyFromTable_String = TAB + "SetPropertyFromTable()... <set a processor property from a table>",
+    __Commands_TableRunning_CopyPropertiesToTable_String = TAB + "CopyPropertiesToTable()... <copy processor properties to a table>",
     
 	// Results menu choices (order in GUI)...
 
@@ -10128,6 +10130,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_TableRunning_JMenu.setToolTipText("Commands to integrate table data with processor properties.");
     __Commands_TableRunning_JMenu.add( __Commands_TableRunning_SetPropertyFromTable_JMenuItem =
          new SimpleJMenuItem( __Commands_TableRunning_SetPropertyFromTable_String, this ) );
+    __Commands_TableRunning_JMenu.add( __Commands_TableRunning_CopyPropertiesToTable_JMenuItem =
+         new SimpleJMenuItem( __Commands_TableRunning_CopyPropertiesToTable_String, this ) );
     
     // Commands...Template processing...
     
@@ -12818,6 +12822,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableRunning_SetPropertyFromTable_String) ) {
         commandList_EditCommand ( __Commands_TableRunning_SetPropertyFromTable_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableRunning_CopyPropertiesToTable_String) ) {
+        commandList_EditCommand ( __Commands_TableRunning_CopyPropertiesToTable_String, null, CommandEditType.INSERT );
     }
 	
 	// Template commands...
@@ -20217,7 +20224,9 @@ private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
         "Funded by:\n" +
         "Colorado Division of Water Resources\n" +
         "Colorado Water Conservation Board\n" +
+        "and others\n" +
         "Send questions and comments to:\n" +
+        "steve.malers@openwaterfoundation.org or\n" +
         "cdss@state.co.us\n", true );
     }
     else {
