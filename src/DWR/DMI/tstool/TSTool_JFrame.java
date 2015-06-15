@@ -14067,6 +14067,7 @@ private void uiAction_FileExitClicked ()
 				// Have not been saved before...
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
+					// Have at least one command
 	                if ( __tsProcessor.getReadOnly() ) {
 	                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
 	                            "The command file is marked read-only (#@readOnly comment).\n" +
@@ -14083,19 +14084,21 @@ private void uiAction_FileExitClicked ()
 	                            ResponseJDialog.OK|ResponseJDialog.CANCEL).response();
 	                }
 	                else {
-	                     x = new ResponseJDialog ( this,	IOUtil.getProgramName(),
+	                     x = new ResponseJDialog ( this, IOUtil.getProgramName(),
                              "Do you want to save the changes you made?",
                              ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
 	                }
 	            }
 				if ( x == ResponseJDialog.CANCEL ) {
+					// Want to return to editing
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
-				else if ( !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
+				else if ( !commandsAreTemplate && (x == ResponseJDialog.YES) ) {
 					// Prompt for the name and then save...
 					uiAction_WriteCommandFile (	__commandFileName, true, false );
 				}
+				// No will continue without saving
 			}
 			else {
                 // A command file exists...  Warn the user. They can save to the existing file name or
