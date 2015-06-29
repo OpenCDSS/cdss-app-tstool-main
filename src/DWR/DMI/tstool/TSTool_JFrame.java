@@ -1315,7 +1315,6 @@ JMenuItem
     __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem,
     __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_JMenuItem,
-    __Commands_Spreadsheet_FormatExcelTable_JMenuItem,
     __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem;
 
 // Commands (Template Processing)...
@@ -1851,7 +1850,6 @@ private String
     __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String = TAB + "WriteTimeSeriesToExcelBlock()... <write 1+ time series to an Excel file as data block(s)>",
-    __Commands_Spreadsheet_FormatExcelTable_String = TAB + "FormatExcelTable()... <format cells in Excel table>",
     __Commands_Spreadsheet_CloseExcelWorkbook_String = TAB + "CloseExcelWorkbook()... <close an Excel file>",
     
     // Template Commands...
@@ -10026,9 +10024,6 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String, this ) );
     __Commands_Spreadsheet_JMenu.addSeparator();
-    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_FormatExcelTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_Spreadsheet_FormatExcelTable_String, this ) );
-    __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_CloseExcelWorkbook_String, this ) );
     
@@ -12725,9 +12720,6 @@ throws Exception
     }
     else if (command.equals( __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String, null, CommandEditType.INSERT );
-    }
-    else if (command.equals( __Commands_Spreadsheet_FormatExcelTable_String) ) {
-        commandList_EditCommand ( __Commands_Spreadsheet_FormatExcelTable_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spreadsheet_CloseExcelWorkbook_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_CloseExcelWorkbook_String, null, CommandEditType.INSERT );
