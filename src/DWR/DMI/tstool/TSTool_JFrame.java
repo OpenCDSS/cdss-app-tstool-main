@@ -7998,6 +7998,7 @@ private void ui_InitGUI ( )
     // Listen for mouse events to ??...
     //__problems_JWorksheet.addMouseListener ( this );
     //__problems_JWorksheet.addJWorksheetListener ( this );
+    // TODO SAM 2015-07-09 Nee the worksheet to fill the panel
     JGUIUtil.addComponent(results_problems_JPanel, sjw, 
         0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Problems", results_problems_JPanel );
@@ -17818,12 +17819,19 @@ private void uiAction_RunCommands_ShowResultsOutputFiles()
 Display the list of problems from the commands.
 */
 private void uiAction_RunCommands_ShowResultsProblems()
-{   String routine = getClass().getName() + ".uiAction_RunCommands_ShowResultsProblems";
+{   String routine = getClass().getSimpleName() + ".uiAction_RunCommands_ShowResultsProblems";
     //Message.printStatus ( 2, routine, "Entering method.");
     try {
         // Get all of the command log messages from all commands for run phase...
         List commands = __tsProcessor.getCommands();
-        List logRecordList = CommandStatusUtil.getLogRecordList ( commands, null );//CommandPhaseType.RUN );
+        // For normal commands, the log records will be for the specific command.
+        // For RunCommand() commands, the log records will include commands in the command file that was run.
+        CommandPhaseType [] commandPhases = null;
+        CommandStatusType [] statusTypes = new CommandStatusType[2];
+        // List failures first
+        statusTypes[0] = CommandStatusType.FAILURE;
+        statusTypes[1] = CommandStatusType.WARNING;
+        List logRecordList = CommandStatusUtil.getLogRecordList ( commands, commandPhases, statusTypes );
         Message.printStatus( 2, routine, "There were " + logRecordList.size() +
             " problems processing " + commands.size() + " commands.");
         // Create a new table model for the problem list.
