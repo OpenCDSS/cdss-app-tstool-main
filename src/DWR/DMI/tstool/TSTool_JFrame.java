@@ -233,7 +233,6 @@ import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnits_JFrame;
 import RTi.Util.IO.EndianRandomAccessFile;
-import RTi.Util.IO.FileGenerator;
 import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.LicenseManager;
@@ -1305,7 +1304,8 @@ JMenuItem
 JMenu
     __Commands_Spreadsheet_JMenu = null;
 JMenuItem
-    __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem,    
+    __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem,
+    __Commands_Spreadsheet_ReadExcelWorkbook_JMenuItem,
     __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem,
     __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem,
     __Commands_Spreadsheet_ReadPropertiesFromExcel_JMenuItem,
@@ -1841,6 +1841,7 @@ private String
 
     __Commands_Spreadsheet_String = "Spreadsheet Processing",
     __Commands_Spreadsheet_NewExcelWorkbook_String = TAB + "NewExcelWorkbook()... <create a new Excel workbook file>",
+    __Commands_Spreadsheet_ReadExcelWorkbook_String = TAB + "ReadExcelWorkbook()... <read an Excel workbook file>",
     __Commands_Spreadsheet_ReadTableFromExcel_String = TAB + "ReadTableFromExcel()... <read a table from an Excel file>",
     __Commands_Spreadsheet_ReadTableCellsFromExcel_String = TAB + "ReadTableCellsFromExcel()... <read a table's cells from an Excel file>",
     __Commands_Spreadsheet_ReadPropertiesFromExcel_String = TAB + "ReadPropertiesFromExcel()... <read processor properties from an Excel file>",
@@ -1850,7 +1851,7 @@ private String
     __Commands_Spreadsheet_WriteTableCellsToExcel_String = TAB + "WriteTableCellsToExcel()... <write a table's cells to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcel_String = TAB + "WriteTimeSeriesToExcel()... <write 1+ time series to an Excel file>",
     __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String = TAB + "WriteTimeSeriesToExcelBlock()... <write 1+ time series to an Excel file as data block(s)>",
-    __Commands_Spreadsheet_CloseExcelWorkbook_String = TAB + "CloseExcelWorkbook()... <close an Excel file>",
+    __Commands_Spreadsheet_CloseExcelWorkbook_String = TAB + "CloseExcelWorkbook()... <close and optionally write an Excel file>",
     
     // Template Commands...
 
@@ -10011,6 +10012,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_NewExcelWorkbook_String, this ) );
     __Commands_Spreadsheet_JMenu.addSeparator();
+    __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadExcelWorkbook_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_ReadExcelWorkbook_String, this ) );
+    __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem =
@@ -12701,6 +12705,9 @@ throws Exception
 
     else if (command.equals( __Commands_Spreadsheet_NewExcelWorkbook_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_NewExcelWorkbook_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spreadsheet_ReadExcelWorkbook_String) ) {
+        commandList_EditCommand ( __Commands_Spreadsheet_ReadExcelWorkbook_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spreadsheet_ReadTableFromExcel_String) ) {
         commandList_EditCommand ( __Commands_Spreadsheet_ReadTableFromExcel_String, null, CommandEditType.INSERT );
