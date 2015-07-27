@@ -185,7 +185,6 @@ import RTi.GRTS.TSPropertiesJFrame;
 import RTi.GRTS.TSViewJFrame;
 import RTi.TS.DateValueTS;
 import RTi.TS.DayTS;
-import RTi.TS.MexicoCsmnTS;
 import RTi.TS.ModsimTS;
 import RTi.TS.RiverWareTS;
 import RTi.TS.ShefATS;
@@ -196,7 +195,6 @@ import RTi.TS.TSUtil;
 import RTi.TS.UsgsNwisRdbTS;
 import RTi.Util.GUI.FindInJListJDialog;
 import RTi.Util.GUI.HelpAboutJDialog;
-import RTi.Util.GUI.InputFilter;
 import RTi.Util.GUI.InputFilter_JPanel;
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
@@ -489,11 +487,6 @@ private InputFilter_JPanel __inputFilterHydroBaseWells_JPanel = null;
 InputFilter_JPanel for HydroBase WIS time series.
 */
 private InputFilter_JPanel __inputFilterHydroBaseWIS_JPanel = null;
-
-/**
-InputFilter_JPanel for Mexico CSMN stations time series.
-*/
-private InputFilter_JPanel __inputFilterMexicoCSMN_JPanel = null;
 
 /**
 InputFilter_JPanel for NWSRFS_FS5Files time series.
@@ -908,7 +901,6 @@ private boolean
 	__source_DIADvisor_enabled = false,
 	__source_HECDSS_enabled = true,
 	__source_HydroBase_enabled = true,
-	__source_MexicoCSMN_enabled = false,
 	__source_MODSIM_enabled = true,
 	__source_NrcsAwdb_enabled = true,
 	__source_NWSCard_enabled = true,
@@ -2075,7 +2067,6 @@ private String
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
 	__INPUT_TYPE_HECDSS = "HEC-DSS",
 	__INPUT_TYPE_HydroBase = "HydroBase",
-	__INPUT_TYPE_MEXICO_CSMN = "MexicoCSMN",
 	__INPUT_TYPE_MODSIM = "MODSIM",
 	__INPUT_TYPE_NWSCARD = "NWSCARD",
 	__INPUT_TYPE_NWSRFS_FS5Files = "NWSRFS_FS5Files",
@@ -5878,7 +5869,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	else if (
 	    selectedInputType.equals(__INPUT_TYPE_DIADvisor) ||
 	    selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ||
-		selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
 		selectedInputType.equals(__INPUT_TYPE_MODSIM) ||
 		selectedInputType.equals ( __INPUT_TYPE_NWSCARD ) ||
 		selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ||
@@ -6718,8 +6708,6 @@ private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
 	    // These generally are not going to be used with CDSS
 		//Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
 		//__source_DIADvisor_enabled = false;
-		//Message.printStatus ( 2, routine, "Mexico CSMN input type being disabled for CDSS." );
-		//__source_MexicoCSMN_enabled = false;
 		// TODO SAM 2008-10-02 Evaluate whether to permanently make this change in defaults
 		// Allow MODSIM to be turned on for CDSS since it appears to be a model that might be used
 		// in some parts of the State.
@@ -6946,14 +6934,6 @@ private void ui_EnableInputTypesForConfiguration ()
     }
     else {
         __props.set ( "TSTool.HydroBaseEnabled", "false" );
-    }
-
-    // Mexico CSMN disabled by default...
-
-    __source_MexicoCSMN_enabled = false;
-    propValue = TSToolMain.getPropValue ( "TSTool.MexicoCSMNEnabled" );
-    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
-        __source_MexicoCSMN_enabled = true;
     }
 
     // MODSIM always enabled by default...
@@ -7582,10 +7562,8 @@ private String ui_GetSelectedDataType ()
             }
         }
     }
-    else if ( selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ||
-        selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files)) {
+    else if ( selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files) ) {
         // Data type is first and explanation second, for example...
-        // Mexico CSMN:   "EV - Evaporation"
         // NWSRFS FS5 Files: "MAP - Mean Areal Precipitation"
         if ( selectedDataTypeFull.indexOf('-') >= 0 ) {
             selectedDataType = StringUtil.getToken( selectedDataTypeFull, "-", 0, 0).trim();
@@ -8264,16 +8242,6 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, e);
                 }
             }
-        	if ( __source_MexicoCSMN_enabled ) {
-                try {
-                    ui_InitGUIInputFiltersMexicoCSMN( y );
-                }
-                catch ( Throwable e ) {
-                    // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing Mexico CSMN datastore input filters (" + e + ").");
-                    Message.printWarning(3, routine, e);
-                }
-        	}
          	if ( __source_NWSRFS_FS5Files_enabled ) {
         		// Add input filters for NWSRFS FS5 files.
         		try {
@@ -9103,73 +9071,6 @@ private void ui_InitGUIInputFiltersHydroBase ( List<DataStore> dataStoreList, in
             Message.printWarning ( 2, routine, e );
         }
     }
-}
-
-/**
-Initialize the Mexico CSMN input filters.
-*/
-private void ui_InitGUIInputFiltersMexicoCSMN ( int y )
-{   //String routine = getClass().getName() + ".ui_InitGUIInputFiltersMexicoCSMN";
-    int buffer = 3;
-    Insets insets = new Insets(0,buffer,0,0);
-    List<InputFilter> input_filters = null;
-    InputFilter filter = null;
-    // Add input filters using text fields...
-    // Later may put this code in the MexicoCSMN package since it may be used by other interfaces...
-    input_filters = new Vector(2);
-    List<String> statenum_Vector = new Vector (32);
-    statenum_Vector.add ( "01 - Aguascalientes" );
-    statenum_Vector.add ( "02 - Baja California" );
-    statenum_Vector.add ( "03 - Baja California Sur" );
-    statenum_Vector.add ( "04 - Campeche" );
-    statenum_Vector.add ( "05 - Coahuila" );
-    statenum_Vector.add ( "06 - Colima" );
-    statenum_Vector.add ( "07 - Chiapas" );
-    statenum_Vector.add ( "08 - Chihuahua" );
-    statenum_Vector.add ( "09 - Distrito Federal" );
-    statenum_Vector.add ( "10 - Durango" );
-    statenum_Vector.add ( "11 - Guanajuato" );
-    statenum_Vector.add ( "12 - Guerrero" );
-    statenum_Vector.add ( "13 - Hidalgo" );
-    statenum_Vector.add ( "14 - Jalisco" );
-    statenum_Vector.add ( "15 - Mexico" );
-    statenum_Vector.add ( "16 - Michoacan" );
-    statenum_Vector.add ( "17 - Morelos" );
-    statenum_Vector.add ( "18 - Nayarit" );
-    statenum_Vector.add ( "19 - Nuevo Leon" );
-    statenum_Vector.add ( "20 - Oaxaca" );
-    statenum_Vector.add ( "21 - Puebla" );
-    statenum_Vector.add ( "22 - Queretaro" );
-    statenum_Vector.add ( "23 - Quintana Roo" );
-    statenum_Vector.add ( "24 - San Luis Potosi" );
-    statenum_Vector.add ( "25 - Sinaloa" );
-    statenum_Vector.add ( "26 - Sonora" );
-    statenum_Vector.add ( "27 - Tabasco" );
-    statenum_Vector.add ( "28 - Tamaulipas" );
-    statenum_Vector.add ( "29 - Tlaxcala" );
-    statenum_Vector.add ( "30 - Veracruz" );
-    statenum_Vector.add ( "31 - Yucatan" );
-    statenum_Vector.add ( "32 - Zacatecas" );
-    input_filters.add ( new InputFilter (
-        "", "",
-        StringUtil.TYPE_STRING,
-        null, null, true ) );   // Blank to disable filter
-    input_filters.add ( new InputFilter ( "Station Name", "Station Name",
-        StringUtil.TYPE_STRING,
-        null, null, true ) );
-    filter = new InputFilter ( "State Number", "Station Number",
-        StringUtil.TYPE_INTEGER,
-        statenum_Vector, statenum_Vector, true );
-    filter.setTokenInfo("-",0);
-    input_filters.add ( filter );
-    JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterMexicoCSMN_JPanel =
-        new InputFilter_JPanel ( input_filters, 2, -1 ), 
-        0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-        GridBagConstraints.WEST );
-    __inputFilterMexicoCSMN_JPanel.setToolTipText (
-        "<html>Mexico CSMN queries can be filtered<br>based on station data.</html>" );
-    __inputFilterMexicoCSMN_JPanel.setName ( "MexicoCSMN.InputFilterPanel" );
-    __inputFilterJPanelList.add ( __inputFilterMexicoCSMN_JPanel );
 }
 
 /**
@@ -11261,11 +11162,6 @@ private void ui_SetInputFilterForSelections()
 			selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
 		}
 	}
-	else if(selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) &&
-		(__inputFilterMexicoCSMN_JPanel != null) ) {
-		// Can only use the Mexico CSMN filters if they were originally set up...
-		selectedInputFilter_JPanel = __inputFilterMexicoCSMN_JPanel;
-	}
 	else if(selectedInputType.equals(__INPUT_TYPE_NWSRFS_FS5Files) &&
 		(__inputFilterNWSRFSFS5Files_JPanel != null) ) {
 		selectedInputFilter_JPanel = __inputFilterNWSRFSFS5Files_JPanel;
@@ -11372,9 +11268,6 @@ private void ui_SetInputTypeChoices ()
     }
 	if ( __source_HydroBase_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_HydroBase );
-	}
-	if ( __source_MexicoCSMN_enabled ) {
-		__input_type_JComboBox.add( __INPUT_TYPE_MEXICO_CSMN );
 	}
 	if ( __source_MODSIM_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_MODSIM );
@@ -13737,14 +13630,6 @@ private void uiAction_DataTypeChoiceClicked()
 		// If the data type is for a diversion or reservoir data type,
 		// hide the abbreviation column in the table model.  Else show the column.
 	}
-	else if ( selectedInputType.equals(__INPUT_TYPE_MEXICO_CSMN) ) {
-		// Mexico CSMN file...
-		__timeStep_JComboBox.removeAll ();
-		__timeStep_JComboBox.add ( __TIMESTEP_DAY );
-		__timeStep_JComboBox.select ( null );
-		__timeStep_JComboBox.select ( __TIMESTEP_DAY );
-		__timeStep_JComboBox.setEnabled ( true );
-	}
 	else if ( selectedInputType.equals(__INPUT_TYPE_MODSIM) ) {
 		// MODSIM file...
 		__timeStep_JComboBox.removeAll ();
@@ -14285,18 +14170,6 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_MEXICO_CSMN)) {
-		try {
-            uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ();
-		}
-		catch ( Exception e ) {
-			message =
-			"Error reading Mexico CSMN catalog file - cannot display time series list (" + e + ").";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 3, routine, e );
-			return;
-		}
-	}
 	else if ( selectedInputType.equals (__INPUT_TYPE_MODSIM)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
@@ -15265,149 +15138,6 @@ throws Exception
 		Message.printWarning ( 2, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
 		throw new Exception ( message );
-	}
-}
-
-/**
-Read the list of time series from a Mexico CSMN CATALOGO.TXT file and list in
-the GUI.  Because the catalog file is rather long (e.g., 5000 lines) and does
-not change, it is only read once.  If necessary, later change to prompt each time.
-*/
-private void uiAction_GetTimeSeriesListClicked_ReadMexicoCSMNHeaders ()
-throws IOException
-{	String message, routine = "TSTool_JFrame.readMexicoCSMNHeaders";
-
-    String selectedDataType = ui_GetSelectedDataType();
-	try {
-	    List allts = MexicoCsmnTS.getCatalogTSList();
-		if ( allts == null ) {
-			// Have not read the catalog yet so read it...
-			JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
-			fc.setDialogTitle ( "Select a Mexico CSMN CATALOGO.TXT File" );
-			SimpleFileFilter sff = new SimpleFileFilter( "txt", "Mexico CSMN Catalogo.txt File");
-			fc.addChoosableFileFilter(sff);
-			fc.setFileFilter(sff);
-			if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
-				// Canceled...
-				return;
-			}
-			String directory = fc.getSelectedFile().getParent();
-			String path = fc.getSelectedFile().getPath();
-			JGUIUtil.setLastFileDialogDirectory ( directory );
-
-			Message.printStatus ( 1, routine, "Reading Mexico CSMN catalog file \"" + path + "\"" );
-			JGUIUtil.setWaitCursor ( this, true );
-			try {
-			    allts = MexicoCsmnTS.readCatalogFile ( path );
-			}
-			catch ( Exception e ) {
-				message = "Error reading Mexico CSMN catalog file \"" + path + "\"";
-				Message.printWarning ( 2, routine, message );
-				Message.printWarning ( 2, routine, e );
-				JGUIUtil.setWaitCursor ( this, false );
-				throw new IOException ( message );
-			}
-		}
-		if ( allts == null ) {
-			message = "Error reading Mexico CSMN catalog file - no time series.";
-			Message.printWarning ( 2, routine, message );
-			JGUIUtil.setWaitCursor ( this, false );
-			throw new IOException ( message );
-		}
-		// Now limit the list of time series according to the where criteria...
-		// There should not be any non-null time series so use the Vector size...
-		int nallts = allts.size();
-		Message.printStatus ( 1, routine, "Read " + nallts + " time series listings from catalog file." );
-		TS ts;
-		List tslist = null;
-		// Limit the output to the matching information - there are 2 filter groups...
-		InputFilter filter = __inputFilterMexicoCSMN_JPanel.getInputFilter(0);
-		InputFilter station_filter = null;
-		String where1 = filter.getWhereLabel();
-		String input1 = filter.getInput(false).trim();
-		filter = __inputFilterMexicoCSMN_JPanel.getInputFilter(1);
-		String where2 = filter.getWhereLabel();
-		String input2 = filter.getInput(false).trim();
-		String station_operator = null, station = null, state = null;
-		if ( where1.equals("Station Name") ) {
-			station = input1;
-			station_filter = __inputFilterMexicoCSMN_JPanel.getInputFilter(0);
-			station_operator = __inputFilterMexicoCSMN_JPanel.getOperator(0);
-		}
-		else if ( where2.equals("Station Name") ) {
-			station = input2;
-			station_filter = __inputFilterMexicoCSMN_JPanel.getInputFilter(1);
-			station_operator = __inputFilterMexicoCSMN_JPanel.getOperator(1);
-		}
-		if ( where1.equals("State Number") ) {
-			state = input1;
-		}
-		else if ( where2.equals("State Number") ) {
-			state = input2;
-		}
-		String prefix = null;	// State padded with zeroes
-		if ( state != null ) {
-			prefix = StringUtil.formatString(
-			StringUtil.atoi( state),"%05d");
-		}
-		// Limit time series based on the station name...
-		tslist = new Vector(100);
-		int state_num;	// State number for specific time series.
-		File f;		// Used to update file name for time series file
-		for ( int i = 0; i < nallts; i++ ) {
-			ts = (TS)allts.get(i);
-			if ( Message.isDebugOn ) {
-    			Message.printStatus ( 2, "",
-    				"station=" + station +
-    				" station_operator=" + station_operator +
-    				" state=" + state +
-    				" location=" + ts.getLocation() +
-    				" prefix=" + prefix  +
-    				" matchresult=" +
-    				station_filter.matches ( station,
-    				station_operator, true ) );
-			}
-			if ( ((station == null) || station_filter.matches ( ts.getDescription(),
-				station_operator, true )) && ((state == null) || ts.getLocation().startsWith(prefix)) ) {
-				// OK to add the time series to the output list (reset some information first)...
-				ts.setDataType ( selectedDataType );
-				state_num = StringUtil.atoi( ts.getLocation().substring(0,5) );
-				f = new File(ts.getIdentifier().getInputName());
-				ts.getIdentifier().setInputName ( f.getParent() + File.separator +
-					MexicoCsmnTS.getStateAbbreviation( state_num) + "_" + selectedDataType + ".CSV" );
-				tslist.add ( ts );
-			}
-		}
-		// There should not be any non-null time series so use the Vector size...
-		int size = tslist.size();
-        if ( size == 0 ) {
-			Message.printStatus ( 1, routine, "No Mexico CSMN TS read." );
-			queryResultsList_Clear ();
-        }
-        else {
-            Message.printStatus ( 1, routine, "" + size + " Mexico CSMN TS read." );
-			__query_TableModel = new TSTool_TS_TableModel (tslist );
-			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
-	
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-			// Do not include the alias in the display...
-			__query_JWorksheet.removeColumn ( ((TSTool_TS_TableModel)__query_TableModel).COL_ALIAS );
-			__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-
-        	ui_UpdateStatus ( false );
-		}
-		JGUIUtil.setWaitCursor ( this, false );
-		allts = null;
-		tslist = null;
-		ts = null;
-	}
-	catch ( Exception e ) {
-		message = "Error reading Mexico CSMN catalog file.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
-		JGUIUtil.setWaitCursor ( this, false );
-		throw new IOException ( message );
 	}
 }
 
@@ -16957,9 +16687,6 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
         }
     	else if ( selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
     	    uiAction_SelectInputType_HydroBase();
-    	}
-    	else if ( selectedInputType.equals ( __INPUT_TYPE_MEXICO_CSMN ) ) {
-    	    uiAction_SelectInputType_MexicoCSMN();
     	}
     	else if ( selectedInputType.equals ( __INPUT_TYPE_MODSIM ) ) {
     	    uiAction_SelectInputType_MODSIM();
@@ -19072,35 +18799,6 @@ private void uiAction_SelectInputType_HydroBase ()
 }
 
 /**
-Set up query choices because the MEXICO CSMN input type has been selected.
-*/
-private void uiAction_SelectInputType_MexicoCSMN ()
-throws Exception
-{
-    // Most information is determined from the file but let the user limit the time series that will be liste...
-    ui_SetInputNameVisible(false); // Not needed
-    __inputName_JComboBox.removeAll();
-    __inputName_JComboBox.setEnabled ( false );
-
-    __dataType_JComboBox.removeAll ();
-    __dataType_JComboBox.add ( "EV - Evaporation" );
-    __dataType_JComboBox.add ( "PP - Precipitation" );
-    __dataType_JComboBox.setEnabled ( true );
-
-    // Set the default, which cascades other settings...
-
-    __dataType_JComboBox.select ( 0 );
-
-    // Initialize with blank data vector...
-
-    __query_TableModel = new TSTool_TS_TableModel(null);
-    TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-}
-
-/**
 Set up the query options because the MODSIM input type has been selected
 */
 private void uiAction_SelectInputType_MODSIM ()
@@ -20403,9 +20101,9 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     else {
         v.add ( "Last command file read/saved: \"" + __commandFileName + "\"" );
     }
-    v.add ( "Working directory (from user.dir system property):" + System.getProperty ( "user.dir" ) );
-    v.add ( "Current working directory (internal to TSTool) = " + IOUtil.getProgramWorkingDir() );
-    v.add ( "Run commands in thread (internal to TSTool) = " + ui_Property_RunCommandProcessorInThread() );
+    v.add ( "Working directory (from user.dir system property):  " + System.getProperty ( "user.dir" ) );
+    v.add ( "Current working directory (internal to TSTool):  " + IOUtil.getProgramWorkingDir() );
+    v.add ( "Run commands in thread (internal to TSTool):  " + ui_Property_RunCommandProcessorInThread() );
     // List open database information...
     if ( __source_ColoradoSMS_enabled ) {
         v.add ( "" );
@@ -20471,12 +20169,6 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     }
     else {
         v.add ( "HydroBase input type is not enabled" );
-    }
-    if ( __source_MexicoCSMN_enabled ) {
-        v.add ( "MexicoCSMN input type is enabled" );
-    }
-    else {
-        v.add ( "MexicoCSMN input type is not enabled" );
     }
     if ( __source_MODSIM_enabled ) {
         v.add ( "MODSIM input type is enabled" );
