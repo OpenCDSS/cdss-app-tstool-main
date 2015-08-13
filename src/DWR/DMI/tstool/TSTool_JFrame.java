@@ -95,6 +95,10 @@ import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStoreFac
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_DMI;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSeriesMetadata;
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
+import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPiscesDMI;
+import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPiscesDataStore;
+import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPisces_SiteCatalogSeriesCatalog;
+import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPisces_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
 import rti.tscommandprocessor.commands.ts.TSID_Command;
 import rti.tscommandprocessor.commands.usgs.nwis.daily.UsgsNwisDailyDataStore;
@@ -908,6 +912,7 @@ private boolean
 	__source_NWSRFS_ESPTraceEnsemble_enabled = false,
 	__source_RCCACIS_enabled = false,
 	__source_ReclamationHDB_enabled = false,
+	__source_ReclamationPisces_enabled = false,
 	__source_RiversideDB_enabled = false,
 	__source_RiverWare_enabled = true,
 	__source_SHEF_enabled = true,
@@ -1124,6 +1129,7 @@ JMenuItem
 	__Commands_Read_ReadNwsrfsFS5Files_JMenuItem,
 	__Commands_Read_ReadRccAcis_JMenuItem,
 	__Commands_Read_ReadReclamationHDB_JMenuItem,
+	__Commands_Read_ReadReclamationPisces_JMenuItem,
 	__Commands_Read_ReadRiversideDB_JMenuItem,
 	__Commands_Read_ReadRiverWare_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
@@ -1681,6 +1687,7 @@ private String
 	__Commands_Read_ReadNwsrfsFS5Files_String = TAB + "ReadNwsrfsFS5Files()... <read 1 time series from NWSRFS FS5 files>",
 	__Commands_Read_ReadRccAcis_String = TAB + "ReadRccAcis()... <read 1+ time series from the RCC ACIS web service>",
 	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series a Reclamation HDB database>",
+	__Commands_Read_ReadReclamationPisces_String = TAB + "ReadReclamationPisces()... <read 1+ time series a Reclamation Pisces database>",
 	__Commands_Read_ReadRiversideDB_String = TAB + "ReadRiversideDB()... <read 1+ time series from a RiversideDB database>",
 	__Commands_Read_ReadRiverWare_String = TAB + "ReadRiverWare()... <read 1 time series from a RiverWare file>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1+ time series from a StateCU file>",
@@ -5752,6 +5759,30 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             "", false, insertOffset );
         }
     }
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore) ) {
+        // The location (id), type, and time step uniquely
+        // identify the time series, but the input name is needed to indicate the datastore.
+        TSTool_ReclamationPisces_TableModel model = (TSTool_ReclamationPisces_TableModel)__query_TableModel;
+        ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)selectedDataStore;
+        // Check the connection in case timeouts, etc.
+        ds.checkDatabaseConnection();
+        // Format the TSID using the older format that uses common names, but these are not guaranteed unique
+        String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_ID );
+        String dataSource = (String)__query_TableModel.getValueAt( row, model.COL_SITE_RESPONSIBILITY);
+        String dataType = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_PARAMETER);
+        String interval = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_TIMEINTERVAL);
+        String scenario = "";
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
+	        loc,
+	        dataSource,
+	        dataType,
+	        interval,
+	        scenario,
+	        null, // No sequence number
+	        (String)__query_TableModel.getValueAt( row, model.COL_DATASTORE_NAME),
+	        "",
+	        "", false, insertOffset );
+    }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		// The location (id), type, and time step uniquely
 		// identify the time series, but the input_name is needed to indicate the database.
@@ -7000,6 +7031,14 @@ private void ui_EnableInputTypesForConfiguration ()
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ReclamationHDB_enabled = true;
     }
+    
+    // Reclamation Pisces disabled by default (not many users would have)...
+
+    __source_ReclamationPisces_enabled = false;
+    propValue = TSToolMain.getPropValue ( "TSTool.ReclamationPiscesEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_ReclamationPisces_enabled = true;
+    }
 
     // RiversideDB disabled by default...
 
@@ -7446,6 +7485,14 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
         else if ( panel instanceof ReclamationHDB_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((ReclamationHDB_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+                // Have a match in the datastore name so return the panel
+                return panel;
+            }
+        }
+        else if ( panel instanceof ReclamationPisces_TimeSeries_InputFilter_JPanel ) {
+            // This type of filter uses a DataStore
+            DataStore dataStore = ((ReclamationPisces_TimeSeries_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
                 // Have a match in the datastore name so return the panel
                 return panel;
@@ -8274,6 +8321,16 @@ private void ui_InitGUIInputFilters ( final int y )
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
                     Message.printWarning(3, routine, "Error initializing Reclamation HDB datastore input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
+            if ( __source_ReclamationPisces_enabled && (__tsProcessor.getDataStoresByType(ReclamationPiscesDataStore.class).size() > 0) ) {
+                try {
+                    ui_InitGUIInputFiltersReclamationPisces(__tsProcessor.getDataStoresByType(ReclamationPiscesDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing Reclamation Pisces datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -9193,6 +9250,84 @@ private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreLis
 }
 
 /**
+Initialize the Reclamation Pisces input filter (may be called at startup).
+@param dataStoreList the list of datastores for which input filter panels are to be added.
+@param y the position in the input panel that the filter should be added
+*/
+private void ui_InitGUIInputFiltersReclamationPisces ( List<DataStore> dataStoreList, int y )
+{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersReclamationPisces";
+    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
+        " ReclamationPisces datastores." );
+    String selectedDataType = ui_GetSelectedDataType();
+    String selectedTimeStep = ui_GetSelectedTimeStep();
+    boolean repaint = false;
+    for ( DataStore dataStore: dataStoreList ) {
+        try {
+            // Try to find an existing input filter panel for the same name.
+        	// The following will return null if the first time setup.
+            JPanel ifp = ui_GetInputFilterPanelForDataStoreName (
+                dataStore.getName(), selectedDataType, selectedTimeStep );
+            if ( ifp != null ) {
+                ReclamationPisces_TimeSeries_InputFilter_JPanel rifp = (ReclamationPisces_TimeSeries_InputFilter_JPanel)ifp;
+                // Get the DMI instances to check
+                DMI dmi = ((ReclamationPiscesDataStore)dataStore).getDMI();
+                if ( (dataStore == rifp.getDataStore()) && (dmi == rifp.getDataStore().getDMI()) ) {
+                    // If the found input filter panel datastore and DMI is the same as the iterator instance it has not changed - leave it
+                	Message.printStatus(2, routine, "New datastore is same as previous - not resetting filter ReclamationPisces panel.");
+                	continue;
+                }
+                else {
+	                // Else if the previous instance is not null and is new, remove the old one from the list because it has been replaced...
+                	Message.printStatus(2, routine, "New datastore name is same as previous but datastore differs - removing old filter panel to replace.");
+                	Message.printStatus(2, routine, "Filter panel list size before removing=" + __inputFilterJPanelList.size() );
+	                __inputFilterJPanelList.remove ( ifp );
+	                Message.printStatus(2, routine, "Filter panel list size after removing=" + __inputFilterJPanelList.size() );
+	                // Also remove from the component
+	                Component [] comps = __queryInput_JPanel.getComponents();
+	                Message.printStatus(2, routine, "Panel component list size before removing=" + comps.length );
+	                String oldName = "ReclamationPisces.InputFilterPanel." + dataStore.getName();
+	                for ( int i = 0; i < comps.length; i++ ) {
+	                	Message.printStatus(2, routine, "Comparing panel component [" + i + "] \"" + comps[i].getName() + "\" with old name \"" + oldName + "\"" );
+	                	if ( (comps[i].getName() != null) && comps[i].getName().equalsIgnoreCase(oldName) ) {
+	                		Message.printStatus(2, routine, "Removing panel component [" + i + "] \"" + comps[i].getName() + "\"" );
+	                		__queryInput_JPanel.remove(comps[i]);
+	                		repaint = true;
+	                		break;
+	                	}
+	                }
+	                Message.printStatus(2, routine, "Panel component list size after removing=" + __queryInput_JPanel.getComponents().length );
+                }
+            }
+            else {
+            	Message.printStatus(2, routine, "No previous datastore found with name \"" + dataStore.getName() + "\"");
+            }
+            // In here, create a new panel because datastore and/or DMI have changed and query results may also be different for filters...
+            ReclamationPisces_TimeSeries_InputFilter_JPanel newIfp =
+                new ReclamationPisces_TimeSeries_InputFilter_JPanel((ReclamationPiscesDataStore)dataStore, 3);
+    
+            // Add the new panel to the layout and set in the global data...
+            int buffer = 3;
+            Insets insets = new Insets(0,buffer,0,0);
+            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+                GridBagConstraints.WEST );
+            newIfp.setName("ReclamationPisces.InputFilterPanel." + dataStore.getName());
+            __inputFilterJPanelList.add ( newIfp );
+            if ( repaint ) {
+        		__queryInput_JPanel.validate();
+        		__queryInput_JPanel.repaint();
+            }
+        }
+        catch ( Exception e ) {
+            Message.printWarning ( 2, routine,
+                "Unable to initialize input filter for Reclamation Pisces time series " +
+                "for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
+            Message.printWarning ( 2, routine, e );
+        }
+    }
+}
+
+/**
 Initialize the RiversideDB input filter (may be called at startup after login or File...Open RiversideDB).
 @param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
@@ -9514,6 +9649,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationHDB_String, this) );
+    }
+    if ( __source_ReclamationPisces_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationPisces_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadReclamationPisces_String, this) );
     }
     if ( __source_RiversideDB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiversideDB_JMenuItem =
@@ -12168,6 +12307,9 @@ throws Exception
 	else if (command.equals( __Commands_Read_ReadReclamationHDB_String)){
         commandList_EditCommand ( __Commands_Read_ReadReclamationHDB_String, null, CommandEditType.INSERT );
     }
+	else if (command.equals( __Commands_Read_ReadReclamationPisces_String)){
+        commandList_EditCommand ( __Commands_Read_ReadReclamationPisces_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Read_ReadRiversideDB_String)){
         commandList_EditCommand ( __Commands_Read_ReadRiversideDB_String, null, CommandEditType.INSERT );
     }
@@ -13471,6 +13613,9 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
             uiAction_SelectDataStore_ReclamationHDB ( (ReclamationHDBDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof ReclamationPiscesDataStore ) {
+            uiAction_SelectDataStore_ReclamationPisces ( (ReclamationPiscesDataStore)selectedDataStore );
+        }
         else if ( selectedDataStore instanceof RiversideDBDataStore ) {
             uiAction_SelectDataStore_RiversideDB ( (RiversideDBDataStore)selectedDataStore );
         }
@@ -13733,6 +13878,15 @@ private void uiAction_DataTypeChoiceClicked()
             __timeStep_JComboBox.setEnabled ( false );
         }
         */
+    }
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore)) {
+        // Set intervals for the data type and trigger a select to populate the input filters
+    	ReclamationPiscesDataStore dataStore = (ReclamationPiscesDataStore)selectedDataStore;
+        __timeStep_JComboBox.removeAll ();
+        __timeStep_JComboBox.setEnabled ( true );
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.select ( null );
+        __timeStep_JComboBox.select ( 0 );
     }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore)) {
 		// Time steps are determined from the database based on the data type that is selected...
@@ -14232,6 +14386,17 @@ private void uiAction_GetTimeSeriesListClicked()
         }
         catch ( Exception e ) {
             message = "Error reading ReclamationHDB - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
+	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore) ) {
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading ReclamationPisces - cannot display time series list (" + e + ").";
             Message.printWarning ( 1, routine, message );
             Message.printWarning ( 3, routine, e );
             return;
@@ -14832,7 +14997,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeade
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
-    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
+    // The headers are a list of TimeSeriesMeta
     try {
         GenericDatabaseDataStore ds = (GenericDatabaseDataStore)ui_GetSelectedDataStore();
         DMI dmi = (DMI)ds.getDMI();
@@ -15581,6 +15746,72 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
             TSTool_ReclamationHDB_CellRenderer cr =
                 new TSTool_ReclamationHDB_CellRenderer( (TSTool_ReclamationHDB_TableModel)__query_TableModel);
 
+            __query_JWorksheet.setCellRenderer ( cr );
+            __query_JWorksheet.setModel ( __query_TableModel );
+            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+        }
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+}
+
+/**
+Read ReclamationPisces time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders()
+{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    DataStore dataStore = ui_GetSelectedDataStore ();
+    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
+    try {
+        ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)dataStore;
+        // Check the connection in case the connection timed out.
+        ds.checkDatabaseConnection();
+        queryResultsList_Clear ();
+
+        String dataType = __dataType_JComboBox.getSelected(); // Parameter
+        String timeStep = __timeStep_JComboBox.getSelected();
+        if ( timeStep == null ) {
+            Message.printWarning ( 1, rtn, "No time series are available for timestep." );
+            JGUIUtil.setWaitCursor ( this, false );
+            return;
+        }
+        else {
+            timeStep = timeStep.trim();
+        }
+
+        List<ReclamationPisces_SiteCatalogSeriesCatalog> results = null;
+        // Data type is shown without name so use full choice
+        try {
+            results = ds.readSiteCatalogSeriesCatalogList(null, null, dataType, timeStep, __selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            results = null;
+        }
+
+        int size = 0;
+        if ( results != null ) {
+            size = results.size();
+            // TODO Does not work??
+            //__query_TableModel.setNewData ( results );
+            // Try brute force...
+            __query_TableModel = new TSTool_ReclamationPisces_TableModel ( ds, results );
+            TSTool_ReclamationPisces_CellRenderer cr =
+                new TSTool_ReclamationPisces_CellRenderer( (TSTool_ReclamationPisces_TableModel)__query_TableModel);
             __query_JWorksheet.setCellRenderer ( cr );
             __query_JWorksheet.setModel ( __query_TableModel );
             __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
@@ -18210,6 +18441,40 @@ throws Exception
 }
 
 /**
+Refresh the query choices for the currently selected ReclamationPisces datastore.
+*/
+private void uiAction_SelectDataStore_ReclamationPisces ( ReclamationPiscesDataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationPisces";
+    // Get the DMI instance for the matching datastore
+    ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)selectedDataStore;
+    // Check the connection in case the connection timed out.
+    ds.checkDatabaseConnection();
+    ui_SetInputNameVisible(false); // Not needed for Pisces
+    __dataType_JComboBox.removeAll ();
+    // Get the list of valid object/data types from the database
+    List<String> dataTypes = ds.getParameterList();
+    // Add a wildcard option to get all data types
+    dataTypes.add(0,"*");
+    __dataType_JComboBox.setData ( dataTypes );
+    __dataType_JComboBox.select ( 0 );
+    __dataType_JComboBox.setEnabled ( true );
+    // Set the initial timestep as "*" and refresh the list once a data type selection is made
+    __timeStep_JComboBox.removeAll ();
+    __timeStep_JComboBox.add ( "*" );
+    __timeStep_JComboBox.select ( "*" );
+    __timeStep_JComboBox.setEnabled ( true );
+ 
+    // Initialize with blank data list...
+    __query_TableModel = new TSTool_ReclamationPisces_TableModel( ds, null);
+    TSTool_ReclamationPisces_CellRenderer cr =
+        new TSTool_ReclamationPisces_CellRenderer((TSTool_ReclamationPisces_TableModel)__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+}
+
+/**
 Refresh the query choices for the currently selected RiversideDB datastore.
 */
 private void uiAction_SelectDataStore_RiversideDB ( RiversideDBDataStore selectedDataStore )
@@ -20206,6 +20471,12 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     else {
         v.add ( "ReclamationHDB datastore is not enabled");
     }
+    if ( __source_ReclamationPisces_enabled ) {
+        v.add ( "ReclamationPisces datastore is enabled" );
+    }
+    else {
+        v.add ( "ReclamationPisces datastore is not enabled");
+    }
     if ( __source_RiversideDB_enabled ) {
         v.add ( "RiversideDB datastore is enabled" );
     }
@@ -20327,7 +20598,7 @@ Show a table using the built in display component.
 @param selected table display string for the table to display "#) TableID - other information...".
 */
 private void uiAction_ShowResultsTable ( String selected )
-{   String routine = getClass().getName() + ".uiAction_ShowResultsTable";
+{   String routine = getClass().getSimpleName() + ".uiAction_ShowResultsTable";
     if ( selected == null ) {
         // May be the result of some UI event...
         return;

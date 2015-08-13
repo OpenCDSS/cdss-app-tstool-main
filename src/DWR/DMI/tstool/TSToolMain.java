@@ -470,7 +470,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.06.01 (2015-07-29)";
+public static final String PROGRAM_VERSION = "11.07.00beta (2015-08-13)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -927,6 +927,12 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         propValue = getPropValue("TSTool.ReclamationHDBEnabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.reclamationhdb.";
+        }
+    }
+    else if ( dataStoreType.equalsIgnoreCase("ReclamationPiscesDataStore") ) {
+        propValue = getPropValue("TSTool.ReclamationPiscesEnabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "rti.tscommandprocessor.commands.reclamationpisces.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
