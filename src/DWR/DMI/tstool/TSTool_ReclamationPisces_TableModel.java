@@ -256,7 +256,7 @@ public Object getValueAt(int row, int col) {
 		case COL_SERIES_SORTORDER: return data.getSortOrder();
 		case COL_SERIES_ICONNAME: return data.getIconName();
 		case COL_SERIES_TABLENAME: return data.getTableName();
-		case COL_SERIES_CONNECTION_STRING: data.getConnectionString();
+		case COL_SERIES_CONNECTION_STRING: return data.getConnectionString();
 		case COL_SERIES_EXPRESSION: return data.getExpression();
 		case COL_SERIES_NOTES: return data.getNotes();
 		case COL_SERIES_ENABLED: return data.getEnabled();
