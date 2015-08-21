@@ -16,42 +16,44 @@ public class TSTool_ReclamationPisces_TableModel extends JWorksheet_AbstractRowT
 /**
 Number of columns in the table model.
 */
-private final int COLUMNS = 34;
+private final int COLUMNS = 36;
 
 public final int COL_SITE_ID = 0;
 public final int COL_SITE_DESCRIPTION = 1;
 public final int COL_SERIES_NAME = 2;
-public final int COL_SITE_RESPONSIBILITY = 3;
+public final int COL_SERIES_SERVER = 3;
 public final int COL_SERIES_PARAMETER = 4;
 public final int COL_SERIES_TIMEINTERVAL = 5;
 public final int COL_SERIES_UNITS = 6;
 public final int COL_SERIES_START = 7;
 public final int COL_SERIES_END = 8;
 public final int COL_SITE_STATE = 9;
-public final int COL_SITE_LONGITUDE = 10;
-public final int COL_SITE_LATITUDE = 11;
-public final int COL_SITE_HORIZONTAL_DATUM = 12;
-public final int COL_SITE_ELEVATION = 13;
-public final int COL_SITE_VERTICAL_DATUM = 14;
-public final int COL_SITE_ELEVATION_METHOD = 15;
-public final int COL_SITE_VERTICAL_ACCURACY = 16;
-public final int COL_SITE_TIMEZONE = 17;
-public final int COL_SITE_TIMEZONE_OFFSET = 18;
-public final int COL_SITE_INSTALL = 19;
-public final int COL_SITE_ACTIVE_FLAG = 20;
-public final int COL_SITE_TYPE = 21;
-public final int COL_SERIES_PROVIDER = 22;
-public final int COL_SERIES_ID = 23;
-public final int COL_SERIES_PARENTID = 24;
-public final int COL_SERIES_ISFOLDER = 25;
-public final int COL_SERIES_SORTORDER = 26;
-public final int COL_SERIES_ICONNAME = 27;
-public final int COL_SERIES_TABLENAME = 28;
-public final int COL_SERIES_CONNECTION_STRING = 29;
-public final int COL_SERIES_EXPRESSION = 30;
-public final int COL_SERIES_NOTES = 31;
-public final int COL_SERIES_ENABLED = 32;
-public final int COL_DATASTORE_NAME	= 33;
+public final int COL_SITE_AGENCY_REGION = 10;
+public final int COL_SITE_LONGITUDE = 11;
+public final int COL_SITE_LATITUDE = 12;
+public final int COL_SITE_HORIZONTAL_DATUM = 13;
+public final int COL_SITE_ELEVATION = 14;
+public final int COL_SITE_VERTICAL_DATUM = 15;
+public final int COL_SITE_ELEVATION_METHOD = 16;
+public final int COL_SITE_VERTICAL_ACCURACY = 17;
+public final int COL_SITE_TIMEZONE = 18;
+public final int COL_SITE_TIMEZONE_OFFSET = 19;
+public final int COL_SITE_INSTALL = 20;
+public final int COL_SITE_ACTIVE_FLAG = 21;
+public final int COL_SITE_TYPE = 22;
+public final int COL_SITE_RESPONSIBILITY = 23;
+public final int COL_SERIES_PROVIDER = 24;
+public final int COL_SERIES_ID = 25;
+public final int COL_SERIES_PARENTID = 26;
+public final int COL_SERIES_ISFOLDER = 27;
+public final int COL_SERIES_SORTORDER = 28;
+public final int COL_SERIES_ICONNAME = 29;
+public final int COL_SERIES_TABLENAME = 30;
+public final int COL_SERIES_CONNECTION_STRING = 31;
+public final int COL_SERIES_EXPRESSION = 32;
+public final int COL_SERIES_NOTES = 33;
+public final int COL_SERIES_ENABLED = 34;
+public final int COL_DATASTORE_NAME	= 35;
 
 /**
 Datastore corresponding to datastore used to retrieve the data.
@@ -111,13 +113,14 @@ public String getColumnName(int columnIndex) {
 		case COL_SITE_ID: return "Site ID";
 		case COL_SITE_DESCRIPTION: return "Site Description";
 		case COL_SERIES_NAME: return "Series Name";
-		case COL_SERIES_PROVIDER: return "Series Provider";
+		case COL_SERIES_SERVER: return "Server";
 		case COL_SERIES_PARAMETER: return "Parameter";
 		case COL_SERIES_TIMEINTERVAL: return "Interval";
 		case COL_SERIES_UNITS: return "Units";
 		case COL_SERIES_START: return "Start";
 		case COL_SERIES_END: return "End";
 		case COL_SITE_STATE: return "State";
+		case COL_SITE_AGENCY_REGION: return "Region";
 		case COL_SITE_LONGITUDE: return "Longitude";
 		case COL_SITE_LATITUDE: return "Latitude";
 		case COL_SITE_HORIZONTAL_DATUM: return "H Datum";
@@ -131,6 +134,7 @@ public String getColumnName(int columnIndex) {
 		case COL_SITE_ACTIVE_FLAG: return "Site Active Flag";
 		case COL_SITE_TYPE: return "Site Type";
 		case COL_SITE_RESPONSIBILITY: return "Site Responsibility";
+		case COL_SERIES_PROVIDER: return "Series Provider";
 		case COL_SERIES_ID: return "Series ID";
 		case COL_SERIES_PARENTID: return "Series Parent ID";
 		case COL_SERIES_ISFOLDER: return "Series Is Folder";
@@ -179,13 +183,14 @@ public String[] getColumnToolTips() {
     toolTips[COL_SITE_ID] = "??";
     toolTips[COL_SITE_DESCRIPTION] = "??";
     toolTips[COL_SERIES_NAME] = "??";
-    toolTips[COL_SERIES_PROVIDER] = "??";
+    toolTips[COL_SERIES_SERVER] = "??";
     toolTips[COL_SERIES_PARAMETER] = "??";
     toolTips[COL_SERIES_TIMEINTERVAL] = "??";
     toolTips[COL_SERIES_UNITS] = "??";
     toolTips[COL_SERIES_START] = "??";
     toolTips[COL_SERIES_END] = "??";
     toolTips[COL_SITE_STATE] = "??";
+    toolTips[COL_SITE_AGENCY_REGION] = "??";
     toolTips[COL_SITE_LONGITUDE] = "??";
     toolTips[COL_SITE_LATITUDE] = "??";
     toolTips[COL_SITE_HORIZONTAL_DATUM] = "??";
@@ -199,6 +204,7 @@ public String[] getColumnToolTips() {
     toolTips[COL_SITE_ACTIVE_FLAG] = "??";
     toolTips[COL_SITE_TYPE] = "??";
     toolTips[COL_SITE_RESPONSIBILITY] = "??";
+    toolTips[COL_SERIES_PROVIDER] = "??";
     toolTips[COL_SERIES_ID] = "??";
     toolTips[COL_SERIES_PARENTID] = "??";
     toolTips[COL_SERIES_ISFOLDER] = "??";
@@ -230,13 +236,14 @@ public Object getValueAt(int row, int col) {
 		case COL_SITE_ID: return data.getSiteID();
 		case COL_SITE_DESCRIPTION: return data.getDescription();
 		case COL_SERIES_NAME: return data.getName();
-		case COL_SERIES_PROVIDER: return data.getProvider();
+		case COL_SERIES_SERVER: return data.getServer();
 		case COL_SERIES_PARAMETER: return data.getParameter();
 		case COL_SERIES_TIMEINTERVAL: return this.datastore.getTSIDIntervalFromPiscesInterval(data.getTimeInterval());
 		case COL_SERIES_UNITS: return data.getUnits();
 		case COL_SERIES_START: return "";
 		case COL_SERIES_END: return "";
 		case COL_SITE_STATE: return data.getState();
+		case COL_SITE_AGENCY_REGION: return data.getAgencyRegion();
 		case COL_SITE_LONGITUDE: return data.getLongitude();
 		case COL_SITE_LATITUDE: return data.getLatitude();
 		case COL_SITE_HORIZONTAL_DATUM: return data.getHorizontalDatum();
@@ -250,6 +257,7 @@ public Object getValueAt(int row, int col) {
 		case COL_SITE_ACTIVE_FLAG: return data.getActiveFlag();
 		case COL_SITE_TYPE: return data.getType();
 		case COL_SITE_RESPONSIBILITY: return data.getResponsibility();
+		case COL_SERIES_PROVIDER: return data.getProvider();
 		case COL_SERIES_ID: return data.getID();
 		case COL_SERIES_PARENTID: return data.getParentID();
 		case COL_SERIES_ISFOLDER: return data.getIsFolder();
@@ -274,13 +282,14 @@ public int[] getColumnWidths() {
     widths[COL_SITE_ID] = 10;
     widths[COL_SITE_DESCRIPTION] = 25;
     widths[COL_SERIES_NAME] = 15;
-    widths[COL_SITE_RESPONSIBILITY] = 13;
+    widths[COL_SERIES_SERVER] = 10;
     widths[COL_SERIES_PARAMETER] = 25;
     widths[COL_SERIES_TIMEINTERVAL] = 6;
     widths[COL_SERIES_UNITS] = 8;
     widths[COL_SERIES_START] = 3;
     widths[COL_SERIES_END] = 3;
     widths[COL_SITE_STATE] = 3;
+    widths[COL_SITE_AGENCY_REGION] = 10;
     widths[COL_SITE_LONGITUDE] = 7;
     widths[COL_SITE_LATITUDE] = 7;
     widths[COL_SITE_HORIZONTAL_DATUM] = 6;
@@ -294,6 +303,7 @@ public int[] getColumnWidths() {
     widths[COL_SITE_ACTIVE_FLAG] = 11;
     widths[COL_SITE_TYPE] = 7;
     widths[COL_SERIES_PROVIDER] = 13;
+    widths[COL_SITE_RESPONSIBILITY] = 13;
     widths[COL_SERIES_ID] = 6;
     widths[COL_SERIES_PARENTID] = 11;
     widths[COL_SERIES_ISFOLDER] = 11;

@@ -97,6 +97,7 @@ import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_SiteTimeSer
 import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPiscesDMI;
 import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPiscesDataStore;
+import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPisces_Ref_Parameter;
 import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPisces_SiteCatalogSeriesCatalog;
 import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPisces_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
@@ -5768,7 +5769,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         ds.checkDatabaseConnection();
         // Format the TSID using the older format that uses common names, but these are not guaranteed unique
         String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_ID );
-        String dataSource = (String)__query_TableModel.getValueAt( row, model.COL_SITE_RESPONSIBILITY);
+        String dataSource = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_SERVER);
         String dataType = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_PARAMETER);
         String interval = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_TIMEINTERVAL);
         String scenario = "";
@@ -18453,15 +18454,23 @@ throws Exception
     ui_SetInputNameVisible(false); // Not needed for Pisces
     __dataType_JComboBox.removeAll ();
     // Get the list of valid object/data types from the database
-    List<String> dataTypes = ds.getParameterList();
+    List<ReclamationPisces_Ref_Parameter> parameters = ds.getParameterList();
     // Add a wildcard option to get all data types
+    List<String> dataTypes = new ArrayList<String>();
     dataTypes.add(0,"*");
+    for ( ReclamationPisces_Ref_Parameter p : parameters ) {
+    	dataTypes.add(p.getID());
+    }
     __dataType_JComboBox.setData ( dataTypes );
     __dataType_JComboBox.select ( 0 );
     __dataType_JComboBox.setEnabled ( true );
     // Set the initial timestep as "*" and refresh the list once a data type selection is made
     __timeStep_JComboBox.removeAll ();
     __timeStep_JComboBox.add ( "*" );
+    __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.HOUR, 0));
+    __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.DAY, 0));
+    __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.MONTH, 0));
+    __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.YEAR, 0));
     __timeStep_JComboBox.select ( "*" );
     __timeStep_JComboBox.setEnabled ( true );
  
