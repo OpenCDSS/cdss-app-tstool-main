@@ -1242,6 +1242,7 @@ JMenuItem
 	__Commands_Output_WriteSummary_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, // Also duplicated as __Commands_Datastore_WriteTimeSeriesToDataStore
 	__Commands_Output_WriteTimeSeriesToDataStream_JMenuItem,
+	__Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
 	__Commands_Output_WriteWaterML_JMenuItem,
 	__Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem; // Also duplicated in testing commands __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile
@@ -1774,6 +1775,7 @@ private String
 	__Commands_Output_WriteSummary_String = TAB + "WriteSummary()... <write time series to Summary file>",
 	// See __Commands_Datastore_WriteTimeSeriesToDataStore, which is used for this menu
 	__Commands_Output_WriteTimeSeriesToDataStream_String = TAB + "WriteTimeSeriesToDataStream()... <write time series as stream of data records>",
+	__Commands_Output_WriteTimeSeriesToHydroJSON_String = TAB + "WriteTimeSeriesToHydroJSON()... <write time series to HydroJSON file>",
 	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
 	// See __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, which is used for this menu
@@ -6476,6 +6478,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Output_WriteSummary_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML_JMenuItem, enabled);
     
@@ -9936,6 +9939,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Datastore_WriteTimeSeriesToDataStore_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStream_String, this ) );
+    __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem =
+        new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToHydroJSON_String, this ) );
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToJson_String, this ) );
 	
@@ -12668,6 +12673,9 @@ throws Exception
     // See also __Commands_Datastore_WriteTimeSeriesToDataStore which duplicates the output menu
     else if (command.equals( __Commands_Output_WriteTimeSeriesToDataStream_String)){
         commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToDataStream_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Output_WriteTimeSeriesToHydroJSON_String)){
+        commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToHydroJSON_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Output_WriteTimeSeriesToJson_String)){
         commandList_EditCommand ( __Commands_Output_WriteTimeSeriesToJson_String, null, CommandEditType.INSERT );
