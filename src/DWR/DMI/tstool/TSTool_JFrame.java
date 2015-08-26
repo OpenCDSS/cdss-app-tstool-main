@@ -9307,7 +9307,7 @@ private void ui_InitGUIInputFiltersReclamationPisces ( List<DataStore> dataStore
             }
             // In here, create a new panel because datastore and/or DMI have changed and query results may also be different for filters...
             ReclamationPisces_TimeSeries_InputFilter_JPanel newIfp =
-                new ReclamationPisces_TimeSeries_InputFilter_JPanel((ReclamationPiscesDataStore)dataStore, 3);
+                new ReclamationPisces_TimeSeries_InputFilter_JPanel((ReclamationPiscesDataStore)dataStore, 4);
     
             // Add the new panel to the layout and set in the global data...
             int buffer = 3;
@@ -11226,7 +11226,7 @@ private void ui_SetInputFilterForSelections()
         "\", and data type \"" + selectedDataType + "\"" );
     try {
     if ( selectedDataStore != null ) {
-        // This handles input filters associated with datastores, including the new HydroBase datastores
+        // This handles input filters associated with datastores
         selectedInputFilter_JPanel =
             ui_GetInputFilterPanelForDataStoreName(selectedDataStoreName, selectedDataType, selectedTimeStep);
     }
@@ -13893,9 +13893,11 @@ private void uiAction_DataTypeChoiceClicked()
     	ReclamationPiscesDataStore dataStore = (ReclamationPiscesDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForParameter(ui_GetSelectedDataType()));
         __timeStep_JComboBox.select ( null );
-        __timeStep_JComboBox.select ( 0 );
+        if ( __timeStep_JComboBox.getItemCount() > 0 ) {
+        	__timeStep_JComboBox.select ( 0 );
+        }
     }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore)) {
 		// Time steps are determined from the database based on the data type that is selected...
