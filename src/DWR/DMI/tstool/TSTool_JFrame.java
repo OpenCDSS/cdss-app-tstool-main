@@ -13891,9 +13891,10 @@ private void uiAction_DataTypeChoiceClicked()
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore)) {
         // Set intervals for the data type and trigger a select to populate the input filters
     	ReclamationPiscesDataStore dataStore = (ReclamationPiscesDataStore)selectedDataStore;
+    	ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)dataStore.getDMI();
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForParameter(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dmi.getDataIntervalStringsForParameter(ui_GetSelectedDataType()));
         __timeStep_JComboBox.select ( null );
         if ( __timeStep_JComboBox.getItemCount() > 0 ) {
         	__timeStep_JComboBox.select ( 0 );
@@ -15790,6 +15791,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders()
     // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
     try {
         ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)dataStore;
+        ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)ds.getDMI();
         // Check the connection in case the connection timed out.
         ds.checkDatabaseConnection();
         queryResultsList_Clear ();
@@ -15808,7 +15810,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders()
         List<ReclamationPisces_SiteCatalogSeriesCatalog> results = null;
         // Data type is shown without name so use full choice
         try {
-            results = ds.readSiteCatalogSeriesCatalogList(null, null, dataType, timeStep, __selectedInputFilter_JPanel);
+            results = dmi.readSiteCatalogSeriesCatalogList(null, null, dataType, timeStep, __selectedInputFilter_JPanel);
         }
         catch ( Exception e ) {
             results = null;
@@ -18459,12 +18461,13 @@ throws Exception
 {   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationPisces";
     // Get the DMI instance for the matching datastore
     ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)selectedDataStore;
+    ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)ds.getDMI();
     // Check the connection in case the connection timed out.
     ds.checkDatabaseConnection();
     ui_SetInputNameVisible(false); // Not needed for Pisces
     __dataType_JComboBox.removeAll ();
     // Get the list of valid object/data types from the database
-    List<ReclamationPisces_Ref_Parameter> parameters = ds.getParameterList();
+    List<ReclamationPisces_Ref_Parameter> parameters = dmi.getParameterList();
     // Add a wildcard option to get all data types
     List<String> dataTypes = new ArrayList<String>();
     dataTypes.add(0,"*");
@@ -18479,8 +18482,11 @@ throws Exception
     __timeStep_JComboBox.add ( "*" );
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.HOUR, 0));
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.DAY, 0));
+    // TODO SAM 2015-08-26 Addd week when enabled in TSTool
+    //__timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.WEEK, 0));
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.MONTH, 0));
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.YEAR, 0));
+    __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.IRREGULAR, 0));
     __timeStep_JComboBox.select ( "*" );
     __timeStep_JComboBox.setEnabled ( true );
  
