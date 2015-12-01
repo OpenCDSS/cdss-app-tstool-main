@@ -470,7 +470,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.07.03beta (2015-10-23)";
+public static final String PROGRAM_VERSION = "11.07.04beta (2015-10-25)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1662,24 +1662,20 @@ private static void setConfigFile ( String configFile )
 
 /**
 Set the icon for the application.  This will be used for all windows.
-@param icon_type If CDSS, the application icon will be searched for using
-TSToolCDSSIcon32.gif.  Otherwise, the RTi icon will be used by searching for
-TSToolRTiIcon32.gif, both using a path for the main application.
+@param iconType The icon will be used by searching for
+TSToolXXXIcon32.gif (where XXX=iconType), both using a path for the main application.
 */
-public static void setIcon ( String icon_type )
+public static void setIcon ( String iconType )
 {	// First try loading the icon from the JAR file or class path...
-	String icon_file = "TSToolRTiIcon32.gif";
-	String icon_path ="";
-	if ( icon_type.equalsIgnoreCase("CDSS") ) {
-		icon_file = "TSToolCDSSIcon32.gif";
-	}
+	String iconFile = "TSTool" + iconType + "Icon32.gif";
+	String iconPath ="";
 	try {
         // The icon files live in the main application folder in the classpath.
-        icon_path = "DWR/DMI/tstool/" + icon_file;
-		JGUIUtil.setIconImage( icon_path );
+        iconPath = "DWR/DMI/tstool/" + iconFile;
+		JGUIUtil.setIconImage( iconPath );
 	}
 	catch ( Exception e ) {
-		Message.printStatus ( 2, "", "TSTool icon \"" + icon_path +	"\" does not exist in classpath." );
+		Message.printStatus ( 2, "", "TSTool icon \"" + iconPath +	"\" does not exist in classpath." );
 	}
 }
 

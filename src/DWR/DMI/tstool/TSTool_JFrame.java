@@ -238,7 +238,6 @@ import RTi.Util.IO.DataUnits_JFrame;
 import RTi.Util.IO.EndianRandomAccessFile;
 import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
-import RTi.Util.IO.LicenseManager;
 import RTi.Util.IO.PropList_CellRenderer;
 import RTi.Util.IO.PropList_TableModel;
 import RTi.Util.IO.TextPrinterJob;
@@ -295,20 +294,9 @@ CommandProgressListener // To update the status based on progress within a comma
 //================================
 
 /**
-The license manager to verify the license, etc.  Use the license_set/getLicenseManager() methods
-to access this data member.
-*/
-private LicenseManager __licenseManager = null;
-
-/**
 TSTool session information, used to track command file open history, etc.
 */
 private TSToolSession session = null;
-
-/**
-Support email when contacting RTi.
-*/
-private final String __RTiSupportEmail = "support@riverside.com";
 
 /**
 Map interface.
@@ -2144,15 +2132,9 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	ui_SetInitialWorkingDir (__props.getValue ( "WorkingDir" ));
  
 	addWindowListener ( this );
-	
-	// Read the license information...
-	license_InitializeLicenseFromTSToolProperties ();
 
 	// Initialize the input types and datastores based on the configuration
 	ui_EnableInputTypesForConfiguration ();
-	
-	// Disable input types based on the license (regardless of what is in the configuration file)...
-    ui_CheckInputTypesForLicense ( license_GetLicenseManager() );
 
 	// Values determined at run-time...
 
@@ -2161,9 +2143,8 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	Message.printStatus ( 1, "", "Working directory is " + __props.getValue ( "WorkingDir" ) );
 	__props.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 
-	// If the license type is CDSS, the icon will be set to the CDSS icon.
-	// Otherwise, the icon will be set to the RTi icon...
-	TSToolMain.setIcon ( license_GetLicenseManager().getLicenseType() );
+	// Set the icon to use for windows.
+	TSToolMain.setIcon ( "CDSS" );
 
 	// create the GUI ...
 	StopWatch in = new StopWatch();
@@ -2173,10 +2154,6 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	if ( Message.isDebugOn ) {
 	    Message.printDebug(1, "", "JTS - InitGUI: " + in.getSeconds());
 	}
-
-	// Check the license.  Do this after GUI is initialized so that a dialog can be shown...
-
-	license_CheckLicense ( license_GetLicenseManager() );
 
     // Get database connection information.  Force a login if the
 	// database connection cannot be made.  The login is interactive and
@@ -4818,174 +4795,6 @@ public void keyTyped ( KeyEvent event )
 }
 
 /**
-Check the license information to make sure that TSTool has a valid license.
-If not print a warning and exit.  The data member __license_manager is created
-for use elsewhere (e.g., in Help About).
-@param licenseManager the license manager for the session.
-*/
-private void license_CheckLicense ( LicenseManager licenseManager )
-{   String routine = "TSTool.checkLicense";
-    try {
-        if ( (licenseManager == null) || !licenseManager.isLicenseValid() ) {
-            Message.printWarning ( 1, routine, "The license is invalid.  TSTool will exit." );
-            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            setVisible(false);
-            dispose();
-            Message.closeLogFile();
-            System.exit(0);
-        }
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 1, routine, "Error checking the license.  TSTool will exit." );
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setVisible(false);
-        dispose();
-        Message.closeLogFile();
-        System.exit(0);
-    }
-    // Demo version always warns at startup.
-    if ( licenseManager.isLicenseDemo() ) {
-        if ( licenseManager.isLicenseExpired() ) {
-            Message.printWarning ( 1, routine, "The demonstration license expired on " +
-                    licenseManager.getLicenseExpires() + ".  TSTool features will be disabled.  Contact " +
-                    __RTiSupportEmail + " to obtain a new license.");
-            // Refresh the menus - everything will be disabled but Help, which will allow the license/configuration
-            // to be updated.
-            ui_CheckGUIState();
-        }
-        else {
-            // Not expired yet but a demo so warn the user every time they run TSTool
-            Message.printWarning ( 1, routine,
-            "This is a demonstration version of TSTool and will expire on " + licenseManager.getLicenseExpires() +
-            ".  Contact " + __RTiSupportEmail + " to obtain a full license.");
-        }
-    }
-    else {
-        // Not a demonstration license.
-        // Warn if within 30 days of the expiration
-        int daysToExpiration = licenseManager.getDaysToExpiration();
-        if ( daysToExpiration >= 0 && (daysToExpiration < 30) ) {
-            Message.printWarning ( 1, routine, "The license expires in " +
-                    daysToExpiration + " days.  Contact " + __RTiSupportEmail + " to renew the license.");
-        }
-        // Do not allow running with expired license
-        else if ( licenseManager.isLicenseExpired() ) {
-            Message.printWarning ( 1, routine, "The license expired on " +
-                    licenseManager.getLicenseExpires() + ".  TSTool features will be disabled.  Contact " +
-                    __RTiSupportEmail + " to renew the license.");
-            // Refresh the menus - everything will be disabled but Help, which will allow the license/configuration
-            // to be updated.
-            ui_CheckGUIState();
-        }
-    }
-}
-
-/**
-Get the license manager that is in effect for the session.
-*/
-private LicenseManager license_GetLicenseManager ()
-{
-    return __licenseManager;
-}
-
-/**
-Read the license file.  If not found, the license manager will be null and
-result in an invalid license error.  The license is read before the GUI is
-initialized to allow the GUI to be configured according to the license type.
-For example, the on-line help will be searched for differently if an RTi
-general license or a CDSS license.
-*/
-private void license_InitializeLicenseFromTSToolProperties ()
-{   String license_owner, license_type, license_count, license_expires, license_key;
-    String routine = "TSTool_JFrame.readLicense";
-    String warning = "";
-
-    Message.printStatus ( 1, routine, "Checking license" );
-    license_owner = TSToolMain.getPropValue ( "TSTool.LicenseOwner" );
-    if ( license_owner == null ) {
-        warning += "\nLicenseOwner is not specified in the TSTool license information.";
-    }
-    license_type = TSToolMain.getPropValue ( "TSTool.LicenseType" );
-    if ( license_type == null ) {
-        warning += "\nLicenseType is not specified in the TSTool license information.";
-    }
-    license_count = TSToolMain.getPropValue ( "TSTool.LicenseCount" );
-    if ( license_count == null ) {
-        warning += "\nLicenseCount is not specified in the TSTool license information.";
-    }
-    license_expires = TSToolMain.getPropValue ( "TSTool.LicenseExpires" );
-    if ( license_expires == null ) {
-        warning += "\nLicenseExpires is not specified in the TSTool license information.";
-    }
-    license_key = TSToolMain.getPropValue ( "TSTool.LicenseKey" );
-    if ( license_key == null ) {
-        warning += "\nLicenseKey is not specified in the TSTool license information.";
-    }
-    if ( warning.length() > 0 ) {
-        warning += "\nTSTool will not run.";
-        Message.printWarning ( 1, routine, warning );
-        license_SetLicenseManager ( null );
-        return;
-    }
-
-    try {
-        // The following allows null fields so check above...
-        //Message.printStatus ( 2, routine, "Input to license manager is " + license_owner + " " + license_type +
-        //       " " + license_count + " " + license_expires + " " + license_key );
-        license_SetLicenseManager ( new LicenseManager ( "TSTool",
-            license_owner, license_type, license_count, license_expires, license_key ) );
-        //Message.printStatus ( 2, routine, "License manager after initialization:  " + license_GetLicenseManager() );
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 3, routine, e );
-        license_SetLicenseManager ( null );
-    }
-}
-
-/**
-Indicate if the license is expired.
-@param licenseManager the license manager for the session.
-*/
-private boolean license_IsLicenseExpired( LicenseManager licenseManager )
-{
-    return licenseManager.isLicenseExpired();
-}
-
-/**
-Indicate if the software install is for CDSS, in which case certain non-CDSS
-features should be turned off.
-@param licenseManager the license manager for the session.
-*/
-private boolean license_IsInstallCDSS( LicenseManager licenseManager )
-{
-    if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-/**
-Indicate if the software install is for RTi, in which case all features are
-typically on (although there may also be checks to see which input types are
-enabled - no reason to show HydroBase features if not enabled).
-@param licenseManager the license manager for the session.
-*/
-private boolean license_IsInstallRTi(LicenseManager licenseManager)
-{
-    // The install type can normally be "Demo", "Site", etc. but the special value
-    // "CDSS" is used for unlimited CDSS installs.  Therefore, if it is not a CDSS
-    // type, it is an RTi type and therefore an RTi install.
-    if ( !license_IsInstallCDSS( licenseManager) ) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-/**
 Merge a new configuration file with the old configuration file.  It is assumed that the current configuration file
 is the most complete, likely being distributed with a demo or new version of the software.  Therefore the merge will
 accomplish the following cases:
@@ -5046,15 +4855,6 @@ throws IOException
         // Had at least one match so rewrite the property file to the same name.
         currentProps.writePersistent();
     }
-}
-
-/**
-Set the license manager for the session.
-@param licenseManager license manager for the session.
-*/
-private void license_SetLicenseManager ( LicenseManager licenseManager )
-{
-    __licenseManager = licenseManager;
 }
 
 /**
@@ -6209,14 +6009,8 @@ private void ui_CheckGUIState ()
 	if ( !__guiInitialized ) {
 		return;
 	}
-	
-	// For the case where the license has expired, disable top-level menus except File...Exit and Help and return
-	if ( license_IsLicenseExpired(license_GetLicenseManager()) ) {
-	    ui_CheckGUIState_LicenseExpired();
-	    return;
-	}
 
-	boolean enabled = true;		// Used to enable/disable main menus based on submenus.
+	boolean enabled = true; // Used to enable/disable main menus based on submenus.
 
 	// Get the needed list sizes...
 
@@ -6727,36 +6521,6 @@ private void ui_CheckHydroBaseFeatures ()
 	}
 }
 
-// TODO SAM 2011-03-21 It would be great to have this go away and rely only on the
-// configuration file properties and plug-in jars
-/**
-Disable input types depending on the license.  For example, if the license type
-is "CDSS", then RTi-developed input types like RiversideDB and DIADvisor are
-disabled.  For the most part, input types should all be enabled and only
-CDSS turns input types off in this method.
-@param licenseManager license manager for the session.
-*/
-private void ui_CheckInputTypesForLicense ( LicenseManager licenseManager )
-{	if ( licenseManager == null ) {
-		return;
-	}
-	String routine = "TSTool_JFrame.checkInputTypesForLicense";
-	if ( licenseManager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-	    // These generally are not going to be used with CDSS
-		//Message.printStatus ( 2, routine, "DIADvisor input type being disabled for CDSS." );
-		//__source_DIADvisor_enabled = false;
-		// TODO SAM 2008-10-02 Evaluate whether to permanently make this change in defaults
-		// Allow MODSIM to be turned on for CDSS since it appears to be a model that might be used
-		// in some parts of the State.
-		//Message.printStatus ( 2, routine, "MODSIM input type being disabled for CDSS." );
-		//__source_MODSIM_enabled = false;
-		//Message.printStatus ( 2, routine, "RiversideDB datastores being disabled for CDSS." );
-		//__source_RiversideDB_enabled = false;
-		//Message.printStatus ( 2, routine, "SHEF input type being disabled for CDSS." );
-		//__source_SHEF_enabled = false;
-	}
-}
-
 /**
 Check the GUI for NWSRFS FS5Files features.
 */
@@ -6943,13 +6707,6 @@ private void ui_EnableInputTypesForConfiguration ()
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_HydroBase_enabled = true;
-    }
-    else if ( propValue == null ) {
-        // No property defined.  Make sure to turn on for CDSS installation (false property above will
-        // have disabled).
-        if ( license_GetLicenseManager().getLicenseType().equalsIgnoreCase("CDSS") ) {
-            __source_HydroBase_enabled = true;
-        }
     }
     if ( __source_HydroBase_enabled ) {
         // Use newer notation...
@@ -13480,7 +13237,7 @@ throws Exception
 	// Help menu (order of GUI)...
 
 	if ( command.equals ( __Help_AboutTSTool_String )) {
-		uiAction_ShowHelpAbout ( license_GetLicenseManager() );
+		uiAction_ShowHelpAbout ();
 	}
 	else if ( command.equals ( __Help_ViewDocumentation_String ) ||
 	    command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ||
@@ -16761,26 +16518,13 @@ private void uiAction_ImportConfiguration ( String configFilePath )
 {   String routine = "TSTool_JFrame.uiAction_ImportConfiguration";
     // Print an explanation before continuing
     int x = ResponseJDialog.NO;
-    if ( license_IsInstallRTi(license_GetLicenseManager()) ) {
-        // Mention the license below...
-        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
         "The current TSTool configuration information will be updated as follows:\n\n" +
-        "1) You will select a configuration file to merge (e.g., containing new license information).\n" +
+        "1) You will select a configuration file to merge (e.g., containing old preferences).\n" +
         "2) The properties in the current configuration file will be updated to matching properties in the selected file.\n" +
         "3) You will need to restart the software in order for the new information to take effect.\n\n" +
         "Continue?",
         ResponseJDialog.YES| ResponseJDialog.NO).response();
-    }
-    else {
-        // Don't mention the license
-        x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-            "The current TSTool configuration information will be updated as follows:\n\n" +
-            "1) You will select a configuration file to merge (e.g., containing old preferences).\n" +
-            "2) The properties in the current configuration file will be updated to matching properties in the selected file.\n" +
-            "3) You will need to restart the software in order for the new information to take effect.\n\n" +
-            "Continue?",
-            ResponseJDialog.YES| ResponseJDialog.NO).response();
-    }
     if ( x == ResponseJDialog.NO ) {
         return;
     }
@@ -17304,7 +17048,7 @@ private void uiAction_OpenHydroBase ( boolean startup )
 	    hbdmi = TSToolMain.openHydroBase(__tsProcessor);
 	    // Further checks are made below for UI setup
 	}
-	else if ( (startup && license_IsInstallCDSS(__licenseManager)) || !startup ) {
+	else {
 	    // Use the login dialog
     	PropList hb_props = new PropList ( "SelectHydroBase" );
     	hb_props.set ( "ValidateLogin", "false" );
@@ -20225,36 +19969,21 @@ private void uiAction_ShowDataUnits ()
 /**
 Show the Help About dialog in response to a user selecting a menu.
 */
-private void uiAction_ShowHelpAbout ( LicenseManager licenseManager )
-{   String license_type = licenseManager.getLicenseType();
-    if ( license_type.equalsIgnoreCase("CDSS") ) {
-        // CDSS installation...
-        new HelpAboutJDialog ( this, "About TSTool",
-        "TSTool - Time Series Tool\n" +
-        "A component of Colorado's Decision Support Systems (CDSS)\n" +
-        IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2015 State of Colorado\n" +
-        "Developed by the Open Water Foundation\n" +
-        "Funded by:\n" +
-        "Colorado Division of Water Resources\n" +
-        "Colorado Water Conservation Board\n" +
-        "and others\n" +
-        "Send questions and comments to:\n" +
-        "steve.malers@openwaterfoundation.org or\n" +
-        "cdss@state.co.us\n", true );
-    }
-    else {
-        // A non-CDSS (RTi customer) installation...
-        new HelpAboutJDialog ( this, "About TSTool",
-        "TSTool - Time Series Tool\n" +
-        IOUtil.getProgramVersion() + "\n" +
-        "Copyright 1997-2015\n" +
-        "Developed by Riverside Technology, inc.\n" +
-        "Licensed to: " + licenseManager.getLicenseOwner() + "\n" +
-        "License type: " + licenseManager.getLicenseType() + "\n" +
-        "License expires: " + licenseManager.getLicenseExpires() + "\n" +
-        "Contact support at:  " + __RTiSupportEmail + "\n", true );
-    }
+private void uiAction_ShowHelpAbout ()
+{
+    new HelpAboutJDialog ( this, "About TSTool",
+    "TSTool - Time Series Tool\n" +
+    "A component of Colorado's Decision Support Systems (CDSS)\n" +
+    IOUtil.getProgramVersion() + "\n" +
+    "Copyright 1997-2015 State of Colorado\n" +
+    "Developed by the Open Water Foundation\n" +
+    "Funded by:\n" +
+    "Colorado Division of Water Resources\n" +
+    "Colorado Water Conservation Board\n" +
+    "and others\n" +
+    "Send questions and comments to:\n" +
+    "steve.malers@openwaterfoundation.org or\n" +
+    "cdss@state.co.us\n", true );
 }
 
 /**
@@ -20705,9 +20434,17 @@ private void uiAction_ShowTableProperties ()
                 v.add ( "" );
                 v.add ( "Table \"" + t.getTableID() + "\" properties:" );
                 for ( int ifld = 0; ifld < t.getNumberOfFields(); ifld++ ) {
-                    v.add("   Column[" + ifld + "] name=\"" + t.getFieldName(ifld) + "\" type=" +
-                        TableColumnType.valueOf(t.getFieldDataType(ifld)) + " width=" + t.getFieldWidth(ifld) + " precision=" +
-                        t.getFieldPrecision(ifld));
+                	StringBuilder b = new StringBuilder();
+                	b.append("   Column[" + ifld + "] name=\"" + t.getFieldName(ifld) + "\" type=");
+                	if ( t.isColumnArray(t.getFieldDataType(ifld))) {
+                		// Array column
+                		b.append("Array of " + TableColumnType.valueOf(t.getFieldDataType(ifld) - TableField.DATA_TYPE_ARRAY_BASE));
+                	}
+                	else {
+                		b.append(TableColumnType.valueOf(t.getFieldDataType(ifld)));
+                	}
+                	b.append(" width=" + t.getFieldWidth(ifld) + " precision=" + t.getFieldPrecision(ifld));
+                	v.add(b.toString());
                 }
             }
         }
