@@ -16958,7 +16958,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         if ( x == ResponseJDialog.CANCEL ) {
             return false;
         }
-        else if ( !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
+        else if ( (!commandsAreTemplate || (x == ResponseJDialog.YES)) && (__commands_JListModel.size() > 0) ) {
+        	// Only write command file if not zero commands (otherwise will blank out previous file).
             uiAction_WriteCommandFile ( __commandFileName, false, false );
         }
         // Else if No or OK will clear before opening the other file...
