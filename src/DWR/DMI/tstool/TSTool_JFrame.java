@@ -309,9 +309,9 @@ Path to icons/graphics in class path.
 private final String __TOOL_ICON_PATH = "/DWR/DMI/tstool";
 
 /**
-Maximum number of files in recent files.
+Maximum number of files in recent files, taken from TSToolSession history.
 */
-private final int MAX_RECENT_FILES = 10;
+private final int MAX_RECENT_FILES = 20;
 
 /**
 Fixed-width font - courier
@@ -1416,6 +1416,7 @@ JMenuItem
     __Commands_TableRead_ReadTableFromDBF_JMenuItem,
     __Commands_TableRead_ReadTableFromExcel_JMenuItem, // Uses string from __Commands_Spreadsheet_ReadTableFromExcel
     __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem,
+    __Commands_TableRead_ReadTableFromJSON_JMenuItem,
     __Commands_TableRead_ReadTableFromXML_JMenuItem;
 JMenu
 	__Commands_TableJoin_JMenu = null;
@@ -1933,6 +1934,7 @@ private String
     __Commands_TableRead_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
     __Commands_TableRead_ReadTableFromDBF_String = TAB + "ReadTableFromDBF()... <read a table from a dBASE file>",
     __Commands_TableRead_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
+    __Commands_TableRead_ReadTableFromJSON_String = TAB + "ReadTableFromJSON()... <read a table from a JSON file>",
     __Commands_TableRead_ReadTableFromXML_String = TAB + "ReadTableFromXML()... <read a table from an XML file>",
     __Commands_TableJoin_String = "Append/Join Tables",
     __Commands_TableJoin_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
@@ -9871,6 +9873,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
     __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem =
         new SimpleJMenuItem( __Commands_TableRead_ReadTableFromFixedFormatFile_String, this ) );
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromJSON_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromJSON_String, this ) );
     __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromXML_JMenuItem =
         new SimpleJMenuItem( __Commands_TableRead_ReadTableFromXML_String, this ) );
 
@@ -12572,6 +12576,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableRead_ReadTableFromFixedFormatFile_String) ) {
         commandList_EditCommand ( __Commands_TableRead_ReadTableFromFixedFormatFile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableRead_ReadTableFromJSON_String) ) {
+        commandList_EditCommand ( __Commands_TableRead_ReadTableFromJSON_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableRead_ReadTableFromXML_String) ) {
         commandList_EditCommand ( __Commands_TableRead_ReadTableFromXML_String, null, CommandEditType.INSERT );
