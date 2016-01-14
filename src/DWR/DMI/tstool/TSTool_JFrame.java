@@ -186,6 +186,7 @@ import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 import RTi.GRTS.TSProcessor;
 import RTi.GRTS.TSProductDMI;
+import RTi.GRTS.TSProductProcessor;
 import RTi.GRTS.TSPropertiesJFrame;
 import RTi.GRTS.TSViewJFrame;
 import RTi.TS.DateValueTS;
@@ -276,6 +277,8 @@ public class TSTool_JFrame extends JFrame
 implements
 ActionListener, // To handle menu selections in GUI
 CommandListUI, // To integrate this UI with command tools
+CommandProcessorListener, // To handle command processor progress updates (when commands start/finish)
+CommandProgressListener, // To update the status based on progress within a command
 GeoViewListener, // To handle map interaction (not well developed)
 ItemListener, // To handle choice selections in GUI
 JWorksheet_Listener, // To handle query result interaction
@@ -284,9 +287,8 @@ ListDataListener, // To change the GUI state when commands list change
 ListSelectionListener,
 MessageLogListener, // To handle interaction between log view and command list
 MouseListener,
-WindowListener, // To handle window/app shutdown, in particular if called in headless mode and TSView controls
-CommandProcessorListener, // To handle command processor progress updates (when commands start/finish)
-CommandProgressListener // To update the status based on progress within a command
+TSProductProcessor, // To handle requests from components to process *.tsp files
+WindowListener // To handle window/app shutdown, in particular if called in headless mode and TSView controls
 {
 
 //================================
@@ -1285,6 +1287,7 @@ JMenu
     __Commands_Spatial_JMenu = null;
 JMenuItem
     __Commands_Spatial_WriteTableToKml_JMenuItem,
+    __Commands_Spatial_WriteTableToShapefile_JMenuItem,
     __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
 
 //Commands (Spreadsheet)...
@@ -1827,6 +1830,7 @@ private String
 
     __Commands_Spatial_String = "Spatial Processing",
     __Commands_Spatial_WriteTableToKml_String = TAB + "WriteTableToKml()... <write table to a KML file>",
+    __Commands_Spatial_WriteTableToShapefile_String = TAB + "WriteTableToShapefile()... <write table to a Shapefile>",
     __Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
     
     // Spreadsheet Commands...
@@ -4960,6 +4964,36 @@ public void mouseReleased ( MouseEvent event )
 }
 
 /**
+Process a time series product file.
+*/
+public void processTSProduct ( String productFile, PropList props )
+{
+	TSProcessor p = new TSProcessor ();
+	// Set up the time series supplier...
+	if ( __tsProcessor != null ) {
+		// Time series should be in memory so add the TSCommandProcessor as a
+		// supplier.  This should result in quick supplying of in-memory time series...
+		p.addTSSupplier ( __tsProcessor );
+	}
+	// Now process the product
+	PropList override_props = new PropList ("TSTool");
+	DateTime now = new DateTime ( DateTime.DATE_CURRENT );
+	override_props.set ( "CurrentDateTime=", now.toString() );
+	boolean view_gui = true;
+	if ( view_gui ) {
+		override_props.set ( "InitialView", "Graph" );
+		override_props.set ( "PreviewOutput", "True" );
+	}
+	try {
+		p.processProduct ( productFile, override_props );
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 1, "", "Error processing TSProduct file (" + e + ")." );
+		Message.printWarning ( 3, "", e );
+	}
+}
+
+/**
 Display the time series list query results in a string format.  These results are APPENDED to the list
 of strings already found in the __commands_JList.  
 @param location Location part of TSIdent.
@@ -5901,6 +5935,7 @@ private void results_Views_AddView ( TimeSeriesView view )
         TimeSeriesTreeView treeView = (TimeSeriesTreeView)view;
         //__resultsViews_JTabbedPane.add(viewid,new JScrollPane(new JTree(treeView.getRootNode())));
         TimeSeriesTreeView_JTree tree = new TimeSeriesTreeView_JTree(treeView.getRootNode());
+        tree.setTSProductProcessor(this); // Allows popup to graph time series with product file
         __resultsViews_JTabbedPane.add(viewid,new JScrollPane(tree));
     }
     else {
@@ -6373,43 +6408,6 @@ private void ui_CheckGUIState ()
 
 	// TODO - can this be phased out?
 	JGUIUtil.setEnabled(__Commands_Output_SetOutputDetailedHeaders_JMenuItem,false);
-}
-
-/**
-Disable GUI features based on an expired license.
-*/
-private void ui_CheckGUIState_LicenseExpired () {
-    Runnable r = new Runnable() {
-        public void run() {
-            JGUIUtil.setEnabled ( __File_New_JMenu, false );
-            JGUIUtil.setEnabled ( __File_Open_JMenu, false );
-            JGUIUtil.setEnabled ( __File_Save_JMenu, false );
-            JGUIUtil.setEnabled ( __File_Print_JMenu, false );
-            JGUIUtil.setEnabled ( __File_Properties_JMenu, false );
-            JGUIUtil.setEnabled ( __File_SetWorkingDirectory_JMenuItem, false );
-            JGUIUtil.setEnabled ( __Edit_JMenu, false );
-            JGUIUtil.setEnabled ( __View_JMenu, false );
-            JGUIUtil.setEnabled ( __Commands_JMenu, false );
-            JGUIUtil.setEnabled ( __Run_JMenu, false );
-            JGUIUtil.setEnabled ( __Results_JMenu, false );
-            JGUIUtil.setEnabled ( __Tools_JMenu, false );
-            // Buttons
-            JGUIUtil.setEnabled ( __get_ts_list_JButton, false );
-            JGUIUtil.setEnabled ( __CopyAllToCommands_JButton, false );
-            JGUIUtil.setEnabled ( __CopySelectedToCommands_JButton, false );
-            JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
-            JGUIUtil.setEnabled ( __Run_AllCommands_JButton, false );
-            JGUIUtil.setEnabled ( __ClearCommands_JButton, false );
-        }
-    };
-    if ( SwingUtilities.isEventDispatchThread() )
-    {
-        r.run();
-    }
-    else 
-    {
-        SwingUtilities.invokeLater ( r );
-    }    
 }
 
 /**
@@ -9808,6 +9806,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
     __Commands_Spatial_JMenu.setToolTipText("Process spatial data).");
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToKml_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spatial_WriteTableToShapefile_String, this ) );
+    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToShapefile_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTableToKml_String, this ) );
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
@@ -12506,6 +12506,9 @@ throws Exception
 
     else if (command.equals( __Commands_Spatial_WriteTableToKml_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTableToKml_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spatial_WriteTableToShapefile_String) ) {
+        commandList_EditCommand ( __Commands_Spatial_WriteTableToShapefile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spatial_WriteTimeSeriesToKml_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTimeSeriesToKml_String, null, CommandEditType.INSERT );
