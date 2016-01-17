@@ -1286,6 +1286,7 @@ JMenuItem
 JMenu
     __Commands_Spatial_JMenu = null;
 JMenuItem
+	__Commands_Spatial_WriteTableToGeoJSON_JMenuItem,
     __Commands_Spatial_WriteTableToKml_JMenuItem,
     __Commands_Spatial_WriteTableToShapefile_JMenuItem,
     __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
@@ -1829,6 +1830,7 @@ private String
     // Spatial Commands...
 
     __Commands_Spatial_String = "Spatial Processing",
+    __Commands_Spatial_WriteTableToGeoJSON_String = TAB + "WriteTableToGeoJSON()... <write table to a GeoJSON file>",
     __Commands_Spatial_WriteTableToKml_String = TAB + "WriteTableToKml()... <write table to a KML file>",
     __Commands_Spatial_WriteTableToShapefile_String = TAB + "WriteTableToShapefile()... <write table to a Shapefile>",
     __Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
@@ -9805,10 +9807,13 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
     __Commands_Spatial_JMenu.setToolTipText("Process spatial data).");
+    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToGeoJSON_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spatial_WriteTableToGeoJSON_String, this ) );
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToKml_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTableToShapefile_String, this ) );
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToShapefile_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTableToKml_String, this ) );
+    __Commands_Spatial_JMenu.addSeparator();
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
     
@@ -12504,6 +12509,9 @@ throws Exception
     
     // Spatial commands...
 
+    else if (command.equals( __Commands_Spatial_WriteTableToGeoJSON_String) ) {
+        commandList_EditCommand ( __Commands_Spatial_WriteTableToGeoJSON_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Spatial_WriteTableToKml_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTableToKml_String, null, CommandEditType.INSERT );
     }
