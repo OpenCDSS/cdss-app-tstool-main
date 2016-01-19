@@ -13935,7 +13935,8 @@ private void uiAction_FileExitClicked ()
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
-				else if ( !commandsAreTemplate && (x == ResponseJDialog.YES) ) {
+				else if ( (__commands_JListModel.size() > 0) && !commandsAreTemplate && (x == ResponseJDialog.YES) ) {
+					// DO NOT let empty command file save becauase it is probably an accident where all old commands were cleared
 					// Prompt for the name and then save...
 					uiAction_WriteCommandFile (	__commandFileName, true, false );
 				}
@@ -13971,14 +13972,19 @@ private void uiAction_FileExitClicked ()
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
-				else if ( !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
+				else if ( (__commands_JListModel.size() > 0) && !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
+					// DO NOT let empty commands get saved because it is likely an accident
 					uiAction_WriteCommandFile (	__commandFileName, false, false );
 				}
 				// Else if No will just exit below...
 			}
 		}
 		// Now make sure the user wants to exit - they might have a lot of data processed...
-		x = new ResponseJDialog (this, "Exit TSTool", "Are you sure you want to exit TSTool?",
+		StringBuilder b = new StringBuilder("Are you sure you want to exit TSTool?");
+		if ( __commands_JListModel.size() == 0 ) {
+			b.append("\nCurrent commands are empty.\nTSTool WILL NOT save an empty file.\nThe previous file contents will remain." );
+		}
+		x = new ResponseJDialog (this, "Exit TSTool", b.toString(),
 			ResponseJDialog.YES| ResponseJDialog.NO).response();
 	}
 	if ( x == ResponseJDialog.YES ) {
@@ -16856,7 +16862,8 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
             uiAction_WriteCommandFile ( __commandFileName, true, false );
         }
     }
-	// See whether the old commands need to be saved/cleared...
+	// See whether the old commands need to be saved/cleared
+    // - a cancel will return false meaning the existing commands will remain in the command area
     if ( !uiAction_OpenCommandFile_CheckForSavingCommands() ) {
         return;
     }
@@ -16928,7 +16935,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
     if ( __commandFileName == null ) {
         // Have not been saved before.
         // Always allow save, even if read-only comment or template is set (since first save).
-        int x = ResponseJDialog.NO;
+        int x = ResponseJDialog.NO; // Blank commands will not be saved
         if ( __commands_JListModel.size() > 0 ) {
             x = new ResponseJDialog ( this, IOUtil.getProgramName(),
             "Do you want to save the changes you made?",
@@ -16976,7 +16983,7 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         if ( x == ResponseJDialog.CANCEL ) {
             return false;
         }
-        else if ( (!commandsAreTemplate || (x == ResponseJDialog.YES)) && (__commands_JListModel.size() > 0) ) {
+        else if ( !commandsAreTemplate && (x == ResponseJDialog.YES) && (__commands_JListModel.size() > 0) ) {
         	// Only write command file if not zero commands (otherwise will blank out previous file).
             uiAction_WriteCommandFile ( __commandFileName, false, false );
         }

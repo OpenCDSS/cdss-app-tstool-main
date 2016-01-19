@@ -470,7 +470,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.07.05 (2015-12-09)";
+public static final String PROGRAM_VERSION = "11.08.00beta (2016-01-17)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -746,7 +746,7 @@ public static void main ( String args[] )
 	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified ) {
 	    // Not "pure" batch so need to have the icon initialized
 	    try {
-	        setIcon ( "RTi" );
+	        setIcon ( "CDSS" );
 	    }
 	    catch ( Exception e ) {
 	        // FIXME SAM 2008-08-29 Why doesn't the above work on Linux in batch mode
@@ -1784,14 +1784,23 @@ private static void setWorkingDirUsingCommandFile ( String commandFileFull )
     System.out.println(message);
 }
 
+// TODO SAM 2015-12-14 This does not seem to work as intended
+// -The Excecutor service itself is not a thread and so does not return immediately
+// -What will happen if -nomaingui is used with a thread timeout
+// -Probably need timeout on start-up but not once graph is displayed
 /**
 Start the timeout thread, which will exit TSTool if it is not finished within the timeout.
 This is needed in cases where something in the code hangs and TSTool never exits.
 Ideally those situations can be handled with granular timeouts but that is sometimes not possible
 due to limitations in the packages that are called.
+@param timeoutSeconds number of seconds before timing out (ignore if <= 0)
 */
 private static void startTimeoutThread ( int timeoutSeconds )
 {	String routine = "startTimeoutThread";
+	if ( timeoutSeconds <= 0 ) {
+		// No need to start timeout thread
+		return;
+	}
 	ExecutorService executor = Executors.newSingleThreadExecutor();
 	Future<String> future = executor.submit(new SleepTask(timeoutSeconds));
 	try {
@@ -1810,8 +1819,10 @@ private static void startTimeoutThread ( int timeoutSeconds )
 	catch ( ExecutionException e ) {
 		Message.printWarning(2, routine, e );
 	}
-	// Shutdown the tasks managed by executor.
-	executor.shutdownNow();
+	finally {
+		// Shutdown the tasks managed by executor.
+		executor.shutdownNow();
+	}
 	
 	/*
     Runnable r = new Runnable() {
