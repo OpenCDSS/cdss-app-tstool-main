@@ -470,7 +470,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.08.00beta (2016-02-08)";
+public static final String PROGRAM_VERSION = "11.08.01beta (2016-02-10)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -481,6 +481,11 @@ private static TSTool_JFrame __tstool_JFrame;
 Home directory for system install.
 */
 private static String __home = null;
+
+/**
+Path to the batch server hot folder.
+*/
+private static String __batchServerHotFolder = "";
 
 /**
 Timeout when running in batch mode.  TSTool will exit if processing has not finished
@@ -497,6 +502,11 @@ private static String __configFile = "";
 List of properties to control the software from the configuration file and passed in on the command line.
 */
 private static PropList __tstool_props = null;
+
+/**
+Indicates whether TSTool is running in batch server mode (look for command files in hot folder).
+*/
+private static boolean __isBatchServer = false;
 
 /**
 Indicates whether TSTool is running in server mode using restlet.
@@ -531,6 +541,14 @@ private static boolean __noMainGUIArgSpecified = false;
 Command file being processed when run in batch mode with -commands File.
 */
 private static String __commandFile = null;
+
+/**
+Return the batch server hot folder.
+@return the batch server hot folder
+*/
+public static String getBatchServerHotFolder()
+{	return __batchServerHotFolder;
+}
 
 /**
 Return the command file that is being processed, or null if not being run in batch mode.
@@ -695,10 +713,18 @@ private static void initializeAfterHomeIsKnown ()
 }
 
 /**
-Indicate whether TSTool is running in server mode.  This feature is under development.
+Indicate whether TSTool is running in batch server mode.  This feature is under development.
+@return true if running in batch server mode.
+*/
+public static boolean isBatchServer()
+{	return __isBatchServer;
+}
+
+/**
+Indicate whether TSTool is running in REST API server mode.  This feature is under development.
 @return true if running in server mode.
 */
-public static boolean isRestletServer()
+public static boolean isRestServer()
 {	return __isRestletServer;
 }
     
@@ -741,9 +767,8 @@ public static void main ( String args[] )
 	// Do need to load it when -nomaingui is used because the windows that are shown will need
 	// to look nice with the icon.
 
-	Message.printStatus( 2, routine, "isBatch=" + IOUtil.isBatch() +
-	        " -nomaingui specified = " + __noMainGUIArgSpecified );
-	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified ) {
+	Message.printStatus( 2, routine, "isBatch=" + IOUtil.isBatch() + " -nomaingui specified = " + __noMainGUIArgSpecified );
+	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified || !isBatchServer() ) {
 	    // Not "pure" batch so need to have the icon initialized
 	    try {
 	        setIcon ( "CDSS" );
@@ -760,8 +785,7 @@ public static void main ( String args[] )
 
 	initializeAfterHomeIsKnown ();
 
-	Message.printStatus ( 1, routine,
-	        "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
+	Message.printStatus ( 1, routine, "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
 	
 	if ( IOUtil.isBatch() ) {
 		// Running like "tstool -commands file" (possibly with -nomaingui)
@@ -840,8 +864,93 @@ public static void main ( String args[] )
 			quitProgram ( 1 );
 		}
 	}
-	else if ( isRestletServer() ) {
-		// Run in server mode as a restlet
+	else if ( isBatchServer() ) {
+		String batchServerHotFolder0 = getBatchServerHotFolder();
+		Message.printStatus ( 1, routine, "Starting in batch server mode with hot folder \"" + batchServerHotFolder0 + "\"" );
+		// TODO SAM 2016-02-09 For now keep code here but may make more modular
+		// Create a runner that will be re-used
+		if ( batchServerHotFolder0.isEmpty() ) {
+			Message.printWarning ( 1, routine, "No batch server hot folder specified - use -batchServerHotFolder command line parameter." );
+			quitProgram ( 1 );
+		}
+		File batchServerHotFolder = new File(batchServerHotFolder0);
+		if ( !batchServerHotFolder.exists() ) {
+			Message.printWarning ( 1, routine, "Batch server hot folder \"" + batchServerHotFolder + "\" does not exist." );
+			quitProgram ( 1 );
+		}
+		if ( !batchServerHotFolder.canRead() ) {
+			Message.printWarning ( 1, routine, "Can't read batch server hot folder \"" + batchServerHotFolder + "\"." );
+			quitProgram ( 1 );
+		}
+		TSCommandFileRunner runner = new TSCommandFileRunner();
+		// Open the HydroBase connection if the configuration file specifies the information.  Do this before
+		// reading the command file because commands may try to run discovery during load.
+        openHydroBase ( runner.getProcessor() );
+        // Open datastores in a generic way if the configuration file specifies the information.  Do this before
+        // reading the command file because commands may try to run discovery during load.
+        openDataStoresAtStartup ( runner.getProcessor(), true );
+        File f = null;
+		String commandFileFull = "";
+	    boolean runDiscoveryOnLoad = false;
+	    boolean doStop = false;
+	    long sleep = 50;
+        while ( true ) {
+        	Thread.sleep(sleep); // Do this to keep the loop from eating up a lot of CPU
+        	// Wait for configured wait time between processing
+        	// Look for files in the batch server hot folder
+        	List<File> files = IOUtil.getFilesMatchingPattern(batchServerHotFolder0, "*", true);
+        	//Message.printStatus(1,routine,"Have " + files.size() + " files in hot folder.");
+        	// TODO SAM 2016-02-08 need to sort so oldest file processed first.
+        	// Also perhaps need to check for a command like "End()" to make sure file is complete from copy into hot folder
+        	for ( int i = 0; i < files.size(); i++ ) {
+        		f = files.get(i);
+        		// Make sure the file exists and is readable
+        		Message.printStatus(1,routine,"Processing command file \"" + f.getAbsolutePath() + "\".");
+        		if ( f.exists() && f.canRead() ) {
+    				commandFileFull = f.getAbsolutePath();
+        			String filename = f.getName();
+        			// Special actions based on command file name
+        			if ( filename.equalsIgnoreCase("stop") ) {
+        				doStop = true;
+        				break;
+        			}
+        			if ( !commandFileFull.toUpperCase().endsWith(".TSTOOL") ) {
+        				// Not a command file so don't process
+        				continue;
+        			}
+        			// Open the command file...
+        			try {
+        			    Message.printStatus( 1, routine, "Running command file in batch server mode:  \"" + commandFileFull + "\"" );
+        				runner.readCommandFile ( commandFileFull, runDiscoveryOnLoad );
+        			}
+        			catch ( Exception e ) {
+        				Message.printWarning ( 1, routine, "Error reading command file \"" + commandFileFull + "\".  Unable to run commands." );
+        				Message.printWarning ( 1, routine, e );
+        				continue;
+        			}
+        			// Run the command file..
+        			try {
+        			    // The following will throw an exception if there are any errors running.
+        	            runner.runCommands();
+        			}
+        			catch ( Exception e ) {
+        				Message.printWarning ( 1, routine, "Error running command file \"" + commandFileFull + "\"." );
+        				Message.printWarning ( 1, routine, e );
+        			}
+        			// Remove the command file
+        			f.delete();
+        		}
+        	}
+        	if ( doStop ) {
+        		// TODO SAM 2016-02-08 is it necessary to deal with windows/frames?
+        		Message.printStatus ( 1, routine, "Exiting batch server because file named \"stop\" was found in hot folder." );
+        		f.delete();
+        		quitProgram ( 0 );
+        	}
+        }
+	}
+	else if ( isRestServer() ) {
+		// Run in server mode using REST API
 		runRestletServer();
 	}
 	else {
@@ -1338,7 +1447,21 @@ throws Exception
     }
 
 	for (int i = 0; i < args.length; i++) {
-		if (args[i].equalsIgnoreCase("-commands")) {
+		if (args[i].equalsIgnoreCase("-batchServer")) {
+			Message.printStatus ( 1, routine, "Will start TSTool in batch server mode." );
+			__isBatchServer = true;
+		}
+		else if (args[i].equalsIgnoreCase("-batchServerHotFolder")) {
+		    // Batch server hot folder name
+			if ((i + 1)== args.length) {
+				message = "No argument provided to '-batchServerHotFolder'";
+				Message.printWarning(1,routine, message);
+				throw new Exception(message);
+			}
+			i++;
+			__batchServerHotFolder = args[i];
+		}
+		else if (args[i].equalsIgnoreCase("-commands")) {
 		    // Command file name
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-commands'";

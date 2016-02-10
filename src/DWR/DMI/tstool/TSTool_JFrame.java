@@ -7945,7 +7945,7 @@ private void ui_InitGUI ( )
 	setSize ( 900, 750 );
 	JGUIUtil.center ( this );
 	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
-	if ( !TSToolMain.isRestletServer() ) {
+	if ( !TSToolMain.isRestServer() ) {
        	setVisible ( true );
 	}
 	}
@@ -13920,7 +13920,7 @@ private void uiAction_FileExitClicked ()
 	// copy once all actions are implemented...
 	int x = ResponseJDialog.YES;	// Default for batch mode
 	boolean commandsAreTemplate = false;
-	if ( !TSToolMain.isRestletServer() && !IOUtil.isBatch() ) {
+	if ( !TSToolMain.isRestServer() && !IOUtil.isBatch() ) {
 		if ( __commandsDirty ) {
 			if ( __commandFileName == null ) {
 				// Have not been saved before...
