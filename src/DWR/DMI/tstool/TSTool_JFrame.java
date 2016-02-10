@@ -888,11 +888,11 @@ Indicates which data sources are enabled.  Defaults are actually definitively se
 the configuration file properties are evaluated.
 */
 private boolean
-    __source_ColoradoBNDSS_enabled = false,
     __source_ColoradoSMS_enabled = false,
     __source_ColoradoWaterHBGuest_enabled = true, // By default - allow all to access web service
     __source_ColoradoWaterSMS_enabled = true, // By default - allow all to access web service
 	__source_DateValue_enabled = true,
+	__source_DelftFews_enabled = true,
 	__source_DIADvisor_enabled = false,
 	__source_HECDSS_enabled = true,
 	__source_HydroBase_enabled = true,
@@ -916,7 +916,7 @@ private boolean
 	__source_UsgsNwisInstantaneous_enabled = true,
 	__source_UsgsNwisRdb_enabled = true,
 	__source_WaterML_enabled = true,
-	__source_WaterOneFlow_enabled = true;
+	__source_WaterOneFlow_enabled = false;
 
 /**
 Indicates if the main GUI should be shown.  This is normally true but if false
@@ -1110,6 +1110,7 @@ JMenuItem
 	//--
     __Commands_Read_CreateFromList_JMenuItem,
 	__Commands_Read_ReadDateValue_JMenuItem,
+	__Commands_Read_ReadDelftFewsPiXml_JMenuItem,
     __Commands_Read_ReadDelimitedFile_JMenuItem,
     __Commands_Read_ReadHecDss_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
@@ -1220,6 +1221,7 @@ JMenuItem
 	__Commands_Output_SetOutputPeriod_JMenuItem,
 	__Commands_Output_SetOutputYearType_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
+	__Commands_Output_WriteDelftFewsPiXml_JMenuItem,
 	__Commands_Output_WriteDelimitedFile_JMenuItem,
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
@@ -1672,8 +1674,8 @@ private String
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
-    __Commands_Read_ReadColoradoBNDSS_String = TAB + "ReadColoradoBNDSS()... <read 1+ time series from Colorado's BNDSS database>",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()... <read 1+ time series from a DateValue file>",
+	__Commands_Read_ReadDelftFewsPiXml_String = TAB + "ReadDelftFewsPiXml()... <read 1+ time series from a Delft FEWS PI XML file>",
     __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()... <read 1+ time series from a delimited file (under development)>",
     __Commands_Read_ReadHecDss_String = TAB + "ReadHecDss()... <read 1+ time series from a HEC-DSS database file>",
     __Commands_Read_ReadHydroBase_String = TAB + "ReadHydroBase()... <read 1+ time series from HydroBase>",
@@ -1757,6 +1759,7 @@ private String
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
 	__Commands_Output_WriteDateValue_String = TAB + "WriteDateValue()... <write time series to DateValue file>",
+	__Commands_Output_WriteDelftFewsPiXml_String = TAB + "WriteDelftFewsPiXml()... <write time series to Delft FEWS PI XML file>",
 	__Commands_Output_WriteDelimitedFile_String = TAB + "WriteDelimitedFile()... <write time series to a delimited file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
@@ -6291,6 +6294,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, enabled);
     
 	JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteDelftFewsPiXml_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteDelimitedFile_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,enabled);
@@ -6633,14 +6637,6 @@ private void ui_EnableInputTypesForConfiguration ()
 
     String propValue = null;
     
-    // Colorado BNDSS disabled by default (since only used in CDSS)...
-
-    __source_ColoradoBNDSS_enabled = false;
-    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoBNDSSEnabled" );
-    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
-        __source_ColoradoBNDSS_enabled = true;
-    }
-    
     // ColoradoSMS disabled by default (used in CDSS, requires direct SQL Server access)...
 
     __source_ColoradoSMS_enabled = false;
@@ -6673,6 +6669,14 @@ private void ui_EnableInputTypesForConfiguration ()
     propValue = TSToolMain.getPropValue ( "TSTool.DateValueEnabled" );
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_DateValue_enabled = false;
+    }
+    
+    // DELFT FEWS disabled by default...
+
+    __source_DelftFews_enabled = false;
+    propValue = TSToolMain.getPropValue ( "TSTool.DelftFewsEnabled" );
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+    	__source_DelftFews_enabled = true;
     }
 
     // DIADvisor disabled by default (only useful for users with DIADvisor)...
@@ -6906,12 +6910,12 @@ private void ui_EnableInputTypesForConfiguration ()
         __source_WaterML_enabled = false;
     }
     
-    // WaterOneFlow enabled by default...
+    // WaterOneFlow disabled by default until get it working...
 
-    __source_WaterOneFlow_enabled = true;
+    __source_WaterOneFlow_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterOneFlowEnabled" );
-    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
-        __source_WaterOneFlow_enabled = false;
+    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+        __source_WaterOneFlow_enabled = true;
     }
 }
 
@@ -8445,24 +8449,31 @@ private void ui_InitGUIInputFiltersGenericDatabaseDataStore ( List<DataStore> da
     String selectedTimeStep = ui_GetSelectedTimeStep();
     for ( DataStore dataStore: dataStoreList ) {
         try {
-            // Try to find an existing input filter panel for the same name...
-            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType, selectedTimeStep );
-            // If the previous instance is not null, remove it from the list...
-            if ( ifp != null ) {
-                __inputFilterJPanelList.remove ( ifp );
-            }
-            // Create a new panel...
-            GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel newIfp =
-                new GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel((GenericDatabaseDataStore)dataStore, 3);
-    
-            // Add the new panel to the layout and set in the global data...
-            int buffer = 3;
-            Insets insets = new Insets(0,buffer,0,0);
-            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            newIfp.setName("GenericDatabaseDataStore." + dataStore.getName());
-            __inputFilterJPanelList.add ( newIfp );
+        	// Only handle database datastores (not web datastores
+        	if ( dataStore instanceof GenericDatabaseDataStore ) {
+	        	// Only add an input filter if the datastore properies are defined to indicate time series data
+        		GenericDatabaseDataStore ds = (GenericDatabaseDataStore)dataStore;
+	        	if ( ds.hasTimeSeriesInterface(true) ) {
+		            // Try to find an existing input filter panel for the same name...
+		            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType, selectedTimeStep );
+		            // If the previous instance is not null, remove it from the list...
+		            if ( ifp != null ) {
+		                __inputFilterJPanelList.remove ( ifp );
+		            }
+		            // Create a new panel...
+		            GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel newIfp =
+		                new GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel((GenericDatabaseDataStore)dataStore, 3);
+		    
+		            // Add the new panel to the layout and set in the global data...
+		            int buffer = 3;
+		            Insets insets = new Insets(0,buffer,0,0);
+		            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
+		                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+		                GridBagConstraints.WEST );
+		            newIfp.setName("GenericDatabaseDataStore." + dataStore.getName());
+		            __inputFilterJPanelList.add ( newIfp );
+	        	}
+        	}
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine,
@@ -9373,13 +9384,13 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
    
     __Commands_ReadTimeSeries_JMenu.addSeparator ();
 	
-    if ( __source_ColoradoBNDSS_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoBNDSS_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_ReadColoradoBNDSS_String, this) );
-    }
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
+	}
+	if ( __source_DelftFews_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelftFewsPiXml_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_ReadDelftFewsPiXml_String, this) );
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelimitedFile_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadDelimitedFile_String, this) );
@@ -9651,6 +9662,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
+    if ( __source_DelftFews_enabled ) {
+    	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDelftFewsPiXml_JMenuItem =
+    		new SimpleJMenuItem(__Commands_Output_WriteDelftFewsPiXml_String, this ) );
+    }
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteDelimitedFile_JMenuItem =
         new SimpleJMenuItem(__Commands_Output_WriteDelimitedFile_String, this ) );
 
@@ -12054,11 +12069,11 @@ throws Exception
     else if (command.equals( __Commands_Read_SetInputPeriod_String) ) {
         commandList_EditCommand ( __Commands_Read_SetInputPeriod_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( __Commands_Read_ReadColoradoBNDSS_String)){
-        commandList_EditCommand ( __Commands_Read_ReadColoradoBNDSS_String, null, CommandEditType.INSERT );
-    }
     else if (command.equals( __Commands_Read_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, CommandEditType.INSERT );
+	}
+    else if (command.equals( __Commands_Read_ReadDelftFewsPiXml_String)){
+		commandList_EditCommand ( __Commands_Read_ReadDelftFewsPiXml_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Read_ReadDelimitedFile_String)){
         commandList_EditCommand ( __Commands_Read_ReadDelimitedFile_String, null, CommandEditType.INSERT );
@@ -12410,6 +12425,9 @@ throws Exception
 	}
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
 		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, CommandEditType.INSERT );
+	}
+	else if (command.equals( __Commands_Output_WriteDelftFewsPiXml_String)){
+		commandList_EditCommand ( __Commands_Output_WriteDelftFewsPiXml_String, null, CommandEditType.INSERT );
 	}
     else if (command.equals( __Commands_Output_WriteDelimitedFile_String)){
         commandList_EditCommand ( __Commands_Output_WriteDelimitedFile_String, null, CommandEditType.INSERT );
@@ -13972,7 +13990,7 @@ private void uiAction_FileExitClicked ()
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
-				else if ( (__commands_JListModel.size() > 0) && !commandsAreTemplate || (x == ResponseJDialog.YES) ) {
+				else if ( (__commands_JListModel.size() > 0) && !commandsAreTemplate && (x == ResponseJDialog.YES) ) {
 					// DO NOT let empty commands get saved because it is likely an accident
 					uiAction_WriteCommandFile (	__commandFileName, false, false );
 				}
@@ -13981,7 +13999,8 @@ private void uiAction_FileExitClicked ()
 		}
 		// Now make sure the user wants to exit - they might have a lot of data processed...
 		StringBuilder b = new StringBuilder("Are you sure you want to exit TSTool?");
-		if ( __commands_JListModel.size() == 0 ) {
+		if ( (__commands_JListModel.size() == 0) && (__commandFileName != null) ) {
+			// Only need to warn if an empty file with a name is being used
 			b.append("\nCurrent commands are empty.\nTSTool WILL NOT save an empty file.\nThe previous file contents will remain." );
 		}
 		x = new ResponseJDialog (this, "Exit TSTool", b.toString(),
@@ -20001,7 +20020,7 @@ private void uiAction_ShowHelpAbout ()
     "TSTool - Time Series Tool\n" +
     "A component of Colorado's Decision Support Systems (CDSS)\n" +
     IOUtil.getProgramVersion() + "\n" +
-    "Copyright 1997-2015 State of Colorado\n" +
+    "Copyright 1997-2016 State of Colorado\n" +
     "Developed by the Open Water Foundation\n" +
     "Funded by:\n" +
     "Colorado Division of Water Resources\n" +
@@ -20187,12 +20206,6 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     v.add ( "" );
     v.add ( "Input types and whether enabled:" );
     v.add ( "" );
-    if ( __source_ColoradoBNDSS_enabled ) {
-        v.add ( "ColoradoBNDSS datastore is enabled" );
-    }
-    else {
-        v.add ( "ColoradoBNDSS datastore is not enabled");
-    }
     if ( __source_ColoradoSMS_enabled ) {
         v.add ( "ColoradoSMS input type is enabled" );
     }
@@ -20204,6 +20217,12 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     }
     else {
         v.add ( "DateValue input type is not enabled" );
+    }
+    if ( __source_DelftFews_enabled ) {
+        v.add ( "DELFT FEWS input type is enabled" );
+    }
+    else {
+        v.add ( "DELFT FEWS input type is not enabled" );
     }
     if ( __source_DIADvisor_enabled ) {
         v.add ( "DIADvisor input type is enabled" );
