@@ -1291,6 +1291,7 @@ JMenuItem
 	__Commands_Spatial_WriteTableToGeoJSON_JMenuItem,
     __Commands_Spatial_WriteTableToKml_JMenuItem,
     __Commands_Spatial_WriteTableToShapefile_JMenuItem,
+    __Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem,
     __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
 
 //Commands (Spreadsheet)...
@@ -1836,6 +1837,7 @@ private String
     __Commands_Spatial_WriteTableToGeoJSON_String = TAB + "WriteTableToGeoJSON()... <write table to a GeoJSON file>",
     __Commands_Spatial_WriteTableToKml_String = TAB + "WriteTableToKml()... <write table to a KML file>",
     __Commands_Spatial_WriteTableToShapefile_String = TAB + "WriteTableToShapefile()... <write table to a Shapefile>",
+    __Commands_Spatial_WriteTimeSeriesToGeoJSON_String = TAB + "WriteTimeSeriesToGeoJSON()... <write 1+ time series to a GeoJSON file>",
     __Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
     
     // Spreadsheet Commands...
@@ -6331,9 +6333,10 @@ private void ui_CheckGUIState ()
     
     JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem,enabled);
-    
+
     JGUIUtil.setEnabled ( __Commands_Deprecated_RunningAverage_JMenuItem, enabled);
-    
+
+    JGUIUtil.setEnabled ( __Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem, enabled);
 
 	/* TODO - it is irritating to not be able to run commands
@@ -9829,6 +9832,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToShapefile_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTableToKml_String, this ) );
     __Commands_Spatial_JMenu.addSeparator();
+    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToGeoJSON_String, this ) );
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
     
@@ -12535,6 +12540,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Spatial_WriteTableToShapefile_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTableToShapefile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Spatial_WriteTimeSeriesToGeoJSON_String) ) {
+        commandList_EditCommand ( __Commands_Spatial_WriteTimeSeriesToGeoJSON_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Spatial_WriteTimeSeriesToKml_String) ) {
         commandList_EditCommand ( __Commands_Spatial_WriteTimeSeriesToKml_String, null, CommandEditType.INSERT );
