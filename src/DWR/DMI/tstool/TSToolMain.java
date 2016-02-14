@@ -421,6 +421,7 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -438,6 +439,8 @@ import javax.swing.JApplet;
 import javax.swing.JFrame;
 
 import org.restlet.data.Parameter;
+
+import com.sun.net.httpserver.HttpServer;
 
 import riverside.datastore.DataStore;
 import riverside.datastore.DataStoreConnectionUIProvider;
@@ -470,7 +473,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.08.01beta (2016-02-10)";
+public static final String PROGRAM_VERSION = "11.08.01beta (2016-02-15)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -507,6 +510,11 @@ private static PropList __tstool_props = null;
 Indicates whether TSTool is running in batch server mode (look for command files in hot folder).
 */
 private static boolean __isBatchServer = false;
+
+/**
+Indicates whether TSTool is running in HTTP server mode (requires command files to match REST endpoints and URL parmeters will translate to ${Property}).
+*/
+private static boolean __isHttpServer = false;
 
 /**
 Indicates whether TSTool is running in server mode using restlet.
@@ -718,6 +726,14 @@ Indicate whether TSTool is running in batch server mode.  This feature is under 
 */
 public static boolean isBatchServer()
 {	return __isBatchServer;
+}
+
+/**
+Indicate whether TSTool is running in HTTP server mode.  This feature is under development.
+@return true if running in server mode.
+*/
+public static boolean isHttpServer()
+{	return __isHttpServer;
 }
 
 /**
@@ -948,6 +964,16 @@ public static void main ( String args[] )
         		quitProgram ( 0 );
         	}
         }
+	}
+	else if ( isHttpServer() ) {
+		// See:  http://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
+		// Do something simple for now to test
+		int port = 8000;
+		HttpServer server = HttpServer.create(new InetSocketAddress(port),0);
+		String root = "/tstool";
+		server.createContext(root, new UrlHandler());
+		server.setExecutor(null);
+		server.start();
 	}
 	else if ( isRestServer() ) {
 		// Run in server mode using REST API
@@ -1585,6 +1611,10 @@ throws Exception
 			    Message.printStatus(1 , routine, "Using default configuration file: \"" + getConfigFile() + "\"" );
 			    readConfigFile(getConfigFile());
 			}
+		}
+		else if (args[i].equalsIgnoreCase("-httpServer")) {
+			Message.printStatus ( 1, routine, "Will start TSTool in HTTP server mode." );
+			__isHttpServer = true;
 		}
         else if (args[i].equalsIgnoreCase("-nodiscovery")) {
             // Don't run commands in discovery mode on initial load (should only be used in large batch runs)...
