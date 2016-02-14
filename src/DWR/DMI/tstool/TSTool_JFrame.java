@@ -745,6 +745,13 @@ example, tabs for different command files, each with a TSCommandProcessor.
 private TSCommandProcessor __tsProcessor = new TSCommandProcessor();
 
 /**
+Thread that is used to run the command processor.
+This will be set when the process starts and then set to null when complete.
+The thread is used to allow kill on the processor.
+*/
+private Thread __tsProcessorThread = null;
+
+/**
 Popup menu for time series results.
 */
 private JPopupMenu __resultsTS_JPopupMenu = null;
@@ -1480,6 +1487,7 @@ private JMenuItem
 	__Run_SelectedCommandsIgnoreOutput_JMenuItem,
 	__Run_CancelCommandProcessing_JMenuItem,
 	__Run_CancelAllCommandProcesses_JMenuItem,
+	__Run_CancelCommandProcessingKill_JMenuItem,
 	__Run_CommandsFromFile_JMenuItem,
 	__Run_ProcessTSProductPreview_JMenuItem,
 	__Run_ProcessTSProductOutput_JMenuItem;
@@ -2023,7 +2031,8 @@ private String
 	__Run_SelectedCommandsCreateOutput_String =	"Selected Commands (create all output)",
 	__Run_SelectedCommandsIgnoreOutput_String =	"Selected Commands (ignore output commands)",
 	__Run_CancelCommandProcessing_String = "Cancel Command Processing (wait for command to finish)",
-	__Run_CancelAllCommandProcesses_String = "Cancel All Command Processes",
+	__Run_CancelCommandProcessingKill_String = "Cancel Command Processing (interrupt processor)",
+	__Run_CancelCommandProcessesExternal_String = "Cancel Called Processes (external to TSTool)",
 	__Run_CommandsFromFile_String = "Commands From File...",
 	__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
 	__Run_ProcessTSProductOutput_String = "Process TS Product File (create output)...",
@@ -3356,9 +3365,9 @@ public void commandProgress ( int istep, int nstep, Command command, float perce
 Kill all processes that are still running for RunProgram(), RunDSSUTL(), and RunPython() commands.
 This may be needed because a process is hung (e.g., waiting for input).
 */
-private void commandProcessor_CancelAllCommandProcesses ()
-{   String routine = getClass().getName() + ".commandProcessor_CancelAllCommandProcesses";
-    Message.printStatus(2, routine, "Killing all processes started by commands..." );
+private void commandProcessor_CancelCommandProcessesExternal ()
+{   String routine = getClass().getName() + ".commandProcessor_CancelCommandProcessesExternal";
+    Message.printStatus(2, routine, "Killing all external processes started by commands..." );
     TSCommandProcessorUtil.killCommandProcesses(__tsProcessor.getCommands());
 }
 
@@ -3394,6 +3403,14 @@ called to avoid direct interaction with the processor data member.
 private TSCommandProcessor commandProcessor_GetCommandProcessor ()
 {
     return __tsProcessor;
+}
+
+/**
+Get the thread that is running the command processor.
+*/
+private Thread commandProcessor_GetCommandProcessorThread ()
+{
+	return this.__tsProcessorThread;
 }
 
 /**
@@ -3970,6 +3987,7 @@ private void commandProcessor_RunCommandsThreaded ( List commands, boolean creat
 		TSCommandProcessorThreadRunner runner = new TSCommandProcessorThreadRunner ( __tsProcessor, requestParams );
 		Message.printStatus ( 2, routine, "Running commands in separate thread.");
 		Thread thread = new Thread ( runner );
+		commandProcessor_SetCommandProcessorThread(thread);
 		thread.start();
 		// Do one update of the GUI to reflect the GUI running.  This will disable run
 		// buttons, etc. until the current run is done.
@@ -3981,6 +3999,15 @@ private void commandProcessor_RunCommandsThreaded ( List commands, boolean creat
 		Message.printWarning(2, routine, message );
 		Message.printWarning (3,routine, e);
 	}
+}
+
+/**
+Set the thread that is running for the command processor.
+This is set to allow a kill of the thread if necessary.
+*/
+private void commandProcessor_SetCommandProcessorThread ( Thread thread )
+{
+	this.__tsProcessorThread = thread;
 }
 
 /**
@@ -10652,6 +10679,10 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 		new SimpleJMenuItem(__Run_SelectedCommandsIgnoreOutput_String,this));
 	__Run_JMenu.add ( __Run_CancelCommandProcessing_JMenuItem =
 		new SimpleJMenuItem(__Run_CancelCommandProcessing_String,this));
+	__Run_CancelCommandProcessing_JMenuItem.setToolTipText("Tell the processor to stop when the current command completes running.");
+	__Run_JMenu.add ( __Run_CancelCommandProcessingKill_JMenuItem =
+	new SimpleJMenuItem(__Run_CancelCommandProcessingKill_String,this));
+	__Run_CancelCommandProcessingKill_JMenuItem.setToolTipText("Interrupt processing immediately.");
 	/* TODO SAM 2009-04-10 Evaluate whether to allow this - the problem is that although the command processor
 	 * is run on a thread, the individual commands are not and therefore if a process hangs, it is hung in the
 	 * processor and the Process instances cannot be retrieved
@@ -12928,14 +12959,34 @@ throws Exception
         uiAction_RunCommands ( false, false );
     }
     else if (command.equals(__Run_CancelCommandProcessing_String) ) {
-        // Cancel the current processor.  This may take awhile to occur.
+        // Cancel the current processor.  This may take awhile to occur if the current command is doing a lot of work.
         ui_UpdateStatusTextFields ( 1, routine, "Processing is being canceled...", null, __STATUS_CANCELING );
         ui_UpdateStatus ( true );
         __tsProcessor.setCancelProcessingRequested ( true );
     }
-    else if (command.equals(__Run_CancelAllCommandProcesses_String) ) {
+    else if (command.equals(__Run_CancelCommandProcessesExternal_String) ) {
         // Cancel all processes being run by commands - to fix hung processes
-        commandProcessor_CancelAllCommandProcesses ();
+        commandProcessor_CancelCommandProcessesExternal ();
+    }
+    else if (command.equals(__Run_CancelCommandProcessingKill_String) ) {
+        // Kill the current processor thread.
+        Thread thread =  commandProcessor_GetCommandProcessorThread();
+        Message.printStatus(1, routine, "Request to cancel processing, thread=" + thread);
+        if ( thread != null ) {
+            ui_UpdateStatusTextFields ( 1, routine, "Processing is being canceled...", null, __STATUS_CANCELING );
+            try {
+            	// This may cause a cascade of InterruptedException
+            	// -more tricky if in a wait() or sleep, such as Wait() command
+            	thread.interrupt();
+            	// Indicate that the process is done running
+            }
+            catch ( SecurityException e ) {
+            	Message.printStatus(1, routine, "Exception canceling processing (" + e + ")." );
+            }
+            ui_UpdateStatus ( true );
+	        commandProcessor_SetCommandProcessorThread(null);
+	        ui_UpdateStatusTextFields ( 1, routine, "Processing has been canceled.", null, __STATUS_CANCELED );
+        }
     }
     else if ( command.equals(__Run_CommandsFromFile_String) ) {
         // Get the name of the file to run and then execute a TSCommandProcessor as if in batch mode...
@@ -16876,7 +16927,7 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
     if ( processor.getIsRunning() ) {
         // TODO SAM 2013 figure out status of processing (percent complete)
         int x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-        "The previous commands are still running.\n" +
+        "The previous commands are still running (if commands were killed then ignore this warning).\n" +
         "Do you want to load a new command file?\n\n" +
         "Yes - load new command file - old commands will run in background until complete\n" +
         "No - continue working with current command file (also can cancel)",
@@ -16884,10 +16935,11 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
         if ( x == ResponseJDialog.NO ) {
             return;
         }
-        else if ( x == ResponseJDialog.YES ) {
+        //TODO SAM 2016-02-14 Not sure why this is needed
+        //else if ( x == ResponseJDialog.YES ) {
             // Prompt for the name and then save...
-            uiAction_WriteCommandFile ( __commandFileName, true, false );
-        }
+        //    uiAction_WriteCommandFile ( __commandFileName, true, false );
+        //}
     }
 	// See whether the old commands need to be saved/cleared
     // - a cancel will return false meaning the existing commands will remain in the command area
