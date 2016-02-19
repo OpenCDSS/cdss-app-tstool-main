@@ -421,6 +421,7 @@
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.InetSocketAddress;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -473,7 +474,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.08.01 (2016-02-15)";
+public static final String PROGRAM_VERSION = "11.09.00beta (2016-02-19)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -482,8 +483,9 @@ private static TSTool_JFrame __tstool_JFrame;
 
 /**
 Home directory for system install.
+As of 2016-02-18 this is NOT used for default log file and datastore configuration.
 */
-private static String __home = null;
+private static String __tstoolInstallHome = null;
 
 /**
 Path to the batch server hot folder.
@@ -520,6 +522,11 @@ private static boolean __isHttpServer = false;
 Indicates whether TSTool is running in server mode using restlet.
 */
 private static boolean __isRestletServer = false;
+
+/**
+Log file from the command line.  Parent folder must exist to create.
+*/
+private static String __logFileFromCommandLine = null;
 
 /**
 Indicates whether the command file should run after loading, when used in GUI mode.
@@ -636,12 +643,14 @@ Instantiates the application instance as an applet.
 */
 public void init()
 {	String routine = "TSToolMain.init";
+
+	TSToolSession session = new TSToolSession();
 	IOUtil.setApplet ( this );
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null );
 	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
     new MessageEventQueue();
     try {
-        parseArgs( this );
+        parseArgs( session, this );
 	}
 	catch ( Exception e ) {
         Message.printWarning( 1, routine, "Error parsing command line arguments.  Using default behavior if necessary." );
@@ -655,7 +664,7 @@ public void init()
 	// Full GUI as applet (no log file)...
 	// Show the main GUI, although later might be able to start up just
 	// the TSView part via a web site.
-	__tstool_JFrame = new TSTool_JFrame ( null, false );
+	__tstool_JFrame = new TSTool_JFrame ( session, null, false );
 }
 
 /**
@@ -706,7 +715,7 @@ private static void initializeAfterHomeIsKnown ()
 
 	// Initialize the system data...
 
-	String units_file = __home + File.separator + "system" + File.separator + "DATAUNIT";
+	String units_file = __tstoolInstallHome + File.separator + "system" + File.separator + "DATAUNIT";
 
 	Message.printStatus ( 2, routine, "Reading the units file \"" +	units_file + "\"" );
 	try {
@@ -754,6 +763,7 @@ public static void main ( String args[] )
 	try {
 	// Main try...
 
+	TSToolSession session = new TSToolSession();
 	initializeLoggingLevelsBeforeLogOpened();
 	setWorkingDirInitial ();
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args );
@@ -767,7 +777,7 @@ public static void main ( String args[] )
 	initializeLoggingLevelsAfterLogOpened();
 
 	try {
-        parseArgs ( args );
+        parseArgs ( session, args );
         // The result of this is that the full path to the command file will be set.
         // Or the GUI will need to start up in the current directory.
 	}
@@ -813,7 +823,7 @@ public static void main ( String args[] )
         openHydroBase ( runner.getProcessor() );
         // Open datastores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
-        openDataStoresAtStartup ( runner.getProcessor(), true );
+        openDataStoresAtStartup ( session, runner.getProcessor(), true );
 		try {
 		    String commandFileFull = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + commandFileFull + "\"" );
@@ -904,7 +914,7 @@ public static void main ( String args[] )
         openHydroBase ( runner.getProcessor() );
         // Open datastores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
-        openDataStoresAtStartup ( runner.getProcessor(), true );
+        openDataStoresAtStartup ( session, runner.getProcessor(), true );
         File f = null;
 		String commandFileFull = "";
 	    boolean runDiscoveryOnLoad = false;
@@ -983,7 +993,7 @@ public static void main ( String args[] )
 		// Run the GUI...
 		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
 		try {
-            __tstool_JFrame = new TSTool_JFrame ( getCommandFile(), getRunOnLoad() );
+            __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad() );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error starting TSTool GUI." );
@@ -1014,6 +1024,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 {   String routine = "TSToolMain.openDataStore";
     // Open the datastore depending on the type
     String dataStoreType = dataStoreProps.getValue("Type");
+    String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
+    Message.printStatus(2,routine,"DataStoreConfigFile="+dataStoreConfigFile);
     // For now hard-code this here
     // TODO SAM 2010-09-01 Make this more elegant
     String packagePath = ""; // Make sure to include trailing period below
@@ -1038,6 +1050,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
         // No need to check whether enabled or not since a generic connection
         // Specific configuration files will indicate if enabled
+    	// TODO SAM 2016-02-19 Need to move to more appropriate path
         packagePath = "riverside.datastore.";
     }
     else if ( dataStoreType.equalsIgnoreCase("HydroBaseDataStore") ) {
@@ -1166,6 +1179,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 	            DataStore dataStore = factory.create(dataStoreProps);
 	            // Add the datastore to the processor
 	            processor.setPropContents ( "DataStore", dataStore );
+	            Message.printStatus(2, routine, "DataStore properties are: " + dataStore.getProperties().toString(","));
 	            sw.stop();
 	            Message.printStatus(2, routine, "Opening datastore type \"" + dataStoreType + "\", name \"" +
 	                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
@@ -1189,7 +1203,7 @@ openRiversideDB() method will be called directly (no need to deal with the main 
 @param isBatch is the software running in batch mode?  If in batch mode do not open up datastores
 that have a login of "prompt".
 */
-protected static void openDataStoresAtStartup ( TSCommandProcessor processor, boolean isBatch )
+protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor, boolean isBatch )
 {   String routine = "TSToolMain.openDataStoresAtStartup";
     String configFile = getConfigFile();
 
@@ -1252,6 +1266,7 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor, bo
     
     // TODO SAM 2010-09-01 DataStore:*ConfigFile does not work
     List<Prop> dataStoreMainProps = getProps ( "DataStore:*" );
+    List<String> dataStoreConfigFiles = new ArrayList<String>();
     if ( dataStoreMainProps == null ) {
         Message.printStatus(2, routine, "No configuration properties matching DataStore:*.ConfigFile" );
     }
@@ -1264,49 +1279,74 @@ protected static void openDataStoresAtStartup ( TSCommandProcessor processor, bo
             }
             // Get the filename that defines the datastore - absolute or relative to the system folder
             String dataStoreFile = prop.getValue();
-            Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
-            // Read the properties from the configuration file
-            PropList dataStoreProps = new PropList("");
-            String dataStoreFileFull = dataStoreFile;
-            if ( !IOUtil.isAbsolute(dataStoreFile)) {
-                dataStoreFileFull = __home + File.separator + "system" + File.separator + dataStoreFile;
+            dataStoreConfigFiles.add(dataStoreFile);
+        }
+    }
+    // Also get names of datastore configuration files from configuration files in home folder
+    if ( session.createDatastoreFolder() ) {
+	    String datastoreFolder = session.getDatastoreFolder();
+	    File f = new File(datastoreFolder);
+	    FilenameFilter ff = new FilenameFilter() {
+	    	public boolean accept(File dir, String name) {
+	    		if ( name.toLowerCase().endsWith(".cfg") ) {
+	    			return true;
+	    		}
+	    		else {
+	    			return false;
+	    		}
+	    	}
+	    };
+	    String [] dfs = f.list(ff); // Returns files without leading path
+	    if ( dfs != null ) {
+	    	for ( int i = 0; i < dfs.length; i++ ) {
+	    		dataStoreConfigFiles.add(datastoreFolder + File.separator + dfs[i]);
+	    	}
+	    }
+    }
+    // Now open the datastores for found configuration files
+    for ( String dataStoreFile : dataStoreConfigFiles ) {
+        Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
+        // Read the properties from the configuration file
+        PropList dataStoreProps = new PropList("");
+        String dataStoreFileFull = dataStoreFile;
+        if ( !IOUtil.isAbsolute(dataStoreFile)) {
+            dataStoreFileFull = __tstoolInstallHome + File.separator + "system" + File.separator + dataStoreFile;
+        }
+        if ( !IOUtil.fileExists(dataStoreFileFull) ) {
+            Message.printWarning(3, routine, "Datastore configuration file \"" + dataStoreFileFull +
+                "\" does not exist - not opening datastore." );
+        }
+        else {
+            dataStoreProps.setPersistentName(dataStoreFileFull);
+            String dataStoreClassName = "";
+            try {
+                // Get the properties from the file
+                dataStoreProps.readPersistent();
+                // Also assign the configuration file path property to facilitate file processing later
+                // (e.g., to locate related files referenced in the configuration file, such as lists of data
+                // that are not available from web services)
+                dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
+                openDataStore ( dataStoreProps, processor, isBatch );
             }
-            if ( !IOUtil.fileExists(dataStoreFileFull) ) {
-                Message.printWarning(3, routine, "Datastore configuration file \"" + dataStoreFileFull +
-                    "\" does not exist - not opening datastore." );
+            catch ( ClassNotFoundException e ) {
+                Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
+                    "\" is not in the class path - report to software support (" + e + ")." );
+                Message.printWarning(2, routine, e);
             }
-            else {
-                dataStoreProps.setPersistentName(dataStoreFileFull);
-                String dataStoreClassName = "";
-                try {
-                    // Get the properties from the file
-                    dataStoreProps.readPersistent();
-                    // Also assign the configuration file path property to facilitate file processing later
-                    // (e.g., to locate related files referenced in the configuration file, such as lists of data
-                    // that are not available from web services)
-                    dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
-                    openDataStore ( dataStoreProps, processor, isBatch );
-                }
-                catch ( ClassNotFoundException e ) {
-                    Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
-                        "\" is not in the class path - report to software support (" + e + ")." );
-                    Message.printWarning(2, routine, e);
-                }
-                catch( InstantiationException e ) {
-                    Message.printWarning (2,routine, "Error instantiating datastore for class \"" + dataStoreClassName +
-                        "\" - report to software support (" + e + ")." );
-                    Message.printWarning(2, routine, e);
-                }
-                catch( IllegalAccessException e ) {
-                    Message.printWarning (2,routine, "Datastore for class \"" + dataStoreClassName +
-                        "\" needs a no-argument constructor - report to software support (" + e + ")." );
-                    Message.printWarning(2, routine, e);
-                }
-                catch ( Exception e ) {
-                    Message.printWarning (2,routine,"Error reading datastore configuration file \"" +
-                        dataStoreFileFull + "\" - not opening datastore (" + e + ")." );
-                    Message.printWarning(2, routine, e);
-                }
+            catch( InstantiationException e ) {
+                Message.printWarning (2,routine, "Error instantiating datastore for class \"" + dataStoreClassName +
+                    "\" - report to software support (" + e + ")." );
+                Message.printWarning(2, routine, e);
+            }
+            catch( IllegalAccessException e ) {
+                Message.printWarning (2,routine, "Datastore for class \"" + dataStoreClassName +
+                    "\" needs a no-argument constructor - report to software support (" + e + ")." );
+                Message.printWarning(2, routine, e);
+            }
+            catch ( Exception e ) {
+                Message.printWarning (2,routine,"Error reading datastore configuration file \"" +
+                    dataStoreFileFull + "\" - not opening datastore (" + e + ")." );
+                Message.printWarning(2, routine, e);
             }
         }
     }
@@ -1421,33 +1461,80 @@ protected static void openRiversideDB ( TSCommandProcessor processor, String nam
 Open the log file.  This should be done as soon as the application home
 directory is known so that remaining information can be captured in the log file.
 */
-private static void openLogFile ()
-{	String routine = "TSToolMain.openLogFile", __logfile = "";
+private static void openLogFile ( TSToolSession session )
+{	String routine = "TSToolMain.openLogFile";
 	String user = IOUtil.getProgramUser();
 
+	String logFile = null;
 	if ( IOUtil.isApplet() ) {
 		Message.printWarning ( 2, routine, "Running as applet - no TSTool log file opened." );
 	}
 	else {
-	    // FIXME SAM 2008-01-11 need to open log file in user space (e.g., /home/$USER/.TSTool/.. on Linux)
-	    if ( (__home == null) || (__home.length() == 0) || (__home.charAt(0) == '.')) {
-			Message.printWarning ( 2, routine, "Home directory is not defined.  Not opening log file.");
-		}
-		else {
-            if ( (user == null) || user.trim().equals("")) {
-				__logfile = __home + File.separator + "logs" + File.separator + "TSTool.log";
+		// Default as of 2016-02-18 is to open the log file as $home/.tstool/logs/TSTool_user.log file unless specified on command line
+		if ( __logFileFromCommandLine != null ) {
+			File f = new File(__logFileFromCommandLine);
+			if ( !f.getParentFile().exists() ) {
+				Message.printWarning ( 1, routine, "Error opening log file \"" + __logFileFromCommandLine +
+					"\" - log file parent folder does not exist.");
 			}
 			else {
-                __logfile = __home + File.separator + "logs" + File.separator + "TSTool_" +	user + ".log";
-			}
-			Message.printStatus ( 1, routine, "Log file name: " + __logfile );
-			try {
-                Message.openLogFile ( __logfile );
-			}
-			catch (Exception e) {
-				Message.printWarning ( 1, routine, "Error opening log file \"" + __logfile + "\"");
+				logFile = __logFileFromCommandLine;
+				Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
+				try {
+	                Message.openLogFile ( logFile );
+	                // Do it again so it goes into the log file
+	                Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
+				}
+				catch (Exception e) {
+					Message.printWarning ( 1, routine, "Error opening log file \"" + logFile + "\"");
+				}
 			}
 		}
+		else {
+			// Get the log file name from the session object...under user home folder
+			if ( session.createLogFolder() ) {
+				// Log folder already exists or was created, so OK to use
+				logFile = session.getLogFile();
+				Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
+				try {
+	                Message.openLogFile ( logFile );
+	                // Also log for troubleshooting
+	                Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
+				}
+				catch (Exception e) {
+					Message.printWarning ( 1, routine, "Error opening log file \"" + logFile + "\"");
+				}
+			}
+			else {
+				Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getLogFolder() + "\".  Not opening log file.");
+			}
+		}
+	    boolean oldWay = false;
+	    if ( oldWay ) {
+	    	// TODO SAM 2016-02-19 Remove this if the above logic works for the log file
+		    if ( (__tstoolInstallHome == null) || (__tstoolInstallHome.length() == 0) || (__tstoolInstallHome.charAt(0) == '.')) {
+				Message.printWarning ( 2, routine, "Home directory is not defined.  Not opening log file.");
+			}
+			else {
+				// Home folder was specified so create log file in that folder logs folder
+				String logfile = null;
+	            if ( (user == null) || user.trim().equals("")) {
+					logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool.log";
+				}
+				else {
+	                logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool_" +	user + ".log";
+				}
+				Message.printStatus ( 1, routine, "Log file name: " + logfile );
+				if ( logfile != null ) {
+					try {
+		                Message.openLogFile ( logfile );
+					}
+					catch (Exception e) {
+						Message.printWarning ( 1, routine, "Error opening log file \"" + logfile + "\"");
+					}
+				}
+			}
+	    }
 	}
 }
 
@@ -1455,7 +1542,7 @@ private static void openLogFile ()
 Parse command line arguments.
 @param args Command line arguments.
 */
-public static void parseArgs ( String[] args )
+public static void parseArgs ( TSToolSession session, String[] args )
 throws Exception
 {	String routine = "TSToolMain.parseArgs", message;
 	int pos = 0; // Position in a string.
@@ -1575,25 +1662,25 @@ throws Exception
 			i++;
            
             //Changed __home since old way wasn't supporting relative paths __home = args[i];
-            __home = (new File(args[i])).getCanonicalPath().toString();
+            __tstoolInstallHome = (new File(args[i])).getCanonicalPath().toString();
            
 			// Open the log file so that remaining messages will be seen in the log file...
-			openLogFile();
-			Message.printStatus ( 1, routine, "Home directory for TSTool from -home command line parameter is \"" +
-			    __home + "\"" );
+			openLogFile(session);
+			Message.printStatus ( 1, routine, "TSTool install folder from -home command line parameter is \"" +
+			    __tstoolInstallHome + "\"" );
 			// The default configuration file location is relative to the install home.  This works
 			// as long as the -home argument is first in the command line.
-			setConfigFile ( __home + File.separator + "system" + File.separator + "TSTool.cfg" );
+			setConfigFile ( __tstoolInstallHome + File.separator + "system" + File.separator + "TSTool.cfg" );
 			// Don't call setProgramWorkingDir or setLastFileDialogDirectory this since we set to user.dir at startup
 			//IOUtil.setProgramWorkingDir(__home);
 			//JGUIUtil.setLastFileDialogDirectory(__home);
-			IOUtil.setApplicationHomeDir(__home);
+			IOUtil.setApplicationHomeDir(__tstoolInstallHome);
 			// Also reset the java.library.path system property to include the application
 			// home + "/bin" so that DLLs installed with TSTool are found
 			// TODO SAM 2015-03-14 Figure this out - may not work by design - JRE may only use the java.library.path from startup
 			String javaLibraryPath = System.getProperty ( "java.library.path" );
 			System.setProperty( "java.library.path",
-			         __home + File.separatorChar + "bin" + System.getProperty("path.separator") + javaLibraryPath );
+			         __tstoolInstallHome + File.separatorChar + "bin" + System.getProperty("path.separator") + javaLibraryPath );
 			Message.printStatus( 2, routine, "Reset java.library.path to \"" +
 			        System.getProperty ( "java.library.path" ) + "\"" );
 	        // Read the configuration file to get default TSTool properties,
@@ -1615,6 +1702,16 @@ throws Exception
 		else if (args[i].equalsIgnoreCase("-httpServer")) {
 			Message.printStatus ( 1, routine, "Will start TSTool in HTTP server mode." );
 			__isHttpServer = true;
+		}
+		else if (args[i].equalsIgnoreCase("-logFile")) {
+		    // Specify the log file.
+			if ((i + 1)== args.length) {
+				message = "No argument provided to '-logFile'";
+				Message.printWarning(1,routine,message);
+				throw new Exception(message);
+			}
+			i++;
+			__logFileFromCommandLine = args[i];
 		}
         else if (args[i].equalsIgnoreCase("-nodiscovery")) {
             // Don't run commands in discovery mode on initial load (should only be used in large batch runs)...
@@ -1675,7 +1772,7 @@ throws Exception
 Parse the command-line arguments for the applet, determined from the applet data.
 @param a JApplet for this application.
 */
-public static void parseArgs ( JApplet a )
+public static void parseArgs ( TSToolSession session, JApplet a )
 throws Exception
 {	
     // Convert the applet parameters to an array of strings and call the other parse method.
@@ -1687,7 +1784,7 @@ throws Exception
     if ( a.getParameter("-test") != null ) {
         args.add ( "-test" );
     }
-    parseArgs ( (String [])args.toArray() );
+    parseArgs ( session, (String [])args.toArray() );
 }
 
 /**

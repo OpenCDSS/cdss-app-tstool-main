@@ -20,10 +20,76 @@ Need to handle because if the file is being modified at the same time exceptions
 private boolean historyBeingWritten = false;
 
 /**
-Construct the instance.
+Construct the session instance.
 */
 public TSToolSession ()
 {
+}
+
+/**
+Create the datastores folder if necessary.
+@return true if datastores folder exists and is writeable, false otherwise.
+*/
+public boolean createDatastoreFolder () {
+	String datastoresFolder = getDatastoreFolder();
+	// Do not allow datastores folder to be created under Linux root but allow TSTool to run
+	if ( datastoresFolder.equals("/") ) {
+		return false;
+	}
+	File f = new File(datastoresFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writeable
+		if ( !f.canWrite() ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+Create the log folder if necessary.
+@return true if log folder exists and is writeable, false otherwise.
+*/
+public boolean createLogFolder () {
+	String logFolder = getLogFolder();
+	// Do not allow log file to be created under Linux root but allow TSTool to run
+	if ( logFolder.equals("/") ) {
+		return false;
+	}
+	File f = new File(logFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writeable
+		if ( !f.canWrite() ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+Return the name of the datastore configuration folder.
+*/
+public String getDatastoreFolder ()
+{
+	String datastoreFolder = getUserFolder() + File.separator + "datastore";
+	//Message.printStatus(1,"","Datastore folder is \"" + datastoreFolder + "\"");
+	return datastoreFolder;
 }
 
 /**
@@ -34,6 +100,36 @@ public String getHistoryFile ()
 	String historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "command-file-history.txt";
 	//Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
+}
+
+/**
+Return the name of the log file folder.
+*/
+public String getLogFile ()
+{
+	String logFile = getLogFolder() + File.separator + "TSTool_" + System.getProperty("user.name") + ".log";
+	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
+	return logFile;
+}
+
+/**
+Return the name of the log file folder.
+*/
+public String getLogFolder ()
+{
+	String logFolder = getUserFolder() + File.separator + "log";
+	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
+	return logFolder;
+}
+
+/**
+Return the name of the user folder for the operating system.
+*/
+public String getUserFolder ()
+{
+	String userFolder = System.getProperty("user.home") + File.separator + ".tstool";
+	//Message.printStatus(1,"","User folder is \"" + userFolder + "\"");
+	return userFolder;
 }
 
 /**
@@ -98,6 +194,11 @@ private void writeHistory ( List<String> history )
 {
 	String nl = System.getProperty("line.separator");
 	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between TSTool instances" );
+	
+	if ( getUserFolder().equals("/") ) {
+		// Don't allow files to be created under root on Linux
+		return;
+	}
 
 	long ms = System.currentTimeMillis();
 	while ( this.historyBeingWritten ) {
@@ -117,7 +218,7 @@ private void writeHistory ( List<String> history )
 		File f = new File(getHistoryFile());
 		File folder = f.getParentFile();
 		if ( !folder.exists() ) {
-			if ( !folder.mkdir() ) {
+			if ( !folder.mkdirs() ) {
 				// Unable to make folder
 				return;
 			}

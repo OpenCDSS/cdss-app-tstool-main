@@ -2133,7 +2133,7 @@ TSTool_JFrame constructor.
 @param run_on_load If true, a successful load of a command file will be followed by
 running the commands.  If false, the command file will be loaded but not automatically run.
 */
-public TSTool_JFrame ( String command_file, boolean run_on_load )
+public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_on_load )
 {	super();
 	StopWatch swMain = new StopWatch();
 	swMain.start();
@@ -2144,7 +2144,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	Message.setTopLevel ( this );
 	
 	// Start a session to track which files are open
-	this.session = new TSToolSession ();
+	this.session = session;
    
 	// Set the initial working directory up front because it is used in the
 	// command processor and edit dialogs.
@@ -2221,7 +2221,7 @@ public TSTool_JFrame ( String command_file, boolean run_on_load )
 	// TODO SAM 2010-09-03 migrate more input types to datastores
 	try {
 		Message.printStatus(2, rtn, "Opening datastores from TSTool GUI...");
-	    TSToolMain.openDataStoresAtStartup(__tsProcessor,false);
+	    TSToolMain.openDataStoresAtStartup(session,__tsProcessor,false);
 	}
 	catch ( Exception e ) {
 	    Message.printStatus ( 1, rtn, "Error opening datastores (" + e + ")." );
@@ -10783,7 +10783,7 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 
     __View_JMenu.add ( __View_DataStores_JMenuItem=new SimpleJMenuItem( __View_DataStores_String, this));
 	__View_JMenu.add ( __View_DataUnits_JMenuItem=new SimpleJMenuItem( __View_DataUnits_String, this));
-    __View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem =  new JCheckBoxMenuItem(__View_Map_String) );
+    __View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem=new JCheckBoxMenuItem(__View_Map_String) );
     __View_MapInterface_JCheckBoxMenuItem.setState ( false );
     __View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
     __View_JMenu.addSeparator();
