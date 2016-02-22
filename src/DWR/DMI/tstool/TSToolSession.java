@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 /**
@@ -27,16 +28,16 @@ public TSToolSession ()
 }
 
 /**
-Create the datastores folder if necessary.
-@return true if datastores folder exists and is writeable, false otherwise.
+Create the datastore folder if necessary.
+@return true if datastore folder exists and is writeable, false otherwise.
 */
 public boolean createDatastoreFolder () {
-	String datastoresFolder = getDatastoreFolder();
-	// Do not allow datastores folder to be created under Linux root but allow TSTool to run
-	if ( datastoresFolder.equals("/") ) {
+	String datastoreFolder = getDatastoreFolder();
+	// Do not allow datastore folder to be created under Linux root but allow TSTool to run
+	if ( datastoreFolder.equals("/") ) {
 		return false;
 	}
-	File f = new File(datastoresFolder);
+	File f = new File(datastoreFolder);
 	if ( !f.exists() ) {
 		try {
 			f.mkdirs();
@@ -83,6 +84,107 @@ public boolean createLogFolder () {
 }
 
 /**
+Create a new system configuration file in user files.
+This is used when transitioning from TSTool earlier than 11.09.00 to version later.
+@return true if the file was created, false for all other cases.
+*/
+public boolean createConfigFile ( )
+{
+	if ( getUserFolder().equals("/") ) {
+		// Don't allow files to be created under root on Linux
+		return false;
+	}
+
+	// Create the configuration folder if necessary
+	File f = new File(getConfigFile());
+	File folder = f.getParentFile();
+	if ( !folder.exists() ) {
+		if ( !folder.mkdirs() ) {
+			// Unable to make folder
+			return false;
+		}
+	}
+	try {
+		String nl = System.getProperty("line.separator");
+		StringBuilder sb = new StringBuilder ( "# TSTool configuration file containing user settings, shared between TSTool versions" + nl );
+		sb.append("# This file indicates which datastore software features should be enabled." + nl );
+		sb.append("# Disabling datastore types that are not used can improve TSTool performance and simplifies the user interface." + nl );
+		sb.append("# Refer to the TSTool.cfg file under the software installation folder for global configuration properties." + nl );
+		sb.append("# User settings in this file will override the installation settings." + nl );
+		sb.append(nl);
+		// Include a line for HydroBase since it often needs to be disabled on computers where HydroBase is not used
+		sb.append("HydroBaseEnabled = true" + nl );
+		IOUtil.writeFile ( f.getPath(), sb.toString() );
+		return true;
+	}
+	catch ( Exception e ) {
+		return false;
+	}
+}
+
+/**
+Create the system folder if necessary.
+@return true if system folder exists and is writeable, false otherwise.
+*/
+public boolean createSystemFolder () {
+	String systemFolder = getSystemFolder();
+	// Do not allow system folder to be created under Linux root but allow TSTool to run
+	if ( systemFolder.equals("/") ) {
+		return false;
+	}
+	File f = new File(systemFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writeable
+		if ( !f.canWrite() ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+Return the value of the requested property from the user's TSTool configuration file.
+This reads the configuration file each time to ensure synchronization.
+@param propName property name
+@return the value of the property or null if file or property is not found
+*/
+public String getConfigPropValue ( String propName )
+{
+	String configFile = getConfigFile();
+	File f = new File(configFile);
+	if ( !f.exists() || !f.canRead() ) {
+		return null;
+	}
+	PropList props = new PropList("TSToolUserConfig");
+	props.setPersistentName(configFile);
+	try {
+		props.readPersistent();
+		return props.getValue(propName);
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+}
+
+/**
+Return the name of the user's TSTool configuration file.
+*/
+public String getConfigFile ()
+{
+	String logFile = getSystemFolder() + File.separator + "TSTool.cfg";
+	//Message.printStatus(1,"","Config file is \"" + logFolder + "\"");
+	return logFile;
+}
+
+/**
 Return the name of the datastore configuration folder.
 */
 public String getDatastoreFolder ()
@@ -103,7 +205,7 @@ public String getHistoryFile ()
 }
 
 /**
-Return the name of the log file folder.
+Return the name of the log file for the user.
 */
 public String getLogFile ()
 {
@@ -120,6 +222,16 @@ public String getLogFolder ()
 	String logFolder = getUserFolder() + File.separator + "log";
 	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
 	return logFolder;
+}
+
+/**
+Return the name of the system folder.
+*/
+public String getSystemFolder ()
+{
+	String systemFolder = getUserFolder() + File.separator + "system";
+	//Message.printStatus(1,"","System folder is \"" + systemFolder + "\"");
+	return systemFolder;
 }
 
 /**
@@ -168,7 +280,7 @@ Read the history of command files that have been opened.
 @return list of command files recently opened, newest first
 */
 public List<String> readHistory()
-{	String routine = getClass().getSimpleName() + ".readHistory";
+{	//String routine = getClass().getSimpleName() + ".readHistory";
 	try {
 		List<String> history = IOUtil.fileToStringList(getHistoryFile());
 		// Remove comment lines

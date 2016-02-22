@@ -4,7 +4,6 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -19,7 +18,9 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
@@ -44,22 +45,52 @@ private final String __True = "True";
 private SimpleJButton __cancel_JButton = null;
 private SimpleJButton __ok_JButton = null;
 private JCheckBox __General_RunThreaded_JCheckBox = null;
-private JCheckBox [] __inputTypeEnabled_JCheckBox = null;
-private boolean [] __inputTypeEnabledOriginalState = null;
-private boolean __error_wait = false; // Is there an error waiting to be cleared up?
-
-private PropList __appPropList = null; // PropList from TSTool, with configuration properties.
-private String __configFilePath = "";
+/**
+Checkbox for installation configuration file datastore enable/disable state.
+*/
+private JCheckBox [] __datastoreInstallEnabled_JCheckBox = null;
+/**
+Installation configuration file datastore enable/disable state when first read from configuration file.
+*/
+private boolean [] __datastoreEnabledInstallOriginalState = null;
+/**
+Checkbox for user configuration file datastore enable/disable state.
+*/
+private JCheckBox [] __datastoreUserEnabled_JCheckBox = null;
+/**
+User configuration file datastore enable/disable state when first read from configuration file.
+*/
+private boolean [] __datastoreEnabledUserOriginalState = null;
+/**
+Is there an error waiting to be resolved before closing dialog?
+*/
+private boolean __error_wait = false;
+/**
+PropList from TSTool installation configuration file, with configuration properties.
+Currently this has limited use and only applies to the installation configuration file.
+*/
+private PropList __appPropList = null;
+/**
+TSTool session information, to locate user configuration files.
+*/
+private TSToolSession __session = null;
+/**
+Path to TSTool.cfg for installation location.
+*/
+private String __configFilePathInstall = "";
 
 /**
 TSTool_Options_JDialog constructor.
 @param parent JFrame class instantiating this class.
+@param session the TSTool session, which provides information about user files.
+@param configFilePathInstall path to the installation TSTool configuration file.
 @param appPropList Properties from the application - a subset of all props that are specifically handled.
 */
-public TSTool_Options_JDialog ( JFrame parent, String configFilePath, PropList appPropList )
+public TSTool_Options_JDialog ( JFrame parent, TSToolSession session, String configFilePathInstall, PropList appPropList )
 {	super(parent, true);
+	__session = session;
 	__appPropList = appPropList;
-	__configFilePath = configFilePath;
+	__configFilePathInstall = configFilePathInstall;
 	initialize ();
 }
 
@@ -90,20 +121,9 @@ private void checkInput ()
 }
 
 /**
-Free memory for garbage collection.
-@exception Throwable if there is an error.
+Get the configuration file properties that indicate whether a datastore or input type is enabled.
 */
-protected void finalize ()
-throws Throwable
-{	__cancel_JButton = null;
-	__ok_JButton = null;
-	super.finalize ();
-}
-
-/**
-Get the input type properties from configuration file properties.
-*/
-private PropList getInputTypeProperties ( PropList configFilePropList )
+private PropList getDatastoreEnabledProperties ( PropList configFilePropList )
 {
     PropList inputTypeProps = new PropList("");
     for ( int i = 0; i < configFilePropList.size(); i++ ) {
@@ -116,7 +136,7 @@ private PropList getInputTypeProperties ( PropList configFilePropList )
 }
 
 /**
-Instantiates the GUI components.
+Instantiates the UI components.
 */
 private void initialize ()
 {	addWindowListener( this );
@@ -130,7 +150,7 @@ private void initialize ()
         JGUIUtil.addComponent(main_JPanel, main_JTabbedPane,
 		0, 0, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 	getContentPane().add ( "North", main_JPanel );
-	int y = 0;
+	int yDsInstall = 0;
 
 	// Developer tab...
 	JPanel developer_JPanel = new JPanel();
@@ -148,51 +168,61 @@ private void initialize ()
 		0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	main_JTabbedPane.addTab ( "Developer", developer_JPanel );
 
-	// Panel for enabled input types...
+	// Panel for enabled datastores and input types, from software installation...
 	
-    JPanel enabledInputTypes_JPanel = new JPanel();
-    enabledInputTypes_JPanel.setLayout ( gbl );
+    JPanel enabledDatastoresInstall_JPanel = new JPanel();
+    enabledDatastoresInstall_JPanel.setLayout ( gbl );
+    main_JTabbedPane.addTab ( "Datastores and Input Types (Installation)", enabledDatastoresInstall_JPanel );
     
-    y = 0;
-    JGUIUtil.addComponent(enabledInputTypes_JPanel,
-        new JLabel("Specify the configuration file properties to turn on input types.  Restart TSTool to see changes."),
-        0, y, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(enabledInputTypes_JPanel,
-        new JLabel("Refer to TSTool input type and data store documentation appendices for configuration information."),
-        0, ++y, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    yDsInstall = -1;
+    JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+        new JLabel("Specify the configuration file properties to enable/disable datastores and input types.  Restart TSTool to see changes."),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+        new JLabel("Refer to TSTool datastore and input type documentation appendices for configuration information."),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+        new JLabel("<html><b>These settings are for the TSTool installation settings.  Also refer to TSTool user settings."),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     // The __appPropList only contains a few special properties.  Because the input type enabling is
     // handled by updating the configuration file, read the current configuration file here to get the current list
     // of properties.
     
-    File configFile = new File(__configFilePath);
-    if ( !configFile.canRead() ) {
-        JGUIUtil.addComponent(enabledInputTypes_JPanel,
-            new JLabel("Configuration file is not readable: " + __configFilePath),
-            0, ++y, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    File configFileInstall = new File(__configFilePathInstall);
+    if ( !configFileInstall.canRead() ) {
+        JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+            new JLabel("Configuration file (installation) is not readable: " + __configFilePathInstall),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
-    else if ( !configFile.canWrite() ) {
-        JGUIUtil.addComponent(enabledInputTypes_JPanel,
-            new JLabel("Configuration file is not writeable: " + __configFilePath),
-            0, ++y, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    else if ( !configFileInstall.canWrite() ) {
+        JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+            new JLabel("Configuration file (installation) is not writeable (contact system support or change TSTool user settings): " + __configFilePathInstall),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
     else {
-        JGUIUtil.addComponent(enabledInputTypes_JPanel,
-            new JLabel("Configuration file: " + __configFilePath),
-            0, ++y, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+            new JLabel("Configuration file (installation): " + __configFilePathInstall),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         PropList configPropList = new PropList("");
-        configPropList.setPersistentName(__configFilePath);
+        configPropList.setPersistentName(__configFilePathInstall);
         try {
             configPropList.readPersistent();
-            PropList inputTypeProps = getInputTypeProperties ( configPropList );
-            __inputTypeEnabled_JCheckBox = new JCheckBox[inputTypeProps.size()];
-            __inputTypeEnabledOriginalState = new boolean[inputTypeProps.size()];
+            PropList inputTypeProps = getDatastoreEnabledProperties ( configPropList );
+            __datastoreInstallEnabled_JCheckBox = new JCheckBox[inputTypeProps.size()];
+            __datastoreEnabledInstallOriginalState = new boolean[inputTypeProps.size()];
             int x = 0;
             for ( int i = 0; i < inputTypeProps.size(); i++ ) {
                 if ( i == inputTypeProps.size()/2 ) {
                     // Start a second column
                     x = 1;
-                    y -= inputTypeProps.size()/2;
+                    yDsInstall -= inputTypeProps.size()/2;
                 }
                 Prop prop = inputTypeProps.elementAt(i);
                 String label = prop.getKey();
@@ -200,22 +230,106 @@ private void initialize ()
                 if ( pos >= 0 ) {
                     label = label.substring(pos+1);
                 }
-                __inputTypeEnabledOriginalState[i] = false;
+                __datastoreEnabledInstallOriginalState[i] = false;
                 if ( prop.getValue().equalsIgnoreCase("true")) {
-                    __inputTypeEnabledOriginalState[i] = true;
+                    __datastoreEnabledInstallOriginalState[i] = true;
                 }
-                __inputTypeEnabled_JCheckBox[i] = new JCheckBox(label,__inputTypeEnabledOriginalState[i]);
-                JGUIUtil.addComponent(enabledInputTypes_JPanel,
-                    __inputTypeEnabled_JCheckBox[i],
-                    x, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+                __datastoreInstallEnabled_JCheckBox[i] = new JCheckBox(label,__datastoreEnabledInstallOriginalState[i]);
+                JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+                    __datastoreInstallEnabled_JCheckBox[i],
+                    x, ++yDsInstall, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
             }
         }
         catch ( Exception e ) {
-            JGUIUtil.addComponent(enabledInputTypes_JPanel,
-                new JLabel("Error reading configuration file (" + e + ")."),
-                0, ++y, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+            JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+                new JLabel("Error reading installation configuration file \"" + __configFilePathInstall + "\" (" + e + ")."),
+                0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         }
     }
+    
+	// Panel for enabled datastores and input types, from user folder...
+	
+    JPanel enabledDatastoresUser_JPanel = new JPanel();
+    enabledDatastoresUser_JPanel.setLayout ( gbl );
+    main_JTabbedPane.addTab ( "Datastores and Input Types (User)", enabledDatastoresUser_JPanel );
+    
+    yDsInstall = -1;
+    JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+        new JLabel("Specify the configuration file properties to enable/disable datastores and input types.  Restart TSTool to see changes."),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+        new JLabel("Refer to TSTool datastore and input type documentation appendices for configuration information."),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+        new JLabel("<html><b>These settings are for the TSTool user settings.  Also refer to TSTool installation settings.</b></html>"),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+        new JLabel("<html><b>User settings will override the installation settings.</b></html>"),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+        new JLabel("<html><b>You may need to edit the \"" + __session.getConfigFile() + "\" file to add properties.</b></html>"),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+        new JLabel("<html><b>Press OK to initialize a new user configuration file.</b></html>"),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    
+    File configFileUser = new File(__session.getConfigFile());
+    if ( !configFileUser.canRead() ) {
+        JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+            new JLabel("Configuration file (user) is not readable: " + __session.getConfigFile()),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresUser_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    }
+    else if ( !configFileUser.canWrite() ) {
+        JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+            new JLabel("Configuration file (user) is not writeable (contact TSTool support because this should not happen): " + __session.getConfigFile()),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresUser_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    }
+    else {
+        JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+            new JLabel("Configuration file (user): " + __session.getConfigFile()),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        JGUIUtil.addComponent(enabledDatastoresUser_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
+            0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        PropList configPropList = new PropList("");
+        configPropList.setPersistentName(__session.getConfigFile());
+        try {
+            configPropList.readPersistent();
+            PropList inputTypeProps = getDatastoreEnabledProperties ( configPropList );
+            __datastoreUserEnabled_JCheckBox = new JCheckBox[inputTypeProps.size()];
+            __datastoreEnabledUserOriginalState = new boolean[inputTypeProps.size()];
+            int x = 0;
+            for ( int i = 0; i < inputTypeProps.size(); i++ ) {
+                if ( i == inputTypeProps.size()/2 ) {
+                    // Start a second column
+                    x = 1;
+                    yDsInstall -= inputTypeProps.size()/2;
+                }
+                Prop prop = inputTypeProps.elementAt(i);
+                String label = prop.getKey();
+                int pos = label.indexOf("."); // Because properties start with TSTool.
+                if ( pos >= 0 ) {
+                    label = label.substring(pos+1);
+                }
+                __datastoreEnabledUserOriginalState[i] = false;
+                if ( prop.getValue().equalsIgnoreCase("true")) {
+                    __datastoreEnabledUserOriginalState[i] = true;
+                }
+                __datastoreUserEnabled_JCheckBox[i] = new JCheckBox(label,__datastoreEnabledUserOriginalState[i]);
+                JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+                    __datastoreUserEnabled_JCheckBox[i],
+                    x, ++yDsInstall, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+            }
+        }
+        catch ( Exception e ) {
+            JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
+                new JLabel("Error reading user configuration file \"" + __session.getConfigFile() + "\" (" + e + ")."),
+                0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        }
+    }   
     
     /*
     __General_RunThreaded_JCheckBox = new JCheckBox ();
@@ -232,11 +346,10 @@ private void initialize ()
             __General_RunThreaded_JCheckBox,
             0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
                     */
-    main_JTabbedPane.addTab ( "Enabled Input Types", enabledInputTypes_JPanel );
-    
+   
     // Select the Enabled Input Types because they are more generally of interest to users
     
-    main_JTabbedPane.setSelectedComponent(enabledInputTypes_JPanel);
+    main_JTabbedPane.setSelectedComponent(enabledDatastoresInstall_JPanel);
 
 	// South Panel: North
 	JPanel button_JPanel = new JPanel();
@@ -297,8 +410,14 @@ public PropList response ( int status )
 		else {
 			__appPropList.set ( TSTool_RunCommandProcessorInThread, __False);
 		}
-		// Save the input type enabled values to the properties file
-		updateConfigurationFile ( __configFilePath );
+		// Save the input type enabled values to the TSTool configuration files, for installation and user versions
+		updateConfigurationFile ( __configFilePathInstall, __datastoreInstallEnabled_JCheckBox, __datastoreEnabledInstallOriginalState );
+		// If necessary, initialize the user configuration file
+		File f = new File(__session.getConfigFile());
+		if ( f.exists() || __session.createConfigFile() ) {
+			// File exists so update the file OR it did not exist but was created so update the file
+			updateConfigurationFile ( __session.getConfigFile(), __datastoreUserEnabled_JCheckBox, __datastoreEnabledUserOriginalState );
+		}
 		// Return the updated properties...
 		return __appPropList;
 	}
@@ -308,18 +427,19 @@ public PropList response ( int status )
 /**
 Update the values in the configuration file.  So as to not change the comments
 in the file, specific strings are processed.
+@param configurationFile full path to TSTool.cfg configuration file, can be installation or user version.
 */
-private void updateConfigurationFile ( String configurationFile )
-{   String routine = "updateConfigurationFile";
-    // Figure out if any configuration property values where changed by the user
-    if ( __inputTypeEnabled_JCheckBox == null ) {
+private void updateConfigurationFile ( String configurationFile, JCheckBox [] datastoreEnabled_JCheckBox, boolean [] datastoreEnabledOriginalState )
+{   String routine = getClass().getSimpleName() + ".updateConfigurationFile";
+    // Figure out if any configuration property values were changed by the user
+    if ( datastoreEnabled_JCheckBox == null ) {
         // User did not have permission.
         return;
     }
     int changeCount = 0;
-    for ( int i = 0; i < __inputTypeEnabled_JCheckBox.length; i++ ) {
-        boolean isSelected = __inputTypeEnabled_JCheckBox[i].isSelected();
-        if ( isSelected != __inputTypeEnabledOriginalState[i] ) {
+    for ( int i = 0; i < datastoreEnabled_JCheckBox.length; i++ ) {
+        boolean isSelected = datastoreEnabled_JCheckBox[i].isSelected();
+        if ( isSelected != datastoreEnabledOriginalState[i] ) {
             ++changeCount;
         }
     }
@@ -349,11 +469,11 @@ private void updateConfigurationFile ( String configurationFile )
             if ( parts.length == 2 ) {
                 String propName = parts[0].trim();
                 // Find the matching checkbox
-                for ( int i = 0; i < __inputTypeEnabled_JCheckBox.length; i++ ) {
-                    if ( __inputTypeEnabled_JCheckBox[i].getText().equalsIgnoreCase(propName) ) {
+                for ( int i = 0; i < datastoreEnabled_JCheckBox.length; i++ ) {
+                    if ( datastoreEnabled_JCheckBox[i].getText().equalsIgnoreCase(propName) ) {
                         // Matched the label so set the property if value has changed
-                        if ( __inputTypeEnabledOriginalState[i] != __inputTypeEnabled_JCheckBox[i].isSelected() ) {
-                            String newString = propName + " = " + __inputTypeEnabled_JCheckBox[i].isSelected();
+                        if ( datastoreEnabledOriginalState[i] != datastoreEnabled_JCheckBox[i].isSelected() ) {
+                            String newString = propName + " = " + datastoreEnabled_JCheckBox[i].isSelected();
                             stringList.set(iString, newString);
                         }
                         // No need to continue searching

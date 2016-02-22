@@ -1654,7 +1654,7 @@ private String
 
 	__Commands_String = "Commands",
 	
-	__Commands_SelectTimeSeries_String = "Select/Free/Sort Time Series",
+	__Commands_SelectTimeSeries_String = "Select, Free, Sort Time Series",
 	__Commands_Select_DeselectTimeSeries_String = TAB + "DeselectTimeSeries()... <deselect time series for output/processing>",
 	__Commands_Select_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
 	__Commands_Select_Free_String = TAB + "Free()... <free time series (will not be available to later commands)>",
@@ -1944,8 +1944,8 @@ private String
     
     // Table Commands...
 
-    __Commands_Table_String = "Commands/Table",
-    __Commands_TableCreate_String = "Create/Copy/Free Table",
+    __Commands_Table_String = "Commands(Table)",
+    __Commands_TableCreate_String = "Create, Copy, Free Table",
     __Commands_TableCreate_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_TableCreate_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
     __Commands_TableRead_String = "Read Table",
@@ -1955,10 +1955,10 @@ private String
     __Commands_TableRead_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
     __Commands_TableRead_ReadTableFromJSON_String = TAB + "ReadTableFromJSON()... <read a table from a JSON file>",
     __Commands_TableRead_ReadTableFromXML_String = TAB + "ReadTableFromXML()... <read a table from an XML file>",
-    __Commands_TableJoin_String = "Append/Join Tables",
+    __Commands_TableJoin_String = "Append, Join Tables",
     __Commands_TableJoin_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
     __Commands_TableJoin_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
-    __Commands_TableTimeSeries_String = "Table/TimeSeries Processing",
+    __Commands_TableTimeSeries_String = "Table, Timeseries Processing",
     __Commands_TableTimeSeries_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_TableTimeSeries_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
 	__Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String =
@@ -6671,6 +6671,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoSMS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
+    String propValueUser = session.getConfigPropValue ( "ColoradoSMSEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ColoradoSMS_enabled = true;
     }
@@ -6680,6 +6685,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoWaterHBGuest_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
+    propValueUser = session.getConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ColoradoWaterHBGuest_enabled = true;
     }
@@ -6689,6 +6699,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoWaterSMS_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
+    propValueUser = session.getConfigPropValue ( "ColoradoWaterSMSEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_ColoradoWaterSMS_enabled = false;
     }
@@ -6697,6 +6712,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DateValue_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.DateValueEnabled" );
+    propValueUser = session.getConfigPropValue ( "DateValueEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_DateValue_enabled = false;
     }
@@ -6705,6 +6725,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DelftFews_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.DelftFewsEnabled" );
+    propValueUser = session.getConfigPropValue ( "DelftFewsEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
     	__source_DelftFews_enabled = true;
     }
@@ -6713,6 +6738,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DIADvisor_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
+    propValueUser = session.getConfigPropValue ( "DIADvisorEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_DIADvisor_enabled = true;
     }
@@ -6727,6 +6757,11 @@ private void ui_EnableInputTypesForConfiguration ()
     else {
         __source_HECDSS_enabled = true;
         propValue = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
+        propValueUser = session.getConfigPropValue ( "HEC-DSSEnabled" );
+        if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+        	// User configuration value takes precedence
+        	propValue = propValueUser;
+        }
         if ( (propValue != null)&& propValue.equalsIgnoreCase("false") ) {
             __source_HECDSS_enabled = false;
         }
@@ -6740,6 +6775,11 @@ private void ui_EnableInputTypesForConfiguration ()
     if ( propValue == null ) {
         // Older...
         propValue = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
+    }
+    propValueUser = session.getConfigPropValue ( "HydroBaseEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_HydroBase_enabled = true;
@@ -6770,6 +6810,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_MODSIM_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
+    propValueUser = session.getConfigPropValue ( "MODSIMEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_MODSIM_enabled = false;
     }
@@ -6778,6 +6823,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSCard_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
+    propValueUser = session.getConfigPropValue ( "NWSCardEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_NWSCard_enabled = false;
     }
@@ -6786,6 +6836,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSRFS_ESPTraceEnsemble_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
+    propValueUser = session.getConfigPropValue ( "NWSRFSESPTraceEnsembleEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_NWSRFS_ESPTraceEnsemble_enabled = true;
     }
@@ -6798,6 +6853,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSRFS_FS5Files_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+    propValueUser = session.getConfigPropValue ( "NWSRFSFS5FilesEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ){
         __source_NWSRFS_FS5Files_enabled = true;
         propValue = TSToolMain.getPropValue ( "NWSRFSFS5Files.UseAppsDefaults" );
@@ -6819,6 +6879,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RCCACIS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
+    propValueUser = session.getConfigPropValue ( "RCCACISEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_RCCACIS_enabled = true;
     }
@@ -6827,6 +6892,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ReclamationHDB_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
+    propValueUser = session.getConfigPropValue ( "ReclamationHDBEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ReclamationHDB_enabled = true;
     }
@@ -6835,6 +6905,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ReclamationPisces_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationPiscesEnabled" );
+    propValueUser = session.getConfigPropValue ( "ReclamationPiscesEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ReclamationPisces_enabled = true;
     }
@@ -6843,6 +6918,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RiversideDB_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
+    propValueUser = session.getConfigPropValue ( "RiversideDBEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_RiversideDB_enabled = true;
     }
@@ -6851,6 +6931,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RiverWare_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
+    propValueUser = session.getConfigPropValue ( "RiverWareEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_RiverWare_enabled = false;
     }
@@ -6859,6 +6944,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_SHEF_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
+    propValueUser = session.getConfigPropValue ( "SHEFEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_SHEF_enabled = true;
     }
@@ -6867,6 +6957,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateCU_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
+    propValueUser = session.getConfigPropValue ( "StateCUEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateCU_enabled = false;
     }
@@ -6875,6 +6970,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateCUB_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
+    propValueUser = session.getConfigPropValue ( "StateCUBEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateCUB_enabled = false;
     }
@@ -6883,6 +6983,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateMod_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
+    propValueUser = session.getConfigPropValue ( "StateModEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateMod_enabled = false;
     }
@@ -6891,6 +6996,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateModB_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
+    propValueUser = session.getConfigPropValue ( "StateModBEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_StateModB_enabled = false;
     }
@@ -6899,6 +7009,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisDaily_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisDailyEnabled" );
+    propValueUser = session.getConfigPropValue ( "UsgsNwisDailyEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_UsgsNwisDaily_enabled = false;
     }
@@ -6907,6 +7022,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisGroundwater_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisGroundwaterEnabled" );
+    propValueUser = session.getConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_UsgsNwisGroundwater_enabled = false;
     }
@@ -6915,6 +7035,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisInstantaneous_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisInstantaneousEnabled" );
+    propValueUser = session.getConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_UsgsNwisInstantaneous_enabled = false;
     }
@@ -6924,6 +7049,11 @@ private void ui_EnableInputTypesForConfiguration ()
     __source_UsgsNwisRdb_enabled = true;
     // New...
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisRdbEnabled" );
+    propValueUser = session.getConfigPropValue ( "UsgsNwisRdbEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     // Legacy...
     if ( propValue == null ) {
         propValue = TSToolMain.getPropValue ( "TSTool.USGSNWISEnabled" );
@@ -6936,6 +7066,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_WaterML_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterMLEnabled" );
+    propValueUser = session.getConfigPropValue ( "WaterMLEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
         __source_WaterML_enabled = false;
     }
@@ -6944,6 +7079,11 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_WaterOneFlow_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterOneFlowEnabled" );
+    propValueUser = session.getConfigPropValue ( "WaterOneFlowEnabled" );
+    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
+    	// User configuration value takes precedence
+    	propValue = propValueUser;
+    }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_WaterOneFlow_enabled = true;
     }
@@ -13299,7 +13439,7 @@ throws Exception
 		}
 	}
 	else if ( o == __Tools_Options_JMenuItem ) {
-		new TSTool_Options_JDialog ( this, TSToolMain.getConfigFile(), __props );
+		new TSTool_Options_JDialog ( this, session, TSToolMain.getConfigFile(), __props );
 		// Reset as necessary...
 		if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel){
 			((TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel).setWDIDLength(
