@@ -10715,12 +10715,12 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 	__Results_JMenu.add(__Results_Graph_PredictedValueResidual_JMenuItem =
 		new SimpleJMenuItem(__Results_Graph_PredictedValueResidual_String, this ) );
 
+    __Results_JMenu.add(__Results_Graph_Raster_JMenuItem =
+	    new SimpleJMenuItem(__Results_Graph_Raster_String, this ) );
+	   
 	__Results_JMenu.add(__Results_Graph_XYScatter_JMenuItem =
         new SimpleJMenuItem(__Results_Graph_XYScatter_String, this ) );
 	
-   __Results_JMenu.add(__Results_Graph_Raster_JMenuItem =
-        new SimpleJMenuItem(__Results_Graph_Raster_String, this ) );
-
 	__Results_JMenu.addSeparator();
 	__Results_JMenu.add( __Results_Table_JMenuItem = new SimpleJMenuItem( __Results_Table_String, this ) );
 
@@ -14248,11 +14248,12 @@ private void uiAction_GetTimeSeriesListClicked()
 		}
 	}
 
-	// Read the time series list and display in the Time Series List
-	// area.  Return if an error occurs because the message at the bottom
-	// should only be printed if successful.
+	// Read the time series list and display in the Time Series List area.
+	// Return if an error occurs because the message at the bottom should only be printed if successful.
+	// To avoid unnecessary class loads, check whether a datastore or input type is enabled.
+	// TODO SAM 2016-02-22 in the future this code will be split into separate classes
 
-    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
+    if ( (selectedDataStore != null) && __source_ColoradoWaterHBGuest_enabled && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders ();
         }
@@ -14263,7 +14264,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
+	else if ( (selectedDataStore != null) && __source_ColoradoWaterSMS_enabled && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
         }
@@ -14296,7 +14297,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_DIADvisor)) {
+	else if ( __source_DIADvisor_enabled && selectedInputType.equals (__INPUT_TYPE_DIADvisor)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDIADvisorHeaders(); 
 		}
@@ -14307,7 +14308,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-    else if ( selectedInputType.equals (__INPUT_TYPE_HECDSS)) {
+    else if ( __source_HECDSS_enabled && selectedInputType.equals (__INPUT_TYPE_HECDSS)) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadHECDSSHeaders ();
         }
@@ -14318,7 +14319,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_HydroBase)) {
+	else if ( __source_HydroBase_enabled && selectedInputType.equals (__INPUT_TYPE_HydroBase)) {
 		try {
 		    GRLimits limits = null;
             uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( limits ); 
@@ -14330,7 +14331,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof HydroBaseDataStore) ) {
+    else if ( (selectedDataStore != null) && __source_HydroBase_enabled && (selectedDataStore instanceof HydroBaseDataStore) ) {
         try {
             GRLimits limits = null;
             uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders( limits ); 
@@ -14343,7 +14344,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_MODSIM)) {
+	else if ( __source_MODSIM_enabled && selectedInputType.equals (__INPUT_TYPE_MODSIM)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ();
 		}
@@ -14354,7 +14355,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals (__INPUT_TYPE_NWSCARD)) {
+	else if ( __source_NWSCard_enabled && selectedInputType.equals (__INPUT_TYPE_NWSCARD)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ();
 		}
@@ -14365,7 +14366,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
+	else if ( __source_NWSRFS_ESPTraceEnsemble_enabled && selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadNwsrfsEspTraceEnsembleHeaders ();
 		}
@@ -14376,7 +14377,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
+	else if ( __source_NWSRFS_FS5Files_enabled && selectedInputType.equals (__INPUT_TYPE_NWSRFS_FS5Files)) {
 		try {
             // This reads the time series headers and displays the results in the list...
 			uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ();
@@ -14388,7 +14389,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof RccAcisDataStore) ) {
+    else if ( (selectedDataStore != null) && __source_RCCACIS_enabled && (selectedDataStore instanceof RccAcisDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders(); 
         }
@@ -14399,7 +14400,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
+	else if ( (selectedDataStore != null) && __source_ReclamationHDB_enabled && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders(); 
         }
@@ -14410,7 +14411,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore) ) {
+	else if ( (selectedDataStore != null) && __source_ReclamationPisces_enabled && (selectedDataStore instanceof ReclamationPiscesDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders(); 
         }
@@ -14421,7 +14422,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
+	else if ( (selectedDataStore != null) && __source_RiversideDB_enabled && (selectedDataStore instanceof RiversideDBDataStore) ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
 		}
@@ -14433,7 +14434,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
+    else if ( (selectedDataStore != null) && __source_UsgsNwisDaily_enabled && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders(); 
         }
@@ -14444,7 +14445,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisGroundwaterDataStore) ) {
+    else if ( (selectedDataStore != null) && __source_UsgsNwisGroundwater_enabled && (selectedDataStore instanceof UsgsNwisGroundwaterDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders(); 
         }
@@ -14455,7 +14456,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore) ) {
+    else if ( (selectedDataStore != null) && __source_UsgsNwisInstantaneous_enabled && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders(); 
         }
@@ -14466,7 +14467,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_RiverWare)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_RiverWare) && __source_RiverWare_enabled ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
 		}
@@ -14477,7 +14478,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals (__INPUT_TYPE_StateCU)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_StateCU) && __source_StateCU_enabled ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ();
 		}
@@ -14488,7 +14489,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-   else if ( selectedInputType.equals (__INPUT_TYPE_StateCUB)) {
+   else if ( selectedInputType.equals (__INPUT_TYPE_StateCUB) && __source_StateCUB_enabled ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ();
         }
@@ -14499,7 +14500,7 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( selectedInputType.equals (__INPUT_TYPE_StateMod)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_StateMod) && __source_StateMod_enabled ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ();
 		}
@@ -14510,7 +14511,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals (__INPUT_TYPE_StateModB)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_StateModB) && __source_StateModB_enabled ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ();
 		}
@@ -14521,7 +14522,7 @@ private void uiAction_GetTimeSeriesListClicked()
 			return;
 		}
 	}
-	else if ( selectedInputType.equals (__INPUT_TYPE_UsgsNwisRdb)) {
+	else if ( selectedInputType.equals (__INPUT_TYPE_UsgsNwisRdb) && __source_UsgsNwisRdb_enabled ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisRdbHeaders ();
 		}
