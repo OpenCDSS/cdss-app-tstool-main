@@ -1118,19 +1118,20 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             "\" is not recognized - cannot initialize datastore connection." );
     }
     if ( !packagePath.equals("") ) {
-        StopWatch sw = new StopWatch();
-        sw.start();
-        Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
-        DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
         propValue = dataStoreProps.getValue("Enabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
-            // Datastore is disabled.
+            // Datastore is disabled.  Do not even attempt to load.  This will minimize in-memory resource use.
             Message.printStatus(2, routine, "Created datastore \"" + dataStoreType + "\", name \"" +
                 dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
             return null;
         }
         else {
-            // Datastore is enabled - check for a login of "prompt"
+            // Datastore is enabled
+            StopWatch sw = new StopWatch();
+            sw.start();
+            Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
+            DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
+        	// Check for a login of "prompt"
         	String systemLogin = dataStoreProps.getValue("SystemLogin");
         	String systemPassword = dataStoreProps.getValue("SystemPassword");
             if ( ((systemLogin != null) && systemLogin.equalsIgnoreCase("prompt")) ||
@@ -1282,7 +1283,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
             dataStoreConfigFiles.add(dataStoreFile);
         }
     }
-    // Also get names of datastore configuration files from configuration files in home folder
+    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/datastore
     if ( session.createDatastoreFolder() ) {
 	    String datastoreFolder = session.getDatastoreFolder();
 	    File f = new File(datastoreFolder);
@@ -1675,14 +1676,11 @@ throws Exception
 			//IOUtil.setProgramWorkingDir(__home);
 			//JGUIUtil.setLastFileDialogDirectory(__home);
 			IOUtil.setApplicationHomeDir(__tstoolInstallHome);
-			// Also reset the java.library.path system property to include the application
-			// home + "/bin" so that DLLs installed with TSTool are found
-			// TODO SAM 2015-03-14 Figure this out - may not work by design - JRE may only use the java.library.path from startup
+			// TODO SAM 2016-02-22 See http://fahdshariff.blogspot.be/2011/08/changing-java-library-path-at-runtime.html
+			// - cannot change the path at runtime
+			// - trying some solutions when loading HEC-DSS libraries in static code and will remove following if it works
 			String javaLibraryPath = System.getProperty ( "java.library.path" );
-			System.setProperty( "java.library.path",
-			         __tstoolInstallHome + File.separatorChar + "bin" + System.getProperty("path.separator") + javaLibraryPath );
-			Message.printStatus( 2, routine, "Reset java.library.path to \"" +
-			        System.getProperty ( "java.library.path" ) + "\"" );
+			Message.printStatus( 2, routine, "java.library.path at startup: \"" + System.getProperty("java.library.path") + "\"" );
 	        // Read the configuration file to get default TSTool properties,
             // so that later command-line parameters can override them.
 			// If any other command line arguments are -config, then skip the following because a user-specified
