@@ -37,7 +37,9 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -1228,7 +1230,7 @@ JMenuItem
 	__Commands_Output_SetOutputPeriod_JMenuItem,
 	__Commands_Output_SetOutputYearType_JMenuItem,
 	__Commands_Output_WriteDateValue_JMenuItem,
-	__Commands_Output_WriteDelftFewsPiXml_JMenuItem,
+	//__Commands_Output_WriteDelftFewsPiXml_JMenuItem,
 	__Commands_Output_WriteDelimitedFile_JMenuItem,
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
@@ -1278,6 +1280,7 @@ JMenuItem
     __Commands_Ensemble_NewEnsemble_JMenuItem,
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem,
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem,
+    __Commands_Ensemble_SetEnsembleProperty_JMenuItem,
     __Commands_Ensemble_NewStatisticEnsemble_JMenuItem,
     __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,
     __Commands_Ensemble_WeightTraces_JMenuItem,
@@ -1768,7 +1771,7 @@ private String
 	__Commands_Output_SetOutputPeriod_String = TAB + "SetOutputPeriod()... <for output products>",
 	__Commands_Output_SetOutputYearType_String = TAB + "SetOutputYearType()... <e.g., Calendar and others>",
 	__Commands_Output_WriteDateValue_String = TAB + "WriteDateValue()... <write time series to DateValue file>",
-	__Commands_Output_WriteDelftFewsPiXml_String = TAB + "WriteDelftFewsPiXml()... <write time series to Delft FEWS PI XML file>",
+	//__Commands_Output_WriteDelftFewsPiXml_String = TAB + "WriteDelftFewsPiXml()... <write time series to Delft FEWS PI XML file>",
 	__Commands_Output_WriteDelimitedFile_String = TAB + "WriteDelimitedFile()... <write time series to a delimited file>",
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
@@ -1828,6 +1831,7 @@ private String
     __Commands_Ensemble_CopyEnsemble_String = TAB + "CopyEnsemble()... <create a copy of an ensemble>",
     __Commands_Ensemble_NewEnsemble_String = TAB + "NewEnsemble()... <create a new ensemble from 0+ time series>",
     __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String = TAB + "ReadNwsrfsEspTraceEnsemble()... <read 1(+) time series from an NWSRFS ESP trace ensemble file>",
+    __Commands_Ensemble_SetEnsembleProperty_String = TAB + "SetEnsembleProperty()... <set ensemble property>",
     __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String = TAB + "InsertTimeSeriesIntoEnsemble()... <insert 1+ time series into an ensemble>",
     __Commands_Ensemble_NewStatisticEnsemble_String = TAB + "NewStatisticEnsemble()... <create an ensemble of statistic time series>",
     __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String = TAB + "NewStatisticTimeSeriesFromEnsemble()... <create a time series as a statistic from an ensemble>",
@@ -6323,7 +6327,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Models_Routing_JMenu, enabled);
     
 	JGUIUtil.setEnabled ( __Commands_Output_WriteDateValue_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( __Commands_Output_WriteDelftFewsPiXml_JMenuItem, enabled);
+	//JGUIUtil.setEnabled ( __Commands_Output_WriteDelftFewsPiXml_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteDelimitedFile_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Output_WriteHecDss_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteNwsCard_JMenuItem,enabled);
@@ -6352,6 +6356,7 @@ private void ui_CheckGUIState ()
     
     JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( __Commands_Ensemble_SetEnsembleProperty_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticEnsemble_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,enabled);
@@ -9832,10 +9837,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
-    if ( __source_DelftFews_enabled ) {
-    	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDelftFewsPiXml_JMenuItem =
-    		new SimpleJMenuItem(__Commands_Output_WriteDelftFewsPiXml_String, this ) );
-    }
+    //if ( __source_DelftFews_enabled ) {
+    //	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDelftFewsPiXml_JMenuItem =
+    //		new SimpleJMenuItem(__Commands_Output_WriteDelftFewsPiXml_String, this ) );
+    //}
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteDelimitedFile_JMenuItem =
         new SimpleJMenuItem(__Commands_Output_WriteDelimitedFile_String, this ) );
 
@@ -9964,6 +9969,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Ensemble_JMenu.addSeparator();
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, this) );
+    __Commands_Ensemble_JMenu.add( __Commands_Ensemble_SetEnsembleProperty_JMenuItem =
+        new SimpleJMenuItem( __Commands_Ensemble_SetEnsembleProperty_String, this) );
 
     __Commands_Ensemble_JMenu.addSeparator();
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_NewStatisticEnsemble_JMenuItem =
@@ -12563,6 +12570,9 @@ throws Exception
     else if (command.equals( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_Ensemble_SetEnsembleProperty_String)){
+        commandList_EditCommand ( __Commands_Ensemble_SetEnsembleProperty_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_Ensemble_NewStatisticEnsemble_String)){
         commandList_EditCommand ( __Commands_Ensemble_NewStatisticEnsemble_String, null, CommandEditType.INSERT );
     }
@@ -12602,9 +12612,9 @@ throws Exception
 	else if (command.equals( __Commands_Output_WriteDateValue_String)){
 		commandList_EditCommand ( __Commands_Output_WriteDateValue_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Output_WriteDelftFewsPiXml_String)){
-		commandList_EditCommand ( __Commands_Output_WriteDelftFewsPiXml_String, null, CommandEditType.INSERT );
-	}
+	//else if (command.equals( __Commands_Output_WriteDelftFewsPiXml_String)){
+	//	commandList_EditCommand ( __Commands_Output_WriteDelftFewsPiXml_String, null, CommandEditType.INSERT );
+	//}
     else if (command.equals( __Commands_Output_WriteDelimitedFile_String)){
         commandList_EditCommand ( __Commands_Output_WriteDelimitedFile_String, null, CommandEditType.INSERT );
     }
@@ -17564,7 +17574,7 @@ throws Exception
 Show properties for the selected ensemble(s).
 */
 private void uiAction_ResultsEnsembleProperties ()
-{   String routine = getClass().getName() + ".uiAction_ResultsEnsembleProperties";
+{   String routine = getClass().getSimpleName() + ".uiAction_ResultsEnsembleProperties";
     String message;
     // Get the selected ensembles
     int selected [] = __resultsTSEnsembles_JList.getSelectedIndices();
@@ -17593,7 +17603,7 @@ private void uiAction_ResultsEnsembleProperties ()
     String ensembleDisplay;
     String ensembleID;
     TSEnsemble ensemble;
-    List<String> v = new Vector ();
+    List<String> v = new ArrayList<String>();
     v.add ( "Ensemble Properties" );
     TS ts;
     for ( int i = 0; i < selected.length; i++ ) {
@@ -17604,50 +17614,60 @@ private void uiAction_ResultsEnsembleProperties ()
             continue;
         }
         ensembleID = ensemble.getEnsembleID();
-        if ( ensemble == null ) {
-            v.add ( "" );
-            v.add ( "EnsembleID:  " + ensembleID );
-            v.add ( "  Error getting ensemble properties from processor.");
+        // TODO SAM 2016-02-25 Need a tabbed panel UI like for time series properties
+        // Format the output and append to what is displayed
+        v.add ( "" );
+        v.add ( "EnsembleID = " + ensembleID );
+        v.add ( "EnsembleName = " + ensemble.getEnsembleName() );
+        HashMap<String,Object> properties = ensemble.getProperties();
+        if ( properties.size() > 0 ) {
+        	ArrayList<String> keyList = new ArrayList<String>(properties.keySet());
+            Collections.sort(keyList);
+            for ( String key : keyList ) {
+            	if ( key.equals("EnsembleID") || key.equals("EnsembleName") ) {
+            		// Printed above so don't print - case-specific
+            		continue;
+            	}
+                Object value = properties.get(key);
+                if ( value == null ) {
+                    value = "";
+                }
+            	v.add ( key + " = " + value );
+            }
         }
-        else {
-            // Format the output and append to what is displayed
-            v.add ( "" );
-            v.add ( "EnsembleID:  " + ensembleID );
-            v.add ( "Ensemble name:  " + ensemble.getEnsembleName() );
-            int ensembleSize = ensemble.size();
-            v.add ( "Number of time series:  " + ensembleSize );
-            for ( int its = 0; its < ensembleSize; its++ ) {
-                ts = ensemble.get(its);
-                v.add ( "  " + StringUtil.formatString( (its + 1), "%4d") + " Time series identifier:  " +
-                    ts.getIdentifierString() );
-                v.add ( "        Period:  " + ts.getDate1() + " - " + ts.getDate2() );
-                // Determine if the time series exists in the main time series list
-                boolean found = false;
-                int foundPos = -1;
-                if ( tslist == null ) {
-                    // Did not have the main time series list for some reason.
-                    v.add ( "        Shared with main time series list:  UNKNOWN (no main list available)" );
+        int ensembleSize = ensemble.size();
+        v.add ( "" );
+        v.add ( "Number of time series:  " + ensembleSize );
+        for ( int its = 0; its < ensembleSize; its++ ) {
+            ts = ensemble.get(its);
+            v.add ( "  " + StringUtil.formatString( (its + 1), "%4d") + " Time series identifier:  " + ts.getIdentifierString() + ", Alias: " + ts.getAlias() );
+            v.add ( "        Period:  " + ts.getDate1() + " - " + ts.getDate2() );
+            // Determine if the time series exists in the main time series list
+            boolean found = false;
+            int foundPos = -1;
+            if ( tslist == null ) {
+                // Did not have the main time series list for some reason.
+                v.add ( "        Shared with main time series list:  UNKNOWN (no main list available)" );
+            }
+            else {
+                // Loop through the main time series list and try to match the time series reference,
+                // which will differ if the time series was copied.
+                TS tsr;
+                for ( int irts = 0; irts < tsResultsSize; irts++ ) {
+                    tsr = tslist.get(irts);
+                    // Compare by reference
+                    if ( tsr == ts ) {
+                        found = true;
+                        foundPos = irts;
+                        break;
+                    }
+                }
+                if ( found ) {
+                    v.add ( "        Shared with main time series list:  YES, time series " + (foundPos + 1) +
+                    " (was not copied to ensemble)" );
                 }
                 else {
-                    // Loop through the main time series list and try to match the time series reference,
-                    // which will differ if the time series was copied.
-                    TS tsr;
-                    for ( int irts = 0; irts < tsResultsSize; irts++ ) {
-                        tsr = tslist.get(irts);
-                        // Compare by reference
-                        if ( tsr == ts ) {
-                            found = true;
-                            foundPos = irts;
-                            break;
-                        }
-                    }
-                    if ( found ) {
-                        v.add ( "        Shared with main time series list:  YES, time series " + (foundPos + 1) +
-                        " (was not copied to ensemble)" );
-                    }
-                    else {
-                        v.add ( "        Shared with main time series list:  NO (was copied to ensemble)" );
-                    }
+                    v.add ( "        Shared with main time series list:  NO (was copied to ensemble)" );
                 }
             }
         }
