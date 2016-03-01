@@ -7,7 +7,8 @@ rem This work-around script will not be needed when the TSTool installer is upda
 rem a new version of Launch4J.
 
 rem To install:
-rem 1) Create a folder C:\CDSS\TSTool-latest\bin
+rem 1) Create a folder C:\CDSS\TSTool-latest\bin parallel to other TSTool releases.
+rem    If necessary adjust the path to the actual TSTool instllation folder (search for TSTool below and change path).
 rem 2) Copy this script into that folder.
 rem 3) For the *.TSTool file extension association in Windows explorer, associate with the batch file.
 
@@ -26,14 +27,14 @@ rem The following works sorting alphabetically on install folder name since
 rem zero-padded version numbers will cause proper sort>
 rem Ignore "TSTool-latest" because that is the special folder that this script is in.
 FOR /F "delims=" %%i IN ('dir "c:\CDSS\TSTool-*" /b /ad-h /on') DO (
-	if not %%i == TSTool-latest SET a=%%i
+	if not %%i == TSTool-latest SET TSTOOL_LATEST=%%i
 )
 
 rem Now run TSTool with all the original command line parameters
 rem The following works to find dlls, etc. that need to be loaded
 c:
-cd \CDSS\%a%\bin
+cd \CDSS\%TSTOOL_LATEST%\bin
 tstool.exe %*
 
 rem The following does not load HEC-DSS dlls properly
-rem C:\CDSS\%a%\bin\tstool.exe %*
+rem C:\CDSS\%TSTOOL_LATEST%\bin\tstool.exe %*
