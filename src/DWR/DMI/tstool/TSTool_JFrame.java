@@ -10915,7 +10915,7 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 	// Create the diagnostics GUI, specifying the key for the help
 	// button.  Events are handled from within the diagnostics GUI.
 	__Tools_JMenu.addSeparator ();
-	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame ();
+	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame (this);
 	// TODO SAM 2005-04-05 some day need to enable on-line help. ("TSTool.PreferencesMenu");
 	diagnostics_JFrame.attachMainMenu ( __Tools_JMenu );
 	Message.addMessageLogListener ( this );
@@ -11885,6 +11885,7 @@ throws Exception
 		else {
             v = __smsdmi.getDatabaseProperties();
 		}
+		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		new ReportJFrame ( v, reportProp );
 	}
     else if ( command.equals(__File_Properties_DIADvisor_String) ) {
@@ -11905,6 +11906,7 @@ throws Exception
 		v.add ( "DIADvisor Archive Database:" );
 		v.add ( "" );
 		StringUtil.addListToStringList ( v, __DIADvisor_archive_dmi.getDatabaseProperties ( 3 ) );
+		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		new ReportJFrame ( v, reportProp );
 	}
     else if ( command.equals(__File_Properties_HydroBase_String) ) {
@@ -11927,6 +11929,7 @@ throws Exception
 		else {
             v = ui_GetHydroBaseDMILegacy().getDatabaseProperties();
 		}
+		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		new ReportJFrame ( v, reportProp );
 	}
     else if ( command.equals(__File_Properties_NWSRFSFS5Files_String) ) {
@@ -11947,6 +11950,7 @@ throws Exception
 		else {
             v = __nwsrfs_dmi.getDatabaseProperties ( 3 );
 		}
+		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		new ReportJFrame ( v, reportProp );
 	}
     else if ( command.equals(__File_Properties_RiversideDB_String) ) {
@@ -11970,6 +11974,7 @@ throws Exception
 		    RiversideDB_DMI rdmi = (RiversideDB_DMI)((RiversideDBDataStore)dataStore).getDMI();
 		    v.addAll ( rdmi.getDatabaseProperties ( 3 ) );
 		}
+		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		new ReportJFrame ( v, reportProp );
 	}
     else if ( o == __File_SetWorkingDirectory_JMenuItem ) {
@@ -13278,7 +13283,9 @@ throws Exception
 			}
 			// Now display the properties...
 			if ( pos >= 0 ) {
-				new TSPropertiesJFrame ( this, commandProcessor_GetTimeSeries(pos) );
+				PropList props = new PropList ( "" );
+				props.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+				new TSPropertiesJFrame ( this, commandProcessor_GetTimeSeries(pos), props );
 			}
 		}
 	}
@@ -14103,6 +14110,7 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 	PropList props = new PropList ( "SaveAsProps" );
 	props.set ( "OutputFormat=" + format );
 	props.set ( "OutputFile=" + filename );
+	props.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 	// Final list is selected...
 	 if ( __tsProcessor != null ) {
 		try {
@@ -16736,6 +16744,7 @@ private void uiAction_GraphTimeSeriesResults ( String graph_type, String params 
 		// Change the wait cursor here in the main GUI to indicate that the graph is being processed.
 		JGUIUtil.setWaitCursor ( this, true );
 		PropList props = new PropList ( "GraphProps" );
+		props.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		props.set ( "OutputFormat=" + graph_type );
 		if ( params != null ) {
 			props.set ( "Parameters=" + params );
@@ -17683,6 +17692,7 @@ private void uiAction_ResultsEnsembleProperties ()
     reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
     reportProp.set ( "PrintSize", "7" );
     reportProp.set ( "Title", "Ensemble Properties" );
+    reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
     new ReportJFrame ( v, reportProp );
 }
 
@@ -20212,7 +20222,7 @@ Show the datastores.
 private void uiAction_ShowDataStores ()
 {   String routine = getClass().getName() + "uiAction_ShowDataStores";
     try {
-        new DataStores_JFrame ( "Datastores", __tsProcessor.getDataStores() );
+        new DataStores_JFrame ( "Datastores", this, __tsProcessor.getDataStores() );
     }
     catch ( Exception e ) {
         Message.printWarning ( 1, routine, "Error displaying datastores (" + e + ")." );
@@ -20225,7 +20235,7 @@ Show the data units.
 private void uiAction_ShowDataUnits ()
 {   String routine = getClass().getName() + "uiAction_ShowDataUnits";
     try {
-        new DataUnits_JFrame ( "Data Units", DataUnits.getUnitsData() );
+        new DataUnits_JFrame ( "Data Units", this, DataUnits.getUnitsData() );
     }
     catch ( Exception e ) {
         Message.printWarning ( 1, routine, "Error displaying data units (" + e + ")." );
@@ -20356,10 +20366,8 @@ private void uiAction_ShowProperties_CommandsRun ()
 			}
 		}
 	}
+	reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 	new ReportJFrame ( v, reportProp );
-	// Clean up...
-	v = null;
-	reportProp = null;
 }
 
 /**
@@ -20559,6 +20567,7 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     v.add ( "" );
     v.add ( "Software installation directory = \"" + IOUtil.getApplicationHomeDir() + "\"" );
     v.add ( "Global working directory = \"" + IOUtil.getProgramWorkingDir() + "\"" );
+    reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
     new ReportJFrame ( v, reportProp );
     // Clean up...
     v = null;
@@ -20602,6 +20611,7 @@ private void uiAction_ShowResultsOutputFile ( String selected )
                 reportProp.set ( "PrintSize", "7" );
                 reportProp.set ( "Title", selected );
                 reportProp.set ( "URL", selected );
+                reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
                 new ReportJFrame ( null, reportProp );
             }
             else {
@@ -20714,6 +20724,7 @@ private void uiAction_ShowTableProperties ()
                 }
             }
         }
+        reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
         new ReportJFrame ( v, reportProp );
     }
     catch ( Exception e ) {
