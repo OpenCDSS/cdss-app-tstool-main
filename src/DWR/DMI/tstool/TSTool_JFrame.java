@@ -261,6 +261,7 @@ import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeBuilderJDialog;
+import RTi.Util.Time.DateTimeToolsJDialog;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 
@@ -1534,6 +1535,8 @@ private JMenu
 	__Tools_Datastore_JMenu = null;
 private JMenuItem
 	__Tools_Datastore_ERDiagram_JMenuItem = null;
+private JMenuItem
+	__Tools_DateTimeTools_JMenuItem = null;
 private JMenu
 	__Tools_Report_JMenu = null;
 private JMenuItem
@@ -2049,6 +2052,7 @@ private String
 			__Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
 		__Tools_Datastore_String = "Datastore",
 			__Tools_Datastore_ERDiagram_String = "Entity Relationship Diagram (under development)",
+		__Tools_DateTimeTools_String = "Date/time Tools",
 		__Tools_Report_String = "Report",
 			__Tools_Report_DataCoverageByYear_String = "Data Coverage by Year...",
 			__Tools_Report_DataLimitsSummary_String = "Data Limits Summary...",
@@ -10864,6 +10868,9 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 	__Tools_JMenu.add ( __Tools_Datastore_JMenu = new JMenu(__Tools_Datastore_String, true ) );
 	__Tools_Datastore_JMenu.add(__Tools_Datastore_ERDiagram_JMenuItem =
 		new SimpleJMenuItem(__Tools_Datastore_ERDiagram_String, this ) );
+	
+	__Tools_JMenu.add(__Tools_DateTimeTools_JMenuItem =
+			new SimpleJMenuItem(__Tools_DateTimeTools_String, this ) );
 
 	__Tools_JMenu.add ( __Tools_Report_JMenu = new JMenu(__Tools_Report_String, true ) );
 
@@ -13342,6 +13349,10 @@ throws Exception
 			Message.printWarning ( 1, routine, "Error in Enity Relationship Diagram tool (" + e + ")." );
 			Message.printWarning ( 3, routine, e );
 		}
+	}
+	else if ( o == __Tools_DateTimeTools_JMenuItem ) {
+		// Create Date/time conversion tool dialog
+		new DateTimeToolsJDialog(this);
 	}
     else if ( o == __Tools_Analysis_PrincipalComponentAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series...
