@@ -13,5 +13,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="cdss.app.tstool.TSTool"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-home test/operational/CDSS"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cdss-app-tstool-main"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.library.path=C:/owf-gitrepos/cdss-app-tstool-main/test/operational/CDSS/bin -Xmx1024m -Dsun.java2d.noddraw=true"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.library.path=C:/owf-gitrepos/cdss-app-tstool-main/test/operational/CDSS/bin -Xmx950m -Dsun.java2d.noddraw=true"/>
 </launchConfiguration>

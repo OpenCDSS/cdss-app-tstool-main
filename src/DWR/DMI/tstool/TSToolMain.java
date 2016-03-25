@@ -474,7 +474,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.09.01 (2016-03-03)";
+public static final String PROGRAM_VERSION = "11.09.02 (2016-03-04)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1019,7 +1019,7 @@ Otherwise, opening datastores takes time and impacts performance.
 @param processor time series command processor that will use/manage the datastore
 @param isBatch indicate whether running in batch mode - if true, do not open datastores with login of "prompt"
 */
-protected static DataStore openDataStore ( PropList dataStoreProps, TSCommandProcessor processor, boolean isBatch )
+protected static DataStore openDataStore ( TSToolSession session, PropList dataStoreProps, TSCommandProcessor processor, boolean isBatch )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
 {   String routine = "TSToolMain.openDataStore";
     // Open the datastore depending on the type
@@ -1029,20 +1029,26 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     // For now hard-code this here
     // TODO SAM 2010-09-01 Make this more elegant
     String packagePath = ""; // Make sure to include trailing period below
-    // TODO SAM 2012-03-22 The following may be removed if BNDSS generic web services are sufficient
-    //if ( dataStoreType.equalsIgnoreCase("TSTool.ColoradoBNDSSDataStore") ) {
-    //    packagePath = "rti.tscommandprocessor.commands.bndss.";
-    //}
-    //else
-    String propValue = null;
+    // TODO SAM 2016-03-25 Need to figure out how software feature set can be generically disabled without coding name here
+    // Similar checks are done in the TSTool UI to enable/disable UI features
+    String propValue = null; // From software installation configuration
+    String userPropValue = null; // From user configuration
     if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoWaterHBGuestEnabled");
+    	userPropValue = session.getConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "us.co.state.dwr.hbguest.datastore.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoWaterSMSEnabled");
+    	userPropValue = session.getConfigPropValue ( "ColoradoWaterSMSEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "us.co.state.dwr.sms.datastore.";
         }
@@ -1050,65 +1056,105 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
         // No need to check whether enabled or not since a generic connection
         // Specific configuration files will indicate if enabled
-    	// TODO SAM 2016-02-19 Need to move to more appropriate path
+    	// TODO SAM 2016-02-19 Need to move to more appropriate path - don't confuse with RiversideDBDataStore
         packagePath = "riverside.datastore.";
     }
     else if ( dataStoreType.equalsIgnoreCase("HydroBaseDataStore") ) {
         propValue = getPropValue("TSTool.HydroBaseEnabled");
+    	userPropValue = session.getConfigPropValue ( "HydroBaseEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "DWR.DMI.HydroBaseDMI.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("NrcsAwdbDataStore") ) {
         propValue = getPropValue("TSTool.NrcsAwdbEnabled");
+    	userPropValue = session.getConfigPropValue ( "NrcsAwdbEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.nrcs.awdb.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
+    	userPropValue = session.getConfigPropValue ( "RCCACISEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.rccacis.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("ReclamationHDBDataStore") ) {
         propValue = getPropValue("TSTool.ReclamationHDBEnabled");
+    	userPropValue = session.getConfigPropValue ( "ReclamationHDBEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.reclamationhdb.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("ReclamationPiscesDataStore") ) {
         propValue = getPropValue("TSTool.ReclamationPiscesEnabled");
+    	userPropValue = session.getConfigPropValue ( "ReclamationPiscesEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.reclamationpisces.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
         propValue = getPropValue("TSTool.RiversideDBEnabled");
+    	userPropValue = session.getConfigPropValue ( "RiversideDBEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "RTi.DMI.RiversideDB_DMI.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDailyDataStore") ) {
         propValue = getPropValue("TSTool.UsgsNwisDailyEnabled");
+    	userPropValue = session.getConfigPropValue ( "UsgsNwisDailyDataStore" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.usgs.nwis.daily.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisGroundwaterDataStore") ) {
         propValue = getPropValue("TSTool.UsgsNwisGroundwaterEnabled");
+    	userPropValue = session.getConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.usgs.nwis.groundwater.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisInstantaneousDataStore") ) {
         propValue = getPropValue("TSTool.UsgsNwisInstantaneousEnabled");
+    	userPropValue = session.getConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.usgs.nwis.instantaneous.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("WaterOneFlowDataStore") ) {
         propValue = getPropValue("TSTool.WaterOneFlowEnabled");
+    	userPropValue = session.getConfigPropValue ( "WaterOneFlowEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.wateroneflow.ws.";
         }
@@ -1327,7 +1373,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // (e.g., to locate related files referenced in the configuration file, such as lists of data
                 // that are not available from web services)
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
-                openDataStore ( dataStoreProps, processor, isBatch );
+                openDataStore ( session, dataStoreProps, processor, isBatch );
             }
             catch ( ClassNotFoundException e ) {
                 Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +

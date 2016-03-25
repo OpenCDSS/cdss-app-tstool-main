@@ -32,6 +32,14 @@
     	<!-- Documentation -->
     	<mkdir dir="${install.dir}/doc/UserManual"/>
         <copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_RTi/TSTool.pdf"/>
+    	<!-- Documentation - HTML -->
+    	<mkdir dir="${install.dir}/doc/UserManual/html"/>
+        <copy todir="${install.dir}/doc/UserManual/html">
+        	<fileset dir="../cdss-app-tstool-doc/doc/UserManual/html">
+        		<include name="**/*.html"/>
+        		<include name="**/*.png"/>
+        		</fileset>
+        	</copy>
     	<!-- Examples -->
     	<mkdir dir="${install.dir}/examples"/>
         <copy todir="${install.dir}/examples">

@@ -1480,6 +1480,12 @@ JMenuItem
 	__Commands_TableRunning_SetPropertyFromTable_JMenuItem,
 	__Commands_TableRunning_CopyPropertiesToTable_JMenuItem;
 
+// Commands(Plugin)
+
+JMenu
+	__Commands_Plugin_JMenu,
+	__Commands_Plugin_ReadTimeSeries_JMenu;
+
 // Run...
 
 private JMenu
@@ -1566,6 +1572,7 @@ private JMenu
 private JMenuItem
 	__Help_AboutTSTool_JMenuItem = null,
 	__Help_ViewDocumentation_JMenuItem = null,
+	__Help_ViewDocumentation_Vol2CommandReferenceHtml_JMenuItem = null,
 	__Help_ViewDocumentation_ReleaseNotes_JMenuItem = null,
 	__Help_ViewDocumentation_ReleaseNotesOld_JMenuItem = null,
 	__Help_ViewDocumentation_Vol1UserManual_JMenuItem = null,
@@ -1996,6 +2003,11 @@ private String
     __Commands_TableRunning_SetPropertyFromTable_String = TAB + "SetPropertyFromTable()... <set a processor property from a table>",
     __Commands_TableRunning_CopyPropertiesToTable_String = TAB + "CopyPropertiesToTable()... <copy processor properties to a table>",
     
+    // Commands(Plugin)...
+
+    __Commands_Plugin_String = "Commands(Plugin)",
+    __Commands_Plugin_ReadTimeSeries_String = "Read Time Series",
+    
 	// Results menu choices (order in GUI)...
 
 	__Results_Graph_AnnualTraces_String = "Graph - Annual Traces...",
@@ -2071,12 +2083,13 @@ private String
 
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
-		__Help_ViewDocumentation_String = "View Documentation",
-		__Help_ViewDocumentation_ReleaseNotes_String = "View Documentation - Release Notes",
-		__Help_ViewDocumentation_ReleaseNotesOld_String = "View Documentation - Release Notes (Old Versions)",
-		__Help_ViewDocumentation_Vol1UserManual_String = "View Documentation - Volume 1 - User Manual",
-		__Help_ViewDocumentation_Vol2CommandReference_String = "View Documentation - Volume 2 - Command Reference",
-		__Help_ViewDocumentation_Vol3DatastoreReference_String = "View Documentation - Volume 3 - Datastore Reference",
+		__Help_ViewDocumentation_String = "View Documentation", // Menu
+		__Help_ViewDocumentation_ReleaseNotesPDF_String = "View Documentation - Release Notes (PDF)",
+		__Help_ViewDocumentation_ReleaseNotesOldPDF_String = "View Documentation - Release Notes (PDF, Old Versions)",
+		__Help_ViewDocumentation_Vol1UserManualPDF_String = "View Documentation - Volume 1 - User Manual (PDF)",
+		__Help_ViewDocumentation_Vol2CommandReferencePDF_String = "View Documentation - Volume 2 - Command Reference (PDF)",
+		__Help_ViewDocumentation_Vol2CommandReferenceHtml_String = "View Documentation - Volume 2 - Command Reference (HTML)",
+		__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String = "View Documentation - Volume 3 - Datastore Reference (PDF)",
 		__Help_ViewTrainingMaterials_String = "View Training Materials",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
@@ -10152,6 +10165,13 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_TableRunning_JMenu.add( __Commands_TableRunning_CopyPropertiesToTable_JMenuItem =
          new SimpleJMenuItem( __Commands_TableRunning_CopyPropertiesToTable_String, this ) );
     
+    // Plugin commands
+    
+    menu_bar.add( __Commands_Plugin_JMenu = new JMenu( __Commands_Plugin_String, true ) );
+    __Commands_Plugin_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
+    
+    __Commands_Plugin_JMenu.add( __Commands_Plugin_ReadTimeSeries_JMenu = new JMenu( __Commands_Plugin_ReadTimeSeries_String, true ) );
+    
     // Commands...Template processing...
     
     __Commands_JMenu.addSeparator();
@@ -10606,15 +10626,17 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	else {
 	    // Newer convention where documents are split apart.
 	    __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotes_JMenuItem =
-	       new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotes_String,this));
+	       new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotesPDF_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotesOld_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotesOld_String,this));
+           new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotesOldPDF_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_Vol1UserManual_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_Vol1UserManual_String,this));
+           new SimpleJMenuItem(__Help_ViewDocumentation_Vol1UserManualPDF_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_Vol2CommandReference_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_Vol2CommandReference_String,this));
+           new SimpleJMenuItem(__Help_ViewDocumentation_Vol2CommandReferencePDF_String,this));
+	   __Help_JMenu.add ( __Help_ViewDocumentation_Vol2CommandReferenceHtml_JMenuItem =
+		   new SimpleJMenuItem(__Help_ViewDocumentation_Vol2CommandReferenceHtml_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_Vol3DatastoreReference_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_Vol3DatastoreReference_String,this));
+           new SimpleJMenuItem(__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String,this));
 	}
 	__Help_JMenu.add ( __Help_ViewTrainingMaterials_JMenuItem = new SimpleJMenuItem(__Help_ViewTrainingMaterials_String,this));
     __Help_JMenu.addSeparator();
@@ -11771,7 +11793,7 @@ throws Exception
 		}
 		// Don't save the directory because it is probably a one-off selection and won't be picked again.
 		String path = fc.getSelectedFile().getPath();
-		DataStore dataStore = uiAction_OpenRiversideDB ( path );
+		DataStore dataStore = uiAction_OpenRiversideDB ( session, path );
 		if ( dataStore != null ) {
             // Now update the input filters for the open datastore list (only pass in the one item so that
             // existing input filters are not impacted
@@ -13502,12 +13524,13 @@ throws Exception
 	if ( command.equals ( __Help_AboutTSTool_String )) {
 		uiAction_ShowHelpAbout ();
 	}
-	else if ( command.equals ( __Help_ViewDocumentation_String ) ||
-	    command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ||
-	    command.equals(__Help_ViewDocumentation_ReleaseNotesOld_String) ||
-        command.equals(__Help_ViewDocumentation_Vol1UserManual_String) ||
-        command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ||
-        command.equals(__Help_ViewDocumentation_Vol3DatastoreReference_String) ) {
+	else if ( command.equals ( __Help_ViewDocumentation_Vol2CommandReferenceHtml_String ) ||
+		command.equals ( __Help_ViewDocumentation_String ) ||
+	    command.equals(__Help_ViewDocumentation_ReleaseNotesPDF_String) ||
+	    command.equals(__Help_ViewDocumentation_ReleaseNotesOldPDF_String) ||
+        command.equals(__Help_ViewDocumentation_Vol1UserManualPDF_String) ||
+        command.equals(__Help_ViewDocumentation_Vol2CommandReferencePDF_String) ||
+        command.equals(__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String) ) {
         uiAction_ViewDocumentation ( command );
     }
     else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
@@ -17482,14 +17505,14 @@ not actually be information in the TSTool.cfg file.  This is the case, for
 example, when multiple RiversideDB databases may be available and there is no
 reason to automatically connect to one of them for all users.
 */
-private DataStore uiAction_OpenRiversideDB ( String configFile )
+private DataStore uiAction_OpenRiversideDB ( TSToolSession session, String configFile )
 throws Exception
 {
     // Read into a PropList...
     PropList rprops = new PropList("");
     rprops.setPersistentName ( configFile );
     rprops.readPersistent ();
-    return TSToolMain.openDataStore( rprops, __tsProcessor, false );
+    return TSToolMain.openDataStore( session, rprops, __tsProcessor, false );
 }
 
 /**
@@ -20311,6 +20334,12 @@ private void uiAction_ShowProperties_CommandsRun ()
     catch ( Exception e ) {
         v.add ( "Software install directory ${InstallDir}:  Unknown" );
     }
+    try {
+        v.add ( "Software install directory URL ${InstallDirURL}:  " + __tsProcessor.getPropContents("InstallDirURL") );
+    }
+    catch ( Exception e ) {
+        v.add ( "Software install directory URL ${InstallDirURL}:  Unknown" );
+    }
 	// Whether running and cancel requested...
 	v.add ( "Are commands running:  " + __tsProcessor.getIsRunning() );
 	v.add ( "Has cancel been requested (and is pending):  " + __tsProcessor.getCancelProcessingRequested() );
@@ -21355,19 +21384,22 @@ private void uiAction_ViewDocumentation ( String command )
     if ( command.equals(__Help_ViewDocumentation_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf";
     }
-    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
+    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotesPDF_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes.pdf";
     }
-    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotesOld_String) ) {
+    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotesOldPDF_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes-Old.pdf";
     }
-    else if ( command.equals(__Help_ViewDocumentation_Vol1UserManual_String) ) {
+    else if ( command.equals(__Help_ViewDocumentation_Vol1UserManualPDF_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol1-UserManual.pdf";
     }
-    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReference_String) ) {
+    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReferencePDF_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol2-CommandReference.pdf";
     }
-    else if ( command.equals(__Help_ViewDocumentation_Vol3DatastoreReference_String) ) {
+    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReferenceHtml_String) ) {
+        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/html/TSTool-Vol2-CommandReference/TSTool-Vol2-CommandReference.html";
+    }
+    else if ( command.equals(__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String) ) {
         docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol3-DatastoreReference.pdf";
     }
     // Convert for the operating system
