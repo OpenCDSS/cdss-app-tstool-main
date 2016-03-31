@@ -1096,6 +1096,10 @@ JMenuItem
     __Commands_Create_NewPatternTimeSeries_JMenuItem,
     __Commands_Create_NewTimeSeries_JMenuItem,
 	__Commands_Create_ChangeInterval_JMenuItem,
+	__Commands_Create_ChangeIntervalLarger_JMenuItem,
+	__Commands_Create_ChangeIntervalSmaller_JMenuItem,
+	__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem,
+	__Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem,
 	__Commands_Create_Copy_JMenuItem,
 	__Commands_Create_Delta_JMenuItem,
 	__Commands_Create_Disaggregate_JMenuItem,
@@ -1678,6 +1682,10 @@ private String
     __Commands_Create_NewTimeSeries_String = TAB + "NewTimeSeries()... <create and initialize a new time series>",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1+ time series using a list of identifiers>",
 	__Commands_Create_ChangeInterval_String = TAB + "ChangeInterval()... <create time series with new interval (timestep)>",
+	__Commands_Create_ChangeIntervalLarger_String = TAB + "ChangeIntervalLarger()... <create time series with larger interval (timestep)>",
+	__Commands_Create_ChangeIntervalSmaller_String = TAB + "ChangeIntervalSmaller()... <create time series with smaller interval (timestep)>",
+	__Commands_Create_ChangeIntervalIrregularToRegular_String = TAB + "ChangeIntervalIrregularToRegular()... <create regular interval time series from irregular>",
+	__Commands_Create_ChangeIntervalRegularToIrregular_String = TAB + "ChangeIntervalRegularToIrregular()... <create irregular interval time series from regular>",
 	__Commands_Create_Copy_String = TAB + "Copy()... <copy a time series>",
 	__Commands_Create_Delta_String = TAB + "Delta()... <create new time series as delta between values>",
 	__Commands_Create_Disaggregate_String = TAB + "Disaggregate()... <disaggregate longer interval to shorter>",
@@ -6280,6 +6288,10 @@ private void ui_CheckGUIState ()
     JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalLarger_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalSmaller_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_Disaggregate_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_LookupTimeSeriesFromTable_JMenuItem, enabled);
@@ -9519,6 +9531,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// Commands that perform other processing and create new time series...
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeInterval_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ChangeInterval_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalLarger_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ChangeIntervalLarger_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalSmaller_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ChangeIntervalSmaller_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ChangeIntervalIrregularToRegular_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ChangeIntervalRegularToIrregular_String, this) );
     
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_Copy_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Copy_String, this) );
@@ -11043,7 +11063,7 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
         // Add progress listeners to the commands
         for ( Command command : __tsProcessor.getCommands() ) {
             // Connect the command to the UI to handle progress when the command is run.
-            // TODO SAM 2009-03-23 Evaluate whether to define and interface rather than rely on
+            // TODO SAM 2009-03-23 Evaluate whether to define an interface rather than rely on
             // AbstractCommand here - too much overhead as is when only some commands implement.
             if ( command instanceof AbstractCommand ) {
                 ((AbstractCommand)command).addCommandProgressListener ( this );
@@ -12227,6 +12247,18 @@ throws Exception
 	*/
 	else if (command.equals( __Commands_Create_ChangeInterval_String)){
 		commandList_EditCommand ( __Commands_Create_ChangeInterval_String, null, CommandEditType.INSERT );
+	}
+	else if (command.equals( __Commands_Create_ChangeIntervalLarger_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeIntervalLarger_String, null, CommandEditType.INSERT );
+	}
+	else if (command.equals( __Commands_Create_ChangeIntervalSmaller_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeIntervalSmaller_String, null, CommandEditType.INSERT );
+	}
+	else if (command.equals( __Commands_Create_ChangeIntervalIrregularToRegular_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeIntervalIrregularToRegular_String, null, CommandEditType.INSERT );
+	}
+	else if (command.equals( __Commands_Create_ChangeIntervalRegularToIrregular_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeIntervalRegularToIrregular_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Create_Copy_String)){
 		commandList_EditCommand ( __Commands_Create_Copy_String, null, CommandEditType.INSERT );
