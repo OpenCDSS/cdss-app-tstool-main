@@ -1352,7 +1352,8 @@ JMenuItem
 	__Commands_General_Logging_StartLog_JMenuItem = null,
 	__Commands_General_Logging_SetDebugLevel_JMenuItem = null,
 	__Commands_General_Logging_SetWarningLevel_JMenuItem = null,
-	__Commands_General_Logging_Message_JMenuItem = null;
+	__Commands_General_Logging_Message_JMenuItem = null,
+	__Commands_General_Logging_SendEmailMessage_JMenuItem = null;
 
 JMenu
     __Commands_General_Comments_JMenu = null;
@@ -1922,11 +1923,12 @@ private String
     __Commands_General_FileHandling_UnzipFile_String = TAB + "UnzipFile()... <unzip file>",
     __Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
     
-	__Commands_General_Logging_String = "General - Logging",
+	__Commands_General_Logging_String = "General - Logging and Messaging",
 	__Commands_General_Logging_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
 	__Commands_General_Logging_SetDebugLevel_String = TAB +	"SetDebugLevel()... <set debug message level>",
 	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
 	__Commands_General_Logging_Message_String = TAB + "Message()... <print a message>",
+	__Commands_General_Logging_SendEmailMessage_String = TAB + "SendEmailMessage()... <send an email message>",
 
     __Commands_General_Running_String = "General - Running and Properties",
     __Commands_General_Running_ReadPropertiesFromFile_String = TAB + "ReadPropertiesFromFile()... <read processor properties from file>",
@@ -10278,6 +10280,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
 	__Commands_General_Logging_JMenu.addSeparator();
     __Commands_General_Logging_JMenu.add ( __Commands_General_Logging_Message_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_Message_String, this ) );
+    __Commands_General_Logging_JMenu.add ( __Commands_General_Logging_SendEmailMessage_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Logging_SendEmailMessage_String, this ) );
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
     __Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
@@ -12970,6 +12974,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_General_Logging_Message_String) ) {
         commandList_EditCommand ( __Commands_General_Logging_Message_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_Logging_SendEmailMessage_String) ) {
+        commandList_EditCommand ( __Commands_General_Logging_SendEmailMessage_String, null, CommandEditType.INSERT );
     }
     // General - Running commands...
 	else if (command.equals( __Commands_General_Running_SetWorkingDir_String) ) {
