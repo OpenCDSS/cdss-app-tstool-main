@@ -235,7 +235,11 @@ public String getSystemFolder ()
 }
 
 /**
-Return the name of the user folder for the operating system.
+Return the name of the TSTool user folder for the operating system, for example:
+<ul>
+<li>	Windows:  C:\Users\UserName\.tstool</li>
+<li>	Linux: /home/UserName/.tstool</li>
+</ul>
 */
 public String getUserFolder ()
 {

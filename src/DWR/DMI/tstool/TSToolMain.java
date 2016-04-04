@@ -422,7 +422,20 @@ package DWR.DMI.tstool;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -457,6 +470,7 @@ import RTi.GRTS.TSViewGraphJFrame;
 import RTi.GRTS.TSViewSummaryJFrame;
 import RTi.GRTS.TSViewTableJFrame;
 import RTi.Util.GUI.JGUIUtil;
+import RTi.Util.IO.Command;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
@@ -474,7 +488,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.09.02 (2016-03-04)";
+public static final String PROGRAM_VERSION = "11.10.00 (2016-03-31)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -664,7 +678,7 @@ public void init()
 	// Full GUI as applet (no log file)...
 	// Show the main GUI, although later might be able to start up just
 	// the TSView part via a web site.
-	__tstool_JFrame = new TSTool_JFrame ( session, null, false );
+	__tstool_JFrame = new TSTool_JFrame ( session, null, false, null );
 }
 
 /**
@@ -752,7 +766,105 @@ Indicate whether TSTool is running in REST API server mode.  This feature is und
 public static boolean isRestServer()
 {	return __isRestletServer;
 }
-    
+
+/**
+Load plugin datastores.
+*/
+private static List<Class> loadPluginDatastores(TSToolSession session)
+{
+	List<Class> dataStoreClasses = new ArrayList<Class>();
+	return dataStoreClasses;
+}
+
+/**
+Load plugin commands.
+*/
+private static List<Class> loadPluginCommands(TSToolSession session)
+{	final String routine = "loadPluginCommands";
+	List<Class> pluginCommandList = new ArrayList<Class>();
+	// TODO SAM 2016-04-02 Need to generate list from file system
+	// First get a list of candidate URLs, which will be in the TSTool user files under, for example
+	// .tstool/plugin-command/CommandName/bin/CommandName-version.jar
+	// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
+	List<String> commandJarURLList = new ArrayList<String>();
+	String userPluginDir = session.getUserFolder() + File.separator + "plugin-command";
+	// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
+	// in which case ** will need to be used somehow in the glob pattern
+	String glob = userPluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
+	// For glob backslashes need to be escaped (this should not impact Linux)
+	glob = glob.replace ("\\","\\\\");
+	final List<String> pluginJarList = new ArrayList<String>();
+	final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
+	FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
+			Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
+			if ( pathMatcher.matches(file)) {
+				Message.printStatus(2,routine,"Found jar file for plugin command: " + file);
+				pluginJarList.add(""+file);
+			}
+			return FileVisitResult.CONTINUE;
+		}
+		
+		@Override
+		public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
+			return FileVisitResult.CONTINUE;
+		}
+	};
+	try {
+		// The following walks the tree path under the specified folder
+		// The full path is returned during walking (not just under the starting folder)
+		Path userPluginDirPath = Paths.get(userPluginDir);
+		Message.printStatus(2,routine, "Trying to find plugin commands using userDirPath \"" + userPluginDirPath + "\" and glob pattern \"" + glob + "\"" );
+		Files.walkFileTree(userPluginDirPath, matcherVisitor);
+	}
+	catch ( IOException e ) {
+		Message.printWarning(3,routine,"Error getting jar file list for plugin command (" + e + ")" );
+		// Return empty list of plugin command classes
+		return pluginCommandList;
+	}
+	// Convert found jar files into an array of URL used by the class loader
+	URL [] commandJarURLs = new URL[pluginJarList.size()];
+	int jarCount = 0;
+	for ( String pluginJar : pluginJarList ) {
+		try {
+			// Convert the file system filename to URL using forward slashes
+			commandJarURLs[jarCount] = new URL("file:///" + pluginJar.replace("\\", "/"));
+			++jarCount; // Only increment if successful
+		}
+		catch ( MalformedURLException e ) {
+			Message.printWarning(3,routine,"Error creating URL for jar file \"" + pluginJar + "\" (" + e + ")" );
+		}
+	}
+	// Create a class loader for commands.  This expects commands to be in the jar file with class name CommandName.
+	if ( jarCount != pluginJarList.size() ) {
+		// Resize the array
+		URL [] commandJarURLs2 = new URL[jarCount];
+		System.arraycopy(commandJarURLs,0,commandJarURLs2,0,jarCount);
+		commandJarURLs = commandJarURLs2;
+	}
+	PluginCommandClassLoader pcl = new PluginCommandClassLoader ( commandJarURLs );
+	try {
+		pluginCommandList = pcl.loadCommandClasses();
+	}
+	catch ( ClassNotFoundException e ) {
+		Message.printWarning(2,routine,"Error loading plugin command classes (" + e + ")." );
+		Message.printWarning(2,routine,e);
+	}
+	finally {
+		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
+		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+		try {
+			pcl.close();
+		}
+		catch ( IOException e ) {
+			// For now swallow - not sure what else to do
+		}
+		*/
+	}
+	return pluginCommandList;
+}
+
 /**
 Start the main application instance.
 @param args Command line arguments.
@@ -812,6 +924,16 @@ public static void main ( String args[] )
 	initializeAfterHomeIsKnown ();
 
 	Message.printStatus ( 1, routine, "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
+
+	// Load plugin datastore classes
+	
+	List<Class> pluginDataStoreClasses = loadPluginDatastores(session);
+	
+	// Load plugin command classes
+	
+	List<Class> pluginCommandClasses = loadPluginCommands(session);
+	
+	// Run TSTool in the run mode indicated by command line parameters
 	
 	if ( IOUtil.isBatch() ) {
 		// Running like "tstool -commands file" (possibly with -nomaingui)
@@ -993,7 +1115,7 @@ public static void main ( String args[] )
 		// Run the GUI...
 		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
 		try {
-            __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad() );
+            __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad(), pluginCommandClasses );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error starting TSTool GUI." );

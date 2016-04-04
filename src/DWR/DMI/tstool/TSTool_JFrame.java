@@ -304,6 +304,11 @@ TSTool session information, used to track command file open history, etc.
 private TSToolSession session = null;
 
 /**
+List of plugin command classes.
+*/
+private List<Class> pluginCommandClassList = new ArrayList<Class>();
+
+/**
 Map interface.
 */
 private GeoViewJFrame __geoview_JFrame = null;
@@ -2164,7 +2169,7 @@ TSTool_JFrame constructor.
 @param run_on_load If true, a successful load of a command file will be followed by
 running the commands.  If false, the command file will be loaded but not automatically run.
 */
-public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_on_load )
+public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_on_load, List<Class> pluginCommandClassList )
 {	super();
 	StopWatch swMain = new StopWatch();
 	swMain.start();
@@ -2174,8 +2179,11 @@ public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_o
 	
 	Message.setTopLevel ( this );
 	
-	// Start a session to track which files are open
+	// Session to track command file history and other user session properties
 	this.session = session;
+	
+	// Save the list of plugin classes, which will be used to initialize menus
+	this.pluginCommandClassList = pluginCommandClassList;
    
 	// Set the initial working directory up front because it is used in the
 	// command processor and edit dialogs.
@@ -2204,9 +2212,6 @@ public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_o
 	in.start();
 	ui_InitGUI ();
 	in.stop();
-	if ( Message.isDebugOn ) {
-	    Message.printDebug(1, "", "JTS - InitGUI: " + in.getSeconds());
-	}
 
     // Get database connection information.  Force a login if the
 	// database connection cannot be made.  The login is interactive and
@@ -2219,9 +2224,7 @@ public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_o
 		uiAction_OpenColoradoSMS ( true );
 	}
 	sms.stop();
-	Message.printDebug(1, rtn, "JTS - OpenColoradoSMS: " + sms.getSeconds());
 	swMain.stop();
-	Message.printDebug(1, rtn, "JTS - TSTool_JFrame(): " + swMain.getSeconds());
 	
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
 	// use File...Open HydroBase.  Or, configure HydroBase information in the TSTool configuration file.
@@ -3132,7 +3135,7 @@ private Command commandList_NewCommand ( String commandString, boolean createUnk
 	}
 	Command c = null;
 	try {
-		TSCommandFactory cf = new TSCommandFactory();
+		TSCommandFactory cf = new TSCommandFactory(this.pluginCommandClassList);
 		c = cf.newCommand(commandString);
 		Message.printStatus ( 2, routine, "Created command from factory for \"" + commandString + "\"");
 	}
@@ -7630,7 +7633,7 @@ private String ui_GetSelectedTimeStep()
 Initialize the GUI.
 */
 private void ui_InitGUI ( )
-{	String routine = "TSTool_JFrame.initGUI";
+{	String routine = "TSTool_JFrame.ui_InitGUI";
 	try {	// To catch layout problems...
 	int y;
 	
@@ -10189,10 +10192,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     
     // Plugin commands
     
-    menu_bar.add( __Commands_Plugin_JMenu = new JMenu( __Commands_Plugin_String, true ) );
-    __Commands_Plugin_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
-    
-    __Commands_Plugin_JMenu.add( __Commands_Plugin_ReadTimeSeries_JMenu = new JMenu( __Commands_Plugin_ReadTimeSeries_String, true ) );
+    ui_InitGUIMenus_CommandsPlugin(menu_bar);
     
     // Commands...Template processing...
     
@@ -10357,6 +10357,37 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     }
     __Commands_Deprecated_JMenu.add ( __Commands_Deprecated_RunningAverage_JMenuItem =
         new SimpleJMenuItem(__Commands_Deprecated_RunningAverage_String, this ) );
+}
+
+/**
+Initialize the GUI "Commands(Plugin)" menu.
+*/
+private void ui_InitGUIMenus_CommandsPlugin ( JMenuBar menu_bar )
+{	// "Commands(Plugin)"...
+
+    menu_bar.add( __Commands_Plugin_JMenu = new JMenu( __Commands_Plugin_String, true ) );
+    __Commands_Plugin_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
+    
+    //__Commands_Plugin_JMenu.add( __Commands_Plugin_ReadTimeSeries_JMenu = new JMenu( __Commands_Plugin_ReadTimeSeries_String, true ) );
+	//menu_bar.add( __Commands_JMenu = new JMenu( __Commands_String, true ) );
+    
+    // Loop through the plugin command classes and add menus
+    
+    for ( Class c : this.pluginCommandClassList ) {
+    	// For now use the class name to determine the menu
+    	String name = c.getSimpleName();
+    	int pos = name.indexOf("_Command");
+    	if ( pos > 0 ) {
+    		// TODO SAM 2016-04-02 Need a way to get a short command description
+    		__Commands_Plugin_JMenu.add (
+    		   new SimpleJMenuItem(name.substring(0,pos) + "()...", this ) );
+    	}
+    }
+
+	//__Commands_JMenu.add ( __Commands_SelectTimeSeries_JMenu = new JMenu(__Commands_SelectTimeSeries_String) );
+	//__Commands_SelectTimeSeries_JMenu.setToolTipText("Select time series for processing (use with TSList=SelectedTS).");
+    //__Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_DeselectTimeSeries_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Select_DeselectTimeSeries_String, this ) );
 }
 
 /**
@@ -12669,8 +12700,7 @@ private void uiAction_ActionPerformed13_CommandsOutputMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-    if (command.equals(
-		__Commands_Output_SetOutputDetailedHeaders_String) ) {
+    if (command.equals(__Commands_Output_SetOutputDetailedHeaders_String) ) {
 		commandList_EditCommand (__Commands_Output_SetOutputDetailedHeaders_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Output_SetOutputPeriod_String) ) {
@@ -13579,6 +13609,36 @@ throws Exception
         uiAction_ImportConfiguration ( IOUtil.getApplicationHomeDir() + File.separator + "system" +
             File.separator + "TSTool.cfg");
     }
+	else {
+		// Chain
+		uiAction_ActionPerformed19_CommandsPluginMenu(event);
+	}
+}
+
+/**
+Handle a group of actions for the Commands...Output... menu.
+@param event Event to handle.
+*/
+private void uiAction_ActionPerformed19_CommandsPluginMenu (ActionEvent event)
+throws Exception
+{	String commandMenu = event.getActionCommand();
+	int pos0 = commandMenu.indexOf("()...");
+	if ( pos0 > 0 ) {
+		// Have a command CommandName()... menu
+		String commandNameFromMenu = commandMenu.substring(0, pos0);
+		for ( Class c : this.pluginCommandClassList ) {
+			// For now use the class name to determine the menu
+			String name = c.getSimpleName();
+			int pos = name.indexOf("_Command");
+			if ( pos > 0 ) {
+			   String commandNameFromPlugin = name.substring(0,pos);
+			   if ( commandNameFromMenu.equalsIgnoreCase(commandNameFromPlugin) ) {
+				   // Plugin command name matches menu that was selected
+				   commandList_EditCommand (commandMenu, null, CommandEditType.INSERT );
+			   }
+			}
+		}
+	}
 }
 
 /**
