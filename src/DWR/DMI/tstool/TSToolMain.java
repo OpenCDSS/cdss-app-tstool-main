@@ -1,432 +1,13 @@
-//------------------------------------------------------------------------------
-// TSTool - Main program class for TSTool
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-//
-// 23 Oct 1997	Daniel Weiler, RTi	Created initial class description.
-// 07 Apr 1998	Steven A. Malers, RTi	Revisited code to handle current
-//					time series identifiers.
-// 06 Oct 1998	SAM, RTi		Add units conversion data.
-// 31 Dec 1998	SAM, RTi		Update for 3.07.  Extend the
-//					-fillhistave option from frost dates to
-//					monthly data (omit daily data for now).
-// 07 Jan 1999	SAM, RTi		Update to 3.08.  Make the averaging
-//					period apply to frost dates too.  Also
-//					implement the add() function for frost
-//					dates.
-// 27 Jan 1999	SAM, RTi		Update to 3.09.  React to feedback from
-//					users.  Implement the -datasource
-//					option.  Move the Data Source to the
-//					top of the list since it controls other
-//					options.
-// 23 Feb 1999	SAM, RTi		Update to version 4.00 to reflect Java
-//					1.2 upgrade.
-// 09 Mar 1999	SAM, RTi		Back down to 3.10 to deal with some
-//					feedback from Boyle.  Had not really
-//					made any changes for 4.00.
-// 05 Apr 1999	SAM, RTi		Go back up to 4.00 and add HBDMI to
-//					queries.
-// 20 May 1999	SAM, RTi		Add -detailedheader to help.
-// 22 Jul 1999	SAM, RTi		Add -rti for RTi enhancements.
-// 03 Aug 1999	SAM, RTi		Update version for initial release.
-// 28 Oct 1999	SAM, RTi		Add feature where data <= 0 can be
-//					ignored for averages.
-// 27 Jan 2000	SAM, RTi		Add -missing Value1,Value2.
-// 19 Mar 2000	SAM, RTi		Initialize messaging levels here.
-//					Changes to HBParse make this necessary.
-// 21 Jul 2000	SAM, RTi		Update to include new list and binary
-//					options.
-// 25 Sep 2000	SAM, RTi		Update to have the -include_missing_ts
-//					option.
-// 11 Dec 2000	SAM, RTi		Remove -rti option.  Features are now
-//					in by default.
-// 07 Jan 2001	SAM, RTi		Change IO to IOUtil.
-// 11 Jan 2001	SAM, RTi		Enable running as an applet with only a
-//					canvas.
-// 15 Mar 2001	SAM, RTi		Update to 05.01.00 to clean up
-//					functionality.  Use IOUtil.isBatch()
-//					rather than local variable.
-// 05 Apr 2001	SAM, RTi		Update to 05.02.00.  Start a follow up
-//					release to deal with cleanup and
-//					selective feature enhancements.
-// 22 Aug 2001	SAM, RTi		Add runProgram() command to run an
-//					external process.  Enable automated
-//					graph creation.
-// 13 Sep 2001	SAM, RTi		Change version to 05.02.00 2001-09-13
-//					and make an official release.
-// 23 Sep 2001	SAM, RTi		Update to version 05.02.01.
-// 11 Nov 2001	SAM, RTi		Update to version 05.03.00.  Enable
-//					PeriodOfRecord graph in RTi tools so the
-//					Visualize package can be removed.
-//					Set the program name and version when
-//					an applet.
-// 2002-01-10	SAM, RTi		Use a configuration file if found in the
-//					system directory.  Use information in
-//					the configuration file to enable/disable
-//					RTi features.
-//					Add -server option to start in server
-//					mode.  This allows batch processing of
-//					commands.
-// 2002-02-17	SAM, RTi		Strip out most of the printUsage() text
-//					since the command list is so long and
-//					is now fully documented in the program
-//					documentation.  Update to version
-//					05.04.00 since so many changes have
-//					acrued.
-// 2002-03-22	SAM, RTi		Update to version 05.05.00.  This
-//					version includes more detailed features
-//					for data filling and analysis to support
-//					TVA, BPA, CDSS, and NWSRFS calibration.
-// 2002-04-03	SAM, RTi		Update to version 05.05.01 for a minor
-//					update to correct some MOVE2 analysis
-//					problems.
-// 2002-04-04	SAM, RTi		Update to version 05.05.02 for a minor
-//					update to re-enable OLS regression,
-//					which had been broken before due to
-//					MOVE2 changes.
-// 2002-04-16	SAM, RTi		Update to version 05.05.03 to include
-//					shiftTimeByInterval() and improved
-//					handling of DateValue files (aliases,
-//					etc.).
-// 2002-04-17	SAM, RTi		Update to version 05.05.04 to include
-//					ARMA.
-// 2002-04-18	SAM, RTi		Update to version 05.05.05 to include
-//					disaggregate().
-// 2002-04-19	SAM, RTi		Update to version 05.05.06 to fix ARMA
-//					interval bug.
-// 2002-04-22	SAM, RTi		Update to version 05.05.07.  Includes
-//					cosmetic cleanup for dialogs to do
-//					"final" documented release to TVA and
-//					State of CO.
-// 2002-04-23	SAM, RTi		Update to version 05.05.08.  Fix bug
-//					that caused extra time series to list.
-// 2002-04-23	SAM, RTi		Update to version 05.05.09.  More
-//					cosmetic cleanup.
-// 2002-04-26	SAM, RTi		Update to version 05.05.10.  Fix 
-//					readTimeSeries() to handle spaces in
-//					file names.
-// 2002-04-26	SAM, RTi		Update to version 05.05.11.  Fix the
-//					File...Process TS Product to work again
-//					(broke in 05.05.09).
-// 2002-04-29	SAM, RTi		Update to version 05.05.12.  Expand the 
-//					ARMA features.  Add left and right
-//					legend position to graphs.
-// 2002-05-01	SAM, RTi		Update to version 05.05.13.  Allow
-//					ARMA() to use ARMA interval greater
-//					than the data interval.
-// 2002-05-08	SAM, RTi		Update to version 05.05.14 - minor
-//					cosmetic changes based on a review of
-//					the documentation.
-// 2002-05-12	SAM, RTi		Update to version 05.06.00 - add
-//					readNwsCard(), writeNwsCard().
-//					Clean up so log files are always created
-//					in this class, not the TSToolMainGUI or
-//					the TSEngine.  Take out the image
-//					generation code.  It can be done with
-//					commands and time series product
-//					configuration files.  Add support for
-//					-nomaingui option to only show the graph
-//					window.
-// 2002-06-06	SAM, RTi		Update to version 05.06.01.  Add new
-//					monthly summary reports under Tools.
-// 2002-06-06	SAM, RTi		Update to version 05.06.02.  Allow
-//					RiverWare time series to be saved from
-//					the File menu.  Try to finalize the
-//					writeRiverWare() command.  Set the
-//					working directory when a commands file
-//					is read/written.
-// 2002-06-13	SAM, RTi		Update to version 05.06.03.  Fix a bug
-//					where incomplete DateValue files were
-//					not being properly handled.
-//					Add MODSIM output file support.
-// 2002-06-26	SAM, RTi		Update to version 05.06.04.  Add
-//					initial RiversideDB support to actually
-//					read time series.  Only support in the
-//					GUI for now.
-// 2002-07-12	SAM, RTi		Update to version 05.06.05.  Add
-//					File...Set Working Directory.
-// 2002-07-25	SAM, RTi		Update to version 05.06.06.  Fix a bug
-//					in writeRiverWare().
-// 2002-08-26	SAM, RTi		Add addConstant().
-// 2002-08-27	SAM, RTi		Update to version 05.06.07.  Change
-//					day_to_month_reservoir() to
-//					newEndOfMonthTSFromDayTS() and make
-//					consistent with the new functionality.
-// 2003-01-08	SAM, RTi		Update to version 05.06.08.  Rework the
-//					RiversideDB connection and clean up some
-//					HydroBase connection features in the
-//					GUI.
-// 2003-01-09	SAM, RTi		Update to version 05.07.00.  Enable the
-//					handling of license properties in the
-//					TSTool.cfg file.  From this version
-//					forward a TSTool.cfg file with license
-//					information is required.  Update the
-//					directories searched for documentation
-//					for the new directory convention.
-// 2003-03-12	SAM, RTi		Update to version 05.08.00.
-//					* Add "StateModX" as an input type for
-//					  statemod output.
-// 2003-04-17	SAM, RTi		Update to version 05.08.01.
-//					* Fix bug where DIADvisor rain sensors
-//					  were not listing out Data Value 2.
-// 2003-05-17	SAM, RTi		Update to version 05.08.02.
-//					* Add Intercept property for regression.
-// 2003-06-11	SAM, RTi		Update to version 06.00.00.
-//					* Start converting AWT to Swing.
-//					* Use the new TS package (e.g., DateTime
-//					  instead of TSDate).
-//					* Use HydroBaseDMI instead of HBDMI.
-//					* Remove the batch mode operation from
-//					  here.  It will be handled from the
-//					  GUI if necessary.
-// 2003-12-02	SAM, RTi		* Update to version 06.00.01 for beta
-//					  delivery to the State.
-// 2003-12-04	SAM, RTi		* Update to version 06.00.02 for next
-//					  beta release.
-//					* Enable 10+ more command editors.
-//					* Fix bug where DATAUNIT file was not
-//					  getting read.
-// 2003-12-18	SAM, RTi		Update to version 06.00.03 for next
-//					beta release.
-//					* All command dialogs that are supported
-//					  have been enabled - others will be
-//					  phased out or updated.
-// 2004-01-05	SAM, RTi		Update to version 06.00.04 for next
-//					beta release.
-//					* Enable input filters for HydroBase.
-// 2004-01-07	SAM, RTi		Update to version 06.00.05 for next
-//					beta release.
-//					* Change run buttons to run all commands
-//					  and run selected commands.
-// 2004-01-14	SAM, RTi		Update to version 06.00.06 for next
-//					beta release.
-//					* Allow well time series to be read
-//					  using the USGS or USBR ID.
-// 2004-01-15	SAM, RTi		Update to version 06.00.07 for beta
-//					release.
-//					* Enabled writeStateMod() command!
-//					* Other enhancements documented in
-//					  TSTool_JFrame and TSEngine.
-// 2004-01-31	SAM, RTi		Update to version 06.00.08 for beta
-//					release.
-//					* Enable writing StateMod daily files.
-//					* Other enhancements documented in
-//					  TSTool_JFrame and TSEngine.
-// 2004-02-06	SAM, RTi		Update to version 06.00.09 for beta
-//					release.
-//					* Enable reading StateCU time series
-//					  files.
-//					* Enable HydroBase
-//					  agricultural_crop_statistics.
-//					* Re-enable -d #,# command line option.
-//					* Re-enable -commands and batch mode.
-//					* Other enhancements documented in
-//					  TSTool_JFrame and TSEngine.
-// 2004-02-20	SAM, RTi		Update to version 06.01.00 for official
-//					release.
-//					* Other enhancements documented in
-//					  TSTool_JFrame and TSEngine.
-// 2004-03-02	SAM, RTi		Update to version 06.02.00 for official
-//					release.
-//					* Includes a number of minor bug fixes
-//					  in the GUI and supporting libraries.
-// 2004-03-28	SAM, RTi		Update to version 06.03.00 for official
-//					release.
-//					* Put code to set the icon in the
-//					  setIcon() method, so that it can be
-//					  called from the GUI after checking the
-//					  license information.
-// 2004-04-02	SAM, RTi		Update to version 06.04.00.
-//					* StateCU frost dates were not being
-//					  read.
-// 2004-04-14	SAM, RTi		Update to version 06.05.00.
-//					* Change ESPTraceEnsemble to
-//					  NWRSFS_ESPTraceEnsemble.
-//					* Fix problems where TSTool was not
-//					  reading RiversideDB properly.
-// 2004-04-23	SAM, RTi		Update to version 06.06.00.
-//					* Fix problem in readDateValue_JDialog.
-//					* Fix problem reading NWS Card files.
-// 2004-05-24	SAM, RTi		Update to version 06.07.00.
-//					* Officially release ESP trace ensemble
-//					  support.
-//					* Add WIS time series support.
-//					* Update to Microsoft drivers for DMI.
-//					* Other miscellaneous cleanup.
-// 2004-07-11	SAM, RTi		Update to version 06.08.00.
-//					* Enhancements to read StateCU IWR/WSL
-//					  files with a wildcard.
-//					* Enhancements to read StateModB files
-//					  with a wildcard on the location.
-//					* See TSEngine for more changes.
-// 2004-07-20	SAM, RTi		Update to version 06.08.01.
-//					* Use new default database OdbcDsn
-//					  from the config file.
-// 2004-07-27	SAM, RTi		Update to version 06.08.02.
-//					* Minor corrections based on
-//					  documentation review.
-// 2004-08-08	SAM, RTi		* Add code to not load icons when
-//					  running in -release mode, to test
-//					  Jar files.
-// 2004-08-27	SAM, RTi		Update to version 06.09.00.
-//					* Add readHydroBase() command.
-// 2004-09-01	SAM, RTi		Update to version 06.09.01.
-//					* Add initial NWSRFS FS5Files support -
-//					  more support in the next release.
-//					* Fix summary reports (day totals and
-//					  day mean) to handle minute data.
-// 2004-09-13	SAM, RTi		Final changes to NWSRFS FS5Files code
-//					before release to BPA.
-// 2004-10-05	SAM, RTi		Update to version 06.09.02.
-//					* Fix bug in NWSRFS FS5Files support
-//					  where IDs with _ were mishandled.
-//					* Add complete notes for StateModB
-//					  data types.
-//					* Other minor maintenance.
-// 2004-11-17	SAM, RTi		* Fix bug where -release was not being
-//					  parsed as a command line argument.
-//					* Fix bug parsing "-d10", etc.
-// 2004-12-21	SAM, RTi		Update to version 06.09.03.
-//					* Fix bug where setting the initial
-//					  working directory when processing
-//					  commands had errors if the path
-//					  included spaces.
-// 2005-02-16	SAM, RTi		Update to version 06.10.00.
-//					* Enable changeInterval() that is more
-//					  generic, if limited in capability.
-//					* Begin work on mixed station model
-//					  enhancements.
-//					* Start using the new message log
-//					  viewer with tags.
-//					* Change to not display messages to the
-//					  terminal by default, in order to
-//					  increase performance.
-// 2005-06-01	SAM, RTi		Change the version to 06.10.00 BETA to
-//					reflect the limited release.
-// 2005-06-03	SAM, RTi		Change the version to 06.10.01 BETA.
-//					* Enable full data flags for daily and
-//					  monthly data.
-// 2005-06-08	J. Thomas Sapienza, RTi	Added a call to setApplicationHomeDir().
-// 2005-06-28	SAM, RTi		Change the version to 6.10.02 BETA.
-// 2005-07-08	SAM, RTi		Change the version to 6.10.03 BETA for
-//					State testing.
-// 2005-07-20	SAM, RTi		Change the version to 6.10.04 for
-//					release.
-// 2005-08-01	SAM, RTi		Change the version to 6.10.05 for
-//					release.
-// 2005-08-04	SAM, RTi		Change the version to 6.10.06 for
-//					release.
-// 2005-08-24	SAM, RTi		Change the version to 6.10.07 for
-//					release.
-//					* Additional conversion to named
-//					  parameter commands.
-// 2005-09-07	SAM, RTi		Change the version to 6.10.08.
-//					* Additional conversion to named
-//					  parameter commands.
-// 2005-09-28	SAM, RTi		Change the version to 6.10.09.
-//					* Additional conversion to named
-//					  parameter commands.
-// 2005-10-05	SAM, RTi		Change the version to 6.11.00.
-//					* Begin adding support for alert
-//					  annotations.
-//					* Fix bug where if a commands file is
-//					  specified in batch mode using a
-//					  relative path, the working directory
-//					  was not getting set correctly.
-//					* Add ability to accept "=" properties
-//					  on the command line, to supplement
-//					  configuration file information.
-// 2005-10-05	SAM, RTi		Change the version to 6.12.00.
-//					* Improve error handling for time series
-//					  products, in particular to cause a
-//					  non-zero exit status if there is a
-//					  data problem.
-// 2005-11-13	SAM, RTi		Change the version to 6.13.00.
-//					* Check the Jar file for normal/extended
-//					  code and disable features if
-//					  necessary.
-// 2005-12-14	SAM, RTi		Change the version to 6.14.00.
-//					* Change setQueryPeriod() to
-//					  setInputPeriod() and allow backward
-//					  compatibility.
-//					* Change the copyright to include 2006.
-//					* Combine readNwsCard() commands to use
-//					  one command class and dialog and add
-//					  the new Read24HourCommand parameter.
-// 2006-01-16	SAM, RTi		Change the version to 6.15.00.
-//					* Implement dynamic link to map
-//					  interface.
-//					* readNwsCard() and write*ESP*()
-//					  commands have been moved to the
-//					  NWSRFS_DMI package.
-// 2006-01-31	SAM, RTi		Change the version to 6.16.00.
-//					* Add the NDFD input type.
-// 2006-02-16	SAM, RTi		Change the version to 6.16.01.
-//					* Make some changes in the GUI to
-//					  minimize GUI initialization when no
-//					  main GUI is shown.
-//					* Make changes in utility code to handle
-//					  UNC for the application home.
-//					* Finalize initial support for the map
-//					  interaction.
-// 2006-04-17	SAM, RTi		Change the version to 6.16.02.
-//					* Initial data test commands are
-//					  included (under development).
-//					* Enable fillMOVE2(), which was
-//					  accidentally commented out during
-//					  previous updates.
-// 2006-04-17	SAM, RTi		Change the version to 6.17.00.
-//					* Add compareFiles() to help with
-//					  unit and regression testing.
-// 2006-05-02	SAM, RTi		Change the version to 6.18.00
-//					* Add runCommands() to facilitate
-//					  automated regression testing.
-// 2006-05-19	SAM, RTi		Change the version to 6.19.00.
-//					* Update fillUsingDiversionComments() to
-//					  automatically extend the period if
-//					  no query or output period is given.
-// 2006-06-15	SAM, RTi		Change the version to 6.20.00.
-//					* Add NDFD support, in particular to
-//					  manage NDFD adapters.
-// 2006-10-31	SAM, RTi		Change the version to 7.00.00.
-//					* Begin doing development using the
-//					  new development environment.
-//					* Begin distributing using the NSIS
-//					  build process.
-//					* Add HydroBase livestock and human
-//					  population time series.
-// 2006-11-07   KAT, RTi        Fixing bug were home argument
-//                    wasn't working for relative paths.  Added
-//                    some code to get canonical path for home.
-// 2007-01-26   KAT, RTi    Found out that if command line argument
-//                      -D was used but wasn't given a debug level that
-//                      the code was allowing a debug of level one as a
-//                      fallback, but was also not checking the args array
-//                      bounds before going on.  This was causing an
-//                      ArrayOutOfBoundsException() so I added some checks
-//                      in the parseArgs() method so this doesn't happen.
-// 2007-02-11	SAM, RTi		Update version to 7.01.00.
-//					Clean up code based on Eclipse feedback.
-// 2007-03-09	SAM, RTi		Update to version 7.02.00.
-//					* Work on Mixed Station Model tool and commands.
-//					* Add difference time series to compareTimeSeries().
-//					* Verify support for old and new versions of StateCU CDS file.
-// 2007-04-16	SAM, RTi		Update to version 7.03.00
-//					* Verify support for old and new versions of StateCU IPY file.
-//------------------------------------------------------------------------------
-//EndHeader
-
 package DWR.DMI.tstool;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -470,7 +51,6 @@ import RTi.GRTS.TSViewGraphJFrame;
 import RTi.GRTS.TSViewSummaryJFrame;
 import RTi.GRTS.TSViewTableJFrame;
 import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.IO.Command;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
@@ -678,7 +258,12 @@ public void init()
 	// Full GUI as applet (no log file)...
 	// Show the main GUI, although later might be able to start up just
 	// the TSView part via a web site.
-	__tstool_JFrame = new TSTool_JFrame ( session, null, false, null );
+	String commandFile = null;
+	List<Class> pluginDataStoreClasses = new ArrayList<Class>();
+	List<Class> pluginDataStoreFactoryClasses = new ArrayList<Class>();
+	List<Class> pluginCommandClasses = new ArrayList<Class>();
+	__tstool_JFrame = new TSTool_JFrame ( session, commandFile, false,
+		pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
 }
 
 /**
@@ -769,24 +354,116 @@ public static boolean isRestServer()
 
 /**
 Load plugin datastores.
+@param session TSTool session, which provides user and environment information.
 */
-private static List<Class> loadPluginDatastores(TSToolSession session)
+private static List<Class>[] loadPluginDataStores(TSToolSession session)
 {
-	List<Class> dataStoreClasses = new ArrayList<Class>();
-	return dataStoreClasses;
+	final String routine = "loadPluginDataStores";
+	List<Class> pluginDataStoreList = new ArrayList<Class>();
+	List<Class> pluginDataStoreFactoryList = new ArrayList<Class>();
+	// First get a list of candidate URLs, which will be in the TSTool user files under, for example
+	// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
+	String userPluginDir = session.getUserFolder() + File.separator + "plugin-datastore";
+	// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
+	// in which case ** will need to be used somehow in the glob pattern
+	String glob = userPluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
+	// For glob backslashes need to be escaped (this should not impact Linux)
+	glob = glob.replace ("\\","\\\\");
+	final List<String> pluginJarList = new ArrayList<String>();
+	final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
+	FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
+			Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
+			if ( pathMatcher.matches(file)) {
+				Message.printStatus(2,routine,"Found jar file for plugin datastore: " + file);
+				pluginJarList.add(""+file);
+			}
+			return FileVisitResult.CONTINUE;
+		}
+		
+		@Override
+		public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
+			return FileVisitResult.CONTINUE;
+		}
+	};
+	try {
+		// The following walks the tree path under the specified folder
+		// The full path is returned during walking (not just under the starting folder)
+		Path userPluginDirPath = Paths.get(userPluginDir);
+		Message.printStatus(2,routine, "Trying to find plugin datastores using userDirPath \"" + userPluginDirPath + "\" and glob pattern \"" + glob + "\"" );
+		Files.walkFileTree(userPluginDirPath, matcherVisitor);
+	}
+	catch ( IOException e ) {
+		Message.printWarning(3,routine,"Error getting jar file list for plugin datastore(s) (" + e + ")" );
+		// Return empty list of datastore plugin classes
+		List<Class> [] array = new List[2];
+		array[0] = pluginDataStoreList;
+		array[1] = pluginDataStoreFactoryList;
+		return array;
+	}
+	// Convert found jar files into an array of URL used by the class loader
+	URL [] dataStoreJarURLs = new URL[pluginJarList.size()];
+	int jarCount = 0;
+	for ( String pluginJar : pluginJarList ) {
+		try {
+			// Convert the file system filename to URL using forward slashes
+			dataStoreJarURLs[jarCount] = new URL("file:///" + pluginJar.replace("\\", "/"));
+			++jarCount; // Only increment if successful
+		}
+		catch ( MalformedURLException e ) {
+			Message.printWarning(3,routine,"Error creating URL for datastore plugin jar file \"" + pluginJar + "\" (" + e + ")" );
+		}
+	}
+	// Create a class loader for datastores.  This expects datastores to be in the jar file with class name XXXXXDataStore.
+	if ( jarCount != pluginJarList.size() ) {
+		// Resize the array
+		URL [] dataStoreJarURLs2 = new URL[jarCount];
+		System.arraycopy(dataStoreJarURLs,0,dataStoreJarURLs2,0,jarCount);
+		dataStoreJarURLs = dataStoreJarURLs2;
+	}
+	PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
+	try {
+		pluginDataStoreList = pcl.loadDataStoreClasses();
+	}
+	catch ( ClassNotFoundException e ) {
+		Message.printWarning(2,routine,"Error loading datastore plugin classes (" + e + ")." );
+		Message.printWarning(2,routine,e);
+	}
+	try {
+		pluginDataStoreFactoryList = pcl.loadDataStoreFactoryClasses();
+	}
+	catch ( ClassNotFoundException e ) {
+		Message.printWarning(2,routine,"Error loading datastore factory plugin classes (" + e + ")." );
+		Message.printWarning(2,routine,e);
+	}
+	finally {
+		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
+		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+		try {
+			pcl.close();
+		}
+		catch ( IOException e ) {
+			// For now swallow - not sure what else to do
+		}
+		*/
+	}
+	List<Class> [] array = new List[2];
+	array[0] = pluginDataStoreList;
+	array[1] = pluginDataStoreFactoryList;
+	return array;
 }
 
 /**
 Load plugin commands.
+@param session TSTool session, which provides user and environment information.
 */
 private static List<Class> loadPluginCommands(TSToolSession session)
 {	final String routine = "loadPluginCommands";
 	List<Class> pluginCommandList = new ArrayList<Class>();
-	// TODO SAM 2016-04-02 Need to generate list from file system
-	// First get a list of candidate URLs, which will be in the TSTool user files under, for example
+	// First get a list of candidate URLs, which will be in the TSTool user files under, for example:
 	// .tstool/plugin-command/CommandName/bin/CommandName-version.jar
 	// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
-	List<String> commandJarURLList = new ArrayList<String>();
 	String userPluginDir = session.getUserFolder() + File.separator + "plugin-command";
 	// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
 	// in which case ** will need to be used somehow in the glob pattern
@@ -819,8 +496,8 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 		Files.walkFileTree(userPluginDirPath, matcherVisitor);
 	}
 	catch ( IOException e ) {
-		Message.printWarning(3,routine,"Error getting jar file list for plugin command (" + e + ")" );
-		// Return empty list of plugin command classes
+		Message.printWarning(3,routine,"Error getting jar file list for plugin command(s) (" + e + ")" );
+		// Return empty list of command plugin classes
 		return pluginCommandList;
 	}
 	// Convert found jar files into an array of URL used by the class loader
@@ -833,7 +510,7 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 			++jarCount; // Only increment if successful
 		}
 		catch ( MalformedURLException e ) {
-			Message.printWarning(3,routine,"Error creating URL for jar file \"" + pluginJar + "\" (" + e + ")" );
+			Message.printWarning(3,routine,"Error creating URL for plugin command jar file \"" + pluginJar + "\" (" + e + ")" );
 		}
 	}
 	// Create a class loader for commands.  This expects commands to be in the jar file with class name CommandName.
@@ -848,7 +525,7 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 		pluginCommandList = pcl.loadCommandClasses();
 	}
 	catch ( ClassNotFoundException e ) {
-		Message.printWarning(2,routine,"Error loading plugin command classes (" + e + ")." );
+		Message.printWarning(2,routine,"Error loading command plugin classes (" + e + ")." );
 		Message.printWarning(2,routine,e);
 	}
 	finally {
@@ -927,7 +604,9 @@ public static void main ( String args[] )
 
 	// Load plugin datastore classes
 	
-	List<Class> pluginDataStoreClasses = loadPluginDatastores(session);
+	List<Class>[] array = loadPluginDataStores(session);
+	List<Class> pluginDataStoreClasses = array[0];
+	List<Class> pluginDataStoreFactoryClasses = array[1];
 	
 	// Load plugin command classes
 	
@@ -945,7 +624,7 @@ public static void main ( String args[] )
         openHydroBase ( runner.getProcessor() );
         // Open datastores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
-        openDataStoresAtStartup ( session, runner.getProcessor(), true );
+        openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
 		try {
 		    String commandFileFull = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + commandFileFull + "\"" );
@@ -1036,7 +715,7 @@ public static void main ( String args[] )
         openHydroBase ( runner.getProcessor() );
         // Open datastores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
-        openDataStoresAtStartup ( session, runner.getProcessor(), true );
+        openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
         File f = null;
 		String commandFileFull = "";
 	    boolean runDiscoveryOnLoad = false;
@@ -1115,7 +794,8 @@ public static void main ( String args[] )
 		// Run the GUI...
 		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
 		try {
-            __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad(), pluginCommandClasses );
+            __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad(),
+            	pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error starting TSTool GUI." );
@@ -1137,11 +817,14 @@ Open a datastore given its configuration properties.  The datastore is also adde
 (if the open fails then the datastore should set status=1).
 The TSTool configuration file properties are checked here to ensure that the datastore type is enabled.
 Otherwise, opening datastores takes time and impacts performance.
+@param session TSTool session, which provides user and environment information
 @param dataStoreProps datastore configuration properties recognized by the datastore factory "create" method.
 @param processor time series command processor that will use/manage the datastore
+@param pluginDataStoreClassList list of plugin datastore classes to be loaded dynamically
 @param isBatch indicate whether running in batch mode - if true, do not open datastores with login of "prompt"
 */
-protected static DataStore openDataStore ( TSToolSession session, PropList dataStoreProps, TSCommandProcessor processor, boolean isBatch )
+protected static DataStore openDataStore ( TSToolSession session, PropList dataStoreProps,
+	TSCommandProcessor processor, List<Class> pluginDataStoreClassList, List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
 {   String routine = "TSToolMain.openDataStore";
     // Open the datastore depending on the type
@@ -1155,6 +838,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     // Similar checks are done in the TSTool UI to enable/disable UI features
     String propValue = null; // From software installation configuration
     String userPropValue = null; // From user configuration
+    Class pluginDataStoreClass = null; // Will be used if a plugin
+    Class pluginDataStoreFactoryClass = null; // Will be used if a plugin
     if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoWaterHBGuestEnabled");
     	userPropValue = session.getConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
@@ -1282,8 +967,23 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
     }
     else {
-        throw new InvalidParameterException("Datastore type \"" + dataStoreType +
-            "\" is not recognized - cannot initialize datastore connection." );
+    	// Try to load plugin by matching the datastore type with the datastore class name
+    	boolean loaded = false;
+		// Loop through the datastore classes to find which has a name that matches the datatore type in configuration file 
+		for ( Class c : pluginDataStoreFactoryClassList ) {
+			String nameFromClass = c.getSimpleName(); // Something like DatabaseXDataStoreFactory
+			if ( nameFromClass.equals(dataStoreType+"Factory") ) {
+				// Construction will occur by the datastore factory below but need the package name
+				packagePath = c.getPackage().toString() + "."; // Actually have problems with this
+				pluginDataStoreFactoryClass = c; // Use directly below
+				loaded = true;
+        		break;
+			}
+		}
+    	if ( !loaded ) {
+	        throw new InvalidParameterException("Datastore type \"" + dataStoreType +
+	            "\" is not recognized - cannot initialize datastore connection." );
+    	}
     }
     if ( !packagePath.equals("") ) {
         propValue = dataStoreProps.getValue("Enabled");
@@ -1297,8 +997,35 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             // Datastore is enabled
             StopWatch sw = new StopWatch();
             sw.start();
-            Class clazz = Class.forName( packagePath + dataStoreType + "Factory" );
-            DataStoreFactory factory = (DataStoreFactory)clazz.newInstance();
+            String className = packagePath + dataStoreType + "Factory";
+            DataStoreFactory factory = null;
+            if ( pluginDataStoreFactoryClass != null ) {
+            	// This works for plugins
+	            try {
+		    		Constructor<?> constructor = pluginDataStoreFactoryClass.getConstructor();
+		    		Object dataStoreFactory = constructor.newInstance();
+		    		// The object must be a DataStore if it follows implementation requirements
+		    		factory = (DataStoreFactory)dataStoreFactory;
+		    	}
+		    	catch ( NoSuchMethodException e ) {
+		    		Message.printWarning(2,routine,"Error getting constructor for plugin command class \"" + className + "\" (" + e + ")");
+		    	}
+		    	catch ( IllegalAccessException e ) {
+		    		Message.printWarning(2,routine,"Error creating instance of command for plugin command class \"" + className + "\" (" + e + ")");
+		    	}
+		    	catch ( InstantiationException e ) {
+		    		Message.printWarning(2,routine,"Error creating instance of command for plugin command class \"" + className + "\" (" + e + ")");
+		    	}
+		    	catch ( InvocationTargetException e ) {
+		    		Message.printWarning(2,routine,"Error creating instance of command for plugin command class \"" + className + "\" (" + e + ")");
+		    	}
+            }
+            else {
+                Message.printStatus(2, routine, "Getting class for name \"" + className + "\"" );
+                Class clazz = Class.forName( className );
+                Message.printStatus(2, routine, "Creating instance of class \"" + className + "\"" );
+            	factory = (DataStoreFactory)clazz.newInstance();
+            }
         	// Check for a login of "prompt"
         	String systemLogin = dataStoreProps.getValue("SystemLogin");
         	String systemPassword = dataStoreProps.getValue("SystemPassword");
@@ -1368,11 +1095,14 @@ name properties to use for the initial connection(s).  This method can be called
 to automatically establish database startup database connections.
 In the UI, the user may subsequently open new connections (File...Open...RiversideDB) in which case the
 openRiversideDB() method will be called directly (no need to deal with the main TSTool configuration file).
+@param session TSTool session, which provides user and environment information
 @param processor command processor that will have datastores opened
+@param pluginDataStoreClassList list of plugin datastore classes to be loaded dynamically
 @param isBatch is the software running in batch mode?  If in batch mode do not open up datastores
 that have a login of "prompt".
 */
-protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor, boolean isBatch )
+protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor,
+	List<Class> pluginDataStoreClassList, List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 {   String routine = "TSToolMain.openDataStoresAtStartup";
     String configFile = getConfigFile();
 
@@ -1432,6 +1162,8 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     // Also allow multiple database connections via the new convention using datastore configuration files
     // The following code processes all datastores, although RiversideDB is the first implementation using
     // this approach.
+    
+    // Plugin datastore classes will have been loaded by this time
     
     // TODO SAM 2010-09-01 DataStore:*ConfigFile does not work
     List<Prop> dataStoreMainProps = getProps ( "DataStore:*" );
@@ -1495,7 +1227,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // (e.g., to locate related files referenced in the configuration file, such as lists of data
                 // that are not available from web services)
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
-                openDataStore ( session, dataStoreProps, processor, isBatch );
+                openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
             }
             catch ( ClassNotFoundException e ) {
                 Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +

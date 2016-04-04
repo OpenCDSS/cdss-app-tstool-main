@@ -13,7 +13,7 @@ import RTi.Util.Message.Message;
 
 /**
  * Load plugin command classes.  This loader loads the command class as an entry point into
- * the plugin commands with TSTool.  Once the commands have been loaded, other
+ * the plugin commands integrated with TSTool.  Once the commands have been loaded, other
  * classes will be loaded, such as the editor dialog and all the underlying classes that
  * are needed to run the command, such as database interface.
  * See:  http://docs.oracle.com/javase/tutorial/ext/basics/load.html
@@ -27,14 +27,14 @@ public class PluginCommandClassLoader extends URLClassLoader {
 	public PluginCommandClassLoader ( URL [] commandJarList ) {
 		// Using URLClassLoader for the base class should result in the parent (application) class
 		// loader being used for for any other class loads, then this class.
-		super ( commandJarList );//, Thread.currentThread().getContextClassLoader() );
+		super ( commandJarList );
 	}
 	
 	/**
 	 * Load the command classes found in the jar file.
 	 */
 	public List<Class> loadCommandClasses () throws ClassNotFoundException {
-		String routine = "localCommandClasses";
+		String routine = "loadCommandClasses";
 		// Get all of the URLs that were specified to the loader
 		URL [] pluginClassURLs = getURLs();
 		// Plugin command classes that are loaded
@@ -48,13 +48,11 @@ public class PluginCommandClassLoader extends URLClassLoader {
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
 				String commandClassToLoad = attributes.getValue("Command-Class");
-				// The following worked
-				//String commandClassToLoad = "org.openwaterfoundation.tstool.plugin.command.TestCommand1.TestCommand1_Command";
 				// The following will search the list of URLs that was provided to the constructor
-				Message.printStatus(2, routine, "Trying to load class \"" + commandClassToLoad + "\"");
+				Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
 				// This class is an instance of URLClassLoader so can run the super-class loadClass()
 				Class<?> loadedClass = loadClass(commandClassToLoad);
-				Message.printStatus(2, routine, "Loaded class \"" + commandClassToLoad + "\"");
+				Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
 				pluginCommandList.add(loadedClass);
 			}
 			catch ( IOException ioe ) {

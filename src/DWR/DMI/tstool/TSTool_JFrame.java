@@ -304,7 +304,17 @@ TSTool session information, used to track command file open history, etc.
 private TSToolSession session = null;
 
 /**
-List of plugin command classes.
+List of plugin datastore classes, which allow third-party datastores to be opened and used for data.
+*/
+private List<Class> pluginDataStoreClassList = new ArrayList<Class>();
+
+/**
+List of plugin datastore factory classes, which allow third-party datastores to be opened and used for data.
+*/
+private List<Class> pluginDataStoreFactoryClassList = new ArrayList<Class>();
+
+/**
+List of plugin command classes, which allow third-party commands to be recognized and run.
 */
 private List<Class> pluginCommandClassList = new ArrayList<Class>();
 
@@ -2165,11 +2175,15 @@ private final static int
 
 /**
 TSTool_JFrame constructor.
-@param command_file Name of the command file to load at initialization.
-@param run_on_load If true, a successful load of a command file will be followed by
+@param session TSTool session, which provides user and environment information.
+@param commandFile Name of the command file to load at initialization.
+@param runOnLoad If true, a successful load of a command file will be followed by
 running the commands.  If false, the command file will be loaded but not automatically run.
+@param pluginDataStoreClassList list of classes for plugin datastores.
+@param pluginCommandClassList list of classes for plugin commands.
 */
-public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_on_load, List<Class> pluginCommandClassList )
+public TSTool_JFrame ( TSToolSession session, String commandFile, boolean runOnLoad,
+	List<Class> pluginDataStoreClassList, List<Class> pluginDataStoreFactoryClassList, List<Class> pluginCommandClassList )
 {	super();
 	StopWatch swMain = new StopWatch();
 	swMain.start();
@@ -2181,8 +2195,12 @@ public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_o
 	
 	// Session to track command file history and other user session properties
 	this.session = session;
+
+	// Save the list of plugin datastores, which will be used to initialize datastores
+	this.pluginDataStoreClassList = pluginDataStoreClassList;
+	this.pluginDataStoreFactoryClassList = pluginDataStoreFactoryClassList;
 	
-	// Save the list of plugin classes, which will be used to initialize menus
+	// Save the list of plugin classes, which will be used to initialize command menus
 	this.pluginCommandClassList = pluginCommandClassList;
    
 	// Set the initial working directory up front because it is used in the
@@ -2255,7 +2273,7 @@ public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_o
 	// TODO SAM 2010-09-03 migrate more input types to datastores
 	try {
 		Message.printStatus(2, rtn, "Opening datastores from TSTool GUI...");
-	    TSToolMain.openDataStoresAtStartup(session,__tsProcessor,false);
+	    TSToolMain.openDataStoresAtStartup(session,__tsProcessor,this.pluginDataStoreClassList,this.pluginDataStoreFactoryClassList,false);
 	}
 	catch ( Exception e ) {
 	    Message.printStatus ( 1, rtn, "Error opening datastores (" + e + ")." );
@@ -2294,8 +2312,8 @@ public TSTool_JFrame ( TSToolSession session, String command_file, boolean run_o
 
 	// TSTool has been started with a command file so try to open and display.  It should already be absolute.
 	boolean runDiscoveryOnLoad = true;
-	if ( (command_file != null) && (command_file.length() > 0) ) {
-	    ui_LoadCommandFile ( command_file, run_on_load, runDiscoveryOnLoad );
+	if ( (commandFile != null) && (commandFile.length() > 0) ) {
+	    ui_LoadCommandFile ( commandFile, runOnLoad, runDiscoveryOnLoad );
 	}
 }
 
@@ -17611,7 +17629,7 @@ throws Exception
     PropList rprops = new PropList("");
     rprops.setPersistentName ( configFile );
     rprops.readPersistent ();
-    return TSToolMain.openDataStore( session, rprops, __tsProcessor, false );
+    return TSToolMain.openDataStore( session, rprops, __tsProcessor, new ArrayList<Class>(), new ArrayList<Class>(), false );
 }
 
 /**
