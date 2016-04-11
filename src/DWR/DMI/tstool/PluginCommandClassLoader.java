@@ -48,12 +48,18 @@ public class PluginCommandClassLoader extends URLClassLoader {
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
 				String commandClassToLoad = attributes.getValue("Command-Class");
-				// The following will search the list of URLs that was provided to the constructor
-				Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
-				// This class is an instance of URLClassLoader so can run the super-class loadClass()
-				Class<?> loadedClass = loadClass(commandClassToLoad);
-				Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
-				pluginCommandList.add(loadedClass);
+				if ( commandClassToLoad == null ) {
+					Message.printWarning(3, routine,
+						"Cannot find Command-Class property in jar file MANIFEST.  Cannot load command class \"" + commandClassToLoad + "\"");
+				}
+				else {
+					// The following will search the list of URLs that was provided to the constructor
+					Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
+					// This class is an instance of URLClassLoader so can run the super-class loadClass()
+					Class<?> loadedClass = loadClass(commandClassToLoad);
+					Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
+					pluginCommandList.add(loadedClass);
+				}
 			}
 			catch ( IOException ioe ) {
 				Message.printWarning(3,routine,"Error loading plugin command from \"" + pluginClassURLs[i] + "\"");

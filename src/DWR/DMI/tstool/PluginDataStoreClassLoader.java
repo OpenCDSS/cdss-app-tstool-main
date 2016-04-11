@@ -47,12 +47,18 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 				Attributes attributes = manifest.getMainAttributes();
 				// TODO SAM 2016-04-03 may also need the datastore factory class
 				String dataStoreClassToLoad = attributes.getValue("Datastore-Class");
-				// The following will search the list of URLs that was provided to the constructor
-				Message.printStatus(2, routine, "Trying to load datastore class \"" + dataStoreClassToLoad + "\"");
-				// This class is an instance of URLClassLoader so can run the super-class loadClass()
-				Class<?> loadedClass = loadClass(dataStoreClassToLoad);
-				Message.printStatus(2, routine, "Loaded datastore class \"" + dataStoreClassToLoad + "\"");
-				pluginDataStoreList.add(loadedClass);
+				if ( dataStoreClassToLoad == null ) {
+					Message.printWarning(3, routine,
+						"Cannot find Datastore-Class property in jar file MANIFEST.  Cannot load datastore class \"" + dataStoreClassToLoad + "\"");
+				}
+				else {
+					// The following will search the list of URLs that was provided to the constructor
+					Message.printStatus(2, routine, "Trying to load datastore class \"" + dataStoreClassToLoad + "\"");
+					// This class is an instance of URLClassLoader so can run the super-class loadClass()
+					Class<?> loadedClass = loadClass(dataStoreClassToLoad);
+					Message.printStatus(2, routine, "Loaded datastore class \"" + dataStoreClassToLoad + "\"");
+					pluginDataStoreList.add(loadedClass);
+				}
 			}
 			catch ( IOException ioe ) {
 				Message.printWarning(3,routine,"Error loading plugin datastore from \"" + pluginClassURLs[i] + "\"");
