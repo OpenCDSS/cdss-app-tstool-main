@@ -77,6 +77,7 @@ import riverside.datastore.GenericDatabaseDataStore;
 import riverside.datastore.GenericDatabaseDataStore_TS_CellRenderer;
 import riverside.datastore.GenericDatabaseDataStore_TS_TableModel;
 import riverside.datastore.GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel;
+import riverside.datastore.PluginDataStore;
 import riverside.datastore.TimeSeriesMeta;
 import rti.tscommandprocessor.core.TSCommandFactory;
 import rti.tscommandprocessor.core.TSCommandFileRunner;
@@ -208,6 +209,7 @@ import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JScrollWorksheet;
 import RTi.Util.GUI.JWorksheet;
+import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 import RTi.Util.GUI.JWorksheet_Listener;
@@ -5573,6 +5575,23 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			false, insertOffset );
 		}
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
+    	// The time series identifier parts are retrieved from the datastore
+    	PluginDataStore pds = (PluginDataStore)selectedDataStore;
+    	TSIdent tsident = pds.getTimeSeriesIdentifierFromTableModel(__query_TableModel,row);
+        String comment = "";
+        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+            tsident.getLocation(),
+            tsident.getSource(),
+            tsident.getType(),
+            tsident.getInterval(),
+            tsident.getScenario(),
+            tsident.getSequenceID(),
+            selectedDataStore.getName(),
+            tsident.getInputName(),
+            comment,
+            use_alias, insertOffset );
+    }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof RccAcisDataStore) ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
@@ -5851,7 +5870,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
 	}
 	else {
-	    String routine = getClass().getName() + ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
+	    String routine = getClass().getSimpleName() + ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
 	    Message.printWarning(1, routine, "Transfer from query list to commands has not been implemented for \"" +
             selectedInputType + "\" input type." );
 	    numCommandsAdded = 0;
@@ -7277,7 +7296,7 @@ be handled (including binary files and relational databases).
 */
 private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selectedDataStoreName,
     String selectedDataType, String selectedTimeStep )
-{   String routine = getClass().getName() + ".ui_GetInputFilterPanelForDataStoreName";
+{   String routine = getClass().getSimpleName() + ".ui_GetInputFilterPanelForDataStoreName";
     // This is a bit brute force because the name is embedded in the datastore but is not
     // a data member of the input panel
     // Alphabetize by "instanceof" argument
@@ -7525,6 +7544,18 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
                 // Have a match in the datastore name so return the panel
                 return panel;
             }
+        }
+        else {
+        	// Figure out if the panel is associated with a plugin datastore.
+        	// The panel class is generally specific to the datastore, such as Test1DataStore_TimeSeries_InputFilter_JPanel
+        	DataStore ds = ui_GetSelectedDataStore();
+        	if ( (ds != null) && (ds instanceof PluginDataStore) ) {
+        		// The panel will have had its name set to:
+        		//     ds.getClass().getSimpleName() + "." + ds.getName() + ".InputFilterPanel"
+        		if ( panel.getName().equals(ds.getClass().getSimpleName() + "." + ds.getName() + ".InputFilterPanel") ) {
+        			return panel;
+        		}
+        	}
         }
     }
     // Input filter panel does not match the requested datastore
@@ -8372,6 +8403,36 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, "Error initializing USGS NWIS instantaneous datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
+            }
+            // Loop through all the plug-in datastores and initialize input filters if they provide
+            for ( DataStore ds : __tsProcessor.getDataStores() ) {
+            	if ( ds == null ) {
+            		continue;
+            	}
+            	else if ( ds instanceof PluginDataStore ) {
+            		PluginDataStore pds = (PluginDataStore)ds;
+            		if ( pds.providesTimeSeriesListInputFilterPanel() ) {
+            			// Plugin provides an input filter panel 
+            			try {
+            				Message.printStatus(2,routine,"Adding input filter for plugin datastore \"" + ds.getName() + "\"..." );
+            				InputFilter_JPanel ifp = pds.createTimeSeriesListInputFilterPanel();
+            	            // Add the new panel to the layout and set in the global data...
+            	            JGUIUtil.addComponent(__queryInput_JPanel, ifp,
+            	                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
+            	                GridBagConstraints.WEST );
+            	            // TODO SAM 2016-04-16 might need more care setting this name
+            	            // However, class name, plus datastore name should be unique
+            	            ifp.setName(ds.getClass().getSimpleName() + "." + ds.getName() + ".InputFilterPanel");
+            	            __inputFilterJPanelList.add ( ifp );
+            	            Message.printStatus(2,routine,"...added input filter for plugin datastore \"" + ds.getName() + "\"" );
+            			}
+            			catch ( Throwable e ) {
+                            // This may happen if the database is unavailable or inconsistent with expected design.
+                            Message.printWarning(3, routine, "Error initializing " + ds.getName() + " plugin datastore input filters (" + e + ").");
+                            Message.printWarning(3, routine, e);
+            			}
+            		}
+            	}
             }
             
             // For troubleshooting, list out the input filters that have been initialized
@@ -9304,7 +9365,7 @@ private void ui_InitGUIInputFiltersReclamationPisces ( List<DataStore> dataStore
             else {
             	Message.printStatus(2, routine, "No previous datastore found with name \"" + dataStore.getName() + "\"");
             }
-            // In here, create a new panel because datastore and/or DMI have changed and query results may also be different for filters...
+            // If here, create a new panel because datastore and/or DMI have changed and query results may also be different for filters...
             ReclamationPisces_TimeSeries_InputFilter_JPanel newIfp =
                 new ReclamationPisces_TimeSeries_InputFilter_JPanel((ReclamationPiscesDataStore)dataStore, 4);
     
@@ -11281,7 +11342,7 @@ This sets the appropriate input filter visible since all input filters are creat
 when a datastore is opened.
 */
 private void ui_SetInputFilterForSelections()
-{	String routine = getClass().getName() + ".ui_SetInputFilterForSelections";
+{	String routine = getClass().getSimpleName() + ".ui_SetInputFilterForSelections";
     String selectedDataStoreName = null;
     // Get the selected datastore from the user selections....
     DataStore selectedDataStore = ui_GetSelectedDataStore();
@@ -11297,7 +11358,7 @@ private void ui_SetInputFilterForSelections()
         "\", and data type \"" + selectedDataType + "\"" );
     try {
     if ( selectedDataStore != null ) {
-        // This handles input filters associated with datastores
+        // This handles input filters associated with datastores, including plugin datastores
         selectedInputFilter_JPanel =
             ui_GetInputFilterPanelForDataStoreName(selectedDataStoreName, selectedDataType, selectedTimeStep);
     }
@@ -13751,10 +13812,10 @@ made a decision to work with a datastore.  If they subsequently choose to work w
 they would select an input and the datastore choice would be blanked.
 */
 private void uiAction_DataStoreChoiceClicked()
-{   String routine = getClass().getName() + ".uiAction_DataStoreChoiceClicked";
+{   String routine = getClass().getSimpleName() + ".uiAction_DataStoreChoiceClicked";
     if ( __dataStore_JComboBox == null ) {
         if ( Message.isDebugOn ) {
-            Message.printDebug ( 1, routine, "Datastore has been selected but GUI is not yet initialized.");
+            Message.printDebug ( 1, routine, "Datastore has been selected but GUI is not yet initialized - no action taken in response to datastore selection.");
         }
         return; // Not done initializing.
     }
@@ -13805,6 +13866,10 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof UsgsNwisInstantaneousDataStore ) {
             uiAction_SelectDataStore_UsgsNwisInstantaneous ( (UsgsNwisInstantaneousDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof PluginDataStore ) {
+        	// Handle plugin
+        	uiAction_SelectDataStore_Plugin ( selectedDataStore );
+         }
         // The above does not select the input filter so do that next...
         ui_SetInputFilterForSelections();
     }
@@ -14398,7 +14463,7 @@ private void uiAction_FileExitClicked ()
 Respond to "Get Time Series List" being clicked.
 */
 private void uiAction_GetTimeSeriesListClicked()
-{	String message, routine = getClass().getName() + ".getTimeSeriesListClicked";
+{	String message, routine = getClass().getSimpleName() + ".getTimeSeriesListClicked";
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore();
     if ( selectedDataStore != null ) {
@@ -14636,6 +14701,19 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
+    	// Have a plugin datastore
+        try {
+            uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders(); 
+        }
+        catch ( Exception e ) {
+            message = "Error reading time series from plugin datastore \"" + selectedDataStore.getName() +
+            	"\" - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( selectedInputType.equals (__INPUT_TYPE_RiverWare) && __source_RiverWare_enabled ) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ();
@@ -14703,8 +14781,14 @@ private void uiAction_GetTimeSeriesListClicked()
 		}
 	}
 	else {
-	    Message.printWarning(1,routine,
-	        "Getting time series list for input type \"" + selectedInputType + "\" is not implemented." );
+		if ( selectedDataStore != null ) {
+		    Message.printWarning(1,routine,
+			    "Getting time series list for datastore \"" + selectedDataStore.getName() + "\" is not implemented." );			
+		}
+		else {
+		    Message.printWarning(1,routine,
+		        "Getting time series list for input type \"" + selectedInputType + "\" is not implemented." );
+		}
 	}
     if ( selectedDataStore != null ) {
     	Message.printStatus ( 1, routine,
@@ -15796,6 +15880,71 @@ throws IOException
 		Message.printWarning ( 2, routine, e );
 		throw new IOException ( message );
 	}
+}
+
+/**
+Read plugin datastore time series and list in the GUI.
+*/
+private void uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders()
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders";
+    JGUIUtil.setWaitCursor ( this, true );
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+
+    DataStore dataStore = ui_GetSelectedDataStore ();
+    PluginDataStore pds = null;
+    if ( dataStore instanceof PluginDataStore ) {
+    	pds = (PluginDataStore)dataStore;
+    }
+    // The headers are a list of objects controlled by the plugin datastore
+    try {
+    	if ( dataStore instanceof DatabaseDataStore ) {
+	        // Check the connection in case the connection timed out.
+    		DatabaseDataStore dbds = (DatabaseDataStore)dataStore;
+	        dbds.checkDatabaseConnection();
+    	}
+        queryResultsList_Clear ();
+
+        String dataType = __dataType_JComboBox.getSelected(); // Parameter
+        String timeStep = __timeStep_JComboBox.getSelected();
+
+        List<Object> results = null;
+        if ( pds != null ) {
+	        // Data type is shown without name so use full choice
+	        try {
+	        	__query_TableModel = pds.createTimeSeriesListTableModel(dataType,timeStep,__selectedInputFilter_JPanel);
+	        	results = __query_TableModel.getData();
+	            if ( results != null ) {
+	                // TODO Does not work??
+	                //__query_TableModel.setNewData ( results );
+	                // Try brute force...
+	            	JWorksheet_AbstractExcelCellRenderer cr = pds.getTimeSeriesListCellRenderer(__query_TableModel);
+	                __query_JWorksheet.setCellRenderer ( cr );
+	                __query_JWorksheet.setModel ( __query_TableModel );
+	                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+	            }
+	        }
+	        catch ( Exception e ) {
+	        	Message.printWarning ( 1, rtn, "Error querying time series list (" + e + ")." );
+	            results = null;
+	        }
+        }
+
+        int size = 0;
+        if ( (results == null) || (size == 0) ) {
+            Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
+        }
+        else {
+            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
+        }
+        ui_UpdateStatus ( false );
+
+        JGUIUtil.setWaitCursor ( this, false );
+    }
+    catch ( Exception e ) {
+        // Messages elsewhere but catch so we can get the cursor back...
+        Message.printWarning ( 3, rtn, e );
+        JGUIUtil.setWaitCursor ( this, false );
+    }
 }
 
 /**
@@ -18555,6 +18704,56 @@ private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDat
             Message.printWarning ( 3, routine, e );
         }
     }
+}
+
+/**
+Refresh the query choices for the currently selected plugin datastore.
+This will only be called if a plugin but pass as the base class DataStore to access normal information.
+*/
+private void uiAction_SelectDataStore_Plugin ( DataStore selectedDataStore )
+throws Exception
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_Plugin";
+    // Check the connection in case the connection timed out.
+	DatabaseDataStore dbds = null;
+	if ( selectedDataStore instanceof DatabaseDataStore ) {
+		dbds = (DatabaseDataStore)selectedDataStore;
+		dbds.checkDatabaseConnection();
+	}
+	PluginDataStore pds = null;
+	if ( selectedDataStore instanceof PluginDataStore ) {
+		pds = (PluginDataStore)selectedDataStore;
+	}
+	if ( pds == null ) {
+		// This method should not have been called
+		return;
+	}
+    ui_SetInputNameVisible(false); // Not needed for datastores (used for files)
+    __dataType_JComboBox.removeAll ();
+    // Get the list of valid object/data types from the database
+    List<String> dataTypeStrings = pds.getTimeSeriesDataTypeStrings(null);
+    __dataType_JComboBox.setData ( dataTypeStrings );
+    __dataType_JComboBox.select ( 0 );
+    __dataType_JComboBox.setEnabled ( true );
+    // Set the initial timestep as "*" and refresh the list once a data type selection is made
+    __timeStep_JComboBox.removeAll ();
+    List<String> intervalStrings = pds.getTimeSeriesDataIntervalStrings(__dataType_JComboBox.getSelected());
+    if ( intervalStrings.size() > 0 ) {
+    	__timeStep_JComboBox.setData(intervalStrings);
+	    __timeStep_JComboBox.setEnabled ( true );
+	    __timeStep_JComboBox.select ( 0 );
+    }
+    else {
+    	// Don't have timesteps to choose from, probably an error of some kind
+    	__timeStep_JComboBox.setEnabled ( false );
+    }
+ 
+    // Initialize with blank data list...
+    List<Object> emptyData = new ArrayList<Object>();
+    __query_TableModel = pds.getTimeSeriesListTableModel(emptyData);
+    JWorksheet_AbstractExcelCellRenderer cr = pds.getTimeSeriesListCellRenderer(__query_TableModel);
+    __query_JWorksheet.setCellRenderer ( cr );
+    __query_JWorksheet.setModel ( __query_TableModel );
+    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
 /**
@@ -21410,7 +21609,7 @@ Fill in appropriate selections for the data type modifier choices based on
 the currently selected input data source, data type and time step.
 */
 private void uiAction_TimeStepChoiceClicked()
-{	String rtn = "TSTool_JFrame.timeStepChoiceClicked";
+{	String rtn = getClass().getSimpleName() + ".uiAction_TimeStepChoiceClicked";
 	if ( (__input_type_JComboBox == null) || (__dataType_JComboBox == null) || (__timeStep_JComboBox == null) ) {
 		// GUI still initializing...
 		if ( Message.isDebugOn ) {
