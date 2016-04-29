@@ -223,6 +223,7 @@ import RTi.Util.GUI.TextResponseJDialog;
 import RTi.Util.IO.AbstractCommand;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
+import RTi.Util.IO.CommandAsText_JDialog;
 import RTi.Util.IO.CommandDiscoverable;
 import RTi.Util.IO.CommandListUI;
 import RTi.Util.IO.CommandLogRecord;
@@ -1001,6 +1002,7 @@ private JPopupMenu
 private JMenuItem
     __CommandsPopup_ShowCommandStatus_JMenuItem,
     __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
+    __CommandsPopup_Edit_CommandAsText_JMenuItem,
 
 	__CommandsPopup_Cut_JMenuItem,
 	__CommandsPopup_Copy_JMenuItem,
@@ -1627,6 +1629,7 @@ private String
 
 	// Popup only...
 
+	__CommandsPopup_Edit_AsText_String = "Edit - as text (do not use command editor)",
 	__CommandsPopup_FindCommands_String = "Find Command(s)...",
 	
 	__CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
@@ -2540,7 +2543,7 @@ private Vector commandList_GetCommand ()
 */
 
 /**
-Edit a command in the command list.
+Edit a command in the command list using the command's editor dialog.
 @param action the string containing the event's action value.
 Typically this is the command name and a description: "CommandName() <description>".  This is checked
 for new commands.  When editing existing commands, commandsToEdit will contain
@@ -2553,7 +2556,29 @@ be edited are when they are in a {# delimited comment block).
 @param mode the action to take when editing the command (INSERT for a
 new command or UPDATE for an existing command).
 */
-private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode )
+private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode ) {
+	boolean editAsText = false;
+	commandList_EditCommand ( action, commandsToEdit, mode, editAsText );
+}
+
+/**
+Edit a command in the command list using the command's edit dialog or a text editor.
+@param action the string containing the event's action value.
+Typically this is the command name and a description: "CommandName() <description>".  This is checked
+for new commands.  When editing existing commands, commandsToEdit will contain
+a list of Command class instances.  Normally only the first command will be edited as
+a single-line command.  However, multiple # comment lines can be selected and edited at once.
+@param commandsToEdit If an update, this contains the current Command instances
+to edit.  If a new command, this is null and the action string will be consulted
+to construct the appropriate command.  The only time that multiple commands will
+be edited are when they are in a {# delimited comment block).
+@param mode the action to take when editing the command (INSERT for a
+new command or UPDATE for an existing command).
+@param editAsText if true, use a simple text editor rather than the command dialog editor
+(this is useful if the user is efficient at editing or if the editor is slow, such as
+when dealing with database metadata).
+*/
+private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode, boolean editAsText )
 {	String routine = getClass().getSimpleName() + ".editCommand";
 	int dl = 1; // Debug level
 	
@@ -2632,178 +2657,231 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	}
 
 	try {
-        // Main try to help with troubleshooting, especially during
-		// transition to new command structure.
+        // Main try to help with troubleshooting since there is a lot going on.
 
-	// First make sure we have a Command object to edit.  If an old-style command
-	// then it will be stored in a GenericCommand.
-	// The Command object is inserted in the processor in any case, to take advantage
-	// of processor information (such as being able to get the time series identifiers from previous commands.
-	// If a new command is being inserted and a cancel occurs, the command will simply be removed from the list.
-	// If an existing command is being updated and a cancel occurs, the changes need to be ignored.
-	
-	Command commandToEditOriginal = null;	// Command being edited (original).
-	Command commandToEdit = null;	// Command being edited (clone).
-	if ( mode == CommandEditType.UPDATE ) {
-		// Get the command from the processor...
-		if ( isCommentBlock ) {
-			// Use the string-based editor dialog and then convert each
-			// comment line into a command.  Don't do anything to the command list yet
-		}
-		else {
-			// Get the original command...
-			commandToEditOriginal = commandsToEdit.get(0);
-			// Clone it so that the edit occurs on the copy...
-			commandToEdit = (Command)commandToEditOriginal.clone();
-			Message.printStatus(2, routine, "Cloned command to edit: \"" + commandToEdit + "\"" );
-			// Remove the original command...
-			int pos = commandList_IndexOf ( commandToEditOriginal );
-			commandList_RemoveCommand ( commandToEditOriginal );
-			// Insert the copy during the edit...
-			commandList_InsertCommandAt ( commandToEdit, pos );
-			Message.printStatus(2, routine,
-				"Will edit the copy and restore to the original if the edit is canceled.");
-		}
-	}
-	else if ( mode == CommandEditType.INSERT ) {
-		if ( isCommentBlock ) {
-			// Don't do anything here.  New comments will be inserted in code below.
-		}
-		else if ( action.equals(__Commands_General_Comments_Empty_String) ) {
-			// Blank line
-			commandToEdit = commandList_NewCommand( "", true );
-			Message.printStatus(2, routine, "Created new command to insert:  \"" + commandToEdit + "\"" );
-        
-			// Add it to the processor at the insert point of the edit (before the first selected command...
-        
-			commandList_InsertCommandBasedOnUI ( commandToEdit );
-			Message.printStatus(2, routine, "Inserted command for editing.");
-		}
-		else {
-			// New command so create a command as a place-holder for editing (filled out during the editing).
-			// Get everything before the ) in the command and then re-add the ").
-			// TODO SAM 2007-08-31 Why is this done?
-			// Need to handle:
-			//	1) Traditional commands foo()
-			//	2) Comments # blocks
-			//  3) TS alias = foo()
-			//  4) Time series identifiers.
-			//  5) Don't allow edit of /* */ comments - just insert/delete
-			String command_string = StringUtil.getToken(action,")",0,0)+ ")";
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Using command factory to create new command for \"" + command_string + "\"" );
-			}
+		// First make sure we have a Command object to edit.  If an old-style command
+		// or unknown command then it will be stored in a GenericCommand.
+		// The Command object is inserted in the processor in any case, to take advantage
+		// of processor information (such as being able to get the time series identifiers from previous commands.
+		// If a new command is being inserted and a cancel occurs, the command will simply be removed from the list.
+		// If an existing command is being updated and a cancel occurs, the changes need to be ignored.
 		
-			commandToEdit = commandList_NewCommand( command_string, true );
-			Message.printStatus(2, routine, "Created new command to insert:  \"" + commandToEdit + "\"" );
-        
-			// Add it to the processor at the insert point of the edit (before the first selected command...
-        
-			commandList_InsertCommandBasedOnUI ( commandToEdit );
-			Message.printStatus(2, routine, "Inserted command for editing.");
-		}
-	}
-
-	// Second, edit the command, whether an update or an insert...
-
-	boolean edit_completed = false;
-	List<String> new_comments = new Vector();	// Used if comments are edited.
-	if ( isCommentBlock ) {
-		// Edit using the old-style editor...
-		edit_completed = commandList_EditCommandOldStyleComments ( mode, action, commandsToEdit, new_comments );
-	}
-	else {
-	    // Editing a single one-line command...
-        try {
-   			// Edit with the new style editors...
-   			Message.printStatus(2, routine, "Editing Command with new-style editor.");
-   			edit_completed = commandList_EditCommandNewStyle ( commandToEdit );
-        }
-        catch ( Exception e ) {
-            Message.printWarning (1 , routine, "Unexpected error editing command - refer to log and report to software support." );
-            Message.printWarning( 3, routine, e );
-            edit_completed = false;
-        }
-	}
-	
-	// Third, make sure that the edits are to be saved.  If not, restore the original
-	// copy (if an update) or discard the command (if a new insert).
-    // If the command implements CommandDiscoverable, try to make the discovery run.
-
-	if ( edit_completed ) {
-		if ( mode == CommandEditType.INSERT ) {
+		Command commandToEditOriginal = null; // Command being edited (original).
+		Command commandToEdit = null; // Command being edited (clone).
+		if ( mode == CommandEditType.UPDATE ) {
+			// Get the command from the processor...
 			if ( isCommentBlock ) {
-				// Insert the comments at the insert point...
-				commandList_InsertCommentsBasedOnUI ( new_comments );
+				// Use the string-based editor dialog and then convert each
+				// comment line into a command.  Don't do anything to the command list yet
 			}
 			else {
-				// The command has already been inserted in the list.
-				Message.printStatus(2, routine, "After insert, command is:  \"" + commandToEdit + "\"" );
-                // Connect the command to the UI to handle progress when the command is run.
-                // TODO SAM 2009-03-23 Evaluate whether to define an interface rather than rely on
-                // AbstractCommand here.
-                if ( commandToEdit instanceof AbstractCommand ) {
-                    ((AbstractCommand)commandToEdit).addCommandProgressListener ( this );
-                }
-                if ( commandToEdit instanceof CommandDiscoverable ) {
-                    commandList_EditCommand_RunDiscovery ( commandToEdit );
-                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
-                }
+				// Get the original command...
+				commandToEditOriginal = commandsToEdit.get(0);
+				// Clone it so that the edit occurs on the copy...
+				commandToEdit = (Command)commandToEditOriginal.clone();
+				Message.printStatus(2, routine, "Cloned command to edit: \"" + commandToEdit + "\"" );
+				// Remove the original command...
+				int pos = commandList_IndexOf ( commandToEditOriginal );
+				commandList_RemoveCommand ( commandToEditOriginal );
+				// Insert the copy during the edit...
+				commandList_InsertCommandAt ( commandToEdit, pos );
+				Message.printStatus(2, routine,
+					"Will edit the copy and restore to the original if the edit is canceled.");
 			}
-			commandList_SetDirty(true);
 		}
-		else if ( mode == CommandEditType.UPDATE ) {
-			// The command was updated.
+		else if ( mode == CommandEditType.INSERT ) {
 			if ( isCommentBlock ) {
-				// Remove the commands that were selected and insert the new ones.
-				commandList_ReplaceComments ( commandsToEdit, new_comments );
-				if ( !commandList_CommandsAreEqual(commandsToEdit,new_comments)) {
-					commandList_SetDirty(true);
+				// Don't do anything here.  New comments will be inserted in code below.
+			}
+			else if ( action.equals(__Commands_General_Comments_Empty_String) ) {
+				// Blank line
+				commandToEdit = commandList_NewCommand( "", true );
+				Message.printStatus(2, routine, "Created new command to insert:  \"" + commandToEdit + "\"" );
+	        
+				// Add it to the processor at the insert point of the edit (before the first selected command...
+	        
+				commandList_InsertCommandBasedOnUI ( commandToEdit );
+				Message.printStatus(2, routine, "Inserted command for editing.");
+			}
+			else {
+				// New command so create a command as a place-holder for editing (filled out during the editing).
+				// Get everything before the ) in the command and then re-add the ").
+				// TODO SAM 2007-08-31 Why is this done?
+				// Need to handle:
+				//	1) Traditional commands foo()
+				//	2) Comments # blocks
+				//  3) TS alias = foo()
+				//  4) Time series identifiers.
+				//  5) Don't allow edit of /* */ comments - just insert/delete
+				String command_string = StringUtil.getToken(action,")",0,0)+ ")";
+				if ( Message.isDebugOn ) {
+					Message.printDebug ( dl, routine, "Using command factory to create new command for \"" + command_string + "\"" );
+				}
+			
+				commandToEdit = commandList_NewCommand( command_string, true );
+				Message.printStatus(2, routine, "Created new command to insert:  \"" + commandToEdit + "\"" );
+	        
+				// Add it to the processor at the insert point of the edit (before the first selected command...
+	        
+				commandList_InsertCommandBasedOnUI ( commandToEdit );
+				Message.printStatus(2, routine, "Inserted command for editing.");
+			}
+		}
+	
+		// Second, edit the command, whether an update or an insert...
+	
+		boolean editCompleted = false;
+		Command commandToEditNew = null; // New command if editing as text resulted in completely new command
+		List<String> newComments = new ArrayList<String>(); // Used if comments are edited.
+		if ( isCommentBlock ) {
+			// Edit using the old-style editor...
+			editCompleted = commandList_EditCommandOldStyleComments ( mode, action, commandsToEdit, newComments );
+		}
+		else if ( editAsText ) {
+			// Edit using the a text editor...
+			String originalCommandName = commandToEdit.getCommandName().toUpperCase();
+			editCompleted = new CommandAsText_JDialog ( this, commandToEdit ).ok();
+			// The above edits the command string so have to possibly create a new command and always re-parse parameters
+			String newCommandString = ((AbstractCommand)commandToEdit).getCommandString().trim();
+			Message.printStatus(2, routine, "Original command name: " + originalCommandName);
+			Message.printStatus(2, routine, "New command string: " + newCommandString);
+			if ( !newCommandString.toUpperCase().startsWith(originalCommandName + "(") ) {
+				// Edit has change the command name so need to create a new command
+				TSCommandFactory factory = new TSCommandFactory();
+				commandToEditNew = factory.newCommand(newCommandString);
+	 			// Clear out the old parameters first so there is no leftover
+				commandToEditNew.getCommandParameters().clear();
+				commandToEditNew.parseCommand(newCommandString);
+				// Also check the command parameters, similar to how checkInput() is called in command editors
+				try {
+					commandToEditNew.checkCommandParameters( commandToEditNew.getCommandParameters(), null, 1);
+				}
+				catch ( Exception e ) {
+					// The warning would have been printed in the check code so just absorb and let user respond.
+					// If they don't fix then there will be a run-time error also
 				}
 			}
 			else {
-				// The contents of the command will have been modified so there is no need to do anything more.
-				Message.printStatus(2, routine, "After edit, command is:  \"" + commandToEdit + "\"" );
-				if ( !commandToEditOriginal.toString().equals(commandToEdit.toString())) {
-					commandList_SetDirty(true);
+	 			// Clear out the old parameters first so there is no leftover
+			    commandToEdit.getCommandParameters().clear();
+				commandToEdit.parseCommand(newCommandString);
+				// Also check the command parameters, similar to how checkInput() is called in command editors
+				try {
+					commandToEdit.checkCommandParameters( commandToEdit.getCommandParameters(), null, 1);
 				}
-                if ( commandToEdit instanceof CommandDiscoverable ) {
-                    commandList_EditCommand_RunDiscovery ( commandToEdit );
-                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
-                }
+				catch ( Exception e ) {
+					// The warning would have been printed in the check code so just absorb and let user respond.
+					// If they don't fix then there will be a run-time error also
+				}
 			}
 		}
-	}
-	else {
-        // The edit was canceled.  If it was a new command being inserted, remove the command from the processor...
-		if ( mode == CommandEditType.INSERT ) {
-			if ( isCommentBlock ) {
-				// No comments were inserted at start of edit.  No need to do anything.
-			}
-			else {
-				// A temporary new command was inserted so remove it.
-				commandList_RemoveCommand(commandToEdit);
-				Message.printStatus(2, routine, "Edit was canceled.  Removing from command list." );
-			}
+		else {
+		    // Editing a single one-line command...
+	        try {
+	   			// Edit with the new style editors...
+	   			Message.printStatus(2, routine, "Editing Command with new-style editor.");
+	   			editCompleted = commandList_EditCommandNewStyle ( commandToEdit );
+	        }
+	        catch ( Exception e ) {
+	            Message.printWarning (1 , routine, "Unexpected error editing command - refer to log and report to software support." );
+	            Message.printWarning( 3, routine, e );
+	            editCompleted = false;
+	        }
 		}
-		else if ( mode == CommandEditType.UPDATE ) {
-			if ( isCommentBlock ) {
-				// The original comments will remain.  No need to do anything.
-			}
-			else {
-				// Else was an update so restore the original command...
-			    Message.printStatus(2, routine, "Edit was canceled.  Restoring pre-edit command." );
-				int pos = commandList_IndexOf(commandToEdit);
-				commandList_RemoveCommand(commandToEdit);
-				commandList_InsertCommandAt(commandToEditOriginal, pos);
-			}
-		}
-	}
+		
+		// Third, make sure that the edits are to be saved.  If not (cancel), restore the original
+		// copy (if an update) or discard the command (if a new insert).
+	    // If the command implements CommandDiscoverable, try to make the discovery run.
 	
-	// TODO SAM 2007-12-07 Evaluate whether to refresh the command list status?
-    
-    ui_ShowCurrentCommandListStatus();
-
+		if ( editCompleted ) {
+			if ( mode == CommandEditType.INSERT ) {
+				if ( isCommentBlock ) {
+					// Insert the comments at the insert point...
+					commandList_InsertCommentsBasedOnUI ( newComments );
+				}
+				else {
+					// The command has already been inserted in the list.
+					Message.printStatus(2, routine, "After insert, command is:  \"" + commandToEdit + "\"" );
+	                // Connect the command to the UI to handle progress when the command is run.
+	                // TODO SAM 2009-03-23 Evaluate whether to define an interface rather than rely on
+	                // AbstractCommand here.
+	                if ( commandToEdit instanceof AbstractCommand ) {
+	                    ((AbstractCommand)commandToEdit).addCommandProgressListener ( this );
+	                }
+	                if ( commandToEdit instanceof CommandDiscoverable ) {
+	                    commandList_EditCommand_RunDiscovery ( commandToEdit );
+	                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+	                }
+				}
+				commandList_SetDirty(true);
+			}
+			else if ( mode == CommandEditType.UPDATE ) {
+				// The command was updated.
+				if ( isCommentBlock ) {
+					// Remove the commands that were selected and insert the new ones.
+					commandList_ReplaceComments ( commandsToEdit, newComments );
+					if ( !commandList_CommandsAreEqual(commandsToEdit,newComments)) {
+						commandList_SetDirty(true);
+					}
+				}
+				else {
+					// The contents of the command will have been modified so there is no need to do anything more.
+					// The exception is if the command was edited as text and a new command had to be created
+					if ( commandToEditNew != null ) {
+						// Swap out the original command with the new one
+					    Message.printStatus(2, routine, "Command was edited as text and new command name was used.  Replacing pre-edit command with \"" + commandToEditNew + "\"" );
+						int pos = commandList_IndexOf(commandToEdit);
+						commandList_RemoveCommand(commandToEdit);
+						commandList_InsertCommandAt(commandToEditNew, pos);
+						commandList_SetDirty(true);
+		                if ( commandToEditNew instanceof CommandDiscoverable ) {
+		                    commandList_EditCommand_RunDiscovery ( commandToEditNew );
+		                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+		                }
+					}
+					else {
+						Message.printStatus(2, routine, "After edit, command is:  \"" + commandToEdit + "\"" );
+						if ( !commandToEditOriginal.toString().equals(commandToEdit.toString()) || (commandToEditNew != null) ) {
+							commandList_SetDirty(true);
+						}
+		                if ( commandToEdit instanceof CommandDiscoverable ) {
+		                    commandList_EditCommand_RunDiscovery ( commandToEdit );
+		                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+		                }
+					}
+				}
+			}
+		}
+		else {
+	        // The edit was canceled.  If it was a new command being inserted, remove the command from the processor...
+			if ( mode == CommandEditType.INSERT ) {
+				if ( isCommentBlock ) {
+					// No comments were inserted at start of edit.  No need to do anything.
+				}
+				else {
+					// A temporary new command was inserted so remove it.
+					commandList_RemoveCommand(commandToEdit);
+					Message.printStatus(2, routine, "Edit was canceled.  Removing from command list." );
+				}
+			}
+			else if ( mode == CommandEditType.UPDATE ) {
+				if ( isCommentBlock ) {
+					// The original comments will remain.  No need to do anything.
+				}
+				else {
+					// Else was an update so restore the original command...
+				    Message.printStatus(2, routine, "Edit was canceled.  Restoring pre-edit command." );
+			    	// Edit was done in command dialog
+					int pos = commandList_IndexOf(commandToEdit);
+					commandList_RemoveCommand(commandToEdit);
+					commandList_InsertCommandAt(commandToEditOriginal, pos);
+				}
+			}
+		}
+		
+		// TODO SAM 2007-12-07 Evaluate whether to refresh the command list status?
+	    
+	    ui_ShowCurrentCommandListStatus();
 	}
 	catch ( Exception e2 ) {
 		// TODO SAM 2005-05-18 Evaluate handling of unexpected error... 
@@ -2840,44 +2918,44 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
 
 /**
 Edit a new-style command, which has a custom editor.
-@param Command command_to_edit The command to edit.
+@param commandToEdit the command to edit.
 */
-private boolean commandList_EditCommandNewStyle ( Command command_to_edit )
+private boolean commandList_EditCommandNewStyle ( Command commandToEdit )
 {
-	return command_to_edit.editCommand(this);
+	return commandToEdit.editCommand(this);
 }
 
 /**
 Edit comments using an old-style editor.
 @param mode Mode of editing, whether updating or inserting.
 @param action If not null, then the comments are new (insert).
-@param command_Vector Comments being edited as a Vector of GenericCommand, as passed from the legacy code.
-@param new_comments The new comments as a list of String, to be inserted into the command list.
+@param commandList Comments being edited as a Vector of GenericCommand, as passed from the legacy code.
+@param newComments The new comments as a list of String, to be inserted into the command list.
 @return true if the command edits were committed, false if canceled.
 */
 private boolean commandList_EditCommandOldStyleComments (
-	CommandEditType mode, String action, List<Command> command_Vector, List<String> new_comments )
+	CommandEditType mode, String action, List<Command> commandList, List<String> newComments )
 {	//else if ( action.equals(__Commands_General_Comment_String) ||
 	//	command.startsWith("#") ) {
-    List<String> cv = new Vector();
+    List<String> commandStrings = new ArrayList<String>();
 	int size = 0;
-	if ( command_Vector != null ) {
-		size = command_Vector.size();
+	if ( commandList != null ) {
+		size = commandList.size();
 	}
 	Command command = null;
 	for ( int i = 0; i < size; i++ ) {
-		command = command_Vector.get(i);
-		cv.add( command.toString() );
+		command = commandList.get(i);
+		commandStrings.add( command.toString() );
 	}
-	List<String> edited_cv = new Comment_JDialog ( this, cv ).getText();
-	if ( edited_cv == null ) {
+	List<String> editedCommandStrings = new Comment_JDialog ( this, commandStrings ).getText();
+	if ( editedCommandStrings == null ) {
 		return false;
 	}
 	else {
 		// Transfer to the list that was passed in...
-		int size2 = edited_cv.size();
+		int size2 = editedCommandStrings.size();
 		for ( int i = 0; i < size2; i++ ) {
-			new_comments.add ( edited_cv.get(i) );
+			newComments.add ( editedCommandStrings.get(i) );
 		}
 		return true;
 	}
@@ -10482,6 +10560,8 @@ private void ui_InitGUIMenus_CommandsPopup ()
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(__Edit_String, __Edit_CommandWithErrorChecking_String, this ) );
+	__Commands_JPopupMenu.add( __CommandsPopup_Edit_CommandAsText_JMenuItem =
+		new SimpleJMenuItem(__CommandsPopup_Edit_AsText_String, __CommandsPopup_Edit_AsText_String, this ) );
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add( __CommandsPopup_Cut_JMenuItem =
         new SimpleJMenuItem( "Cut", __Edit_CutCommands_String, this ) );
@@ -12222,6 +12302,10 @@ throws Exception
 	else if ( command.equals(__Edit_CommandWithErrorChecking_String) ) {
 		// Edit the first selected item, unless a comment, in which case all are edited...
 		uiAction_EditCommand ();
+	}
+	else if ( command.equals(__CommandsPopup_Edit_AsText_String) ) {
+		// Edit the first selected item, unless a comment, in which case all are edited...
+		uiAction_EditCommandAsText ();
 	}
 	else if (command.equals(__Edit_ConvertSelectedCommandsToComments_String) ) {
 		uiAction_ConvertCommandsToComments ( true );
@@ -14276,35 +14360,82 @@ commands that were selected to be edited.  Multiple commands may be edited if
 a block of # delimited comments.
 */
 private void uiAction_EditCommand ()
-{	int selected_size = 0;
+{	int selectedSize = 0;
 	int [] selected = ui_GetCommandJList().getSelectedIndices();
 	if ( selected != null ) {
-		selected_size = selected.length;
+		selectedSize = selected.length;
 	}
-	if ( selected_size > 0 ) {
+	if ( selectedSize > 0 ) {
 		Command command = (Command)__commands_JListModel.get(selected[0]);
-		List v = null;
+		List commandsToEdit = null;
 		if ( command instanceof Comment_Command ) {
 			// Allow multiple lines to be edited in a comment...
 			// This is handled in the called method, which brings up a multi-line editor for comments.
             // Only edit the contiguous # block. The first one is a # but stop adding when lines no longer
 			// start with #
-			v = new Vector ( selected_size );
-			for ( int i = 0; i < selected_size; i++ ) {
+			commandsToEdit = new ArrayList<Command> ( selectedSize );
+			for ( int i = 0; i < selectedSize; i++ ) {
 				command = (Command)__commands_JListModel.get(selected[i]);
 				if ( !(command instanceof Comment_Command) ) {
 					break;
 				}
 				// Else add command to the list.
-				v.add ( command );
+				commandsToEdit.add ( command );
 			}
 		}
 		else {
             // Commands are one line...
-			v = new Vector ( 1 );
-			v.add ( command );
+			commandsToEdit = new ArrayList<Command> ( 1 );
+			commandsToEdit.add ( command );
 		}
-		commandList_EditCommand ( "", v, CommandEditType.UPDATE ); // No action event from menus
+		// Edit using the command dialog
+		commandList_EditCommand ( "", commandsToEdit, CommandEditType.UPDATE ); // No action event from menus
+	}
+}
+
+/**
+Carry out the edit command action, but use a text editor rather than command dialog, triggered by:
+<ol>
+<li>	Popup menu edit "as text" of a command on the command list.</li>
+</ol>
+This method will call the uiAction_EditCommand() method with a list of
+commands that were selected to be edited.  Multiple commands may be edited if
+a block of # delimited comments.  If all the lines start with #, then call
+the normal editor for comments.
+*/
+private void uiAction_EditCommandAsText ()
+{	// THIS CODE IS THE SAME AS uiAction_EditCommand() except that text editor is
+	// requested
+	int selectedSize = 0;
+	int [] selected = ui_GetCommandJList().getSelectedIndices();
+	if ( selected != null ) {
+		selectedSize = selected.length;
+	}
+	if ( selectedSize > 0 ) {
+		Command command = (Command)__commands_JListModel.get(selected[0]);
+		List commandsToEdit = null;
+		if ( command instanceof Comment_Command ) {
+			// Allow multiple lines to be edited in a comment...
+			// This is handled in the called method, which brings up a multi-line editor for comments.
+	        // Only edit the contiguous # block. The first one is a # but stop adding when lines no longer
+			// start with #
+			commandsToEdit = new ArrayList<Command> ( selectedSize );
+			for ( int i = 0; i < selectedSize; i++ ) {
+				command = (Command)__commands_JListModel.get(selected[i]);
+				if ( !(command instanceof Comment_Command) ) {
+					break;
+				}
+				// Else add command to the list.
+				commandsToEdit.add ( command );
+			}
+		}
+		else {
+	        // Commands are one line...
+			commandsToEdit = new ArrayList<Command> ( 1 );
+			commandsToEdit.add ( command );
+		}
+		boolean editAsText = true;
+		commandList_EditCommand ( "", commandsToEdit, CommandEditType.UPDATE, editAsText ); // No action event from menus
 	}
 }
 
