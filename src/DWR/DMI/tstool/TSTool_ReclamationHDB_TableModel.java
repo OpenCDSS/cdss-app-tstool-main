@@ -20,7 +20,7 @@ Number of columns in the table model.
 private final int __COLUMNS = 41;
 
 // The following order was updated according to Reclamation input on 2014-04-06
-public final int COL_TYPE = 0;
+public final int COL_TYPE_REAL_MODEL = 0;
 public final int COL_SITE_COMMON_NAME = 1;
 public final int COL_SITE_NAME = 2;
 public final int COL_SITE_ID = 3;
@@ -102,7 +102,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given column
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-	    case COL_TYPE: return String.class;
+	    case COL_TYPE_REAL_MODEL: return String.class;
 	    case COL_SITE_COMMON_NAME: return String.class;
 		case COL_SITE_NAME: return String.class;
         case COL_SITE_ID: return Integer.class;
@@ -161,7 +161,7 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-	    case COL_TYPE: return "Real/Model";
+	    case COL_TYPE_REAL_MODEL: return "Real/Model";
 	    case COL_SITE_COMMON_NAME: return "Site Common Name";
 		case COL_SITE_NAME: return "Site Name";
 	    case COL_SITE_ID: return "Site ID";
@@ -239,7 +239,7 @@ Returns an array containing the column widths (in number of characters).
 */
 public String[] getColumnToolTips() {
     String[] toolTips = new String[__COLUMNS];
-    toolTips[COL_TYPE] = "<html>Indicates whether the time series is Real (observed) or Model (simulated)<br>" +
+    toolTips[COL_TYPE_REAL_MODEL] = "<html>Indicates whether the time series is Real (observed) or Model (simulated)<br>" +
         "<html>This controls whether the HDB R_* or M_* time series tables are read.<br>" +
         "<html>Time series property can be accessed with ${ts:REAL_MODEL_TYPE}</html>";
     toolTips[COL_SITE_COMMON_NAME] = "<html>Site common name corresponding to database HDB_SITE.SITE_COMMON_NAME.<br>" +
@@ -336,7 +336,7 @@ public Object getValueAt(int row, int col) {
 
 	ReclamationHDB_SiteTimeSeriesMetadata data = (ReclamationHDB_SiteTimeSeriesMetadata)_data.get(row);
 	switch (col) {
-        case COL_TYPE:
+        case COL_TYPE_REAL_MODEL:
             return data.getRealModelType();
         case COL_SITE_COMMON_NAME:
             return data.getSiteCommonName();
@@ -429,7 +429,7 @@ Returns an array containing the column widths (in number of characters).
 */
 public int[] getColumnWidths() {
 	int[] widths = new int[__COLUMNS];
-	widths[COL_TYPE] = 7;
+	widths[COL_TYPE_REAL_MODEL] = 7;
     widths[COL_SITE_COMMON_NAME] = 20;
 	widths[COL_SITE_NAME] = 20;
     widths[COL_SITE_ID] = 4;

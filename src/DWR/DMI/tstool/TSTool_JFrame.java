@@ -5704,7 +5704,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         ds.checkDatabaseConnection();
         ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
         // Format the TSID using the older format that uses common names, but these are not guaranteed unique
-        String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE);
+        String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE_REAL_MODEL);
         if ( dmi.getTSIDStyleSDI() ) {
             // Format the TSID using the newer SDI and MRI style
             String loc, scenario = "";
