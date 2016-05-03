@@ -57,6 +57,7 @@
     	<mkdir dir="${install.dir}/doc/UserManual/html"/>
         <copy todir="${install.dir}/doc/UserManual/html">
         	<fileset dir="../cdss-app-tstool-doc/doc/UserManual/html">
+        		<include name="**/*.css"/>
         		<include name="**/*.html"/>
         		<include name="**/*.png"/>
         		</fileset>
