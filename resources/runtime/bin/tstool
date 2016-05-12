@@ -4,7 +4,8 @@
 # Set the INSTALL_HOME to the main installation folder.
 # Set the JAVA_EXE to the "java" program that is the Java Runtime Environment
 #
-# History:
+# History (newest at top):
+# 2016-05-03 Steve Malers, OWF    Update for TSTool 11.10.01.  Add javax.mail.jar, mysql.
 # 2015-04-08 Steve Malers, OWF    Update for TSTool 11.00.00, which uses Java 7 and Git/Eclipse names for jars.
 # 2014-04-19 Steve Malers, OWF    Original version of this script to streamline Linux builds.
 
@@ -62,10 +63,12 @@ $JAR_HOME/h2.jar:\
 $JAR_HOME/hec.jar:\
 $JAR_HOME/heclib.jar:\
 $JAR_HOME/jakarta-oro-2.0.8.jar:\
+$JAR_HOME/javax.mail.jar:\
 $JAR_HOME/jcommon.jar:\
 $JAR_HOME/jfreechart.jar:\
 $JAR_HOME/jython.jar:\
 $JAR_HOME/log4j-1.2.13.jar:\
+$JAR_HOME/mysql-connector-java-5.1.36-bin.jar:\
 $JAR_HOME/ojdbc6.jar:\
 $JAR_HOME/org.restlet.jar:\
 $JAR_HOME/poi-3.9-20121203.jar:\
