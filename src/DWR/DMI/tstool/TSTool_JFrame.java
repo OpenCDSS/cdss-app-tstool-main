@@ -17093,7 +17093,7 @@ throws IOException
 
 		Message.printStatus ( 1, routine, "Reading USGS NWIS RDB file \"" + path + "\"" );
 		JGUIUtil.setWaitCursor ( this, true );
-		TS ts = UsgsNwisRdbTS.readTimeSeries(path, null, null, null,false);
+		TS ts = UsgsNwisRdbTS.readTimeSeries(path, null, null, null, null, null, null,false);
 		if ( ts == null ) {
 			message = "Error reading USGS NWIS RDB file \""+path + "\"";
 			Message.printWarning ( 2, routine, message );
