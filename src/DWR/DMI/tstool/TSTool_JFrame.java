@@ -1481,6 +1481,7 @@ JMenuItem
     __Commands_TableManipulate_FormatTableString_JMenuItem,
     __Commands_TableManipulate_ManipulateTableString_JMenuItem,
     __Commands_TableManipulate_InsertTableColumn_JMenuItem,
+    __Commands_TableManipulate_DeleteTableColumns_JMenuItem,
     __Commands_TableManipulate_InsertTableRow_JMenuItem,
     __Commands_TableManipulate_SetTableValues_JMenuItem,
     __Commands_TableManipulate_SplitTableColumn_JMenuItem,
@@ -2015,6 +2016,7 @@ private String
     __Commands_TableManipulate_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
     __Commands_TableManipulate_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
     __Commands_TableManipulate_InsertTableColumn_String = TAB + "InsertTableColumn()... <insert table column>",
+    __Commands_TableManipulate_DeleteTableColumns_String = TAB + "DeleteTableColumns()... <delete table column(s)>",
     __Commands_TableManipulate_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
     __Commands_TableManipulate_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_TableManipulate_SplitTableColumn_String = TAB + "SplitTableColumn()... <split a column into multiple columns>",
@@ -10301,6 +10303,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Table_JMenu.add( __Commands_TableManipulate_JMenu = new JMenu( __Commands_TableManipulate_String, true ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableColumns_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableColumns_String, this ) );
     __Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableDateTime_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_FormatTableDateTime_String, this ) );
@@ -13090,6 +13094,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableManipulate_InsertTableColumn_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_InsertTableColumn_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableManipulate_DeleteTableColumns_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_DeleteTableColumns_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableManipulate_InsertTableRow_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_InsertTableRow_String, null, CommandEditType.INSERT );
