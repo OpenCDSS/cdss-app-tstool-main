@@ -1382,6 +1382,7 @@ JMenuItem
 	__Commands_General_Comments_EndComment_JMenuItem = null,
 	__Commands_General_Comments_EnabledComment_JMenuItem = null,
 	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
+	__Commands_General_Comments_RunDiscoveryFalseComment_JMenuItem = null,
 	__Commands_General_Comments_TemplateComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null,
@@ -1405,6 +1406,7 @@ JMenuItem
     __Commands_General_Running_ReadPropertiesFromFile_JMenuItem = null,
     __Commands_General_Running_SetProperty_JMenuItem = null,
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem = null,
+    __Commands_General_Running_SetPropertyFromTimeSeries_JMenuItem = null,
     __Commands_General_Running_FormatDateTimeProperty_JMenuItem = null,
     __Commands_General_Running_FormatStringProperty_JMenuItem = null,
     __Commands_General_Running_WritePropertiesToFile_JMenuItem = null,
@@ -1928,6 +1930,7 @@ private String
     __Commands_General_Comments_StartComment_String = TAB + "/* <start multi-line comment section>",
     __Commands_General_Comments_EndComment_String = TAB + "*/ <end multi-line comment section>",
     __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <protect command file from saving>",
+    __Commands_General_Comments_RunDiscoveryFalseComment_String = TAB + "#@runDiscovery False <used to disable running discovery at load>",
    	__Commands_General_Comments_TemplateComment_String = TAB + "#@template <indicate that command file is a template file>",
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
@@ -1956,6 +1959,7 @@ private String
     __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a processor property>",
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
         TAB + "SetPropertyFromNwsrfsAppDefault()... <set a processor property from an NWSRFS App Default>",
+    __Commands_General_Running_SetPropertyFromTimeSeries_String = TAB + "SetPropertyFromTimeSeries()... <set a processor property from time series properties>",
     __Commands_General_Running_FormatDateTimeProperty_String = TAB + "FormatDateTimeProperty()... <format date/time property as string property>",
     __Commands_General_Running_FormatStringProperty_String = TAB + "FormatStringProperty()... <format a string property>",
     __Commands_General_Running_WritePropertiesToFile_String = TAB + "WritePropertiesToFile()... <write processor properties to file>",
@@ -2647,6 +2651,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
 		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
 		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
+		    action.equals(__Commands_General_Comments_RunDiscoveryFalseComment_String) ||
 		    action.equals(__Commands_General_Comments_TemplateComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ||
@@ -8172,7 +8177,7 @@ private void ui_InitGUI ( )
     //__problems_JWorksheet.addMouseListener ( this );
     //__problems_JWorksheet.addJWorksheetListener ( this );
     JGUIUtil.addComponent(resultsProperties_JPanel, new JLabel("Processor properties control processing and can be used in " +
-        "some command parameters using ${PropertyName} notation (see command documentation)."), 
+        "some command parameters using ${Property} notation (see command documentation)."), 
         0, 0, 8, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(resultsProperties_JPanel, psjw, 
         0, 1, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
@@ -10395,6 +10400,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RunDiscoveryFalseComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_RunDiscoveryFalseComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_TemplateComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_TemplateComment_String, this ) );
     __Commands_General_Comments_JMenu.addSeparator();
@@ -10454,6 +10461,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String,this));
     }
+    __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromTimeSeries_String,this));
     __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatDateTimeProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_FormatDateTimeProperty_String,this));
     __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatStringProperty_JMenuItem =
@@ -11252,7 +11261,7 @@ Load a command file and display in the command list.
 if false (may be useful for very large command files), do not run discovery when loading commands
 */
 private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean runDiscoveryOnLoad )
-{   String routine = "TSTool_JFrame.ui_LoadCommandFile";
+{   String routine = getClass().getSimpleName() + ".ui_LoadCommandFile";
     int numAutoChanges = 0; // Number of lines automatically changed during load
     try {
         ui_UpdateStatusTextFields ( 2, null, null, "Reading the selected command file.", __STATUS_BUSY );
@@ -13201,7 +13210,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new Vector(1);
+        List<Command> comments = new ArrayList<Command>(1);
         comments.add ( commandList_NewCommand("#@enabled False",true) );
         commandList_EditCommand ( __Commands_General_Comments_EnabledComment_String, comments, CommandEditType.INSERT );
     }
@@ -13228,6 +13237,14 @@ throws Exception
         List<Command> comments = new ArrayList<Command>(1);
         comments.add ( commandList_NewCommand("#@readOnly - command file is not intended to be saved from within TSTool",true) );
         commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_RunDiscoveryFalseComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<Command>(1);
+        comments.add ( commandList_NewCommand("#@runDiscovery False",true) );
+        commandList_EditCommand ( __Commands_General_Comments_RunDiscoveryFalseComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_TemplateComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
@@ -13275,6 +13292,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String) ) {
         commandList_EditCommand ( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_Running_SetPropertyFromTimeSeries_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_SetPropertyFromTimeSeries_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_FormatDateTimeProperty_String) ) {
         commandList_EditCommand ( __Commands_General_Running_FormatDateTimeProperty_String, null, CommandEditType.INSERT );
