@@ -18327,16 +18327,21 @@ private void uiAction_RunCommands_ShowResultsProblems()
 Display the list of properties from the command processor.
 */
 private void uiAction_RunCommands_ShowResultsProperties()
-{   String routine = getClass().getName() + ".uiAction_RunCommands_ShowResultsProperties";
+{   String routine = getClass().getSimpleName() + ".uiAction_RunCommands_ShowResultsProperties";
     try {
         // Create a new table model for the command processor properties.
         // TODO SAM 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
         TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
         Collection<String> propertyNames = processor.getPropertyNameList(true, true);
         PropList props = new PropList("processor");
-        Object propVal;
+        Object propVal = null;
         for ( String propertyName : propertyNames ) {
-            propVal = processor.getPropContents(propertyName);
+        	try {
+        		propVal = processor.getPropContents(propertyName);
+        	}
+        	catch ( Exception e ) {
+        		Message.printWarning(2,routine,e);
+        	}
             if ( propVal == null) {
                 props.set(new Prop(propertyName, propVal, ""));
             }
