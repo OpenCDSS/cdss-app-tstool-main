@@ -4115,13 +4115,15 @@ interface.  In the future the command processor may put together the list withou
 @param commands List of commands to run.
 @param createOutput whether to create output (slower) or skip those commands.
 */
-private void commandProcessor_RunCommandsThreaded ( List commands, boolean createOutput )
+private void commandProcessor_RunCommandsThreaded ( List<Command> commands, boolean createOutput )
 {	String routine = "TSTool_JFrame.commandProcessor_RunCommandsThreaded";
 
 	PropList requestParams = new PropList ( "" );
 	requestParams.setUsingObject ( "CommandList", commands );
 	requestParams.setUsingObject ( "InitialWorkingDir", ui_GetInitialWorkingDir() );
 	requestParams.setUsingObject ( "CreateOutput", new Boolean(createOutput) );
+	// TODO sam 2017-02-08 the following does not seem to be recognized
+	requestParams.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 	try {
 		TSCommandProcessorThreadRunner runner = new TSCommandProcessorThreadRunner ( __tsProcessor, requestParams );
 		Message.printStatus ( 2, routine, "Running commands in separate thread.");
@@ -10074,11 +10076,13 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 		__Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiverWare_JMenuItem =
 			new SimpleJMenuItem(__Commands_Output_WriteRiverWare_String, this ) );
 	}
-    
+
+	/* TODO SAM 2017-03-05 disable for now - need to work on in a branch in the processor library
     if ( __source_SHEF_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteSHEF_JMenuItem =
             new SimpleJMenuItem(  __Commands_Output_WriteSHEF_String, this ) );
     }
+    */
 
 	if ( __source_StateCU_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteStateCU_JMenuItem =
@@ -17196,7 +17200,7 @@ Graph time series that are in the final list.
 @param graph_type Type of graph (same as tstool command line arguments).
 */
 private void uiAction_GraphTimeSeriesResults ( String graph_type, String params ) 
-{	String routine = getClass().getName() + ".uiAction_GraphTimeSeriesResults";
+{	String routine = getClass().getSimpleName() + ".uiAction_GraphTimeSeriesResults";
 
 	try {
 		// Change the wait cursor here in the main GUI to indicate that the graph is being processed.
@@ -18170,7 +18174,7 @@ private void uiAction_RunCommands ( boolean runAllCommands, boolean createOutput
 	results_Clear ();
 	System.gc();
 	// Get commands to run (all or selected)...
-	List commands = commandList_GetCommands ( runAllCommands );
+	List<Command> commands = commandList_GetCommands ( runAllCommands );
 	// The limits of the command progress bar are handled in commandStarted().
 	// Run the commands in a thread.
 	commandProcessor_RunCommandsThreaded ( commands, createOutput );
@@ -20764,7 +20768,7 @@ private void uiAction_ShowHelpAbout ()
     "TSTool - Time Series Tool\n" +
     "A component of Colorado's Decision Support Systems (CDSS)\n" +
     IOUtil.getProgramVersion() + "\n" +
-    "Copyright 1997-2016 State of Colorado\n" +
+    "Copyright 1997-2017 State of Colorado\n" +
     "Developed by the Open Water Foundation\n" +
     "Funded by:\n" +
     "Colorado Division of Water Resources\n" +
