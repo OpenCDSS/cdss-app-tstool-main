@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_UsgsNwisGroundwater_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_UsgsNwisGroundwater_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
 
 /**

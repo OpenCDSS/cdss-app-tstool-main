@@ -279,6 +279,7 @@ following main functionality:
 <li>	Interact with TSCommandProcessor via a list model (derived from AbstractListModel).</li>
 </ol>
 */
+@SuppressWarnings("serial")
 public class TSTool_JFrame extends JFrame
 implements
 ActionListener, // To handle menu selections in GUI
@@ -530,14 +531,14 @@ private int __inputFilterY = 0;
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.  These are the full file strings.
 */
-private List<String> __inputNameHecDssList = new Vector();
+private List<String> __inputNameHecDssList = new ArrayList<String>();
 
 /**
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.  These are the abbreviated file strings, so as to not
 take up too much space in the interface.
 */
-private List<String> __inputNameHecDssVisibleList = new Vector();
+private List<String> __inputNameHecDssVisibleList = new ArrayList<String>();
 
 /**
 The last HEC-DSS file that was selected, to reset after canceling a browse.
@@ -548,13 +549,13 @@ private String __inputNameHecDssVisibleLast = null;
 The NWSFFS FS5Files directories that have been selected during the
 session, to allow switching between input types but not losing the list of files.
 */
-private List<String> __input_name_NWSRFS_FS5Files = new Vector();
+private List<String> __input_name_NWSRFS_FS5Files = new ArrayList<String>();
 
 /**
 The StateCU files that have been selected during the session, to allow switching
 between input types but not losing the list of files. 
 */
-private List<String> __inputNameStateCU = new Vector();
+private List<String> __inputNameStateCU = new ArrayList<String>();
 
 /**
 The last StateCU file that was selected, to reset after canceling a browse. 
@@ -565,7 +566,7 @@ private String __inputNameStateCULast = null;
 The StateCUB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private List<String> __input_name_StateCUB = new Vector();
+private List<String> __input_name_StateCUB = new ArrayList<String>();
 
 /**
 The last StateCUB file that was selected, to reset after canceling a browse.
@@ -576,7 +577,7 @@ private String __input_name_StateCUB_last = null;
 The StateModB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private List<String> __input_name_StateModB = new Vector();
+private List<String> __input_name_StateModB = new ArrayList<String>();
 
 /**
 The last StateModB file that was selected, to reset after canceling a browse.
@@ -686,7 +687,7 @@ private SimpleJButton __ClearCommands_JButton;
 /**
 The list of Command that is used with cut/copy/paste user actions.
 */
-private List<Command> __commandsCutBuffer = new Vector(100,100);
+private List<Command> __commandsCutBuffer = new Vector<Command>(100,100);
 
 // TODO SAM 2007-11-02 Evaluate putting in the processor
 /**
@@ -718,13 +719,13 @@ private JPanel __resultsTSEnsembles_JPanel;
 /**
 Final list showing in-memory time series ensemble results.
 */
-private JList __resultsTSEnsembles_JList;
+private JList<String> __resultsTSEnsembles_JList;
 
 /**
 JList data model for final time series ensembles (basically a list of
 time series associated with __results_tsensembles_JList).
 */
-private DefaultListModel __resultsTSEnsembles_JListModel;
+private DefaultListModel<String> __resultsTSEnsembles_JListModel;
 
 /**
 Popup menu for ensemble results.
@@ -749,12 +750,12 @@ private JPanel __resultsTS_JPanel;
 /**
 Final list showing in-memory time series results.
 */
-private JList __resultsTS_JList;
+private JList<String> __resultsTS_JList;
 
 /**
 JList data model for final time series (basically a list of time series associated with __results_ts_JList).
 */
-private DefaultListModel __resultsTS_JListModel;	
+private DefaultListModel<String> __resultsTS_JListModel;	
 
 /**
 The command processor, which maintains a list of command objects, process
@@ -788,21 +789,19 @@ Popup menu for table results.
 private JPopupMenu __resultsTables_JPopupMenu = null;
 
 /**
-JList data model for final time series (basically a Vector of
-table identifiers associated with __results_tables_JList).
+JList data model for final time series (a list of table identifiers associated with __results_tables_JList).
 */
-private DefaultListModel __resultsTables_JListModel;
+private DefaultListModel<String> __resultsTables_JListModel;
 
 /**
 List of results output files for viewing with an editor.
 */
-private JList __resultsOutputFiles_JList = null;
+private JList<String> __resultsOutputFiles_JList = null;
 
 /**
-JList data model for final time series (basically a Vector of
-filenames associated with __resultsOutputFiles_JList).
+JList data model for final time series (a list of filenames associated with __resultsOutputFiles_JList).
 */
-private DefaultListModel __resultsOutputFiles_JListModel;
+private DefaultListModel<String> __resultsOutputFiles_JListModel;
 
 /**
 Label for output file list, to indicate how many files.
@@ -2977,7 +2976,7 @@ in which case all are returned.  If true, all are returned, regardless of which 
 */
 private List<Command> commandList_GetCommands ( boolean get_all )
 {	if ( __commands_JListModel.size() == 0 ) {
-		return new Vector();
+		return new ArrayList<Command>();
 	}
 
 	int [] selected = ui_GetCommandJList().getSelectedIndices();
@@ -2989,7 +2988,7 @@ private List<Command> commandList_GetCommands ( boolean get_all )
 	if ( (selected_size == 0) || get_all ) {
 		// Nothing selected or want to get all, get all...
 		selected_size = __commands_JListModel.size();
-		List<Command> itemVector = new Vector(selected_size);
+		List<Command> itemVector = new ArrayList<Command>(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
 			itemVector.add ( (Command)__commands_JListModel.get(i) );
 		}
@@ -2997,7 +2996,7 @@ private List<Command> commandList_GetCommands ( boolean get_all )
 	}
 	else {
 	    // Else something selected so get them...
-	    List<Command> itemVector = new Vector(selected_size);
+	    List<Command> itemVector = new ArrayList<Command>(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
 			itemVector.add ( (Command)__commands_JListModel.get(selected[i]) );
 		}
@@ -3026,7 +3025,7 @@ private List<String> commandList_GetCommandStrings ( boolean get_all )
     List<Command> commands = commandList_GetCommands ( get_all );
 	// Convert to String instances
 	int size = commands.size();
-	List<String> strings = new Vector(size);
+	List<String> strings = new ArrayList<String>(size);
 	for ( int i = 0; i < size; i++ ) {
 		strings.add ( "" + commands.get(i) );
 	}
@@ -3594,7 +3593,8 @@ Get the command processor table results list.
 @return The table results list or null
 if the processor is not available.
 */
-private List commandProcessor_GetEnsembleResultsList()
+@SuppressWarnings("unchecked")
+private List<TSEnsemble> commandProcessor_GetEnsembleResultsList()
 {   String routine = "TSTool_JFrame.commandProcessorGetEnsembleResultsList";
     Object o = null;
     try {
@@ -3608,7 +3608,7 @@ private List commandProcessor_GetEnsembleResultsList()
         return null;
     }
     else {
-        return (List)o;
+        return (List<TSEnsemble>)o;
     }
 }
 
@@ -3618,7 +3618,7 @@ Get the size of the command processor ensemble results list.
 */
 private int commandProcessor_GetEnsembleResultsListSize()
 {
-    List results = commandProcessor_GetEnsembleResultsList();
+    List<TSEnsemble> results = commandProcessor_GetEnsembleResultsList();
     if ( results == null ) {
         return 0;
     }
@@ -3631,6 +3631,7 @@ reporting.  Any errors in the processor should be detected during command initia
 @return The HydroBaseDMIList as a Vector from the command processor or null if
 not yet determined or no connections.
 */
+@SuppressWarnings("unchecked")
 private List<HydroBaseDMI> commandProcessor_GetHydroBaseDMIList()
 {	if ( __tsProcessor == null ) {
 		return null;
@@ -3812,6 +3813,7 @@ Get the command processor table results list.
 @return The table results list or null
 if the processor is not available.
 */
+@SuppressWarnings("unchecked")
 private List<DataTable> commandProcessor_GetTableResultsList()
 {   String routine = "TSTool_JFrame.commandProcessorGetTableResultsList";
     Object o = null;
@@ -3870,7 +3872,8 @@ Get the command processor time series results list.
 @return The time series results list or null
 if the processor is not available.
 */
-private List commandProcessor_GetTimeSeriesResultsList()
+@SuppressWarnings("unchecked")
+private List<TS> commandProcessor_GetTimeSeriesResultsList()
 {	String routine = "TSTool_JFrame.commandProcessorGetTimeSeriesResultsList";
 	Object o = null;
 	try {
@@ -3884,7 +3887,7 @@ private List commandProcessor_GetTimeSeriesResultsList()
 		return null;
 	}
 	else {
-		return (List)o;
+		return (List <TS>)o;
 	}
 }
 
@@ -3894,7 +3897,7 @@ Get the size of the command processor time series results list.
 */
 private int commandProcessor_GetTimeSeriesResultsListSize()
 {
-    List results = commandProcessor_GetTimeSeriesResultsList();
+    List<TS> results = commandProcessor_GetTimeSeriesResultsList();
 	if ( results == null ) {
 		return 0;
 	}
@@ -3905,6 +3908,7 @@ private int commandProcessor_GetTimeSeriesResultsListSize()
 Get the command processor time series view results list.
 @return The time series view results list or null if the processor is not available.
 */
+@SuppressWarnings("unchecked")
 private List<TimeSeriesView> commandProcessor_GetTimeSeriesViewResultsList()
 {   String routine = "TSTool_JFrame.commandProcessor_GetTimeSeriesViewResultsList";
     Object o = null;
@@ -3953,7 +3957,8 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
         Message.printWarning(1, routine, message );
         return;
     }
-    List tslist = (List)o_tslist;
+    @SuppressWarnings("unchecked")
+    List<TS> tslist = (List <TS>)o_tslist;
     int tslist_size = tslist.size();
     if ( tslist_size == 0 ) {
         String message = "No time series are available from processor.";
@@ -3961,7 +3966,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
         return;
     }
     // Get the list of ensembles...
-    List match_index_Vector = new Vector();   // List of matching time series indices
+    List<Integer> match_index_Vector = new ArrayList<Integer>(); // List of matching time series indices
     for ( int i = 0; i < indices.length; i++ ) {
         PropList request_params = new PropList ( "" );
         // String is of format 1) EnsembleID - EnsembleName where Ensemble ID can contain dashes but generally not
@@ -3993,9 +3998,9 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
         int ensemble_size = ensemble.size();
         TS ens_ts, ts;
         for ( int iens = 0; iens < ensemble_size; iens++ ) {
-            ens_ts = (TS)ensemble.get(iens);
+            ens_ts = ensemble.get(iens);
             for ( int its = 0; its < tslist_size; its++ ) {
-                ts = (TS)tslist.get(its);
+                ts = tslist.get(its);
                 if ( ens_ts == ts ) {
                     // Have a matching time series
                     match_index_Vector.add ( new Integer(its));
@@ -4006,7 +4011,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( int [] indices, PropL
     // Convert the indices to an array
     int [] indices2 = new int[match_index_Vector.size()];
     for ( int i = 0; i < indices2.length; i++ ) {
-        indices2[i] = ((Integer)match_index_Vector.get(i)).intValue();
+        indices2[i] = match_index_Vector.get(i).intValue();
     }
     // Now display the list of time series
     PropList request_params = new PropList ( "" );
@@ -4312,23 +4317,23 @@ public String geoViewGetLabel(GeoRecord record) {
 Do nothing.  
 @param devlimits Limits of select in device coordinates(pixels).
 @param datalimits Limits of select in data coordinates.
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo(GRShape devlimits, GRShape datalimits, List selected)
+public void geoViewInfo(GRShape devlimits, GRShape datalimits, List<GeoRecord> selected)
 {
 }
 
 /**
 Do nothing.
 */
-public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, List selected)
+public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, List<GeoRecord> selected)
 {
 }
 
 /**
 Do nothing.
 */
-public void geoViewInfo(GRLimits devlimits, GRLimits datalimits, List selected)
+public void geoViewInfo(GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected)
 {
 }
 
@@ -4349,10 +4354,10 @@ table file to match the attributes in the layer with time series in the query
 list.  The coordinates of the select ARE NOT used in the selection.
 @param devlimits Limits of select in device coordinates(pixels).
 @param datalimits Limits of select in data coordinates.
-@param selected Vector of selected GeoRecord.  This is used to match the
+@param selected list of selected GeoRecord.  This is used to match the
 attributes for the selected feature with the time series query list.
 */
-public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List selected, boolean append )
+public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecord> selected, boolean append )
 {	String routine = "TSTool_JFrame.geoViewSelect";
 
 	try {
@@ -4722,11 +4727,11 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List selected
 	}
 }
 
-public void geoViewSelect(GRPoint devlimits, GRPoint datalimits, List selected, boolean append) {
+public void geoViewSelect(GRPoint devlimits, GRPoint datalimits, List<GeoRecord> selected, boolean append) {
 	geoViewSelect((GRShape)devlimits, (GRShape)datalimits, selected, append);
 }
 
-public void geoViewSelect(GRLimits devlimits, GRLimits datalimits, List selected, boolean append) {
+public void geoViewSelect(GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected, boolean append) {
 	geoViewSelect((GRShape)devlimits, (GRShape)datalimits, selected, append);
 }
 
@@ -5017,11 +5022,11 @@ throws IOException
         return;
     }
     // Loop through he properties in the current file and reset to those in the file to merge
-    List props = currentProps.getList();
+    List<Prop> props = currentProps.getList();
     int size = props.size();
     for ( int i = 0; i < size; i++ ) {
         // Get out of the current list
-        Prop prop = (Prop)props.get(i);
+        Prop prop = props.get(i);
         String currentPropName = prop.getKey();
         String currentPropValue = prop.getValue();
         // See if there is a match in the properties to be merged
@@ -6785,7 +6790,7 @@ Populate the datastore list from available processor datastores.
 private void ui_DataStoreList_Populate ()
 {
     __dataStore_JComboBox.removeAll();
-    List<String> dataStoreNameList = new Vector();
+    List<String> dataStoreNameList = new ArrayList<String>();
     dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
     // Get all enabled datastores, even those not active - the View ... Datastores menu can be used to show errors
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
@@ -8089,8 +8094,8 @@ private void ui_InitGUI ( )
         BorderFactory.createLineBorder(Color.black),
         "Results: Ensembles of Time Series" ));
         */
-    __resultsTSEnsembles_JListModel = new DefaultListModel();
-    __resultsTSEnsembles_JList = new JList ( __resultsTSEnsembles_JListModel );
+    __resultsTSEnsembles_JListModel = new DefaultListModel<String>();
+    __resultsTSEnsembles_JList = new JList<String> ( __resultsTSEnsembles_JListModel );
     __resultsTSEnsembles_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
     __resultsTSEnsembles_JList.addKeyListener ( this );
     __resultsTSEnsembles_JList.addListSelectionListener ( this );
@@ -8145,7 +8150,7 @@ private void ui_InitGUI ( )
     // Listen for mouse events to ??...
     //__problems_JWorksheet.addMouseListener ( this );
     //__problems_JWorksheet.addJWorksheetListener ( this );
-    // TODO SAM 2015-07-09 Nee the worksheet to fill the panel
+    // TODO SAM 2015-07-09 Need the worksheet to fill the panel
     JGUIUtil.addComponent(results_problems_JPanel, sjw, 
         0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Problems", results_problems_JPanel );
@@ -8154,9 +8159,9 @@ private void ui_InitGUI ( )
 
     JPanel resultsProperties_JPanel = new JPanel();
     resultsProperties_JPanel.setLayout(gbl);
-    PropList_TableModel propsTableModel = null;
+    PropList_TableModel<PropList> propsTableModel = null;
     try {
-        propsTableModel = new PropList_TableModel(new PropList("processor"),false,false);
+        propsTableModel = new PropList_TableModel<PropList>(new PropList("processor"),false,false);
         propsTableModel.setKeyColumnName("Property Name");
         propsTableModel.setValueColumnName("Property Value");
     }
@@ -15685,7 +15690,7 @@ throws Exception
     			}
     			else {
     				// Real-time well elevation as station
-    				__query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel (
+    				__query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel<HydroBase_StationGeolocMeasType> (
     				    __query_JWorksheet, tslist );
     				TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
     					new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
@@ -18852,7 +18857,7 @@ private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDat
     // when data are read (different table model might confuse user)
 
     try {
-        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel<HydroBase_StationGeolocMeasType>(
             __query_JWorksheet,
             //StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")),
             null);
@@ -19612,7 +19617,7 @@ private void uiAction_SelectInputType_HydroBase ()
     // when data are read (different table model might confuse user)
 
     try {
-        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel<HydroBase_StationGeolocMeasType>(
             __query_JWorksheet,
             //StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")),
             null);
@@ -21293,7 +21298,7 @@ throws Exception
 			Message.printDebug ( 1, "", "DataType[" + i + "]: " + ((DataType)datatypes.get(i)).toString() );
 		}
 		// Read test input...
-		List tslist = DateValueTS.readTimeSeriesList ( "J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\TF24.mdk",
+		List<TS> tslist = DateValueTS.readTimeSeriesList ( "J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\TF24.mdk",
 			(DateTime)null, (DateTime)null, (String)null, true );
 		// Write the SHEF
 		ShefATS.writeTimeSeriesList ( tslist, 

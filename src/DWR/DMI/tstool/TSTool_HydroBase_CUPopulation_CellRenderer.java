@@ -6,6 +6,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 This class is used to render cells for
 TSTool_HydroBase_CUPopulation_TableModel data, for CU population time series.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_CUPopulation_CellRenderer
 extends JWorksheet_DefaultTableCellRenderer {
 

@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_UsgsNwisDaily_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_UsgsNwisDaily_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
 
 TSTool_UsgsNwisDaily_TableModel __tableModel = null;	// Table model to render

@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 /**
 This class is used to render cells for TSTool_ReclamationHDB_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_ReclamationHDB_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
 
 TSTool_ReclamationHDB_TableModel __table_model = null;

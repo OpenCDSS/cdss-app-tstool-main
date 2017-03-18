@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_HydroBase_WellLevel_Day_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_WellLevel_Day_CellRenderer extends JWorksheet_DefaultTableCellRenderer {
 
 TSTool_HydroBase_WellLevel_Day_TableModel __table_model = null;	// Table model to render

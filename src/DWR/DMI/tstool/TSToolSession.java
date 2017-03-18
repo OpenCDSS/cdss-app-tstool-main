@@ -6,7 +6,6 @@ import java.util.List;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
-import RTi.Util.Message.Message;
 
 /**
 Class to maintain TSTool session information such as the history of command files opened.

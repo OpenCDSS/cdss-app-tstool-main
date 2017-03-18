@@ -1,20 +1,14 @@
 package rti.app.tstoolrestlet;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Context;
-import org.restlet.Directory;
-import org.restlet.Guard;
 import org.restlet.Restlet;
 import org.restlet.Router;
 import org.restlet.data.Parameter;
 import org.restlet.data.Protocol;
-import org.restlet.util.Template;
 
 import RTi.Util.Message.Message;
 
@@ -49,7 +43,7 @@ public Restlet createRoot()
     // from the parent (main) application
     Router router = new Router(getContext());
     // Template that allows using {name} syntax with a data model
-    Template template = null;
+    //Template template = null;
     
     Message.printStatus(2,routine,"Initialized restlet.");
 

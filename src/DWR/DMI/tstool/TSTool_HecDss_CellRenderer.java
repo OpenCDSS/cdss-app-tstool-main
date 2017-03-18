@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_HecDss_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_HecDss_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
 
 TSTool_HecDss_TableModel __tableModel = null;	// Table model to render
