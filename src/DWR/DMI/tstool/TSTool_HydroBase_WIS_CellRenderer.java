@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_HydroBase_WIS_TableModel data, for WIS time series.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_WIS_CellRenderer
 extends JWorksheet_DefaultTableCellRenderer {
 

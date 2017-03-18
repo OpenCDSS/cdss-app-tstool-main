@@ -20,7 +20,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -65,10 +64,11 @@ Main (application startup) class for TSTool.  This class will start the TSTool G
 or run the TSCommandProcessor in batch mode with a command file.  The methods in
 this file are called by the startup TSTool and CDSS versions of TSTool.
 */
+@SuppressWarnings("serial")
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "11.13.00 (2017-03-07)";
+public static final String PROGRAM_VERSION = "12.00.00 (2017-03-12)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1315,7 +1315,7 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
             // then default HydroBase information will be used.
             HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
             hbdmi.open();
-            List<HydroBaseDMI> hbdmi_Vector = new Vector(1);
+            List<HydroBaseDMI> hbdmi_Vector = new ArrayList<HydroBaseDMI>(1);
             hbdmi_Vector.add ( hbdmi );
             processor.setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
             Message.printStatus(2, routine, "Successfully opened HydroBase connection." );
@@ -1674,7 +1674,7 @@ public static void parseArgs ( TSToolSession session, JApplet a )
 throws Exception
 {	
     // Convert the applet parameters to an array of strings and call the other parse method.
-    List args = new Vector();
+    List<String> args = new ArrayList<String>();
 	if ( a.getParameter("-home") != null ) {
 	    args.add ( "-home" );
 	    args.add ( a.getParameter("-home") );

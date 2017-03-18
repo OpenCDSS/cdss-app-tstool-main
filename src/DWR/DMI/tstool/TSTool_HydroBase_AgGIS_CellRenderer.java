@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_HydroBase_AgGIS_TableModel data, for irrig_summary_ts.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_AgGIS_CellRenderer
 extends JWorksheet_DefaultTableCellRenderer {
 

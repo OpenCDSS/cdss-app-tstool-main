@@ -14,8 +14,8 @@ import RTi.Util.String.StringUtil;
 This class is a table model for time series header information for HydroBase station time series.
 By default the sheet will contain row and column numbers.
 */
-public class TSTool_HydroBase_StationGeolocMeasType_TableModel
-extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_HydroBase_StationGeolocMeasType_TableModel<T> extends JWorksheet_AbstractRowTableModel<T>
 {
 
 /**
@@ -60,7 +60,7 @@ The input type defaults to "HydroBase".
 when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List data )
+public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<T> data )
 throws Exception
 {
     this ( worksheet, data, null );
@@ -75,7 +75,7 @@ that will be displayed in the table (null is allowed - see setData()).
 when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List data, String inputType )
+public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<T> data, String inputType )
 throws Exception
 {
 	if ( data == null ) {
@@ -94,7 +94,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		// FIXME - can't seem to handle missing...
 		//case COL_START:		return Integer.class;

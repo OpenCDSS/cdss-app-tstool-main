@@ -33,6 +33,7 @@ import RTi.Util.String.StringUtil;
 /**
 Editor for TSTool configuration options.
 */
+@SuppressWarnings("serial")
 public class TSTool_Options_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {

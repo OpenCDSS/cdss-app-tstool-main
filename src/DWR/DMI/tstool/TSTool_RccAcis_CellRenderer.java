@@ -5,6 +5,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TSTool_RccAcis_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_RccAcis_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
 
 private TSTool_RccAcis_TableModel __table_model = null;	// Table model to render

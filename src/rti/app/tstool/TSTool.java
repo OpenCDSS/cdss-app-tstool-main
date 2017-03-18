@@ -8,6 +8,7 @@ import DWR.DMI.tstool.TSToolMain;
 Main (application startup) class for RTi version of TSTool.  This class will start the TSTool GUI
 or run the TSCommandProcessor in batch mode with a command file.
 */
+@SuppressWarnings("serial")
 public class TSTool extends JApplet
 {
 

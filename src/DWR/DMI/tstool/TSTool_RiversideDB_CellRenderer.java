@@ -6,6 +6,7 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 /**
 This class is used to render cells for TSTool_RiversideDB_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TSTool_RiversideDB_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
 //JWorksheet_DefaultTableCellRenderer {
 
