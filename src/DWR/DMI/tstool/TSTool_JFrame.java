@@ -1405,6 +1405,7 @@ JMenuItem
     __Commands_General_Running_ReadPropertiesFromFile_JMenuItem = null,
     __Commands_General_Running_SetProperty_JMenuItem = null,
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem = null,
+    __Commands_General_Running_SetPropertyFromEnsemble_JMenuItem = null,
     __Commands_General_Running_SetPropertyFromTimeSeries_JMenuItem = null,
     __Commands_General_Running_FormatDateTimeProperty_JMenuItem = null,
     __Commands_General_Running_FormatStringProperty_JMenuItem = null,
@@ -1958,6 +1959,7 @@ private String
     __Commands_General_Running_SetProperty_String = TAB + "SetProperty()... <set a processor property>",
     __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String =
         TAB + "SetPropertyFromNwsrfsAppDefault()... <set a processor property from an NWSRFS App Default>",
+    __Commands_General_Running_SetPropertyFromEnsemble_String = TAB + "SetPropertyFromEnsemble()... <set a processor property from ensemble properties>",
     __Commands_General_Running_SetPropertyFromTimeSeries_String = TAB + "SetPropertyFromTimeSeries()... <set a processor property from time series properties>",
     __Commands_General_Running_FormatDateTimeProperty_String = TAB + "FormatDateTimeProperty()... <format date/time property as string property>",
     __Commands_General_Running_FormatStringProperty_String = TAB + "FormatStringProperty()... <format a string property>",
@@ -4275,7 +4277,8 @@ public void commandStarted ( int icommand, int ncommand, Command command,
 	    }
 	    additionalInfo += "...";
 	}
-	ui_UpdateStatusTextFields ( 1, routine, null, tip + ": \"" + commandName + "(..." +
+	// Use level zero because the command processor is already printing a log message when each command is run
+	ui_UpdateStatusTextFields ( 0, routine, null, tip + ": \"" + commandName + "(..." +
 	    additionalInfo + ")\"", __STATUS_BUSY );
 	if ( icommand == 0 ) {
 		__processor_JProgressBar.setMinimum ( 0 );
@@ -10470,6 +10473,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String,this));
     }
+    __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromEnsemble_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromEnsemble_String,this));
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromTimeSeries_String,this));
     __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatDateTimeProperty_JMenuItem =
@@ -13301,6 +13306,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String) ) {
         commandList_EditCommand ( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_Running_SetPropertyFromEnsemble_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_SetPropertyFromEnsemble_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_SetPropertyFromTimeSeries_String) ) {
         commandList_EditCommand ( __Commands_General_Running_SetPropertyFromTimeSeries_String, null, CommandEditType.INSERT );
@@ -20555,7 +20563,7 @@ throws Exception
 	Message.printStatus ( 2, routine, "LayerList=" + layerlist );
 	Message.printStatus ( 2, routine, "AttributeList=" + mapidlist );
 	Message.printStatus ( 2, routine, "IDList=" + idlist );
-	List matching_features = __geoview_JFrame.getGeoViewJPanel().selectLayerFeatures(
+	List<GeoRecord> matching_features = __geoview_JFrame.getGeoViewJPanel().selectLayerFeatures(
 			layerlist,	// Layers to search
 			mapidlist,	// Attributes to use to compare to the identifiers
 			idlist,		// Identifiers to find
@@ -20581,126 +20589,6 @@ throws Exception
 	JGUIUtil.setWaitCursor(this, false);
 	idlist = null;
 }
-
-/*
-	else if ( __selected_input_type.equals ( __INPUT_TYPE_HydroBase )) {
-		if ( __query_TableModel instanceof TSTool_HydroBase_TableModel){
-			TSTool_HydroBase_TableModel model =
-				(TSTool_HydroBase_TableModel)__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID) + " - " +
-					(String)__query_TableModel.getValueAt (
-					row, model.COL_NAME),
-				false );
-		}
-		else if (__query_TableModel instanceof
-			TSTool_HydroBase_WellLevel_Day_TableModel) {
-			TSTool_HydroBase_WellLevel_Day_TableModel model =
-				(TSTool_HydroBase_WellLevel_Day_TableModel)
-				__query_TableModel;
-			appendResultsToCommands(
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID) + " - " +
-					(String)__query_TableModel.getValueAt (
-					row, model.COL_NAME),
-				false );			
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_Ag_TableModel){
-			TSTool_HydroBase_Ag_TableModel model =
-				(TSTool_HydroBase_Ag_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_AgGIS_TableModel){
-			TSTool_HydroBase_AgGIS_TableModel model =
-				(TSTool_HydroBase_AgGIS_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-		else if ( __query_TableModel instanceof
-			TSTool_HydroBase_WIS_TableModel){
-			TSTool_HydroBase_WIS_TableModel model =
-				(TSTool_HydroBase_WIS_TableModel)
-				__query_TableModel;
-			appendResultsToCommands ( 
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_TIME_STEP),
-				(String)__query_TableModel.getValueAt (
-					row, model.COL_SHEET_NAME),
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt(
-					row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false );
-		}
-	}
-*/
 
 /**
 Display the status of the selected command(s).
@@ -20800,7 +20688,7 @@ private void uiAction_ShowProperties_CommandsRun ()
 	reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 	reportProp.set ( "PrintSize", "7" );
 	reportProp.set ( "Title", "TSTool Commands Run Properties" );
-	List v = new Vector ( 4 );
+	List<String> v = new Vector<String> ( 4 );
 	v.add ( "Properties from the last commands run." );
 	v.add ( "Note that property values are as of the time the window is opened." );
 	v.add ( "Properties are set as defaults initially and change value when a command is processed." );
@@ -20876,11 +20764,11 @@ private void uiAction_ShowProperties_CommandsRun ()
 	if ( __source_HydroBase_enabled ) {
 		v.add ( "" );
 		Object o2 = commandProcessor_GetHydroBaseDMIList();
-		if ( (o2 == null) || (((List)o2).size() == 0) ) {
+		if ( (o2 == null) || (((List<HydroBaseDMI>)o2).size() == 0) ) {
 			v.add ( "No HydroBase connections are open for the command processor." );
 		}
 		else {
-		    List dmis = (List)o2;
+		    List<HydroBaseDMI> dmis = (List<HydroBaseDMI>)o2;
 			int size = dmis.size();
 			for ( int i = 0; i < size; i++ ) {
 				v.add ( "Command processor HydroBase connection information:" );
@@ -21303,17 +21191,17 @@ throws Exception
 		// Write the SHEF
 		ShefATS.writeTimeSeriesList ( tslist, 
 			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\test.shef", false, (DateTime)null, (DateTime)null,
-			(List)null, ShefATS.getPEForTimeSeries(tslist), (List)null, (List)null,
+			(List<String>)null, ShefATS.getPEForTimeSeries(tslist), (List<String>)null, (List<String>)null,
 			null, null, "DC200311241319", "DH1200", 24, -1);
 	}
 	else if ( test_num == 1 ) {
 		// Test reading multiple time series from a date value file
 		// and creating an average time series...
-	    List tslist = DateValueTS.readTimeSeriesList (
+	    List<TS> tslist = DateValueTS.readTimeSeriesList (
 			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_EspTraceEnsemble\\CSCI.CSCI.SQIN.ACCUMULATOR",
 			(DateTime)null, (DateTime)null, (String)null, true );
 		int size = tslist.size() - 1;
-		List tslist2 = new Vector(size);
+		List<TS> tslist2 = new Vector<TS>(size);
 		TS ts;
 		for ( int i = 0; i < size; i++ ) {
 			// Add time series that have ACFT units and "accum" in the description, but not the
@@ -21602,8 +21490,8 @@ throws Exception
 
 		GeoLayer layer = new GeoLayer(new PropList("Layer"));
 		layer.setShapeType(GeoLayer.POINT);
-		List shapes = new Vector();
-		List lv_shapes = lv_layer.getShapes();
+		List<GRShape> shapes = new Vector<GRShape>();
+		List<GRShape> lv_shapes = lv_layer.getShapes();
 		DataTable lv_table = lv_layer.getAttributeTable();
 		int lv_layer_size = 0;
 		if ( lv_shapes != null ) {
@@ -21619,7 +21507,7 @@ throws Exception
 		for ( int i = 0; i < lv_layer_size; i++ ) {
 			// Copy the shape into the new layer...
 			//Message.printStatus ( 2, routine,"Processing shape [" + i + "]" );
-			shape = (GRShape)lv_shapes.get(i);
+			shape = lv_shapes.get(i);
 			if ( shape == null ) {
 				// Null shape (ignore)...
 				Message.printStatus ( 2, routine, "Shape [" + i + "] is null." );
@@ -21636,16 +21524,16 @@ throws Exception
 
 		// Create the attribute table...
 
-		List fields = new Vector ();
-		fields.add ( new TableField(	TableField.DATA_TYPE_STRING, "Abbrev", 12 ) ); // 0
+		List<TableField> fields = new Vector<TableField> ();
+		fields.add ( new TableField( TableField.DATA_TYPE_STRING, "Abbrev", 12 ) ); // 0
 		fields.add ( new TableField( TableField.DATA_TYPE_STRING, "Station_id", 12 ) ); // 1
-		fields.add ( new TableField(	TableField.DATA_TYPE_STRING, "Name", 40 ) ); // 2
-		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "Flow_cfs", 12 ) ); // 3
-		fields.add ( new TableField(	TableField.DATA_TYPE_STRING, "Date", 10 ) ); // 4
-		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "Average", 10 ) ); // 5
-		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "Perc. Ave", 14 ) ); //6
-		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "UTMX", 13 ) ); //7
-		fields.add ( new TableField(	TableField.DATA_TYPE_DOUBLE, "UTMY", 13 ) ); //8
+		fields.add ( new TableField( TableField.DATA_TYPE_STRING, "Name", 40 ) ); // 2
+		fields.add ( new TableField( TableField.DATA_TYPE_DOUBLE, "Flow_cfs", 12 ) ); // 3
+		fields.add ( new TableField( TableField.DATA_TYPE_STRING, "Date", 10 ) ); // 4
+		fields.add ( new TableField( TableField.DATA_TYPE_DOUBLE, "Average", 10 ) ); // 5
+		fields.add ( new TableField( TableField.DATA_TYPE_DOUBLE, "Perc. Ave", 14 ) ); //6
+		fields.add ( new TableField( TableField.DATA_TYPE_DOUBLE, "UTMX", 13 ) ); //7
+		fields.add ( new TableField( TableField.DATA_TYPE_DOUBLE, "UTMY", 13 ) ); //8
 		int fields_size = fields.size();
 		DataTable table = new DataTable ( fields );
 		layer.setAttributeTable(table);
@@ -21660,13 +21548,13 @@ throws Exception
 			Message.printWarning ( 1, routine, "No time series available for test." );
 			return;
 		}
-		List tslist = commandProcessor_GetTimeSeriesResultsList();
+		List<TS> tslist = commandProcessor_GetTimeSeriesResultsList();
 		int tslist_size = 0;
 		if ( tslist != null ) {
 			tslist_size = tslist.size();
 		}
 		for ( int i = 0; i < lv_layer_size; i++ ) {
-			shape = (GRShape)lv_shapes.get(i);
+			shape = lv_shapes.get(i);
 			if ( (shape == null) || (shape.type == GRShape.UNKNOWN) ) {
 				// Null shape so ignore...
 				continue;
@@ -21693,7 +21581,7 @@ throws Exception
 			// First loop through the time series to find one that matches the station.
 
 			for ( int j = 0; j < tslist_size; j++ ) {
-				ts = (TS)tslist.get(j);
+				ts = tslist.get(j);
 				tsident = ts.getIdentifier();
 				if ( (tsident.getLocation().equalsIgnoreCase(abbrev) ||
 					tsident.getLocation().equalsIgnoreCase(station_id)) &&
@@ -21707,7 +21595,7 @@ throws Exception
 					// Find the historical time series if the current value is not missing...
 					if ( !ts.isDataMissing(value) ) {
 					for ( int k = 0; k < tslist_size; k++){
-						ts2 = (TS)tslist.get(k);
+						ts2 = tslist.get(k);
 						tsident2 = ts2.getIdentifier();
 						if ( (tsident2.getLocation().equalsIgnoreCase(abbrev) ||
 							tsident2.getLocation().equalsIgnoreCase(station_id)) &&
