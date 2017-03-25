@@ -12,5 +12,8 @@ rem SET HECLIB_FOLDER=%USERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor
 SET HECLIB_FOLDER=%USERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib
 
 rem Run Eclipse
+rem - the following specifically sets the VM location, which works fine if developers follow that convention
+rem - TODO smalers 2017-03-18 could change this script to fall back to using JAVA_HOME
 echo HECLIB_FOLDER=%HECLIB_FOLDER%
+@echo on
 "C:\Program Files (x86)\eclipse-java-neon-2-win32\eclipse\eclipse.exe" –vm "C:\Program Files (x86)\Java\jdk8\bin\javaw.exe" -vmargs -Xmx1024M
