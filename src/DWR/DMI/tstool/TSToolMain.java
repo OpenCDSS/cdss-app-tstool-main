@@ -68,7 +68,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "12.00.00 (2017-03-12)";
+public static final String PROGRAM_VERSION = "12.00.00beta (2017-03-20)";
 
 /**
 Main GUI instance, used when running interactively.
