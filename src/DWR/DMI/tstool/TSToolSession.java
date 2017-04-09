@@ -7,6 +7,7 @@ import java.util.List;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
+// TODO sam 2017-04-09 this should be a singleton in the application.
 /**
 Class to maintain TSTool session information such as the history of command files opened.
 */
@@ -14,16 +15,35 @@ public class TSToolSession
 {
 
 /**
-Global value that indicates if the file is being written.
+Global value that indicates if the command file history is being written.
 Need to handle because if the file is being modified at the same time exceptions will be thrown.
 */
 private boolean historyBeingWritten = false;
 
 /**
-Construct the session instance.
+Global value that indicates if the UI state file is being written.
+Need to handle because if the file is being modified at the same time exceptions will be thrown.
 */
-public TSToolSession ()
-{
+private boolean uiStateBeingWritten = false;
+
+/**
+ * List of properties for the UI state, such as last selections in wizards, choices, etc.
+ */
+private PropList uiStateProps = new PropList("ui-state");
+
+/**
+ * Private singleton instance.
+ */
+private static final TSToolSession instance = new TSToolSession();
+
+/**
+Private constructor for the session instance.
+*/
+private TSToolSession ()
+{	// Read UI state properties so they are available for interaction.
+	// They will be written when TSTool closes, and at other intermediate points, as appropriate,
+	// by calling writeUIState().
+	readUIState();
 }
 
 /**
@@ -194,6 +214,24 @@ public String getDatastoreFolder ()
 }
 
 /**
+ * Return the the File for the graph template file.
+ * The user's file location for templates is prepended to the specific file.
+ * @param tspFilename a *.tsp file, without leading path, one of the items from getGraphTemplateFileList().
+ */
+public File getGraphTemplateFile ( String tspFilename ) {
+	return new File(getUserFolder() + File.separator + "template-graph" + File.separator + tspFilename );
+}
+
+/**
+Return the list of graph templates.
+*/
+public List<File> getGraphTemplateFileList ()
+{
+	String graphTemplateFolder = getUserFolder() + File.separator + "template-graph";
+	return IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
+}
+
+/**
 Return the name of the TSTool history file.
 */
 public String getHistoryFile ()
@@ -201,6 +239,13 @@ public String getHistoryFile ()
 	String historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "command-file-history.txt";
 	//Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
+}
+
+/**
+ * Return the singleton instance of the TSToolSession.
+ */
+public static TSToolSession getInstance() {
+	return instance;
 }
 
 /**
@@ -231,6 +276,24 @@ public String getSystemFolder ()
 	String systemFolder = getUserFolder() + File.separator + "system";
 	//Message.printStatus(1,"","System folder is \"" + systemFolder + "\"");
 	return systemFolder;
+}
+
+/**
+Return the name of the TSTool UI state file.
+*/
+public String getUIStateFile ()
+{
+	String uiStateFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "ui-state.txt";
+	//Message.printStatus(1,"","UI state file \"" + uiStateFile + "\"");
+	return uiStateFile;
+}
+
+/**
+ * Return a UI state property, as a string.
+ * @param propertyName name of property being requested.
+ */
+public String getUIStateProperty ( String propertyName ) {
+	return this.uiStateProps.getValue(propertyName);
 }
 
 /**
@@ -303,6 +366,34 @@ public List<String> readHistory()
 }
 
 /**
+Read the UI state.  The UI state is saved as simple property=value text file in
+the .tstool/ui-state.txt file.
+Properties are saved in the uiStateProps PropList internally.
+*/
+public void readUIState()
+{	//String routine = getClass().getSimpleName() + ".readUIState";
+	try {
+		this.uiStateProps = new PropList("ui-state");
+		this.uiStateProps.setPersistentName(getUIStateFile());
+		this.uiStateProps.readPersistent();
+	}
+	catch ( Exception e ) {
+		// For now just swallow exception - may be because the UI state file has not
+		// been created the first time.
+		//Message.printWarning(3,routine,e);
+	}
+}
+
+/**
+ * Set a UI state property.
+ * @propertyName name of the state property.
+ * @propertyValue value of the property as a string.
+ */
+public void setUIStateProperty ( String propertyName, String propertyValue ) {
+	this.uiStateProps.set(propertyName,propertyValue);
+}
+
+/**
 Write the history of commands files that have been opened.
 */
 private void writeHistory ( List<String> history )
@@ -349,6 +440,41 @@ private void writeHistory ( List<String> history )
 	finally {
 		// Make sure to do the following so don't lock up
 		this.historyBeingWritten = false;
+	}
+}
+
+/**
+Write the UI state properties.
+*/
+public void writeUIState ()
+{
+	if ( getUserFolder().equals("/") ) {
+		// Don't allow files to be created under root on Linux
+		return;
+	}
+
+	long ms = System.currentTimeMillis();
+	while ( this.uiStateBeingWritten ) {
+		// Need to wait until another operation finishes writing
+		// But don't wait longer than a couple of seconds before moving on
+		if ( (System.currentTimeMillis() - ms) > 2000 ) {
+			break;
+		}
+	}
+	// Now can continue
+	this.uiStateBeingWritten = true;
+	try {
+		try {
+			//Message.printStatus(1, "", "Writing UI state" );
+			this.uiStateProps.writePersistent();
+		}
+		catch ( Exception e ) {
+			// Absorb exception for now
+		}
+	}
+	finally {
+		// Make sure to do the following so don't lock up
+		this.uiStateBeingWritten = false;
 	}
 }
 
