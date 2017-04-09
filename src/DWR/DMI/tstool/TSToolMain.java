@@ -238,7 +238,7 @@ Instantiates the application instance as an applet.
 public void init()
 {	String routine = "TSToolMain.init";
 
-	TSToolSession session = new TSToolSession();
+	TSToolSession session = TSToolSession.getInstance();
 	IOUtil.setApplet ( this );
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null );
 	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
@@ -552,7 +552,8 @@ public static void main ( String args[] )
 	try {
 	// Main try...
 
-	TSToolSession session = new TSToolSession();
+	// TSTool session properties are a singleton
+	TSToolSession session = TSToolSession.getInstance();
 	initializeLoggingLevelsBeforeLogOpened();
 	setWorkingDirInitial ();
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args );
