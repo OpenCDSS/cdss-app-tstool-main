@@ -1,0 +1,18 @@
+# Command file to calculate statistics for ensemble for use by EnsembleCalcStatsDefault.tsp
+# This command file is intended to operate on a single input ensemble.
+#
+# Set properties that will be available in the graph template
+# - main graph title that does not have "trace" or other extra information
+SetPropertyFromEnsemble(EnsembleID="*",PropertyName="TemplateGraphTitle",PropertyValue="${tsensemble:EnsembleName}")
+#
+# Set properties needed below to implement a generic template
+# - Ensemble for the first time series since it is used as input below
+SetPropertyFromEnsemble(EnsembleID="*",PropertyName="TemplateEnsembleID",PropertyValue="${tsensemble:EnsembleID}")
+SetPropertyFromTimeSeries(FirstMatchingTSID,TSID="*",PropertyName="TemplateGraphFirstTSID",PropertyValue="%F")
+#
+# Calculate statistics as desired, using the ensemble as input
+# - specifying [Mean] for the sequence ID is necessary to use %z in the graph legend similar to the traces
+# - TODO sam 2017-04-10 need to allow NewTSID to accept properties so can properly specify below
+#   - maybe allow an ensemble property lookup on the trace TSID without sequence number?
+NewStatisticTimeSeriesFromEnsemble(EnsembleID="${TemplateEnsembleID}",Statistic=Mean,NewTSID="${TemplateGraphFirstTSID}[Mean]",Alias="%L-Mean")
+NewStatisticTimeSeriesFromEnsemble(EnsembleID="${TemplateEnsembleID}",Statistic=Median,NewTSID="${TemplateGraphFirstTSID}[Median]",Alias="%L-Median")
