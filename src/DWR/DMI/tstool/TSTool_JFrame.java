@@ -807,7 +807,7 @@ private JPopupMenu __resultsTS_JPopupMenu = null;
 /**
 List of results tables for viewing with an editor.
 */
-private JList __resultsTables_JList = null;
+private JList<String> __resultsTables_JList = null;
 
 /**
 Popup menu for table results.
@@ -1247,6 +1247,7 @@ JMenuItem
 	__Commands_Manipulate_ARMA_JMenuItem,
 	__Commands_Manipulate_Blend_JMenuItem,
     __Commands_Manipulate_ChangePeriod_JMenuItem,
+    __Commands_Manipulate_ChangeTimeZone_JMenuItem,
 	__Commands_Manipulate_ConvertDataUnits_JMenuItem,
 	__Commands_Manipulate_Cumulate_JMenuItem,
 	__Commands_Manipulate_Divide_JMenuItem,
@@ -1510,6 +1511,7 @@ JMenuItem
     __Commands_TableManipulate_ManipulateTableString_JMenuItem,
     __Commands_TableManipulate_InsertTableColumn_JMenuItem,
     __Commands_TableManipulate_DeleteTableColumns_JMenuItem,
+    __Commands_TableManipulate_DeleteTableRows_JMenuItem,
     __Commands_TableManipulate_InsertTableRow_JMenuItem,
     __Commands_TableManipulate_SetTableValues_JMenuItem,
     __Commands_TableManipulate_SplitTableColumn_JMenuItem,
@@ -1581,6 +1583,9 @@ private JMenuItem
 	__Results_Graph_Raster_JMenuItem = null,
 	__Results_Table_JMenuItem = null,
 	__Results_Report_Summary_JMenuItem = null,
+	__Results_FindTimeSeries_JMenuItem = null,
+	__Results_SelectAllForOutput_JMenuItem = null,
+	__Results_DeselectAll_JMenuItem = null,
 	__Results_TimeSeriesProperties_JMenuItem = null;
 
 // Tools...
@@ -1651,6 +1656,7 @@ private String
 	__Button_RunAllCommands_String = "Run All Commands",
 	__Button_ClearCommands_String = "Clear Commands",
 
+	// TODO sam 2017-04-16 Why is this called a button?  Seems to only be in menus
 	BUTTON_TS_SELECT_ALL = "Select All for Output",
 	BUTTON_TS_DESELECT_ALL = "Deselect All",
 
@@ -1825,6 +1831,7 @@ private String
 	__Commands_Manipulate_ARMA_String = TAB + "ARMA()... <lag/attenuate a time series using ARMA>",
 	__Commands_Manipulate_Blend_String = TAB + "Blend()... <blend one TS with another>",
     __Commands_Manipulate_ChangePeriod_String = TAB + "ChangePeriod()... <change the period of record>",
+    __Commands_Manipulate_ChangeTimeZone_String = TAB + "ChangeTimeZone()... <change the time zone for time series>",
 	__Commands_Manipulate_ConvertDataUnits_String = TAB + "ConvertDataUnits()... <convert data units>",
 	__Commands_Manipulate_Cumulate_String = TAB + "Cumulate()... <cumulate values over time>",
 	__Commands_Manipulate_Divide_String = TAB +	"Divide()... <divide one TS by another TS>",
@@ -2049,6 +2056,7 @@ private String
     __Commands_TableManipulate_ManipulateTableString_String = TAB + "ManipulateTableString()... <perform simple manipulation on table strings>",
     __Commands_TableManipulate_InsertTableColumn_String = TAB + "InsertTableColumn()... <insert table column>",
     __Commands_TableManipulate_DeleteTableColumns_String = TAB + "DeleteTableColumns()... <delete table column(s)>",
+    __Commands_TableManipulate_DeleteTableRows_String = TAB + "DeleteTableRows()... <delete table row(s)>",
     __Commands_TableManipulate_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
     __Commands_TableManipulate_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_TableManipulate_SplitTableColumn_String = TAB + "SplitTableColumn()... <split a column into multiple columns>",
@@ -2107,6 +2115,8 @@ private String
 	// Only for popup Results menu...
 
 	__Results_FindTimeSeries_String = "Find Time Series...",
+	__Results_SelectAllForOutput_String = BUTTON_TS_SELECT_ALL,
+	__Results_DeselectAll_String = BUTTON_TS_DESELECT_ALL,
 
 	// Run menu (order in GUI)...
 
@@ -2662,7 +2672,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	        b.insert(0, "There were errors converting TSID to Read...() commands:  " );
 	        Message.printWarning(1,routine,b.toString());
 	    }
-	    ui_ShowCurrentCommandListStatus();
+	    ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
 	    return;
 	}
     
@@ -2917,7 +2927,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		
 		// TODO SAM 2007-12-07 Evaluate whether to refresh the command list status?
 	    
-	    ui_ShowCurrentCommandListStatus();
+	    ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
 	}
 	catch ( Exception e2 ) {
 		// TODO SAM 2005-05-18 Evaluate handling of unexpected error... 
@@ -2938,7 +2948,7 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
         JGUIUtil.setWaitCursor ( this, true );
         ((CommandDiscoverable)command_to_edit).runCommandDiscovery(__tsProcessor.indexOf(command_to_edit));
         // Redraw the status area
-        ui_ShowCurrentCommandListStatus();
+        ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
     }
     catch ( Exception e ) {
         // TODO SAM 2011-02-17 Need to show warning to user?  With current design, code should have complete input.
@@ -5333,7 +5343,7 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
         commandList_EditCommand_RunDiscovery ( tsid_command );
         // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
     }
-    ui_ShowCurrentCommandListStatus();
+    ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
     commandList_SetDirty ( true );
     return numberInserted;
 }
@@ -6524,6 +6534,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Manipulate_ARMA_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Blend_JMenuItem,enabled);
     JGUIUtil.setEnabled ( __Commands_Manipulate_ChangePeriod_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( __Commands_Manipulate_ChangeTimeZone_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_ConvertDataUnits_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Cumulate_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Manipulate_Divide_JMenuItem,enabled);
@@ -8073,6 +8084,7 @@ private void ui_InitGUI ( )
 	__commands_JListModel = new TSCommandProcessorListModel(__tsProcessor);
 	__commands_JListModel.addListDataListener ( this );
 
+	// The following provides indicators of problems
 	__commands_AnnotatedCommandJList = new AnnotatedCommandJList ( __commands_JListModel );
 	JList command_JList = __commands_AnnotatedCommandJList.getJList();
 	// Set the font to fixed font so that similar command text lines up, especially for comments...
@@ -8176,6 +8188,14 @@ private void ui_InitGUI ( )
 	}
 	__resultsTSEnsemblesGraphTemplates_JComboBox.setMaximumRowCount ( 20 );
 	__resultsTSEnsemblesGraphTemplates_JComboBox.setData(templateFileList2);
+	// Select graph template from the UI state
+	String uiStateEnsembleGraphTemplate = this.session.getUIStateProperty("Results.Ensembles.GraphTemplate");
+	try {
+		__resultsTSEnsemblesGraphTemplates_JComboBox.select(uiStateEnsembleGraphTemplate);
+	}
+	catch ( Exception e ) {
+		// OK - previous state no longer a valid template so leave default selection
+	}
 	__resultsTSEnsemblesGraphTemplates_JComboBox.addItemListener( this );
 	JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, __resultsTSEnsemblesGraphTemplates_JComboBox, 
 		7, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -8333,6 +8353,14 @@ private void ui_InitGUI ( )
 	}
 	__resultsTSGraphTemplates_JComboBox.setMaximumRowCount ( 20 );
 	__resultsTSGraphTemplates_JComboBox.setData(templateFileList2);
+	// Select graph template from the UI state
+	String uiStateTSGraphTemplate = this.session.getUIStateProperty("Results.TimeSeries.GraphTemplate");
+	try {
+		__resultsTSGraphTemplates_JComboBox.select(uiStateTSGraphTemplate);
+	}
+	catch ( Exception e ) {
+		// OK - previous state no longer a valid template so leave default selection
+	}
 	__resultsTSGraphTemplates_JComboBox.addItemListener( this );
 	JGUIUtil.addComponent(__resultsTS_JPanel, __resultsTSGraphTemplates_JComboBox, 
 		7, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -10089,6 +10117,9 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     
     __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ChangePeriod_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_ChangePeriod_String, this ) );
+    
+    __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ChangeTimeZone_JMenuItem =
+            new SimpleJMenuItem( __Commands_Manipulate_ChangeTimeZone_String, this ) );
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ConvertDataUnits_JMenuItem =
 		new SimpleJMenuItem( __Commands_Manipulate_ConvertDataUnits_String, this ) );
@@ -10416,11 +10447,13 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String, this ) );
     
     __Commands_Table_JMenu.add( __Commands_TableManipulate_JMenu = new JMenu( __Commands_TableManipulate_String, true ) );
+    __Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableColumns_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableColumns_String, this ) );
-    __Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableRows_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableRows_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableDateTime_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_FormatTableDateTime_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableString_JMenuItem =
@@ -11104,6 +11137,14 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Results_Report_Summary_Html_String, this ) );
 	__Results_JMenu.add(__Results_Report_Summary_JMenuItem =
         new SimpleJMenuItem( __Results_Report_Summary_Text_String, this ) );
+	
+	__Results_JMenu.addSeparator();
+    __Results_JMenu.add(__Results_FindTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Results_FindTimeSeries_String, this ) );
+    __Results_JMenu.add(__Results_SelectAllForOutput_JMenuItem =
+        new SimpleJMenuItem( __Results_SelectAllForOutput_String, this ) );
+    __Results_JMenu.add(__Results_DeselectAll_JMenuItem =
+        new SimpleJMenuItem( __Results_DeselectAll_String, this ) );
 
 	__Results_JMenu.addSeparator();
 	__Results_JMenu.add(__Results_TimeSeriesProperties_JMenuItem =
@@ -11142,39 +11183,13 @@ private void ui_InitGUIMenus_ResultsPopup ()
 	__resultsTS_JPopupMenu.addSeparator();
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( __Results_TimeSeriesProperties_String, this ) );
     
-    ActionListener_ResultsEnsembles ens_l = new ActionListener_ResultsEnsembles();
+    ActionListener_ResultsEnsembles ens_l = new ActionListener_ResultsEnsembles(this);
     __resultsTSEnsembles_JPopupMenu = new JPopupMenu("Ensembles Results Actions");
-    /* TODO SAM 2008-01-05 Evaluate what to enable, maybe add exceedance plot, etc.
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Area_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_AreaStacked_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsLeft_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsCenter_String,this));
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_BarsRight_String, this ));
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Duration_String, this ));
-    */
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Graph_Line_String, ens_l ) );
     __resultsTSEnsembles_JPopupMenu.addSeparator();
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Table_String, ens_l ) );
     __resultsTSEnsembles_JPopupMenu.addSeparator();
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Properties_String, ens_l ) );
-    /*
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_LineLogY_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PeriodOfRecord_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_Point_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PredictedValue_String, this));
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_PredictedValueResidual_String, this));
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Graph_XYScatter_String, this));
-    __results_ts_JPopupMenu.addSeparator();
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Table_String, this ) );
-    __results_ts_JPopupMenu.addSeparator();
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_Report_Summary_String, this ) );
-    __results_ts_JPopupMenu.addSeparator();
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_FindTimeSeries_String, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  BUTTON_TS_SELECT_ALL, this ) );
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  BUTTON_TS_DESELECT_ALL, this ) );
-    __results_ts_JPopupMenu.addSeparator();
-    __results_ts_JPopupMenu.add( new SimpleJMenuItem (  __Results_TimeSeriesProperties_String, this ) );
-    */
     
     ActionListener_ResultsTables tables_l = new ActionListener_ResultsTables();
     __resultsTables_JPopupMenu = new JPopupMenu("Table Results Actions");
@@ -11395,7 +11410,7 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
             }
         }
         // Repaint the list to reflect the status of the commands...
-        ui_ShowCurrentCommandListStatus();
+        ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
     }
     catch ( FileNotFoundException e ) {
         Message.printWarning ( 1, routine, "Command file \"" + commandFile + "\" does not exist." );
@@ -11822,9 +11837,12 @@ private void ui_SetMessageText ( String message )
 /**
 Update the command list to show the current status.  This is called after all commands
 have been processed in run mode(), when a command has been edited(), and when loading commands from a file.
+@param lastCommandPhase the last command phase run, provided as a hint to the annotated command list
+so earlier warnings like discovery are not shown after running
 */
-private void ui_ShowCurrentCommandListStatus ()
+private void ui_ShowCurrentCommandListStatus (CommandPhaseType lastCommandPhase)
 {
+	__commands_AnnotatedCommandJList.setLastCommandPhase(lastCommandPhase);
     __commands_AnnotatedCommandJList.repaint();
 }
 
@@ -12869,6 +12887,9 @@ throws Exception
     else if (command.equals(__Commands_Manipulate_ChangePeriod_String)){
         commandList_EditCommand ( __Commands_Manipulate_ChangePeriod_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals(__Commands_Manipulate_ChangeTimeZone_String)){
+        commandList_EditCommand ( __Commands_Manipulate_ChangeTimeZone_String, null, CommandEditType.INSERT );
+    }
 	else if (command.equals(__Commands_Manipulate_ConvertDataUnits_String)){
 		commandList_EditCommand ( __Commands_Manipulate_ConvertDataUnits_String, null, CommandEditType.INSERT );
 	}
@@ -13224,6 +13245,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableManipulate_DeleteTableColumns_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_DeleteTableColumns_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableManipulate_DeleteTableRows_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_DeleteTableRows_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableManipulate_InsertTableRow_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_InsertTableRow_String, null, CommandEditType.INSERT );
@@ -13613,8 +13637,12 @@ throws Exception
     	uiAction_GraphTimeSeriesResults("-oduration_graph " );
 	}
     else if ( command.equals(__Results_Graph_Ensemble_String) ) {
-    	// Display the dialog to confirm ensemble properties
-    	EnsembleGraph_JDialog dialog = new EnsembleGraph_JDialog(this, this.session, new PropList(""));
+    	// This event corresponds to:
+    	// 1) a time series is selected in results
+    	// 2) Graph - Ensemble
+    	// Display the dialog to confirm how to convert the time series to ensemble and graph.
+    	boolean isDialogForTS = true;
+    	EnsembleGraph_JDialog dialog = new EnsembleGraph_JDialog(this, this.session, isDialogForTS, new PropList(""));
     	String userOutputYearType = dialog.getOutputYearType();
     	String userReferenceDateTime = dialog.getReferenceDate().trim();
     	String userStatistics = dialog.getStatistics().trim();
@@ -13700,7 +13728,11 @@ throws Exception
 				// Process the single time series from above into ensemble
 		        tslist = util.getTracesFromTS ( ts, traceLength, referenceDateTime,
 			        outputYearType, shiftDataHow, inputStart, inputEnd, alias, descriptionFormat, createData );
-		        tsensemble = new TSEnsemble (ts.getLocation() + "_Ensemble", ts.getDescription(), tslist);
+		        // Create a new list for the ensemble because when statistic time series are computed and
+		        // added below the should not be added to the original list
+		        List<TS> tslist2 = new ArrayList<TS>();
+		        tslist2.addAll(tslist);
+		        tsensemble = new TSEnsemble (ts.getLocation() + "_Ensemble", ts.getDescription(), tslist2);
 			}
 			// If any statistics were requested, process and add to the list, but not in the ensemble itself.
 	        // This is similar to the NewStatisticTimeSeriesFromEnsemble() command functionality
@@ -13721,6 +13753,8 @@ throws Exception
 				tsident.setInputType("");
 				tsident.setType(tsident.getType() + "-" + statType);
 				String newTSID = tsident.toString();
+				// Important - the tsensemble was created with a separate time series list,
+				// so it is OK to add statistic time series to the list below (won't be the same list in the ensemble)
 			    TSUtil_NewStatisticTimeSeriesFromEnsemble tsu = new TSUtil_NewStatisticTimeSeriesFromEnsemble (
 				    tsensemble, analysisStart, analysisEnd, outputStart, outputEnd,
 				    newTSID, description, statType, value1, allowMissingCount, minimumSampleSize );
@@ -13742,7 +13776,9 @@ throws Exception
 				if ( runner != null ) {
 					runnerProcessor = runner.getProcessor();
 				}
-				graphTemplateProcessor.expandTemplate (tslist, commandProcessor_GetCommandProcessor(),
+				List<TSEnsemble> tsensembleList = new ArrayList<TSEnsemble>();
+				tsensembleList.add(tsensemble);
+				graphTemplateProcessor.expandTemplate (tslist, tsensembleList, commandProcessor_GetCommandProcessor(),
 					runnerProcessor, new File(tempTSPFile));
 				Message.printStatus(2, "", "Expanded temporary graph template to \"" + tempTSPFile + "\"");
 				TSProcessor p = new TSProcessor();
@@ -13825,99 +13861,6 @@ throws Exception
 		// exported in the GUI, the user views first and then saves to disk.
 		uiAction_ExportTimeSeriesResults("-osummary", "-preview" );
 	}
-    // Graph time series ensemble using template
-    else if ( command.equals("GraphTSEnsembleWithTemplate") ) {
-	    try {
-	    	// Template is in the user's TSTool files
-	    	File tspFile = this.session.getGraphTemplateFile(__resultsTSEnsemblesGraphTemplates_JComboBox.getSelected());
-	        uiAction_ProcessTSProductFile ( tspFile, true );
-		}
-		catch ( Exception te ) {
-			Message.printWarning ( 1, "", "Error processing TSProduct file (" + te + ")." );
-			Message.printWarning ( 3, "", te );
-		}
-    }
-    // Graph time series using template
-    else if ( command.equals("GraphTSWithTemplate") ) {
-    	// The "Graph with template" button was pressed so there is no intervening dialog.
-    	// To straight to processing the template file.
-	    try {
-			String userGraphTemplate = __resultsTSGraphTemplates_JComboBox.getSelected();
-			File userGraphTemplateFile = this.session.getGraphTemplateFile(userGraphTemplate);
-			// Determine whether a command file should be run to preprocess the time series for the template
-			TSProduct tsp0 = new TSProduct(userGraphTemplateFile.getAbsolutePath(),new PropList(""));
-			String preprocessCommandFile = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
-			List<TS> tslist = new ArrayList<TS>();
-			// Time series is the first selected time series in the results
-	    	int pos = -1;
-	    	TS ts = null;
-	    	if ( JGUIUtil.selectedSize(__resultsTS_JList) == 0 ) {
-				pos = 0;
-			}
-			else {
-	            pos = JGUIUtil.selectedIndex(__resultsTS_JList,0);
-			}
-			if ( pos >= 0 ) {
-				ts = commandProcessor_GetTimeSeries(pos);
-				Message.printStatus(2, "", "Time series to process into ensemble: " + ts.getIdentifierString());
-			}
-			TSCommandFileRunner runner = null;
-			if ( (preprocessCommandFile != null) && !preprocessCommandFile.isEmpty() ) {
-				// Have a command file specified by TemplatePreprocessCommandFile property in the tsp
-				// so run the command file to preprocess the time series and use for the graph
-				preprocessCommandFile = IOUtil.verifyPathForOS(
-					IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),preprocessCommandFile) );
-				Message.printStatus(2,"","Preprocess command file for graph template is \"" + preprocessCommandFile + "\"");
-				runner = new TSCommandFileRunner();
-				runner.readCommandFile(preprocessCommandFile, false);
-				// Have to seed the processor with the time series from the original processor
-				// so it can be found for subsequent processing
-				Message.printStatus(2,"","Running internal processor to preprocess time series into ensemble");
-				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
-				tslist0.add(ts);
-				PropList runProps = new PropList ( "run");
-				runProps.set("AppendResults","true");
-				runner.runCommands(runProps);
-				// Now get the time series out and use for the graphing.
-				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
-				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
-			}
-			else {
-				// No preprocessor specified so process the time series directly
-				tslist.add(ts);
-			}
-			String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
-			GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (userGraphTemplateFile);
-			// Create a model
-			CommandProcessor processorFromRunner = null;
-			if ( runner != null ) {
-				processorFromRunner = runner.getProcessor();
-			}
-			graphTemplateProcessor.expandTemplate (tslist, commandProcessor_GetCommandProcessor(), processorFromRunner, new File(tempTSPFile));
-			Message.printStatus(2, "", "Expanded temporary graph template to \"" + tempTSPFile + "\"");
-			TSProcessor p = new TSProcessor();
-			PropList overrideProps = new PropList ( "OverrideProps" );
-			overrideProps.set ( "InitialView", "Graph" ); // Initial view when display opened
-			overrideProps.set ( "PreviewOutput", "True" ); // Display a view window (not just file output)
-			TSProduct tsp = new TSProduct ( tempTSPFile, overrideProps );
-			// Now process the product...
-			p.addTSSupplier(graphTemplateProcessor);
-			p.processProduct ( tsp );
-		}
-		catch ( Exception te ) {
-			Message.printWarning ( 1, "", "Error processing TSProduct file (" + te + ")." );
-			Message.printWarning ( 3, "", te );
-		}
-    }
-    
-    // Tables...
-    
-    else if (command.equals(__Results_Table_Properties_String) ) {
-        uiAction_ShowTableProperties ();
-    }
-
-	// Only on View pop-up...
-
 	else if (command.equals(__Results_FindTimeSeries_String) ) {
 		new FindInJListJDialog ( this, false, __resultsTS_JList, "Find Time Series" );
 	}
@@ -13939,6 +13882,173 @@ throws Exception
 			}
 		}
 	}
+    // Graph time series ensemble using template
+    else if ( command.equals("GraphTSEnsembleWithTemplate") ) {
+    	// The "Graph with template" button was pressed for a selected ensemble so there is no intervening dialog.
+    	// Go straight to processing the template file.
+    	Message.printStatus(2,"","Graphing ensemble using template (no dialog).");
+	    try {
+			String userGraphTemplate = __resultsTSEnsemblesGraphTemplates_JComboBox.getSelected();
+			// Save state for next TSTool session
+			this.session.setUIStateProperty("Results.Ensembles.GraphTemplate",userGraphTemplate);
+			File userGraphTemplateFile = this.session.getGraphTemplateFile(userGraphTemplate);
+			// Determine whether a command file should be run to preprocess the time series for the template
+			TSProduct tsp0 = new TSProduct(userGraphTemplateFile.getAbsolutePath(),new PropList(""));
+			String preprocessCommandFile = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
+			Message.printStatus(2,"","Value of *tsp TemplatePreprocessCommandFile=\"" + preprocessCommandFile + "\"");
+			List<TS> tslist = new ArrayList<TS>();
+			// Time series is the first selected time series in the results
+	    	int pos = -1;
+	    	TSEnsemble tsensemble = null;
+	    	if ( JGUIUtil.selectedSize(__resultsTSEnsembles_JList) == 0 ) {
+				pos = 0;
+			}
+			else {
+	            pos = JGUIUtil.selectedIndex(__resultsTSEnsembles_JList,0);
+			}
+			if ( pos >= 0 ) {
+				tsensemble = commandProcessor_GetEnsembleAt(pos);
+				tslist = tsensemble.getTimeSeriesList(true);
+				Message.printStatus(2, "", "Ensemble to graph: " + tsensemble.getEnsembleID());
+			}
+			TSCommandFileRunner runner = null;
+			List<TSEnsemble> tsensembleList = new ArrayList<TSEnsemble>();
+			if ( (preprocessCommandFile != null) && !preprocessCommandFile.isEmpty() ) {
+				// Have a command file specified by TemplatePreprocessCommandFile property in the tsp
+				// so run the command file to preprocess the time series and use for the graph
+				preprocessCommandFile = IOUtil.verifyPathForOS(
+					IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),preprocessCommandFile) );
+				Message.printStatus(2,"","Preprocess command file for graph template is \"" + preprocessCommandFile + "\"");
+				runner = new TSCommandFileRunner();
+				runner.readCommandFile(preprocessCommandFile, false);
+				// Have to seed the processor with the ensemble and time series from the original processor
+				// so they can be found for subsequent processing
+				Message.printStatus(2,"","Running internal processor to preprocess time series for graphing");
+				List<TSEnsemble> tsensembleList0 = (List<TSEnsemble>)runner.getProcessor().getPropContents("EnsembleResultsList");
+				tsensembleList0.add(tsensemble);
+				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				tslist0.addAll(tsensemble.getTimeSeriesList(true));
+				PropList runProps = new PropList ( "run");
+				runProps.set("AppendResults","true");
+				runner.runCommands(runProps);
+				// Now get the time series out and use for the graphing.
+				tsensembleList = (List<TSEnsemble>)runner.getProcessor().getPropContents("EnsembleResultsList");
+				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
+			}
+			else {
+				// No preprocessor specified so process the time series directly
+				// Original ensemble and time series list from above are OK
+				// tslist was set above
+				tsensembleList.add(tsensemble);
+			}
+			String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
+			GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (userGraphTemplateFile);
+			// Create a model
+			CommandProcessor processorFromRunner = null;
+			if ( runner != null ) {
+				processorFromRunner = runner.getProcessor();
+			}
+			// Pass empty ensemble list
+			graphTemplateProcessor.expandTemplate (tslist, tsensembleList, commandProcessor_GetCommandProcessor(), processorFromRunner, new File(tempTSPFile));
+			Message.printStatus(2, "", "Expanded temporary graph template to \"" + tempTSPFile + "\"");
+			TSProcessor p = new TSProcessor();
+			PropList overrideProps = new PropList ( "OverrideProps" );
+			overrideProps.set ( "InitialView", "Graph" ); // Initial view when display opened
+			overrideProps.set ( "PreviewOutput", "True" ); // Display a view window (not just file output)
+			TSProduct tsp = new TSProduct ( tempTSPFile, overrideProps );
+			// Now process the product...
+			p.addTSSupplier(graphTemplateProcessor);
+			p.processProduct ( tsp );
+		}
+		catch ( Exception te ) {
+			Message.printWarning ( 1, "", "Error processing TSProduct file (" + te + ")." );
+			Message.printWarning ( 3, "", te );
+		}
+    }
+    // Graph time series using template
+    else if ( command.equals("GraphTSWithTemplate") ) {
+    	// The "Graph with template" button was pressed for the selected time series so there is no intervening dialog.
+    	// Go straight to processing the template file.
+	    try {
+			String userGraphTemplate = __resultsTSGraphTemplates_JComboBox.getSelected();
+			// Save state for next TSTool session
+			this.session.setUIStateProperty("Results.TimeSeries.GraphTemplate",userGraphTemplate);
+			File userGraphTemplateFile = this.session.getGraphTemplateFile(userGraphTemplate);
+			// Determine whether a command file should be run to preprocess the time series for the template
+			TSProduct tsp0 = new TSProduct(userGraphTemplateFile.getAbsolutePath(),new PropList(""));
+			String preprocessCommandFile = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
+			List<TS> tslist = new ArrayList<TS>();
+			TS ts = null;
+			// Ensemble is the first selected ensemble in the results
+	    	int pos = -1;
+	    	if ( JGUIUtil.selectedSize(__resultsTS_JList) == 0 ) {
+				pos = 0;
+			}
+			else {
+	            pos = JGUIUtil.selectedIndex(__resultsTS_JList,0);
+			}
+			if ( pos >= 0 ) {
+				ts = commandProcessor_GetTimeSeries(pos);
+				Message.printStatus(2, "", "Time series to process into ensemble: " + ts.getIdentifierString());
+			}
+			TSCommandFileRunner runner = null;
+			if ( (preprocessCommandFile != null) && !preprocessCommandFile.isEmpty() ) {
+				// Have a command file specified by TemplatePreprocessCommandFile property in the tsp
+				// so run the command file to preprocess the ensemble and associated time series and use output for the graph
+				preprocessCommandFile = IOUtil.verifyPathForOS(
+					IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),preprocessCommandFile) );
+				Message.printStatus(2,"","Preprocess command file for ensemble graph template is \"" + preprocessCommandFile + "\"");
+				runner = new TSCommandFileRunner();
+				runner.readCommandFile(preprocessCommandFile, false);
+				// Have to seed the processor with the time series from the original processor
+				// so it can be found for subsequent processing
+				Message.printStatus(2,"","Running internal processor to preprocess time series for graphing");
+				// First get the empty time series list
+				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				tslist0.add(ts);
+				PropList runProps = new PropList ( "run");
+				runProps.set("AppendResults","true");
+				runner.runCommands(runProps);
+				// Now get the time series out and use for the graphing.
+				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
+			}
+			else {
+				// No preprocessor specified so process the time series directly
+				tslist.add(ts);
+			}
+			String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
+			GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (userGraphTemplateFile);
+			// Create a model
+			CommandProcessor processorFromRunner = null;
+			if ( runner != null ) {
+				processorFromRunner = runner.getProcessor();
+			}
+			// Pass empty ensemble list
+			List<TSEnsemble> tsensembleList = new ArrayList<TSEnsemble>();
+			graphTemplateProcessor.expandTemplate (tslist, tsensembleList, commandProcessor_GetCommandProcessor(), processorFromRunner, new File(tempTSPFile));
+			Message.printStatus(2, "", "Expanded temporary graph template to \"" + tempTSPFile + "\"");
+			TSProcessor p = new TSProcessor();
+			PropList overrideProps = new PropList ( "OverrideProps" );
+			overrideProps.set ( "InitialView", "Graph" ); // Initial view when display opened
+			overrideProps.set ( "PreviewOutput", "True" ); // Display a view window (not just file output)
+			TSProduct tsp = new TSProduct ( tempTSPFile, overrideProps );
+			// Now process the product...
+			p.addTSSupplier(graphTemplateProcessor);
+			p.processProduct ( tsp );
+		}
+		catch ( Exception te ) {
+			Message.printWarning ( 1, "", "Error processing TSProduct file (" + te + ")." );
+			Message.printWarning ( 3, "", te );
+		}
+    }
+    
+    // Tables...
+    
+    else if (command.equals(__Results_Table_Properties_String) ) {
+        uiAction_ShowTableProperties ();
+    }
     else {
     	// Chain to next actions...
     	uiAction_ActionPerformed17_ToolsMenu ( event );
@@ -13956,7 +14066,7 @@ throws Exception
 	String routine = "ToolsMenu";
 
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
-		// Create the dialog using the available time series results (accessed by the procesor)...
+		// Create the dialog using the available time series results (accessed by the processor)...
 		try {
 		    // TODO SAM 2013-08-17 MixedStationAnalysis tool is no longer available - only command is available.  Need to remove this.
 			// new FillMixedStation_JDialog ( this, commandProcessor_GetCommandProcessor(), this );
@@ -18584,7 +18694,7 @@ private void uiAction_RunCommands_ShowResults()
 			uiAction_RunCommands_ShowResultsViews();
             
             // Repaint the list to reflect the status of the commands...
-            ui_ShowCurrentCommandListStatus ();
+            ui_ShowCurrentCommandListStatus (CommandPhaseType.RUN);
 		}
 	};
 	if ( SwingUtilities.isEventDispatchThread() )
@@ -18678,7 +18788,7 @@ private void uiAction_RunCommands_ShowResultsProblems()
         List commands = __tsProcessor.getCommands();
         // For normal commands, the log records will be for the specific command.
         // For RunCommand() commands, the log records will include commands in the command file that was run.
-        CommandPhaseType [] commandPhases = null;
+        CommandPhaseType [] commandPhases = { CommandPhaseType.RUN }; // If show discovery it can be confusing with ${Property}, etc.
         CommandStatusType [] statusTypes = new CommandStatusType[2];
         // List failures first
         statusTypes[0] = CommandStatusType.FAILURE;
@@ -22433,6 +22543,12 @@ Internal class to handle action events from ensemble results list.
 */
 private class ActionListener_ResultsEnsembles implements ActionListener
 {
+	private TSTool_JFrame parent = null;
+	
+	public ActionListener_ResultsEnsembles ( TSTool_JFrame parent ) {
+		this.parent = parent;
+	}
+	
     /**
     Handle a group of actions for the ensemble popup menu.
     @param event Event to handle.
@@ -22441,7 +22557,151 @@ private class ActionListener_ResultsEnsembles implements ActionListener
     {   String command = event.getActionCommand();
 
         if ( command.equals(__Results_Ensemble_Graph_Line_String) ) {
-            uiAction_GraphEnsembleResults(null,"-olinegraph",null);
+        	try {
+	        	// This event corresponds to:
+	        	// 1) an ensemble is selected in results
+	        	// 2) Graph - Line (Ensemble Graph)
+	        	// Display the dialog to confirm how to further process the ensemble and graph.
+	        	boolean isDialogForTS = false; // Graph is for ensemble, not time series
+	        	EnsembleGraph_JDialog dialog = new EnsembleGraph_JDialog(this.parent, TSToolSession.getInstance(), isDialogForTS, new PropList(""));
+	        	String userStatistics = dialog.getStatistics().trim();
+	        	String userGraphTemplate = dialog.getGraphTemplate().trim();
+	        	String[] statisticsArray = new String[0];
+	        	if ( !userStatistics.isEmpty() ) {
+	        		statisticsArray = userStatistics.split(",");
+	        		for ( int istat = 0; istat < statisticsArray.length; istat++ ) {
+	        			statisticsArray[istat] = statisticsArray[istat].trim();
+	        		}
+	        	}
+	        	boolean ok = dialog.ok();
+	        	if ( ok ) {
+	        		// The ensemble is already created so don't need to recreate.
+	    	    	DateTime inputStart = null;
+	    	    	DateTime inputEnd = null;
+	    	    	// Time series is the first selected time series in the results
+	    	    	int pos = -1;
+	    	    	if ( JGUIUtil.selectedSize(__resultsTSEnsembles_JList) == 0 ) {
+	    				pos = 0;
+	    			}
+	    			else {
+	    	            pos = JGUIUtil.selectedIndex(__resultsTSEnsembles_JList,0);
+	    			}
+	    	    	List<TS> tslist = new ArrayList<TS>();
+	    	    	TSEnsemble tsensemble = null;
+	    			if ( pos >= 0 ) {
+	    				tsensemble = commandProcessor_GetEnsembleAt(pos);
+	    				// Create a new list for the time series so that if statistics are added below
+	    				// they don't get added to the original list
+	    				tslist = tsensemble.getTimeSeriesList(true);
+	    			}
+	    			// Get the time series for the ensemble
+	    			String propVal = null;
+	    			File userGraphTemplateFile = null;
+	    			if ( (userGraphTemplate != null) && !userGraphTemplate.isEmpty() ) {
+	    				userGraphTemplateFile = TSToolSession.getInstance().getGraphTemplateFile(userGraphTemplate);
+	    				TSProduct tsp0 = new TSProduct(userGraphTemplateFile.getAbsolutePath(),new PropList(""));
+	    				propVal = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
+	    				Message.printStatus(2,"","Value of TemplatePreprocessCommandFile = \"" + propVal + "\"");
+	    			}
+	    			// Ensemble is necessary when processing statistics
+	    			TSCommandFileRunner runner = null;
+	    			if ( (propVal != null) && !propVal.isEmpty() ) {
+	    				// Get the time series by processing the specified command file
+	    				// Command file in template is relative to the template folder
+	    				String preprocessCommandFile = IOUtil.verifyPathForOS(
+	    				    IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),propVal) );
+	    				runner = new TSCommandFileRunner();
+	    				Message.printStatus(2,"","Preprocess command file for graph template is \"" + preprocessCommandFile + "\"");
+	    				runner.readCommandFile(preprocessCommandFile, false);
+	    				// Seed the processor with all the time series from the original processor
+	    				// so it can be found for subsequent processing
+	    				Message.printStatus(2,"","Running internal processor with ensemble time series");
+	    				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+	    				for ( TS ts2 : tslist ) {
+	    					tslist0.add(ts2);
+	    				}
+	    				runner.getProcessor().setPropContents("AppendResults","true");
+	    				runner.runCommands();
+	    				// Now get the time series out and use for the graphing.
+	    				// - the main difference is that the new time series list might include statistics
+	    				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+	    				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
+	    			}
+	    			// If any statistics were requested, process and add to the list, but not in the ensemble itself.
+	    	        // This is similar to the NewStatisticTimeSeriesFromEnsemble() command functionality
+	    			for ( int istat = 0; istat < statisticsArray.length; istat++ ) {
+	    				TSStatisticType statType = TSStatisticType.valueOfIgnoreCase(statisticsArray[istat]);
+	    				DateTime analysisStart = null;
+	    				DateTime analysisEnd = null;
+	    				DateTime outputStart = null;
+	    				DateTime outputEnd = null;
+	    				String description = tsensemble.getEnsembleName() + ", " + statType;
+	    				Integer allowMissingCount = null;
+	    				Integer minimumSampleSize = null;
+	    				Double value1 = null;
+	    				boolean createData = true;
+	    				// The newTSID is not critical, but want to make sure the alias and sequence ID is properly set
+	    				TS ts = tslist.get(0); // use the first time series in ensemble for some information
+	    				TSIdent tsident = new TSIdent(ts.getIdentifier());
+	    				tsident.setSequenceID("");
+	    				tsident.setInputName("");
+	    				tsident.setInputType("");
+	    				tsident.setType(tsident.getType() + "-" + statType);
+	    				String newTSID = tsident.toString();
+	    			    TSUtil_NewStatisticTimeSeriesFromEnsemble tsu = new TSUtil_NewStatisticTimeSeriesFromEnsemble (
+	    				    tsensemble, analysisStart, analysisEnd, outputStart, outputEnd,
+	    				    newTSID, description, statType, value1, allowMissingCount, minimumSampleSize );
+	    				TS stat_ts = tsu.newStatisticTimeSeriesFromEnsemble ( createData );
+	    				stat_ts.setAlias(ts.getLocation() + "_" + statType);
+	    				stat_ts.getIdentifier().setSequenceID(""+ statType); // So %z legend will show statistic
+	    				tslist.add(stat_ts);
+	    			}
+	    			if ( (userGraphTemplate != null) && !userGraphTemplate.isEmpty() ) {
+	    				// If a graph template was specified, expand it with properties that are relevant
+	    				// and then graph using similar logic to ProcessTSProduct() command,
+	    				// but pass the time series in directly rather than searching in the processor results.
+	    				// Determine whether a command file should be run to preprocess the time series for the template
+	    				String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
+	    				GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (
+	    					TSToolSession.getInstance().getGraphTemplateFile(userGraphTemplate) );
+	    				// Create a model
+	    				CommandProcessor runnerProcessor = null;
+	    				if ( runner != null ) {
+	    					runnerProcessor = runner.getProcessor();
+	    				}
+	    				List<TSEnsemble> tsensembleList = new ArrayList<TSEnsemble>();
+	    				tsensembleList.add(tsensemble);
+	    				graphTemplateProcessor.expandTemplate (tslist, tsensembleList, commandProcessor_GetCommandProcessor(),
+	    					runnerProcessor, new File(tempTSPFile));
+	    				Message.printStatus(2, "", "Expanded temporary graph template to \"" + tempTSPFile + "\"");
+	    				TSProcessor p = new TSProcessor();
+	    				PropList overrideProps = new PropList ( "OverrideProps" );
+	    				overrideProps.set ( "InitialView", "Graph" ); // Initial view when display opened
+	    				overrideProps.set ( "PreviewOutput", "True" ); // Display a view window (not just file output)
+	    				TSProduct tsp = new TSProduct ( tempTSPFile, overrideProps );
+	    				// Now process the product...
+	    				p.addTSSupplier(graphTemplateProcessor);
+	    				p.processProduct ( tsp );
+	    			}
+	    			else {
+	    				// No graph template so use the normal graphing approach.
+	    		    	// Display the graph using the created list of time series from the ensemble
+	    		        // -rather than using the time series in the processor, use the supplied list.
+	    				PropList graphProps = new PropList("GraphProps");
+	    				// TODO sam 2017-04-08 there is currently no way to pass these properties
+	    				// - alternative is to use the template
+	    				// - need to figure out how to pass in properties that goes to the TSProduct
+	    				// - currently the following does nothing and the graph legend will be at the bottom (not desirable)
+	    				graphProps.set("Subproduct 1.LegendPosition","Left");
+	    				graphProps.set("Subproduct 1.LegendFormat","%z"); // Would require setting the statistic as the sequence ID
+	    		    	uiAction_GraphEnsembleResults(tslist,"-olinegraph",graphProps);
+	    			}
+	        	}
+        	}
+        	catch ( Exception e ) {
+        		Message.printWarning(1, "", "Error creating ensemble graph (" + e + ").");
+        		Message.printWarning(3, "", e);
+        	}
         }
         else if ( command.equals(__Results_Ensemble_Table_String) ) {
             uiAction_GraphEnsembleResults(null,"-otable",null);
