@@ -1,0 +1,43 @@
+# Command file to convert single time series into ensemble for use by TSAsEnsembleCalcStatsDefault.tsp
+# This command file is intended to operate on a single input time series that can be selected with TSList=AllTS (default).
+# - Water year is used for output (can change to Calendar or other year)
+#
+# Set properties that will be available in the graph template
+# - main graph title that does not have "trace" or other extra information
+# - taken from the selected time series passed to this command file, which is the original (not a trace)
+SetPropertyFromTimeSeries(TSList=FirstMatchingTSID,TSID="*",PropertyName="TemplateGraphTitle",PropertyValue="%D")
+#
+# Set properties needed below to implement a generic template
+# - TSID for the first time series since it is used as input below
+SetPropertyFromTimeSeries(TSList=FirstMatchingTSID,TSID="*",PropertyName="TemplateGraphFirstTSID",PropertyValue="%F")
+# ----------------------------------------------------------------------------------------
+# Set the start of the water year for the reference date.
+# - Could simplify this with additional TSTool enhancement but for now use logic below
+SetProperty(PropertyName="CurrentDayDate",PropertyType=DateTime,PropertyValue="CurrentToDay")
+FormatDateTimeProperty(PropertyName="CurrentDateYearAsString",DateTimePropertyName="CurrentDayDate",Format="%Y")
+FormatDateTimeProperty(PropertyName="CurrentDateMonthAsString",DateTimePropertyName="CurrentDayDate",Format="%m")
+SetProperty(PropertyName="CurrentDateMonth",PropertyType=Integer,PropertyValue="${CurrentDateMonthAsString}")
+If(Name="If_WaterYearStartIsLastCalendarYear",Condition="${CurrentDateMonth} < 10")
+# In months January-September, so water year start needs to shift to use previous year.
+SetProperty(PropertyName="CurrentWaterYearStartDate",PropertyType=DateTime,PropertyValue="${CurrentDateYearAsString}-10-01")
+SetProperty(PropertyName="CurrentWaterYearStartDate",PropertyType=DateTime,PropertyValue="${CurrentWaterYearStartDate}",Subtract="1Year")
+EndIf(Name="If_WaterYearStartIsLastCalendarYear")
+If(Name="If_WaterYearStartIsThisCalendarYear",Condition="${CurrentDateMonth} >= 10")
+# In months October-December, so water year start is OK using the current year
+SetProperty(PropertyName="CurrentWaterYearStartDate",PropertyType=DateTime,PropertyValue="${CurrentDateYearAsString}-10-01")
+EndIf(Name="If_WaterYearStartIsThisCalendarYear")
+# ----------------------------------------------------------------------------------------
+#
+# Create an ensemble from the one time series that was selected and passed to this command file
+# - different parameters, such as TraceLength=1Month can be set in a copy of the file
+CreateEnsembleFromOneTimeSeries(TSID="${TemplateGraphFirstTSID}",TraceLength=1Year,EnsembleID="TemplateEnsembleID",EnsembleName="TemplateEnsemble",ReferenceDate="${CurrentWaterYearStartDate}",OutputYearType=Water,ShiftDataHow=ShiftToReference)
+#
+# Calculate statistics as desired, using the ensemble as input
+# - specifying [Mean] for the sequence ID is necessary to use in the graph legend
+NewStatisticTimeSeriesFromEnsemble(EnsembleID="TemplateEnsembleID",Statistic=Mean,NewTSID="${TemplateGraphFirstTSID}[Mean]",Alias="%L-Mean")
+NewStatisticTimeSeriesFromEnsemble(EnsembleID="TemplateEnsembleID",Statistic=Median,NewTSID="${TemplateGraphFirstTSID}[Median]",Alias="%L-Median")
+#
+# Free the original input time series since don't want it shown on the ensemble graph
+# - This should always work, and if there was an error creating the ensemble
+#   no time series may be visible (graph may shut down)
+Free(TSList=TSPosition,TSPosition=1)

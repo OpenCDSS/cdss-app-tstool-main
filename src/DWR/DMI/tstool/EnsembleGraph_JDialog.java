@@ -78,15 +78,35 @@ private static String savedStatistics = null;
 private static String savedGraphTemplate = null;
 
 /**
+ * Whether the dialog is for time series (true) or ensemble (false) results.
+ */
+private boolean isDialogForTS = true;
+
+/**
+ * Prefix for UI state properties.
+ */
+private String propertyPrefix = "Results.TS.";
+
+/**
 TSTool_Options_JDialog constructor.
 @param parent JFrame class instantiating this class.
 @param session the TSTool session, which provides information about user files.
+@param isDialogForTS if true then the dialog is being shown for time series results,
+if false, the dialog is being shown for ensemble results.
 @param configFilePathInstall path to the installation TSTool configuration file.
 @param appPropList Properties from the application - a subset of all props that are specifically handled.
 */
-public EnsembleGraph_JDialog ( TSTool_JFrame parent, TSToolSession session, PropList appPropList )
+public EnsembleGraph_JDialog ( TSTool_JFrame parent, TSToolSession session,
+	boolean isDialogForTS, PropList appPropList )
 {	super(parent, true);
 	this.session = session;
+	this.isDialogForTS = isDialogForTS;
+	if ( isDialogForTS ) {
+		this.propertyPrefix = "Results.TimeSeries.";
+	}
+	else {
+		this.propertyPrefix = "Results.Ensembles.";
+	}
 	// TODO sam 2017-04-09 Evaluate whether need given that TSTool session properties are supported
 	//this.appPropList = appPropList;
 	initialize ();
@@ -115,7 +135,7 @@ Check the input.  If errors exist, warn the user and set the __error_wait flag
 to true.  This should be called before response() is allowed to complete.
 */
 private void checkInput ()
-{	
+{	// TODO sam 2017-04-10 need to implement checks for statistics, reference date
 }
 
 /**
@@ -162,75 +182,104 @@ private void initialize ()
 	getContentPane().add ( "North", main_JPanel );
 	int y = -1;
 
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Specify properties to control converting the time series to an ensemble before creating the graph."),
-        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel (
-    	"The time series can optionally be used to compute statistics similar to the NewStatisticTimeSeriesFromEnsemble() command,"),
-        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "with statistics specified as Mean, Median, Max, Min, etc. (comma-separated)."),
-        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "The template file, if specified, provides properties for the graph, such as title and legend format."),
-        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "If the template file specifies a TemplateProcessCommandFile property, "
-    	+ "then commands are used to preprocss the single input time series before display."),
-        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "For example, preprocessing can replace the need to specify statistics here."),
-        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	if ( this.isDialogForTS ) {
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Specify properties to control converting the time series to an ensemble before creating the graph."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel (
+	    	"The time series can optionally be used to compute statistics similar to the NewStatisticTimeSeriesFromEnsemble() command,"),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "with statistics specified as Mean, Median, Max, Min, etc. (comma-separated)."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "The template file, if specified, provides properties for the graph, such as title and legend format."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "If the template file specifies a TemplateProcessCommandFile property, "
+	    	+ "then commands are used to preprocss the single input time series before display."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "For example, preprocessing can replace the need to specify statistics here."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "See also the \"Graph with template\" button in the lower-right corner of the results area,"
+	    	+ " which can be used for single-click graphing."),
+		    0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	}
+	else {
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Specify properties to control processing the ensemble before creating the graph."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel (
+	    	"The time series in the ensemble can optionally be used to compute statistics similar to the NewStatisticTimeSeriesFromEnsemble() command,"),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "with statistics specified as Mean, Median, Max, Min, etc. (comma-separated)."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "The template file, if specified, provides properties for the graph, such as title and legend format."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "If the template file specifies a TemplateProcessCommandFile property, "
+	    	+ "then commands are used to preprocss the ensemble time series before display."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "For example, preprocessing can replace the need to specify statistics here."),
+	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "See also the \"Graph with template\" button in the lower-right corner of the results area,"
+	    	+ " which can be used for single-click graphing."),
+		    0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	}
 
     JGUIUtil.addComponent(main_JPanel, new JSeparator (SwingConstants.HORIZONTAL),
         0, ++y, 7, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Output year type:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	outputYearType_JComboBox = new SimpleJComboBox ( false );
-	// Only include types that have been tested for all output.  More specific types may be included in
-	// some commands where local handling is enabled.
-	outputYearType_JComboBox.add ( "" );
-    outputYearType_JComboBox.add ( "" + YearType.CALENDAR );
-    outputYearType_JComboBox.add ( "" + YearType.NOV_TO_OCT );
-    outputYearType_JComboBox.add ( "" + YearType.WATER );
-    if ( savedOutputYearType == null ) {
-    	// See if the year type was in the TSTool state
-    	savedOutputYearType = session.getUIStateProperty("EnsembleGraph.OutputYearType");
+    if ( this.isDialogForTS ) { // Only for time series since used in the TS->Ensemble process
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Output year type:" ), 
+			0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		outputYearType_JComboBox = new SimpleJComboBox ( false );
+		// Only include types that have been tested for all output.  More specific types may be included in
+		// some commands where local handling is enabled.
+		outputYearType_JComboBox.add ( "" );
+	    outputYearType_JComboBox.add ( "" + YearType.CALENDAR );
+	    outputYearType_JComboBox.add ( "" + YearType.NOV_TO_OCT );
+	    outputYearType_JComboBox.add ( "" + YearType.WATER );
+	    if ( savedOutputYearType == null ) {
+	    	// See if the year type was in the TSTool state
+	    	savedOutputYearType = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.OutputYearType");
+	    }
+	    if ( savedOutputYearType != null ) {
+	    	try {
+	    		outputYearType_JComboBox.select(savedOutputYearType);
+	    	}
+	    	catch ( Exception e ) {
+	    		// OK, default
+	    	}
+	    }
+		outputYearType_JComboBox.addItemListener ( this );
+	        JGUIUtil.addComponent(main_JPanel, outputYearType_JComboBox,
+			1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Optional - output year type for ensemble (default=" + YearType.CALENDAR + ")."),
+	        3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     }
-    if ( savedOutputYearType != null ) {
-    	try {
-    		outputYearType_JComboBox.select(savedOutputYearType);
-    	}
-    	catch ( Exception e ) {
-    		// OK, default
-    	}
-    }
-	outputYearType_JComboBox.addItemListener ( this );
-        JGUIUtil.addComponent(main_JPanel, outputYearType_JComboBox,
-		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Optional - output year type for ensemble (default=" + YearType.CALENDAR + ")."),
-        3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    JGUIUtil.addComponent(main_JPanel, new JLabel (	"Reference date:" ), 
-		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	referenceDate_JTextField = new JTextField ( 20 );
-	referenceDate_JTextField.setToolTipText("Date at which to shift all ensemble traces to align start, YYYY-MM-DD for daily data.");
-    if ( savedReferenceDate == null ) {
-    	// See if the reference date was in the TSTool state
-    	savedReferenceDate = session.getUIStateProperty("EnsembleGraph.ReferenceDate");
+    if ( this.isDialogForTS ) { // Only for time series since used in the TS->Ensemble process
+	    JGUIUtil.addComponent(main_JPanel, new JLabel (	"Reference date:" ), 
+			0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		referenceDate_JTextField = new JTextField ( 20 );
+		referenceDate_JTextField.setToolTipText("Date at which to shift all ensemble traces to align start, YYYY-MM-DD for daily data.");
+	    if ( savedReferenceDate == null ) {
+	    	// See if the reference date was in the TSTool state
+	    	savedReferenceDate = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.ReferenceDate");
+	    }
+	    if ( savedReferenceDate != null ) {
+	    	referenceDate_JTextField.setText(savedReferenceDate);
+	    }
+		referenceDate_JTextField.addKeyListener(this);
+		JGUIUtil.addComponent(main_JPanel, referenceDate_JTextField,
+			1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=starting day for year type, for current date)."), 
+	        3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     }
-    if ( savedReferenceDate != null ) {
-    	referenceDate_JTextField.setText(savedReferenceDate);
-    }
-	referenceDate_JTextField.addKeyListener(this);
-	JGUIUtil.addComponent(main_JPanel, referenceDate_JTextField,
-		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=starting day for year type, for current date)."), 
-        3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    
+
+    // Option to calculate statistics is available for time series and ensemble processing
     JGUIUtil.addComponent(main_JPanel, new JLabel (	"Statistics:" ), 
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	statistics_JTextField = new JTextField ( 20 );
 	statistics_JTextField.setToolTipText("Statistics to compute as time series, comma-separated:  Mean, Median, Max, Min.");
     if ( savedStatistics == null ) {
     	// See if the statistics property was in the TSTool state
-    	savedStatistics = session.getUIStateProperty("EnsembleGraph.Statistics");
+    	savedStatistics = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.Statistics");
     }
     if ( savedStatistics != null ) {
     	statistics_JTextField.setText(savedStatistics);
@@ -240,7 +289,8 @@ private void initialize ()
 		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=list of statistics to compute)."), 
         3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    
+
+    // Option to to use graph template is available for time series and ensemble processing
     JGUIUtil.addComponent(main_JPanel, new JLabel ( "Graph template:" ), 
     	0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	graphTemplates_JComboBox = new SimpleJComboBox(false);
@@ -254,7 +304,7 @@ private void initialize ()
 	graphTemplates_JComboBox.setData(templateFileList2);
     if ( savedGraphTemplate == null ) {
     	// See if the graph template was in the TSTool state
-    	savedGraphTemplate = session.getUIStateProperty("EnsembleGraph.GraphTemplate");
+    	savedGraphTemplate = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.GraphTemplate");
     }
     if ( savedGraphTemplate != null ) {
     	try {
@@ -337,17 +387,22 @@ public void response ( boolean ok )
 {	this.ok = ok;
 	if ( ok ) {
 		// Save the choices that were selected
-		savedOutputYearType = outputYearType_JComboBox.getSelected();
-		savedGraphTemplate = graphTemplates_JComboBox.getSelected();
-		savedReferenceDate = referenceDate_JTextField.getText();
+		if ( this.isDialogForTS ) {
+			savedOutputYearType = outputYearType_JComboBox.getSelected();
+			savedReferenceDate = referenceDate_JTextField.getText();
+		}
 		savedStatistics = statistics_JTextField.getText();
+		savedGraphTemplate = graphTemplates_JComboBox.getSelected();
 		// Also save in TSTool session
 		// TODO sam 2017-04-09 decide whether to only rely on TSTool session
 		TSToolSession session = TSToolSession.getInstance();
-		session.setUIStateProperty("EnsembleGraph.GraphTemplate",savedGraphTemplate);
-		session.setUIStateProperty("EnsembleGraph.OutputYearType",savedOutputYearType);
-		session.setUIStateProperty("EnsembleGraph.ReferenceDate",savedReferenceDate);
-		session.setUIStateProperty("EnsembleGraph.Statistics",savedStatistics);
+		if ( this.isDialogForTS ) {
+			// The following are only used for TS processing
+			session.setUIStateProperty(this.propertyPrefix + "EnsembleGraph.OutputYearType",savedOutputYearType);
+			session.setUIStateProperty(this.propertyPrefix + "EnsembleGraph.ReferenceDate",savedReferenceDate);
+		}
+		session.setUIStateProperty(this.propertyPrefix + "EnsembleGraph.Statistics",savedStatistics);
+		session.setUIStateProperty(this.propertyPrefix + "EnsembleGraph.GraphTemplate",savedGraphTemplate);
 	}
 	setVisible( false );
 	dispose();
