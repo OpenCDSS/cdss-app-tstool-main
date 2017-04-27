@@ -6344,7 +6344,7 @@ private void ui_CheckGUIState ()
 	    __dataStore_JComboBox.setVisible(true);
 	}
 	*/
-
+	
 	// List menus in the order of the GUI.  Popup menu items are checked as needed mixed in below...
 
 	// File menu...
@@ -9836,14 +9836,15 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	// Commands that perform other processing and create new time series...
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeInterval_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ChangeInterval_String, this) );
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalLarger_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_ChangeIntervalLarger_String, this) );
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalSmaller_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_ChangeIntervalSmaller_String, this) );
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_ChangeIntervalIrregularToRegular_String, this) );
-    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem =
-        new SimpleJMenuItem(__Commands_Create_ChangeIntervalRegularToIrregular_String, this) );
+    // TODO SAM 2017-04-24 need to enable these commands when they work
+    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalLarger_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalLarger_String, this) );
+    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalSmaller_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalSmaller_String, this) );
+    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalIrregularToRegular_String, this) );
+    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalRegularToIrregular_String, this) );
     
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_Copy_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Copy_String, this) );
