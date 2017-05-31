@@ -14651,7 +14651,7 @@ private void uiAction_DataTypeChoiceClicked()
         RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(selectedDataType));
         __timeStep_JComboBox.select ( null );
         __timeStep_JComboBox.select ( 0 );
     }
@@ -14711,7 +14711,7 @@ private void uiAction_DataTypeChoiceClicked()
     	ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)dataStore.getDMI();
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dmi.getDataIntervalStringsForParameter(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dmi.getDataIntervalStringsForParameter(selectedDataType));
         __timeStep_JComboBox.select ( null );
         if ( __timeStep_JComboBox.getItemCount() > 0 ) {
         	__timeStep_JComboBox.select ( 0 );
@@ -14808,7 +14808,7 @@ private void uiAction_DataTypeChoiceClicked()
         UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(selectedDataType));
         __timeStep_JComboBox.select ( null );
         __timeStep_JComboBox.select ( 0 );
     }
@@ -14817,7 +14817,7 @@ private void uiAction_DataTypeChoiceClicked()
         UsgsNwisGroundwaterDataStore dataStore = (UsgsNwisGroundwaterDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(selectedDataType));
         __timeStep_JComboBox.select ( null );
         __timeStep_JComboBox.select ( 0 );
     }
@@ -14826,7 +14826,16 @@ private void uiAction_DataTypeChoiceClicked()
         UsgsNwisInstantaneousDataStore dataStore = (UsgsNwisInstantaneousDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
-        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(ui_GetSelectedDataType()));
+        __timeStep_JComboBox.setData ( dataStore.getDataIntervalStringsForDataType(selectedDataType));
+        __timeStep_JComboBox.select ( null );
+        __timeStep_JComboBox.select ( 0 );
+    }
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
+    	// Plugin datastore - call its method to get the intervals
+    	PluginDataStore pluginDataStore = (PluginDataStore)selectedDataStore;
+    	List<String> timeStepChoices = pluginDataStore.getTimeSeriesDataIntervalStrings(selectedDataType);
+    	__timeStep_JComboBox.removeAll ();
+    	__timeStep_JComboBox.setData (timeStepChoices);
         __timeStep_JComboBox.select ( null );
         __timeStep_JComboBox.select ( 0 );
     }

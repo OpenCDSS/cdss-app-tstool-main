@@ -68,7 +68,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "12.00.00 (2017-04-24)";
+public static final String PROGRAM_VERSION = "12.02.00 (2017-05-22)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -353,154 +353,212 @@ public static boolean isRestServer()
 }
 
 /**
-Load plugin datastores.
+Load plugin datastores.  Plugin files can exist in two locations:
+<ul>
+<li> TSToolInstallFolder/plugin-datastore/DataStoreName/bin/DataStore-version.jar</li> - preferred plugin home,
+will ensure that it continues to work
+<li> UserHomeFolder/.tstool/plugin-datastore/DataStoreName/bin/DataStore-version.jar</li> - can be used during development
+but plugins will likely not work with all versions of TSTool
+</ul>
 @param session TSTool session, which provides user and environment information.
+@param pluginDataStoreList empty list of plugin datastores, will be populated by this method.
+@param pluginDataStoreFactoryList empty list of plugin datastore factories, will be populated by this method.
 */
-private static List<Class>[] loadPluginDataStores(TSToolSession session)
+private static void loadPluginDataStores(TSToolSession session, @SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList )
 {
 	final String routine = "loadPluginDataStores";
-	List<Class> pluginDataStoreList = new ArrayList<Class>();
-	List<Class> pluginDataStoreFactoryList = new ArrayList<Class>();
-	// First get a list of candidate URLs, which will be in the TSTool user files under, for example
-	// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
-	String userPluginDir = session.getUserFolder() + File.separator + "plugin-datastore";
-	// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
-	// in which case ** will need to be used somehow in the glob pattern
-	String glob = userPluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
-	// For glob backslashes need to be escaped (this should not impact Linux)
-	glob = glob.replace ("\\","\\\\");
 	final List<String> pluginJarList = new ArrayList<String>();
-	final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
-	FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-		@Override
-		public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
-			Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
-			if ( pathMatcher.matches(file)) {
-				Message.printStatus(2,routine,"Found jar file for plugin datastore: " + file);
-				pluginJarList.add(""+file);
-			}
-			return FileVisitResult.CONTINUE;
-		}
-		
-		@Override
-		public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
-			return FileVisitResult.CONTINUE;
-		}
+	final String [] pluginHomeFolders = {
+		// InstallHome/plugin-datastore
+		__tstoolInstallHome + File.separator + "plugin-datastore",
+		// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
+		session.getUserFolder() + File.separator + "plugin-datastore"
 	};
-	try {
-		// The following walks the tree path under the specified folder
-		// The full path is returned during walking (not just under the starting folder)
-		Path userPluginDirPath = Paths.get(userPluginDir);
-		Message.printStatus(2,routine, "Trying to find plugin datastores using userDirPath \"" + userPluginDirPath + "\" and glob pattern \"" + glob + "\"" );
-		Files.walkFileTree(userPluginDirPath, matcherVisitor);
-	}
-	catch ( IOException e ) {
-		Message.printWarning(3,routine,"Error getting jar file list for plugin datastore(s) (" + e + ")" );
-		// Return empty list of datastore plugin classes
-		List<Class> [] array = new List[2];
-		array[0] = pluginDataStoreList;
-		array[1] = pluginDataStoreFactoryList;
-		return array;
-	}
-	// Convert found jar files into an array of URL used by the class loader
-	URL [] dataStoreJarURLs = new URL[pluginJarList.size()];
-	int jarCount = 0;
-	for ( String pluginJar : pluginJarList ) {
+	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
+		// First get a list of candidate URLs, using path to jar file
+		String pluginDir = pluginHomeFolders[iPluginHome];
+		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
+		// in which case ** will need to be used somehow in the glob pattern
+		String glob = pluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
+		// For glob backslashes need to be escaped (this should not impact Linux)
+		glob = glob.replace ("\\","\\\\");
+		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
+		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
+				Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
+				if ( pathMatcher.matches(file)) {
+					Message.printStatus(2,routine,"Found jar file for plugin datastore: " + file);
+					pluginJarList.add(""+file);
+				}
+				return FileVisitResult.CONTINUE;
+			}
+			
+			@Override
+			public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+		};
 		try {
-			// Convert the file system filename to URL using forward slashes
-			dataStoreJarURLs[jarCount] = new URL("file:///" + pluginJar.replace("\\", "/"));
-			++jarCount; // Only increment if successful
-		}
-		catch ( MalformedURLException e ) {
-			Message.printWarning(3,routine,"Error creating URL for datastore plugin jar file \"" + pluginJar + "\" (" + e + ")" );
-		}
-	}
-	// Create a class loader for datastores.  This expects datastores to be in the jar file with class name XXXXXDataStore.
-	if ( jarCount != pluginJarList.size() ) {
-		// Resize the array
-		URL [] dataStoreJarURLs2 = new URL[jarCount];
-		System.arraycopy(dataStoreJarURLs,0,dataStoreJarURLs2,0,jarCount);
-		dataStoreJarURLs = dataStoreJarURLs2;
-	}
-	PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
-	try {
-		pluginDataStoreList = pcl.loadDataStoreClasses();
-	}
-	catch ( ClassNotFoundException e ) {
-		Message.printWarning(2,routine,"Error loading datastore plugin classes (" + e + ")." );
-		Message.printWarning(2,routine,e);
-	}
-	try {
-		pluginDataStoreFactoryList = pcl.loadDataStoreFactoryClasses();
-	}
-	catch ( ClassNotFoundException e ) {
-		Message.printWarning(2,routine,"Error loading datastore factory plugin classes (" + e + ")." );
-		Message.printWarning(2,routine,e);
-	}
-	finally {
-		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
-		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
-		try {
-			pcl.close();
+			// The following walks the tree path under the specified folder
+			// The full path is returned during walking (not just under the starting folder)
+			Path pluginDirPath = Paths.get(pluginDir);
+			Message.printStatus(2,routine, "Trying to find plugin datastores using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
+			Files.walkFileTree(pluginDirPath, matcherVisitor);
 		}
 		catch ( IOException e ) {
-			// For now swallow - not sure what else to do
+			Message.printWarning(3,routine,"Error getting jar file list for plugin datastore(s) (" + e + ")" );
+			// Return empty list of datastore plugin classes
+			return;
 		}
-		*/
 	}
-	List<Class> [] array = new List[2];
-	array[0] = pluginDataStoreList;
-	array[1] = pluginDataStoreFactoryList;
-	return array;
+	// Create a separate class loader for each plugin to maintain separation
+	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder
+	for ( String pluginJar : pluginJarList ) {
+		// TODO figure out if only the top level datastore Jar file should be included
+		URL [] dataStoreJarURLs = new URL[2];
+		try {
+			// Convert the file system filename to URL using forward slashes
+			dataStoreJarURLs[0] = new URL("file:///" + pluginJar.replace("\\", "/"));
+			// Also add all the jar files in the "/dep" folder
+			// -tried to figure out how to use MANIFEST-MF Class-Path property but seemed confusing
+			//  so just add all jar files that are found
+			File f = new File(pluginJar);
+			List<File> depJarFiles = IOUtil.getFilesMatchingPattern(f.getParent() + File.separator + "dep", "jar", false);
+			URL [] dataStoreJarURLs2 = new URL[1 + depJarFiles.size()];
+			dataStoreJarURLs2[0] = dataStoreJarURLs[0];
+			int i = 1;
+			for ( File depJarFile : depJarFiles ) {
+				dataStoreJarURLs2[i++] = new URL("file:///" + depJarFile.getAbsolutePath().replace("\\", "/"));
+			}
+			dataStoreJarURLs = dataStoreJarURLs2;
+		}
+		catch ( MalformedURLException e ) {
+			Message.printWarning(3,routine,"Error creating URL for datastore plugin jar file \"" + pluginJar + "\" (" + e + ") - skipping plugin" );
+			continue;
+		}
+		// Create a class loader specific to the datastore.  This expects the datastore to be in the jar file with class name XXXXXDataStore.
+		PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
+		List<Class> pluginDataStoreList1 = null;
+		List<Class> pluginDataStoreFactoryList1 = null;
+		try {
+			pluginDataStoreList1 = pcl.loadDataStoreClasses();
+		}
+		catch ( ClassNotFoundException e ) {
+			Message.printWarning(2,routine,"Error loading datastore plugin classes (" + e + ")." );
+			Message.printWarning(2,routine,e);
+		}
+		try {
+			pluginDataStoreFactoryList1 = pcl.loadDataStoreFactoryClasses();
+		}
+		catch ( ClassNotFoundException e ) {
+			Message.printWarning(2,routine,"Error loading datastore factory plugin classes (" + e + ")." );
+			Message.printWarning(2,routine,e);
+		}
+		finally {
+			/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
+			 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+			try {
+				pcl.close();
+			}
+			catch ( IOException e ) {
+				// For now swallow - not sure what else to do
+			}
+			*/
+		}
+		// For now require that one datastore class and one datastore class factor are loaded for each datastore.
+		if ( pluginDataStoreList1 == null ) {
+			Message.printWarning(2,routine,"Null datastore for plugin Jar \"" + pluginJar + "\" - skipping plugin." );
+		}
+		else {
+			if ( pluginDataStoreList1.size() != 1 ) {
+				Message.printWarning(2,routine,"Datastore plugin list is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+			}
+			else {
+				// Add to the list to be known to TSTool
+				pluginDataStoreList.addAll(pluginDataStoreList1);
+			}
+		}
+		if ( pluginDataStoreFactoryList1 == null ) {
+			Message.printWarning(2,routine,"Null datastore factory for plugin Jar \"" + pluginJar + "\" - skipping plugin." );
+		}
+		else {
+			if ( pluginDataStoreFactoryList1.size() != 1 ) {
+				Message.printWarning(2,routine,"Datastore plugin factory list is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+			}
+			else {
+				// Add to the list to be known to TSTool
+				pluginDataStoreFactoryList.addAll(pluginDataStoreFactoryList1);
+			}
+		}
+	}
 }
 
 /**
-Load plugin commands.
+Load plugin commands.  Plugin files can exist in two locations:
+<ul>
+<li> TSToolInstallFolder/plugin-command/CommandName/bin/Command-version.jar</li> - preferred plugin home,
+will ensure that it continues to work
+<li> UserHomeFolder/.tstool/plugin-command/CommandName/bin/Command-version.jar</li> - can be used during development
+but plugins will likely not work with all versions of TSTool
+</ul>
 @param session TSTool session, which provides user and environment information.
 */
+@SuppressWarnings("rawtypes")
 private static List<Class> loadPluginCommands(TSToolSession session)
 {	final String routine = "loadPluginCommands";
-	List<Class> pluginCommandList = new ArrayList<Class>();
-	// First get a list of candidate URLs, which will be in the TSTool user files under, for example:
-	// .tstool/plugin-command/CommandName/bin/CommandName-version.jar
-	// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
-	String userPluginDir = session.getUserFolder() + File.separator + "plugin-command";
-	// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
-	// in which case ** will need to be used somehow in the glob pattern
-	String glob = userPluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
-	// For glob backslashes need to be escaped (this should not impact Linux)
-	glob = glob.replace ("\\","\\\\");
 	final List<String> pluginJarList = new ArrayList<String>();
-	final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
-	FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-		@Override
-		public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
-			Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
-			if ( pathMatcher.matches(file)) {
-				Message.printStatus(2,routine,"Found jar file for plugin command: " + file);
-				pluginJarList.add(""+file);
-			}
-			return FileVisitResult.CONTINUE;
-		}
-		
-		@Override
-		public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
-			return FileVisitResult.CONTINUE;
-		}
+	final String [] pluginHomeFolders = {
+		// InstallHome/plugin-command
+		__tstoolInstallHome + File.separator + "plugin-commnd",
+		// .tstool/plugin-command/Command/bin/Datastore-version.jar
+		session.getUserFolder() + File.separator + "plugin-command"
 	};
-	try {
-		// The following walks the tree path under the specified folder
-		// The full path is returned during walking (not just under the starting folder)
-		Path userPluginDirPath = Paths.get(userPluginDir);
-		Message.printStatus(2,routine, "Trying to find plugin commands using userDirPath \"" + userPluginDirPath + "\" and glob pattern \"" + glob + "\"" );
-		Files.walkFileTree(userPluginDirPath, matcherVisitor);
-	}
-	catch ( IOException e ) {
-		Message.printWarning(3,routine,"Error getting jar file list for plugin command(s) (" + e + ")" );
-		// Return empty list of command plugin classes
-		return pluginCommandList;
+	List<Class> pluginCommandList = new ArrayList<Class>();
+	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
+		// First get a list of candidate URLs, using path to jar file
+		String pluginDir = pluginHomeFolders[iPluginHome];
+		// First get a list of candidate URLs, which will be in the TSTool user files under, for example:
+		// .tstool/plugin-command/CommandName/bin/CommandName-version.jar
+		// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
+		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
+		// in which case ** will need to be used somehow in the glob pattern
+		String glob = pluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
+		// For glob backslashes need to be escaped (this should not impact Linux)
+		glob = glob.replace ("\\","\\\\");
+		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
+		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
+				Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
+				if ( pathMatcher.matches(file)) {
+					Message.printStatus(2,routine,"Found jar file for plugin command: " + file);
+					pluginJarList.add(""+file);
+				}
+				return FileVisitResult.CONTINUE;
+			}
+			
+			@Override
+			public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+		};
+		try {
+			// The following walks the tree path under the specified folder
+			// The full path is returned during walking (not just under the starting folder)
+			Path pluginDirPath = Paths.get(pluginDir);
+			Message.printStatus(2,routine, "Trying to find plugin commands using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
+			Files.walkFileTree(pluginDirPath, matcherVisitor);
+		}
+		catch ( IOException e ) {
+			Message.printWarning(3,routine,"Error getting jar file list for plugin command(s) (" + e + ")" );
+			// Return empty list of command plugin classes
+			return pluginCommandList;
+		}
 	}
 	// Convert found jar files into an array of URL used by the class loader
+	// - from this point forward the jar file path does not care if in the user folder or TSTool installation folder
 	URL [] commandJarURLs = new URL[pluginJarList.size()];
 	int jarCount = 0;
 	for ( String pluginJar : pluginJarList ) {
@@ -605,9 +663,15 @@ public static void main ( String args[] )
 
 	// Load plugin datastore classes
 	
-	List<Class>[] array = loadPluginDataStores(session);
-	List<Class> pluginDataStoreClasses = array[0];
-	List<Class> pluginDataStoreFactoryClasses = array[1];
+	List<Class> pluginDataStoreClasses = new ArrayList<Class>();
+	List<Class> pluginDataStoreFactoryClasses = new ArrayList<Class>();
+	try {
+		loadPluginDataStores(session, pluginDataStoreClasses, pluginDataStoreFactoryClasses);
+	}
+	catch ( Throwable e ) {
+		Message.printWarning ( 1, routine, "Error loading plugin datastores.  See log file for details." );
+		Message.printWarning ( 1, routine, e );
+	}
 	
 	// Load plugin command classes
 	
