@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="lib/restlet/com.noelios.restlet.jar"/>
 	<classpathentry kind="lib" path="lib/restlet/org.restlet.jar"/>
 	<classpathentry kind="lib" path="/cdss-util-buildtools/lib/junit-3.8.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-cdss-java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
