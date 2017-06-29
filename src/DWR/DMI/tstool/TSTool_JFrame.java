@@ -71,6 +71,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
+import org.openwaterfoundation.network.NodeNetwork;
+
 import riverside.datastore.DataStore;
 import riverside.datastore.DataStores_JFrame;
 import riverside.datastore.GenericDatabaseDataStore;
@@ -273,6 +275,8 @@ import RTi.Util.Time.DateTimeToolsJDialog;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.YearType;
+import cdss.domain.hydrology.network.HydrologyNode;
+import cdss.domain.hydrology.network.HydrologyNodeNetwork;
 
 /**
 JFrame to provide the application interface for TSTool.  This class provides the
@@ -803,6 +807,21 @@ private Thread __tsProcessorThread = null;
 Popup menu for time series results.
 */
 private JPopupMenu __resultsTS_JPopupMenu = null;
+
+/**
+List of results networks for viewing with an editor.
+*/
+private JList<String> __resultsNetworks_JList = null;
+
+/**
+Popup menu for networks results.
+*/
+private JPopupMenu __resultsNetworks_JPopupMenu = null;
+
+/**
+JList data model for networks (a list of network identifiers associated with __results_networks_JList).
+*/
+private DefaultListModel<String> __resultsNetworks_JListModel;
 
 /**
 List of results tables for viewing with an editor.
@@ -1341,6 +1360,7 @@ JMenuItem
 JMenu
     __Commands_Network_JMenu = null;
 JMenuItem
+	__Commands_Network_CreateNetworkFromTable_JMenuItem,
     __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem;
 
 // Commands (Spatial)...
@@ -1917,6 +1937,7 @@ private String
     // Network Commands...
 
     __Commands_Network_String = "Network Processing",
+    __Commands_Network_CreateNetworkFromTable_String = TAB + "CreateNetworkFromTable()... <create network from table>",
     __Commands_Network_AnalyzeNetworkPointFlow_String = TAB + "AnalyzeNetworkPointFlow()... <perform point flow analysis>",
     
     // Spatial Commands...
@@ -2103,6 +2124,8 @@ private String
 	__Results_Ensemble_Graph_Line_String = "Graph - Line (Ensemble Graph)",
 	__Results_Ensemble_Table_String = "Table",
 	__Results_Ensemble_Properties_String = "Ensemble Properties",
+	
+	__Results_Network_Properties_String = "Network Properties",
 
 	__Results_Table_Properties_String = "Table properties...",
 
@@ -3764,6 +3787,65 @@ private DateTime commandProcessor_GetInputStart()
 }
 
 /**
+Get the command processor network results for a network identifier.
+Typically this corresponds to a user selecting the network from the results list, for further display.
+@param networkId identifier for table to display
+@return The matching network or null if not available from the processor.
+*/
+private NodeNetwork commandProcessor_GetNetwork ( String networkId )
+{   String message, routine = "TSTool_JFrame.commandProcessor_GetNetwork";
+    if ( __tsProcessor == null ) {
+        return null;
+    }
+    PropList request_params = new PropList ( "" );
+    request_params.set ( "NetworkID", networkId );
+    CommandProcessorRequestResultsBean bean = null;
+    try {
+        bean = __tsProcessor.processRequest( "GetNetwork", request_params);
+    }
+    catch ( Exception e ) {
+        message = "Error requesting GetNetwork(NetworkID=\"" + networkId + "\") from processor.";
+        Message.printWarning(2, routine, message );
+        Message.printWarning ( 3, routine, e );
+    }
+    PropList bean_PropList = bean.getResultsPropList();
+    Object o_network = bean_PropList.getContents ( "Network" );
+    NodeNetwork network = null;
+    if ( o_network == null ) {
+        message = "Null network returned from processor for GetNetwork(NetworkID=\"" + networkId + "\").";
+        Message.printWarning ( 2, routine, message );
+    }
+    else {
+        network = (NodeNetwork)o_network;
+    }
+    return network;
+}
+
+/**
+Get the command processor network results list.
+@return The network results list or null
+if the processor is not available.
+*/
+@SuppressWarnings("unchecked")
+private List<NodeNetwork> commandProcessor_GetNetworkResultsList()
+{   String routine = "TSTool_JFrame.commandProcessor_GetNetworkResultsList";
+    Object o = null;
+    try {
+        o = __tsProcessor.getPropContents ( "NetworkResultsList" );
+    }
+    catch ( Exception e ) {
+        String message = "Error requesting NetworkResultsList from processor.";
+        Message.printWarning(2, routine, message );
+    }
+    if ( o == null ) {
+        return null;
+    }
+    else {
+        return (List<NodeNetwork>)o;
+    }
+}
+
+/**
 Get the command processor OutputEnd.  This method is meant for simple
 reporting.  Any errors in the processor should be detected during command initialization and processing.
 @return The global OutputEnd as a DateTime from the command processor or null if not yet determined.
@@ -5156,6 +5238,12 @@ public void mousePressed ( MouseEvent event )
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __resultsTSEnsembles_JPopupMenu );
         __resultsTSEnsembles_JPopupMenu.show ( c, pt.x, pt.y );
     }
+    // Popup for network results list, right click since left click automatically shows table...
+    else if ( (c == __resultsNetworks_JList) && (__resultsNetworks_JListModel.size() > 0) //) {//&&
+        && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
+        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __resultsNetworks_JPopupMenu );
+        __resultsNetworks_JPopupMenu.show ( c, pt.x, pt.y );
+    }
     // Popup for table results list, right click since left click automatically shows table...
     else if ( (c == __resultsTables_JList) && (__resultsTables_JListModel.size() > 0) //) {//&&
         && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
@@ -6041,6 +6129,7 @@ Clear the results displays.
 private void results_Clear()
 {
     results_Ensembles_Clear();
+    results_Networks_Clear();
     results_OutputFiles_Clear();
 	results_TimeSeries_Clear();
     results_Tables_Clear();
@@ -6133,6 +6222,23 @@ private void results_OutputFiles_AddOutputFile ( File file )
     if ( JGUIUtil.indexOf(__resultsOutputFiles_JList, filePathString, false, true) < 0 ) {
         __resultsOutputFiles_JListModel.addElement( filePathString );
     }
+}
+
+/**
+Add the specified network to the list of networks that can be selected for viewing.
+@param networkid network identifier for network generated by the processor.
+*/
+private void results_Networks_AddNetwork ( String networkid )
+{
+    __resultsNetworks_JListModel.addElement( networkid );
+}
+
+/**
+Clear the list of results networks.  This is normally called immediately before the commands are run.
+*/
+private void results_Networks_Clear()
+{
+    __resultsNetworks_JListModel.removeAllElements();
 }
 
 /**
@@ -8200,6 +8306,22 @@ private void ui_InitGUI ( )
 	JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, __resultsTSEnsemblesGraphTemplates_JComboBox, 
 		7, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	__resultsTSEnsemblesGraphTemplates_JComboBox.setEnabled(false); // Disable until command processed and >0 time series available
+	
+    // Results: networks...
+
+    JPanel results_networks_JPanel = new JPanel();
+    results_networks_JPanel.setLayout(gbl);
+    JGUIUtil.addComponent(results_networks_JPanel, new JLabel ("Networks:"),
+        0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    __resultsNetworks_JListModel = new DefaultListModel();
+    __resultsNetworks_JList = new JList ( __resultsNetworks_JListModel );
+    __resultsNetworks_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
+    __resultsNetworks_JList.addKeyListener ( this );
+    __resultsNetworks_JList.addListSelectionListener ( this );
+    __resultsNetworks_JList.addMouseListener ( this );
+    JGUIUtil.addComponent(results_networks_JPanel, new JScrollPane ( __resultsNetworks_JList ), 
+        0, 15, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+    __results_JTabbedPane.addTab ( "Networks", results_networks_JPanel );
     
     // Results: output files...
 
@@ -10339,6 +10461,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Network_JMenu = new JMenu( __Commands_Network_String, true ) );
     __Commands_Network_JMenu.setToolTipText("Process time series associated with network of nodes and links.");
+    __Commands_Network_JMenu.add( __Commands_Network_CreateNetworkFromTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_Network_CreateNetworkFromTable_String, this ) );
+    __Commands_Network_JMenu.addSeparator();
     __Commands_Network_JMenu.add( __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem =
         new SimpleJMenuItem( __Commands_Network_AnalyzeNetworkPointFlow_String, this ) );
     
@@ -11191,6 +11316,10 @@ private void ui_InitGUIMenus_ResultsPopup ()
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Table_String, ens_l ) );
     __resultsTSEnsembles_JPopupMenu.addSeparator();
     __resultsTSEnsembles_JPopupMenu.add( new SimpleJMenuItem ( __Results_Ensemble_Properties_String, ens_l ) );
+    
+    ActionListener_ResultsNetworks networks_l = new ActionListener_ResultsNetworks();
+    __resultsNetworks_JPopupMenu = new JPopupMenu("Network Results Actions");
+    __resultsNetworks_JPopupMenu.add( new SimpleJMenuItem ( __Results_Network_Properties_String, networks_l ) );
     
     ActionListener_ResultsTables tables_l = new ActionListener_ResultsTables();
     __resultsTables_JPopupMenu = new JPopupMenu("Table Results Actions");
@@ -13123,6 +13252,9 @@ throws Exception
 
     // Network commands...
 
+    else if (command.equals( __Commands_Network_CreateNetworkFromTable_String) ) {
+        commandList_EditCommand ( __Commands_Network_CreateNetworkFromTable_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_Network_AnalyzeNetworkPointFlow_String) ) {
         commandList_EditCommand ( __Commands_Network_AnalyzeNetworkPointFlow_String, null, CommandEditType.INSERT );
     }
@@ -18697,6 +18829,7 @@ private void uiAction_RunCommands_ShowResults()
 			results_Clear();
             uiAction_RunCommands_ShowResultsEnsembles();
             uiAction_RunCommands_ShowResultsOutputFiles();
+            uiAction_RunCommands_ShowResultsNetworks();
             uiAction_RunCommands_ShowResultsProblems();
             uiAction_RunCommands_ShowResultsProperties();
             uiAction_RunCommands_ShowResultsTables();
@@ -18757,6 +18890,43 @@ private void uiAction_RunCommands_ShowResultsEnsembles ()
     //JGUIUtil.setWaitCursor ( this, false );
     
     //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Leaving method.");
+}
+
+/**
+Display the network results.
+*/
+private void uiAction_RunCommands_ShowResultsNetworks()
+{   // Get the list of tables from the processor.
+    List<NodeNetwork> networkList = commandProcessor_GetNetworkResultsList();
+    int size = 0;
+    if ( networkList != null ) {
+        size = networkList.size();
+    }
+    ui_SetIgnoreActionEvent(true);
+    NodeNetwork network;
+    // Use HTML only when needed to show a zero or 1-node (end node) size network
+    String htmlStart = "<html><span style=\"color:red;font-weight:bold\">", htmlStart2;
+    String htmlEnd = "</span></html>", htmlEnd2;
+    String endNote;
+    int numNodes = 0;
+    for ( int i = 0; i < size; i++ ) {
+        network = networkList.get(i);
+        if ( network instanceof HydrologyNodeNetwork ) {
+        	HydrologyNodeNetwork hn = (HydrologyNodeNetwork)network;
+        	numNodes = hn.size();
+        }
+        htmlStart2 = "";
+        htmlEnd2 = "";
+        endNote = "";
+        if ( numNodes <= 1 ) {
+            htmlStart2 = htmlStart;
+            htmlEnd2 = htmlEnd;
+            endNote = " (includes end node)";
+        }
+        results_Networks_AddNetwork ( htmlStart2 + (i + 1) + ") " + network.getNetworkId() +
+            " - " + network.getNetworkName() + ", " + numNodes + " nodes" + htmlEnd2 + endNote );
+    }
+    ui_SetIgnoreActionEvent(false);
 }
 
 /**
@@ -21175,7 +21345,82 @@ private void uiAction_ShowHelpAbout ()
 }
 
 /**
-Show the properties for the currnet commands run (processor).
+Show the properties for a table.
+*/
+private void uiAction_ShowNetworkProperties ()
+{   String routine = getClass().getSimpleName() + "uiAction_ShowNetworkProperties";
+    try {
+        // Simple text display of network properties.
+        PropList reportProp = new PropList ("Network Properties");
+        reportProp.set ( "TotalWidth", "600" );
+        reportProp.set ( "TotalHeight", "600" );
+        reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
+        reportProp.set ( "DisplaySize", "11" );
+        reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
+        reportProp.set ( "PrintSize", "7" );
+        reportProp.set ( "Title", "Network Properties" );
+        List<String> v = new ArrayList<String>();
+        // Get the network of interest
+        if ( __resultsNetworks_JList.getModel().getSize() > 0 ) {
+            // If something is selected, show properties for the selected.  Otherwise, show properties for all.
+            // TODO SAM 2017-05-31 Add intelligence to select based on mouse click?
+            int [] sel = __resultsNetworks_JList.getSelectedIndices();
+            if ( sel.length == 0 ) {
+                // Process all
+                sel = new int[__resultsNetworks_JList.getModel().getSize()];
+                for ( int i = 0; i < sel.length; i++ ) {
+                    sel[i] = i;
+                }
+            }
+            for ( int i = 0; i < sel.length; i++ ) {
+                // TODO SAM 2012-10-15 Evaluate putting this in DataTable class for general use
+                String displayString = (String)__resultsNetworks_JList.getModel().getElementAt(sel[i]);
+                String networkId = uiAction_ShowResultsTable_GetTableID ( displayString );
+                NodeNetwork network = commandProcessor_GetNetwork ( networkId );
+                v.add ( "" );
+                v.add ( "Network \"" + network.getNetworkId() + "\" properties:" );
+                v.add ( "Network ID = " + networkId );
+                v.add ( "Network name = " + network.getNetworkName() );
+                v.add ( "Network nodes are listed below (most downstream to most upstream):" );
+                if ( network instanceof HydrologyNodeNetwork ) {
+                	HydrologyNodeNetwork hnetwork = (HydrologyNodeNetwork)network;
+                	// TODO sam 2017-05-31 need to evaluate how to get indentation working
+                	boolean doIndent = false;
+                	if ( doIndent ) {
+                		v.addAll(hnetwork.createIndentedRiverNetworkStrings());
+                	}
+                	else {
+	                	// Start at the bottom and navigate the network to output basic information about the network
+	                	int count = 0;
+	                	for ( HydrologyNode node = hnetwork.getMostUpstreamNode(); ; node = hnetwork.getDownstreamNode(node, HydrologyNodeNetwork.POSITION_COMPUTATIONAL) ) {
+	                		if ( node == null ) {
+	                			break;
+	                		}
+	                   		++count;
+	                   		HydrologyNode downstreamNode = node.getDownstreamNode();
+	                   		String downstreamNodeId = "";
+	                   		if ( downstreamNode != null ) {
+	                   			downstreamNodeId = downstreamNode.getCommonID();
+	                   		}
+	                		v.add ( "" + count + " Node ID = \"" + node.getCommonID() + "\", Node Name = \"" + node.getDescription() + "\", Downstream node = \"" + downstreamNodeId + "\"");
+	                		if ( node.getType() == HydrologyNode.NODE_TYPE_END ) {
+	                			break;
+	                		}
+	                	}
+                	}
+                }
+            }
+        }
+        reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+        new ReportJFrame ( v, reportProp );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error displaying table properties (" + e + ")." );
+    }
+}
+
+/**
+Show the properties for the current commands run (processor).
 */
 private void uiAction_ShowProperties_CommandsRun ()
 {
@@ -22718,6 +22963,24 @@ private class ActionListener_ResultsEnsembles implements ActionListener
         }
         else if ( command.equals(__Results_Ensemble_Properties_String) ) {
             uiAction_ResultsEnsembleProperties();
+        }
+    }
+}
+
+/**
+Internal class to handle action events from network results list.
+*/
+private class ActionListener_ResultsNetworks implements ActionListener
+{
+    /**
+    Handle a group of actions for the network popup menu.
+    @param event Event to handle.
+    */
+    public void actionPerformed (ActionEvent event)
+    {   String command = event.getActionCommand();
+
+        if ( command.equals(__Results_Network_Properties_String) ) {
+            uiAction_ShowNetworkProperties();
         }
     }
 }
