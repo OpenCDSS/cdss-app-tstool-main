@@ -1213,6 +1213,7 @@ JMenuItem
 	__Commands_Read_ReadUsgsNwisInstantaneous_JMenuItem,
 	__Commands_Read_ReadUsgsNwisRdb_JMenuItem,
 	__Commands_Read_ReadWaterML_JMenuItem,
+	__Commands_Read_ReadWaterML2_JMenuItem,
 	__Commands_Read_ReadWaterOneFlow_JMenuItem,
 	__Commands_Read_StateModMax_JMenuItem;
 
@@ -1807,6 +1808,7 @@ private String
     __Commands_Read_ReadUsgsNwisInstantaneous_String = TAB + "ReadUsgsNwisInstantaneous()... <read 1+ time series from USGS NWIS instantaneous values web service>",
 	__Commands_Read_ReadUsgsNwisRdb_String = TAB + "ReadUsgsNwisRdb()... <read 1 time series from a USGS NWIS RDB file>",
     __Commands_Read_ReadWaterML_String = TAB + "ReadWaterML()... <read 1+ time series from a WaterML file>",
+    __Commands_Read_ReadWaterML2_String = TAB + "ReadWaterML2()... <read 1+ time series from a WaterML 2 file>",
     __Commands_Read_ReadWaterOneFlow_String = TAB + "ReadWaterOneFlow()... <read 1+ time series from a WaterOneFlow web service>",
 	__Commands_Read_StateModMax_String = TAB + "StateModMax()... <generate 1+ time series as Max() of TS in two StateMod files>",
 
@@ -10121,6 +10123,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterML_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadWaterML_String, this) );
     }
+    if ( __source_WaterML_enabled ) {
+        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterML2_JMenuItem =
+            new SimpleJMenuItem(__Commands_Read_ReadWaterML2_String, this) );
+    }
     if ( __source_WaterOneFlow_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterOneFlow_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadWaterOneFlow_String, this) );
@@ -12870,6 +12876,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_Read_ReadWaterML_String)){
         commandList_EditCommand ( __Commands_Read_ReadWaterML_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Read_ReadWaterML2_String)){
+        commandList_EditCommand ( __Commands_Read_ReadWaterML2_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Read_ReadWaterOneFlow_String)){
         commandList_EditCommand ( __Commands_Read_ReadWaterOneFlow_String, null, CommandEditType.INSERT );
