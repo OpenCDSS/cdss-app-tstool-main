@@ -1316,6 +1316,7 @@ JMenuItem
 	__Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
 	__Commands_Output_WriteWaterML_JMenuItem,
+	__Commands_Output_WriteWaterML2_JMenuItem,
 	__Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem; // Also duplicated in testing commands __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile
 
 JMenu
@@ -1885,6 +1886,7 @@ private String
 	__Commands_Output_WriteTimeSeriesToHydroJSON_String = TAB + "WriteTimeSeriesToHydroJSON()... <write time series to HydroJSON file>",
 	__Commands_Output_WriteTimeSeriesToJson_String = TAB + "WriteTimeSeriesToJson()... <write time series to JSON file>",
 	__Commands_Output_WriteWaterML_String = TAB + "WriteWaterML()... <write time series to WaterML file>",
+	__Commands_Output_WriteWaterML2_String = TAB + "WriteWaterML2()... <write time series to WaterML 2 file>",
 	// See __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, which is used for this menu
 
     // Commands...Check Time Series...
@@ -6687,6 +6689,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Output_WriteWaterML2_JMenuItem, enabled);
     
     JGUIUtil.setEnabled ( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Ensemble_CopyEnsemble_JMenuItem, enabled);
@@ -10374,6 +10377,8 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     if ( __source_WaterML_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteWaterML_JMenuItem =
             new SimpleJMenuItem(__Commands_Output_WriteWaterML_String, this ) );
+        __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteWaterML2_JMenuItem =
+            new SimpleJMenuItem(__Commands_Output_WriteWaterML2_String, this ) );
     }
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
@@ -13211,6 +13216,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Output_WriteWaterML_String)){
         commandList_EditCommand ( __Commands_Output_WriteWaterML_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Output_WriteWaterML2_String)){
+        commandList_EditCommand ( __Commands_Output_WriteWaterML2_String, null, CommandEditType.INSERT );
     }
     // __Commands_Output_WriteTimeSeriesPropertiesToFile handled in testing commands.
 	else {	// Chain to next list of commands...
