@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test/unit/src"/>
-	<classpathentry kind="src" path="test/regression/src/Abbot"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-hydrobase-java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-nwsrfs-java"/>
