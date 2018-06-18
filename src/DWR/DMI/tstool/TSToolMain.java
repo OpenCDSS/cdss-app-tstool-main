@@ -905,7 +905,17 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     String userPropValue = null; // From user configuration
     Class pluginDataStoreClass = null; // Will be used if a plugin
     Class pluginDataStoreFactoryClass = null; // Will be used if a plugin
-    if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ) {
+    if ( dataStoreType.equalsIgnoreCase("ColoradoHydroBaseRestDataStore") ) {
+        propValue = getPropValue("TSTool.ColoradoHydroBaseRestEnabled");
+    	userPropValue = session.getConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		propValue = userPropValue;
+    	}
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+            packagePath = "cdss.dmi.hydrobase.rest.";
+        }
+    }
+    else if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoWaterHBGuestEnabled");
     	userPropValue = session.getConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
