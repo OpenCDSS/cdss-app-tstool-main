@@ -20840,7 +20840,7 @@ throws Exception
     ui_SetInputNameVisible(true); // Lists files
 	if ( resetInputNames ) {
 		// The StateModB input type has been selected as a change from
-		// another type.  Repopululate the list if previous choices exist...
+		// another type.  Repopulate the list if previous choices exist...
 		// TODO - probably not needed...
 		//__input_name_JComboBox.removeAll();
 		__inputName_JComboBox.setData ( __input_name_StateModB );
@@ -20916,7 +20916,7 @@ throws Exception
 	__dataType_JComboBox.removeAll ();
 	String extension = IOUtil.getFileExtension ( inputName );
 
-	List dataTypes = null;
+	List<String> dataTypes = null;
 	int interval_base = TimeInterval.MONTH;	// Default
 	int comp = StateMod_DataSet.COMP_UNKNOWN;
 	if ( extension.equalsIgnoreCase("b42" ) ) {
