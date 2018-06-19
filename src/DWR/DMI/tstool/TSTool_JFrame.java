@@ -1178,6 +1178,7 @@ JMenu
 JMenuItem
     __Commands_Create_NewPatternTimeSeries_JMenuItem,
     __Commands_Create_NewTimeSeries_JMenuItem,
+    __Commands_Create_TSID_JMenuItem,
 	__Commands_Create_ChangeInterval_JMenuItem,
 	__Commands_Create_ChangeIntervalLarger_JMenuItem,
 	__Commands_Create_ChangeIntervalSmaller_JMenuItem,
@@ -1779,6 +1780,7 @@ private String
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_NewPatternTimeSeries_String = TAB + "NewPatternTimeSeries()... <create a time series with repeating data values>",
     __Commands_Create_NewTimeSeries_String = TAB + "NewTimeSeries()... <create and initialize a new time series>",
+    __Commands_Create_TSID_String = TAB + "TSID... <add a time series identifier command>",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1+ time series using a list of identifiers>",
 	__Commands_Create_ChangeInterval_String = TAB + "ChangeInterval()... <create time series with new interval (timestep)>",
 	__Commands_Create_ChangeIntervalLarger_String = TAB + "ChangeIntervalLarger()... <create time series with larger interval (timestep)>",
@@ -3319,7 +3321,7 @@ commands are recognized by the TSCommandFactory.
 */
 private Command commandList_NewCommand ( String commandString, boolean createUnknownCommandIfNotRecognized )
 {	int dl = 1;
-	String routine = getClass().getName() + ".newCommand";
+	String routine = getClass().getSimpleName() + ".newCommand";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
 		"Using command factory to create a new command for \"" + commandString + "\"" );
@@ -3339,7 +3341,13 @@ private Command commandList_NewCommand ( String commandString, boolean createUnk
 	// Need to evaluate for old-style commands, impacts on error-handling.
 	// New is command from the processor
 	try {
-	    c.initializeCommand ( commandString, __tsProcessor, true );	// Full initialization
+		if ( c instanceof TSID_Command ) {
+			// Don't want to use the command string from the menu, so initialize with empty TSID
+			c.initializeCommand ( "", __tsProcessor, true );	// Full initialization
+		}
+		else {
+			c.initializeCommand ( commandString, __tsProcessor, true );	// Full initialization
+		}
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Initialized command for \"" + commandString + "\"" );
 		}
@@ -10134,9 +10142,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	   
     __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_NewPatternTimeSeries_JMenuItem =
        new SimpleJMenuItem(__Commands_Create_NewPatternTimeSeries_String, this ) );
-    
     __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_NewTimeSeries_String, this ) );
+    __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TSID_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_TSID_String, this ) );
     
     __Commands_CreateTimeSeries_JMenu.addSeparator();
 	// Commands that perform other processing and create new time series...
@@ -12963,6 +12972,9 @@ throws Exception
 	else if (command.equals( __Commands_Create_RelativeDiff_String)){
 		commandList_EditCommand ( __Commands_Create_RelativeDiff_String, null, CommandEditType.INSERT );
 	}
+	else if (command.equals( __Commands_Create_TSID_String)){
+		commandList_EditCommand ( __Commands_Create_TSID_String, null, CommandEditType.INSERT );
+	}
 	else {
 		// Chain to next actions...
 		uiAction_ActionPerformed06_CommandsReadMenu ( event );
@@ -14826,16 +14838,15 @@ private void uiAction_DataTypeChoiceClicked()
 
     if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoHydroBaseRestDataStore) ) {
     	ColoradoHydroBaseRestDataStore ds = (ColoradoHydroBaseRestDataStore)selectedDataStore;
-        List<String> time_steps = new ArrayList<String>(); /*= ds.getTimeSeriesTimeSteps (
-            selectedDataType,
-            //HydroBase_Util.DATA_TYPE_AGRICULTURE |
-            //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
-            //HydroBase_Util.DATA_TYPE_HARDWARE |
-            //HydroBase_Util.DATA_TYPE_STATION_ALL |
-            HydroBase_Util.DATA_TYPE_STRUCTURE_ALL //|
-            //HydroBase_Util.DATA_TYPE_WIS
-            );*/ // TOOD smalers 2018-06-018 Need to enable equivalent
-        __timeStep_JComboBox.setData ( time_steps );
+        // List<String> timeSteps = ds.getTimeSeriesTimeSteps (selectedDataType);
+        List<String> timeSteps = new ArrayList<String>();
+        timeSteps.add("Irregular");
+        timeSteps.add("15Min");
+        timeSteps.add("Hour");
+        timeSteps.add("Day");
+        timeSteps.add("Month");
+        timeSteps.add("Year");
+        __timeStep_JComboBox.setData ( timeSteps );
         __timeStep_JComboBox.select ( null );
         __timeStep_JComboBox.setEnabled ( true );
         // Select monthly as the default if available...
@@ -19732,22 +19743,19 @@ throws Exception
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
     __dataType_JComboBox.removeAll();
-    //ColoradoWaterHBGuestService service = selectedDataStore.getColoradoWaterHBGuestService();
-    List<String> dataTypes = new ArrayList<String>(); /*service.getTimeSeriesDataTypes (
-        HydroBase_Util.DATA_TYPE_AGRICULTURE |
-        //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
-        //HydroBase_Util.DATA_TYPE_HARDWARE |
-        // Comment out stations until performance is figured out
-        HydroBase_Util.DATA_TYPE_STATION_ALL |
-        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL, // |
-        //HydroBase_Util.DATA_TYPE_WIS,
-        true ); // Add notes
-        */ // TODO smalers 2018-06-18 need to enable
+    //List<String> dataTypes = selectedDataStore.getTimeSeriesDataTypes ( true ); // Add notes
+    List<String> dataTypes = new ArrayList<String>();
+    dataTypes.add("Structure - DivTotal");
+    dataTypes.add("Structure - RelTotal");
+    dataTypes.add("Structure - WaterClass");
+    dataTypes.add("Telemetry Station - DISCHRG");
+    dataTypes.add("Well - WaterLevelDepth");
+    dataTypes.add("Well - WaterLevelElev");
     __dataType_JComboBox.setData ( dataTypes );
     // Select the default (this causes the other choices to be updated)...
     // TODO SAM 2010-07-21 Default to Streamflow once implemented, like HydroBase
     __dataType_JComboBox.select( null );
-    __dataType_JComboBox.select ( "Structures - DivTotal" );
+    __dataType_JComboBox.select ( "Structure - DivTotal" );
     
     // Initialize with blank DivTotal data - will be reset when a query occurs
     __query_TableModel = new ColoradoHydroBaseRest_Structure_TableModel(
