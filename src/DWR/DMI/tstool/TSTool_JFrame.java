@@ -276,22 +276,21 @@ import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.YearType;
 import cdss.dmi.hydrobase.rest.ColoradoHydroBaseRestDataStore;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRestDataStoreHelper;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Station_CellRenderer;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Station_InputFilter_JPanel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Station_TableModel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Structure_CellRenderer;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Structure_InputFilter_JPanel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Structure_TableModel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_TelemetryStation_CellRenderer;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_TelemetryStation_TableModel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Well_CellRenderer;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Well_InputFilter_JPanel;
-import cdss.dmi.hydrobase.rest.commands.ColoradoHydroBaseRest_Well_TableModel;
 import cdss.dmi.hydrobase.rest.dao.Structure;
 import cdss.dmi.hydrobase.rest.dao.TelemetryStation;
-import cdss.dmi.hydrobase.rest.dao.WaterLevelsWells;
+import cdss.dmi.hydrobase.rest.dao.WaterLevelsWell;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRestDataStoreHelper;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Station_InputFilter_JPanel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Station_TableModel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Structure_CellRenderer;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Structure_InputFilter_JPanel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Structure_TableModel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_CellRenderer;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_TableModel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_CellRenderer;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_InputFilter_JPanel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_TableModel;
 import cdss.domain.hydrology.network.HydrologyNode;
 import cdss.domain.hydrology.network.HydrologyNodeNetwork;
 
@@ -16027,7 +16026,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	        }
     	}
         else if ( filterPanel instanceof ColoradoHydroBaseRest_Well_InputFilter_JPanel ) {
-	        List<WaterLevelsWells> tslist = helper.getWellTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_Well_InputFilter_JPanel)filterPanel );
+	        List<WaterLevelsWell> tslist = helper.getWellTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_Well_InputFilter_JPanel)filterPanel );
 	        // Make sure that size is set...
 	        if ( tslist != null ) {
 	            size = tslist.size();
