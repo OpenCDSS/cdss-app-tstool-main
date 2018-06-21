@@ -7682,7 +7682,7 @@ Return the input filter panel for the specified datastore name.  By design, this
 when working with datastores.  Eventually all the "database" input types will
 be handled (including binary files and relational databases).
 @param selectedDataStoreName name of datastore to match
-@param selectedDataType the selected data type (e.g., "Streamflow)
+@param selectedDataType the selected data type (e.g., "Streamflow, no "Group - " prefix)
 @param selectedTimeStep the selected time step (e.g., "Day")
 @return the input filter panel that matches the datastore name, or null if not found
 */
@@ -7692,42 +7692,48 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
     // This is a bit brute force because the name is embedded in the datastore but is not
     // a data member of the input panel
     // Alphabetize by "instanceof" argument
-    Message.printStatus ( 2, routine, "Setting input filter for current selected datastore \"" + selectedDataStoreName + "\"" );
+    Message.printStatus ( 2, routine, "Setting input filter for current selected datastore \"" + selectedDataStoreName +
+    	"\" data type=\"" + selectedDataType + "\" time step=\"" + selectedTimeStep + "\"" );
+    // If a match is found in the loop return the panel.
+    // Otherwise, the loop goes to the next input panel and checks it.
     for ( InputFilter_JPanel panel : __inputFilterJPanelList ) {
     	// Start ColoradoHydroBaseRestDataStore REST web services
         if ( (panel instanceof ColoradoHydroBaseRest_Station_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
-            ColoradoHydroBaseRestDataStore dataStore =
+            ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_Station_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+            if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isStationTimeSeriesDataType(selectedDataType) ) {
                 // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
         else if ( (panel instanceof ColoradoHydroBaseRest_Structure_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
-            ColoradoHydroBaseRestDataStore dataStore =
+        	Message.printStatus(1, routine, "Checking ColoradoHydroBaseRest structure input panel...");
+            ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_Structure_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+            Message.printStatus(1, routine, "Panel datastore name is \"" + datastore.getName() + "\"");
+            if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isStructureTimeSeriesDataType(selectedDataType) ) {
                 // Have a match in the datastore name so return the panel
+            	Message.printStatus(1, routine, "Have matching datastore and structure input panel...");
                 return panel;
             }
+        	Message.printStatus(1, routine, "Did not match datastore and structure input panel.");
         }
         else if ( (panel instanceof ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
-            ColoradoHydroBaseRestDataStore dataStore =
+            ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+            if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isTelemetryStationTimeSeriesDataType(selectedDataType)) {
                 // Have a match in the datastore name so return the panel
                 return panel;
             }
         }
-        else if ( (panel instanceof ColoradoHydroBaseRest_Well_InputFilter_JPanel) && (selectedDataType != null) &&
-            (selectedDataType.equalsIgnoreCase("WellLevelElev") || selectedDataType.equalsIgnoreCase("WellLevelDepth")) ) {
+        else if ( (panel instanceof ColoradoHydroBaseRest_Well_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
-        	ColoradoHydroBaseRestDataStore dataStore =
+        	ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_Well_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+            if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isWellTimeSeriesDataType(selectedDataType)) {
                 // Have a match in the datastore name so return the panel
                 return panel;
             }
@@ -15956,6 +15962,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
         Message.printStatus ( 2, "", "Datatype = \"" + selectedDataType + "\" timestep = \"" + selectedTimeStep + "\"" );
 
         ColoradoHydroBaseRestDataStoreHelper helper = new ColoradoHydroBaseRestDataStoreHelper();
+        Message.printStatus(1, routine, "Selected filter panel is " + filterPanel );
         if ( filterPanel instanceof ColoradoHydroBaseRest_Station_InputFilter_JPanel ) {
         	// TODO smalers 2018-06-19 enable when web service is available
         	/*
@@ -19869,6 +19876,7 @@ throws Exception
     	// Ignore for now.
     }
     
+    // TODO smalers 2018-06-20 need to use table model for data type, not just default to structure
     // Initialize with blank DivTotal data - will be reset when a query occurs
     __query_TableModel = new ColoradoHydroBaseRest_Structure_TableModel(
         __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
