@@ -276,6 +276,7 @@ import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.YearType;
 import cdss.dmi.hydrobase.rest.ColoradoHydroBaseRestDataStore;
+import cdss.dmi.hydrobase.rest.dao.DiversionWaterClass;
 import cdss.dmi.hydrobase.rest.dao.Structure;
 import cdss.dmi.hydrobase.rest.dao.TelemetryStation;
 import cdss.dmi.hydrobase.rest.dao.WaterLevelsWell;
@@ -288,6 +289,8 @@ import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Structure_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_CellRenderer;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_TableModel;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_CellRenderer;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_CellRenderer;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_TableModel;
@@ -15998,7 +16001,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	        */
         }
         else if ( filterPanel instanceof ColoradoHydroBaseRest_Structure_InputFilter_JPanel ) {
-	        List<Structure> tslist = helper.getStructureTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_Structure_InputFilter_JPanel)filterPanel );
+	        List<DiversionWaterClass> tslist = ds.getWaterClassesTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_Structure_InputFilter_JPanel)filterPanel );
 	        // Make sure that size is set...
 	        if ( tslist != null ) {
 	            size = tslist.size();
@@ -16007,9 +16010,9 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	        if ( size > 0 ) {
 	            Message.printStatus ( 1, routine, "" + size + " ColoradoHydroBaseRest structure time series read for data type \"" +
                 selectedDataType + "\" and timestep \"" + selectedTimeStep + "\".  Displaying data..." );
-                __query_TableModel = new ColoradoHydroBaseRest_Structure_TableModel(__query_JWorksheet, tslist );
-                ColoradoHydroBaseRest_Structure_CellRenderer cr = new ColoradoHydroBaseRest_Structure_CellRenderer(
-                    (ColoradoHydroBaseRest_Structure_TableModel)__query_TableModel);
+                __query_TableModel = new ColoradoHydroBaseRest_WaterClass_TableModel(__query_JWorksheet, tslist );
+                ColoradoHydroBaseRest_WaterClass_CellRenderer cr = new ColoradoHydroBaseRest_WaterClass_CellRenderer(
+                    (ColoradoHydroBaseRest_WaterClass_TableModel)__query_TableModel);
                 __query_JWorksheet.setCellRenderer ( cr );
                 __query_JWorksheet.setModel(__query_TableModel);
                 __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
