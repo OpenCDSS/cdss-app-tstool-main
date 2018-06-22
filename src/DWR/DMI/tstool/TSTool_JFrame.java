@@ -1224,6 +1224,7 @@ JMenuItem
     __Commands_Read_SetInputPeriod_JMenuItem,
 	//--
     __Commands_Read_CreateFromList_JMenuItem,
+	__Commands_Read_ReadColoradoHydroBaseRest_JMenuItem,
 	__Commands_Read_ReadDateValue_JMenuItem,
 	__Commands_Read_ReadDelftFewsPiXml_JMenuItem,
     __Commands_Read_ReadDelimitedFile_JMenuItem,
@@ -1822,6 +1823,7 @@ private String
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
 
 	__Commands_ReadTimeSeries_String = "Read Time Series",
+	__Commands_Read_ReadColoradoHydroBaseRest_String = TAB + "ReadColoradoHydroBaseRest()... <read 1+ time series from Colorado HydroBase web services>",
 	__Commands_Read_ReadDateValue_String = TAB + "ReadDateValue()... <read 1+ time series from a DateValue file>",
 	__Commands_Read_ReadDelftFewsPiXml_String = TAB + "ReadDelftFewsPiXml()... <read 1+ time series from a Delft FEWS PI XML file>",
     __Commands_Read_ReadDelimitedFile_String = TAB + "ReadDelimitedFile()... <read 1+ time series from a delimited file (under development)>",
@@ -10326,7 +10328,11 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Create_CreateFromList_String, this) );
    
     __Commands_ReadTimeSeries_JMenu.addSeparator ();
-	
+
+    if ( __source_ColoradoHydroBaseRest_enabled ) {
+		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoHydroBaseRest_JMenuItem =
+			new SimpleJMenuItem(__Commands_Read_ReadColoradoHydroBaseRest_String, this) );
+	}
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
@@ -13107,6 +13113,9 @@ throws Exception
     else if (command.equals( __Commands_Read_SetInputPeriod_String) ) {
         commandList_EditCommand ( __Commands_Read_SetInputPeriod_String, null, CommandEditType.INSERT );
     }
+	else if (command.equals( __Commands_Read_ReadColoradoHydroBaseRest_String)){
+		commandList_EditCommand ( __Commands_Read_ReadColoradoHydroBaseRest_String,	null, CommandEditType.INSERT );
+	}
     else if (command.equals( __Commands_Read_ReadDateValue_String)){
 		commandList_EditCommand ( __Commands_Read_ReadDateValue_String, null, CommandEditType.INSERT );
 	}
