@@ -277,8 +277,10 @@ import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.YearType;
 import cdss.dmi.hydrobase.rest.ColoradoHydroBaseRestDataStore;
 import cdss.dmi.hydrobase.rest.dao.DiversionWaterClass;
+import cdss.dmi.hydrobase.rest.dao.ReferenceTablesTelemetryParams;
 import cdss.dmi.hydrobase.rest.dao.Structure;
 import cdss.dmi.hydrobase.rest.dao.TelemetryStation;
+import cdss.dmi.hydrobase.rest.dao.TelemetryStationDataTypes;
 import cdss.dmi.hydrobase.rest.dao.WaterLevelsWell;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRestDataStoreHelper;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Station_InputFilter_JPanel;
@@ -16023,7 +16025,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	        }
     	}
         else if ( filterPanel instanceof ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel ) {
-	        List<TelemetryStation> tslist = helper.getTelemetryStationTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel)filterPanel );
+	        List<TelemetryStationDataTypes> tslist = ds.getTelemetryStationTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel)filterPanel );
 	        // Make sure that size is set...
 	        if ( tslist != null ) {
 	            size = tslist.size();
