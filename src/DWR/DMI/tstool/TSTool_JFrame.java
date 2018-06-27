@@ -16047,7 +16047,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	        }
     	}
         else if ( filterPanel instanceof ColoradoHydroBaseRest_Well_InputFilter_JPanel ) {
-	        List<WaterLevelsWell> tslist = helper.getWellTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_Well_InputFilter_JPanel)filterPanel );
+	        List<WaterLevelsWell> tslist = ds.getWellTimeSeriesCatalog(selectedDataType, selectedTimeStep, (ColoradoHydroBaseRest_Well_InputFilter_JPanel)filterPanel );
 	        // Make sure that size is set...
 	        if ( tslist != null ) {
 	            size = tslist.size();
