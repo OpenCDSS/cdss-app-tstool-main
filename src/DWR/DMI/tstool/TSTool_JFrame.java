@@ -3352,9 +3352,17 @@ private Command commandList_NewCommand ( String commandString, boolean createUnk
 	}
 	Command c = null;
 	try {
-		TSCommandFactory cf = new TSCommandFactory(this.pluginCommandClassList);
-		c = cf.newCommand(commandString);
-		Message.printStatus ( 2, routine, "Created command from factory for \"" + commandString + "\"");
+		if ( commandString.equals(__Commands_Create_TSID_String) ) {
+			// Adding a new TSID
+			// - be careful to not use the factory because it causes issues
+			c = new TSID_Command();
+		}
+		else {
+			TSCommandFactory cf = new TSCommandFactory(this.pluginCommandClassList);
+			c = cf.newCommand(commandString);
+			Message.printStatus ( 2, routine, "Created command from factory for \"" + commandString + "\"");
+			Message.printStatus ( 2, routine, "Command class is \"" + c.getClass().getName() + "\"");
+		}
 	}
 	catch ( UnknownCommandException e ) {
 		// Processor does not know the command so create an UnknownCommand.
@@ -3365,8 +3373,9 @@ private Command commandList_NewCommand ( String commandString, boolean createUnk
 	// Need to evaluate for old-style commands, impacts on error-handling.
 	// New is command from the processor
 	try {
-		if ( c instanceof TSID_Command ) {
+		if ( c instanceof TSID_Command && commandString.equals(__Commands_Create_TSID_String)) {
 			// Don't want to use the command string from the menu, so initialize with empty TSID
+			// TODO smalers 2018-06-29 maybe should initialize with "loc.source.type.interval", but UI could ensure this
 			c.initializeCommand ( "", __tsProcessor, true );	// Full initialization
 		}
 		else {
@@ -5606,7 +5615,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 false, insertOffset );
         }
     }
-    if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
         if ( __query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel ) {
             TSTool_HydroBase_WellLevel_Day_TableModel model = (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
