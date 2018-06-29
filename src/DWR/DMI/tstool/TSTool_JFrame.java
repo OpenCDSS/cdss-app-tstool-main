@@ -5566,9 +5566,9 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
                 false, insertOffset );
         }
-        else if ( __query_TableModel instanceof ColoradoHydroBaseRest_Structure_TableModel ) {
+        else if ( __query_TableModel instanceof ColoradoHydroBaseRest_WaterClass_TableModel ) {
         	// Structures
-        	ColoradoHydroBaseRest_Structure_TableModel model = (ColoradoHydroBaseRest_Structure_TableModel)__query_TableModel;
+        	ColoradoHydroBaseRest_WaterClass_TableModel model = (ColoradoHydroBaseRest_WaterClass_TableModel)__query_TableModel;
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
                 (String)__query_TableModel.getValueAt( row, model.COL_ID ),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
@@ -5585,8 +5585,9 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         else if ( __query_TableModel instanceof ColoradoHydroBaseRest_TelemetryStation_TableModel ) {
         	// Real-time stations
         	ColoradoHydroBaseRest_TelemetryStation_TableModel model = (ColoradoHydroBaseRest_TelemetryStation_TableModel)__query_TableModel;
+        	String locType = "abbrev:";
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                locType + (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
@@ -5601,8 +5602,9 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         else if ( __query_TableModel instanceof ColoradoHydroBaseRest_Well_TableModel ) {
         	// Well - for well level, etc.
         	ColoradoHydroBaseRest_Well_TableModel model = (ColoradoHydroBaseRest_Well_TableModel)__query_TableModel;
+        	String locType = "wellid:";
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
+                locType + (String)__query_TableModel.getValueAt( row, model.COL_ID ),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
