@@ -208,6 +208,7 @@ import RTi.TS.TSStatisticType;
 import RTi.TS.TSUtil;
 import RTi.TS.TSUtil_CreateTracesFromTimeSeries;
 import RTi.TS.TSUtil_NewStatisticTimeSeriesFromEnsemble;
+import RTi.TS.TimeSeriesIdentifierProvider;
 import RTi.TS.UsgsNwisRdbTS;
 import RTi.Util.GUI.FindInJListJDialog;
 import RTi.Util.GUI.HelpAboutJDialog;
@@ -277,9 +278,6 @@ import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.YearType;
 import cdss.dmi.hydrobase.rest.ColoradoHydroBaseRestDataStore;
 import cdss.dmi.hydrobase.rest.dao.DiversionWaterClass;
-import cdss.dmi.hydrobase.rest.dao.ReferenceTablesTelemetryParams;
-import cdss.dmi.hydrobase.rest.dao.Structure;
-import cdss.dmi.hydrobase.rest.dao.TelemetryStation;
 import cdss.dmi.hydrobase.rest.dao.TelemetryStationDataTypes;
 import cdss.dmi.hydrobase.rest.dao.WaterLevelsWell;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRestDataStoreHelper;
@@ -292,6 +290,7 @@ import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_CellRen
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_CellRenderer;
+import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_CellRenderer;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_InputFilter_JPanel;
@@ -5502,6 +5501,75 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
 }
 
 /**
+Add the time series list query results TSID to the command list.  These results are APPENDED to the list
+of strings already found in the __commands_JList.
+This version of the method is simpler than the overloaded version that takes as input the separate TSID parts.
+@param tsidentString Full time series identifier string to be inserted as a command.
+@param comment Comment for time series (null or empty for no comment).
+If provided it will be inserted above the TSID command.
+@param insertOffset the position to offset the insert (used to ensure that inserting multiple
+time series results in the same order in the commands, rather than first in last out appearance
+that could occur when inserting after a selected command).
+@return the number of commands inserted (may be 2 if a comment is inserted).  This is only used when
+commands are selected and prevents the insert from occurring in reverse order.
+*/
+private int queryResultsList_AppendTSIDToCommandList ( String tsidentString, String comment, int insertOffset )
+{	// Add after the last selected item or at the end if nothing is selected.
+	int selected_indices[] = ui_GetCommandJList().getSelectedIndices();
+	int selected_size = 0;
+	if ( selected_indices != null ) {
+		selected_size = selected_indices.length;
+	}
+	int insert_pos = 0;
+	if ( selected_size > 0 ) {
+		// Insert after the last item.
+	    // If this is part of a block of inserts, the insertOffset is also added to ensure that the
+	    // insert occurs at the end of the block (incremental).  Otherwise the insert is first in last
+	    // out and reversed the order of the block.
+		insert_pos = selected_indices[selected_size - 1] + 1 + insertOffset;
+	}
+	else {
+	    // Insert at the end...
+		insert_pos = __commands_JListModel.size();
+	}
+	
+	int i = 0;	// Leave this in case we add looping.
+	int offset = 0;	// Handles cases where a comment is inserted prior to the command.
+	int numberInserted = 0;
+	if ( (comment != null) && !comment.equals("") ) {
+	    // Insert a comment prior to the command, for example to include the station description.
+	    Command commentCommand = commandList_NewCommand ( "# " + comment, true );
+	    // Run the comment to set the status from unknown to success
+        try {
+            commentCommand.checkCommandParameters(null, "", 3);
+        }
+        catch ( Exception e ) {
+            // Should not happen.
+        }
+		__commands_JListModel.insertElementAt ( commentCommand, (insert_pos + i*2));
+		++numberInserted;
+		offset = 1;
+	}
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 1, "", "Inserting \"" + tsidentString + "\" at " + (insert_pos + i*2 + offset) );
+	}
+	//__commands_JListModel.insertElementAt ( tsident_string, (insert_pos + i*2 + offset));
+	Command tsid_command = commandList_NewCommand ( tsidentString, true );
+	__commands_JListModel.insertElementAt ( tsid_command, (insert_pos + i*2 + offset));
+    ++numberInserted;
+	//commandList_SetDirty ( true );
+	//ui_UpdateStatus ( false );
+    if ( tsid_command instanceof CommandDiscoverable ) {
+        // Run discovery on the command to do initial validation and provide data to other commands
+        commandList_EditCommand_RunDiscovery ( tsid_command );
+        // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+    }
+    ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
+    commandList_SetDirty ( true );
+    return numberInserted;
+}
+
+/**
 Clear the query list (e.g., when a choice changes).
 */
 private void queryResultsList_Clear ()
@@ -5550,71 +5618,32 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     DataStore selectedDataStore = ui_GetSelectedDataStore();
     if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoHydroBaseRestDataStore) ) {
     	// Start ColoradoHydroBaseRestDataStore
-        if ( __query_TableModel instanceof ColoradoHydroBaseRest_Station_TableModel ) {
-        	// Historical stations
-        	ColoradoHydroBaseRest_Station_TableModel model = (ColoradoHydroBaseRest_Station_TableModel)__query_TableModel;
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-        else if ( __query_TableModel instanceof ColoradoHydroBaseRest_WaterClass_TableModel ) {
-        	// Structures
-        	ColoradoHydroBaseRest_WaterClass_TableModel model = (ColoradoHydroBaseRest_WaterClass_TableModel)__query_TableModel;
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-        else if ( __query_TableModel instanceof ColoradoHydroBaseRest_TelemetryStation_TableModel ) {
-        	// Real-time stations
-        	ColoradoHydroBaseRest_TelemetryStation_TableModel model = (ColoradoHydroBaseRest_TelemetryStation_TableModel)__query_TableModel;
-        	String locType = "abbrev:";
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                locType + (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-        else if ( __query_TableModel instanceof ColoradoHydroBaseRest_Well_TableModel ) {
-        	// Well - for well level, etc.
-        	ColoradoHydroBaseRest_Well_TableModel model = (ColoradoHydroBaseRest_Well_TableModel)__query_TableModel;
-        	String locType = "wellid:";
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                locType + (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
+        if ( __query_TableModel instanceof ColoradoHydroBaseRest_Station_TableModel // Historical stations
+        	|| __query_TableModel instanceof ColoradoHydroBaseRest_WaterClass_TableModel // Structures with DivTotal, WaterClass, etc. types
+        	|| __query_TableModel instanceof ColoradoHydroBaseRest_TelemetryStation_TableModel  // Stations with real-time data
+        	|| __query_TableModel instanceof ColoradoHydroBaseRest_Well_TableModel // Wells with groundwater levels
+        	) {
+        	TimeSeriesIdentifierProvider tsidProvider = (TimeSeriesIdentifierProvider)__query_TableModel;
+        	TSIdent tsident = null;
+        	try {
+        		tsident = tsidProvider.getTimeSeriesIdentifier(row);
+        	}
+        	catch ( Exception e ) {
+        		return 0;
+        	}
+        	if ( tsident != null ) {
+	            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
+	                tsident.getLocation(),
+	                tsident.getSource(),
+	                tsident.getType(),
+	                tsident.getInterval(),
+	                tsident.getScenario(),
+	                tsident.getSequenceID(),
+	                selectedDataStore.getName(),
+	                tsident.getInputName(),
+	                tsident.getComment(),
+	                use_alias, insertOffset );
+        	}
         }
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
