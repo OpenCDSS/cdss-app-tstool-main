@@ -34,6 +34,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1696,13 +1699,10 @@ private JMenu
 private JMenuItem
 	__Help_AboutTSTool_JMenuItem = null,
 	__Help_ViewDocumentation_JMenuItem = null,
-	__Help_ViewDocumentation_Vol2CommandReferenceHtml_JMenuItem = null,
 	__Help_ViewDocumentation_ReleaseNotes_JMenuItem = null,
-	__Help_ViewDocumentation_ReleaseNotesOld_JMenuItem = null,
-	__Help_ViewDocumentation_Vol1UserManual_JMenuItem = null,
-	__Help_ViewDocumentation_Vol2CommandReference_JMenuItem = null,
-	__Help_ViewDocumentation_Vol3DatastoreReference_JMenuItem = null,
-	__Help_ViewTrainingMaterials_JMenuItem = null,
+	__Help_ViewDocumentation_UserManual_JMenuItem = null,
+	__Help_ViewDocumentation_CommandReference_JMenuItem = null,
+	__Help_ViewDocumentation_DatastoreReference_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
 // String labels for buttons and menus...
@@ -2231,13 +2231,10 @@ private String
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
 		__Help_ViewDocumentation_String = "View Documentation", // Menu
-		__Help_ViewDocumentation_ReleaseNotesPDF_String = "View Documentation - Release Notes (PDF)",
-		__Help_ViewDocumentation_ReleaseNotesOldPDF_String = "View Documentation - Release Notes (PDF, Old Versions)",
-		__Help_ViewDocumentation_Vol1UserManualPDF_String = "View Documentation - Volume 1 - User Manual (PDF)",
-		__Help_ViewDocumentation_Vol2CommandReferencePDF_String = "View Documentation - Volume 2 - Command Reference (PDF)",
-		__Help_ViewDocumentation_Vol2CommandReferenceHtml_String = "View Documentation - Volume 2 - Command Reference (HTML)",
-		__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String = "View Documentation - Volume 3 - Datastore Reference (PDF)",
-		__Help_ViewTrainingMaterials_String = "View Training Materials",
+		__Help_ViewDocumentation_ReleaseNotes_String = "View Documentation - Release Notes",
+		__Help_ViewDocumentation_UserManual_String = "View Documentation - User Manual",
+		__Help_ViewDocumentation_CommandReference_String = "View Documentation - Command Reference",
+		__Help_ViewDocumentation_DatastoreReference_String = "View Documentation - Datastore Reference",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
 	// Strings used in popup menu for other components...
@@ -11484,19 +11481,14 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	else {
 	    // Newer convention where documents are split apart.
 	    __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotes_JMenuItem =
-	       new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotesPDF_String,this));
-       __Help_JMenu.add ( __Help_ViewDocumentation_ReleaseNotesOld_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotesOldPDF_String,this));
-       __Help_JMenu.add ( __Help_ViewDocumentation_Vol1UserManual_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_Vol1UserManualPDF_String,this));
-       __Help_JMenu.add ( __Help_ViewDocumentation_Vol2CommandReference_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_Vol2CommandReferencePDF_String,this));
-	   __Help_JMenu.add ( __Help_ViewDocumentation_Vol2CommandReferenceHtml_JMenuItem =
-		   new SimpleJMenuItem(__Help_ViewDocumentation_Vol2CommandReferenceHtml_String,this));
-       __Help_JMenu.add ( __Help_ViewDocumentation_Vol3DatastoreReference_JMenuItem =
-           new SimpleJMenuItem(__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String,this));
+	       new SimpleJMenuItem(__Help_ViewDocumentation_ReleaseNotes_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_UserManual_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_UserManual_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_CommandReference_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_CommandReference_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_DatastoreReference_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_DatastoreReference_String,this));
 	}
-	__Help_JMenu.add ( __Help_ViewTrainingMaterials_JMenuItem = new SimpleJMenuItem(__Help_ViewTrainingMaterials_String,this));
     __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
 	/* TODO SAM 2004-05-24 Help index features are not working as well now that
@@ -14760,18 +14752,18 @@ throws Exception
 	if ( command.equals ( __Help_AboutTSTool_String )) {
 		uiAction_ShowHelpAbout ();
 	}
-	else if ( command.equals ( __Help_ViewDocumentation_Vol2CommandReferenceHtml_String ) ||
+	else if (
 		command.equals ( __Help_ViewDocumentation_String ) ||
-	    command.equals(__Help_ViewDocumentation_ReleaseNotesPDF_String) ||
-	    command.equals(__Help_ViewDocumentation_ReleaseNotesOldPDF_String) ||
-        command.equals(__Help_ViewDocumentation_Vol1UserManualPDF_String) ||
-        command.equals(__Help_ViewDocumentation_Vol2CommandReferencePDF_String) ||
-        command.equals(__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String) ) {
+	    command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ||
+        command.equals(__Help_ViewDocumentation_UserManual_String) ||
+        command.equals(__Help_ViewDocumentation_CommandReference_String) ||
+        command.equals(__Help_ViewDocumentation_DatastoreReference_String) ) {
         uiAction_ViewDocumentation ( command );
     }
-    else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
-        uiAction_ViewTrainingMaterials ();
-    }
+	// TODO smalers 2018-07-01 figure out how to link these in
+    //else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
+    //    uiAction_ViewTrainingMaterials ();
+    //}
 	else if ( command.equals ( __Help_ImportConfiguration_String )) {
         uiAction_ImportConfiguration ( IOUtil.getApplicationHomeDir() + File.separator + "system" +
             File.separator + "TSTool.cfg");
@@ -23082,48 +23074,87 @@ View the documentation by displaying using the desktop application.
 */
 private void uiAction_ViewDocumentation ( String command )
 {   String routine = getClass().getName() + ".uiAction_ViewDocumentation";
-    // The location of the documentation is relative to the application home
-    String docFileName = "";
-    if ( command.equals(__Help_ViewDocumentation_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf";
-    }
-    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotesPDF_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes.pdf";
-    }
-    else if ( command.equals(__Help_ViewDocumentation_ReleaseNotesOldPDF_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-ReleaseNotes-Old.pdf";
-    }
-    else if ( command.equals(__Help_ViewDocumentation_Vol1UserManualPDF_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol1-UserManual.pdf";
-    }
-    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReferencePDF_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol2-CommandReference.pdf";
-    }
-    else if ( command.equals(__Help_ViewDocumentation_Vol2CommandReferenceHtml_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/html/TSTool-Vol2-CommandReference/TSTool-Vol2-CommandReference.html";
-    }
-    else if ( command.equals(__Help_ViewDocumentation_Vol3DatastoreReferencePDF_String) ) {
-        docFileName = IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool-Vol3-DatastoreReference.pdf";
-    }
-    // Convert for the operating system
-    docFileName = IOUtil.verifyPathForOS(docFileName, true);
-    File f = new File(docFileName);
-    if ( f.exists() && !f.canRead() ) {
-        Message.printWarning(1, "", "Unable to display documentation.  File permissions don't allow reading: \"" + docFileName + "\"" );
-    }
-    else if ( !f.exists() ) {
-        Message.printWarning(1, "", "Unable to display documentation.  File does not exist: \"" + docFileName + "\"" );
+    // The location of the documentation is relative to root URI on the web.
+    // TODO smalers 2018-07-01 Hard code these locations for now but need a class
+    String docRootUri = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri" );
+    String docRootUri2 = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri2" );
+    List<String> docRootUriList= new ArrayList<String>(2);
+    docRootUriList.add(docRootUri);
+    docRootUriList.add(docRootUri2);
+    if ( (docRootUri == null) || docRootUri.isEmpty() ) {
+    	Message.printWarning(1, "",
+    		"Unable to determine documentation location using configuration of property \"TSTool.UserDocumentationUri\"." );
     }
     else {
-        // Now display using the default application for the file extension
-        Message.printStatus(2, routine, "Opening documentation \"" + docFileName + "\"" );
-        try {
-            Desktop desktop = Desktop.getDesktop();
-            desktop.open ( new File(docFileName) );
-        }
-        catch ( Exception e ) {
-            Message.printWarning(1, "", "Unable to display documentation at \"" + docFileName + "\" (" + e + ")." );
-        }
+    	int failCount = 0;
+    	int [] responseCode = new int[docRootUriList.size()];
+    	int i = -1;
+    	for ( String uri : docRootUriList ) {
+    		// Initialize response code to -1 which means unchecked
+    		++i;
+    		responseCode[i] = -1;
+	    	// Make sure the URI has a slash at end
+    		if ( (uri != null) && !uri.isEmpty() ) { 
+		    	String docUri = "";
+		    	if ( !docRootUri.endsWith("/") ) {
+		    		docRootUri += "/";
+		    	}
+			    if ( command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
+			        docUri = docRootUri + "appendix-release-notes/release-notes/";
+			    }
+			    else if ( command.equals(__Help_ViewDocumentation_UserManual_String) ) {
+			        docUri = docRootUri; // Go to the main documentation
+			    }
+			    else if ( command.equals(__Help_ViewDocumentation_CommandReference_String) ) {
+			        docUri = docRootUri + "command-ref/overview/";
+			    }
+			    else if ( command.equals(__Help_ViewDocumentation_DatastoreReference_String) ) {
+			        docUri = docRootUri + "datastore-ref/overview/";
+			    }
+		        // Now display using the default application for the file extension
+		        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
+		        // The Desktop.browse() method will always open, even if the page does not exist,
+		        // and it won't return the HTTP error code in this case.
+		        // Therefore, do a check to see if the URI is available before opening in a browser
+		        URL url = null;
+		        try {
+		        	url = new URL(docUri);
+		        	HttpURLConnection huc = (HttpURLConnection)url.openConnection();
+		        	huc.connect();
+		        	responseCode[i] = huc.getResponseCode();
+		        }
+		        catch ( MalformedURLException e ) {
+		        	Message.printWarning(1, "", "Unable to display documentation at \"" + docUri + "\" - malformed URL." );
+		        }
+		        catch ( IOException e ) {
+		        	Message.printWarning(1, "", "Unable to display documentation at \"" + docUri + "\" - IOException." );
+		        }
+		        catch ( Exception e ) {
+		        	Message.printWarning(1, "", "Unable to display documentation at \"" + docUri + "\" - Exception." );
+		        }
+		        finally {
+		        	// Any cleanup?
+		        }
+		        if ( responseCode[i] < 400 ) {
+			        try {
+			            Desktop desktop = Desktop.getDesktop();
+			            desktop.browse ( new URI(docUri) );
+			        }
+			        catch ( Exception e ) {
+			            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+			            ++failCount;
+			        }
+		        }
+		        else {
+		        	++failCount;
+		        }
+    		}
+    	}
+    	if ( failCount == 2 ) {
+    		// Not able to open either URI
+    		Message.printWarning(1, "", "Unable to display documentation at \"" + docRootUri + "\" (response code "
+    			+ responseCode[0] + ") or \"" + docRootUri2 + "\" (response code " + responseCode[1] + ")." );
+    	}
     }
 }
 
