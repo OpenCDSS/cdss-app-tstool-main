@@ -6,7 +6,7 @@
     
     <property file="conf/product-cdss.properties"/>
 	
-	<!-- Create the TSTool CDSS PDF user manuals, in several separate volumes to limite size -->
+	<!-- Create the TSTool CDSS PDF user manuals, in several separate volumes to limite size - DISABLED IN FAVOR OF ONLINE
 	<target name="create-user-manual-cdss" description="Merges PDF documentation into doc/dist_CDSS folder" >
         <mkdir dir="doc/UserManual/dist_CDSS/"/>
 		<property name="pdfsrc.dir" location="doc/UserManual/Word" />
@@ -30,7 +30,7 @@
 		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_CDSS_Vol3_DatastoreReference_fileList.txt" />
 		<property name="pdf_file" location="doc/UserManual/dist_CDSS/TSTool-Vol3-DatastoreReference.pdf" />
 		<antcall target="mergePDF" inheritall="true"></antcall>
-	</target>
+	</target> -->
     
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local">
@@ -47,13 +47,16 @@
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/DFORMDD.DLL"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/MSVCRTD.DLL"/>
     	<!-- Documentation -->
+    	<!-- DISABLE IN FAVOR OF ONLINE
     	<mkdir dir="${install.dir}/doc/UserManual"/>
         <copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-ReleaseNotes.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-ReleaseNotes-Old.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-Vol1-UserManual.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-Vol2-CommandReference.pdf"/>
     	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-Vol3-DatastoreReference.pdf"/>
+    	-->
     	<!-- Documentation - HTML -->
+    	<!-- DISABLE IN FAVOR OF ONLINE
     	<mkdir dir="${install.dir}/doc/UserManual/html"/>
         <copy todir="${install.dir}/doc/UserManual/html">
         	<fileset dir="../cdss-app-tstool-doc/doc/UserManual/html">
@@ -62,6 +65,7 @@
         		<include name="**/*.png"/>
         		</fileset>
         	</copy>
+        -->
     	<!-- Examples -->
     	<mkdir dir="${install.dir}/examples"/>
         <copy todir="${install.dir}/examples">
@@ -87,6 +91,7 @@
     		</copy>
     	<!-- System (configuration) files -->
     	<copy todir="${install.dir}/system" file="resources/runtime/system/ClimateDivisions.csv"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoHydroBaseRest.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoWaterHBGuest.cfg"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoWaterSMS.cfg"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>

@@ -21905,7 +21905,7 @@ private void uiAction_ShowHelpAbout ()
     "TSTool - Time Series Tool\n" +
     "A component of Colorado's Decision Support Systems (CDSS)\n" +
     IOUtil.getProgramVersion() + "\n" +
-    "Copyright 1997-2017 State of Colorado\n" +
+    "Copyright 1997-2018 State of Colorado\n" +
     "Developed by the Open Water Foundation\n" +
     "Funded by:\n" +
     "Colorado Division of Water Resources\n" +
