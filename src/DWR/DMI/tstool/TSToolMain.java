@@ -1164,12 +1164,10 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 }
 
 /**
-Open the datastores (e.g., RiversideDB connection(s)) using the TSTool configuration file information and set
+Open the datastores (e.g., database and web service connection(s)) using the TSTool configuration file information and set
 in the command processor.  The configuration file is used to determine the database server and
 name properties to use for the initial connection(s).  This method can be called from the UI code
-to automatically establish database startup database connections.
-In the UI, the user may subsequently open new connections (File...Open...RiversideDB) in which case the
-openRiversideDB() method will be called directly (no need to deal with the main TSTool configuration file).
+to automatically establish database startup database connections.SomeDataStore).
 @param session TSTool session, which provides user and environment information
 @param processor command processor that will have datastores opened
 @param pluginDataStoreClassList list of plugin datastore classes to be loaded dynamically
@@ -1280,7 +1278,12 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	    }
     }
     // Now open the datastores for found configuration files
-    for ( String dataStoreFile : dataStoreConfigFiles ) {
+    // - loop backwards since user files were added last
+    // - if a duplicate is found, use the user version first
+    int nDataStores = dataStoreConfigFiles.size();
+    List<String> openDataStoreNameList = new ArrayList<String>(); // Datastore names that have been opened
+    for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
+    	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
         Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
         // Read the properties from the configuration file
         PropList dataStoreProps = new PropList("");
@@ -1298,11 +1301,28 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
             try {
                 // Get the properties from the file
                 dataStoreProps.readPersistent();
+                String dataStoreName = dataStoreProps.getValue("Name");
+                // See if the datastore name matches one that is already open, if so, ignore it
+                boolean dataStoreAlreadyOpened = false;
+                for ( String openDataStoreName : openDataStoreNameList ) {
+                	if ( openDataStoreName.equalsIgnoreCase(dataStoreName)) {
+                		// Found a matching datastore
+                		Message.printStatus(2,routine,"Datastore \"" + dataStoreName +
+                			"\" is already open (user datastores are used before system datastores).  Skipping.");
+                		dataStoreAlreadyOpened = true;
+                		break;
+                	}
+                }
+                if ( dataStoreAlreadyOpened ) {
+                	continue;
+                }
                 // Also assign the configuration file path property to facilitate file processing later
                 // (e.g., to locate related files referenced in the configuration file, such as lists of data
                 // that are not available from web services)
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                 openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
+                // Save the datastore name so duplicates are not opened
+                openDataStoreNameList.add(dataStoreName);
             }
             catch ( ClassNotFoundException e ) {
                 Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
