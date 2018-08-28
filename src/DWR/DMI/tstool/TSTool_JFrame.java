@@ -11441,7 +11441,7 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 }
 
 /**
-Reset the File...Open...Comand Files (Recent) menu items to recent files.
+Reset the File...Open...Command Files (Recent) menu items to recent files.
 */
 private void ui_InitGUIMenus_File_OpenRecentFiles ()
 {
@@ -12529,7 +12529,6 @@ throws Exception
 	String rtn = "FileMenu";
 
 	// File Menu actions...
-
     if ( o == __File_New_CommandFile_JMenuItem ) {
         uiAction_NewCommandFile();
     }
