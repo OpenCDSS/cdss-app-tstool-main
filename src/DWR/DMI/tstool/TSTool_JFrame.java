@@ -231,6 +231,8 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
 import RTi.Util.GUI.TextResponseJDialog;
+import RTi.Util.Help.HelpViewer;
+import RTi.Util.Help.HelpViewerUrlFormatter;
 import RTi.Util.IO.AbstractCommand;
 import RTi.Util.IO.AnnotatedCommandJList;
 import RTi.Util.IO.Command;
@@ -321,6 +323,7 @@ CommandProcessorListener, // To handle command processor progress updates (when 
 CommandProgressListener, // To update the status based on progress within a command
 GeoViewListener, // To handle map interaction (not well developed)
 ItemListener, // To handle choice selections in GUI
+HelpViewerUrlFormatter, // To format URLs to display in a web browser
 JWorksheet_Listener, // To handle query result interaction
 KeyListener, // To handle keyboard input in GUI
 ListDataListener, // To change the GUI state when commands list change
@@ -4502,8 +4505,107 @@ commands list have changed.
 */
 public void contentsChanged ( ListDataEvent e )
 {
-	// The contents of the command list chagned so check the GUI state...
+	// The contents of the command list changed so check the GUI state...
 	ui_UpdateStatus ( true );	// true = also call checkGUIState();
+}
+
+// TODO smalers 2018-08-28 in the future may need a lookup file to ensure portability
+// of documentation across software versions but for now assume the organization.
+/**
+ * Format a URL to display help for a topic.
+ * The document root is taken from TSTool configuration properties and otherwise the
+ * URL pattern follows the standard created for the documentation.
+ * @param group a group (category) to organize items.
+ * For example, the group might be "command".
+ * @param item the specific item for the URL.
+ * For example, the item might be a command name.
+ */
+public String formatHelpViewerUrl ( String group, String item ) {
+	String routine = "formatHelpViewerUrl";
+	// The location of the documentation is relative to root URI on the web.
+    // - two locations are allowed to help transition from OWF to OpenCDSS location
+	// - use the first found URL
+    String docRootUri = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri" );
+    String docRootUri2 = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri2" );
+    List<String> docRootUriList= new ArrayList<String>(2);
+    docRootUriList.add(docRootUri);
+    docRootUriList.add(docRootUri2);
+    if ( (docRootUri == null) || docRootUri.isEmpty() ) {
+    	Message.printWarning(2, "",
+    		"Unable to determine documentation for group \"" + group + "\" and item \"" +
+    		item + "\" - no TSTool.UserDocumenationUri configuration property defined." );
+    }
+    else {
+    	int failCount = 0;
+    	int [] responseCode = new int[docRootUriList.size()];
+    	int i = -1;
+    	for ( String uri : docRootUriList ) {
+    		// Initialize response code to -1 which means unchecked
+    		++i;
+    		responseCode[i] = -1;
+	    	// Make sure the URI has a slash at end
+    		if ( (uri != null) && !uri.isEmpty() ) { 
+		    	String docUri = "";
+		    	if ( !docRootUri.endsWith("/") ) {
+		    		docRootUri += "/";
+		    	}
+		    	// Specific documentation requests from the UI
+			    if ( item.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
+			        docUri = docRootUri + "appendix-release-notes/release-notes/";
+			    }
+			    else if ( item.equals(__Help_ViewDocumentation_UserManual_String) ) {
+			        docUri = docRootUri; // Go to the main documentation
+			    }
+			    else if ( item.equals(__Help_ViewDocumentation_CommandReference_String) ) {
+			        docUri = docRootUri + "command-ref/overview/";
+			    }
+			    else if ( item.equals(__Help_ViewDocumentation_DatastoreReference_String) ) {
+			        docUri = docRootUri + "datastore-ref/overview/";
+			    }
+			    // Generic requests by group
+			    else if ( group.equalsIgnoreCase("command") ) {
+			    	docUri = docRootUri + "command-ref/" + item + "/" + item + "/";
+			    }
+		        // Now display using the default application for the file extension
+		        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
+		        // The Desktop.browse() method will always open, even if the page does not exist,
+		        // and it won't return the HTTP error code in this case.
+		        // Therefore, do a check to see if the URI is available before opening in a browser
+		        URL url = null;
+		        try {
+		        	url = new URL(docUri);
+		        	HttpURLConnection huc = (HttpURLConnection)url.openConnection();
+		        	huc.connect();
+		        	responseCode[i] = huc.getResponseCode();
+		        }
+		        catch ( MalformedURLException e ) {
+		        	Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - malformed URL." );
+		        }
+		        catch ( IOException e ) {
+		        	Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - IOException (" + e + ")." );
+		        }
+		        catch ( Exception e ) {
+		        	Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - Exception (" + e + ")." );
+		        }
+		        finally {
+		        	// Any cleanup?
+		        }
+		        if ( responseCode[i] < 400 ) {
+		        	// Looks like a valid URI to display
+			        return docUri.toString();
+		        }
+		        else {
+		        	++failCount;
+		        }
+    		}
+    	}
+        if ( failCount == docRootUriList.size() ) {
+        	Message.printWarning(2, "",
+        		"Unable to determine documentation for group \"" + group + "\" and item \"" +
+        		item + "\" - all URIs return error code." );
+        }
+    }
+	return null;
 }
 
 /**
@@ -8195,6 +8297,9 @@ private void ui_InitGUI ( )
 	catch (Exception e) {
 		Message.printWarning ( 2, routine, e );
 	}
+	
+	// Set the help viewer handler
+	HelpViewer.getInstance().setUrlFormatter(this);
 
 	// TODO SAM 2013-11-16 Old note: need this even if no main GUI (why? secondary windows?)...
 
@@ -23073,87 +23178,19 @@ View the documentation by displaying using the desktop application.
 */
 private void uiAction_ViewDocumentation ( String command )
 {   String routine = getClass().getName() + ".uiAction_ViewDocumentation";
-    // The location of the documentation is relative to root URI on the web.
-    // TODO smalers 2018-07-01 Hard code these locations for now but need a class
-    String docRootUri = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri" );
-    String docRootUri2 = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri2" );
-    List<String> docRootUriList= new ArrayList<String>(2);
-    docRootUriList.add(docRootUri);
-    docRootUriList.add(docRootUri2);
-    if ( (docRootUri == null) || docRootUri.isEmpty() ) {
-    	Message.printWarning(1, "",
-    		"Unable to determine documentation location using configuration of property \"TSTool.UserDocumentationUri\"." );
+	String docUri = formatHelpViewerUrl("", command);
+    if ( docUri != null ) {
+        try {
+            Desktop desktop = Desktop.getDesktop();
+            desktop.browse ( new URI(docUri) );
+        }
+        catch ( Exception e ) {
+            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+        }
     }
     else {
-    	int failCount = 0;
-    	int [] responseCode = new int[docRootUriList.size()];
-    	int i = -1;
-    	for ( String uri : docRootUriList ) {
-    		// Initialize response code to -1 which means unchecked
-    		++i;
-    		responseCode[i] = -1;
-	    	// Make sure the URI has a slash at end
-    		if ( (uri != null) && !uri.isEmpty() ) { 
-		    	String docUri = "";
-		    	if ( !docRootUri.endsWith("/") ) {
-		    		docRootUri += "/";
-		    	}
-			    if ( command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
-			        docUri = docRootUri + "appendix-release-notes/release-notes/";
-			    }
-			    else if ( command.equals(__Help_ViewDocumentation_UserManual_String) ) {
-			        docUri = docRootUri; // Go to the main documentation
-			    }
-			    else if ( command.equals(__Help_ViewDocumentation_CommandReference_String) ) {
-			        docUri = docRootUri + "command-ref/overview/";
-			    }
-			    else if ( command.equals(__Help_ViewDocumentation_DatastoreReference_String) ) {
-			        docUri = docRootUri + "datastore-ref/overview/";
-			    }
-		        // Now display using the default application for the file extension
-		        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
-		        // The Desktop.browse() method will always open, even if the page does not exist,
-		        // and it won't return the HTTP error code in this case.
-		        // Therefore, do a check to see if the URI is available before opening in a browser
-		        URL url = null;
-		        try {
-		        	url = new URL(docUri);
-		        	HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-		        	huc.connect();
-		        	responseCode[i] = huc.getResponseCode();
-		        }
-		        catch ( MalformedURLException e ) {
-		        	Message.printWarning(1, "", "Unable to display documentation at \"" + docUri + "\" - malformed URL." );
-		        }
-		        catch ( IOException e ) {
-		        	Message.printWarning(1, "", "Unable to display documentation at \"" + docUri + "\" - IOException." );
-		        }
-		        catch ( Exception e ) {
-		        	Message.printWarning(1, "", "Unable to display documentation at \"" + docUri + "\" - Exception." );
-		        }
-		        finally {
-		        	// Any cleanup?
-		        }
-		        if ( responseCode[i] < 400 ) {
-			        try {
-			            Desktop desktop = Desktop.getDesktop();
-			            desktop.browse ( new URI(docUri) );
-			        }
-			        catch ( Exception e ) {
-			            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
-			            ++failCount;
-			        }
-		        }
-		        else {
-		        	++failCount;
-		        }
-    		}
-    	}
-    	if ( failCount == 2 ) {
-    		// Not able to open either URI
-    		Message.printWarning(1, "", "Unable to display documentation at \"" + docRootUri + "\" (response code "
-    			+ responseCode[0] + ") or \"" + docRootUri2 + "\" (response code " + responseCode[1] + ")." );
-    	}
+		// Not able to open either URI
+		Message.printWarning(1, "", "Unable to display documentation at \"" + docUri );
     }
 }
 
