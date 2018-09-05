@@ -9196,8 +9196,7 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
         
         // If the an instance of a panel is not null, remove it from the list and then recreate it.
     
-        // Add input filters for stations, for historical data...
-     
+        // Add input filters for stations, for historical data (see telemetry stations for real-time data)...
         try {
             if ( __inputFilter_ColoradoHydroBaseRest_Station_JPanel != null ) {
                 __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_Station_JPanel );
@@ -9210,12 +9209,12 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
             __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_Station_JPanel );
         }
         catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest stations." );
+            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest stations for data type \""
+            	+ selectedDataType + "\" and time step \"" + selectedTimeStep + "\"" );
             Message.printWarning ( 3, routine, e );
         }
         
-        // Add input filters for structures, currently focusing on DivTotal, RelTotal.
-        
+        // Add input filters for structures, including DivTotal, RelTotal, and reservoir measurements.
         try {
             if ( __inputFilter_ColoradoHydroBaseRest_Structure_JPanel != null ) {
                 __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_Structure_JPanel );
@@ -9229,12 +9228,12 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
             __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_Structure_JPanel );
         }
         catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest structures." );
+            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest structures for data type \""
+            	+ selectedDataType + "\" and time step \"" + selectedTimeStep + "\"" );
             Message.printWarning ( 3, routine, e );
         }
         
         // Add input filters for telemetry stations, for real-time data...
-        
         try {
             if ( __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel != null ) {
                 __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel );
@@ -9247,12 +9246,12 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
             __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel );
         }
         catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest telemetry stations." );
+            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest telemetry stations for data type \""
+            	+ selectedDataType + "\" and time step \"" + selectedTimeStep + "\"" );
             Message.printWarning ( 3, routine, e );
         }
         
-        // Well water levels
-        
+        // Well water levels (pumping is under diversion records)
         try {
             if ( __inputFilter_ColoradoHydroBaseRest_Well_JPanel != null ) {
                 __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_Well_JPanel );
@@ -9265,7 +9264,8 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
             __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_Well_JPanel );
         }
         catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest wells." );
+            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest wells for data type \""
+            	+ selectedDataType + "\" and time step \"" + selectedTimeStep + "\"" );
             Message.printWarning ( 3, routine, e );
         }
     }
