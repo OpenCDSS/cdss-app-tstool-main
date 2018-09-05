@@ -16,4 +16,4 @@ rem - the following specifically sets the VM location, which works fine if devel
 rem - TODO smalers 2017-03-18 could change this script to fall back to using JAVA_HOME
 echo HECLIB_FOLDER=%HECLIB_FOLDER%
 @echo on
-"C:\Program Files (x86)\eclipse-java-neon-3-win32\eclipse\eclipse.exe" –vm "C:\Program Files (x86)\Java\jdk8\bin\javaw.exe" -vmargs -Xmx1024M
+"C:\Program Files (x86)\eclipse-java-neon-3-win32\eclipse\eclipse.exe" -vm "C:\Program Files (x86)\Java\jdk8\bin\javaw.exe" -vmargs -Xmx1024M
