@@ -96,6 +96,16 @@ checkWorkingFiles()
 	if [ $exitCode -eq 1 ]
 	then
 		echo "Working files contain modified files that need to be committed, or staged files."
+	fi
+	# The above won't detect untracked files but the following will find those
+	# - the following will return a value of 0 or greater
+	untrackedFilesCount=`git ls-files -o --directory --exclude-standard | wc -l`
+	if [ ${untrackedFilesCount} -ne "0" ]
+	then
+		echo "Working files contain ${untrackedFilesCount} untracked files that need to be committed."
+	fi
+	if [ $exitCode -eq 1 -o ${untrackedFilesCount} -ne "0" ]
+	then
 		localChangesRepoCount=`expr ${localChangesRepoCount} + 1`
 	fi
 }
