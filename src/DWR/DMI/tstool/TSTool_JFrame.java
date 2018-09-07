@@ -2460,7 +2460,7 @@ public void actionPerformed (ActionEvent event)
 	}
 	catch ( Exception e ) {
 		// Unexpected exception - user will likely see no result from their action.
-		String routine = getClass().getName() + ".actionPerformed";
+		String routine = getClass().getSimpleName() + ".actionPerformed";
 		Message.printWarning ( 2, routine, e );
 		JGUIUtil.setWaitCursor ( this, false );
 	}
@@ -2507,7 +2507,7 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 	// Update the progress bar to indicate progress (1 to number of commands... completed).
 	__processor_JProgressBar.setValue ( icommand + 1 );
 	// For debugging...
-	//Message.printStatus(2,getClass().getName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
+	//Message.printStatus(2,getClass().getSimpleName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
 	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
 	// Set the tooltip text for the progress bar to indicate the numbers
 	String tip = "Completed command " + (icommand + 1) + " of " + ncommand;
@@ -3013,7 +3013,7 @@ Run discovery on the command. This will, for example, make available a list of t
 to be requested with the ObjectListProvider.getObjectList() method.
 */
 private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
-{   String routine = getClass().getName() + ".commandList_EditCommand_RunDiscovery";
+{   String routine = getClass().getSimpleName() + ".commandList_EditCommand_RunDiscovery";
     // Run the discovery...
     Message.printStatus(2, routine, "Running discovery mode on command:  \"" + command_to_edit + "\"" );
     try {
@@ -3217,7 +3217,7 @@ is coded to respond to changes in the data model.
 @param inserted_command The command to insert.
 */
 private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
-{	String routine = getClass().getName() + ".insertCommand";
+{	String routine = getClass().getSimpleName() + ".insertCommand";
 
 	// Get the selected indices from the commands...
 	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
@@ -3249,7 +3249,7 @@ list to determine the insert position.
 @param new_comments The comments to insert, as a list of String.
 */
 private void commandList_InsertCommentsBasedOnUI ( List<String> new_comments )
-{	String routine = getClass().getName() + ".commandList_InsertCommentsBasedOnUI";
+{	String routine = getClass().getSimpleName() + ".commandList_InsertCommentsBasedOnUI";
 
 	// Get the selected indices from the commands...
 	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
@@ -3434,7 +3434,7 @@ private void commandList_RemoveCommandsBasedOnUI ()
 		size = selected_indices.length;
 	}
 	// Uncomment for troubleshooting...
-	//String routine = getClass().getName() + ".commandList_RemoveCommandsBasedOnUI";
+	//String routine = getClass().getSimpleName() + ".commandList_RemoveCommandsBasedOnUI";
 	//Message.printStatus ( 2, routine, "There are " + size +
 	//		" commands selected for remove.  If zero all will be removed." );
 	if ( (size == __commands_JListModel.size()) || (size == 0) ) {
@@ -3506,7 +3506,7 @@ Replace a contiguous block of # comments with another block.
 @param new_comments Vector of new comments (as String) to insert in its place.
 */
 private void commandList_ReplaceComments ( List<Command> old_comments, List<String> new_comments )
-{	//String routine = getClass().getName() + ".commandList_ReplaceComments";
+{	//String routine = getClass().getSimpleName() + ".commandList_ReplaceComments";
 	// Probably could get the index passed in from list operations but
 	// do the lookup through the data model to be more independent.
 	int pos_old = __tsProcessor.indexOf((Command)old_comments.get(0));
@@ -3631,7 +3631,7 @@ Kill all processes that are still running for RunProgram(), RunDSSUTL(), and Run
 This may be needed because a process is hung (e.g., waiting for input).
 */
 private void commandProcessor_CancelCommandProcessesExternal ()
-{   String routine = getClass().getName() + ".commandProcessor_CancelCommandProcessesExternal";
+{   String routine = getClass().getSimpleName() + ".commandProcessor_CancelCommandProcessesExternal";
     Message.printStatus(2, routine, "Killing all external processes started by commands..." );
     TSCommandProcessorUtil.killCommandProcesses(__tsProcessor.getCommands());
 }
@@ -4402,7 +4402,7 @@ Set the command processor initial working directory.
 @param setWorkingDir if true, also set the working directory to the same value
 */
 private void commandProcessor_SetInitialWorkingDir ( String InitialWorkingDir, boolean setWorkingDir )
-{   String routine = getClass().getName() + ".commandProcessor_setInitialWorkingDir";
+{   String routine = getClass().getSimpleName() + ".commandProcessor_setInitialWorkingDir";
 	try {
 		__tsProcessor.setPropContents( "InitialWorkingDir", InitialWorkingDir );
 	}
@@ -5242,7 +5242,7 @@ public void itemStateChanged ( ItemEvent evt )
 	}
 	catch ( Exception e ) {
 		// Unexpected exception...
-		Message.printWarning ( 2, getClass().getName() + ".itemStateChanged", e );
+		Message.printWarning ( 2, getClass().getSimpleName() + ".itemStateChanged", e );
 	}
 }
 
@@ -6423,7 +6423,7 @@ Get the ensemble identifier from a displayed ensemble item, which is in the form
 "N) EnsembleID - Ensemble Name".
 */
 private TSEnsemble results_Ensembles_GetEnsembleID ( String displayItem )
-{   String routine = getClass().getName() + ".results_Ensembles_GetEnsembleID";
+{   String routine = getClass().getSimpleName() + ".results_Ensembles_GetEnsembleID";
     String message;
     // Get the "N) EnsembleID" string...
     // This could still be an issue if the ensemble ID has " - " in the name, but at least it is less
@@ -7121,7 +7121,7 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 Enable/disable the HydroBase input type features depending on whether a HydroBaseDMI connection has been made.
 */
 private void ui_CheckHydroBaseFeatures ()
-{	String routine = getClass().getName() + ".ui_CheckHydroBaseFeatures";
+{	String routine = getClass().getSimpleName() + ".ui_CheckHydroBaseFeatures";
     HydroBaseDMI hbdmi = ui_GetHydroBaseDMILegacy();
     Message.printStatus(2, routine, "In check, connected=" + hbdmi.connected() + " isOpen=" + hbdmi.isOpen() );
     if ( (hbdmi != null) && hbdmi.isOpen() ) {
@@ -9171,7 +9171,7 @@ Initialize the ColoradoWaterHBGuest input filters, one filter panel for stations
 telemetry stations, and wells.
 */
 private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersColoradoHydroBaseRest";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersColoradoHydroBaseRest";
     int buffer = 3;
     Insets insets = new Insets(0,buffer,0,0);
     
@@ -9275,7 +9275,7 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
 Initialize the ColoradoWaterHBGuest input filter.
 */
 private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersColoradoWaterHBGuest";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersColoradoWaterHBGuest";
     int buffer = 3;
     Insets insets = new Insets(0,buffer,0,0);
     
@@ -9524,7 +9524,7 @@ Initialize the GenericDataBaseDataStore input filter (may be called at startup).
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersGenericDatabaseDataStore ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersGenericDatabaseDataStore";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersGenericDatabaseDataStore";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " GenericDatabaseDataStore datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -9573,7 +9573,7 @@ or File...Open HydroBase.
 @param y y-coordinate in the filter panel to add the input filter
 */
 private void ui_InitGUIInputFiltersHydroBaseLegacy ( HydroBaseDataStore dataStoreLegacy, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersHydroBaseLegacy";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersHydroBaseLegacy";
     int buffer = 3;
     Insets insets = new Insets(0,buffer,0,0);
     
@@ -9793,7 +9793,7 @@ Initialize the HydroBase input filters for HydroBase datastores.
 @param dataStoreList HydroBase datastores
 */
 private void ui_InitGUIInputFiltersHydroBase ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersHydroBase";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersHydroBase";
     int buffer = 3;
     Insets insets = new Insets(0,buffer,0,0);
     
@@ -9994,7 +9994,7 @@ Initialize the RCC ACIS input filter (may be called at startup).
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersRccAcis ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersRccAcis";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersRccAcis";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " RCC ACIS datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -10035,7 +10035,7 @@ Initialize the Reclamation HDB input filter (may be called at startup).
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersReclamationHDB ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersReclamationHDB";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersReclamationHDB";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " ReclamationHDB datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -10113,7 +10113,7 @@ Initialize the Reclamation Pisces input filter (may be called at startup).
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersReclamationPisces ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersReclamationPisces";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersReclamationPisces";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " ReclamationPisces datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -10191,7 +10191,7 @@ Initialize the RiversideDB input filter (may be called at startup after login or
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersRiversideDB";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersRiversideDB";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " RiversideDB datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -10233,7 +10233,7 @@ Initialize the USGS NWIS input filter (may be called at startup).
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersUsgsNwisDaily ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisDaily";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersUsgsNwisDaily";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " UsgsNwisDaily datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -10275,7 +10275,7 @@ Initialize the USGS NWIS groundwater datastore input filter (may be called at st
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersUsgsNwisGroundwater ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisGroundwater";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersUsgsNwisGroundwater";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " UsgsNwisGroundwater datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -10317,7 +10317,7 @@ Initialize the USGS NWIS instantaneous values input filter (may be called at sta
 @param y the position in the input panel that the filter should be added
 */
 private void ui_InitGUIInputFiltersUsgsNwisInstantaneous ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getName() + ".ui_InitGUIInputFiltersUsgsNwisInstantaneous";
+{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersUsgsNwisInstantaneous";
     Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
         " UsgsNwisInstantaneous datastores." );
     String selectedDataType = ui_GetSelectedDataType();
@@ -12142,7 +12142,7 @@ the location where the command file has been read/saved.
 @param initialWorkingDir The initial working directory (should be non-null).
 */
 private void ui_SetInitialWorkingDir ( String initialWorkingDir )
-{	String routine = getClass().getName() + ".ui_SetInitialWorkingDir";
+{	String routine = getClass().getSimpleName() + ".ui_SetInitialWorkingDir";
 	Message.printStatus(2, routine, "Setting the initial working directory to \"" + initialWorkingDir + "\"" );
 	__initialWorkingDir = initialWorkingDir;
 	// Also set in the processor...
@@ -13069,7 +13069,7 @@ Handle a group of actions for the Run menu.
 private void uiAction_ActionPerformed04_ViewMenu (ActionEvent event)
 throws Exception
 {   String command = event.getActionCommand();
-    //String routine = getClass().getName() + ".uiAction_ActionPerformed3b_ViewMenu";
+    //String routine = getClass().getSimpleName() + ".uiAction_ActionPerformed3b_ViewMenu";
 
     if ( command.equals(__View_DataUnits_String) ) {
         // Show the data units
@@ -14127,7 +14127,7 @@ Handle a group of actions for the Run menu.
 private void uiAction_ActionPerformed15_RunMenu (ActionEvent event)
 throws Exception
 {   String command = event.getActionCommand();
-    String routine = getClass().getName() + ".uiAction_ActionPerformed4_RunMenu";
+    String routine = getClass().getSimpleName() + ".uiAction_ActionPerformed4_RunMenu";
 
     // Run menu (order in menu)...
 
@@ -15580,7 +15580,7 @@ GUI is such that time series are available from the TSEngine.
 "-o filename").  If previewing output, this will be "-preview".
 */
 private void uiAction_ExportTimeSeriesResults ( String format, String filename )
-{	String routine = getClass().getName() + ".uiAction_ExportTimeSeriesResults";
+{	String routine = getClass().getSimpleName() + ".uiAction_ExportTimeSeriesResults";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, "In export" );
 	}
@@ -15744,8 +15744,10 @@ private void uiAction_GetTimeSeriesListClicked()
 	// Verify that the input filters have valid data...
 
 	if ( __selectedInputFilter_JPanel != __inputFilterGeneric_JPanel ) {
-		if ( !(__selectedInputFilter_JPanel).checkInput(true) ) {
+		String warning = __selectedInputFilter_JPanel.checkInputFilters(false);
+		if ( (warning != null) && !warning.isEmpty() ) {
 			// An input error was detected so don't get the time series...
+			Message.printWarning(1, routine, warning);
 			return;
 		}
 	}
@@ -16996,7 +16998,7 @@ Read the list of time series from a MODSIM file and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadMODSIMHeaders ()
 throws IOException
-{	String message, routine = getClass().getName() + ".readMODSIMHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readMODSIMHeaders";
 
 	try {
 	    JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -18540,7 +18542,7 @@ method calls are cascaded to fully reset the choices.
 selection is processed
 */
 private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
-{	String routine = getClass().getName() + "uiAction_InputNameChoiceClicked";
+{	String routine = getClass().getSimpleName() + "uiAction_InputNameChoiceClicked";
 	if ( __inputName_JComboBox == null ) {
 		return;
 	}
@@ -19859,7 +19861,7 @@ Run a command file, independent of what is shown in the UI.
 This is essentially a way to do a batch run with a separate processor
 */
 private void uiAction_RunCommandFile ()
-{	String routine = getClass().getName() + ".uiAction_RunCommandFile";
+{	String routine = getClass().getSimpleName() + ".uiAction_RunCommandFile";
 	// Select from the directory where the previous selection occurred.
 	JFileChooser fc = JFileChooserFactory.createJFileChooser ( ui_GetDir_LastExternalCommandFileRun() );
 	fc.setDialogTitle("Select " + IOUtil.getProgramName() + " Command File to Run");
@@ -20004,7 +20006,7 @@ Refresh the query choices for a ColoradoHydroBaseRest web service.
 */
 private void uiAction_SelectDataStore_ColoradoHydroBaseRest ( ColoradoHydroBaseRestDataStore selectedDataStore)
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoHydroBaseRest";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectInputName_ColoradoHydroBaseRest";
     // Input name is not currently used...
     ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll ();
@@ -20044,7 +20046,7 @@ Refresh the query choices for a ColoradoWaterHBGuest web service.
 */
 private void uiAction_SelectDataStore_ColoradoWaterHBGuest ( ColoradoWaterHBGuestDataStore selectedDataStore)
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterHBGuest";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectInputName_ColoradoWaterHBGuest";
     // Input name is not currently used...
     ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll ();
@@ -20087,7 +20089,7 @@ Refresh the query choices for the currently selected ColoradoWaterSMS datastore.
 */
 private void uiAction_SelectDataStore_ColoradoWaterSMS ( ColoradoWaterSMSDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectInputName_ColoradoWaterSMS";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectInputName_ColoradoWaterSMS";
     ui_SetInputNameVisible(false); // Not needed for datastores
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
@@ -20183,7 +20185,7 @@ throws Exception
 Set up the query options because the HydroBase input type has been selected.
 */
 private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDataStore )
-{   String routine = getClass().getName() + ".uiAction_SelectDataStore_HydroBase";
+{   String routine = getClass().getSimpleName() + ".uiAction_SelectDataStore_HydroBase";
     // Input name cleared and disabled...
     ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
@@ -20289,7 +20291,7 @@ Refresh the query choices for the currently selected RCC ACIS store.
 */
 private void uiAction_SelectDataStore_RccAcis ( RccAcisDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_RccAcis";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_RccAcis";
     RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for datastores
     // Get the list of valid object/data types from the datastore
@@ -20315,7 +20317,7 @@ Refresh the query choices for the currently selected ReclamationHDB datastore.
 */
 private void uiAction_SelectDataStore_ReclamationHDB ( ReclamationHDBDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationHDB";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_ReclamationHDB";
     // Get the DMI instance for the matching datastore
     ReclamationHDBDataStore ds = (ReclamationHDBDataStore)selectedDataStore;
     // Check the connection in case the connection timed out.
@@ -20364,7 +20366,7 @@ Refresh the query choices for the currently selected ReclamationPisces datastore
 */
 private void uiAction_SelectDataStore_ReclamationPisces ( ReclamationPiscesDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_ReclamationPisces";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_ReclamationPisces";
     // Get the DMI instance for the matching datastore
     ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)selectedDataStore;
     ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)ds.getDMI();
@@ -20410,7 +20412,7 @@ Refresh the query choices for the currently selected RiversideDB datastore.
 */
 private void uiAction_SelectDataStore_RiversideDB ( RiversideDBDataStore selectedDataStore )
 throws Exception
-{   String routine = getClass().getName() + "uiAction_SelectDataStore_RiversideDB";
+{   String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_RiversideDB";
     // Get the DMI instances for the matching datastore
     RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
     ui_SetInputNameVisible(false); // Not needed
@@ -20486,7 +20488,7 @@ Refresh the query choices for the currently selected USGS NWIS daily datastore.
 */
 private void uiAction_SelectDataStore_UsgsNwisDaily ( UsgsNwisDailyDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for datastores
     // Get the list of valid object/data types from the datastore
@@ -20512,7 +20514,7 @@ Refresh the query choices for the currently selected USGS NWIS groundwater datas
 */
 private void uiAction_SelectDataStore_UsgsNwisGroundwater ( UsgsNwisGroundwaterDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisGroundwaterDataStore dataStore = (UsgsNwisGroundwaterDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for datastores
     // Get the list of valid object/data types from the datastore
@@ -20538,7 +20540,7 @@ Refresh the query choices for the currently selected USGS NWIS instantaneous dat
 */
 private void uiAction_SelectDataStore_UsgsNwisInstantaneous ( UsgsNwisInstantaneousDataStore selectedDataStore )
 throws Exception
-{   //String routine = getClass().getName() + "uiAction_SelectDataStore_UsgsNwis";
+{   //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_UsgsNwis";
     UsgsNwisInstantaneousDataStore dataStore = (UsgsNwisInstantaneousDataStore)selectedDataStore;
     ui_SetInputNameVisible(false); // Not needed for datastores
     // Get the list of valid object/data types from the datastore
@@ -20802,7 +20804,7 @@ Set the query options because the DateValue input type has been selected.
 */
 private void uiAction_SelectInputType_DateValue ()
 throws Exception
-{   String routine = getClass().getName() + ".uiAction_SelectInputName_DateValue";
+{   String routine = getClass().getSimpleName() + ".uiAction_SelectInputName_DateValue";
     // Most information is determined from the file so set the other choices to be inactive...
     ui_SetInputNameVisible(false); // Not used
     __inputName_JComboBox.removeAll();
@@ -20838,7 +20840,7 @@ throws Exception
 Set the query options because the DIADvisor input type has been selected.
 */
 private void uiAction_SelectInputType_DIADvisor ()
-{   String routine = getClass().getName() + ".uiAction_SelectInputName_DIADvisor";
+{   String routine = getClass().getSimpleName() + ".uiAction_SelectInputName_DIADvisor";
     ui_SetInputNameVisible(false); // Not needed
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
@@ -20944,7 +20946,7 @@ throws Exception
 Set up the query options because the HydroBase input type has been selected.
 */
 private void uiAction_SelectInputType_HydroBase ()
-{   String routine = getClass().getName() + ".uiAction_SelectInputName_HydroBase";
+{   String routine = getClass().getSimpleName() + ".uiAction_SelectInputName_HydroBase";
     // Input name cleared and disabled...
     ui_SetInputNameVisible(false); // Not needed
     __inputName_JComboBox.removeAll();
@@ -21071,7 +21073,7 @@ Set up query choices because the NWSRFS FS5Files input type was selected.
 */
 private void uiAction_SelectInputType_NwsrfsFs5files ()
 throws Exception
-{   String routine = getClass().getName() + ".uiAction_SelectInputType_NwsrfsFs5files";
+{   String routine = getClass().getSimpleName() + ".uiAction_SelectInputType_NwsrfsFs5files";
     // Update the input name and let the user choose Apps Defaults or pick a directory...
     ui_SetIgnoreItemEvent ( true );     // Do this to prevent item event cascade
     ui_SetInputNameVisible(true); // Lists files
@@ -21978,7 +21980,7 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
 Show the datastores.
 */
 private void uiAction_ShowDataStores ()
-{   String routine = getClass().getName() + "uiAction_ShowDataStores";
+{   String routine = getClass().getSimpleName() + "uiAction_ShowDataStores";
     try {
         new DataStores_JFrame ( "Datastores", this, __tsProcessor.getDataStores() );
     }
@@ -21991,7 +21993,7 @@ private void uiAction_ShowDataStores ()
 Show the data units.
 */
 private void uiAction_ShowDataUnits ()
-{   String routine = getClass().getName() + "uiAction_ShowDataUnits";
+{   String routine = getClass().getSimpleName() + "uiAction_ShowDataUnits";
     try {
         new DataUnits_JFrame ( "Data Units", this, DataUnits.getUnitsData() );
     }
@@ -22418,7 +22420,7 @@ Show an output file using the appropriate display software/editor.
 @param selected Path to selected output file.
 */
 private void uiAction_ShowResultsOutputFile ( String selected )
-{   String routine = getClass().getName() + ".uiAction_ShowResultsOutputFile";
+{   String routine = getClass().getSimpleName() + ".uiAction_ShowResultsOutputFile";
     if ( selected == null ) {
         // May be the result of some UI event...
         return;
@@ -22517,7 +22519,7 @@ private String uiAction_ShowResultsTable_GetTableID ( String tableDisplayString 
 Show the properties for a table.
 */
 private void uiAction_ShowTableProperties ()
-{   String routine = getClass().getName() + "uiAction_ShowTableProperties";
+{   String routine = getClass().getSimpleName() + "uiAction_ShowTableProperties";
     try {
         // Simple text display of HydroBase properties.
         PropList reportProp = new PropList ("Table Properties");
@@ -23177,7 +23179,7 @@ View the documentation by displaying using the desktop application.
 @param command the string from the action event (menu string).
 */
 private void uiAction_ViewDocumentation ( String command )
-{   String routine = getClass().getName() + ".uiAction_ViewDocumentation";
+{   String routine = getClass().getSimpleName() + ".uiAction_ViewDocumentation";
 	String docUri = formatHelpViewerUrl("", command);
     if ( docUri != null ) {
         try {
@@ -23198,7 +23200,7 @@ private void uiAction_ViewDocumentation ( String command )
 View the training materials by displaying in file browser.
 */
 private void uiAction_ViewTrainingMaterials ()
-{   String routine = getClass().getName() + ".uiAction_ViewTrainingMaterials";
+{   String routine = getClass().getSimpleName() + ".uiAction_ViewTrainingMaterials";
     // The location of the documentation is relative to the application home
     String trainingFolderName = IOUtil.getApplicationHomeDir() + "/doc/Training";
     // Convert for the operating system
