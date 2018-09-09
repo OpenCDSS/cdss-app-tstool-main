@@ -79,7 +79,7 @@ such as documentation managed with command line Git or other Git tools.
 |-------------------------------------------------------------------------------------------------------------|--|----------------------------------------------------|
 |[`cdss-app-tstool-doc`](https://github.com/OpenWaterFoundation/cdss-app-tstool-doc)                          |y |Legacy TSTool documentation and training (Word/PDF).|
 |[`cdss-app-tstool-doc-dev`](https://github.com/OpenWaterFoundation/cdss-app-tstool-doc-dev)                  |N |TSTool developer documentation (Markdown/MkDocs).|
-|[`cdss-app-tstool-doc-user`](https://github.com/OpenWaterFoundation/cdss-app-tstool-user)                    |N |TSTool user documentation (Markdown/MkDocs).|
+|[`cdss-app-tstool-doc-user`](https://github.com/OpenWaterFoundation/cdss-app-tstool-doc-user)                |N |TSTool user documentation (Markdown/MkDocs).|
 |`cdss-app-tstool-main`                                                                                       |Y |TSTool main application code (this repo).|
 |[`cdss-app-tstool-test`](https://github.com/OpenWaterFoundation/cdss-app-tstool-test)                        |y |TSTool functional tests using TSTool testing framework.|
 |[`cdss-archive-nsis-2.46`](https://github.com/OpenWaterFoundation/cdss-archive-nsis-2.46)                    |N |Archive of NSIS 2.46, to set up development environment.|
