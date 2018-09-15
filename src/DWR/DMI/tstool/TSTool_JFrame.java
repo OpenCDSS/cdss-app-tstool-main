@@ -1465,6 +1465,7 @@ JMenuItem
 JMenu
 	__Commands_General_Logging_JMenu = null;
 JMenuItem
+	__Commands_General_Logging_ConfigureLogging_JMenuItem = null,
 	__Commands_General_Logging_StartLog_JMenuItem = null,
 	__Commands_General_Logging_SetDebugLevel_JMenuItem = null,
 	__Commands_General_Logging_SetWarningLevel_JMenuItem = null,
@@ -2055,6 +2056,7 @@ private String
     __Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
     
 	__Commands_General_Logging_String = "General - Logging and Messaging",
+	__Commands_General_Logging_ConfigureLogging_String = TAB + "ConfigureLogging()... <configure logging>",
 	__Commands_General_Logging_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
 	__Commands_General_Logging_SetDebugLevel_String = TAB +	"SetDebugLevel()... <set debug message level>",
 	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
@@ -11170,6 +11172,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     
 	__Commands_JMenu.add( __Commands_General_Logging_JMenu = new JMenu( __Commands_General_Logging_String, true ) );	
 	__Commands_General_Logging_JMenu.setToolTipText("Control logging (tracking).");
+	__Commands_General_Logging_JMenu.add(__Commands_General_Logging_ConfigureLogging_JMenuItem =
+	    new SimpleJMenuItem(__Commands_General_Logging_ConfigureLogging_String, this ) );
 	__Commands_General_Logging_JMenu.add(__Commands_General_Logging_StartLog_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_StartLog_String, this ) );
 	__Commands_General_Logging_JMenu.add (__Commands_General_Logging_SetDebugLevel_JMenuItem =
@@ -13915,6 +13919,9 @@ throws Exception
 	
 	// General commands...
     // General - Logging commands...
+	else if (command.equals( __Commands_General_Logging_ConfigureLogging_String) ) {
+		commandList_EditCommand ( __Commands_General_Logging_ConfigureLogging_String, null, CommandEditType.INSERT );
+	}
 	else if (command.equals( __Commands_General_Logging_StartLog_String) ) {
 		commandList_EditCommand ( __Commands_General_Logging_StartLog_String, null, CommandEditType.INSERT );
 	}
