@@ -61,7 +61,7 @@ Name "${DISPLAYNAME}"
 !endif
 
 SetCompressor lzma
-BrandingText "Open Water Foundation"
+BrandingText "OpenCDSS"
 
 # Included files
 !include "UMUI.nsh"
@@ -288,8 +288,10 @@ Section "Start Menu" StartMenu
     CreateShortCut "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk" "$INSTDIR\bin\${CODENAME}.exe"
     
     # Shortcut for uninstall of program
-    SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk" $INSTDIR\Uninstall_${NAMEVERSION}.exe
+    # - as of TSTool 12.06.00 2018-09-14 don't include the uninstall menu because it takes up space
+    # - can remove using normal Windows software uninstall tool
+    #SetOutPath $SMPROGRAMS\$StartMenuGroup\Uninstall
+    #CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk" $INSTDIR\Uninstall_${NAMEVERSION}.exe
     
     skipMenu:
     
@@ -298,8 +300,9 @@ Section "Start Menu" StartMenu
       Goto Done
       
     # Shortcut for TSTool documentation
-    SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION} User Manual.lnk" $INSTDIR\doc\UserManual\${CODENAME}.pdf
+    # - as of TSTool 12.06.00 2018-09-14 don't need this since it is on the web and accessible from TSTool Help menu
+    #SetOutPath $SMPROGRAMS\$StartMenuGroup\Documentation
+    #CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION} User Manual.lnk" $INSTDIR\doc\UserManual\${CODENAME}.pdf
       
     !insertmacro MUI_STARTMENU_WRITE_END  
       
@@ -352,8 +355,10 @@ Section "Uninstall"
     DetailPrint "Removing Menu Items and Links"
     # delete registry and StartMenu stuff
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${NAMEVERSION}.lnk"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk"
-    Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION} User Manual.lnk"
+    # Comment the following since uninstall link should no longer be added as of 2018-09-14
+    #Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall\${NAMEVERSION}.lnk"
+    # Comment the following since documentation link should no longer be added as of 2018-09-14
+    #Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation\${NAMEVERSION} User Manual.lnk"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Documentation"
     RmDir /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\${NAMEVERSION}.lnk"
@@ -432,7 +437,7 @@ Function .onInstSuccess
     #  DetailPrint "Skipping README"
     #next2:
     
-    MessageBox MB_YESNO "Would you like to run the program?" IDYES true IDNO false
+    MessageBox MB_YESNO "Would you like to run the program (if installer is run as administrator you will not have access to specific user configuration TSTool files)?" IDYES true IDNO false
     true:
       Exec '"$INSTDIR\bin\${CODENAME}.exe"'
       Goto next
