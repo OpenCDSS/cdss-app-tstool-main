@@ -220,6 +220,10 @@ localChangesRepoCount=0
 # - ignore comment lines starting with #
 while IFS= read -r repoName
 do
+	# Make sure there are no carriage returns in the string
+	# - can happen because file may have Windows-like endings but Git Bash is Linux-like
+	#- use sed because it is more likely to be installed than dos2unix
+	repoName=`echo ${repoName} | sed 's/\r$//'`
 	if [ -z "${repoName}" ]
 	then
 		# Blank line
