@@ -22026,7 +22026,7 @@ private void uiAction_ShowHelpAbout ()
     "and others\n" +
     "Send questions and comments to:\n" +
     "steve.malers@openwaterfoundation.org or\n" +
-    "cdss@state.co.us\n", true );
+    "DNR_OpenCDSS@state.co.us\n", true );
 }
 
 /**
