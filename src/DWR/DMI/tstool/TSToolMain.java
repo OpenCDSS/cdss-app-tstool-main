@@ -68,7 +68,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "12.06.00 (2018-09-14)";
+public static final String PROGRAM_VERSION = "12.07.00 (2018-09-19)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -152,6 +152,118 @@ Command file being processed when run in batch mode with -commands File.
 private static String __commandFile = null;
 
 /**
+ * Find the list of plugin jar files using old (TSTool 12.07.00 and later approach).
+ * @param session TSTool session.
+ * @param pluginJarList List of full path to plugin jar file.
+ */
+private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List<String> pluginJarList ) {
+	String routine = "TSToolMain.findDataStorePluginJarFilesNew";
+	// Get a list of jar files in the plugins folder
+	File pluginsFolder = new File(session.getPluginsFolder());
+	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + pluginsFolder + "\"");
+	try {
+		getMatchingFilenamesInTree ( pluginJarList, pluginsFolder, ".*.jar" );
+	}
+	catch ( Exception e ) {
+		// Should not happen
+	}
+	// Loop through the jar files and make sure the manifest contains at least one "DataStore-Class" value.
+	/* For now return all found jars without trying to filter to only those containing DataStore class
+	for ( String file : fileList ) {
+		JarInputStream jarStream = null;
+		try {
+			// Open the META-INF/MANIFEST.MF file and get the property Datastore-Class, which is what needs to be loaded
+			jarStream = new JarInputStream(pluginClassURLs[i].openStream());
+			Manifest manifest = jarStream.getManifest();
+			Attributes attributes = manifest.getMainAttributes();
+			// TODO SAM 2016-04-03 may also need the datastore factory class
+			String dataStoreClassToLoad = attributes.getValue("Datastore-Class");
+			if ( dataStoreClassToLoad == null ) {
+				Message.printWarning(3, routine,
+					"Cannot find Datastore-Class property in jar file MANIFEST.  Cannot load datastore class \"" + dataStoreClassToLoad + "\"");
+			}
+			else {
+				// The following will search the list of URLs that was provided to the constructor
+				Message.printStatus(2, routine, "Trying to load datastore class \"" + dataStoreClassToLoad + "\"");
+				// This class is an instance of URLClassLoader so can run the super-class loadClass()
+				Class<?> loadedClass = loadClass(dataStoreClassToLoad);
+				Message.printStatus(2, routine, "Loaded datastore class \"" + dataStoreClassToLoad + "\"");
+				pluginDataStoreList.add(loadedClass);
+			}
+		}
+		catch ( IOException ioe ) {
+			Message.printWarning(3,routine,"Error loading plugin datastore from \"" + pluginClassURLs[i] + "\"");
+		}
+		finally {
+			if ( jarStream != null ) {
+				try {
+					jarStream.close();
+				}
+				catch ( IOException e ) {
+					// Ignore - should not happen
+				}
+			}
+		}
+		// The file contains necessary metadata so assume the datastore is OK to load
+		pluginJarList.add(file);
+	}
+	*/
+}
+
+/**
+ * Find the list of plugin jar files using old (pre-TSTool 12.06.00 approach).
+ * @param session TSTool session.
+ * @param pluginJarList List of full path to plugin jar file.
+ */
+private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List<String> pluginJarList ) {
+	String routine = "TSToolMain.findDatastorePluginJarFilesOld";
+	final String [] pluginHomeFolders = {
+			// InstallHome/plugin-datastore
+			__tstoolInstallHome + File.separator + "plugin-datastore",
+			// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
+			session.getUserFolder() + File.separator + "plugin-datastore"
+		};
+	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
+		// First get a list of candidate URLs, using path to jar file
+		String pluginDir = pluginHomeFolders[iPluginHome];
+		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
+		// in which case ** will need to be used somehow in the glob pattern
+		String glob = pluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
+		// For glob backslashes need to be escaped (this should not impact Linux)
+		glob = glob.replace ("\\","\\\\");
+		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
+		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
+				Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
+				if ( pathMatcher.matches(file)) {
+					Message.printStatus(2,routine,"Found jar file for plugin datastore: " + file);
+					pluginJarList.add(""+file);
+				}
+				return FileVisitResult.CONTINUE;
+			}
+			
+			@Override
+			public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+		};
+		try {
+			// The following walks the tree path under the specified folder
+			// The full path is returned during walking (not just under the starting folder)
+			Path pluginDirPath = Paths.get(pluginDir);
+			Message.printStatus(2,routine, "Trying to find plugin datastores using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
+			Files.walkFileTree(pluginDirPath, matcherVisitor);
+		}
+		catch ( IOException e ) {
+			Message.printWarning(3,routine,"Error getting jar file list for plugin datastore(s) (" + e + ")" );
+			// Return empty list of datastore plugin classes
+			return;
+		}
+	}
+}
+
+/**
 Return the batch server hot folder.
 @return the batch server hot folder
 */
@@ -197,6 +309,56 @@ public static JFrame getJFrame ()
 }
 
 /**
+ * Return the TSTool major version or zero if an issue (should not happen).
+ * @return the major TSTool version
+ */
+private static int getMajorVersion () {
+    // Initialize the TSTool session with the major program version.
+    // - this will cause .tstool/ user files to be initialized if necessary
+    int majorVersion = 0;
+    try {
+    	System.out.println("program version: " + IOUtil.getProgramVersion());
+    	majorVersion = Integer.parseInt(IOUtil.getProgramVersion().split("\\.")[0].trim());
+    	System.out.println("Major version: " + majorVersion);
+    }
+    catch ( Exception e ) {
+    	Message.printWarning(1,"TSTool", "Error getting TSTool major version number (" + e + ")." );
+    }
+    return majorVersion;
+}
+
+/**
+Visits all files and directories under the given directory and if
+the file matches the pattern it is added to the file list.
+All commands file that end with ".jar" will be added to the list.
+@param fileList List of command files that are matched, to be appended to.
+@param path Folder in which to start searching for command files.
+@param pattern Pattern to match when searching files, for example "*.jar".
+@throws IOException 
+ */
+private static void getMatchingFilenamesInTree ( List<String> fileList, File path, String pattern ) 
+throws IOException
+{   //String routine = "getMatchingFilenamesInTree";
+    if (path.isDirectory()) {
+        String[] children = path.list();
+        for (int i = 0; i < children.length; i++) {
+        	// Recursively call with full path using the directory and child name.
+        	getMatchingFilenamesInTree(fileList,new File(path,children[i]), pattern);
+        }
+    }
+    else {
+        //add to list if command file is valid
+        String pathName = path.getName();
+    	//Message.printStatus(2, routine, "Checking path \"" + pathName + "\" against \"" + pattern + "\"" );
+    	// Do comparison on file name without directory.
+        if( pathName.matches( pattern ) ) {
+        	//Message.printStatus(2, "", "File matched: \"" + path + "\".");
+        	fileList.add(path.toString());
+        }
+    }
+}
+
+/**
 Return a TSTool property.  The properties are defined in the TSTool configuration file.
 @param propertyExp name of property to look up as a Java regular expression.
 @return the value(s) for a TSTool configuration property, or null if a properties file does not exist.
@@ -238,9 +400,9 @@ Instantiates the application instance as an applet.
 public void init()
 {	String routine = "TSToolMain.init";
 
-	TSToolSession session = TSToolSession.getInstance();
+	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null ); // Do first, needed by session
+	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
 	IOUtil.setApplet ( this );
-	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null );
 	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
     new MessageEventQueue();
     try {
@@ -259,8 +421,11 @@ public void init()
 	// Show the main GUI, although later might be able to start up just
 	// the TSView part via a web site.
 	String commandFile = null;
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginDataStoreClasses = new ArrayList<Class>();
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginDataStoreFactoryClasses = new ArrayList<Class>();
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginCommandClasses = new ArrayList<Class>();
 	__tstool_JFrame = new TSTool_JFrame ( session, commandFile, false,
 		pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
@@ -356,9 +521,10 @@ public static boolean isRestServer()
 Load plugin datastores.  Plugin files can exist in two locations:
 <ul>
 <li> TSToolInstallFolder/plugin-datastore/DataStoreName/bin/DataStore-version.jar</li> - preferred plugin home,
-will ensure that it continues to work
+will ensure that it continues to work (prototyped in TSTool 12.06.00 and earlier)
 <li> UserHomeFolder/.tstool/plugin-datastore/DataStoreName/bin/DataStore-version.jar</li> - can be used during development
-but plugins will likely not work with all versions of TSTool
+but plugins will likely not work with all versions of TSTool (prototyped in TSTool 12.06.00 and earlier)
+<li> UserHomeFolder/.tstool/12/plugins or subfolder (prototyped in TSTool 12.07.00)
 </ul>
 @param session TSTool session, which provides user and environment information.
 @param pluginDataStoreList empty list of plugin datastores, will be populated by this method.
@@ -367,56 +533,55 @@ but plugins will likely not work with all versions of TSTool
 private static void loadPluginDataStores(TSToolSession session, @SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList )
 {
-	final String routine = "loadPluginDataStores";
-	final List<String> pluginJarList = new ArrayList<String>();
-	final String [] pluginHomeFolders = {
-		// InstallHome/plugin-datastore
-		__tstoolInstallHome + File.separator + "plugin-datastore",
-		// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
-		session.getUserFolder() + File.separator + "plugin-datastore"
-	};
-	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
-		// First get a list of candidate URLs, using path to jar file
-		String pluginDir = pluginHomeFolders[iPluginHome];
-		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
-		// in which case ** will need to be used somehow in the glob pattern
-		String glob = pluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
-		// For glob backslashes need to be escaped (this should not impact Linux)
-		glob = glob.replace ("\\","\\\\");
-		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
-		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
-				Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
-				if ( pathMatcher.matches(file)) {
-					Message.printStatus(2,routine,"Found jar file for plugin datastore: " + file);
-					pluginJarList.add(""+file);
-				}
-				return FileVisitResult.CONTINUE;
-			}
-			
-			@Override
-			public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
-				return FileVisitResult.CONTINUE;
-			}
-		};
-		try {
-			// The following walks the tree path under the specified folder
-			// The full path is returned during walking (not just under the starting folder)
-			Path pluginDirPath = Paths.get(pluginDir);
-			Message.printStatus(2,routine, "Trying to find plugin datastores using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
-			Files.walkFileTree(pluginDirPath, matcherVisitor);
-		}
-		catch ( IOException e ) {
-			Message.printWarning(3,routine,"Error getting jar file list for plugin datastore(s) (" + e + ")" );
-			// Return empty list of datastore plugin classes
-			return;
-		}
+	final String routine = "TSToolMain.loadPluginDataStores";
+	// Find jar files that contain datastores
+	Message.printStatus(2, routine, "Loading plugin datastores using old and then new approach...");
+	// First use the old approach (TSTool 12.06.00 and earlier)
+	final List<String> pluginJarListOld = new ArrayList<String>();
+	findPluginDataStoreJarFilesOld ( session, pluginJarListOld );
+	loadPluginDataStoresOld("", session, pluginJarListOld, pluginDataStoreList, pluginDataStoreFactoryList );
+	// Next use the new approach (TSTool 12.07.00 and later)
+	final List<String> pluginJarListNew = new ArrayList<String>();
+	findPluginDataStoreJarFilesNew ( session, pluginJarListNew );
+	loadPluginDataStoresNew(session, pluginJarListNew, pluginDataStoreList, pluginDataStoreFactoryList );
+}
+
+/**
+ * Load plugin datastore clases using new (TSTool 12.07.00 and later approach).
+ * Currently uses the old approach because at this point the list of candidate jar files is processed.
+ * @param session
+ * @param pluginJarList
+ * @param pluginDataStoreList
+ * @param pluginDataStoreFactoryList
+ */
+private static void loadPluginDataStoresNew(TSToolSession session, List<String> pluginJarList,
+		@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
+		@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList ) {
+	// Try using the old logic for now
+	loadPluginDataStoresOld( "New", session, pluginJarList, pluginDataStoreList, pluginDataStoreFactoryList );
+}
+
+/**
+ * Load plugin datastore classes using old (TSTool 12.06.00 and earlier approach).
+ * @param session
+ * @param pluginJarList
+ * @param pluginDataStoreList
+ * @param pluginDataStoreFactoryList
+ */
+private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession session, List<String> pluginJarList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList ) {
+	if ( messagePrefix.isEmpty() ) {
+		messagePrefix = "Old";
+		// Use for messages so it is clear whether processing old or new datastore configurations
 	}
+	String routine = "TSToolMain.loadPluginDataStores" + messagePrefix;
 	// Create a separate class loader for each plugin to maintain separation
 	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder
+	Message.printStatus(2, routine, "Trying to load plugin datastores from " + pluginJarList.size() + " candidate jar files");
 	for ( String pluginJar : pluginJarList ) {
 		// TODO figure out if only the top level datastore Jar file should be included
+		Message.printStatus(2, routine, "Trying to load plugin datastores from \"" + pluginJar + "\"");
 		URL [] dataStoreJarURLs = new URL[2];
 		try {
 			// Convert the file system filename to URL using forward slashes
@@ -440,7 +605,9 @@ private static void loadPluginDataStores(TSToolSession session, @SuppressWarning
 		}
 		// Create a class loader specific to the datastore.  This expects the datastore to be in the jar file with class name XXXXXDataStore.
 		PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
+		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreList1 = null;
+		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreFactoryList1 = null;
 		try {
 			pluginDataStoreList1 = pcl.loadDataStoreClasses();
@@ -467,13 +634,14 @@ private static void loadPluginDataStores(TSToolSession session, @SuppressWarning
 			}
 			*/
 		}
-		// For now require that one datastore class and one datastore class factor are loaded for each datastore.
+		// For now require that one datastore class and one datastore class factory are loaded for each datastore.
 		if ( pluginDataStoreList1 == null ) {
 			Message.printWarning(2,routine,"Null datastore for plugin Jar \"" + pluginJar + "\" - skipping plugin." );
 		}
 		else {
 			if ( pluginDataStoreList1.size() != 1 ) {
-				Message.printWarning(2,routine,"Datastore plugin list is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+				Message.printWarning(2,routine,"Datastore plugin list size (" + pluginDataStoreList1.size() +
+					") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
 			}
 			else {
 				// Add to the list to be known to TSTool
@@ -485,7 +653,8 @@ private static void loadPluginDataStores(TSToolSession session, @SuppressWarning
 		}
 		else {
 			if ( pluginDataStoreFactoryList1.size() != 1 ) {
-				Message.printWarning(2,routine,"Datastore plugin factory list is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+				Message.printWarning(2,routine,"Datastore plugin factory list size (" + pluginDataStoreFactoryList1.size() +
+					") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
 			}
 			else {
 				// Add to the list to be known to TSTool
@@ -496,7 +665,7 @@ private static void loadPluginDataStores(TSToolSession session, @SuppressWarning
 }
 
 /**
-Load plugin commands.  Plugin files can exist in two locations:
+Load plugin commands.  Plugin files can exist in three locations:
 <ul>
 <li> TSToolInstallFolder/plugin-command/CommandName/bin/Command-version.jar</li> - preferred plugin home,
 will ensure that it continues to work
@@ -507,7 +676,7 @@ but plugins will likely not work with all versions of TSTool
 */
 @SuppressWarnings("rawtypes")
 private static List<Class> loadPluginCommands(TSToolSession session)
-{	final String routine = "loadPluginCommands";
+{	final String routine = "TSToolMain.loadPluginCommands";
 	final List<String> pluginJarList = new ArrayList<String>();
 	final String [] pluginHomeFolders = {
 		// InstallHome/plugin-command
@@ -611,10 +780,12 @@ public static void main ( String args[] )
 	// Main try...
 
 	// TSTool session properties are a singleton
-	TSToolSession session = TSToolSession.getInstance();
+	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args ); // Do first, needed by session to find local files, plugins, etc.
+	//System.out.println("Program version: " + IOUtil.getProgramVersion());
+	//System.out.println("Program major version: " + getMajorVersion());
+	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
 	initializeLoggingLevelsBeforeLogOpened();
 	setWorkingDirInitial ();
-	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args );
 	JGUIUtil.setAppNameForWindows("TSTool");
 	
 	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
@@ -663,7 +834,9 @@ public static void main ( String args[] )
 
 	// Load plugin datastore classes
 	
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginDataStoreClasses = new ArrayList<Class>();
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginDataStoreFactoryClasses = new ArrayList<Class>();
 	try {
 		loadPluginDataStores(session, pluginDataStoreClasses, pluginDataStoreFactoryClasses);
@@ -675,6 +848,7 @@ public static void main ( String args[] )
 	
 	// Load plugin command classes
 	
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginCommandClasses = loadPluginCommands(session);
 	
 	// Run TSTool in the run mode indicated by command line parameters
@@ -889,7 +1063,8 @@ Otherwise, opening datastores takes time and impacts performance.
 @param isBatch indicate whether running in batch mode - if true, do not open datastores with login of "prompt"
 */
 protected static DataStore openDataStore ( TSToolSession session, PropList dataStoreProps,
-	TSCommandProcessor processor, List<Class> pluginDataStoreClassList, List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
+	TSCommandProcessor processor, @SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
 {   String routine = "TSToolMain.openDataStore";
     // Open the datastore depending on the type
@@ -903,8 +1078,9 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     // Similar checks are done in the TSTool UI to enable/disable UI features
     String propValue = null; // From software installation configuration
     String userPropValue = null; // From user configuration
-    Class pluginDataStoreClass = null; // Will be used if a plugin
-    Class pluginDataStoreFactoryClass = null; // Will be used if a plugin
+	//Class pluginDataStoreClass = null; // Will be used if a plugin
+    @SuppressWarnings("rawtypes")
+	Class pluginDataStoreFactoryClass = null; // Will be used if a plugin
     if ( dataStoreType.equalsIgnoreCase("ColoradoHydroBaseRestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoHydroBaseRestEnabled");
     	userPropValue = session.getConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
@@ -1044,10 +1220,13 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     else {
     	// Try to load plugin by matching the datastore type with the datastore class name
     	boolean loaded = false;
-		// Loop through the datastore classes to find which has a name that matches the datatore type in configuration file 
-		for ( Class c : pluginDataStoreFactoryClassList ) {
+		// Loop through the datastore classes to find which has a name that matches the datastore type in configuration file
+    	String dataStoreFactory = dataStoreType + "Factory";
+		for ( @SuppressWarnings("rawtypes") Class c : pluginDataStoreFactoryClassList ) {
 			String nameFromClass = c.getSimpleName(); // Something like DatabaseXDataStoreFactory
-			if ( nameFromClass.equals(dataStoreType+"Factory") ) {
+			Message.printStatus(2, routine, "Checking plugin datastore config file \"" +
+				dataStoreConfigFile + "\" for configuration datastore type \"" + nameFromClass + "\"");
+			if ( nameFromClass.equals(dataStoreFactory) ) {
 				// Construction will occur by the datastore factory below but need the package name
 				packagePath = c.getPackage().toString() + "."; // Actually have problems with this
 				pluginDataStoreFactoryClass = c; // Use directly below
@@ -1056,8 +1235,10 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 			}
 		}
     	if ( !loaded ) {
+    		Message.printStatus(2, routine, "Checking plugin datastores for \"" + dataStoreType +
+    			"\".  Did not find datastore factory \"" + dataStoreFactory + "\".");
 	        throw new InvalidParameterException("Datastore type \"" + dataStoreType +
-	            "\" is not recognized - cannot initialize datastore connection." );
+	            "\" did not have factory class in plugins - cannot initialize datastore connection." );
     	}
     }
     if ( !packagePath.equals("") ) {
@@ -1077,7 +1258,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             if ( pluginDataStoreFactoryClass != null ) {
             	// This works for plugins
 	            try {
-		    		Constructor<?> constructor = pluginDataStoreFactoryClass.getConstructor();
+		    		@SuppressWarnings("unchecked")
+					Constructor<?> constructor = pluginDataStoreFactoryClass.getConstructor();
 		    		Object dataStoreFactory = constructor.newInstance();
 		    		// The object must be a DataStore if it follows implementation requirements
 		    		factory = (DataStoreFactory)dataStoreFactory;
@@ -1097,7 +1279,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             }
             else {
                 Message.printStatus(2, routine, "Getting class for name \"" + className + "\"" );
-                Class clazz = Class.forName( className );
+                @SuppressWarnings("rawtypes")
+				Class clazz = Class.forName( className );
                 Message.printStatus(2, routine, "Creating instance of class \"" + className + "\"" );
             	factory = (DataStoreFactory)clazz.newInstance();
             }
@@ -1175,7 +1358,8 @@ to automatically establish database startup database connections.SomeDataStore).
 that have a login of "prompt".
 */
 protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor,
-	List<Class> pluginDataStoreClassList, List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 {   String routine = "TSToolMain.openDataStoresAtStartup";
     String configFile = getConfigFile();
 
@@ -1257,8 +1441,8 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
         }
     }
     // Also get names of datastore configuration files from configuration files in user's home folder .tstool/datastore
-    if ( session.createDatastoreFolder() ) {
-	    String datastoreFolder = session.getDatastoreFolder();
+    if ( session.createDatastoresFolder() ) {
+	    String datastoreFolder = session.getDatastoresFolder();
 	    File f = new File(datastoreFolder);
 	    FilenameFilter ff = new FilenameFilter() {
 	    	public boolean accept(File dir, String name) {
@@ -1488,7 +1672,7 @@ private static void openLogFile ( TSToolSession session )
 		}
 		else {
 			// Get the log file name from the session object...under user home folder
-			if ( session.createLogFolder() ) {
+			if ( session.createLogsFolder() ) {
 				// Log folder already exists or was created, so OK to use
 				logFile = session.getLogFile();
 				Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
@@ -1502,7 +1686,7 @@ private static void openLogFile ( TSToolSession session )
 				}
 			}
 			else {
-				Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getLogFolder() + "\".  Not opening log file.");
+				Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getLogsFolder() + "\".  Not opening log file.");
 			}
 		}
 	    boolean oldWay = false;
@@ -1675,7 +1859,7 @@ throws Exception
 			// - cannot change the path at runtime
 			// - trying some solutions when loading HEC-DSS libraries in static code and will remove following if it works
 			String javaLibraryPath = System.getProperty ( "java.library.path" );
-			Message.printStatus( 2, routine, "java.library.path at startup: \"" + System.getProperty("java.library.path") + "\"" );
+			Message.printStatus( 2, routine, "java.library.path at startup: \"" + javaLibraryPath + "\"" );
 	        // Read the configuration file to get default TSTool properties,
             // so that later command-line parameters can override them.
 			// If any other command line arguments are -config, then skip the following because a user-specified

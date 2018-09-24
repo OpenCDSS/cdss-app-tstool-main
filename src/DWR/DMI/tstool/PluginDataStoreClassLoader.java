@@ -34,9 +34,10 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 		// loader being used for for any other class loads, then this class.
 		// This won't work for new classes that are not in the parent classpath (manifest)
 		super ( dataStoreJarList );
-		String routine = "PluginDataStoreClassLoader";
+		String routine = getClass().getSimpleName() + ".PluginDataStoreClassLoader";
 		// The following is used to allow classes referenced by the plugin class loader to be loaded
 		// here rather than the parent class loader
+		Message.printStatus(2, routine, "Jar file list (classpath) size is " + dataStoreJarList.length );
 		for ( int i = 0; i < dataStoreJarList.length; i++ ) {
 			Message.printStatus(2, routine, "dataStoreJarList[" + i + "]=" + dataStoreJarList[i] );
 		}
@@ -51,7 +52,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	 */
 	@SuppressWarnings("rawtypes")
 	public List<Class> loadDataStoreClasses () throws ClassNotFoundException {
-		String routine = "loadDataStoreClasses";
+		String routine = getClass().getSimpleName() + ".loadDataStoreClasses";
 		// Get all of the URLs that were specified to the loader
 		URL [] pluginClassURLs = getURLs();
 		// Plugin datastore classes that are loaded
@@ -63,12 +64,15 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 				// Open the META-INF/MANIFEST.MF file and get the property Datastore-Class, which is what needs to be loaded
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
 				Manifest manifest = jarStream.getManifest();
+				// Try finding "Datastore-Class" in the main attributes, which was used in TSTool 12.06.00 and earlier
 				Attributes attributes = manifest.getMainAttributes();
 				// TODO SAM 2016-04-03 may also need the datastore factory class
 				String dataStoreClassToLoad = attributes.getValue("Datastore-Class");
 				if ( dataStoreClassToLoad == null ) {
 					Message.printWarning(3, routine,
-						"Cannot find Datastore-Class property in jar file MANIFEST.  Cannot load datastore class \"" + dataStoreClassToLoad + "\"");
+						"Cannot find Datastore-Class property in jar file MANIFEST main section.  Cannot load datastore class \"" + dataStoreClassToLoad + "\"");
+					// TODO smalers 2018-09-18 figure out how to load from Name: section,
+					// but would need to know how to request a name of interest
 				}
 				else {
 					// The following will search the list of URLs that was provided to the constructor
@@ -103,7 +107,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	 */
 	@SuppressWarnings("rawtypes")
 	public List<Class> loadDataStoreFactoryClasses () throws ClassNotFoundException {
-		String routine = "loadDataStoreFactoryClasses";
+		String routine = getClass().getSimpleName() + ".loadDataStoreFactoryClasses";
 		// Get all of the URLs that were specified to the loader
 		URL [] pluginClassURLs = getURLs();
 		// Plugin datastore factory classes that are loaded
@@ -116,9 +120,17 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
-				String dataStoreFactoryClassToLoad = attributes.getValue("DatastoreFactory-Class");
+				String dataStoreFactoryClassToLoad = attributes.getValue("DataStoreFactory-Class");
+				if ( dataStoreFactoryClassToLoad == null ) {
+					// Old spelling
+					dataStoreFactoryClassToLoad = attributes.getValue("DatastoreFactory-Class");
+				}
 				// If additional jar files are located in the path, they may be supporting packages rather than DataStore files
-				if ( dataStoreFactoryClassToLoad != null ) {
+				if ( dataStoreFactoryClassToLoad == null ) {
+					Message.printWarning(3, routine, "No DataStoreFactory-Class attribute in MANIFEST.MF for \"" +
+						pluginClassURLs[i] + "\"" );
+				}
+				else {
 					// The following will search the list of URLs that was provided to the constructor
 					Message.printStatus(2, routine, "Trying to load datastore factory class \"" + dataStoreFactoryClassToLoad + "\"");
 					// This class is an instance of URLClassLoader so can run the super-class loadClass()

@@ -6,10 +6,11 @@ import java.util.List;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
+import RTi.Util.Message.Message;
 
-// TODO sam 2017-04-09 this should be a singleton in the application.
 /**
 Class to maintain TSTool session information such as the history of command files opened.
+A singleton instance should be retrieve using the getInstance() method.
 */
 public class TSToolSession
 {
@@ -33,73 +34,25 @@ private PropList uiStateProps = new PropList("ui-state");
 
 /**
  * Private singleton instance.
+ * Instance is created in getInstance().
  */
-private static final TSToolSession instance = new TSToolSession();
+private static TSToolSession instance = null;
+
+/**
+ * Major software version, used for folder below .tstool/.
+ */
+private int majorVersion = 0; // 0 will be an obvious error if a folder is created
 
 /**
 Private constructor for the session instance.
+@param majorVersion the major version of TSTool, necessary because user files are organized by TSTool version.
 */
-private TSToolSession ()
+private TSToolSession ( int majorVersion )
 {	// Read UI state properties so they are available for interaction.
 	// They will be written when TSTool closes, and at other intermediate points, as appropriate,
 	// by calling writeUIState().
+	this.majorVersion = majorVersion;
 	readUIState();
-}
-
-/**
-Create the datastore folder if necessary.
-@return true if datastore folder exists and is writeable, false otherwise.
-*/
-public boolean createDatastoreFolder () {
-	String datastoreFolder = getDatastoreFolder();
-	// Do not allow datastore folder to be created under Linux root but allow TSTool to run
-	if ( datastoreFolder.equals("/") ) {
-		return false;
-	}
-	File f = new File(datastoreFolder);
-	if ( !f.exists() ) {
-		try {
-			f.mkdirs();
-		}
-		catch ( SecurityException e ) {
-			return false;
-		}
-	}
-	else {
-		// Make sure it is writeable
-		if ( !f.canWrite() ) {
-			return false;
-		}
-	}
-	return true;
-}
-
-/**
-Create the log folder if necessary.
-@return true if log folder exists and is writeable, false otherwise.
-*/
-public boolean createLogFolder () {
-	String logFolder = getLogFolder();
-	// Do not allow log file to be created under Linux root but allow TSTool to run
-	if ( logFolder.equals("/") ) {
-		return false;
-	}
-	File f = new File(logFolder);
-	if ( !f.exists() ) {
-		try {
-			f.mkdirs();
-		}
-		catch ( SecurityException e ) {
-			return false;
-		}
-	}
-	else {
-		// Make sure it is writeable
-		if ( !f.canWrite() ) {
-			return false;
-		}
-	}
-	return true;
 }
 
 /**
@@ -142,8 +95,92 @@ public boolean createConfigFile ( )
 }
 
 /**
+Create the datastores folder if necessary.
+@return true if datastores folder exists and is writable, false otherwise.
+*/
+public boolean createDatastoresFolder () {
+	String datastoreFolder = getDatastoresFolder();
+	// Do not allow datastore folder to be created under Linux root but allow TSTool to run
+	if ( datastoreFolder.equals("/") ) {
+		return false;
+	}
+	File f = new File(datastoreFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writable
+		if ( !f.canWrite() ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+Create the "logs" folder if necessary.
+@return true if "logs" folder exists and is writable, false otherwise.
+*/
+public boolean createLogsFolder () {
+	String logsFolder = getLogsFolder();
+	// Do not allow log file to be created under Linux root but allow TSTool to run
+	if ( logsFolder.equals("/") ) {
+		return false;
+	}
+	File f = new File(logsFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writable
+		if ( !f.canWrite() ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+Create the "plugins" folder if necessary.
+@return true if "plugins" folder exists and is writable, false otherwise.
+*/
+public boolean createPluginsFolder () {
+	String pluginsFolder = getPluginsFolder();
+	// Do not allow log file to be created under Linux root but allow TSTool to run
+	if ( pluginsFolder.equals("/") ) {
+		return false;
+	}
+	File f = new File(pluginsFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writable
+		if ( !f.canWrite() ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
 Create the system folder if necessary.
-@return true if system folder exists and is writeable, false otherwise.
+@return true if system folder exists and is writable, false otherwise.
 */
 public boolean createSystemFolder () {
 	String systemFolder = getSystemFolder();
@@ -161,7 +198,7 @@ public boolean createSystemFolder () {
 		}
 	}
 	else {
-		// Make sure it is writeable
+		// Make sure it is writable
 		if ( !f.canWrite() ) {
 			return false;
 		}
@@ -205,12 +242,16 @@ public String getConfigFile ()
 
 /**
 Return the name of the datastore configuration folder.
+@return the "datastores" folder path (no trailing /).
 */
-public String getDatastoreFolder ()
+public String getDatastoresFolder ()
 {
-	String datastoreFolder = getUserFolder() + File.separator + "datastore";
-	//Message.printStatus(1,"","Datastore folder is \"" + datastoreFolder + "\"");
-	return datastoreFolder;
+	// 12.06.00 and earlier (not under version folder and singular)...
+	//String datastoreFolder = getUserFolder() + File.separator + "datastore";
+	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+	String datastoresFolder = getMajorVersionFolder() + File.separator + "datastores";
+	//Message.printStatus(1,"","Datastores folder is \"" + datastoreFolder + "\"");
+	return datastoresFolder;
 }
 
 /**
@@ -243,8 +284,28 @@ public String getHistoryFile ()
 
 /**
  * Return the singleton instance of the TSToolSession.
+ * This version must be called after the overloaded version that specifies the major version.
+ * Otherwise, 0 is set as the major version.
  */
 public static TSToolSession getInstance() {
+	if ( instance == null ) {
+		instance = new TSToolSession( 0 );
+	}
+	// Else instance is non-null and will be returned
+	instance.initializeUserFiles(instance.getMajorVersion()); // Won't do anything if already initialized
+	return instance;
+}
+
+/**
+ * Return the singleton instance of the TSToolSession.
+ * @param majorVersion the major version of TSTool, necessary because user files are organized by TSTool version.
+ */
+public static TSToolSession getInstance( int majorVersion ) {
+	if ( instance == null ) {
+		instance = new TSToolSession( majorVersion );
+	}
+	// Else instance is non-null and will be returned
+	instance.initializeUserFiles(instance.getMajorVersion()); // Won't do anything if already initialized
 	return instance;
 }
 
@@ -253,27 +314,71 @@ Return the name of the log file for the user.
 */
 public String getLogFile ()
 {
-	String logFile = getLogFolder() + File.separator + "TSTool_" + System.getProperty("user.name") + ".log";
+	String logFile = getLogsFolder() + File.separator + "TSTool_" + System.getProperty("user.name") + ".log";
 	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
 	return logFile;
 }
 
 /**
 Return the name of the log file folder.
+@return the "logs" folder path (no trailing /).
 */
-public String getLogFolder ()
+public String getLogsFolder ()
 {
-	String logFolder = getUserFolder() + File.separator + "log";
+	// 12.06.00 and earlier (not under version folder and singular)...
+	//String logFolder = getUserFolder() + File.separator + "log";
+	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+	String logsFolder = getMajorVersionFolder() + File.separator + "logs";
 	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
-	return logFolder;
+	return logsFolder;
+}
+
+/**
+ * Return the major software version, used for top-level user files.
+ * @return the software major version, used for top-level user files
+ */
+public int getMajorVersion () {
+	return this.majorVersion;
+}
+
+/**
+Return the folder to the major version:
+<ul>
+<li>	Windows:  C:\Users\UserName\.tstool\12</li>
+<li>	Linux: /home/UserName/.tstool/12</li>
+</ul>
+*/
+public String getMajorVersionFolder ()
+{
+	String majorVersionFolder = getUserFolder() + File.separator + getMajorVersion();
+	//Message.printStatus(1,"","Major version folder is \"" + majorVersionFolder + "\"");
+	return majorVersionFolder;
+}
+
+/**
+Return the name of the plugins configuration folder.
+@return the "plugins" folder path (no trailing /).
+*/
+public String getPluginsFolder ()
+{
+	// 12.06.00 and earlier was split into plugin-command and plugin-datastore
+	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+	String pluginsFolder = getMajorVersionFolder() + File.separator + "plugins";
+	//Message.printStatus(1,"","Plugins folder is \"" + pluginsFolder + "\"");
+	return pluginsFolder;
 }
 
 /**
 Return the name of the system folder.
+@return the "system" folder path (no trailing /).
 */
 public String getSystemFolder ()
 {
-	String systemFolder = getUserFolder() + File.separator + "system";
+
+	// 12.06.00 and earlier (not under version folder)...
+	//String systemFolder = getUserFolder() + File.separator + "system";
+	// 12.07.00 and later (under version folder)
+	String systemFolder = getMajorVersionFolder() + File.separator + "system";
 	//Message.printStatus(1,"","System folder is \"" + systemFolder + "\"");
 	return systemFolder;
 }
@@ -308,6 +413,99 @@ public String getUserFolder ()
 	String userFolder = System.getProperty("user.home") + File.separator + ".tstool";
 	//Message.printStatus(1,"","User folder is \"" + userFolder + "\"");
 	return userFolder;
+}
+
+/**
+ * Initialize user files.
+ * This method should be called at application startup to make sure that user files are created.
+ * TSTool 12.06.00 and earlier used the following folder structure, using Windows as example:
+ * 
+ * <pre>
+ * C:/Users/user/
+ *   .tstool/
+ *      datastore/
+ *        *.cfg
+ *      log/
+ *        TSTool_user.log
+ *      plugin-command/
+ *        SomeCommand/
+ *          bin/
+ *            SomeCommand-Version.jar
+ *          doc/
+ *            SomeCommand.html
+ *      plugin-datastore/
+ *        SomeDatastore/
+ *          bin/
+ *            SomeDataStore.jar
+ * </pre>
+ * 
+ * The above has proven to be problematic for a number of reasons including
+ * 1) strict folder structure is prone to errors (flexible drop-in for jar files is better),
+ * 2) TSTool version evolution is prone to breaking
+ * 
+ * Therefore the following alternative is now being implemented in TSTool 12.07.00:
+ * 
+ * <pre>
+ * C:/Users/user/
+ *   .tstool/
+ *      12/
+ *        datastores/
+ *          somedatastore/
+ *            somedatastore.cfg
+ *        logs/
+ *          TSTool-user.log
+ *        plugins/
+ *          someplugin/
+ *            someplugin.jar
+ *            supporting files
+ *      13/
+ *        ...
+ *      14/
+ *        ...
+ * </pre>
+ * 
+ * Conventions will be used to manage files but users will be able to organize as they prefer.
+ * The jar files can contain datastores and commands in the same jar file so as to
+ * minimize duplicate deployment of code.
+ * The use of a version folder is a compromise: users will need to use migration tools
+ * to import previous version datastore configurations, etc., but the version folder
+ * allows different major versions of TSTool to remain functional if major design changes occur.
+ * @param majorVersion the major TSTool version, a parameter to allow calling multiple times if necessary
+ * @return true if the files were initialized, false for all other cases.
+ */
+public boolean initializeUserFiles ( int version ) {
+	String routine = getClass().getSimpleName() + ".initializeUserFiles";
+	String userFolder = getUserFolder();
+	if ( userFolder.equals("/") ) {
+		// Don't allow files to be created under root on Linux
+		Message.printWarning(3, routine, "Unable to create user files in root folder - need to run as normal user.");
+		return false;
+	}
+	// Create the version folder if it does not exist
+	String versionFolder = userFolder + File.separator + version;
+	File f = new File(versionFolder);
+	if ( !f.exists() ) {
+		try {
+			f.mkdirs();
+		}
+		catch ( SecurityException e ) {
+			Message.printWarning(3, routine, "Could not create TSTool user files version folder \"" + versionFolder + "\" (" + e + ").");
+			return false;
+		}
+	}
+	else {
+		// Make sure it is writeable
+		if ( !f.canWrite() ) {
+			Message.printWarning(3, routine, "TSTool user files version folder \"" + versionFolder + "\" is not writeable.");
+			return false;
+		}
+	}
+	// Create main folders under the version folder
+	createDatastoresFolder();
+	createLogsFolder();
+	createPluginsFolder();
+	createSystemFolder();
+	return true;
 }
 
 /**
