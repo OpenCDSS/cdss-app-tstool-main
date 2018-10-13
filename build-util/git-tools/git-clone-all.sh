@@ -2,11 +2,46 @@
 #
 # Clone all repositories
 # - this is used to set up a new development environment
-# - it is assumed that cdss-app-tstool-main is already clone
+# - it is assumed that the main repository is already cloned (since these files live there)
 
 # Variables
 dryRun=false # Default is to run operationally
 #dryRun=true  # for testing
+
+# Parse the command parameters
+while getopts :g:hm:p: opt; do
+	#echo "Command line option is ${opt}"
+	case $opt in
+		g) # GitHub root URL
+			githubRootUrl=$OPTARG
+			;;
+		h) # usage
+			echo ""
+			echo "Usage:  git-clone-all.sh -m mainRepo -p productHome -g githubRootUrl"
+			echo ""
+			echo "    git-clone-all.sh -m cdss-app-tstool-main -p cdss-dev/TSTool -g https://github.com/someaccount"
+			echo "         Specify the main repository name."
+			echo "         Specify the product home folder relative to HOME."
+			echo "         Specify the root URL where GitHub repositories will be found."
+			echo ""
+			exit 0
+			;;
+		m) # main repo
+			mainRepo=$OPTARG
+			;;
+		p) # product home
+			productHome=$OPTARG
+			;;
+		\?)
+			echo "Invalid option:  -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 1
+			;;
+	esac
+done
 
 # Determine the OS that is running the script
 # - mainly care whether Cygwin
@@ -39,15 +74,31 @@ if [ "${operatingSystem}" = "cygwin" ]
 	# Expect product files to be in Windows user files location (/cygdrive/...), not Cygwin user files (/home/...)
 	home2="/cygdrive/C/Users/$USER"
 fi
-# TSTool GitHub repo URL root
-githubRootUrl="https://github.com/OpenWaterFoundation"
-# TSTool product home is relative to the users files in a standard CDSS development files location
-productHome="$home2/cdss-dev/TSTool"
+if [ ! -z "${githubRootUrl}" ]
+	then
+	echo ""
+	echo "GitHub root URL has not been specified.  Exiting."
+	exit 1
+fi
+if [ ! -z "${mainRepo}" ]
+	then
+	echo ""
+	echo "Main repository has not been specified.  Exiting."
+	exit 1
+fi
+if [ ! -z "${productHome}" ]
+	then
+	echo ""
+	echo "Product home folder has not been specified.  Exiting."
+	exit 1
+fi
+# The product home is relative to the users files in a standard CDSS development files location
+productHomeAbs="$home2/${productHome}"
 # Git repos are located in the following
-gitReposFolder="${productHome}/git-repos"
+gitReposFolder="${productHomeAbs}/git-repos"
 # Main repository in a group of repositories for a product
 # - this is where the product repository list file will live
-mainRepoFolder="${productHome}/git-repos/cdss-app-tstool-main"
+mainRepoFolder="${productHomeAbs}/git-repos/${mainRepo}"
 gitRepoFolder=`dirname ${mainRepoFolder}`
 # The following is a list of repositories including the main repository
 # - one repo per line, no URL, just the repo name
@@ -55,10 +106,10 @@ gitRepoFolder=`dirname ${mainRepoFolder}`
 repoList="${mainRepoFolder}/build-util/product-repo-list.txt"
 
 # Make sure that expected folders exist
-if [ ! -d "${productHome}" ]
+if [ ! -d "${productHomeAbs}" ]
 	then
 	echo ""
-	echo "Product folder \"${productHome}\" does not exist.  Exiting."
+	echo "Product folder \"${productHomeAbs}\" does not exist.  Exiting."
 	exit 1
 fi
 if [ ! -d "${gitReposFolder}" ]
@@ -83,7 +134,7 @@ fi
 while [ "1" = "1" ]
 do
 	echo ""
-	echo "All TSTool repositories that don't alredy exist will be cloned to ${gitReposFolder}."
+	echo "All repositories that don't already exist will be cloned to ${gitReposFolder}."
 	echo "Repositories will use GitHub URL ${githubRootUrl}"
 	read -p "Continue [y/n]?: " answer
 	if [ "${answer}" = "y" ]
@@ -117,7 +168,7 @@ do
 		continue
 	fi
 	# Clone the repo
-	repoFolder="${productHome}/git-repos/${repoName}"
+	repoFolder="${productHomeAbs}/git-repos/${repoName}"
 	repoUrl="${githubRootUrl}/${repoName}"
 	echo "================================================================================"
 	echo "Cloning repo:  ${repoName}"
