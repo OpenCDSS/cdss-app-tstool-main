@@ -1,4 +1,20 @@
 #!/bin/sh
+(set -o igncr) 2>/dev/null && set -o igncr; # this comment is required
+# The above line ensures that the script can be run on Cygwin/Linux even with Windows CRNL
+#
+#-----------------------------------------------------------------------------
+# Git Utilities
+# Copyright 2017-2018 Open Water Foundation.
+# 
+# License GPLv3+:  GNU GPL version 3 or later
+# 
+# There is ABSOLUTELY NO WARRANTY; for details see the
+# "Disclaimer of Warranty" section of the GPLv3 license in the LICENSE file.
+# This is free software: you are free to change and redistribute it
+# under the conditions of the GPLv3 license in the LICENSE file.
+#-----------------------------------------------------------------------------
+#
+# git-clone-all.sh
 #
 # Clone all repositories
 # - this is used to set up a new development environment
@@ -8,8 +24,10 @@
 dryRun=false # Default is to run operationally
 #dryRun=true  # for testing
 
+version="1.0.0 2018-10-13"
+
 # Parse the command parameters
-while getopts :g:hm:p: opt; do
+while getopts :g:hm:p:v opt; do
 	#echo "Command line option is ${opt}"
 	case $opt in
 		g) # GitHub root URL
@@ -20,9 +38,12 @@ while getopts :g:hm:p: opt; do
 			echo "Usage:  git-clone-all.sh -m mainRepo -p productHome -g githubRootUrl"
 			echo ""
 			echo "    git-clone-all.sh -m cdss-app-tstool-main -p cdss-dev/TSTool -g https://github.com/someaccount"
-			echo "         Specify the main repository name."
-			echo "         Specify the product home folder relative to HOME."
-			echo "         Specify the root URL where GitHub repositories will be found."
+			echo "         -m specifies the main repository name."
+			echo "         -p specifies the product home folder relative to HOME."
+			echo "         -g specifies the root URL where GitHub repositories will be found."
+			echo ""
+			echo "    -h prints the usage"
+			echo "    -v prints the version"
 			echo ""
 			exit 0
 			;;
@@ -31,6 +52,22 @@ while getopts :g:hm:p: opt; do
 			;;
 		p) # product home
 			productHome=$OPTARG
+			;;
+		v) # version
+			echo ""
+			echo "git-clone-all version ${version}"
+			echo ""
+			echo "Git Utilities"
+			echo "Copyright 2017-2018 Open Water Foundation."
+			echo ""
+			echo "License GPLv3+:  GNU GPL version 3 or later"
+			echo ""
+			echo "There is ABSOLUTELY NO WARRANTY; for details see the"
+			echo "'Disclaimer of Warranty' section of the GPLv3 license in the LICENSE file."
+			echo "This is free software: you are free to change and redistribute it"
+			echo "under the conditions of the GPLv3 license in the LICENSE file."
+			echo ""
+			exit 0
 			;;
 		\?)
 			echo "Invalid option:  -$OPTARG" >&2
