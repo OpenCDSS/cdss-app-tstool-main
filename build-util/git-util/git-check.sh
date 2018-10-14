@@ -81,9 +81,9 @@ done
 # - Colors in Git Bash:  https://stackoverflow.com/questions/21243172/how-to-change-rgb-colors-in-git-bash-for-windows
 # - Useful info:  http://webhome.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
 # - See colors:  https://en.wikipedia.org/wiki/ANSI_escape_code#Unix-like_systems
-#actionColor='\e]4;4;#007fff\a'
-actionColor='\e[0;33m' # Yellow
-okColor='\e[0;32m' # Green
+# - Set the background to black to eensure that white background window will clearly show colors contrasting on black.
+actionColor='\e[0;40;33m' # 40=background black, 33=yellow
+okColor='\e[0;40;32m' # 40=background black, 32=green
 colorEnd='\e[0m' # To switch back to default color
 
 # Determine the OS that is running the script
