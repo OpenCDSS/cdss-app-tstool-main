@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # git-check-tstool - check the TSTool repositories for status
-# - this script calls the general script
+# - this script calls the general git utilities script
 
 # TSTool product home is relative to the user's files in a standard CDSS development files location
 # - $HOME/${productHome}
@@ -11,4 +11,4 @@ productHome="cdss-dev/TSTool"
 mainRepo="cdss-app-tstool-main"
 
 # TODO smalers 2018-10-12 The following may need to be made absolute to run from any folder
-git-tools/git-check.sh -m "${mainRepo}" -p "${productHome}" $@
+git-util/git-check.sh -m "${mainRepo}" -p "${productHome}" $@
