@@ -1,6 +1,18 @@
 #!/bin/sh
 (set -o igncr) 2>/dev/null && set -o igncr; # this comment is required
 # The above line ensures that the script can be run on Cygwin/Linux even with Windows CRNL
+
+#-----------------------------------------------------------------------------
+# Git Utilities
+# Copyright 2017-2018 Open Water Foundation.
+# 
+# License GPLv3+:  GNU GPL version 3 or later
+# 
+# There is ABSOLUTELY NO WARRANTY; for details see the
+# "Disclaimer of Warranty" section of the GPLv3 license in the LICENSE file.
+# This is free software: you are free to change and redistribute it
+# under the conditions of the GPLv3 license in the LICENSE file.
+#-----------------------------------------------------------------------------
 #
 # git-check.sh
 #
@@ -11,18 +23,24 @@
 # - useful when multiple repositories form a product
 # - this script does not do anything to change repositories
 # - warn if any repositories use Cygwin because mixing with Git for Windows can cause confusion in tools
+#
+
+version="1.0.0 2018-10-13"
 
 # Parse the command parameters
-while getopts :hm:p: opt; do
+while getopts :hm:p:v opt; do
 	#echo "Command line option is ${opt}"
 	case $opt in
 		h) # usage
 			echo ""
-			echo "Usage:  git-check.sh -p productHome"
+			echo "Usage:  git-check.sh -m mainRepo -p productHome"
 			echo ""
 			echo "    git-check.sh -m cdss-app-tstool-main -p cdss-dev/TSTool"
-			echo "         Specify the main repo name."
-			echo "         Specify the product home folder relative to HOME"
+			echo "         -m specifies the main repo name."
+			echo "         -p specifies the product home folder relative to HOME"
+			echo ""
+			echo "    -h prints the usage"
+			echo "    -v prints the version"
 			echo ""
 			exit 0
 			;;
@@ -31,6 +49,22 @@ while getopts :hm:p: opt; do
 			;;
 		p) # product home
 			productHome=$OPTARG
+			;;
+		v) # version
+			echo ""
+			echo "git-check version ${version}"
+			echo ""
+			echo "Git Utilities"
+			echo "Copyright 2017-2018 Open Water Foundation."
+			echo ""
+			echo "License GPLv3+:  GNU GPL version 3 or later"
+			echo ""
+			echo "There is ABSOLUTELY NO WARRANTY; for details see the"
+			echo "'Disclaimer of Warranty' section of the GPLv3 license in the LICENSE file."
+			echo "This is free software: you are free to change and redistribute it"
+			echo "under the conditions of the GPLv3 license in the LICENSE file."
+			echo ""
+			exit 0
 			;;
 		\?)
 			echo "Invalid option:  -$OPTARG" >&2
