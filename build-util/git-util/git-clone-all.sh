@@ -24,7 +24,7 @@
 dryRun=false # Default is to run operationally
 #dryRun=true  # for testing
 
-version="1.0.0 2018-10-13"
+version="1.1.0 2018-10-14"
 
 # Parse the command parameters
 while getopts :g:hm:p:v opt; do
