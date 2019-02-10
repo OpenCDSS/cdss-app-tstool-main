@@ -1,3 +1,26 @@
+// TSToolMain - Main (application startup) class for TSTool.
+
+/* NoticeStart
+
+TSTool
+TSTool is a part of Colorado's Decision Support Systems (CDSS)
+Copyright (C) 1994-2019 Colorado Department of Natural Resources
+
+TSTool is free software:  you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TSTool is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
+
+NoticeEnd */
+
 package DWR.DMI.tstool;
 
 import java.io.File;
@@ -68,7 +91,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "12.07.00 (2018-09-19)";
+public static final String PROGRAM_VERSION = "13.00.00dev (2019-02-09)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1917,6 +1940,11 @@ throws Exception
 			IOUtil.testing(true);
 			Message.printStatus ( 1, routine, "Running in test mode." );
 		}
+		// User specified
+		else if (args[i].equalsIgnoreCase("-v") || args[i].equalsIgnoreCase("--version")) {
+			printVersion();
+			quitProgram(1);
+		}
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else if ( (pos = args[i].indexOf("=")) > 0 ) {
 			// A command line argument of the form:  Property=Value
@@ -1993,7 +2021,22 @@ Print the program version and exit the program.
 */
 public static void printVersion ( )
 {	String nl = System.getProperty ( "line.separator" );
-	System.out.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl );
+	System.out.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
+	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
+	"Copyright (C) 1997-2019 Colorado Department of Natural Resources\n" +
+    "\n" +
+	"TSTool is free software:  you can redistribute it and/or modify\n" +
+	"    it under the terms of the GNU General Public License as published by\n" +
+	"    the Free Software Foundation, either version 3 of the License, or\n" +
+	"    (at your option) any later version.\n" +
+	"\n" +
+	"TSTool is distributed in the hope that it will be useful,\n" +
+	"    but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
+	"    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
+	"    GNU General Public License for more details.\n" +
+	"\n" +
+	"You should have received a copy of the GNU General Public License\n" +
+	"    along with TSTool.  If not, see <https://www.gnu.org/licenses/>.\n" );
 	quitProgram (0);
 }
 
