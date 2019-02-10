@@ -1,3 +1,26 @@
+// TSTool_JFrame - JFrame to provide the application interface for TSTool.
+
+/* NoticeStart
+
+TSTool
+TSTool is a part of Colorado's Decision Support Systems (CDSS)
+Copyright (C) 1994-2019 Colorado Department of Natural Resources
+
+TSTool is free software:  you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TSTool is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
+
+NoticeEnd */
+
 // TODO SAM 2004-08-29 Need to use HydroBase_Util preferredWDIDLength instead
 // of carrying around a property - isolate all HydroBase properties to that
 // package
@@ -22015,10 +22038,24 @@ Show the Help About dialog in response to a user selecting a menu.
 private void uiAction_ShowHelpAbout ()
 {
     new HelpAboutJDialog ( this, "About TSTool",
-    "TSTool - Time Series Tool\n" +
-    "A component of Colorado's Decision Support Systems (CDSS)\n" +
-    IOUtil.getProgramVersion() + "\n" +
-    "Copyright 1997-2018 State of Colorado\n" +
+    "TSTool - Time Series Tool " + IOUtil.getProgramVersion() + "\n" +
+    " \n" +
+    "TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
+    "Copyright (C) 1997-2019 Colorado Department of Natural Resources\n" +
+    " \n" +
+    "TSTool is free software:  you can redistribute it and/or modify\n" +
+    "    it under the terms of the GNU General Public License as published by\n" +
+    "    the Free Software Foundation, either version 3 of the License, or\n" +
+    "    (at your option) any later version.\n" +
+    " \n" +
+    "TSTool is distributed in the hope that it will be useful,\n" +
+    "    but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
+    "    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
+    "    GNU General Public License for more details.\n" +
+    " \n" +
+    "You should have received a copy of the GNU General Public License\n" +
+    "    along with TSTool.  If not, see <https://www.gnu.org/licenses/>.\n" +
+    " \n" +
     "Developed by the Open Water Foundation\n" +
     "Funded by:\n" +
     "Colorado Division of Water Resources\n" +

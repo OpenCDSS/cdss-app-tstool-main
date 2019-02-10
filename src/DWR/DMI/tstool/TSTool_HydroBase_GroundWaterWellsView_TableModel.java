@@ -1,3 +1,27 @@
+// TSTool_HydroBase_GroundWaterWellsView_TableModel - table model for time series header
+// information for HydroBase well time series that are not stored with structures.
+
+/* NoticeStart
+
+TSTool
+TSTool is a part of Colorado's Decision Support Systems (CDSS)
+Copyright (C) 1994-2019 Colorado Department of Natural Resources
+
+TSTool is free software:  you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TSTool is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
+
+NoticeEnd */
+
 package DWR.DMI.tstool;
 
 import java.util.List;
@@ -11,6 +35,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.String.StringUtil;
 
 /**
+public class TSTool_HydroBase_GroundWaterWellsView_TableModel
 This class is a table model for time series header information for HydroBase well time series that are not stored
 with structures.
 By default the sheet will contain row and column numbers.
