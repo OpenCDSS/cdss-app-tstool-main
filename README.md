@@ -1,18 +1,21 @@
 # cdss-app-tstool-main #
 
 This repository contains the TSTool main application source code and supporting files for the development environment.
-Multiple other repositories are used to create the application.
+Multiple other repositories are used to create the TSTool application.
 Eclipse is used for development and repositories currently contain Eclipse project files to facilitate
 setting up the Eclipse development environment.
 
-TSTool is part of Colorado's Decision Support Systems (CDSS).
-The TSTool software is being migrated to an open source software project as part of the OpenCDSS project.
+TSTool is part of
+[Colorado's Decision Support Systems (CDSS)](https://www.colorado.gov/cdss).
 See the following online resources:
 
-* [CDSS](http://cdss.state.co.us)
-* [OpenCDSS](http://learn.openwaterfoundation.org/cdss-emod-dev/)
-* [TSTool Developer Documentation](http://learn.openwaterfoundation.org/cdss-app-tstool-doc-dev/)
-* [TSTool User Documentation](http://learn.openwaterfoundation.org/cdss-app-tstool-doc-user/)
+* [Colorado's Decision Support Systems](https://www.colorado.gov/cdss)
+* [OpenCDSS](http://learn.openwaterfoundation.org/cdss-emod-dev/) - currently
+hosted on the Open Water Foundation website while the OpenCDSS server is configured
+* [TSTool Developer Documentation](http://learn.openwaterfoundation.org/cdss-app-tstool-doc-dev/) - currently
+hosted on the Open Water Foundation website while the OpenCDSS server is configured
+* [TSTool User Documentation](http://learn.openwaterfoundation.org/cdss-app-tstool-doc-user/) - currently
+hosted on the Open Water Foundation website while the OpenCDSS server is configured
 
 The developer documentation and guidelines will be updated as the development environment is used in development.  See the following sections in this page:
 
@@ -47,7 +50,7 @@ cdss-app-tstool-main/         TSTool source code and development working files.
   graphics/                   Images (may remove/move in future).
   installer/                  TSTool-specific files used to create installer.
   lib/                        Third-party libraries.
-  LICENSE.txt                 TSTool license file.
+  LICENSE.md                  TSTool license file.
   nbproject/                  NetBeans project (legacy, may be removed).
   README.md                   This file.
   resources/                  Additional resources, such as runtime files for installer.
@@ -77,22 +80,22 @@ such as documentation managed with command line Git or other Git tools.
 
 |**Repository**|**Eclipse project?**|**Description**|
 |-------------------------------------------------------------------------------------------------------------|--|----------------------------------------------------|
-|[`cdss-app-tstool-doc`](https://github.com/OpenWaterFoundation/cdss-app-tstool-doc)                          |y |Legacy TSTool documentation and training (Word/PDF).|
-|[`cdss-app-tstool-doc-dev`](https://github.com/OpenWaterFoundation/cdss-app-tstool-doc-dev)                  |N |TSTool developer documentation (Markdown/MkDocs).|
-|[`cdss-app-tstool-doc-user`](https://github.com/OpenWaterFoundation/cdss-app-tstool-doc-user)                |N |TSTool user documentation (Markdown/MkDocs).|
+|[`cdss-app-tstool-doc`](https://github.com/OpenCDSS/cdss-app-tstool-doc)                          |y |Legacy TSTool documentation and training (Word/PDF).|
+|[`cdss-app-tstool-doc-dev`](https://github.com/OpenCDSS/cdss-app-tstool-doc-dev)                  |N |TSTool developer documentation (Markdown/MkDocs).|
+|[`cdss-app-tstool-doc-user`](https://github.com/OpenCDSS/cdss-app-tstool-doc-user)                |N |TSTool user documentation (Markdown/MkDocs).|
 |`cdss-app-tstool-main`                                                                                       |Y |TSTool main application code (this repo).|
-|[`cdss-app-tstool-test`](https://github.com/OpenWaterFoundation/cdss-app-tstool-test)                        |y |TSTool functional tests using TSTool testing framework.|
-|[`cdss-archive-nsis-2.46`](https://github.com/OpenWaterFoundation/cdss-archive-nsis-2.46)                    |N |Archive of NSIS 2.46, to set up development environment.|
-|[`cdss-lib-cdss-java`](https://github.com/OpenWaterFoundation/cdss-lib-cdss-java)                            |Y |Library that is shared between CDSS components.|
-|[`cdss-lib-common-java`](https://github.com/OpenWaterFoundation/cdss-lib-common-java)                        |Y |Library of core utility code used by multiple repos.|
-|[`cdss-lib-dmi-hydrobase-java`](https://github.com/OpenWaterFoundation/cdss-lib-dmi-hydrobase-java)          |Y |Library to directly access Colorado's HydroBase database.|
-|[`cdss-lib-dmi-hydrobase-rest-java`](https://github.com/OpenWaterFoundation/cdss-lib-dmi-hydrobase-rest-java)|Y |Library to access Colorado's HydroBase REST API.|
-|[`cdss-lib-dmi-nwsrfs-java`](https://github.com/OpenWaterFoundation/cdss-lib-dmi-nwsrfs-java)                |Y2|Legacy library to access National Weather Service River Forecast System (NWSRFS) data files.|
-|[`cdss-lib-dmi-riversidedb-java`](https://github.com/OpenWaterFoundation/cdss-lib-dmi-riversidedb-java)      |Y2|Legacy library to access Riverside Technology forecast system database.|
-|[`cdss-lib-dmi-satmonsys-java`](https://github.com/OpenWaterFoundation/cdss-lib-dmi-satmonsys-java)          |Y2|Legacy library to directly access Colorado's Satellite Monitoring System database.|
-|[`cdss-lib-models-java`](https://github.com/OpenWaterFoundation/cdss-lib-models-java)                        |Y |Library to read/write CDSS StateCU and StateMod model files.|
-|[`cdss-lib-processor-ts-java`](https://github.com/OpenWaterFoundation/cdss-lib-processor-ts-java)            |Y |Library containing processor code for TSTool commands.|
-|[`cdss-util-buildtools`](https://github.com/OpenWaterFoundation/cdss-util-buildtools)                        |Y |Tools to create CDSS Java software installers.|
+|[`cdss-app-tstool-test`](https://github.com/OpenCDSS/cdss-app-tstool-test)                        |y |TSTool functional tests using TSTool testing framework.|
+|[`cdss-archive-nsis-2.46`](https://github.com/OpenCDSS/cdss-archive-nsis-2.46)                    |N |Archive of NSIS 2.46, to set up development environment.|
+|[`cdss-lib-cdss-java`](https://github.com/OpenCDSS/cdss-lib-cdss-java)                            |Y |Library that is shared between CDSS components.|
+|[`cdss-lib-common-java`](https://github.com/OpenCDSS/cdss-lib-common-java)                        |Y |Library of core utility code used by multiple repos.|
+|[`cdss-lib-dmi-hydrobase-java`](https://github.com/OpenCDSS/cdss-lib-dmi-hydrobase-java)          |Y |Library to directly access Colorado's HydroBase database.|
+|[`cdss-lib-dmi-hydrobase-rest-java`](https://github.com/OpenCDSS/cdss-lib-dmi-hydrobase-rest-java)|Y |Library to access Colorado's HydroBase REST API.|
+|[`cdss-lib-dmi-nwsrfs-java`](https://github.com/OpenCDSS/cdss-lib-dmi-nwsrfs-java)                |Y2|Legacy library to access National Weather Service River Forecast System (NWSRFS) data files.|
+|[`cdss-lib-dmi-riversidedb-java`](https://github.com/OpenCDSS/cdss-lib-dmi-riversidedb-java)      |Y2|Legacy library to access Riverside Technology forecast system database.|
+|[`cdss-lib-dmi-satmonsys-java`](https://github.com/OpenCDSS/cdss-lib-dmi-satmonsys-java)          |Y2|Legacy library to directly access Colorado's Satellite Monitoring System database.|
+|[`cdss-lib-models-java`](https://github.com/OpenCDSS/cdss-lib-models-java)                        |Y |Library to read/write CDSS StateCU and StateMod model files.|
+|[`cdss-lib-processor-ts-java`](https://github.com/OpenCDSS/cdss-lib-processor-ts-java)            |Y |Library containing processor code for TSTool commands.|
+|[`cdss-util-buildtools`](https://github.com/OpenCDSS/cdss-util-buildtools)                        |Y |Tools to create CDSS Java software installers.|
 
 ### Plugin Repositories ###
 
@@ -149,8 +152,7 @@ Contributions to this project can be submitted using the following options:
 1. TSTool software developers with commit privileges can write to this repository
 as per normal OpenCDSS development protocols.
 2. Post an issue on GitHub with suggested change.  Provide information using the issue template.
-3. Email a development contact.
-4. Fork the repository, make changes, and do a pull request.
+3. Fork the repository, make changes, and do a pull request.
 Contents of the current master branch should be merged with the fork to minimize
 code review before committing the pull request.
 
@@ -158,8 +160,9 @@ See also the [OpenCDSS / TSTool protocols](http://learn.openwaterfoundation.org/
 
 ## License ##
 
-A license for the software is being determined as part of the OpenCDSS project.
-GPL 3.0 has been recommended.
+Copyright Colorado Department of Natural Resources.
+
+The software is licensed under GPL v3+. See the [LICENSE.md](LICENSE.md) file.
 
 ## Contact ##
 

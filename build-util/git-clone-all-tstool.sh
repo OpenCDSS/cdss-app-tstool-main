@@ -16,7 +16,7 @@ repoFolder=`dirname ${scriptFolder}`
 gitReposFolder=`dirname ${repoFolder}`
 
 # TSTool GitHub repo URL root
-githubRootUrl="https://github.com/OpenWaterFoundation"
+githubRootUrl="https://github.com/OpenCDSS"
 
 # Main TSTool repository
 mainRepo="cdss-app-tstool-main"
