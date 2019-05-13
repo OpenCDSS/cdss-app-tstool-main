@@ -93,7 +93,7 @@ InstallDirRegKey HKLM "${REGKEY}" Path
 
 # MUI Overrides for Text
 !define MUI_PAGE_HEADER_SUBTEXT "This wizard will guide you through the installation of ${DISPLAYNAME}"
-!define MUI_WELCOMEPAGE_TEXT "The installation will be independent of other versions of ${DISPLAYNAME} software that have been previously installed."
+!define MUI_WELCOMEPAGE_TEXT "The installation will be independent of other versions of ${DISPLAYNAME} software that have been previously installed, which allows multiple versions to be installed and run."
 !define MUI_COMPONENTSPAGE_TEXT_TOP "Select the components to install by checking the corresponding boxes.  Click Next to continue."
 !define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO "Position the mouse over a component to view its description."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Setup will install ${DISPLAYNAME} in the following folder.  It is recommended that a versioned software folder under the main CDSS folder be specified.  To install in a different folder, click Browse and select another folder.  Click Next to continue."
