@@ -1,7 +1,0 @@
-[TSTool]
-
-LicenseOwner = "CWC"
-LicenseType = Node
-LicenseCount = NoLimit
-LicenseExpires = Never
-LicenseKey = 00-77960bdfb1dde707-6ccd28ea527451b8-a07266ee645e8845-7560192d374235c5-a793600f7e628213

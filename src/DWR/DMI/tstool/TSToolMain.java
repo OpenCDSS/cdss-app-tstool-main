@@ -1509,6 +1509,15 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // Get the properties from the file
                 dataStoreProps.readPersistent();
                 String dataStoreName = dataStoreProps.getValue("Name");
+                String dataStoreType = dataStoreProps.getValue("Type");
+                // If the datastore type is no longer supported, skip.
+                // - need more time to fully remove the code
+                if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ||
+                	dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore")) {
+               		Message.printStatus(2,routine,"Datastore \"" + dataStoreName +
+               			"\" type \"" + dataStoreType + "\" is obsolete.  Skipping." );
+                	continue;
+                }
                 // See if the datastore name matches one that is already open, if so, ignore it
                 boolean dataStoreAlreadyOpened = false;
                 for ( String openDataStoreName : openDataStoreNameList ) {
