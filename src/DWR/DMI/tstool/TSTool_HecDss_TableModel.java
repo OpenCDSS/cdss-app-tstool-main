@@ -33,7 +33,8 @@ This class is a table model for time series header information for HecDSS TS ins
 This class is essentially the same as the generic TS table model but the column headings indicate
 HEC-DSS information.
 */
-public class TSTool_HecDss_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_HecDss_TableModel extends JWorksheet_AbstractRowTableModel<TS>
 {
 
 /**
@@ -60,22 +61,22 @@ public final int COL_INPUT_NAME	= 12;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is allowed).
+@param data the list of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HecDss_TableModel ( List data )
+public TSTool_HecDss_TableModel ( List<TS> data )
 throws Exception
 {	this ( data, false );
 }
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is allowed).
+@param data the lst of TS that will be displayed in the table (null is allowed).
 @param include_alias If true, an alias column will be included after the
 location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HecDss_TableModel ( List data, boolean include_alias )
+public TSTool_HecDss_TableModel ( List<TS> data, boolean include_alias )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -91,7 +92,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID:		return String.class;
 		case COL_ALIAS:		return String.class;

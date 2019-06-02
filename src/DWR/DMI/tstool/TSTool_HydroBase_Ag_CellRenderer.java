@@ -33,14 +33,14 @@ This class is used to render cells for TSTool_HydroBase_Ag_TableModel data, for 
 public class TSTool_HydroBase_Ag_CellRenderer
 extends JWorksheet_DefaultTableCellRenderer {
 
-TSTool_HydroBase_Ag_TableModel __table_model = null;	// Table model to render
+TSTool_HydroBase_Ag_CASS_TableModel __table_model = null;	// Table model to render
 
 /**
 Constructor.
 @param table_model The TSTool_HydroBase_Ag_TableModel to render.
 */
 public TSTool_HydroBase_Ag_CellRenderer (
-	TSTool_HydroBase_Ag_TableModel table_model )
+	TSTool_HydroBase_Ag_CASS_TableModel table_model )
 {	__table_model = table_model;
 }
 

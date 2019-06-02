@@ -34,7 +34,8 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for time series header information for Reclamation HDB
 time series.  By default the sheet will contain row and column numbers.
 */
-public class TSTool_ReclamationHDB_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_ReclamationHDB_TableModel extends JWorksheet_AbstractRowTableModel<ReclamationHDB_SiteTimeSeriesMetadata>
 {
 
 /**
@@ -107,7 +108,7 @@ Constructor.  This builds the model for displaying the given Reclamation HDB tim
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_ReclamationHDB_TableModel ( ReclamationHDBDataStore dataStore, List data )
+public TSTool_ReclamationHDB_TableModel ( ReclamationHDBDataStore dataStore, List<ReclamationHDB_SiteTimeSeriesMetadata> data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -123,7 +124,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 	    case COL_TYPE_REAL_MODEL: return String.class;
 	    case COL_SITE_COMMON_NAME: return String.class;
@@ -357,7 +358,7 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	ReclamationHDB_SiteTimeSeriesMetadata data = (ReclamationHDB_SiteTimeSeriesMetadata)_data.get(row);
+	ReclamationHDB_SiteTimeSeriesMetadata data = _data.get(row);
 	switch (col) {
         case COL_TYPE_REAL_MODEL:
             return data.getRealModelType();

@@ -36,7 +36,8 @@ import RTi.Util.Time.DateTime;
 This class is a table model for time series header information for Reclamation Pisces
 time series.  By default the sheet will contain row and column numbers.
 */
-public class TSTool_ReclamationPisces_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_ReclamationPisces_TableModel extends JWorksheet_AbstractRowTableModel<ReclamationPisces_SiteCatalogSeriesCatalog>
 {
 
 /**
@@ -96,7 +97,7 @@ Constructor.  This builds the model for displaying the given Reclamation Pisces 
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_ReclamationPisces_TableModel ( ReclamationPiscesDataStore dataStore, List data )
+public TSTool_ReclamationPisces_TableModel ( ReclamationPiscesDataStore dataStore, List<ReclamationPisces_SiteCatalogSeriesCatalog> data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -112,7 +113,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_SERIES_START: return DateTime.class;
 		case COL_SERIES_END: return DateTime.class;
@@ -247,7 +248,7 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	ReclamationPisces_SiteCatalogSeriesCatalog data = (ReclamationPisces_SiteCatalogSeriesCatalog)_data.get(row);
+	ReclamationPisces_SiteCatalogSeriesCatalog data = _data.get(row);
 	switch (col) {
 		case COL_SITE_ID: return data.getSiteID();
 		case COL_SITE_DESCRIPTION: return data.getDescription();

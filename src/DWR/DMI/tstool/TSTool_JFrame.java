@@ -5984,8 +5984,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt ( row, model.COL_NAME),
 				false, insertOffset );			
 		}
-		else if ( __query_TableModel instanceof	TSTool_HydroBase_Ag_TableModel){
-			TSTool_HydroBase_Ag_TableModel model = (TSTool_HydroBase_Ag_TableModel)__query_TableModel;
+		else if ( __query_TableModel instanceof	TSTool_HydroBase_Ag_CASS_TableModel){
+			TSTool_HydroBase_Ag_CASS_TableModel model = (TSTool_HydroBase_Ag_CASS_TableModel)__query_TableModel;
 			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
@@ -16562,9 +16562,9 @@ throws Exception
 				HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
 				// Data from agricultural_CASS_crop_statistics or agricultural_NASS_crop_statistics...
 				__query_TableModel = new
-					TSTool_HydroBase_Ag_TableModel ( __query_JWorksheet, tslist, selectedDataType );
+					TSTool_HydroBase_Ag_CASS_TableModel ( __query_JWorksheet, tslist, selectedDataType );
 				TSTool_HydroBase_Ag_CellRenderer cr = new
-					TSTool_HydroBase_Ag_CellRenderer((TSTool_HydroBase_Ag_TableModel)__query_TableModel);
+					TSTool_HydroBase_Ag_CellRenderer((TSTool_HydroBase_Ag_CASS_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );

@@ -31,7 +31,8 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for NWSRFS_ESPTraceEnsemble header information for
 TS instances.  By default the sheet will contain row and column numbers.
 */
-public class TSTool_ESPTraceEnsemble_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_ESPTraceEnsemble_TableModel extends JWorksheet_AbstractRowTableModel<TS>
 {
 
 /**
@@ -96,7 +97,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID: return String.class;
 		case COL_ALIAS: return String.class;
@@ -177,7 +178,7 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	TS ts = (TS)_data.get(row);
+	TS ts = _data.get(row);
 	switch (col) {
 		case COL_ID: return ts.getIdentifier().getLocation();
 		case COL_ALIAS: return ts.getAlias();

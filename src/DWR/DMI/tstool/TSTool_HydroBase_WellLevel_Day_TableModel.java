@@ -39,8 +39,9 @@ This class is a table model for time series header information for HydroBase
 daily well level time series with information stored in HydroBase_GroundWaterWellsView objects.
 By default the sheet will contain row and column numbers.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_WellLevel_Day_TableModel
-extends JWorksheet_AbstractRowTableModel
+extends JWorksheet_AbstractRowTableModel<HydroBase_GroundWaterWellsView>
 {
 
 /**
@@ -126,8 +127,8 @@ the table (null is allowed - see setData()).
 @param inputType the input type for the TSID, "HydroBase" or a data store name
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_WellLevel_Day_TableModel (JWorksheet worksheet, int wdid_length, List data,
-    String inputType )
+public TSTool_HydroBase_WellLevel_Day_TableModel (JWorksheet worksheet, int wdid_length,
+	List<HydroBase_GroundWaterWellsView> data, String inputType )
 throws Exception
 {	__wdid_length = wdid_length;
 	if ( data == null ) {
@@ -144,7 +145,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		default: return String.class;
 	}
@@ -339,7 +340,7 @@ public Object getValueAt(int row, int col)
 	int i; // Use for integer data.
 	double d; // Use for double data.
 
-	HydroBase_GroundWaterWellsView wv = (HydroBase_GroundWaterWellsView) _data.get(row);
+	HydroBase_GroundWaterWellsView wv = _data.get(row);
 
 	switch (col) {
 		// case 0 handled above.
