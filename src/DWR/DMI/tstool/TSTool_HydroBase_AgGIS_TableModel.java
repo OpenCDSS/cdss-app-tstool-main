@@ -37,8 +37,9 @@ This class is a table model for time series header information for HydroBase
 agricultural time series (irrigation summary).  By default the
 sheet will contain row and column numbers.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_AgGIS_TableModel
-extends JWorksheet_AbstractRowTableModel
+extends JWorksheet_AbstractRowTableModel<HydroBase_StructureIrrigSummaryTS>
 {
 
 /**
@@ -69,7 +70,7 @@ HydroBase_StructureIrrigSummaryTS that will be displayed in the table (null is a
 @param wdid_length The length to format WDIDs.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_AgGIS_TableModel ( JWorksheet worksheet, List data, String data_type, int wdid_length )
+public TSTool_HydroBase_AgGIS_TableModel ( JWorksheet worksheet, List<HydroBase_StructureIrrigSummaryTS> data, String data_type, int wdid_length )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -85,7 +86,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		default:	return String.class;
 	}
@@ -150,8 +151,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	HydroBase_StructureIrrigSummaryTS ag =
-		(HydroBase_StructureIrrigSummaryTS)_data.get(row);
+	HydroBase_StructureIrrigSummaryTS ag = _data.get(row);
 	switch (col) {
 		// case 0 handled above.
 		case COL_ID:		return HydroBase_WaterDistrict.formWDID(__wdid_length, ag.getWD(),ag.getID());

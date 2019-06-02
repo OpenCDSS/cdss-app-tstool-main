@@ -36,7 +36,8 @@ By default the sheet will contain row and column numbers.
 The alias can be treated as a hidden column.
 This class may eventually be moved to the RTi.TS package.
 */
-public class TSTool_UsgsNwisGroundwater_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_UsgsNwisGroundwater_TableModel extends JWorksheet_AbstractRowTableModel<UsgsNwisSiteTimeSeriesMetadata>
 {
     
 /**
@@ -72,7 +73,7 @@ Constructor.  This builds the model for displaying the given time series data.
 @param data the list of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_UsgsNwisGroundwater_TableModel ( UsgsNwisGroundwaterDataStore dataStore, List data )
+public TSTool_UsgsNwisGroundwater_TableModel ( UsgsNwisGroundwaterDataStore dataStore, List<UsgsNwisSiteTimeSeriesMetadata> data )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -89,7 +90,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID: return String.class;
 		case COL_NAME: return String.class;
@@ -174,7 +175,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	UsgsNwisSiteTimeSeriesMetadata ts = (UsgsNwisSiteTimeSeriesMetadata)_data.get(row);
+	UsgsNwisSiteTimeSeriesMetadata ts = _data.get(row);
 	if ( ts == null ) {
 		return "";
 	}

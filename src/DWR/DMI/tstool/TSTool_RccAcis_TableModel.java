@@ -36,7 +36,8 @@ By default the sheet will contain row and column numbers.
 The alias can be treated as a hidden column.
 @TODO SAM 2011-09-02 this class may eventually be moved to the ACIS package.
 */
-public class TSTool_RccAcis_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSTool_RccAcis_TableModel extends JWorksheet_AbstractRowTableModel<RccAcisStationTimeSeriesMetadata>
 {
 /**
 Data store for data.
@@ -88,7 +89,7 @@ Constructor.  This builds the model for displaying the given time series data.
 @param data the Vector of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TSTool_RccAcis_TableModel ( RccAcisDataStore dataStore, List data )
+public TSTool_RccAcis_TableModel ( RccAcisDataStore dataStore, List<RccAcisStationTimeSeriesMetadata> data )
 throws Exception
 {	if ( data == null ) {
         _rows = 0;
@@ -105,7 +106,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID_ACIS: return String.class;
 		case COL_ID_WBAN: return String.class;
@@ -300,7 +301,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	RccAcisStationTimeSeriesMetadata ts = (RccAcisStationTimeSeriesMetadata)_data.get(row);
+	RccAcisStationTimeSeriesMetadata ts = _data.get(row);
 	if ( ts == null ) {
 		return "";
 	}

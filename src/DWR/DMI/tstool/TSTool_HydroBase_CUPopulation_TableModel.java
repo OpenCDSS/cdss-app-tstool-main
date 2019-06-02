@@ -35,8 +35,9 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for time series header information for HydroBase
 livestock agricultural statistics time series.  By default the sheet will contain row and column numbers.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_CUPopulation_TableModel
-extends JWorksheet_AbstractRowTableModel
+extends JWorksheet_AbstractRowTableModel<HydroBase_CUPopulation>
 {
 
 /**
@@ -63,7 +64,7 @@ that will be displayed in the table (null is allowed - see setData()).
 @param data_type_prefix The data type prefix for the data type (e.g., "LivestockHead").
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_CUPopulation_TableModel ( JWorksheet worksheet, List data, String data_type_prefix )
+public TSTool_HydroBase_CUPopulation_TableModel ( JWorksheet worksheet, List<HydroBase_CUPopulation> data, String data_type_prefix )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -79,7 +80,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		default: return String.class;
 	}
@@ -142,7 +143,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	HydroBase_CUPopulation ag = (HydroBase_CUPopulation)_data.get(row);
+	HydroBase_CUPopulation ag = _data.get(row);
 	switch (col) {
 		// case 0 handled above.
 		case COL_ID:		return ag.getArea_type() + "-" + ag.getArea_name();

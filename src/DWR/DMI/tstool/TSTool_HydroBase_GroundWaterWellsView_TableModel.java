@@ -40,8 +40,9 @@ This class is a table model for time series header information for HydroBase wel
 with structures.
 By default the sheet will contain row and column numbers.
 */
+@SuppressWarnings("serial")
 public class TSTool_HydroBase_GroundWaterWellsView_TableModel
-extends JWorksheet_AbstractRowTableModel
+extends JWorksheet_AbstractRowTableModel<HydroBase_GroundWaterWellsView>
 {
 
 /**
@@ -88,7 +89,8 @@ that will be displayed in the table (null is allowed - see setData()).
 when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_GroundWaterWellsView_TableModel ( JWorksheet worksheet, int wdid_length, List data )
+public TSTool_HydroBase_GroundWaterWellsView_TableModel ( JWorksheet worksheet, int wdid_length,
+	List<HydroBase_GroundWaterWellsView> data )
 throws Exception
 {
     this ( worksheet, wdid_length, data, null );
@@ -104,7 +106,8 @@ that will be displayed in the table (null is allowed - see setData()).
 when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_GroundWaterWellsView_TableModel ( JWorksheet worksheet, int wdid_length, List data, String inputType )
+public TSTool_HydroBase_GroundWaterWellsView_TableModel ( JWorksheet worksheet, int wdid_length,
+	List<HydroBase_GroundWaterWellsView> data, String inputType )
 throws Exception
 {	__wdid_length = wdid_length;
 	if ( data == null ) {
@@ -123,7 +126,7 @@ throws Exception
 From AbstractTableModel.  Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		// FIXME - can't seem to handle missing...
 		//case COL_START:		return Integer.class;
@@ -260,7 +263,7 @@ public Object getValueAt(int row, int col)
 	int i; // Use for integer data.
 	double d; // Use for double data
 
-	HydroBase_GroundWaterWellsView wv = (HydroBase_GroundWaterWellsView) _data.get(row);
+	HydroBase_GroundWaterWellsView wv = _data.get(row);
 
 	switch (col) {
 		// case 0 handled above.

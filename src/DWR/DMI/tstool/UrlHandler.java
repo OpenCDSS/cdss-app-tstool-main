@@ -54,13 +54,14 @@ public class UrlHandler implements HttpHandler {
 		URI uri = t.getRequestURI();
 		String response = "TSTool response for " + uri;
 		// Get query parameters
-		Map parameters = splitQuery(uri.toURL());
+		//Map<String,List<String>> parameters = splitQuery(uri.toURL());
 		t.sendResponseHeaders(200,response.length());
 		OutputStream os = t.getResponseBody();
 		os.write(response.getBytes());
 		os.close();
 	}
 
+	// TODO smalers 2019-06-01 evalaute why not used
 	/**
 	 * Split a URL string into parameters.  Do light-weight without external library.
 	 * See:  http://stackoverflow.com/questions/13592236/parse-a-uri-string-into-name-value-collection
@@ -68,6 +69,7 @@ public class UrlHandler implements HttpHandler {
 	 * @return
 	 * @throws UnsupportedEncodingException
 	 */
+	@SuppressWarnings("unused")
 	private Map<String, List<String>> splitQuery(URL url) throws UnsupportedEncodingException {
 	  final Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
 	  final String[] pairs = url.getQuery().split("&");
