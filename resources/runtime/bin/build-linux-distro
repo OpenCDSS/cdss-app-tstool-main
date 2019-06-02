@@ -160,7 +160,7 @@ sed "s/^\"$/STANDARD_JARS\nOTHER_JARS\n\"/g" tstool3 > tstool4
 # insert2 - the text to insert in the classpath with othe jar files (deals with escaping characters so sed can handle)
 # junk1 - list of jar files in the TSTool bin folder, sorted alphabetically (from "ls")
 # junk2 - list of jar files minus those with _17 (the jars from TSTool code)
-# junk3 - list of jar files minus those with _17 and _142 (add the Blowfish library used for encryption for RiversideDB)
+# junk3 - list of jar files minus those with _17 and _142
 # junk4 - replace leading part of path in junk3 with $JAR_HOME (but still has /bin in path)
 # junk5 - remove /bin from path from junk4 since $JAR_HOME includes
 # junk6 - the classpath for third-party jars, with forward slashes escaped for sed insert
@@ -168,7 +168,7 @@ sed "s/^\"$/STANDARD_JARS\nOTHER_JARS\n\"/g" tstool3 > tstool4
 # junk8 - the classpath for third-party jars (same as insert2)
 
 # Now insert the desired content.  For now hard-code the main TSTool tar files at the top of the classpath
-insert1='$JAR_HOME\/cdss-app-tstool-main_17.jar:\\\n$JAR_HOME\/cdss-lib-common-java_17.jar:\\\n$JAR_HOME\/cdss-lib-processor-ts-java_17.jar:\\\n$JAR_HOME\/cdss-lib-cdss-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-hydrobase-java_17.jar:\\\n$JAR_HOME\/cdss-lib-models-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-nwsrfs-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-riversidedb-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-satmonsys-java_17.jar:\\\n$JAR_HOME\/Blowfish_142.jar:\\'
+insert1='$JAR_HOME\/cdss-app-tstool-main_17.jar:\\\n$JAR_HOME\/cdss-lib-common-java_17.jar:\\\n$JAR_HOME\/cdss-lib-processor-ts-java_17.jar:\\\n$JAR_HOME\/cdss-lib-cdss-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-hydrobase-java_17.jar:\\\n$JAR_HOME\/cdss-lib-models-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-nwsrfs-java_17.jar:\\\n$JAR_HOME\/cdss-lib-dmi-satmonsys-java_17.jar:\\'
 echo $insert1
 echo $insert1 > insert1
 sed s/STANDARD_JARS/"$insert1"/g tstool4 > tstool5

@@ -86,23 +86,52 @@ printUsage() {
 
 # Sync the files to GCP
 syncFiles() {
+	local answer
 	# Copy the local files up to Google Cloud
 	# - the -m option causes operations to run in parallel, which can be much faster
 	# - the -d option means delete extra files in destination
 	# - the -r option means recursive to sync the whole folder tree
 	if [ ${copyToLatest} = "yes" ]; then
 		if [ -f "$installerFile32" ]; then
-			gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileLatest32}
+			echo ""
+			echo "Will copy current development version to latest on GCP..."
+			echo "source:       $installerFile32"
+			echo "destination:  ${gsFileLatest32}"
+			read -p "Continue with copy [y/n/q]? " answer
+			if [ "$answer" = "y" ]; then
+				gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileLatest32}
+			elif [ "$answer" = "q" ]; then
+				exit 0
+			fi
 		else
 			echo "File does not exist for 'latest' upload:  $installerFile32"
 		fi
 	fi
 	# For now always upload to the versioned copy
 	if [ -f "$installerFile32" ]; then
-		echo "gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileVersion32}"
-		gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileVersion32}
+		echo ""
+		echo "Will copy current development version to same version on GCP..."
+		echo "source:       $installerFile32"
+		echo "destination:  ${gsFileVersion32}"
+		read -p "Continue with copy [y/n/q]? " answer
+		if [ "$answer" = "y" ]; then
+			echo "gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileVersion32}"
+			gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileVersion32}
+		elif [ "$answer" = "q" ]; then
+			exit 0
+		fi
 	else
 		echo "File does not exist for versioned upload:  $installerFile32"
+	fi
+}
+
+# Update the GCP index that lists files
+updateIndex() {
+	local answer
+	echo ""
+	read -p "Do you want to update the GCP index file [Y/n]? " answer
+	if [ -z "$answer" -o "$answer" = "y" -o "$answer" = "Y" ]; then
+		${scriptFolder}/create-gcp-tstool-index.bash
 	fi
 }
 
@@ -166,5 +195,8 @@ fi
 # Sync the files to the cloud
 installerFile32="$repoFolder/dist/TSTool_CDSS_${tstoolVersion}_Setup.exe"
 syncFiles
+
+# Also update the index
+updateIndex
 
 exit $?

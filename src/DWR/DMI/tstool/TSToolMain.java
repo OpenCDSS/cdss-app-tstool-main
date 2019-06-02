@@ -67,8 +67,6 @@ import rti.tscommandprocessor.core.TSCommandFileRunner;
 import rti.tscommandprocessor.core.TSCommandProcessor;
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
-import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
 import RTi.GRTS.TSViewGraphJFrame;
 import RTi.GRTS.TSViewSummaryJFrame;
 import RTi.GRTS.TSViewTableJFrame;
@@ -91,7 +89,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain extends JApplet
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "13.00.00dev (2019-02-09)";
+public static final String PROGRAM_VERSION = "13.00.00dev (2019-06-01)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1137,7 +1135,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
         // No need to check whether enabled or not since a generic connection
         // Specific configuration files will indicate if enabled
-    	// TODO SAM 2016-02-19 Need to move to more appropriate path - don't confuse with RiversideDBDataStore
+    	// TODO SAM 2016-02-19 Need to move to more appropriate path
         packagePath = "riverside.datastore.";
     }
     else if ( dataStoreType.equalsIgnoreCase("HydroBaseDataStore") ) {
@@ -1188,16 +1186,6 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
             packagePath = "rti.tscommandprocessor.commands.reclamationpisces.";
-        }
-    }
-    else if ( dataStoreType.equalsIgnoreCase("RiversideDBDataStore") ) {
-        propValue = getPropValue("TSTool.RiversideDBEnabled");
-    	userPropValue = session.getConfigPropValue ( "RiversideDBEnabled" );
-    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
-    		propValue = userPropValue;
-    	}
-        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
-            packagePath = "RTi.DMI.RiversideDB_DMI.";
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDailyDataStore") ) {
@@ -1384,64 +1372,9 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 {   String routine = "TSToolMain.openDataStoresAtStartup";
-    String configFile = getConfigFile();
 
-    // Use the configuration file to get RiversideDB properties...
-    Message.printStatus(2, routine, "TSTool configuration file \"" + configFile +
-    "\" is being used to open datastores at startup." );
-    
-    // Legacy properties allowed on RiversideDB to be configured from the main TSTool.cfg file
-    // Support this approach to open a default "RiversideDB" datastore name
-    String name = "RiversideDB";
-    String description = "Default RiversideDB";
-    String databaseEngine = getPropValue ( "RiversideDB.DatabaseEngine" );
-    String databaseServer = getPropValue ( "RiversideDB.DatabaseServer" );
-    String databaseName = getPropValue ( "RiversideDB.Database" );
-    // FIXME SAM 2009-06-17 Need to evaluate encryption of password.
-    String systemLogin = getPropValue ( "RiversideDB.SystemLogin" ); // OK if null
-    String systemPassword = getPropValue ( "RiversideDB.SystemPassword" ); // OK if null
-    if ( (databaseEngine == null) && (databaseServer == null) && (databaseName == null) ) {
-        // Most likely because using new datastore conventions
-        // Open below with the generic datastore code
-    }
-    else {
-        // Have some data so check for the individual properties
-        boolean RiversideDB_enabled = false;  // Whether RiversideDBEnabled = true in TSTool config file
-        String propval = __tstool_props.getValue ( "TSTool.RiversideDBEnabled");
-        if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
-            RiversideDB_enabled = true;
-        }
-        if ( RiversideDB_enabled ) {
-            String warning = "";
-            if ( (databaseEngine == null) || databaseEngine.equals("") ) {
-                warning +=
-                    "\nNo RiversideDB.DatabaseEngine property defined in TSTool configuration file \"" + configFile +
-                    "\".  Cannot open RiversideDB connection for batch run.";
-            }
-            if ( (databaseServer == null) || databaseServer.equals("") ) {
-                warning +=
-                    "\nNo RiversideDB.DatabaseServer property defined in TSTool configuration file \"" + configFile +
-                    "\".  Cannot open RiversideDB connection for batch run.";
-            }
-            if ( (databaseName == null) || databaseName.equals("") ) {
-                warning +=
-                    "\nNo RiversideDB.Database property defined in TSTool configuration file \"" + configFile +
-                    "\".  Cannot open RiversideDB connection for batch run.";
-            }
-            if ( warning.length() > 0 ) {
-                Message.printWarning ( 1, routine, warning );
-            }
-            else {
-                Message.printStatus(2, routine, "Opening RiversideDB \"" + name + "\"." );
-                openRiversideDB ( processor, name, description,
-                    databaseEngine, databaseServer, databaseName, systemLogin, systemPassword );
-            }
-        }
-    }
-    
     // Also allow multiple database connections via the new convention using datastore configuration files
-    // The following code processes all datastores, although RiversideDB is the first implementation using
-    // this approach.
+    // The following code processes all datastores.
     
     // Plugin datastore classes will have been loaded by this time
     
@@ -1639,34 +1572,6 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
         }
     }
     return null; // Probably will not get here
-}
-
-/**
-Open a single RiversideDB connection using the specified information.  This method will add the connection
-to the list of datastores used by the processor.  This method is used with the legacy information stored
-in the TSTool.cfg file.  New conventions use a datastore configuration file.
-*/
-protected static void openRiversideDB ( TSCommandProcessor processor, String name, String description,
-    String databaseEngine, String databaseServer, String databaseName, String systemLogin, String systemPassword )
-{   String routine = "TSToolMain.openRiversideDB";
-    try {
-        // Now open the database...
-        // This uses the guest login.  If properties were not found,
-        // then default HydroBase information will be used.
-        RiversideDB_DMI rdmi = new RiversideDB_DMI ( databaseEngine, databaseServer, databaseName,
-            -1, // Don't use the port number - use the database name instead
-            systemLogin, // OK if null - use read-only guest
-            systemPassword ); // OK if null - use read-only guest
-        rdmi.open();
-        DataStore dataStore = new RiversideDBDataStore(name, description, rdmi);
-        // This adds a datastore to the processor
-        processor.setPropContents ( "DataStore", dataStore );
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 1, routine, "Error opening RiversideDB.  RiversideDB features will be disabled for \"" +
-            name + "\" (" + e + ")." );
-        Message.printWarning ( 3, routine, e );
-    }
 }
 
 /**

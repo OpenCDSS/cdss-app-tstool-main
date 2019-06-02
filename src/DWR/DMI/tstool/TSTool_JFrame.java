@@ -201,13 +201,6 @@ import RTi.DMI.NWSRFS_DMI.NWSRFS_DMI;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_ESPTraceEnsemble;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_TS_InputFilter_JPanel;
 import RTi.DMI.NWSRFS_DMI.NWSRFS_Util;
-import RTi.DMI.RiversideDB_DMI.RiversideDBDataStore;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_DMI;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_DataType;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasType;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel;
-import RTi.DMI.RiversideDB_DMI.RiversideDB_TSProductManager_JFrame;
 import RTi.GIS.GeoView.GeoLayer;
 import RTi.GIS.GeoView.GeoLayerView;
 import RTi.GIS.GeoView.GeoRecord;
@@ -1046,7 +1039,6 @@ private boolean
 	__source_RCCACIS_enabled = false,
 	__source_ReclamationHDB_enabled = false,
 	__source_ReclamationPisces_enabled = false,
-	__source_RiversideDB_enabled = false,
 	__source_RiverWare_enabled = true,
 	__source_SHEF_enabled = true,
 	__source_StateCU_enabled = true,
@@ -1154,8 +1146,7 @@ private JMenu
 		__File_Open_CommandFileRecent_JMenuItem[] = null,
 		__File_Open_DIADvisor_JMenuItem = null,
 		__File_Open_HydroBase_JMenuItem = null,
-		__File_Open_ReclamationHDB_JMenuItem = null,
-		__File_Open_RiversideDB_JMenuItem = null;
+		__File_Open_ReclamationHDB_JMenuItem = null;
 private JMenu
 	__File_Save_JMenu = null;
 		private JMenuItem
@@ -1175,8 +1166,8 @@ private JMenu
 		__File_Properties_ColoradoSMS_JMenuItem = null,
 		__File_Properties_DIADvisor_JMenuItem = null,
 		__File_Properties_HydroBase_JMenuItem = null,
-		__File_Properties_NWSRFSFS5Files_JMenuItem = null,
-		__File_Properties_RiversideDB_JMenuItem = null,
+		__File_Properties_NWSRFSFS5Files_JMenuItem = null;
+private JMenuItem
 	__File_SetWorkingDirectory_JMenuItem = null,
 	__File_Exit_JMenuItem = null;
 
@@ -1271,7 +1262,6 @@ JMenuItem
 	__Commands_Read_ReadRccAcis_JMenuItem,
 	__Commands_Read_ReadReclamationHDB_JMenuItem,
 	__Commands_Read_ReadReclamationPisces_JMenuItem,
-	__Commands_Read_ReadRiversideDB_JMenuItem,
 	__Commands_Read_ReadRiverWare_JMenuItem,
 	__Commands_Read_ReadStateCU_JMenuItem,
 	__Commands_Read_ReadStateCUB_JMenuItem,
@@ -1377,7 +1367,6 @@ JMenuItem
 	__Commands_Output_WriteHecDss_JMenuItem,
 	__Commands_Output_WriteNwsCard_JMenuItem,
 	__Commands_Output_WriteReclamationHDB_JMenuItem,
-	__Commands_Output_WriteRiversideDB_JMenuItem,
 	__Commands_Output_WriteRiverWare_JMenuItem,
     __Commands_Output_WriteSHEF_JMenuItem,
 	__Commands_Output_WriteStateCU_JMenuItem,
@@ -1712,11 +1701,7 @@ private JMenu
 private JMenuItem
 	__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_JMenuItem = null,
 	__Tools_NWSRFS_ConvertJulianHour_JMenuItem = null;
-private JMenu
-	__Tools_RiversideDB_JMenu = null;
 private JMenuItem
-	__Tools_RiversideDB_TSProductManager_JMenuItem = null,
-
 	__Tools_SelectOnMap_JMenuItem = null,
 
 	__Tools_Options_JMenuItem = null;
@@ -1774,7 +1759,6 @@ private String
 			__File_Open_DIADvisor_String = "DIADvisor...",
 			__File_Open_HydroBase_String = "HydroBase...",
 			__File_Open_ReclamationHDB_String = "Reclamation HDB...",
-			__File_Open_RiversideDB_String = "RiversideDB...",
 		__File_Save_String = "Save",
 			__File_Save_Commands_String = "Commands", 
 			__File_Save_CommandsAs_String = "Commands As...",
@@ -1789,7 +1773,6 @@ private String
 			__File_Properties_DIADvisor_String = "DIADvisor",
 			__File_Properties_HydroBase_String ="HydroBase",
 			__File_Properties_NWSRFSFS5Files_String = "NWSRFS FS5 Files",
-			__File_Properties_RiversideDB_String = "RiversideDB",
 		__File_SetWorkingDirectory_String = "Set Working Directory...",
 		__File_Exit_String = "Exit",
 
@@ -1867,7 +1850,6 @@ private String
 	__Commands_Read_ReadRccAcis_String = TAB + "ReadRccAcis()... <read 1+ time series from the RCC ACIS web service>",
 	__Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series a Reclamation HDB database>",
 	__Commands_Read_ReadReclamationPisces_String = TAB + "ReadReclamationPisces()... <read 1+ time series a Reclamation Pisces database>",
-	__Commands_Read_ReadRiversideDB_String = TAB + "ReadRiversideDB()... <read 1+ time series from a RiversideDB database>",
 	__Commands_Read_ReadRiverWare_String = TAB + "ReadRiverWare()... <read 1 time series from a RiverWare file>",
 	__Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1+ time series from a StateCU file>",
 	__Commands_Read_ReadStateCUB_String = TAB + "ReadStateCUB()... <read 1+ time series from a StateCU binary output file>",
@@ -1947,7 +1929,6 @@ private String
 	__Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	__Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
 	__Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to a Reclamation HDB database>",
-	__Commands_Output_WriteRiversideDB_String = TAB + "WriteRiversideDB()... <write time series to RiversideDB database>",
 	__Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()... <write time series to RiverWare file>",
     __Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()... <write time series to SHEF file (under development)>",
 	__Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",
@@ -2249,8 +2230,6 @@ private String
 		__Tools_NWSRFS_String = "NWSRFS",
 			__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String = "Convert NWSRFS ESP Trace Ensemble File to Text...",
 			__Tools_NWSRFS_ConvertJulianHour_String = "Convert Julian Hour...",
-		__Tools_RiversideDB_String = "RiversideDB",
-			__Tools_RiversideDB_TSProductManager_String = "Manage Time Series Products in RiversideDB...",
 		__Tools_SelectOnMap_String = "Select on Map",
 		__Tools_Options_String = "Options...",
 
@@ -6257,28 +6236,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	        "",
 	        "", false, insertOffset );
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore) ) {
-		// The location (id), type, and time step uniquely
-		// identify the time series, but the input_name is needed to indicate the database.
-		TSTool_RiversideDB_TableModel model = (TSTool_RiversideDB_TableModel)__query_TableModel;
-		// TSID data type is formed from separate database values
-		String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE);
-		String subType = (String)__query_TableModel.getValueAt( row, model.COL_SUB_TYPE);
-		if ( subType.length() > 0 ) {
-		    dataType = dataType + "-" + subType;
-		}
-		String sequenceNumber = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE);
-		numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
-		(String)__query_TableModel.getValueAt( row, model.COL_ID ),
-		(String)__query_TableModel.getValueAt( row,	model.COL_DATA_SOURCE),
-		dataType,
-		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
-		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO),
-		sequenceNumber,
-		(String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
-		"",
-		"", false, insertOffset );
-	}
 	else if ( selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
 	    // Most time series are still handled generically but XOP time series have additional columns in the table
 	    if ( __query_TableModel instanceof StateMod_TS_TableModel ) {
@@ -6798,12 +6755,6 @@ private void ui_CheckGUIState ()
 	else {
         JGUIUtil.setEnabled (__File_Properties_NWSRFSFS5Files_JMenuItem,false );
 	}
-	if ( __tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0 ) {
-		JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,true );
-	}
-	else {
-        JGUIUtil.setEnabled ( __File_Properties_RiversideDB_JMenuItem,false );
-	}
 
 	// Edit menu...
 
@@ -6956,12 +6907,6 @@ private void ui_CheckGUIState ()
 	else {
 	    JGUIUtil.setEnabled ( __Commands_Output_WriteReclamationHDB_JMenuItem, false );
 	}
-    if ( __tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0 ) {
-        JGUIUtil.setEnabled ( __Commands_Output_WriteRiversideDB_JMenuItem, true );
-    }
-    else {
-        JGUIUtil.setEnabled ( __Commands_Output_WriteRiversideDB_JMenuItem, false );
-    }
 	JGUIUtil.setEnabled ( __Commands_Output_WriteRiverWare_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Output_WriteSHEF_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Output_WriteStateCU_JMenuItem, enabled);
@@ -7553,19 +7498,6 @@ private void ui_EnableInputTypesForConfiguration ()
         __source_ReclamationPisces_enabled = true;
     }
 
-    // RiversideDB disabled by default...
-
-    __source_RiversideDB_enabled = false;
-    propValue = TSToolMain.getPropValue ( "TSTool.RiversideDBEnabled" );
-    propValueUser = session.getConfigPropValue ( "RiversideDBEnabled" );
-    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
-    	propValue = propValueUser;
-    }
-    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
-        __source_RiversideDB_enabled = true;
-    }
-
     // RiverWare enabled by default...
 
     __source_RiverWare_enabled = true;
@@ -8117,14 +8049,6 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
         else if ( panel instanceof ReclamationPisces_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((ReclamationPisces_TimeSeries_InputFilter_JPanel)panel).getDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the datastore name so return the panel
-                return panel;
-            }
-        }
-        else if ( panel instanceof RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel ) {
-            // This type of filter uses a DataStore
-            DataStore dataStore = ((RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel)panel).getDataStore();
             if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
                 // Have a match in the datastore name so return the panel
                 return panel;
@@ -8735,9 +8659,9 @@ private void ui_InitGUI ( )
 
     JPanel resultsProperties_JPanel = new JPanel();
     resultsProperties_JPanel.setLayout(gbl);
-    PropList_TableModel<PropList> propsTableModel = null;
+    PropList_TableModel propsTableModel = null;
     try {
-        propsTableModel = new PropList_TableModel<PropList>(new PropList("processor"),false,false);
+        propsTableModel = new PropList_TableModel(new PropList("processor"),false,false);
         propsTableModel.setKeyColumnName("Property Name");
         propsTableModel.setValueColumnName("Property Value");
     }
@@ -9072,16 +8996,6 @@ private void ui_InitGUIInputFilters ( final int y )
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
                     Message.printWarning(3, routine, "Error initializing Reclamation Pisces datastore input filters (" + e + ").");
-                    Message.printWarning(3, routine, e);
-                }
-            }
-            if ( __source_RiversideDB_enabled && (__tsProcessor.getDataStoresByType(RiversideDBDataStore.class).size() > 0) ) {
-                try {
-                    ui_InitGUIInputFiltersRiversideDB(__tsProcessor.getDataStoresByType(RiversideDBDataStore.class), y );
-                }
-                catch ( Throwable e ) {
-                    // This may happen if the database is unavailable or inconsistent with expected design.
-                    Message.printWarning(3, routine, "Error initializing RiversideDB datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -10211,48 +10125,6 @@ private void ui_InitGUIInputFiltersReclamationPisces ( List<DataStore> dataStore
 }
 
 /**
-Initialize the RiversideDB input filter (may be called at startup after login or File...Open RiversideDB).
-@param dataStoreList the list of datastores for which input filter panels are to be added.
-@param y the position in the input panel that the filter should be added
-*/
-private void ui_InitGUIInputFiltersRiversideDB ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersRiversideDB";
-    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() +
-        " RiversideDB datastores." );
-    String selectedDataType = ui_GetSelectedDataType();
-    String selectedTimeStep = ui_GetSelectedTimeStep();
-    for ( DataStore dataStore: dataStoreList ) {
-        try {
-            // Try to find an existing input filter panel for the same name...
-            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType, selectedTimeStep );
-            // If the previous instance is not null, remove it from the list...
-            if ( ifp != null ) {
-                __inputFilterJPanelList.remove ( ifp );
-            }
-            // Create a new panel...
-            RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel newIfp =
-                new RiversideDB_MeasTypeMeasLocGeoloc_InputFilter_JPanel((RiversideDBDataStore)dataStore,6);
-    
-            // Add the new panel to the layout and set in the global data...
-            int buffer = 3;
-            Insets insets = new Insets(0,buffer,0,0);
-            JGUIUtil.addComponent(__queryInput_JPanel, newIfp,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            // The name is used to set visible later
-            newIfp.setName("RiversideDB.InputFilterPanel");
-            __inputFilterJPanelList.add ( newIfp );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for RiversideDB time series (MeasType/MeasLoc/Geoloc) " +
-                "for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
-            Message.printWarning ( 3, routine, e );
-        }
-    }
-}
-
-/**
 Initialize the USGS NWIS input filter (may be called at startup).
 @param dataStoreList the list of datastores for which input filter panels are to be added.
 @param y the position in the input panel that the filter should be added
@@ -10551,10 +10423,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationPisces_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationPisces_String, this) );
     }
-    if ( __source_RiversideDB_enabled ) {
-        __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiversideDB_JMenuItem =
-            new SimpleJMenuItem(__Commands_Read_ReadRiversideDB_String, this) );
-    }
     if ( __source_RiverWare_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiverWare_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadRiverWare_String, this) );
@@ -10812,11 +10680,6 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
             new SimpleJMenuItem(__Commands_Output_WriteReclamationHDB_String, this ) );
     }
     
-    if ( __source_RiversideDB_enabled ) {
-        __Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiversideDB_JMenuItem =
-            new SimpleJMenuItem(__Commands_Output_WriteRiversideDB_String, this ) );
-    }
-
 	if ( __source_RiverWare_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiverWare_JMenuItem =
 			new SimpleJMenuItem(__Commands_Output_WriteRiverWare_String, this ) );
@@ -11469,15 +11332,6 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 			__File_Open_ReclamationHDB_JMenuItem = new SimpleJMenuItem( __File_Open_ReclamationHDB_String, this ) );
 	}
 
-	if ( __source_RiversideDB_enabled ) {
-		if ( !separator_added ) {
-			__File_Open_JMenu.addSeparator( );
-			separator_added = true;
-		}
-		__File_Open_JMenu.add ( __File_Open_RiversideDB_JMenuItem =
-			new SimpleJMenuItem(__File_Open_RiversideDB_String, this ) );
-	}
-
 	__File_JMenu.add( __File_Save_JMenu=new JMenu(__File_Save_String,true));
 	//__File_Save_Commands_JMenuItem = new SimpleJMenuItem(
 		//__File_Save_Commands_String,__File_Save_Commands_ActionString,this );
@@ -11534,16 +11388,6 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 		__File_Properties_JMenu.add ( __File_Properties_NWSRFSFS5Files_JMenuItem =
 			new SimpleJMenuItem ( __File_Properties_NWSRFSFS5Files_String, this ) );
 		__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled ( false );
-	}
-
-	if ( __source_RiversideDB_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add ( __File_Properties_RiversideDB_JMenuItem =
-			new SimpleJMenuItem ( __File_Properties_RiversideDB_String, this ) );
-		__File_Properties_RiversideDB_JMenuItem.setEnabled ( false );
 	}
 
 	__File_JMenu.addSeparator( );
@@ -11896,15 +11740,6 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 			new SimpleJMenuItem(__Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String,this ) );
 		__Tools_NWSRFS_JMenu.add( __Tools_NWSRFS_ConvertJulianHour_JMenuItem=
 			new SimpleJMenuItem(__Tools_NWSRFS_ConvertJulianHour_String, this ) );
-	}
-
-	if ( __source_RiversideDB_enabled ) {
-		// Add RiversideDB-related tools...
-		__Tools_JMenu.addSeparator ();
-		__Tools_JMenu.add ( __Tools_RiversideDB_JMenu =	new JMenu(__Tools_RiversideDB_String, true ) );
-
-		__Tools_RiversideDB_JMenu.add( __Tools_RiversideDB_TSProductManager_JMenuItem=
-			new SimpleJMenuItem( __Tools_RiversideDB_TSProductManager_String, this ) );
 	}
 
 	// Options menu...
@@ -12754,33 +12589,6 @@ throws Exception
 			}
 		}
 	}
-	else if ( command.equals ( __File_Open_RiversideDB_String )) {
-	    // FIXME SAM 2010-09-07 Need to enable in some form
-		// Read a RiverTrak config file, get the RiversideDB properties, and open the database...
-		JFileChooser fc = JFileChooserFactory.createJFileChooser( JGUIUtil.getLastFileDialogDirectory() );
-		fc.setDialogTitle( "Select a RiversideDB Configuration File" );
-		SimpleFileFilter sff = new SimpleFileFilter ( "cfg", "RiversideDB Datastore Configuration File" );
-        fc.addChoosableFileFilter ( sff );
-		sff = new SimpleFileFilter ( "cfg", "RiverTrak/TSTool Configuration File" );
-		fc.addChoosableFileFilter ( sff );
-		fc.setFileFilter ( sff );
-		if ( fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION ) {
-			return;
-		}
-		// Don't save the directory because it is probably a one-off selection and won't be picked again.
-		String path = fc.getSelectedFile().getPath();
-		DataStore dataStore = uiAction_OpenRiversideDB ( session, path );
-		if ( dataStore != null ) {
-            // Now update the input filters for the open datastore list (only pass in the one item so that
-            // existing input filters are not impacted
-            List<DataStore> dataStoreList = new Vector();
-            dataStoreList.add ( dataStore );
-            ui_InitGUIInputFiltersRiversideDB ( dataStoreList, ui_GetInputFilterY() );
-            // Add the datastore name to the choices and select the choice, which will cause other events
-            __dataStore_JComboBox.add(dataStore.getName());
-            __dataStore_JComboBox.select(dataStore.getName());
-		}
-	}
 	else if ( o == __File_Save_Commands_JMenuItem ) {
 		try {
             if ( __commandFileName != null ) {
@@ -12954,30 +12762,6 @@ throws Exception
 		}
 		else {
             v = __nwsrfs_dmi.getDatabaseProperties ( 3 );
-		}
-		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
-		new ReportJFrame ( v, reportProp );
-	}
-    else if ( command.equals(__File_Properties_RiversideDB_String) ) {
-		PropList reportProp = new PropList ("RiversideDB.props");
-		// Too big (make this big when we have more stuff)...
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "RiversideDB Datastore Properties" );
-		List<DataStore> dataStoreList = __tsProcessor.getDataStoresByType(RiversideDBDataStore.class);
-		List<String> v = new Vector();
-        v.add ( "RiversideDB Datastore Properties" );
-        v.add ( "" );
-		for ( DataStore dataStore : dataStoreList ) {
-		    v.add ( "Datastore name:  " + dataStore.getName() );
-		    v.add ( "Datastore description:  " + dataStore.getDescription() );
-		    v.add ( "" );
-		    RiversideDB_DMI rdmi = (RiversideDB_DMI)((RiversideDBDataStore)dataStore).getDMI();
-		    v.addAll ( rdmi.getDatabaseProperties ( 3 ) );
 		}
 		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 		new ReportJFrame ( v, reportProp );
@@ -13316,9 +13100,6 @@ throws Exception
     }
 	else if (command.equals( __Commands_Read_ReadReclamationPisces_String)){
         commandList_EditCommand ( __Commands_Read_ReadReclamationPisces_String, null, CommandEditType.INSERT );
-    }
-    else if (command.equals( __Commands_Read_ReadRiversideDB_String)){
-        commandList_EditCommand ( __Commands_Read_ReadRiversideDB_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Read_ReadStateCU_String)){
 		commandList_EditCommand ( __Commands_Read_ReadStateCU_String, null, CommandEditType.INSERT );
@@ -13663,9 +13444,6 @@ throws Exception
 	}
     else if (command.equals( __Commands_Output_WriteReclamationHDB_String)){
         commandList_EditCommand ( __Commands_Output_WriteReclamationHDB_String, null, CommandEditType.INSERT );
-    }
-    else if (command.equals( __Commands_Output_WriteRiversideDB_String)){
-        commandList_EditCommand ( __Commands_Output_WriteRiversideDB_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals( __Commands_Output_WriteRiverWare_String)){
 		commandList_EditCommand ( __Commands_Output_WriteRiverWare_String, null, CommandEditType.INSERT );
@@ -14832,14 +14610,6 @@ throws Exception
 		// Display the NWSRFS dialog...
 		new NWSRFS_ConvertJulianHour_JDialog(this);
 	}
-	else if ( o == __Tools_RiversideDB_TSProductManager_JMenuItem ) {
-	    List<TSProductDMI> rdmiList = new Vector();
-	    List<DataStore> dataStores = __tsProcessor.getDataStoresByType(RiversideDBDataStore.class);
-	    for ( DataStore dataStore : dataStores ) {
-    		rdmiList.add ( (RiversideDB_DMI)((DatabaseDataStore)dataStore).getDMI() );
-	    }
-		new RiversideDB_TSProductManager_JFrame ( rdmiList, null );
-	}
 	else if ( o == __Tools_SelectOnMap_JMenuItem ) {
 		try {
             uiAction_SelectOnMap ();
@@ -15070,9 +14840,6 @@ private void uiAction_DataStoreChoiceClicked()
         }
         else if ( selectedDataStore instanceof ReclamationPiscesDataStore ) {
             uiAction_SelectDataStore_ReclamationPisces ( (ReclamationPiscesDataStore)selectedDataStore );
-        }
-        else if ( selectedDataStore instanceof RiversideDBDataStore ) {
-            uiAction_SelectDataStore_RiversideDB ( (RiversideDBDataStore)selectedDataStore );
         }
         else if ( selectedDataStore instanceof UsgsNwisDailyDataStore ) {
             uiAction_SelectDataStore_UsgsNwisDaily ( (UsgsNwisDailyDataStore)selectedDataStore );
@@ -15311,53 +15078,7 @@ private void uiAction_DataTypeChoiceClicked()
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore)) {
         // Time steps are determined from the database based on the data type that is selected...
-        /** FIXME SAM 2010-10-19 Need to enable
-        String data_type = StringUtil.getToken(__dataType_JComboBox.getSelected()," ",0,0).trim();
-        List<RiversideDB_MeasType> v = null;
-        DataStore dataStore = ui_GetSelectedDataStore();
-        RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)dataStore).getDMI();
-        try {
-            v = rdmi.readMeasTypeListForTSIdent ( ".." + data_type + ".." );
-        }
-        catch ( Exception e ) {
-            Message.printWarning(2, rtn, "Error getting time steps from RiversideDB \"" +
-                selectedDataStore.getName() + ".");
-            Message.printWarning(2, rtn, e);
-            v = null;
-        }
-        int size = 0;
-        if ( v != null ) {
-            size = v.size();
-        }
-        RiversideDB_MeasType mt = null;
-        String timestep;
-        String time_step_base;
-        long time_step_mult;
-        __timeStep_JComboBox.removeAll ();
-        if ( size > 0 ) {
-            for ( int i = 0; i < size; i++ ) {
-                mt = v.get(i);
-                // Only add if not already listed. Alternatively - add a "distinct" query
-                time_step_base = mt.getTime_step_base();
-                time_step_mult = mt.getTime_step_mult();
-                if ( time_step_base.equalsIgnoreCase( "IRREGULAR") || DMIUtil.isMissing(time_step_mult) ) {
-                    timestep = mt.getTime_step_base();
-                }
-                else {
-                    timestep = "" + mt.getTime_step_mult() + mt.getTime_step_base();
-                }
-                if ( !JGUIUtil.isSimpleJComboBoxItem(__timeStep_JComboBox, timestep, JGUIUtil.NONE, null, null)){
-                    __timeStep_JComboBox.add(timestep);
-                }
-            }
-            __timeStep_JComboBox.select ( null );
-            __timeStep_JComboBox.select ( 0 );
-            __timeStep_JComboBox.setEnabled ( true );
-        }
-        else {
-            __timeStep_JComboBox.setEnabled ( false );
-        }
-        */
+        // FIXME SAM 2010-10-19 Need to enable
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore)) {
         // Set intervals for the data type and trigger a select to populate the input filters
@@ -15371,54 +15092,6 @@ private void uiAction_DataTypeChoiceClicked()
         	__timeStep_JComboBox.select ( 0 );
         }
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof RiversideDBDataStore)) {
-		// Time steps are determined from the database based on the data type that is selected...
-		String data_type = StringUtil.getToken(__dataType_JComboBox.getSelected()," ",0,0).trim();
-		List<RiversideDB_MeasType> v = null;
-		DataStore dataStore = ui_GetSelectedDataStore();
-		RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)dataStore).getDMI();
-		try {
-            v = rdmi.readMeasTypeListForTSIdent ( ".." + data_type + ".." );
-		}
-		catch ( Exception e ) {
-			Message.printWarning(2, rtn, "Error getting time steps from RiversideDB \"" +
-			    selectedDataStore.getName() + ".");
-			Message.printWarning(2, rtn, e);
-			v = null;
-		}
-		int size = 0;
-		if ( v != null ) {
-			size = v.size();
-		}
-		RiversideDB_MeasType mt = null;
-		String timestep;
-		String time_step_base;
-		long time_step_mult;
-		__timeStep_JComboBox.removeAll ();
-		if ( size > 0 ) {
-			for ( int i = 0; i < size; i++ ) {
-				mt = v.get(i);
-				// Only add if not already listed. Alternatively - add a "distinct" query
-				time_step_base = mt.getTime_step_base();
-				time_step_mult = mt.getTime_step_mult();
-				if ( time_step_base.equalsIgnoreCase( "IRREGULAR") || DMIUtil.isMissing(time_step_mult) ) {
-					timestep = mt.getTime_step_base();
-				}
-				else {
-                    timestep = "" + mt.getTime_step_mult() + mt.getTime_step_base();
-				}
-				if ( !JGUIUtil.isSimpleJComboBoxItem(__timeStep_JComboBox, timestep, JGUIUtil.NONE, null, null)){
-					__timeStep_JComboBox.add(timestep);
-				}
-			}
-			__timeStep_JComboBox.select ( null );
-			__timeStep_JComboBox.select ( 0 );
-			__timeStep_JComboBox.setEnabled ( true );
-		}
-		else {
-            __timeStep_JComboBox.setEnabled ( false );
-		}
-	}
 	else if ( selectedInputType.equals(__INPUT_TYPE_RiverWare) ) {
 		// RiverWare file...
 		__timeStep_JComboBox.removeAll ();
@@ -15967,18 +15640,6 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( (selectedDataStore != null) && __source_RiversideDB_enabled && (selectedDataStore instanceof RiversideDBDataStore) ) {
-		try {
-            uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders(); 
-		}
-		catch ( Exception e ) {
-			message = "Error reading time series from RiversideDB \"" + selectedDataStore.getName() +
-			    "\" - cannot display time series list (" + e + ").";
-			Message.printWarning ( 1, routine, message );
-			Message.printWarning ( 3, routine, e );
-			return;
-		}
-	}
     else if ( (selectedDataStore != null) && __source_UsgsNwisDaily_enabled && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
         try {
             uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders(); 
@@ -17617,77 +17278,6 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders()
 }
 
 /**
-Read RiversideDB time series (MeasType) and list in the GUI.
-*/
-private void uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders()
-{	String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadRiversideDBHeaders";
-    JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
-
-    DataStore dataStore = ui_GetSelectedDataStore ();
-	// The headers are a list of RiversideDB_MeasTypeMeasLocGeoloc
-	try {
-	    RiversideDBDataStore riversideDBDataStore = (RiversideDBDataStore)dataStore;
-	    RiversideDB_DMI rdmi = (RiversideDB_DMI)riversideDBDataStore.getDMI();
-        queryResultsList_Clear ();
-
-		String dataType = StringUtil.getToken(	__dataType_JComboBox.getSelected()," ",0,0).trim();
-		String timeStep = __timeStep_JComboBox.getSelected();
-		if ( timeStep == null ) {
-			Message.printWarning ( 1, rtn, "No time series are available for timestep \"" + timeStep + "\"" );
-			JGUIUtil.setWaitCursor ( this, false );
-			return;
-		}
-		else {
-            timeStep = timeStep.trim();
-		}
-
-		List<RiversideDB_MeasTypeMeasLocGeoloc> results = null;
-		// Data type is shown with name so only use the first part of the choice
-		try {
-		    results = rdmi.readMeasTypeMeasLocGeolocList(dataType, timeStep, __selectedInputFilter_JPanel);
-		}
-		catch ( Exception e ) {
-		    Message.printWarning(3,rtn,e);
-			results = null;
-		}
-
-		int size = 0;
-		if ( results != null ) {
-			size = results.size();
-			// TODO Does not work??
-			//__query_TableModel.setNewData ( results );
-			// Try brute force...
-			__query_TableModel = new TSTool_RiversideDB_TableModel ( riversideDBDataStore, results );
-			TSTool_RiversideDB_CellRenderer cr =
-				new TSTool_RiversideDB_CellRenderer( (TSTool_RiversideDB_TableModel)__query_TableModel);
-
-			__query_JWorksheet.setCellRenderer ( cr );
-			__query_JWorksheet.setModel ( __query_TableModel );
-	        // Remove columns that are not appropriate...
-			if ( !((RiversideDB_DMI)riversideDBDataStore.getDMI()).getMeasTypeHasSequenceNum() ) {
-                __query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
-			}
-    		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-		}
-        if ( (results == null) || (size == 0) ) {
-			Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
-		}
-        else {
-            Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
-        }
-        ui_UpdateStatus ( false );
-
-        JGUIUtil.setWaitCursor ( this, false );
-	}
-	catch ( Exception e ) {
-		// Messages elsewhere but catch so we can get the cursor back...
-		Message.printWarning ( 3, rtn, e );
-        JGUIUtil.setWaitCursor ( this, false );
-	}
-}
-
-/**
 Read the list of time series from RiverWare files and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ()
@@ -19213,26 +18803,6 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 }
 
 /**
-Open a connection to the RiversideDB database based on information in a configuration file.
-Currently this ONLY works on the newer configuration file, not TSTool or RiverTrak configurations files.
-@param configFile configuration file containing RiversideDB connection information
-@param startup If true, indicates that the database connection is being made
-at startup.  In this case, the RiversideDB input type is enabled but there may
-not actually be information in the TSTool.cfg file.  This is the case, for
-example, when multiple RiversideDB databases may be available and there is no
-reason to automatically connect to one of them for all users.
-*/
-private DataStore uiAction_OpenRiversideDB ( TSToolSession session, String configFile )
-throws Exception
-{
-    // Read into a PropList...
-    PropList rprops = new PropList("");
-    rprops.setPersistentName ( configFile );
-    rprops.readPersistent ();
-    return TSToolMain.openDataStore( session, rprops, __tsProcessor, new ArrayList<Class>(), new ArrayList<Class>(), false );
-}
-
-/**
 Paste the cut buffer containing Command instances that were previously cut or
 copied, inserting after the selected item.
 */
@@ -20434,82 +20004,6 @@ throws Exception
         new TSTool_ReclamationPisces_CellRenderer((TSTool_ReclamationPisces_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-}
-
-/**
-Refresh the query choices for the currently selected RiversideDB datastore.
-*/
-private void uiAction_SelectDataStore_RiversideDB ( RiversideDBDataStore selectedDataStore )
-throws Exception
-{   String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_RiversideDB";
-    // Get the DMI instances for the matching datastore
-    RiversideDB_DMI rdmi = (RiversideDB_DMI)((DatabaseDataStore)selectedDataStore).getDMI();
-    ui_SetInputNameVisible(false); // Not needed
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
-    List<RiversideDB_MeasType> mts = null;
-    List<RiversideDB_DataType> dts = null;
-    try {
-        mts = rdmi.readMeasTypeListForDistinctData_type();
-        dts = rdmi.readDataTypeList();
-    }
-    catch ( Exception e ) {
-        Message.printWarning ( 1, routine, "Error getting time series choices (" + e + ")." );
-        Message.printWarning ( 3, routine, e );
-        Message.printWarning ( 3, routine, rdmi.getLastSQLString() );
-        mts = null;
-    }
-    int size = 0;
-    if ( mts != null ) {
-        size = mts.size();
-    }
-    if ( size > 0 ) {
-        RiversideDB_MeasType mt = null;
-        int pos;
-        String data_type;
-        for ( int i = 0; i < size; i++ ) {
-            mt = mts.get(i);
-            pos = RiversideDB_DataType.indexOf (dts, mt.getData_type() );
-            if ( pos < 0 ) {
-                __dataType_JComboBox.add(mt.getData_type() );
-            }
-            else {
-                data_type = mt.getData_type() + " - " + dts.get(pos).getDescription();
-                if ( data_type.length() > 30 ) {
-                    __dataType_JComboBox.add( data_type.substring(0,30) + "..." );
-                }
-                else {
-                    __dataType_JComboBox.add( data_type );
-                }
-            }
-        }
-        __dataType_JComboBox.select ( null );
-        __dataType_JComboBox.select ( 0 );
-    }
-
-    // Default to first in the list...
-    //__data_type_JComboBox.select( 0 );
-
-    /* TODO
-    __where_JComboBox.setEnabled ( true );
-    __where_JComboBox.removeAll ();
-    // SAMX Need to decide what to put here...
-    __where_JComboBox.add("Data Source");
-        __where_JComboBox.add("Location ID");
-    __where_JComboBox.add("Location Name");
-    __where_JComboBox.select ( 2 );
-    */
-
-    // Initialize with blank data vector...
-
-    __query_TableModel = new TSTool_RiversideDB_TableModel(selectedDataStore,null);
-    TSTool_RiversideDB_CellRenderer cr =
-        new TSTool_RiversideDB_CellRenderer((TSTool_RiversideDB_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    //__query_JWorksheet.removeColumn (((TSTool_RiversideDB_TableModel)__query_TableModel).COL_SEQUENCE );
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 }
 
@@ -22397,12 +21891,6 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     }
     else {
         v.add ( "ReclamationPisces datastore is not enabled");
-    }
-    if ( __source_RiversideDB_enabled ) {
-        v.add ( "RiversideDB datastore is enabled" );
-    }
-    else {
-        v.add ( "RiversideDB datastore is not enabled");
     }
     if ( __source_RiverWare_enabled ) {
         v.add ( "RiverWare input type is enabled" );

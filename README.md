@@ -91,7 +91,6 @@ such as documentation managed with command line Git or other Git tools.
 |[`cdss-lib-dmi-hydrobase-java`](https://github.com/OpenCDSS/cdss-lib-dmi-hydrobase-java)          |Y |Library to directly access Colorado's HydroBase database.|
 |[`cdss-lib-dmi-hydrobase-rest-java`](https://github.com/OpenCDSS/cdss-lib-dmi-hydrobase-rest-java)|Y |Library to access Colorado's HydroBase REST API.|
 |[`cdss-lib-dmi-nwsrfs-java`](https://github.com/OpenCDSS/cdss-lib-dmi-nwsrfs-java)                |Y2|Legacy library to access National Weather Service River Forecast System (NWSRFS) data files.|
-|[`cdss-lib-dmi-riversidedb-java`](https://github.com/OpenCDSS/cdss-lib-dmi-riversidedb-java)      |Y2|Legacy library to access Riverside Technology forecast system database.|
 |[`cdss-lib-dmi-satmonsys-java`](https://github.com/OpenCDSS/cdss-lib-dmi-satmonsys-java)          |Y2|Legacy library to directly access Colorado's Satellite Monitoring System database.|
 |[`cdss-lib-models-java`](https://github.com/OpenCDSS/cdss-lib-models-java)                        |Y |Library to read/write CDSS StateCU and StateMod model files.|
 |[`cdss-lib-processor-ts-java`](https://github.com/OpenCDSS/cdss-lib-processor-ts-java)            |Y |Library containing processor code for TSTool commands.|
@@ -136,7 +135,6 @@ C:\Users\user\                               Windows user home folder (typical d
         cdss-lib-dmi-hydrobase-java/
         cdss-lib-dmi-hydrobase-rest-java/
         cdss-lib-dmi-nwsrfs-java/
-        cdss-lib-dmi-riversidedb-java/
         cdss-lib-dmi-satmonsys-java/
         cdss-lib-models-java/
         cdss-lib-processor-ts-java/

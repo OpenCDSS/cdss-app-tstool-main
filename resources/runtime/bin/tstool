@@ -42,7 +42,6 @@ $JAR_HOME/cdss-lib-cdss-java_17.jar:\
 $JAR_HOME/cdss-lib-dmi-hydrobase-java_17.jar:\
 $JAR_HOME/cdss-lib-models-java_17.jar:\
 $JAR_HOME/cdss-lib-dmi-nwsrfs-java_17.jar:\
-$JAR_HOME/cdss-lib-dmi-riversidedb-java_17.jar:\
 $JAR_HOME/cdss-lib-dmi-satmonsys-java_17.jar:\
 $JAR_HOME/batik-awt-util.jar:\
 $JAR_HOME/batik-dom.jar:\

@@ -66,8 +66,6 @@
 			value="${ext.dir}/Microsoft_SQL_Server_Java_ODBC_Driver/msutil.jar" />
 	<property name="NWSRFS_DMI"	 
 		value="${ext.dir}/NWSRFS_DMI/NWSRFS_DMI_142_Extended.jar" />
-	<property name="RiversideDB"	 
-		value="${ext.dir}/RiversideDB_DMI/RiversideDB_DMI_142.jar" />
 	<property name="RTi_Common"	 
 		value="${ext.dir}/RTi_Common/RTi_Common_142.jar" />
 	<property name="StateCU"	 
@@ -120,7 +118,6 @@
 		<pathelement location="${mssqlserver}"/>
 		<pathelement location="${msutil}"/>
 		<pathelement location="${NWSRFS_DMI}"/>
-		<pathelement location="${RiversideDB}"/>
 		<pathelement location="${RTi_Common}"/>
 		<pathelement location="${StateCU}"/>
 		<pathelement location="${StateMod}"/>
@@ -147,7 +144,6 @@
 		<pathelement location="${mssqlserver}"/>
 		<pathelement location="${msutil}"/>
 		<pathelement location="${NWSRFS_DMI}"/>
-		<pathelement location="${RiversideDB}"/>
 		<pathelement location="${RTi_Common}"/>
 		<pathelement location="${StateCU}"/>
 		<pathelement location="${StateMod}"/>
@@ -523,7 +519,6 @@
 	
 	<mkdir dir="tmp/bin" />
 	<copy todir="tmp/bin" >
-		<fileset dir="${ext.dir}/RiversideDB_DMI" includes="**/*.jar" />
 		<fileset dir="${ext.dir}/StateCU" includes="**/*.jar" />
 		<fileset dir="${ext.dir}/StateMod" includes="**/*.jar" />
 		<fileset dir="${ext.dir}/TSCommandProcessor" includes="**/*.jar" />
