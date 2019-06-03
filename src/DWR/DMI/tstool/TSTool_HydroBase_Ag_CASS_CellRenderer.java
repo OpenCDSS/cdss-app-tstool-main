@@ -1,5 +1,4 @@
-// TSTool_HydroBase_Ag_CellRenderer - This class is used to render cells for TSTool_HydroBase_Ag_TableModel data,
-// for Agstats and irrig_summary_ts.
+// TSTool_HydroBase_Ag_CASS_CellRenderer - This class is used to render cells for TSTool_HydroBase_Ag_CASS_TableModel data
 
 /* NoticeStart
 
@@ -27,10 +26,10 @@ package DWR.DMI.tstool;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 
 /**
-This class is used to render cells for TSTool_HydroBase_Ag_TableModel data, for Agstats and irrig_summary_ts.
+This class is used to render cells for TSTool_HydroBase_Ag_CASS_TableModel data, for CASS Agstats
 */
 @SuppressWarnings("serial")
-public class TSTool_HydroBase_Ag_CellRenderer
+public class TSTool_HydroBase_Ag_CASS_CellRenderer
 extends JWorksheet_DefaultTableCellRenderer {
 
 TSTool_HydroBase_Ag_CASS_TableModel __table_model = null;	// Table model to render
@@ -39,7 +38,7 @@ TSTool_HydroBase_Ag_CASS_TableModel __table_model = null;	// Table model to rend
 Constructor.
 @param table_model The TSTool_HydroBase_Ag_TableModel to render.
 */
-public TSTool_HydroBase_Ag_CellRenderer (
+public TSTool_HydroBase_Ag_CASS_CellRenderer (
 	TSTool_HydroBase_Ag_CASS_TableModel table_model )
 {	__table_model = table_model;
 }

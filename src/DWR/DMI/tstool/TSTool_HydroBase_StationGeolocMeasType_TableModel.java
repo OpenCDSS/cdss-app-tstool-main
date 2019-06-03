@@ -38,7 +38,7 @@ This class is a table model for time series header information for HydroBase sta
 By default the sheet will contain row and column numbers.
 */
 @SuppressWarnings("serial")
-public class TSTool_HydroBase_StationGeolocMeasType_TableModel<T> extends JWorksheet_AbstractRowTableModel<T>
+public class TSTool_HydroBase_StationGeolocMeasType_TableModel extends JWorksheet_AbstractRowTableModel<HydroBase_StationGeolocMeasType>
 {
 
 /**
@@ -83,7 +83,7 @@ The input type defaults to "HydroBase".
 when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<T> data )
+public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<HydroBase_StationGeolocMeasType> data )
 throws Exception
 {
     this ( worksheet, data, null );
@@ -98,7 +98,7 @@ that will be displayed in the table (null is allowed - see setData()).
 when using the class to display data from the ColoradoWaterSMS database.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<T> data, String inputType )
+public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<HydroBase_StationGeolocMeasType> data, String inputType )
 throws Exception
 {
 	if ( data == null ) {
@@ -258,7 +258,7 @@ public Object getValueAt(int row, int col)
 	int i; // Use for integer data.
 	double d; // Use for double data
 
-	HydroBase_StationGeolocMeasType mt = (HydroBase_StationGeolocMeasType)_data.get(row);
+	HydroBase_StationGeolocMeasType mt = _data.get(row);
 	switch (col) {
 		// case 0 handled above.
 		case COL_ID: return mt.getStation_id();
