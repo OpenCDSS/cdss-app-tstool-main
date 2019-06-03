@@ -154,6 +154,10 @@ import us.co.state.dwr.sms.ColoradoWaterSMSAPI;
 import us.co.state.dwr.sms.datastore.ColoradoWaterSMSDataStore;
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBaseDataStore;
+import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
+import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSLivestockStats;
+import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalNASSCropStats;
+import DWR.DMI.HydroBaseDMI.HydroBase_CUPopulation;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel;
@@ -166,7 +170,9 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JP
 import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
 import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
+import DWR.DMI.HydroBaseDMI.HydroBase_StructureIrrigSummaryTS;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
+import DWR.DMI.HydroBaseDMI.HydroBase_WISSheetNameWISFormat;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
 import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
 import DWR.DMI.SatMonSysDMI.SatMonSys_Util;
@@ -188,7 +194,6 @@ import DWR.StateMod.StateMod_TS_TableModel;
 import DWR.StateMod.StateMod_Util;
 import DWR.StateMod.StateMod_WellRight;
 import RTi.DMI.DMI;
-import RTi.DMI.DMIUtil;
 import RTi.DMI.DatabaseDataStore;
 import RTi.DMI.ERDiagram_JFrame;
 import RTi.DMI.DIADvisorDMI.DIADvisorDMI;
@@ -311,7 +316,6 @@ import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_CellRen
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_TelemetryStation_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_CellRenderer;
-import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_WaterClass_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_CellRenderer;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_InputFilter_JPanel;
@@ -8595,8 +8599,8 @@ private void ui_InitGUI ( )
     results_networks_JPanel.setLayout(gbl);
     JGUIUtil.addComponent(results_networks_JPanel, new JLabel ("Networks:"),
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    __resultsNetworks_JListModel = new DefaultListModel();
-    __resultsNetworks_JList = new JList ( __resultsNetworks_JListModel );
+    __resultsNetworks_JListModel = new DefaultListModel<String>();
+    __resultsNetworks_JList = new JList<String> ( __resultsNetworks_JListModel );
     __resultsNetworks_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
     __resultsNetworks_JList.addKeyListener ( this );
     __resultsNetworks_JList.addListSelectionListener ( this );
@@ -8614,8 +8618,8 @@ private void ui_InitGUI ( )
     __resultsOutputFiles_JLabel = new JLabel ( "Output files:");
     JGUIUtil.addComponent(results_files_JPanel, __resultsOutputFiles_JLabel,
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    __resultsOutputFiles_JListModel = new DefaultListModel();
-    __resultsOutputFiles_JList = new JList ( __resultsOutputFiles_JListModel );
+    __resultsOutputFiles_JListModel = new DefaultListModel<String>();
+    __resultsOutputFiles_JList = new JList<String> ( __resultsOutputFiles_JListModel );
     __resultsOutputFiles_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
     __resultsOutputFiles_JList.addKeyListener ( this );
     __resultsOutputFiles_JList.addListSelectionListener ( this );
@@ -8630,7 +8634,7 @@ private void ui_InitGUI ( )
     results_problems_JPanel.setLayout(gbl);
     CommandLog_TableModel tableModel = null;
     try {
-        tableModel = new CommandLog_TableModel(new Vector());
+        tableModel = new CommandLog_TableModel(new Vector<CommandLogRecord>());
     }
     catch ( Exception e ) {
         // Should not happen but log
@@ -8704,8 +8708,8 @@ private void ui_InitGUI ( )
     //    0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
     JGUIUtil.addComponent(results_tables_JPanel, new JLabel ("Tables:"),
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    __resultsTables_JListModel = new DefaultListModel();
-    __resultsTables_JList = new JList ( __resultsTables_JListModel );
+    __resultsTables_JListModel = new DefaultListModel<String>();
+    __resultsTables_JList = new JList<String> ( __resultsTables_JListModel );
     __resultsTables_JList.setSelectionMode ( ListSelectionModel.SINGLE_SELECTION );
     __resultsTables_JList.addKeyListener ( this );
     __resultsTables_JList.addListSelectionListener ( this );
@@ -13769,7 +13773,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new Vector(1);
+        List<Command> comments = new ArrayList<Command>(1);
         comments.add ( commandList_NewCommand("#@expectedStatus Failure",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusFailureComment_String, comments, CommandEditType.INSERT );
     }
@@ -13777,7 +13781,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new Vector(1);
+        List<Command> comments = new ArrayList<Command>(1);
         comments.add ( commandList_NewCommand("#@expectedStatus Warning",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusWarningComment_String, comments, CommandEditType.INSERT );
     }
@@ -14125,6 +14129,7 @@ throws Exception
 				// Have to seed the processor with the time series from the original processor
 				// so it can be found for subsequent processing
 				Message.printStatus(2,"","Running internal processor to preprocess time series into ensemble");
+				@SuppressWarnings("unchecked")
 				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
 				tslist0.add(ts);
 				runner.getProcessor().setPropContents("Recursive","true");
@@ -15203,7 +15208,7 @@ private void uiAction_EditCommand ()
 	}
 	if ( selectedSize > 0 ) {
 		Command command = (Command)__commands_JListModel.get(selected[0]);
-		List commandsToEdit = null;
+		List<Command> commandsToEdit = null;
 		if ( command instanceof Comment_Command ) {
 			// Allow multiple lines to be edited in a comment...
 			// This is handled in the called method, which brings up a multi-line editor for comments.
@@ -15804,7 +15809,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 
         Message.printStatus ( 2, "", "Datatype = \"" + selectedDataType + "\" timestep = \"" + selectedTimeStep + "\"" );
 
-        ColoradoHydroBaseRestDataStoreHelper helper = new ColoradoHydroBaseRestDataStoreHelper();
+        //ColoradoHydroBaseRestDataStoreHelper helper = new ColoradoHydroBaseRestDataStoreHelper();
         Message.printStatus(1, routine, "Selected filter panel is " + filterPanel );
         if ( filterPanel instanceof ColoradoHydroBaseRest_Station_InputFilter_JPanel ) {
         	// TODO smalers 2018-06-19 enable when web service is available
@@ -16094,10 +16099,10 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
     try {
         DataStore dataStore = ui_GetSelectedDataStore ();
         ColoradoWaterSMSDataStore cwds = (ColoradoWaterSMSDataStore)dataStore;
-        String selectedInputType = ui_GetSelectedInputType();
+        //String selectedInputType = ui_GetSelectedInputType();
         queryResultsList_Clear ();
 
-        String location = "";
+        //String location = "";
         String dataType = __dataType_JComboBox.getSelected().trim();
         String timestep = __timeStep_JComboBox.getSelected().trim();
 
@@ -16378,7 +16383,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeade
     // The headers are a list of TimeSeriesMeta
     try {
         GenericDatabaseDataStore ds = (GenericDatabaseDataStore)ui_GetSelectedDataStore();
-        DMI dmi = (DMI)ds.getDMI();
+        //DMI dmi = (DMI)ds.getDMI();
         queryResultsList_Clear ();
         String dataType = __dataType_JComboBox.getSelected(); // Object type - common data type
         String timeStep = __timeStep_JComboBox.getSelected();
@@ -16446,7 +16451,7 @@ throws IOException
         Message.printStatus( 2, routine, "Visible item is in position " + listIndex );
         String inputNameSelected = (String)__inputNameHecDssList.get(listIndex);
         Message.printStatus( 2, routine, "File corresponding to visible item is \"" + inputNameSelected + "\"" );
-        String id_input = "*";
+        //String id_input = "*";
         // Get the ID from the input filter...
         String aPartReq = "*";
         String bPartReq = "*";
@@ -16535,7 +16540,6 @@ throws Exception
     String selectedTimeStep = ui_GetSelectedTimeStep();
 
     // Object type in list varies
-    List tslist = null;
 	int size = 0;
 	DataStore dataStore = ui_GetSelectedDataStore (); // Will be null if using HydroBase input type
 	HydroBaseDMI hbdmi = null;
@@ -16548,53 +16552,124 @@ throws Exception
         HydroBaseDataStore hydroBaseDataStore = (HydroBaseDataStore)dataStore;
         hbdmi = (HydroBaseDMI)hydroBaseDataStore.getDMI();
 	}
-	try {	
-		tslist = HydroBase_Util.readTimeSeriesHeaderObjects ( hbdmi, selectedDataType, selectedTimeStep,
-			__selectedInputFilter_JPanel, grlimits );
-		// Make sure that size is set...
-		if ( tslist != null ) {
-			size = tslist.size();
+	InputFilter_JPanel selectedInputFilterJPanel = __selectedInputFilter_JPanel;
+	// Convert TSTool conventions to HydroBase conventions
+	String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType ( selectedDataType, selectedTimeStep );
+	String meas_type = hb_mt[0];
+	String hbtime_step = hb_mt[2];
+	try {
+		// List the time series by major category.
+		// - old code had this logic in HydroBase_Util and returned List (no generics)
+		// - new code calls specific HydroBaseUtil code in order to cleanly implement generics
+		// Specific objects are read from HydroBase based on the data type
+		if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
+			// Data from agricultural_CASS_crop_statistics
+	    	List<HydroBase_AgriculturalCASSCropStats>dataList = hbdmi.readAgriculturalCASSCropStatsList (
+				selectedInputFilterJPanel,
+				null,		// county
+				null,		// commodity
+				null,		// practice
+				null,		// date1
+				null,		// date2,
+				true );		// Distinct
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase CASS crop statistics time series were read.  Displaying data..." );
+	    		__query_TableModel = new
+				  		TSTool_HydroBase_Ag_CASS_TableModel ( __query_JWorksheet, dataList, selectedDataType );
+			  		TSTool_HydroBase_Ag_CASS_CellRenderer cr = new
+				  		TSTool_HydroBase_Ag_CASS_CellRenderer((TSTool_HydroBase_Ag_CASS_TableModel)__query_TableModel);
+			  		__query_JWorksheet.setCellRenderer ( cr );
+			  		__query_JWorksheet.setModel(__query_TableModel);
+			  		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+	    	}
 		}
-		// Now display the data in the worksheet...
-		if ( (tslist != null) && (size > 0) ) {
-       		Message.printStatus ( 1, routine, "" + size + " HydroBase time series read.  Displaying data..." );
-			if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( hbdmi, selectedDataType) ||
-				HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
-				// Data from agricultural_CASS_crop_statistics or agricultural_NASS_crop_statistics...
+		else if ( HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
+			// Data from agricultural_NASS_crop_statistics
+	    	List<HydroBase_AgriculturalNASSCropStats>dataList = hbdmi.readAgriculturalNASSCropStatsList (
+				selectedInputFilterJPanel,
+				null,		// county
+				null,		// commodity
+				null,		// date1
+				null,		// date2,
+				true );		// Distinct
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase NASS crop statistics time series were read.  Displaying data..." );
+	    		__query_TableModel = new
+				  		TSTool_HydroBase_Ag_NASS_TableModel ( __query_JWorksheet, dataList, selectedDataType );
+			  		TSTool_HydroBase_Ag_NASS_CellRenderer cr = new
+				  		TSTool_HydroBase_Ag_NASS_CellRenderer((TSTool_HydroBase_Ag_NASS_TableModel)__query_TableModel);
+			  		__query_JWorksheet.setCellRenderer ( cr );
+			  		__query_JWorksheet.setModel(__query_TableModel);
+			  		__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+	    	}
+		}
+		else if (HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( hbdmi, selectedDataType) ) {
+			// Data from CASS livestock stats...
+		    List<HydroBase_AgriculturalCASSLivestockStats> dataList = hbdmi.readAgriculturalCASSLivestockStatsList (
+				selectedInputFilterJPanel,	// From input filter
+				null,		// county
+				null,		// commodity
+				null,		// type
+				null,		// date1
+				null,		// date2,
+				true );		// Distinct
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase CASS livestock statistics time series were read.  Displaying data..." );
 				__query_TableModel = new
-					TSTool_HydroBase_Ag_CASS_TableModel ( __query_JWorksheet, tslist, selectedDataType );
-				TSTool_HydroBase_Ag_CellRenderer cr = new
-					TSTool_HydroBase_Ag_CellRenderer((TSTool_HydroBase_Ag_CASS_TableModel)__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-			}
-			else if(HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( hbdmi, selectedDataType) ) {
-				// Data from CASS livestock stats...
-				__query_TableModel = new
-					TSTool_HydroBase_CASSLivestockStats_TableModel ( __query_JWorksheet, tslist, selectedDataType );
+					TSTool_HydroBase_CASSLivestockStats_TableModel ( __query_JWorksheet, dataList, selectedDataType );
 				TSTool_HydroBase_CASSLivestockStats_CellRenderer cr = new
 					TSTool_HydroBase_CASSLivestockStats_CellRenderer(
 					(TSTool_HydroBase_CASSLivestockStats_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-			}
-			else if(HydroBase_Util.isCUPopulationTimeSeriesDataType( hbdmi, selectedDataType) ) {
+	    	}
+		}
+		else if ( HydroBase_Util.isCUPopulationTimeSeriesDataType( hbdmi, selectedDataType) ) {
+		    List<HydroBase_CUPopulation> dataList = hbdmi.readCUPopulationList (
+				selectedInputFilterJPanel,	// From input filter
+				null,		// county
+				null,		// commodity
+				null,		// type
+				null,		// date1
+				null,		// date2,
+				true );		// Distinct
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase human population time series were read.  Displaying data..." );
 				// Data from CUPopulation...
 				__query_TableModel = new
-					TSTool_HydroBase_CUPopulation_TableModel ( __query_JWorksheet, tslist, selectedDataType );
+					TSTool_HydroBase_CUPopulation_TableModel ( __query_JWorksheet, dataList, selectedDataType );
 				TSTool_HydroBase_CUPopulation_CellRenderer cr =	new
 					TSTool_HydroBase_CUPopulation_CellRenderer(
 					(TSTool_HydroBase_CUPopulation_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-			}
-			else if(HydroBase_Util.isIrrigSummaryTimeSeriesDataType( hbdmi, selectedDataType ) ) {
+	    	}
+		}
+		else if ( HydroBase_Util.isIrrigSummaryTimeSeriesDataType( hbdmi, selectedDataType ) ) {
+			List<HydroBase_StructureIrrigSummaryTS> dataList = HydroBase_Util.readStructureIrrigSummaryTSCatalogList(
+				hbdmi,
+				selectedInputFilterJPanel,
+				null,	// orderby
+				-999,	// structure_num
+				-999,	// wd
+				-999,	// id
+				null,	// str_name
+				null,	// landuse
+				null,	// start
+				null,	// end
+				true);	// distinct
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase structure irrigation summary time series were read.  Displaying data..." );
 				// Irrig summary TS...
 				__query_TableModel = new
-					TSTool_HydroBase_AgGIS_TableModel (	__query_JWorksheet, tslist, selectedDataType,
+					TSTool_HydroBase_AgGIS_TableModel (	__query_JWorksheet, dataList, selectedDataType,
 					StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")) );
 				TSTool_HydroBase_AgGIS_CellRenderer cr = new
 					TSTool_HydroBase_AgGIS_CellRenderer( (TSTool_HydroBase_AgGIS_TableModel)__query_TableModel);
@@ -16602,22 +16677,49 @@ throws Exception
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
-			else if( HydroBase_Util.isWISTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
-				// WIS TS...
-				__query_TableModel = new
-					TSTool_HydroBase_WIS_TableModel ( __query_JWorksheet, tslist, selectedDataType );
-				TSTool_HydroBase_WIS_CellRenderer cr = new
-					TSTool_HydroBase_WIS_CellRenderer( (TSTool_HydroBase_WIS_TableModel)__query_TableModel);
+		}	
+		else if ( HydroBase_Util.isStationTimeSeriesDataType(hbdmi, meas_type) ) {
+			List<HydroBase_StationGeolocMeasType> dataList = HydroBase_Util.readStationGeolocMeasTypeCatalogList(
+				hbdmi, selectedInputFilterJPanel, selectedDataType, selectedTimeStep, grlimits );
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase station time series series were read.  Displaying data..." );
+			    JWorksheet_DefaultTableCellRenderer cr = null;
+	            __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
+	                 __query_JWorksheet, dataList );
+                cr = new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
+                    (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-			}
-			else if (selectedDataType.equalsIgnoreCase( "WellLevel") || selectedDataType.equalsIgnoreCase( "WellLevelElev")||
-			    selectedDataType.equalsIgnoreCase( "WellLevelDepth") ) {
-    			if (selectedTimeStep.equalsIgnoreCase("Day")) {
-    			    // Well level data...
+	        }
+		}
+		else if ( HydroBase_Util.isStructureTimeSeriesDataType(hbdmi, meas_type) ) {
+			List<HydroBase_StructureGeolocStructMeasType> dataList = hbdmi.readStructureGeolocStructMeasTypeCatalogList(
+				selectedInputFilterJPanel, selectedDataType, selectedTimeStep);
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase structure time series were read.  Displaying list..." );
+			    JWorksheet_DefaultTableCellRenderer cr = null;
+	            __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel (
+	                __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), dataList );
+                cr = new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
+                    (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
+				__query_JWorksheet.setCellRenderer ( cr );
+				__query_JWorksheet.setModel(__query_TableModel);
+				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
+	        }
+		}
+		else if (selectedDataType.equalsIgnoreCase( "WellLevel") || selectedDataType.equalsIgnoreCase( "WellLevelElev")||
+		    selectedDataType.equalsIgnoreCase( "WellLevelDepth") ) {
+		    // Well level data...
+   			if (selectedTimeStep.equalsIgnoreCase("Day")) {
+				List<HydroBase_GroundWaterWellsView> dataList =
+					HydroBase_Util.readGroundWaterWellsViewTSCatalogList(hbdmi, selectedInputFilterJPanel, meas_type, hbtime_step);
+	    		size = dataList.size();
+	    		if ( size > 0 ) {
     				__query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
-    				__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist,
+    				__query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), dataList,
     				"HydroBase" );
     				TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
     				new TSTool_HydroBase_WellLevel_Day_CellRenderer(
@@ -16625,11 +16727,15 @@ throws Exception
     				__query_JWorksheet.setCellRenderer ( cr );
     				__query_JWorksheet.setModel(__query_TableModel);
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-    			}
-    			else {
-    				// Real-time well elevation as station
-    				__query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel<HydroBase_StationGeolocMeasType> (
-    				    __query_JWorksheet, tslist );
+	    		}
+    		}
+    		else {
+    			// Real-time well elevation as station
+    			// TODO smalers 2019-06-02 evaluate if this is working (is it handled by the general station code?)
+    			List<HydroBase_StationGeolocMeasType> dataList = new ArrayList<HydroBase_StationGeolocMeasType>();
+	    		size = dataList.size();
+	    		if ( size > 0 ) {
+    				__query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel ( __query_JWorksheet, dataList );
     				TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
     					new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
     					    (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
@@ -16641,38 +16747,26 @@ throws Exception
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
     			}
 			}
-			else {
-			    // Stations and structures.  Figure out from returned data which table model needs to be used.
-			    // At least one object will have been returned based on checks above
-			    Object o = (Object)tslist.get(0);
-			    JWorksheet_DefaultTableCellRenderer cr = null;
-	            if ( o instanceof HydroBase_StationGeolocMeasType ) {
-	                __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
-	                    __query_JWorksheet, tslist );
-                    cr = new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
-                        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
-	            }
-	            else if ( o instanceof HydroBase_StructureGeolocStructMeasType ) {
-	                __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel (
-	                    __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
-                    cr = new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
-                        (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
-	            }
-	            else if (o instanceof HydroBase_GroundWaterWellsView) {
-	                __query_TableModel = new TSTool_HydroBase_GroundWaterWellsView_TableModel (
-	                    __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist );
-                    cr = new TSTool_HydroBase_GroundWaterWellsView_CellRenderer(
-                        (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel);
-	            }
+		}
+		else if ( HydroBase_Util.isWISTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
+			// WIS TS...
+			List<HydroBase_WISSheetNameWISFormat> dataList = hbdmi.readWISSheetNameWISFormatListDistinct(selectedInputFilterJPanel);
+	    	size = dataList.size();
+	    	if ( size > 0 ) {
+	    		Message.printStatus ( 1, routine, "" + size + " HydroBase WIS time series read.  Displaying data..." );
+				__query_TableModel = new
+					TSTool_HydroBase_WIS_TableModel ( __query_JWorksheet, dataList, selectedDataType );
+				TSTool_HydroBase_WIS_CellRenderer cr = new
+					TSTool_HydroBase_WIS_CellRenderer( (TSTool_HydroBase_WIS_TableModel)__query_TableModel);
 				__query_JWorksheet.setCellRenderer ( cr );
 				__query_JWorksheet.setModel(__query_TableModel);
 				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
 		}
-		else {
-		    Message.printStatus ( 1, routine, "No HydroBase time series read." );
-			queryResultsList_Clear ();
-       	}
+		if ( size == 0 ) {
+	  		Message.printStatus ( 1, routine, "No HydroBase time series were read." );
+	  		queryResultsList_Clear ();
+		}
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 	catch ( Exception e ) {
@@ -17309,7 +17403,7 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		List tslist = new Vector ( 1 );
+		List<TS>tslist = new Vector<TS>( 1 );
 		tslist.add ( ts );
 		__query_TableModel = new TSTool_TS_TableModel ( tslist );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
@@ -17340,7 +17434,7 @@ throws Exception
 {	String message, routine = "TSTool_JFrame.readStateCUHeaders";
 
 	try {
-	    List tslist = null; // Time series to display.
+	    List<TS> tslist = null; // Time series to display.
 		TS ts = null; // Single time series.
 		int size = 0; // Number of time series.
 		String path = __inputName_JComboBox.getSelected();
@@ -17474,7 +17568,7 @@ throws IOException
     try {
         String path = __inputName_JComboBox.getSelected();
         Message.printStatus ( 1, routine, "Reading StateCU binary output file \"" + path + "\"" );
-        List tslist = null;
+        List<TS> tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
         StateCU_BTS bin = new StateCU_BTS ( path );
         tslist = bin.readTimeSeriesList ( "*.*." + selectedDataType + ".*.*", null, null, null, false );
@@ -17565,7 +17659,7 @@ throws Exception
 		// Use the ReadStateMod() command.
 		if ( StateMod_DiversionRight.isDiversionRightFile(path) ) {
 			// First read the diversion rights...
-		    List ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
+		    List<StateMod_DiversionRight> ddr_Vector = StateMod_DiversionRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					ddr_Vector,        // raw water rights
@@ -17592,7 +17686,7 @@ throws Exception
 		}
 		else if ( StateMod_InstreamFlowRight.isInstreamFlowRightFile(path) ) {
 			// First read the instream flow rights...
-		    List ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
+		    List<StateMod_InstreamFlowRight> ifr_Vector = StateMod_InstreamFlowRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					ifr_Vector,        // raw water rights
@@ -17619,7 +17713,7 @@ throws Exception
 		}
 		else if ( StateMod_ReservoirRight.isReservoirRightFile(path) ) {
 			// First read the reservoir rights...
-		    List rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
+		    List<StateMod_ReservoirRight> rer_Vector = StateMod_ReservoirRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					rer_Vector,        // raw water rights
@@ -17646,7 +17740,7 @@ throws Exception
 		}
 		else if ( StateMod_WellRight.isWellRightFile(path) ) {
 			// First read the well rights...
-		    List wer_Vector = StateMod_WellRight.readStateModFile ( path );
+		    List<StateMod_WellRight> wer_Vector = StateMod_WellRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location)...
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
 					wer_Vector,        // raw water rights
@@ -17735,7 +17829,7 @@ throws IOException
 	try {
         String path = __inputName_JComboBox.getSelected();
 		Message.printStatus ( 1, routine, "Reading StateMod binary output file \"" + path + "\"" );
-		List tslist = null;
+		List<TS> tslist = null;
 		JGUIUtil.setWaitCursor ( this, true );
 		StateMod_BTS bin = new StateMod_BTS ( path );
 		tslist = bin.readTimeSeriesList ( "*.*." + selectedDataType + ".*.*", null, null, null, false );
@@ -18003,7 +18097,7 @@ throws IOException
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
 		}
-		List<TS> tslist = new Vector ( 1 );
+		List<TS> tslist = new Vector<TS>( 1 );
 		tslist.add ( ts );
 		__query_TableModel = new TSTool_TS_TableModel ( tslist );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)__query_TableModel);
@@ -18209,7 +18303,7 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
     		__dataType_JComboBox.setEnabled ( true );
     		__dataType_JComboBox.removeAll ();
     		// TODO SAM 2004-09-01 need to find a way to not re-read the data types file.
-    		List dataTypes = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description
+    		List<String> dataTypes = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description
     		__dataType_JComboBox.setData ( dataTypes );
     		__dataType_JComboBox.select ( null );
     		__dataType_JComboBox.select ( 0 );
@@ -18927,7 +19021,9 @@ private void uiAction_ResultsEnsembleProperties ()
     List<TS> tslist = null;
     int tsResultsSize = -1;
     try {
-        tslist = (List<TS>)__tsProcessor.getPropContents("TSResultsList");
+        @SuppressWarnings("unchecked")
+		List<TS> dataList = (List<TS>)__tsProcessor.getPropContents("TSResultsList");
+        tslist = dataList;
         tsResultsSize = tslist.size();
     }
     catch ( Exception e ) {
@@ -19177,10 +19273,10 @@ private void uiAction_RunCommands_ShowResultsOutputFiles()
 	// Only add a file if not already in the list
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Entering method.");
 	ui_SetIgnoreActionEvent(true);
-	Object o = null;
 	try {
-		o = commandProcessor_GetCommandProcessor().getPropContents("OutputFileList");
+		Object o = commandProcessor_GetCommandProcessor().getPropContents("OutputFileList");
 		if ( o != null ) {
+			@SuppressWarnings("unchecked")
 			List<File> outputFileList = (List<File>)o;
 			for ( File f: outputFileList ) {
 				results_OutputFiles_AddOutputFile ( f );
@@ -19211,7 +19307,7 @@ private void uiAction_RunCommands_ShowResultsProblems()
         // List failures first
         statusTypes[0] = CommandStatusType.FAILURE;
         statusTypes[1] = CommandStatusType.WARNING;
-        List logRecordList = CommandStatusUtil.getLogRecordList ( commands, commandPhases, statusTypes );
+        List<CommandLogRecord> logRecordList = CommandStatusUtil.getLogRecordList ( commands, commandPhases, statusTypes );
         Message.printStatus( 2, routine, "There were " + logRecordList.size() +
             " problems processing " + commands.size() + " commands.");
         // Create a new table model for the problem list.
@@ -19815,8 +19911,7 @@ private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDat
     // when data are read (different table model might confuse user)
 
     try {
-        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel<HydroBase_StationGeolocMeasType>(
-            __query_JWorksheet,
+        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel( __query_JWorksheet,
             //StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")),
             null);
         TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
@@ -20169,7 +20264,7 @@ throws Exception
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
 
-    List dataTypes = new Vector();
+    List<String> dataTypes = new Vector<String>();
     int intervalBase = TimeInterval.MONTH; // Default
 
     // Fill data types choice...
@@ -20370,7 +20465,7 @@ private void uiAction_SelectInputType_DIADvisor ()
     __dataType_JComboBox.removeAll ();
     // Get the data types from the GroupDef table.  Because two values may be available, append "-DataValue" and
     // "-DataValue2" to each group.
-    List sensordef_Vector = null;
+    List<DIADvisor_SensorDef> sensordef_Vector = null;
     try {
         sensordef_Vector = __DIADvisor_dmi.readSensorDefListForDistinctGroup();
     }
@@ -20387,7 +20482,7 @@ private void uiAction_SelectInputType_DIADvisor ()
     }
     DIADvisor_SensorDef sensordef = null;
     for ( int i = 0; i < size; i++ ) {
-        sensordef = (DIADvisor_SensorDef)sensordef_Vector.get(i);
+        sensordef = sensordef_Vector.get(i);
         __dataType_JComboBox.add( sensordef.getGroup() + "-DataValue" );
         __dataType_JComboBox.add( sensordef.getGroup() + "-DataValue2" );
     }
@@ -20499,7 +20594,7 @@ private void uiAction_SelectInputType_HydroBase ()
     // when data are read (different table model might confuse user)
 
     try {
-        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel<HydroBase_StationGeolocMeasType>(
+        __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
             __query_JWorksheet,
             //StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")),
             null);
@@ -20921,7 +21016,6 @@ throws Exception
     __dataType_JComboBox.removeAll ();
     String extension = IOUtil.getFileExtension ( input_name );
 
-    List data_types = null;
     int interval_base = TimeInterval.MONTH; // Default
     int comp = StateCU_DataSet.COMP_UNKNOWN;
     if ( extension.equalsIgnoreCase("bd1" ) ) {
@@ -20932,7 +21026,7 @@ throws Exception
     // The version of the format is determined from the file.  For older versions, this is used to
     // return hard-coded parameter lists.  For newer formats, the binary file is reopened and
     // the parameters are determined from the file.
-    data_types = StateCU_Util.getTimeSeriesDataTypes (
+    List<String> data_types = StateCU_Util.getTimeSeriesDataTypes (
             input_name, // Name of binary file
             comp,   // Component from above, from file extension
             null,   // ID
@@ -21590,7 +21684,7 @@ private void uiAction_ShowNetworkProperties ()
             }
             for ( int i = 0; i < sel.length; i++ ) {
                 // TODO SAM 2012-10-15 Evaluate putting this in DataTable class for general use
-                String displayString = (String)__resultsNetworks_JList.getModel().getElementAt(sel[i]);
+                String displayString = __resultsNetworks_JList.getModel().getElementAt(sel[i]);
                 String networkId = uiAction_ShowResultsTable_GetTableID ( displayString );
                 NodeNetwork network = commandProcessor_GetNetwork ( networkId );
                 v.add ( "" );
@@ -21608,7 +21702,7 @@ private void uiAction_ShowNetworkProperties ()
                 	else {
 	                	// Start at the bottom and navigate the network to output basic information about the network
 	                	int count = 0;
-	                	for ( HydrologyNode node = hnetwork.getMostUpstreamNode(); ; node = hnetwork.getDownstreamNode(node, HydrologyNodeNetwork.POSITION_COMPUTATIONAL) ) {
+	                	for ( HydrologyNode node = hnetwork.getMostUpstreamNode(); ; node = HydrologyNodeNetwork.getDownstreamNode(node, HydrologyNodeNetwork.POSITION_COMPUTATIONAL) ) {
 	                		if ( node == null ) {
 	                			break;
 	                		}
@@ -21726,18 +21820,17 @@ private void uiAction_ShowProperties_CommandsRun ()
 	v.add ( "Include missing TS automatically: " + commandProcessor_GetIncludeMissingTS() );
 	if ( __source_HydroBase_enabled ) {
 		v.add ( "" );
-		Object o2 = commandProcessor_GetHydroBaseDMIList();
-		if ( (o2 == null) || (((List<HydroBaseDMI>)o2).size() == 0) ) {
+		List<HydroBaseDMI> dmis = commandProcessor_GetHydroBaseDMIList();
+		if ( (dmis == null) || (dmis.size() == 0) ) {
 			v.add ( "No HydroBase connections are open for the command processor." );
 		}
 		else {
-		    List<HydroBaseDMI> dmis = (List<HydroBaseDMI>)o2;
 			int size = dmis.size();
 			for ( int i = 0; i < size; i++ ) {
 				v.add ( "Command processor HydroBase connection information:" );
 				try {
 					StringUtil.addListToStringList ( v,
-						StringUtil.toList( ((HydroBaseDMI)dmis.get(i)).getVersionComments() ) );
+						StringUtil.toList( dmis.get(i).getVersionComments() ) );
 				}
 				catch ( Exception e ) {
 					// Ignore for now.
@@ -22062,7 +22155,7 @@ private void uiAction_ShowTableProperties ()
         reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
         reportProp.set ( "PrintSize", "7" );
         reportProp.set ( "Title", "Table Properties" );
-        List<String> v = new Vector();
+        List<String> v = new Vector<String>();
         // Get the table of interest
         if ( __resultsTables_JList.getModel().getSize() > 0 ) {
             // If something is selected, show properties for the selected.  Otherwise, show properties for all.
@@ -22077,7 +22170,7 @@ private void uiAction_ShowTableProperties ()
             }
             for ( int i = 0; i < sel.length; i++ ) {
                 // TODO SAM 2012-10-15 Evaluate putting this in DataTable class for general use
-                String displayString = (String)__resultsTables_JList.getModel().getElementAt(sel[i]);
+                String displayString = __resultsTables_JList.getModel().getElementAt(sel[i]);
                 String tableId = uiAction_ShowResultsTable_GetTableID ( displayString );
                 DataTable t = commandProcessor_GetTable ( tableId );
                 v.add ( "" );
@@ -22124,23 +22217,23 @@ throws Exception
 			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\DATATYPE" );
 		DataType.readNWSDataTypeFile (
 			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\DATATYPE2" );
-		List datatypes = DataType.getDataTypesData();
+		List<DataType> datatypes = DataType.getDataTypesData();
 		int size = datatypes.size();
 		for ( int i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "", "DataType[" + i + "]: " + ((DataType)datatypes.get(i)).toString() );
+			Message.printDebug ( 1, "", "DataType[" + i + "]: " + datatypes.get(i) );
 		}
 		SHEFType.readNWSSHEFPPDBFile (
 			"J:\\cdss\\develop\\apps\\tstool\\test\\NWSSystemFiles\\SHEFPPDB", true );
-		List sheftypes = SHEFType.getSHEFTypesData();
+		List<SHEFType> sheftypes = SHEFType.getSHEFTypesData();
 		size = sheftypes.size();
 		for ( int i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "", "SHEFType[" + i + "]: " + ((SHEFType)sheftypes.get(i)).toString() );
+			Message.printDebug ( 1, "", "SHEFType[" + i + "]: " + sheftypes.get(i) );
 		}
 		// Print out again after SHEF should be matched up...
 		datatypes = DataType.getDataTypesData();
 		size = datatypes.size();
 		for ( int i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "", "DataType[" + i + "]: " + ((DataType)datatypes.get(i)).toString() );
+			Message.printDebug ( 1, "", "DataType[" + i + "]: " + datatypes.get(i) );
 		}
 		// Read test input...
 		List<TS> tslist = DateValueTS.readTimeSeriesList ( "J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\TF24.mdk",
@@ -22404,7 +22497,7 @@ throws Exception
 			"The map must be displayed to run this test." );
 			return;
 		}
-		List layerviews = __geoview_JFrame.getGeoViewJPanel().getLayerViews(null);
+		List<GeoLayerView> layerviews = __geoview_JFrame.getGeoViewJPanel().getLayerViews(null);
 		int size = 0;
 		if ( layerviews != null ) {
 			size = layerviews.size();
@@ -22606,7 +22699,7 @@ throws Exception
 		// import RTi.GRTS.TSViewJFrame;
 		TS ts = DateValueTS.readTimeSeries (
 		"K:\\projects\\XR053_ArcGIS Engine Evaluation\\TimeSeriesExample\\example.dv" );
-		List tslist = new Vector(1);
+		List<TS> tslist = new Vector<TS>(1);
 		tslist.add ( ts );
 		PropList graphprops = new PropList ( "graph" );
 		graphprops.set ( "TotalWidth", "600" );
@@ -22711,7 +22804,7 @@ View the documentation by displaying using the desktop application.
 @param command the string from the action event (menu string).
 */
 private void uiAction_ViewDocumentation ( String command )
-{   String routine = getClass().getSimpleName() + ".uiAction_ViewDocumentation";
+{   //String routine = getClass().getSimpleName() + ".uiAction_ViewDocumentation";
 	String docUri = formatHelpViewerUrl("", command);
     if ( docUri != null ) {
         try {
@@ -22731,6 +22824,7 @@ private void uiAction_ViewDocumentation ( String command )
 /**
 View the training materials by displaying in file browser.
 */
+@SuppressWarnings("unused")
 private void uiAction_ViewTrainingMaterials ()
 {   String routine = getClass().getSimpleName() + ".uiAction_ViewTrainingMaterials";
     // The location of the documentation is relative to the application home
@@ -22843,7 +22937,7 @@ public void valueChanged ( ListSelectionEvent e )
             int maxIndex = lsm.getMaxSelectionIndex();
             for (int i = minIndex; i <= maxIndex; i++) {
                 if (lsm.isSelectedIndex(i)) {
-                    uiAction_ShowResultsOutputFile( (String)__resultsOutputFiles_JListModel.elementAt(i) );
+                    uiAction_ShowResultsOutputFile( __resultsOutputFiles_JListModel.elementAt(i) );
                 }
             }
         }
@@ -23012,8 +23106,8 @@ private class ActionListener_ResultsEnsembles implements ActionListener
 	        	boolean ok = dialog.ok();
 	        	if ( ok ) {
 	        		// The ensemble is already created so don't need to recreate.
-	    	    	DateTime inputStart = null;
-	    	    	DateTime inputEnd = null;
+	    	    	//DateTime inputStart = null;
+	    	    	//DateTime inputEnd = null;
 	    	    	// Time series is the first selected time series in the results
 	    	    	int pos = -1;
 	    	    	if ( JGUIUtil.selectedSize(__resultsTSEnsembles_JList) == 0 ) {
