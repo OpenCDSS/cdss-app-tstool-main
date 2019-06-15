@@ -24,6 +24,10 @@ NoticeEnd */
 package DWR.DMI.tstool;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +68,7 @@ private static TSToolSession instance = null;
 
 /**
  * Major software version, used for folder below .tstool/.
+ * This is intialized as a parameter to the constructor.
  */
 private int majorVersion = 0; // 0 will be an obvious error if a folder is created
 
@@ -77,6 +82,116 @@ private TSToolSession ( int majorVersion )
 	// by calling writeUIState().
 	this.majorVersion = majorVersion;
 	readUIState();
+}
+
+/**
+ * Check that the history file exists.
+ * If it does not, copy from the previous version(s) of TSTool if it exists.
+ * @return true if the history file exists, false if an issue creating/finding the file.
+ */
+private boolean checkHistoryFile() {
+	String historyFile = getHistoryFile();
+	File f = new File(historyFile);
+	File folder = f.getParentFile();
+	if ( !folder.exists() ) {
+		// Create all the folders for the history file
+		if ( !folder.mkdirs() ) {
+			// Unable to make folder
+			return false;
+		}
+	}
+	// If here the folder for the history file exists so can check for the file.
+	// If the file does not exist, see if one exists in a previous version of the software and copy it.
+	// - this is OK because currently the format has not changed since the original
+	// - go back two versions to allow for a year or two of gap for the user
+	for ( int i = 1; i <= 2; i++ ) {
+		if ( !f.exists() ) {
+			// The history file does not exist so check for an old version
+			String historyFileOld = getHistoryFile(getMajorVersion() - i);
+			File f2 = new File(historyFileOld);
+			if ( f2.exists() ) {
+				Path original = Paths.get(historyFileOld);
+				Path copy = Paths.get(historyFile);
+				try {
+					Files.copy(original, copy);
+					break;
+				}
+				catch ( IOException e ) {
+					String routine = getClass().getSimpleName() + ".checkHistoryFile";
+					Message.printWarning(2,routine,"Error copying old history file \"" + historyFileOld +
+						"\" history file to \"" + historyFile + "\"" );
+				}
+			}
+		}
+	}
+	// If the file still does not exist, create an empty file
+	if ( !f.exists() ) {
+		// The following will get overwritten by writeHistory()
+		StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
+		try {
+			IOUtil.writeFile ( f.getPath(), sb.toString() );
+		}
+		catch ( IOException e ) {
+			// For now absorb
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Check that the UI state file exists.
+ * If it does not, copy from the previous version(s) of TSTool if it exists.
+ * @return true if the UI state file exists, false if an issue creating/finding the file.
+ */
+private boolean checkUIStateFile() {
+	String uiStateFile = getUIStateFile();
+	File f = new File(uiStateFile);
+	File folder = f.getParentFile();
+	if ( !folder.exists() ) {
+		// Create all the folders for the UI state file
+		if ( !folder.mkdirs() ) {
+			// Unable to make folder
+			return false;
+		}
+	}
+	// If here the folder for the UI state file exists so can check for the file.
+	// If the file does not exist, see if one exists in a previous version of the software and copy it.
+	// - this is OK because currently the format has not changed since the original
+	// - go back two versions to allow for a year or two of gap for the user
+	for ( int i = 1; i <= 2; i++ ) {
+		if ( !f.exists() ) {
+			// The UI state file does not exist so check for an old version
+			String uiStateFileOld = getUIStateFile(getMajorVersion() - i);
+			File f2 = new File(uiStateFileOld);
+			if ( f2.exists() ) {
+				Path original = Paths.get(uiStateFileOld);
+				Path copy = Paths.get(uiStateFile);
+				try {
+					Files.copy(original, copy);
+					break;
+				}
+				catch ( IOException e ) {
+					String routine = getClass().getSimpleName() + ".checkUIStateFile";
+					Message.printWarning(2,routine,"Error copying old UI state file \"" + uiStateFileOld +
+						"\" UI state file to \"" + uiStateFile + "\"" );
+				}
+			}
+		}
+	}
+	// If the file still does not exist, create an empty file
+	if ( !f.exists() ) {
+		// The following will get overwritten by writeHistory()
+		StringBuilder sb = new StringBuilder ( "# TSTool UI state" );
+		try {
+			IOUtil.writeFile ( f.getPath(), sb.toString() );
+		}
+		catch ( IOException e ) {
+			// For now absorb
+			return false;
+		}
+	}
+	return true;
 }
 
 /**
@@ -298,10 +413,27 @@ public List<File> getGraphTemplateFileList ()
 
 /**
 Return the name of the TSTool history file.
+This exists under the TSTool version folder, used with TSTool 13.x and later.
 */
 public String getHistoryFile ()
 {
-	String historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "command-file-history.txt";
+	return getHistoryFile ( getMajorVersion() );
+}
+
+/**
+Return the name of the TSTool history file for a TSTool major version.
+*/
+public String getHistoryFile ( int majorVersion )
+{
+	String historyFile = "";
+	if ( majorVersion <= 12 ) {
+		// History file existed in ./tstool
+		historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "command-file-history.txt";
+	}
+	else {
+		// History file exists in, for example:  ./tstool/13/
+		historyFile = getMajorVersionFolder() + File.separator + "command-file-history.txt";
+	}
 	//Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
 }
@@ -412,7 +544,24 @@ Return the name of the TSTool UI state file.
 */
 public String getUIStateFile ()
 {
-	String uiStateFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "ui-state.txt";
+	return getUIStateFile(getMajorVersion());
+}
+
+/**
+Return the name of the TSTool UI state file for a TSTool major version.
+@param majorVersion the major TSTool version of interest.
+*/
+public String getUIStateFile ( int majorVersion )
+{
+	String uiStateFile = "";
+	if ( majorVersion <= 12 ) {
+		// UI state file exists in, for example:  ./tstool/
+		uiStateFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "ui-state.txt";
+	}
+	else {
+		// History file exists in, for example:  ./tstool/13/
+		uiStateFile = getMajorVersionFolder() + File.separator + "ui-state.txt";
+	}
 	//Message.printStatus(1,"","UI state file \"" + uiStateFile + "\"");
 	return uiStateFile;
 }
@@ -502,7 +651,7 @@ public boolean initializeUserFiles ( int version ) {
 	String userFolder = getUserFolder();
 	if ( userFolder.equals("/") ) {
 		// Don't allow files to be created under root on Linux
-		Message.printWarning(3, routine, "Unable to create user files in root folder - need to run as normal user.");
+		Message.printWarning(3, routine, "Unable to create user files in / (root) folder - need to run as normal user.");
 		return false;
 	}
 	// Create the version folder if it does not exist
@@ -570,6 +719,12 @@ Read the history of command files that have been opened.
 public List<String> readHistory()
 {	//String routine = getClass().getSimpleName() + ".readHistory";
 	try {
+		// If the history file does not exist or is zero size, automatically copy from the previous
+		// version of TSTool if it exists.
+		if ( !checkHistoryFile() ) {
+			// History file could not be verified/created so return empty list.
+			return new ArrayList<String>();
+		}
 		List<String> history = IOUtil.fileToStringList(getHistoryFile());
 		// Remove comment lines
 		for ( int i = (history.size() - 1); i >= 0; i-- ) {
@@ -594,6 +749,8 @@ Properties are saved in the uiStateProps PropList internally.
 */
 public void readUIState()
 {	//String routine = getClass().getSimpleName() + ".readUIState";
+	// Check that the UI state file exists in the expected location
+	checkUIStateFile();
 	try {
 		this.uiStateProps = new PropList("ui-state");
 		this.uiStateProps.setPersistentName(getUIStateFile());
@@ -621,7 +778,7 @@ Write the history of commands files that have been opened.
 private void writeHistory ( List<String> history )
 {
 	String nl = System.getProperty("line.separator");
-	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between TSTool instances" );
+	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
 	
 	if ( getUserFolder().equals("/") ) {
 		// Don't allow files to be created under root on Linux
@@ -642,17 +799,14 @@ private void writeHistory ( List<String> history )
 		for ( String s : history ) {
 			sb.append(nl + s);
 		}
-		// Create the history folder if necessary
-		File f = new File(getHistoryFile());
-		File folder = f.getParentFile();
-		if ( !folder.exists() ) {
-			if ( !folder.mkdirs() ) {
-				// Unable to make folder
-				return;
-			}
+		// If the history file does not exist or is zero size, automatically copy from the previous
+		// version of TSTool if it exists.
+		if ( !checkHistoryFile() ) {
+			return;
 		}
 		try {
 			//Message.printStatus(1, "", "Writing history: " + sb );
+			File f = new File(getHistoryFile());
 			IOUtil.writeFile ( f.getPath(), sb.toString() );
 		}
 		catch ( Exception e ) {
@@ -674,6 +828,9 @@ public void writeUIState ()
 		// Don't allow files to be created under root on Linux
 		return;
 	}
+
+	// Make sure the UI state file exists.
+	checkUIStateFile();
 
 	long ms = System.currentTimeMillis();
 	while ( this.uiStateBeingWritten ) {
