@@ -12692,9 +12692,9 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "Colorado SMS Properties" );
-		List v = null;
+		List<String> v = null;
 		if ( __smsdmi == null ) {
-		    v = new Vector(3);
+		    v = new Vector<String>(3);
 			v.add ( "Colorado SMS Properties" );
 			v.add ( "" );
 			v.add("No Colorado SMS database is available." );
@@ -12715,7 +12715,7 @@ throws Exception
 		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
 		reportProp.set ( "PrintSize", "7" );
 		reportProp.set ( "Title", "DIADvisor Properties" );
-		List<String> v = new Vector();
+		List<String> v = new Vector<String>();
 		v.add ( "DIADvisor Operational Database:" );
 		v.add ( "" );
 		StringUtil.addListToStringList ( v, __DIADvisor_dmi.getDatabaseProperties ( 3 ) );
@@ -12738,7 +12738,7 @@ throws Exception
 		reportProp.set ( "Title", "HydroBase Properties" );
 		List<String> v = null;
 		if ( ui_GetHydroBaseDMILegacy() == null ) {
-		    v = new Vector(3);
+		    v = new Vector<String>(3);
 			v.add ( "HydroBase Properties" );
 			v.add ( "" );
 			v.add ( "No HydroBase database is available." );
@@ -12761,7 +12761,7 @@ throws Exception
 		reportProp.set ( "Title", "NWSRFS FS5Files Properties" );
 		List<String> v = null;
 		if ( __nwsrfs_dmi == null ) {
-			v = new Vector ( 1 );
+			v = new Vector<String>( 1 );
 			v.add ( "The NWSRFS FS5Files connection is not open." );
 		}
 		else {
