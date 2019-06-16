@@ -1730,8 +1730,8 @@ private String
 	// Buttons (in order from top to bottom of GUI)...
 
 	BUTTON_TOP_GET_TIME_SERIES = "Get Time Series List",
-	BUTTON_TOP_COPY_ALL_TO_COMMANDS ="Copy All to Commands",
-	BUTTON_TOP_COPY_SELECTED_TO_COMMANDS ="Copy Selected to Commands",
+	BUTTON_TOP_COPY_ALL_TO_COMMANDS = "Copy All to Commands",
+	BUTTON_TOP_COPY_SELECTED_TO_COMMANDS = "Copy Selected to Commands",
 
 	__Button_RunSelectedCommands_String = "Run Selected Commands",
 	__Button_RunAllCommands_String = "Run All Commands",
@@ -5719,7 +5719,8 @@ command occur in order and not first in last out.
 */
 private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int row, boolean update_status, int insertOffset ) 
-{	boolean use_alias = false;
+{	String routine = "queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
+	boolean use_alias = false;
     int numCommandsAdded = 0; // Used when inserting blocks of time series
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore();
@@ -5736,6 +5737,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         		tsident = tsidProvider.getTimeSeriesIdentifier(row);
         	}
         	catch ( Exception e ) {
+        		Message.printWarning(3, routine, e);
         		return 0;
         	}
         	if ( tsident != null ) {
@@ -6359,7 +6361,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
 	}
 	else {
-	    String routine = getClass().getSimpleName() + ".queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
 	    Message.printWarning(1, routine, "Transfer from query list to commands has not been implemented for \"" +
             selectedInputType + "\" input type." );
 	    numCommandsAdded = 0;
@@ -15846,7 +15847,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	        if ( size > 0 ) {
 	            Message.printStatus ( 1, routine, "" + size + " ColoradoHydroBaseRest structure time series read for data type \"" +
                 selectedDataType + "\" and timestep \"" + selectedTimeStep + "\".  Displaying data..." );
-                __query_TableModel = new ColoradoHydroBaseRest_WaterClass_TableModel(__query_JWorksheet, tslist );
+                __query_TableModel = new ColoradoHydroBaseRest_WaterClass_TableModel(ds, __query_JWorksheet, tslist );
                 ColoradoHydroBaseRest_WaterClass_CellRenderer cr = new ColoradoHydroBaseRest_WaterClass_CellRenderer(
                     (ColoradoHydroBaseRest_WaterClass_TableModel)__query_TableModel);
                 __query_JWorksheet.setCellRenderer ( cr );

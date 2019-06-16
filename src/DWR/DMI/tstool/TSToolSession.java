@@ -481,10 +481,17 @@ Return the name of the log file folder.
 */
 public String getLogsFolder ()
 {
-	// 12.06.00 and earlier (not under version folder and singular)...
-	//String logFolder = getUserFolder() + File.separator + "log";
-	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
-	String logsFolder = getMajorVersionFolder() + File.separator + "logs";
+	int majorVersion = getMajorVersion();
+	String logsFolder = "";
+	if ( majorVersion <= 12 ) {
+		// 12.06.00 and earlier (not under version folder and singular)...
+		logsFolder = getUserFolder() + File.separator + "log";
+	}
+	else {
+		// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+		// - 12.07.00 was never released so can check this change as version 13
+		logsFolder = getMajorVersionFolder() + File.separator + "logs";
+	}
 	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
 	return logsFolder;
 }
