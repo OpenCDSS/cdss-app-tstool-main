@@ -174,23 +174,74 @@ private void initialize ()
         JGUIUtil.addComponent(main_JPanel, main_JTabbedPane,
 		0, 0, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 	getContentPane().add ( "North", main_JPanel );
-	int yDsInstall = 0;
 
-	// Developer tab...
-	JPanel developer_JPanel = new JPanel();
-	developer_JPanel.setLayout ( gbl );
-    __General_RunThreaded_JCheckBox = new JCheckBox ();
-    boolean RunCommandProcessorInThread_boolean = true;		// Default
-	String RunCommandProcessorInThread_String = __appPropList.getValue ( TSTool_RunCommandProcessorInThread );
-    if ( (RunCommandProcessorInThread_String != null) &&
-    		RunCommandProcessorInThread_String.equalsIgnoreCase(__False) ) {
-    	RunCommandProcessorInThread_boolean = false;
-    }
-    __General_RunThreaded_JCheckBox.setText("Run commands in thread (allows cancel) (under development).");
-	__General_RunThreaded_JCheckBox.setSelected(RunCommandProcessorInThread_boolean);
-	JGUIUtil.addComponent(developer_JPanel, __General_RunThreaded_JCheckBox,
-		0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	main_JTabbedPane.addTab ( "Developer", developer_JPanel );
+	// Panel for datastores and input types overview, to provide useful information...
+	
+    JPanel datastoresOverview_JPanel = new JPanel();
+    datastoresOverview_JPanel.setLayout ( gbl );
+    main_JTabbedPane.addTab ( "Datastores and Input Types (Overview)", datastoresOverview_JPanel );
+    
+    int yDsOverview = -1;
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("TSTool uses configurable \"datastores\" to connect to databases and web services."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("The older term \"input type\" is similar but less flexible and is used for older HydroBase database connection and data files."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("Input types for databases are being phased out in favor of datastores (such as HydroBase datastore) and \"file datastores\" (under development)."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("Datastores are configured by default in the software installation location, referred to as \"installation datastores\"."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    String softwareInstallFolder = TSToolSession.getInstance().getInstallFolder();
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  Installation datastores and other configuration are located in the \"system\" folder under the software install: " ),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("    " + softwareInstallFolder ),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  These files allow TSTool to provide \"built-in\" datastores that everyone can use without further configuration (e.g., federal agency web services)."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  These files typically require administrator privileges to change."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("Datastores are further configured in user files, referred to as \"user datastores\", phased in as of TSTool 12 and 13."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    String userFolder = TSToolSession.getInstance().getUserFolder();
+    String majorVersionFolder = TSToolSession.getInstance().getMajorVersionFolder();
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  User datastores and other configuration files are located in the \"" + userFolder + "\" folder."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  The files are organized by TSTool major version, for example in the folder: \"" + majorVersionFolder + "\"."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  This allows a user to customize the TSTool configuration without administrator privileges."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("  For example, configure a local database datastore to use a specific database version, or specify web service API key for the user."),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("<html><b>Datastore and other configuration files found in user files will override the software installation files.</b></html>"),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("<html><b>For example, a user datastore named \"HydroBase\" will be used instead of installation default.</b></html>"),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("<html><b>Refer to the Datastore Reference under the Help menu for information about configuring datastores.</b></html>"),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("<html><b>Version-specific files allow TSTool features to be updated over time without breaking the configuration for older versions.</b></html>"),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("<html><b>Software features are being implemented to help manage configurations but manual file copy/edit may be needed.</b></html>"),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(datastoresOverview_JPanel,
+        new JLabel("<html><b>See the View / Datastores menu to list datastores that are configured, including location of configuration file, status, and errors.</b></html>"),
+        0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	// Panel for enabled datastores and input types, from software installation...
 	
@@ -198,7 +249,7 @@ private void initialize ()
     enabledDatastoresInstall_JPanel.setLayout ( gbl );
     main_JTabbedPane.addTab ( "Datastores and Input Types (Installation)", enabledDatastoresInstall_JPanel );
     
-    yDsInstall = -1;
+    int yDsInstall = -1;
     JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
         new JLabel("Specify the configuration file properties to enable/disable datastores and input types.  Restart TSTool to see changes."),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -206,7 +257,7 @@ private void initialize ()
         new JLabel("Refer to TSTool datastore and input type documentation appendices for configuration information."),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
-        new JLabel("<html><b>These settings are for the TSTool installation settings.  Also refer to TSTool user settings."),
+        new JLabel("<html><b>These settings are for the TSTool installation.  Also refer to TSTool user settings."),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     // The __appPropList only contains a few special properties.  Because the input type enabling is
@@ -216,21 +267,21 @@ private void initialize ()
     File configFileInstall = new File(__configFilePathInstall);
     if ( !configFileInstall.canRead() ) {
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
-            new JLabel("Configuration file (installation) is not readable: " + __configFilePathInstall),
+            new JLabel("Configuration file (installation version) is not readable: " + __configFilePathInstall),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
     else if ( !configFileInstall.canWrite() ) {
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
-            new JLabel("Configuration file (installation) is not writeable (contact system support or change TSTool user settings): " + __configFilePathInstall),
+            new JLabel("Configuration file (installation version) is not writeable (contact system support or change TSTool user settings): " + __configFilePathInstall),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
     else {
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
-            new JLabel("Configuration file (installation): " + __configFilePathInstall),
+            new JLabel("Configuration file (installation version): " + __configFilePathInstall),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
@@ -270,6 +321,11 @@ private void initialize ()
                 0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         }
     }
+
+    File f = new File(__configFilePathInstall);
+    JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
+        new JLabel("Built-in (default) datastore configuration files are located in the folder:  " + f.getParent()),
+        0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
 	// Panel for enabled datastores and input types, from user folder...
 	
@@ -291,7 +347,7 @@ private void initialize ()
         new JLabel("<html><b>User settings will override the installation settings.</b></html>"),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
-        new JLabel("<html><b>You may need to edit the \"" + __session.getConfigFile() + "\" file to add properties.</b></html>"),
+        new JLabel("<html><b>You may need to edit the \"" + __session.getConfigFile() + "\" file to add properties to override installation defaults.</b></html>"),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
         new JLabel("<html><b>Press OK to initialize a new user configuration file.</b></html>"),
@@ -370,10 +426,34 @@ private void initialize ()
             __General_RunThreaded_JCheckBox,
             0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
                     */
+
+	// Developer tab...
+	JPanel developer_JPanel = new JPanel();
+	developer_JPanel.setLayout ( gbl );
+	int ydp = -1;
+    __General_RunThreaded_JCheckBox = new JCheckBox ();
+
+    JGUIUtil.addComponent(developer_JPanel,
+        new JLabel("Developer options are used during software development and troubleshooting."),
+        0, ++ydp, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+    boolean RunCommandProcessorInThread_boolean = true;		// Default
+	String RunCommandProcessorInThread_String = __appPropList.getValue ( TSTool_RunCommandProcessorInThread );
+    if ( (RunCommandProcessorInThread_String != null) &&
+    		RunCommandProcessorInThread_String.equalsIgnoreCase(__False) ) {
+    	RunCommandProcessorInThread_boolean = false;
+    }
+    __General_RunThreaded_JCheckBox.setText("Run commands in thread (allows cancel) (under development).");
+	__General_RunThreaded_JCheckBox.setSelected(RunCommandProcessorInThread_boolean);
+	JGUIUtil.addComponent(developer_JPanel, __General_RunThreaded_JCheckBox,
+		0, ++ydp, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	main_JTabbedPane.addTab ( "Developer", developer_JPanel );
+
+	// Done with tabs
    
-    // Select the Enabled Input Types because they are more generally of interest to users
+    // Select the "Datastores and Input Types (Overview)" because they are more generally of interest to users
     
-    main_JTabbedPane.setSelectedComponent(enabledDatastoresInstall_JPanel);
+    main_JTabbedPane.setSelectedComponent(datastoresOverview_JPanel);
 
 	// South Panel: North
 	JPanel button_JPanel = new JPanel();

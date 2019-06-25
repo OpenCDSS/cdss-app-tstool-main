@@ -439,6 +439,19 @@ public String getHistoryFile ( int majorVersion )
 }
 
 /**
+Return the folder where TSTool is installed, for example:
+<ul>
+<li>	Windows:  C:\CDSS\TSTool-Version</li>
+<li>	Linux: /opt/TSTool-Version</li>
+</ul>
+*/
+public String getInstallFolder ()
+{
+	String installFolder = IOUtil.getApplicationHomeDir();
+	return installFolder;
+}
+
+/**
  * Return the singleton instance of the TSToolSession.
  * This version must be called after the overloaded version that specifies the major version.
  * Otherwise, 0 is set as the major version.
