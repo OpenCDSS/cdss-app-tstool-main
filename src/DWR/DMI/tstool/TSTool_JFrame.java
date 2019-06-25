@@ -1719,6 +1719,7 @@ private JMenuItem
 	__Help_ViewDocumentation_UserManual_JMenuItem = null,
 	__Help_ViewDocumentation_CommandReference_JMenuItem = null,
 	__Help_ViewDocumentation_DatastoreReference_JMenuItem = null,
+	__Help_ViewDocumentation_Troubleshooting_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
 // String labels for buttons and menus...
@@ -2246,6 +2247,7 @@ private String
 		__Help_ViewDocumentation_UserManual_String = "View Documentation - User Manual",
 		__Help_ViewDocumentation_CommandReference_String = "View Documentation - Command Reference",
 		__Help_ViewDocumentation_DatastoreReference_String = "View Documentation - Datastore Reference",
+		__Help_ViewDocumentation_Troubleshooting_String = "View Documentation - Troubleshooting",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
 	// Strings used in popup menu for other components...
@@ -4536,8 +4538,29 @@ public String formatHelpViewerUrl ( String group, String item ) {
     String docRootUri = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri" );
     String docRootUri2 = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri2" );
     List<String> docRootUriList= new ArrayList<String>(2);
-    docRootUriList.add(docRootUri);
-    docRootUriList.add(docRootUri2);
+   	String version = IOUtil.getProgramVersion();
+   	int pos = version.indexOf(" ");
+   	if ( pos > 0 ) {
+   		version = version.substring(0, pos);
+   	}
+    if ( docRootUri != null ) {
+    	// First replace "latest" with the software version so that specific version is shown
+    	String docRootUriVersion = docRootUri.replace("latest", version);
+    	docRootUriList.add(docRootUriVersion);
+    	if ( !docRootUriVersion.equals(docRootUri) ) {
+    		// Also add the URL with "latest"
+    		docRootUriList.add(docRootUri);
+    	}
+    }
+    if ( docRootUri2 != null ) {
+    	// First replace "latest" with the software version so that specific version is shown
+    	String docRootUri2Version = docRootUri2.replace("latest", version);
+    	docRootUriList.add(docRootUri2Version);
+    	if ( !docRootUri2Version.equals(docRootUri2) ) {
+    		// Add the URL with "latest"
+    		docRootUriList.add(docRootUri2);
+    	}
+    }
     if ( (docRootUri == null) || docRootUri.isEmpty() ) {
     	Message.printWarning(2, "",
     		"Unable to determine documentation for group \"" + group + "\" and item \"" +
@@ -4548,31 +4571,35 @@ public String formatHelpViewerUrl ( String group, String item ) {
     	int [] responseCode = new int[docRootUriList.size()];
     	int i = -1;
     	for ( String uri : docRootUriList ) {
+    		Message.printStatus(2, routine, "URI is " + uri );
     		// Initialize response code to -1 which means unchecked
     		++i;
     		responseCode[i] = -1;
 	    	// Make sure the URI has a slash at end
     		if ( (uri != null) && !uri.isEmpty() ) { 
 		    	String docUri = "";
-		    	if ( !docRootUri.endsWith("/") ) {
-		    		docRootUri += "/";
+		    	if ( !uri.endsWith("/") ) {
+		    		uri += "/";
 		    	}
 		    	// Specific documentation requests from the UI
 			    if ( item.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
-			        docUri = docRootUri + "appendix-release-notes/release-notes/";
+			        docUri = uri + "appendix-release-notes/release-notes/";
 			    }
 			    else if ( item.equals(__Help_ViewDocumentation_UserManual_String) ) {
-			        docUri = docRootUri; // Go to the main documentation
+			        docUri = uri; // Go to the main documentation
 			    }
 			    else if ( item.equals(__Help_ViewDocumentation_CommandReference_String) ) {
-			        docUri = docRootUri + "command-ref/overview/";
+			        docUri = uri + "command-ref/overview/";
 			    }
 			    else if ( item.equals(__Help_ViewDocumentation_DatastoreReference_String) ) {
-			        docUri = docRootUri + "datastore-ref/overview/";
+			        docUri = uri + "datastore-ref/overview/";
+			    }
+			    else if ( item.equals(__Help_ViewDocumentation_Troubleshooting_String) ) {
+			        docUri = uri + "troubleshooting/troubleshooting/";
 			    }
 			    // Generic requests by group
 			    else if ( group.equalsIgnoreCase("command") ) {
-			    	docUri = docRootUri + "command-ref/" + item + "/" + item + "/";
+			    	docUri = uri + "command-ref/" + item + "/" + item + "/";
 			    }
 		        // Now display using the default application for the file extension
 		        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
@@ -11469,6 +11496,8 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
            new SimpleJMenuItem(__Help_ViewDocumentation_CommandReference_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_DatastoreReference_JMenuItem =
            new SimpleJMenuItem(__Help_ViewDocumentation_DatastoreReference_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_Troubleshooting_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_Troubleshooting_String,this));
 	}
     __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
@@ -14667,7 +14696,8 @@ throws Exception
 	    command.equals(__Help_ViewDocumentation_ReleaseNotes_String) ||
         command.equals(__Help_ViewDocumentation_UserManual_String) ||
         command.equals(__Help_ViewDocumentation_CommandReference_String) ||
-        command.equals(__Help_ViewDocumentation_DatastoreReference_String) ) {
+        command.equals(__Help_ViewDocumentation_DatastoreReference_String) ||
+        command.equals(__Help_ViewDocumentation_Troubleshooting_String) ) {
         uiAction_ViewDocumentation ( command );
     }
 	// TODO smalers 2018-07-01 figure out how to link these in
