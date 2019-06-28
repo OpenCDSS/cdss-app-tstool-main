@@ -52,7 +52,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.awt.Frame;
 
-import javax.swing.JApplet;
 import javax.swing.JFrame;
 
 import org.restlet.data.Parameter;
@@ -85,8 +84,7 @@ Main (application startup) class for TSTool.  This class will start the TSTool G
 or run the TSCommandProcessor in batch mode with a command file.  The methods in
 this file are called by the startup TSTool and CDSS versions of TSTool.
 */
-@SuppressWarnings("serial")
-public class TSToolMain extends JApplet
+public class TSToolMain
 {
 public static final String PROGRAM_NAME = "TSTool";
 public static final String PROGRAM_VERSION = "13.00.00dev (2019-06-25)";
@@ -180,7 +178,7 @@ private static String __commandFile = null;
 private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List<String> pluginJarList ) {
 	String routine = "TSToolMain.findDataStorePluginJarFilesNew";
 	// Get a list of jar files in the plugins folder
-	File pluginsFolder = new File(session.getPluginsFolder());
+	File pluginsFolder = new File(session.getUserPluginsFolder());
 	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + pluginsFolder + "\"");
 	try {
 		getMatchingFilenamesInTree ( pluginJarList, pluginsFolder, ".*.jar" );
@@ -334,8 +332,6 @@ public static JFrame getJFrame ()
  * @return the major TSTool version
  */
 private static int getMajorVersion () {
-    // Initialize the TSTool session with the major program version.
-    // - this will cause .tstool/ user files to be initialized if necessary
     int majorVersion = 0;
     try {
     	System.out.println("program version: " + IOUtil.getProgramVersion());
@@ -413,43 +409,6 @@ file is specified on the command line).
 public static boolean getRunOnLoad ()
 {
     return __run_commands_on_load;
-}
-
-/**
-Instantiates the application instance as an applet.
-*/
-public void init()
-{	String routine = "TSToolMain.init";
-
-	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, null ); // Do first, needed by session
-	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
-	IOUtil.setApplet ( this );
-	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
-    new MessageEventQueue();
-    try {
-        parseArgs( session, this );
-	}
-	catch ( Exception e ) {
-        Message.printWarning( 1, routine, "Error parsing command line arguments.  Using default behavior if necessary." );
-		Message.printWarning ( 3, routine, e );
-    }
-
-    // Instantiate main GUI
-
-	initializeLoggingLevelsAfterLogOpened();
-
-	// Full GUI as applet (no log file)...
-	// Show the main GUI, although later might be able to start up just
-	// the TSView part via a web site.
-	String commandFile = null;
-	@SuppressWarnings("rawtypes")
-	List<Class> pluginDataStoreClasses = new ArrayList<Class>();
-	@SuppressWarnings("rawtypes")
-	List<Class> pluginDataStoreFactoryClasses = new ArrayList<Class>();
-	@SuppressWarnings("rawtypes")
-	List<Class> pluginCommandClasses = new ArrayList<Class>();
-	__tstool_JFrame = new TSTool_JFrame ( session, commandFile, false,
-		pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
 }
 
 /**
@@ -802,12 +761,12 @@ public static void main ( String args[] )
 
 	// TSTool session properties are a singleton
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args ); // Do first, needed by session to find local files, plugins, etc.
+	JGUIUtil.setAppNameForWindows("TSTool");
 	//System.out.println("Program version: " + IOUtil.getProgramVersion());
 	//System.out.println("Program major version: " + getMajorVersion());
 	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
 	initializeLoggingLevelsBeforeLogOpened();
 	setWorkingDirInitial ();
-	JGUIUtil.setAppNameForWindows("TSTool");
 	
 	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
 	new MessageEventQueue();
@@ -1104,7 +1063,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 	Class pluginDataStoreFactoryClass = null; // Will be used if a plugin
     if ( dataStoreType.equalsIgnoreCase("ColoradoHydroBaseRestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoHydroBaseRestEnabled");
-    	userPropValue = session.getConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1114,7 +1073,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoWaterHBGuestEnabled");
-    	userPropValue = session.getConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1124,7 +1083,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoWaterSMSEnabled");
-    	userPropValue = session.getConfigPropValue ( "ColoradoWaterSMSEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "ColoradoWaterSMSEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1140,7 +1099,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("HydroBaseDataStore") ) {
         propValue = getPropValue("TSTool.HydroBaseEnabled");
-    	userPropValue = session.getConfigPropValue ( "HydroBaseEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "HydroBaseEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1150,7 +1109,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("NrcsAwdbDataStore") ) {
         propValue = getPropValue("TSTool.NrcsAwdbEnabled");
-    	userPropValue = session.getConfigPropValue ( "NrcsAwdbEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "NrcsAwdbEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1160,7 +1119,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
-    	userPropValue = session.getConfigPropValue ( "RCCACISEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "RCCACISEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1170,7 +1129,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("ReclamationHDBDataStore") ) {
         propValue = getPropValue("TSTool.ReclamationHDBEnabled");
-    	userPropValue = session.getConfigPropValue ( "ReclamationHDBEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "ReclamationHDBEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1180,7 +1139,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("ReclamationPiscesDataStore") ) {
         propValue = getPropValue("TSTool.ReclamationPiscesEnabled");
-    	userPropValue = session.getConfigPropValue ( "ReclamationPiscesEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "ReclamationPiscesEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1190,7 +1149,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisDailyDataStore") ) {
         propValue = getPropValue("TSTool.UsgsNwisDailyEnabled");
-    	userPropValue = session.getConfigPropValue ( "UsgsNwisDailyDataStore" );
+    	userPropValue = session.getUserConfigPropValue ( "UsgsNwisDailyDataStore" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1200,7 +1159,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisGroundwaterDataStore") ) {
         propValue = getPropValue("TSTool.UsgsNwisGroundwaterEnabled");
-    	userPropValue = session.getConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1210,7 +1169,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("UsgsNwisInstantaneousDataStore") ) {
         propValue = getPropValue("TSTool.UsgsNwisInstantaneousEnabled");
-    	userPropValue = session.getConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1220,7 +1179,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else if ( dataStoreType.equalsIgnoreCase("WaterOneFlowDataStore") ) {
         propValue = getPropValue("TSTool.WaterOneFlowEnabled");
-    	userPropValue = session.getConfigPropValue ( "WaterOneFlowEnabled" );
+    	userPropValue = session.getUserConfigPropValue ( "WaterOneFlowEnabled" );
     	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
     		propValue = userPropValue;
     	}
@@ -1397,8 +1356,8 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
         }
     }
     // Also get names of datastore configuration files from configuration files in user's home folder .tstool/datastore
-    if ( session.createDatastoresFolder() ) {
-	    String datastoreFolder = session.getDatastoresFolder();
+    if ( session.createUserDatastoresFolder() ) {
+	    String datastoreFolder = session.getUserDatastoresFolder();
 	    File f = new File(datastoreFolder);
 	    FilenameFilter ff = new FilenameFilter() {
 	    	public boolean accept(File dir, String name) {
@@ -1583,11 +1542,7 @@ private static void openLogFile ( TSToolSession session )
 	String user = IOUtil.getProgramUser();
 
 	String logFile = null;
-	if ( IOUtil.isApplet() ) {
-		Message.printWarning ( 2, routine, "Running as applet - no TSTool log file opened." );
-	}
-	else {
-		// Default as of 2016-02-18 is to open the log file as $home/.tstool/logs/TSTool_user.log file unless specified on command line
+		// Default as of 2016-02-18 is to open the log file as $home/.tstool/NN/logs/TSTool_user.log file unless specified on command line
 		if ( __logFileFromCommandLine != null ) {
 			File f = new File(__logFileFromCommandLine);
 			if ( !f.getParentFile().exists() ) {
@@ -1609,9 +1564,9 @@ private static void openLogFile ( TSToolSession session )
 		}
 		else {
 			// Get the log file name from the session object...under user home folder
-			if ( session.createLogsFolder() ) {
+			if ( session.createUserLogsFolder() ) {
 				// Log folder already exists or was created, so OK to use
-				logFile = session.getLogFile();
+				logFile = session.getUserLogFile();
 				Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
 				try {
 	                Message.openLogFile ( logFile );
@@ -1623,7 +1578,7 @@ private static void openLogFile ( TSToolSession session )
 				}
 			}
 			else {
-				Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getLogsFolder() + "\".  Not opening log file.");
+				Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getUserLogsFolder() + "\".  Not opening log file.");
 			}
 		}
 	    boolean oldWay = false;
@@ -1652,7 +1607,6 @@ private static void openLogFile ( TSToolSession session )
 				}
 			}
 	    }
-	}
 }
 
 /**
@@ -1884,26 +1838,6 @@ throws Exception
 		    setupUsingCommandFile ( args[i], false );
 		}
 	}
-}
-
-// TODO - need to make these work as expected.
-/**
-Parse the command-line arguments for the applet, determined from the applet data.
-@param a JApplet for this application.
-*/
-public static void parseArgs ( TSToolSession session, JApplet a )
-throws Exception
-{	
-    // Convert the applet parameters to an array of strings and call the other parse method.
-    List<String> args = new ArrayList<String>();
-	if ( a.getParameter("-home") != null ) {
-	    args.add ( "-home" );
-	    args.add ( a.getParameter("-home") );
-	}
-    if ( a.getParameter("-test") != null ) {
-        args.add ( "-test" );
-    }
-    parseArgs ( session, (String [])args.toArray() );
 }
 
 /**

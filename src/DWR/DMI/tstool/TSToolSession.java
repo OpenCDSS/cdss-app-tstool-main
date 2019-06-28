@@ -195,11 +195,11 @@ private boolean checkUIStateFile() {
 }
 
 /**
-Create a new system configuration file in user files.
+Create a new TSTool configuration file in user files.
 This is used when transitioning from TSTool earlier than 11.09.00 to version later.
 @return true if the file was created, false for all other cases.
 */
-public boolean createConfigFile ( )
+public boolean createUserConfigFile ( )
 {
 	if ( getUserFolder().equals("/") ) {
 		// Don't allow files to be created under root on Linux
@@ -207,7 +207,7 @@ public boolean createConfigFile ( )
 	}
 
 	// Create the configuration folder if necessary
-	File f = new File(getConfigFile());
+	File f = new File(getUserConfigFile());
 	File folder = f.getParentFile();
 	if ( !folder.exists() ) {
 		if ( !folder.mkdirs() ) {
@@ -234,11 +234,11 @@ public boolean createConfigFile ( )
 }
 
 /**
-Create the datastores folder if necessary.
+Create the user's datastores folder if necessary.
 @return true if datastores folder exists and is writable, false otherwise.
 */
-public boolean createDatastoresFolder () {
-	String datastoreFolder = getDatastoresFolder();
+public boolean createUserDatastoresFolder () {
+	String datastoreFolder = getUserDatastoresFolder();
 	// Do not allow datastore folder to be created under Linux root but allow TSTool to run
 	if ( datastoreFolder.equals("/") ) {
 		return false;
@@ -265,8 +265,8 @@ public boolean createDatastoresFolder () {
 Create the "logs" folder if necessary.
 @return true if "logs" folder exists and is writable, false otherwise.
 */
-public boolean createLogsFolder () {
-	String logsFolder = getLogsFolder();
+public boolean createUserLogsFolder () {
+	String logsFolder = getUserLogsFolder();
 	// Do not allow log file to be created under Linux root but allow TSTool to run
 	if ( logsFolder.equals("/") ) {
 		return false;
@@ -290,11 +290,11 @@ public boolean createLogsFolder () {
 }
 
 /**
-Create the "plugins" folder if necessary.
+Create the user's "plugins" folder if necessary.
 @return true if "plugins" folder exists and is writable, false otherwise.
 */
-public boolean createPluginsFolder () {
-	String pluginsFolder = getPluginsFolder();
+public boolean createUserPluginsFolder () {
+	String pluginsFolder = getUserPluginsFolder();
 	// Do not allow log file to be created under Linux root but allow TSTool to run
 	if ( pluginsFolder.equals("/") ) {
 		return false;
@@ -318,11 +318,11 @@ public boolean createPluginsFolder () {
 }
 
 /**
-Create the system folder if necessary.
+Create the user system folder if necessary.
 @return true if system folder exists and is writable, false otherwise.
 */
-public boolean createSystemFolder () {
-	String systemFolder = getSystemFolder();
+public boolean createUserSystemFolder () {
+	String systemFolder = getUserSystemFolder();
 	// Do not allow system folder to be created under Linux root but allow TSTool to run
 	if ( systemFolder.equals("/") ) {
 		return false;
@@ -343,54 +343,6 @@ public boolean createSystemFolder () {
 		}
 	}
 	return true;
-}
-
-/**
-Return the value of the requested property from the user's TSTool configuration file.
-This reads the configuration file each time to ensure synchronization.
-@param propName property name
-@return the value of the property or null if file or property is not found
-*/
-public String getConfigPropValue ( String propName )
-{
-	String configFile = getConfigFile();
-	File f = new File(configFile);
-	if ( !f.exists() || !f.canRead() ) {
-		return null;
-	}
-	PropList props = new PropList("TSToolUserConfig");
-	props.setPersistentName(configFile);
-	try {
-		props.readPersistent();
-		return props.getValue(propName);
-	}
-	catch ( Exception e ) {
-		return null;
-	}
-}
-
-/**
-Return the name of the user's TSTool configuration file.
-*/
-public String getConfigFile ()
-{
-	String logFile = getSystemFolder() + File.separator + "TSTool.cfg";
-	//Message.printStatus(1,"","Config file is \"" + logFolder + "\"");
-	return logFile;
-}
-
-/**
-Return the name of the datastore configuration folder.
-@return the "datastores" folder path (no trailing /).
-*/
-public String getDatastoresFolder ()
-{
-	// 12.06.00 and earlier (not under version folder and singular)...
-	//String datastoreFolder = getUserFolder() + File.separator + "datastore";
-	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
-	String datastoresFolder = getMajorVersionFolder() + File.separator + "datastores";
-	//Message.printStatus(1,"","Datastores folder is \"" + datastoreFolder + "\"");
-	return datastoresFolder;
 }
 
 /**
@@ -479,37 +431,6 @@ public static TSToolSession getInstance( int majorVersion ) {
 }
 
 /**
-Return the name of the log file for the user.
-*/
-public String getLogFile ()
-{
-	String logFile = getLogsFolder() + File.separator + "TSTool_" + System.getProperty("user.name") + ".log";
-	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
-	return logFile;
-}
-
-/**
-Return the name of the log file folder.
-@return the "logs" folder path (no trailing /).
-*/
-public String getLogsFolder ()
-{
-	int majorVersion = getMajorVersion();
-	String logsFolder = "";
-	if ( majorVersion <= 12 ) {
-		// 12.06.00 and earlier (not under version folder and singular)...
-		logsFolder = getUserFolder() + File.separator + "log";
-	}
-	else {
-		// 12.07.00 and later (under version folder and plural, which seems more appropriate)
-		// - 12.07.00 was never released so can check this change as version 13
-		logsFolder = getMajorVersionFolder() + File.separator + "logs";
-	}
-	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
-	return logsFolder;
-}
-
-/**
  * Return the major software version, used for top-level user files.
  * @return the software major version, used for top-level user files
  */
@@ -532,10 +453,89 @@ public String getMajorVersionFolder ()
 }
 
 /**
-Return the name of the plugins configuration folder.
+Return the name of the user's TSTool configuration file.
+*/
+public String getUserConfigFile ()
+{
+	String logFile = getUserSystemFolder() + File.separator + "TSTool.cfg";
+	//Message.printStatus(1,"","Config file is \"" + logFolder + "\"");
+	return logFile;
+}
+
+/**
+Return the value of the requested property from the user's TSTool configuration file.
+This reads the configuration file each time to ensure synchronization.
+@param propName property name
+@return the value of the property or null if file or property is not found
+*/
+public String getUserConfigPropValue ( String propName )
+{
+	String configFile = getUserConfigFile();
+	File f = new File(configFile);
+	if ( !f.exists() || !f.canRead() ) {
+		return null;
+	}
+	PropList props = new PropList("TSToolUserConfig");
+	props.setPersistentName(configFile);
+	try {
+		props.readPersistent();
+		return props.getValue(propName);
+	}
+	catch ( Exception e ) {
+		return null;
+	}
+}
+
+/**
+Return the name of the user's datastore configuration folder.
+@return the "datastores" folder path (no trailing /).
+*/
+public String getUserDatastoresFolder ()
+{
+	// 12.06.00 and earlier (not under version folder and singular)...
+	//String datastoreFolder = getUserFolder() + File.separator + "datastore";
+	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+	String datastoresFolder = getMajorVersionFolder() + File.separator + "datastores";
+	//Message.printStatus(1,"","Datastores folder is \"" + datastoreFolder + "\"");
+	return datastoresFolder;
+}
+
+/**
+Return the name of the log file for the user.
+*/
+public String getUserLogFile ()
+{
+	String logFile = getUserLogsFolder() + File.separator + "TSTool_" + System.getProperty("user.name") + ".log";
+	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
+	return logFile;
+}
+
+/**
+Return the name of the user's log file folder.
+@return the "logs" folder path (no trailing /).
+*/
+public String getUserLogsFolder ()
+{
+	int majorVersion = getMajorVersion();
+	String logsFolder = "";
+	if ( majorVersion <= 12 ) {
+		// 12.06.00 and earlier (not under version folder and singular)...
+		logsFolder = getUserFolder() + File.separator + "log";
+	}
+	else {
+		// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+		// - 12.07.00 was never released so can check this change as version 13
+		logsFolder = getMajorVersionFolder() + File.separator + "logs";
+	}
+	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
+	return logsFolder;
+}
+
+/**
+Return the name of the user's plugins configuration folder.
 @return the "plugins" folder path (no trailing /).
 */
-public String getPluginsFolder ()
+public String getUserPluginsFolder ()
 {
 	// 12.06.00 and earlier was split into plugin-command and plugin-datastore
 	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
@@ -545,10 +545,10 @@ public String getPluginsFolder ()
 }
 
 /**
-Return the name of the system folder.
+Return the name of the user's system folder.
 @return the "system" folder path (no trailing /).
 */
-public String getSystemFolder ()
+public String getUserSystemFolder ()
 {
 
 	// 12.06.00 and earlier (not under version folder)...
@@ -694,10 +694,10 @@ public boolean initializeUserFiles ( int version ) {
 		}
 	}
 	// Create main folders under the version folder
-	createDatastoresFolder();
-	createLogsFolder();
-	createPluginsFolder();
-	createSystemFolder();
+	createUserDatastoresFolder();
+	createUserLogsFolder();
+	createUserPluginsFolder();
+	createUserSystemFolder();
 	return true;
 }
 
