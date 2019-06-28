@@ -347,35 +347,35 @@ private void initialize ()
         new JLabel("<html><b>User settings will override the installation settings.</b></html>"),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
-        new JLabel("<html><b>You may need to edit the \"" + __session.getConfigFile() + "\" file to add properties to override installation defaults.</b></html>"),
+        new JLabel("<html><b>You may need to edit the \"" + __session.getUserConfigFile() + "\" file to add properties to override installation defaults.</b></html>"),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
         new JLabel("<html><b>Press OK to initialize a new user configuration file.</b></html>"),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
-    File configFileUser = new File(__session.getConfigFile());
+    File configFileUser = new File(__session.getUserConfigFile());
     if ( !configFileUser.canRead() ) {
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
-            new JLabel("Configuration file (user) is not readable: " + __session.getConfigFile()),
+            new JLabel("Configuration file (user) is not readable: " + __session.getUserConfigFile()),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
     else if ( !configFileUser.canWrite() ) {
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
-            new JLabel("Configuration file (user) is not writeable (contact TSTool support because this should not happen): " + __session.getConfigFile()),
+            new JLabel("Configuration file (user) is not writeable (contact TSTool support because this should not happen): " + __session.getUserConfigFile()),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
     else {
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
-            new JLabel("Configuration file (user): " + __session.getConfigFile()),
+            new JLabel("Configuration file (user): " + __session.getUserConfigFile()),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,new JSeparator(SwingConstants.HORIZONTAL),
             0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         PropList configPropList = new PropList("");
-        configPropList.setPersistentName(__session.getConfigFile());
+        configPropList.setPersistentName(__session.getUserConfigFile());
         try {
             configPropList.readPersistent();
             PropList inputTypeProps = getDatastoreEnabledProperties ( configPropList );
@@ -406,7 +406,7 @@ private void initialize ()
         }
         catch ( Exception e ) {
             JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
-                new JLabel("Error reading user configuration file \"" + __session.getConfigFile() + "\" (" + e + ")."),
+                new JLabel("Error reading user configuration file \"" + __session.getUserConfigFile() + "\" (" + e + ")."),
                 0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         }
     }   
@@ -517,10 +517,10 @@ public PropList response ( int status )
 		// Save the input type enabled values to the TSTool configuration files, for installation and user versions
 		updateConfigurationFile ( __configFilePathInstall, __datastoreInstallEnabled_JCheckBox, __datastoreEnabledInstallOriginalState );
 		// If necessary, initialize the user configuration file
-		File f = new File(__session.getConfigFile());
-		if ( f.exists() || __session.createConfigFile() ) {
+		File f = new File(__session.getUserConfigFile());
+		if ( f.exists() || __session.createUserConfigFile() ) {
 			// File exists so update the file OR it did not exist but was created so update the file
-			updateConfigurationFile ( __session.getConfigFile(), __datastoreUserEnabled_JCheckBox, __datastoreEnabledUserOriginalState );
+			updateConfigurationFile ( __session.getUserConfigFile(), __datastoreUserEnabled_JCheckBox, __datastoreEnabledUserOriginalState );
 		}
 		// Return the updated properties...
 		return __appPropList;

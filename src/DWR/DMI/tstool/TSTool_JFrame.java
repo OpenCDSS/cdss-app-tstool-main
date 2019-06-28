@@ -4582,6 +4582,7 @@ public String formatHelpViewerUrl ( String group, String item ) {
 		    		uri += "/";
 		    	}
 		    	// Specific documentation requests from the UI
+		    	docUri = null;
 			    if ( item.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
 			        docUri = uri + "appendix-release-notes/release-notes/";
 			    }
@@ -4601,43 +4602,50 @@ public String formatHelpViewerUrl ( String group, String item ) {
 			    else if ( group.equalsIgnoreCase("command") ) {
 			    	docUri = uri + "command-ref/" + item + "/" + item + "/";
 			    }
-		        // Now display using the default application for the file extension
-		        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
-		        // The Desktop.browse() method will always open, even if the page does not exist,
-		        // and it won't return the HTTP error code in this case.
-		        // Therefore, do a check to see if the URI is available before opening in a browser
-		        URL url = null;
-		        try {
-		        	url = new URL(docUri);
-		        	HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-		        	huc.connect();
-		        	responseCode[i] = huc.getResponseCode();
-		        }
-		        catch ( MalformedURLException e ) {
-		        	Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - malformed URL." );
-		        }
-		        catch ( IOException e ) {
-		        	Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - IOException (" + e + ")." );
-		        }
-		        catch ( Exception e ) {
-		        	Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - Exception (" + e + ")." );
-		        }
-		        finally {
-		        	// Any cleanup?
-		        }
-		        if ( responseCode[i] < 400 ) {
-		        	// Looks like a valid URI to display
-			        return docUri.toString();
-		        }
-		        else {
-		        	++failCount;
-		        }
+			    if ( docUri != null ) {
+			    	// Now display using the default application for the file extension
+			    	Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
+			    	// The Desktop.browse() method will always open, even if the page does not exist,
+			    	// and it won't return the HTTP error code in this case.
+			    	// Therefore, do a check to see if the URI is available before opening in a browser
+			    	URL url = null;
+			    	try {
+			    		url = new URL(docUri);
+			    		HttpURLConnection huc = (HttpURLConnection)url.openConnection();
+			    		huc.connect();
+			    		responseCode[i] = huc.getResponseCode();
+			    	}
+			    	catch ( MalformedURLException e ) {
+			    		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - malformed URL." );
+			    	}
+			    	catch ( IOException e ) {
+			    		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - IOException (" + e + ")." );
+			    	}
+			    	catch ( Exception e ) {
+			    		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" - Exception (" + e + ")." );
+			    	}
+			    	finally {
+			    		// Any cleanup?
+			    	}
+			    	if ( responseCode[i] < 400 ) {
+			    		// Looks like a valid URI to display
+			    		return docUri.toString();
+			    	}
+			    	else {
+			    		++failCount;
+			    	}
+			    }
+			    else {
+			    	// URL could not be determined
+			    	++failCount;	
+			    }
     		}
     	}
         if ( failCount == docRootUriList.size() ) {
+        	// Log the a message - show a visible dialog in calling code
         	Message.printWarning(2, "",
         		"Unable to determine documentation for group \"" + group + "\" and item \"" +
-        		item + "\" - all URIs return error code." );
+        		item + "\" - all URIs that were tried return error code." );
         }
     }
 	return null;
@@ -7274,7 +7282,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoHydroBaseRest_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoHydroBaseRestEnabled" );
-    String propValueUser = session.getConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
+    String propValueUser = session.getUserConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7287,7 +7295,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoSMS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-    propValueUser = session.getConfigPropValue ( "ColoradoSMSEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "ColoradoSMSEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7301,7 +7309,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoWaterHBGuest_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
-    propValueUser = session.getConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7315,7 +7323,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoWaterSMS_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
-    propValueUser = session.getConfigPropValue ( "ColoradoWaterSMSEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "ColoradoWaterSMSEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7328,7 +7336,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DateValue_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.DateValueEnabled" );
-    propValueUser = session.getConfigPropValue ( "DateValueEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "DateValueEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7341,7 +7349,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DelftFews_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.DelftFewsEnabled" );
-    propValueUser = session.getConfigPropValue ( "DelftFewsEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "DelftFewsEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7354,7 +7362,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DIADvisor_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
-    propValueUser = session.getConfigPropValue ( "DIADvisorEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "DIADvisorEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7373,7 +7381,7 @@ private void ui_EnableInputTypesForConfiguration ()
     else {
         __source_HECDSS_enabled = true;
         propValue = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
-        propValueUser = session.getConfigPropValue ( "HEC-DSSEnabled" );
+        propValueUser = session.getUserConfigPropValue ( "HEC-DSSEnabled" );
         if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
         	// User configuration value takes precedence
         	propValue = propValueUser;
@@ -7392,7 +7400,7 @@ private void ui_EnableInputTypesForConfiguration ()
         // Older...
         propValue = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
     }
-    propValueUser = session.getConfigPropValue ( "HydroBaseEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "HydroBaseEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7426,7 +7434,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_MODSIM_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
-    propValueUser = session.getConfigPropValue ( "MODSIMEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "MODSIMEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7439,7 +7447,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSCard_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
-    propValueUser = session.getConfigPropValue ( "NWSCardEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "NWSCardEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7452,7 +7460,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSRFS_ESPTraceEnsemble_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
-    propValueUser = session.getConfigPropValue ( "NWSRFSESPTraceEnsembleEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "NWSRFSESPTraceEnsembleEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7469,7 +7477,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSRFS_FS5Files_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
-    propValueUser = session.getConfigPropValue ( "NWSRFSFS5FilesEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "NWSRFSFS5FilesEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7495,7 +7503,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RCCACIS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
-    propValueUser = session.getConfigPropValue ( "RCCACISEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "RCCACISEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7508,7 +7516,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ReclamationHDB_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
-    propValueUser = session.getConfigPropValue ( "ReclamationHDBEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "ReclamationHDBEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7521,7 +7529,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ReclamationPisces_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationPiscesEnabled" );
-    propValueUser = session.getConfigPropValue ( "ReclamationPiscesEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "ReclamationPiscesEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7534,7 +7542,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RiverWare_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
-    propValueUser = session.getConfigPropValue ( "RiverWareEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "RiverWareEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7547,7 +7555,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_SHEF_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
-    propValueUser = session.getConfigPropValue ( "SHEFEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "SHEFEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7560,7 +7568,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateCU_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
-    propValueUser = session.getConfigPropValue ( "StateCUEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "StateCUEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7573,7 +7581,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateCUB_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
-    propValueUser = session.getConfigPropValue ( "StateCUBEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "StateCUBEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7586,7 +7594,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateMod_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
-    propValueUser = session.getConfigPropValue ( "StateModEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "StateModEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7599,7 +7607,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateModB_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
-    propValueUser = session.getConfigPropValue ( "StateModBEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "StateModBEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7612,7 +7620,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisDaily_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisDailyEnabled" );
-    propValueUser = session.getConfigPropValue ( "UsgsNwisDailyEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "UsgsNwisDailyEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7625,7 +7633,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisGroundwater_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisGroundwaterEnabled" );
-    propValueUser = session.getConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7638,7 +7646,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisInstantaneous_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisInstantaneousEnabled" );
-    propValueUser = session.getConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7652,7 +7660,7 @@ private void ui_EnableInputTypesForConfiguration ()
     __source_UsgsNwisRdb_enabled = true;
     // New...
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisRdbEnabled" );
-    propValueUser = session.getConfigPropValue ( "UsgsNwisRdbEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "UsgsNwisRdbEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7669,7 +7677,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_WaterML_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterMLEnabled" );
-    propValueUser = session.getConfigPropValue ( "WaterMLEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "WaterMLEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7682,7 +7690,7 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_WaterOneFlow_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterOneFlowEnabled" );
-    propValueUser = session.getConfigPropValue ( "WaterOneFlowEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "WaterOneFlowEnabled" );
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -15838,6 +15846,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
         String selectedDataType = ui_GetSelectedDataType();
         String selectedTimeStep = ui_GetSelectedTimeStep();
 
+       	// selectedDataType is "Group - DataType"
         Message.printStatus ( 2, "", "Datatype = \"" + selectedDataType + "\" timestep = \"" + selectedTimeStep + "\"" );
 
         //ColoradoHydroBaseRestDataStoreHelper helper = new ColoradoHydroBaseRestDataStoreHelper();
@@ -19731,7 +19740,7 @@ private void uiAction_SelectAllCommands()
 /**
 Refresh the query choices for a ColoradoHydroBaseRest web service.
 */
-private void uiAction_SelectDataStore_ColoradoHydroBaseRest ( ColoradoHydroBaseRestDataStore selectedDataStore)
+private void uiAction_SelectDataStore_ColoradoHydroBaseRest ( ColoradoHydroBaseRestDataStore selectedDataStore )
 throws Exception
 {   //String routine = getClass().getSimpleName() + "uiAction_SelectInputName_ColoradoHydroBaseRest";
     // Input name is not currently used...
@@ -19743,7 +19752,9 @@ throws Exception
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
     __dataType_JComboBox.removeAll();
-    List<String> dataTypes = selectedDataStore.getTimeSeriesDataTypes ( true ); // Add group
+    boolean includeDataTypeGroups = true;
+    boolean includeWildcards = true;
+    List<String> dataTypes = selectedDataStore.getTimeSeriesDataTypes ( includeDataTypeGroups, includeWildcards );
     __dataType_JComboBox.setData ( dataTypes );
     // Select the default (this causes the other choices to be updated)...
     // TODO SAM 2010-07-21 Default to Streamflow once implemented, like HydroBase
@@ -22847,8 +22858,8 @@ private void uiAction_ViewDocumentation ( String command )
         }
     }
     else {
-		// Not able to open either URI
-		Message.printWarning(1, "", "Unable to display documentation at \"" + docUri );
+		// Could not determine the URL to display
+		Message.printWarning(1, "", "Unable to determine URL for documentation for \"" + command + "\"." );
     }
 }
 
