@@ -37,17 +37,20 @@ Section "CDSS Base Components" BaseComponents
     # copy important bat/jar files for base CDSS functionality
     SetOutPath $cdss_dir\bin
     
-    ## copy system files
-    SetOutPath $cdss_dir\system
-    File externals\CDSS\system\DATAUNIT
+    ## 2019-07-12 smalers (start)
+    ## The following is now handled by copying files to the 'dist' folder using 'build-cdss.xml'
+    ## ## copy system files
+    ## SetOutPath $cdss_dir\system
+    ## File externals\CDSS\system\DATAUNIT
     
-    # install the default CDSS.cfg file
-    SetOverwrite off
-    File externals\CDSS\system\CDSS.cfg
+    ## # install the default CDSS.cfg file
+    ## SetOverwrite off
+    ## File externals\CDSS\system\CDSS.cfg
     
-    # create the logs directory
-    SetOutPath $cdss_dir
-    CreateDirectory $cdss_dir\logs
+    ## # create the logs directory
+    ## SetOutPath $cdss_dir
+    ## CreateDirectory $cdss_dir\logs
+    ## 2019-07-12 smalers (end)
     
     # create graphics directory
     #CreateDirectory $cdss_dir\graphics

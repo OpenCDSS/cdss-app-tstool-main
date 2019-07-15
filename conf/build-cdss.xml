@@ -1,4 +1,6 @@
 <project name="CDSS" default="compile" basedir="../">
+    <!-- Targets used to create CDSS version of TSTool. -->
+    <!-- 'build.xml' is not used in this case. -->
     
     <import file="../../cdss-util-buildtools/common-build.xml"/>
     <import file="../../cdss-util-buildtools/common-doc.xml"/>
@@ -6,77 +8,89 @@
     
     <property file="conf/product-cdss.properties"/>
 	
-	<!-- Create the TSTool CDSS PDF user manuals, in several separate volumes to limite size - DISABLED IN FAVOR OF ONLINE
-	<target name="create-user-manual-cdss" description="Merges PDF documentation into doc/dist_CDSS folder" >
-        <mkdir dir="doc/UserManual/dist_CDSS/"/>
-		<property name="pdfsrc.dir" location="doc/UserManual/Word" />
-		<antcall target="create-user-manual-cdss-Vol1-Manual" inheritall="true"></antcall>
-		<antcall target="create-user-manual-cdss-Vol2-CommandReference" inheritall="true"></antcall>
-		<antcall target="create-user-manual-cdss-Vol3-DatastoreReference" inheritall="true"></antcall>
-		<copy file="${pdfsrc.dir}/82_Appendix_ReleaseNotes.pdf" tofile="doc/UserManual/dist_CDSS/TSTool-ReleaseNotes.pdf"/>
-		<copy file="${pdfsrc.dir}/82_Appendix_ReleaseNotes_Old.pdf" tofile="doc/UserManual/dist_CDSS/TSTool-ReleaseNotes-Old.pdf"/>
-	</target>
-	<target name="create-user-manual-cdss-Vol1-Manual" description="Merges PDF documentation into doc/dist_CDSS folder" >
-		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_CDSS_Vol1_Manual_fileList.txt" />
-		<property name="pdf_file" location="doc/UserManual/dist_CDSS/TSTool-Vol1-UserManual.pdf" />
-		<antcall target="mergePDF" inheritall="true"></antcall>
-	</target>
-	<target name="create-user-manual-cdss-Vol2-CommandReference" description="Merges PDF documentation into doc/dist_CDSS folder" >
-		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_CDSS_Vol2_CommandReference_fileList.txt" />
-		<property name="pdf_file" location="doc/UserManual/dist_CDSS/TSTool-Vol2-CommandReference.pdf" />
-		<antcall target="mergePDF" inheritall="true"></antcall>
-	</target>
-	<target name="create-user-manual-cdss-Vol3-DatastoreReference" description="Merges PDF documentation into doc/dist_CDSS folder" >
-		<property name="filelist" location="doc/UserManual/merge_PDF/UserManual_CDSS_Vol3_DatastoreReference_fileList.txt" />
-		<property name="pdf_file" location="doc/UserManual/dist_CDSS/TSTool-Vol3-DatastoreReference.pdf" />
-		<antcall target="mergePDF" inheritall="true"></antcall>
-	</target> -->
-    
-    <!-- this is called after standard-local-install and allows common resources to be copied in -->
+    <!-- This is called after standard-local-install and allows common resources to be copied in. -->
+	<!-- Also need to make sure that externals/CDSS/installer/cdss.nsh includes all the folders consistent with below. -->
     <target name="-install-local">
-    	<!-- Run-time binary files. -->
+    	<!-- List folders and files alphabetically. -->
+
+    	<!-- Top-level installation folder - folder should already exist. -->
+
+    	<copy todir="${install.dir}" file="resources/runtime/README.md"/>
+
+    	<!-- bin - run-time binary files. -->
+    	<!-- Copy files from bin and bin-CDSS. -->
+
         <copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/TSTool.bat"/>
+    	<copy todir="${install.dir}/bin" file="resources/runtime/bin/README.md"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool-latest.bat"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
     	<!-- The following is a useful utility to help create a Linux distribution from a Windows distribution -->
-        <copy todir="${install.dir}/bin" file="resources/runtime/bin/build-linux-distro"/>
+        <copy todir="${install.dir}/bin" file="resources/runtime/bin/build-linux-distro.bash"/>
+    	<!-- Script to run TSTool on Linux -->
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
     	<!-- Binary files needed for HEC-DSS support beyond the jar files, which are handled automatically. -->
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/rmaUtil.dll"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/DFORMDD.DLL"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/MSVCRTD.DLL"/>
-    	<!-- Documentation -->
-    	<!-- DISABLE IN FAVOR OF ONLINE
-    	<mkdir dir="${install.dir}/doc/UserManual"/>
-        <copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-ReleaseNotes.pdf"/>
-    	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-ReleaseNotes-Old.pdf"/>
-    	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-Vol1-UserManual.pdf"/>
-    	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-Vol2-CommandReference.pdf"/>
-    	<copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_CDSS/TSTool-Vol3-DatastoreReference.pdf"/>
-    	-->
-    	<!-- Documentation - HTML -->
-    	<!-- DISABLE IN FAVOR OF ONLINE
-    	<mkdir dir="${install.dir}/doc/UserManual/html"/>
-        <copy todir="${install.dir}/doc/UserManual/html">
-        	<fileset dir="../cdss-app-tstool-doc/doc/UserManual/html">
-        		<include name="**/*.css"/>
-        		<include name="**/*.html"/>
-        		<include name="**/*.png"/>
-        		</fileset>
-        	</copy>
-        -->
-    	<!-- Examples -->
+
+    	<!-- datastores - datastore configuration files -->
+
+    	<mkdir dir="${install.dir}/datastores"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/HydroBase.cfg"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/HydroBaseWeb.cfg"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/HydroBase-HBGuest.cfg"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/NrcsAwdb.cfg"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/README.md"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/RCC-ACIS.cfg"/>
+        <copy todir="${install.dir}/datastores" file="resources/runtime/datastores/UsgsNwisDaily.cfg"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/UsgsNwisGroundwater.cfg"/>
+    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/UsgsNwisInstantaneous.cfg"/>
+
+    	<!-- doc - documentation (include simple README file to direct to online documentation) -->
+
+    	<mkdir dir="${install.dir}/doc"/>
+        <copy todir="${install.dir}/doc" file="resources/runtime/doc/README.md"/>
+
+    	<!-- TODO smalers 2019-07-12 need to move training to online docs, keep for now due to historical references -->
+    	<mkdir dir="${install.dir}/doc/Training"/>
+    	<copy todir="${install.dir}/doc/Training">
+    		<fileset dir="../cdss-app-tstool-doc/doc/Training">
+    			<include name="**/*.*"/>
+    			<exclude name="**/*.chk"/>
+    			<exclude name="**/*.log"/>
+    			<exclude name="**/*.check.html"/>
+    			<exclude name="**/*.ppt"/>
+    			<exclude name="**/graphics/**"/>
+    			</fileset>
+    		</copy>
+
+    	<!-- examples - examples -->
+
     	<mkdir dir="${install.dir}/examples"/>
         <copy todir="${install.dir}/examples">
         	<fileset dir="resources/runtime/examples">
         		<include name="**/*.*"/>
+    			<exclude name="README-dev.md"/>
         		</fileset>
         	</copy>
-    	<!-- Log file folder -->
+
+    	<!-- logs - log file folder -->
+    	<!-- Just copy the README file to explain the folder. -->
+
     	<mkdir dir="${install.dir}/logs"/>
-    	<!-- Python scripts that utilize TSTool -->
+        <copy todir="${install.dir}/logs" file="resources/runtime/logs/README.md"/>
+
+    	<!-- plugins - plugins folder -->
+    	<!-- Just copy the README file to explain the folder. -->
+
+    	<mkdir dir="${install.dir}/plugins"/>
+        <copy todir="${install.dir}/plugins" file="resources/runtime/plugins/README.md"/>
+
+    	<!-- python - Python scripts that utilize TSTool -->
+
     	<mkdir dir="${install.dir}/python/nrcs-snotel"/>
+    	<copy todir="${install.dir}/python" file="resources/runtime/python/README.md"/>
     	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/download-snotel.bat"/>
     	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/download-snotel.py"/>
     	<copy todir="${install.dir}/python/nrcs-snotel" file="resources/runtime/python/nrcs-snotel/download-snotel.doc"/>
@@ -89,35 +103,19 @@
     			<include name="*.py"/>
     			</fileset>
     		</copy>
+
     	<!-- System (configuration) files -->
+    	<!-- Copy files from system and system-CDSS. -->
+
     	<copy todir="${install.dir}/system" file="resources/runtime/system/ClimateDivisions.csv"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoHydroBaseRest.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoWaterHBGuest.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/ColoradoWaterSMS.cfg"/>
         <copy todir="${install.dir}/system" file="resources/runtime/system/DATAUNIT"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-county.csv"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system/FIPS-state.csv"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/HydroBase.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/HydroBase-HBGuest.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/NrcsAwdb.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/RCC-ACIS.cfg"/>
-        <copy todir="${install.dir}/system" file="resources/runtime/system/UsgsNwisDaily.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/UsgsNwisGroundwater.cfg"/>
-    	<copy todir="${install.dir}/system" file="resources/runtime/system/UsgsNwisInstantaneous.cfg"/>
+    	<copy todir="${install.dir}/system" file="resources/runtime/system/README.md"/>
     	<copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/TSTool.cfg"/>
     	<!-- System configuration file for CDSS.cfg included because HydroBase may be enabled -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
-    	<mkdir dir="${install.dir}/doc/Training"/>
-    	<copy todir="${install.dir}/doc/Training">
-    		<fileset dir="../cdss-app-tstool-doc/doc/Training">
-    			<include name="**/*.*"/>
-    			<exclude name="**/*.chk"/>
-    			<exclude name="**/*.log"/>
-    			<exclude name="**/*.check.html"/>
-    			<exclude name="**/*.ppt"/>
-    			<exclude name="**/graphics/**"/>
-    			</fileset>
-    		</copy>
+
     </target>
 
 </project>

@@ -87,7 +87,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "13.00.00dev (2019-06-25)";
+public static final String PROGRAM_VERSION = "13.00.00 (2019-07-12)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1317,14 +1317,12 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 }
 
 /**
-Open the datastores (e.g., database and web service connection(s)) using the TSTool configuration file information and set
-in the command processor.  The configuration file is used to determine the database server and
-name properties to use for the initial connection(s).  This method can be called from the UI code
-to automatically establish database startup database connections.SomeDataStore).
-@param session TSTool session, which provides user and environment information
-@param processor command processor that will have datastores opened
-@param pluginDataStoreClassList list of plugin datastore classes to be loaded dynamically
-@param isBatch is the software running in batch mode?  If in batch mode do not open up datastores
+Open the datastores (e.g., database and web service connection(s)) using datastore configuration files.
+This method can be called from the UI code to automatically establish database startup database connections.
+@param session TSTool session, which provides user and environment information.
+@param processor Command processor that will have datastores opened.
+@param pluginDataStoreClassList List of plugin datastore classes to be loaded dynamically.
+@param isBatch Is the software running in batch mode?  If in batch mode do not open up datastores
 that have a login of "prompt".
 */
 protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor,
@@ -1332,30 +1330,23 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 {   String routine = "TSToolMain.openDataStoresAtStartup";
 
-    // Also allow multiple database connections via the new convention using datastore configuration files
+    // Allow multiple database connections via the new convention using datastore configuration files.
     // The following code processes all datastores.
     
-    // Plugin datastore classes will have been loaded by this time
+    // Plugin datastore classes will have been loaded by this time.
     
-    // TODO SAM 2010-09-01 DataStore:*ConfigFile does not work
-    List<Prop> dataStoreMainProps = getProps ( "DataStore:*" );
-    List<String> dataStoreConfigFiles = new ArrayList<String>();
-    if ( dataStoreMainProps == null ) {
-        Message.printStatus(2, routine, "No configuration properties matching DataStore:*.ConfigFile" );
-    }
-    else {
-        Message.printStatus(2, routine, "Got " + dataStoreMainProps.size() + " DataStore:*.ConfigFile properties.");
-        for ( Prop prop: dataStoreMainProps ) {
-            // Only want .ConfigFile properties
-            if ( !StringUtil.endsWithIgnoreCase(prop.getKey(),".ConfigFile") ) {
-                continue;
-            }
-            // Get the filename that defines the datastore - absolute or relative to the system folder
-            String dataStoreFile = prop.getValue();
-            dataStoreConfigFiles.add(dataStoreFile);
-        }
-    }
-    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/datastore
+	// List configuration files in the 'datastores' folder of the software installation.
+	List<String> dataStoreConfigFiles = new ArrayList<String>();
+	// First list the cfg files
+	String installDatastoresFolder = session.getInstallDatastoresFolder();
+	List<File> installConfigFiles = IOUtil.getFilesMatchingPattern(installDatastoresFolder, "cfg", true);
+	Message.printStatus(2, routine, "Found " + installConfigFiles.size() + " *.cfg files in \"" + installDatastoresFolder );
+	// Convert to String
+	for ( File f : installConfigFiles ) {
+		dataStoreConfigFiles.add(f.getAbsolutePath());
+	}
+
+    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/datastores
     if ( session.createUserDatastoresFolder() ) {
 	    String datastoreFolder = session.getUserDatastoresFolder();
 	    File f = new File(datastoreFolder);
@@ -1372,19 +1363,23 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	    String [] dfs = f.list(ff); // Returns files without leading path
 	    if ( dfs != null ) {
 	    	for ( int i = 0; i < dfs.length; i++ ) {
-	    		dataStoreConfigFiles.add(datastoreFolder + File.separator + dfs[i]);
+	    		String datastoreFile = datastoreFolder + File.separator + dfs[i];
+	    		dataStoreConfigFiles.add(datastoreFile);
+	    		Message.printStatus(2, routine, "Found user datastore configuration file: " + datastoreFile );
 	    	}
 	    }
     }
-    // Now open the datastores for found configuration files
+    // Now open the datastores for found configuration files:
     // - loop backwards since user files were added last
     // - if a duplicate is found, use the user version first
     int nDataStores = dataStoreConfigFiles.size();
+    // Datastore names that have been opened, so as to avoid reopening.  User datastores are opened first.
     List<String> openDataStoreNameList = new ArrayList<String>(); // Datastore names that have been opened
+    Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " data stores (first user, then installation)." );
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
         Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
-        // Read the properties from the configuration file
+        // Read the properties from the configuration file.
         PropList dataStoreProps = new PropList("");
         String dataStoreFileFull = dataStoreFile;
         if ( !IOUtil.isAbsolute(dataStoreFile)) {
@@ -1398,11 +1393,11 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
             dataStoreProps.setPersistentName(dataStoreFileFull);
             String dataStoreClassName = "";
             try {
-                // Get the properties from the file
+                // Get the properties from the file.
                 dataStoreProps.readPersistent();
                 String dataStoreName = dataStoreProps.getValue("Name");
                 String dataStoreType = dataStoreProps.getValue("Type");
-                // If the datastore type is no longer supported, skip.
+                // If the datastore type is no longer supported, skip because it can slow down startup.
                 // - need more time to fully remove the code
                 if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ||
                 	dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore")) {
@@ -1410,7 +1405,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                			"\" type \"" + dataStoreType + "\" is obsolete.  Skipping." );
                 	continue;
                 }
-                // See if the datastore name matches one that is already open, if so, ignore it
+                // See if the datastore name matches one that is already open and if so, ignore it.
                 boolean dataStoreAlreadyOpened = false;
                 for ( String openDataStoreName : openDataStoreNameList ) {
                 	if ( openDataStoreName.equalsIgnoreCase(dataStoreName)) {
