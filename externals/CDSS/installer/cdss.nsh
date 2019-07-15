@@ -1,12 +1,6 @@
 #############################################################
-# AUTHOR: Ian Schneider
-# DATE: March 17, 2008
-#
-# Extract common installation bits from CDSS installers to
-# simplify the installers.
-# 
-# @todo - extract relevant bits to even more generic nsh
-#
+# CDSS NSIS code for TSTool.
+# - this code could be generic but has been customized for TSTool
 ##############################################################
 
 # Users of this script should define the following
@@ -186,8 +180,9 @@ SectionEnd
 # BRIEF: 
 #  Installs the TSTool specific files.
 #  These may change each release so
-#  the files included may need to be 
-#  updated. 
+#  the files included may need to be updated. 
+#
+#  See also the conf/build-cdss.xml file for files/folders to include.
 #
 ##################################################
 Section "${CODENAME}" ${CODENAME}
@@ -207,8 +202,11 @@ Section "${CODENAME}" ${CODENAME}
         File /r /x *.jar "${INST_BUILD_DIR}\bin"
     !endif
 
+    File "${INST_BUILD_DIR}\README.md"
+    File /r "${INST_BUILD_DIR}\datastores"
     File /nonfatal /r "${INST_BUILD_DIR}\examples"
     File /r "${INST_BUILD_DIR}\system"
+    File /r "${INST_BUILD_DIR}\plugins"
     File /nonfatal /r "${INST_BUILD_DIR}\python"
     
     # Insert the -home Directory into the .bat file
@@ -375,10 +373,13 @@ Section "Uninstall"
     
     DetailPrint "Removing ${CODENAME}"
     # Remove files from install directory
+    Delete /REBOOTOK $INSTDIR\README.md
     RmDir /r /REBOOTOK $INSTDIR\bin
+    RmDir /r /REBOOTOK $INSTDIR\datastores
     RmDir /r /REBOOTOK $INSTDIR\doc
     RmDir /r /REBOOTOK $INSTDIR\examples
     RmDir /r /REBOOTOK $INSTDIR\logs
+    RmDir /r /REBOOTOK $INSTDIR\plugins
     RmDir /r /REBOOTOK $INSTDIR\python
     RmDir /r /REBOOTOK $INSTDIR\system
     
@@ -437,13 +438,16 @@ Function .onInstSuccess
     #  DetailPrint "Skipping README"
     #next2:
     
-    MessageBox MB_YESNO "Would you like to run the program (if installer is run as administrator you will not have access to specific user configuration TSTool files)?" IDYES true IDNO false
-    true:
-      Exec '"$INSTDIR\bin\${CODENAME}.exe"'
-      Goto next
-    false:
-      DetailPrint "User chose to not start application"
-    next:
+    MessageBox MB_OK "Run ${CODENAME} from Start / CDSS / ${NAMEVERSION}"
+    # For now don't allow running the application because the install is as root
+    # and don't know how to get back to normal user
+    # MessageBox MB_YESNO "Would you like to run the program (if installer is run as administrator you will not have access to specific user configuration TSTool files)?" IDYES true IDNO false
+    # true:
+    #  Exec '"$INSTDIR\bin\${CODENAME}.exe"'
+    #  Goto next
+    #false:
+    #  DetailPrint "User chose to not start application"
+    #next:
                 
     skipThis:
     

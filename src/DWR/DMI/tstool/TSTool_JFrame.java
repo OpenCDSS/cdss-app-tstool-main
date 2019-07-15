@@ -38,6 +38,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -216,7 +217,6 @@ import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 import RTi.GRTS.TSProcessor;
 import RTi.GRTS.TSProduct;
-import RTi.GRTS.TSProductDMI;
 import RTi.GRTS.TSProductProcessor;
 import RTi.GRTS.TSPropertiesJFrame;
 import RTi.GRTS.TSViewJFrame;
@@ -306,7 +306,6 @@ import cdss.dmi.hydrobase.rest.ColoradoHydroBaseRestDataStore;
 import cdss.dmi.hydrobase.rest.dao.DiversionWaterClass;
 import cdss.dmi.hydrobase.rest.dao.TelemetryStationDataTypes;
 import cdss.dmi.hydrobase.rest.dao.WaterLevelsWell;
-import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRestDataStoreHelper;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Station_InputFilter_JPanel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Station_TableModel;
 import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Structure_CellRenderer;
@@ -1708,7 +1707,8 @@ private JMenuItem
 private JMenuItem
 	__Tools_SelectOnMap_JMenuItem = null,
 
-	__Tools_Options_JMenuItem = null;
+	__Tools_Options_JMenuItem = null,
+	__Tools_ViewLogFile_Startup_JMenuItem = null;
 
 private JMenu		
 	__Help_JMenu = null;
@@ -2237,6 +2237,7 @@ private String
 			__Tools_NWSRFS_ConvertJulianHour_String = "Convert Julian Hour...",
 		__Tools_SelectOnMap_String = "Select on Map",
 		__Tools_Options_String = "Options...",
+		__Tools_ViewLogFile_Startup_String = "Diagnostics - View Log File (Startup)...",
 
 	// Help menu (order in GUI)...
 
@@ -8826,7 +8827,7 @@ private void ui_InitGUI ( )
     
     __results_JTabbedPane.setSelectedComponent ( __resultsTS_JPanel );
 	
-	// Popup menu for the time series results list...
+	// Popup menu for the time series, tables, and other results lists...
 	ui_InitGUIMenus_ResultsPopup ();
 
 	// --------------------------------------------------------------------
@@ -8864,8 +8865,31 @@ private void ui_InitGUI ( )
 			null, "Open a command file or add new commands.",
 			__STATUS_READY );
 	ui_UpdateStatus ( false );
+	// Set the initial window size to 2/3 of the screen
+	// - TODO smalers 2019-07-12 need to remember this in the UIState file
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int screenWidth = (int)screenSize.getWidth();
+    int screenHeight = (int)screenSize.getHeight();
+    if ( Message.isDebugOn ) {
+    	Message.printStatus(2, routine, "Screen size is " + screenWidth + "x" + screenHeight);
+    }
+    // Size the screen to be at least 900x750 (legacy value), up to 2/3 of screen size
+    int tstoolWidth = screenWidth*2/3;
+    int tstoolHeight = screenHeight*2/3;
+    if ( tstoolWidth < 900 ) {
+    	// Increase to size that has been used historically
+    	tstoolWidth = 900;
+    }
+    if ( tstoolHeight < 750 ) {
+    	// Increase to size that has been used historically
+    	tstoolHeight = 750;
+    }
+    if ( Message.isDebugOn ) {
+    	Message.printStatus(2, routine, "TSTool size is " + tstoolWidth + "x" + tstoolHeight);
+    }
+	setPreferredSize ( new Dimension(tstoolWidth, tstoolHeight) );
     pack();
-	setSize ( 900, 750 );
+    //this.setLocationRelativeTo(null);
 	JGUIUtil.center ( this );
 	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
 	if ( !TSToolMain.isRestServer() ) {
@@ -11792,13 +11816,18 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 	__Tools_JMenu.addSeparator ();
 	__Tools_JMenu.add ( __Tools_Options_JMenuItem=new SimpleJMenuItem( __Tools_Options_String, this ) );
 
+	// View Log File...
+	
+	__Tools_JMenu.addSeparator ();
 	// Create the diagnostics GUI, specifying the key for the help
 	// button.  Events are handled from within the diagnostics GUI.
-	__Tools_JMenu.addSeparator ();
 	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame (this);
 	// TODO SAM 2005-04-05 some day need to enable on-line help. ("TSTool.PreferencesMenu");
 	diagnostics_JFrame.attachMainMenu ( __Tools_JMenu );
 	Message.addMessageLogListener ( this );
+	// "View Log File (Startup)" menu is handled here and the "View Log File" uses utility setup code
+	__Tools_JMenu.add ( __Tools_ViewLogFile_Startup_JMenuItem =
+		new SimpleJMenuItem (__Tools_ViewLogFile_Startup_String, this ));
 }
 
 /**
@@ -14537,7 +14566,7 @@ throws Exception
 			String tableNameField = null; // Column in tablesTableName that has the name of the tables
 			String erdXField = null; // Column in tablesTableName that contains ER Diagram x-coordinate
 			String erdYField = null; // Column in tablesTableName that contains ER Diagram y-coordinate
-			List referenceTables = null; // List of tables in tablesTableName that are reference tables
+			List<String> referenceTables = null; // List of tables in tablesTableName that are reference tables
 			PageFormat pageFormat = new PageFormat();
 			Paper paper = new Paper();
 			double w = 72*17.0;
@@ -14678,6 +14707,27 @@ throws Exception
 			((TSTool_HydroBase_WellLevel_Day_TableModel)
 			__query_TableModel).setWDIDLength(StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")));
 		}		
+	}
+	else if ( o == __Tools_ViewLogFile_Startup_JMenuItem ) {
+		// View the startup log file
+		String logFile = session.getUserLogFile();
+		// Show in a simple viewer
+		PropList reportProp = new PropList ("Startup Log File");
+		reportProp.set ( "TotalWidth", "800" );
+		reportProp.set ( "TotalHeight", "600" );
+		reportProp.set ( "DisplayFont", "Courier" );
+		reportProp.set ( "DisplaySize", "11" );
+		reportProp.set ( "PrintFont", "Courier" );
+		reportProp.set ( "PrintSize", "7" );
+		reportProp.set ( "Title", "Startup Log File" );
+		reportProp.setUsingObject ( "ParentUIComponent", this );
+		try {
+			List<String> logLines = IOUtil.fileToStringList(logFile);
+			new ReportJFrame ( logLines, reportProp );
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, routine, "Error viewing startup log file (" + e + ")." );
+		}
 	}
 	else {
 		// Chain to remaining actions...

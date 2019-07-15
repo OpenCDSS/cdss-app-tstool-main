@@ -1,4 +1,7 @@
 <project name="TSTool" default="compile" basedir="../">
+    <!-- Targets used to create non-CDSS version of TSTool. -->
+    <!-- This was used to create a generic version of TSTool but is not currently used. -->
+    <!-- See 'build-cdss.xml' for CDSS version. -->
     
     <import file="../../cdss-util-buildtools/common-build.xml"/>
     <import file="../../cdss-util-buildtools/common-doc.xml"/>
@@ -8,19 +11,9 @@
 	<target name="compile">
 	</target>
 	
-	<!-- Create the TSTool RTi PDF user manual -->
-	<target name="create-user-manual-rti"
-	 description="Merges PDF documentation into doc/dist_RTi folder" >
-		<property name="filelist" location="../cdss-app-tstool-doc/doc/UserManual/merge_PDF/UserManual_RTi_fileList.txt" />
-		<property name="pdfsrc.dir" location="../cdss-app-tstool-doc/doc/UserManual/Word" />
-		<property name="pdf_file" location="../cdss-app-tstool-doc/doc/UserManual/dist_RTi/TSTool.pdf" />
-		<antcall target="mergePDF" inheritall="true"></antcall>
-	</target>
-
     <!-- this is called after standard-local-install and allows common resources to be copied in -->
     <target name="-install-local">
     	<!-- Run-time binary files. -->
-        <copy todir="${install.dir}/bin" file="resources/runtime/bin-RTi/TSTool.bat"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/tstool-latest.bat"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
@@ -97,9 +90,4 @@
     		</copy>
     </target>
 
-    <target name="local-install-demo">
-        <property name="license.file" value="resources/runtime/system-RTi/TSTool-demo.cfg"/>
-        <antcall target="local-install" inheritall="true"/>
-    </target>
-    
 </project>

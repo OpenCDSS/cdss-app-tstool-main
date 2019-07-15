@@ -67,8 +67,9 @@ private PropList uiStateProps = new PropList("ui-state");
 private static TSToolSession instance = null;
 
 /**
- * Major software version, used for folder below .tstool/.
- * This is intialized as a parameter to the constructor.
+ * Major software version, used for folder below .tstool/,
+ * for example .tstool/13.
+ * This is initialized as a parameter to the constructor.
  */
 private int majorVersion = 0; // 0 will be an obvious error if a folder is created
 
@@ -90,14 +91,20 @@ private TSToolSession ( int majorVersion )
  * @return true if the history file exists, false if an issue creating/finding the file.
  */
 private boolean checkHistoryFile() {
+	String routine = getClass().getSimpleName() + ".checkHistoryFile";
 	String historyFile = getHistoryFile();
+	Message.printStatus(2, routine, "History file is \"" + historyFile + "\"");
 	File f = new File(historyFile);
 	File folder = f.getParentFile();
 	if ( !folder.exists() ) {
 		// Create all the folders for the history file
 		if ( !folder.mkdirs() ) {
 			// Unable to make folder
+			Message.printWarning(2,routine,"Error creating folder for history file \"" + folder + "\"" );
 			return false;
+		}
+		else {
+			Message.printStatus(2,routine,"Creating folder for history file \"" + folder + "\"" );
 		}
 	}
 	// If here the folder for the history file exists so can check for the file.
@@ -114,10 +121,10 @@ private boolean checkHistoryFile() {
 				Path copy = Paths.get(historyFile);
 				try {
 					Files.copy(original, copy);
+					Message.printStatus(2,routine,"Copied history file \"" + original + "\" to \"" + copy + "\"" );
 					break;
 				}
 				catch ( IOException e ) {
-					String routine = getClass().getSimpleName() + ".checkHistoryFile";
 					Message.printWarning(2,routine,"Error copying old history file \"" + historyFileOld +
 						"\" history file to \"" + historyFile + "\"" );
 				}
@@ -130,9 +137,11 @@ private boolean checkHistoryFile() {
 		StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
 		try {
 			IOUtil.writeFile ( f.getPath(), sb.toString() );
+			Message.printStatus(2,routine,"Create empty history file \"" + f + "\"" );
 		}
 		catch ( IOException e ) {
 			// For now absorb
+			Message.printWarning(2,routine,"Error creating empty history file \"" + f + "\"" );
 			return false;
 		}
 	}
@@ -351,7 +360,13 @@ public boolean createUserSystemFolder () {
  * @param tspFilename a *.tsp file, without leading path, one of the items from getGraphTemplateFileList().
  */
 public File getGraphTemplateFile ( String tspFilename ) {
-	return new File(getUserFolder() + File.separator + "template-graph" + File.separator + tspFilename );
+	int majorVersion = getMajorVersion();
+	if ( majorVersion <= 12 ) {
+		return new File(getUserFolder() + File.separator + "template-graph" + File.separator + tspFilename );
+	}
+	else {
+		return new File(getMajorVersionFolder() + File.separator + "template-graph" + File.separator + tspFilename);
+	}
 }
 
 /**
@@ -359,8 +374,15 @@ Return the list of graph templates.
 */
 public List<File> getGraphTemplateFileList ()
 {
-	String graphTemplateFolder = getUserFolder() + File.separator + "template-graph";
-	return IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
+	String graphTemplateFolder;
+	int majorVersion = getMajorVersion();
+	if ( majorVersion <= 12 ) {
+	    graphTemplateFolder = getUserFolder() + File.separator + "template-graph";
+	}
+	else {
+	    graphTemplateFolder = getMajorVersionFolder() + File.separator + "template-graph";
+	}
+    return IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
 }
 
 /**
@@ -384,7 +406,7 @@ public String getHistoryFile ( int majorVersion )
 	}
 	else {
 		// History file exists in, for example:  ./tstool/13/
-		historyFile = getMajorVersionFolder() + File.separator + "command-file-history.txt";
+		historyFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + majorVersion + File.separator + "command-file-history.txt";
 	}
 	//Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
@@ -401,6 +423,15 @@ public String getInstallFolder ()
 {
 	String installFolder = IOUtil.getApplicationHomeDir();
 	return installFolder;
+}
+
+/**
+Return the folder for TSTool datastore configuration files, in software install folder:
+*/
+public String getInstallDatastoresFolder ()
+{
+	String installFolder = getInstallFolder();
+	return installFolder + File.separator + "datastores";
 }
 
 /**
@@ -453,6 +484,41 @@ public String getMajorVersionFolder ()
 }
 
 /**
+Return the name of the TSTool UI state file.
+*/
+public String getUIStateFile ()
+{
+	return getUIStateFile(getMajorVersion());
+}
+
+/**
+Return the name of the TSTool UI state file for a TSTool major version.
+@param majorVersion the major TSTool version of interest.
+*/
+public String getUIStateFile ( int majorVersion )
+{
+	String uiStateFile = "";
+	if ( majorVersion <= 12 ) {
+		// UI state file exists in, for example:  ./tstool/
+		uiStateFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "ui-state.txt";
+	}
+	else {
+		// History file exists in, for example:  ./tstool/13/
+		uiStateFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + majorVersion + File.separator + "ui-state.txt";
+	}
+	//Message.printStatus(1,"","UI state file \"" + uiStateFile + "\"");
+	return uiStateFile;
+}
+
+/**
+ * Return a UI state property, as a string.
+ * @param propertyName name of property being requested.
+ */
+public String getUIStateProperty ( String propertyName ) {
+	return this.uiStateProps.getValue(propertyName);
+}
+
+/**
 Return the name of the user's TSTool configuration file.
 */
 public String getUserConfigFile ()
@@ -498,6 +564,20 @@ public String getUserDatastoresFolder ()
 	String datastoresFolder = getMajorVersionFolder() + File.separator + "datastores";
 	//Message.printStatus(1,"","Datastores folder is \"" + datastoreFolder + "\"");
 	return datastoresFolder;
+}
+
+/**
+Return the name of the TSTool user folder for the operating system, for example:
+<ul>
+<li>	Windows:  C:\Users\UserName\.tstool</li>
+<li>	Linux: /home/UserName/.tstool</li>
+</ul>
+*/
+public String getUserFolder ()
+{
+	String userFolder = System.getProperty("user.home") + File.separator + ".tstool";
+	//Message.printStatus(1,"","User folder is \"" + userFolder + "\"");
+	return userFolder;
 }
 
 /**
@@ -560,55 +640,6 @@ public String getUserSystemFolder ()
 }
 
 /**
-Return the name of the TSTool UI state file.
-*/
-public String getUIStateFile ()
-{
-	return getUIStateFile(getMajorVersion());
-}
-
-/**
-Return the name of the TSTool UI state file for a TSTool major version.
-@param majorVersion the major TSTool version of interest.
-*/
-public String getUIStateFile ( int majorVersion )
-{
-	String uiStateFile = "";
-	if ( majorVersion <= 12 ) {
-		// UI state file exists in, for example:  ./tstool/
-		uiStateFile = System.getProperty("user.home") + File.separator + ".tstool" + File.separator + "ui-state.txt";
-	}
-	else {
-		// History file exists in, for example:  ./tstool/13/
-		uiStateFile = getMajorVersionFolder() + File.separator + "ui-state.txt";
-	}
-	//Message.printStatus(1,"","UI state file \"" + uiStateFile + "\"");
-	return uiStateFile;
-}
-
-/**
- * Return a UI state property, as a string.
- * @param propertyName name of property being requested.
- */
-public String getUIStateProperty ( String propertyName ) {
-	return this.uiStateProps.getValue(propertyName);
-}
-
-/**
-Return the name of the TSTool user folder for the operating system, for example:
-<ul>
-<li>	Windows:  C:\Users\UserName\.tstool</li>
-<li>	Linux: /home/UserName/.tstool</li>
-</ul>
-*/
-public String getUserFolder ()
-{
-	String userFolder = System.getProperty("user.home") + File.separator + ".tstool";
-	//Message.printStatus(1,"","User folder is \"" + userFolder + "\"");
-	return userFolder;
-}
-
-/**
  * Initialize user files.
  * This method should be called at application startup to make sure that user files are created.
  * TSTool 12.06.00 and earlier used the following folder structure, using Windows as example:
@@ -663,7 +694,8 @@ public String getUserFolder ()
  * The use of a version folder is a compromise: users will need to use migration tools
  * to import previous version datastore configurations, etc., but the version folder
  * allows different major versions of TSTool to remain functional if major design changes occur.
- * @param majorVersion the major TSTool version, a parameter to allow calling multiple times if necessary
+ * @param majorVersion the major TSTool version, a parameter to allow calling multiple times
+ * for different TSTool versions if necessary.
  * @return true if the files were initialized, false for all other cases.
  */
 public boolean initializeUserFiles ( int version ) {
