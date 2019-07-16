@@ -210,7 +210,7 @@ private void initialize ()
     JGUIUtil.addComponent(datastoresOverview_JPanel,
         new JLabel("Datastores are further configured in user files, referred to as \"user datastores\", phased in as of TSTool 12 and 13."),
         0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    String userFolder = TSToolSession.getInstance().getUserFolder();
+    String userFolder = TSToolSession.getInstance().getUserTstoolFolder();
     String majorVersionFolder = TSToolSession.getInstance().getMajorVersionFolder();
     JGUIUtil.addComponent(datastoresOverview_JPanel,
         new JLabel("  User datastores and other configuration files are located in the \"" + userFolder + "\" folder."),
