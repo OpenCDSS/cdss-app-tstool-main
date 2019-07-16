@@ -491,26 +491,6 @@ The currently selected input filter JPanel, used to check input and get the filt
 private InputFilter_JPanel __selectedInputFilter_JPanel = null;
 
 /**
-InputFilter_JPanel for ColoradoHydroBaseRest structure time series.
-*/
-private InputFilter_JPanel __inputFilter_ColoradoHydroBaseRest_Structure_JPanel = null;
-
-/**
-InputFilter_JPanel for ColoradoHydroBaseRest historical station time series.
-*/
-private InputFilter_JPanel __inputFilter_ColoradoHydroBaseRest_Station_JPanel = null;
-
-/**
-InputFilter_JPanel for ColoradoHydroBaseRest real-time station time series.
-*/
-private InputFilter_JPanel __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel = null;
-
-/**
-InputFilter_JPanel for ColoradoHydroBaseRest well (groundwater level) time series.
-*/
-private InputFilter_JPanel __inputFilter_ColoradoHydroBaseRest_Well_JPanel = null;
-
-/**
 InputFilter_JPanel for ColoradoWaterHBGuest station time series.
 */
 private InputFilter_JPanel __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel = null;
@@ -7841,46 +7821,59 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
     // If a match is found in the loop return the panel.
     // Otherwise, the loop goes to the next input panel and checks it.
     for ( InputFilter_JPanel panel : __inputFilterJPanelList ) {
+    	Message.printStatus(2, routine, "Panel name is \"" + panel.getName() + "\"");
     	// Start ColoradoHydroBaseRestDataStore REST web services
         if ( (panel instanceof ColoradoHydroBaseRest_Station_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
+        	Message.printStatus(2, routine, "Checking ColoradoHydroBaseRest station input panel...");
             ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_Station_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
+            Message.printStatus(2, routine, "Panel datastore name is \"" + datastore.getName() + "\"");
             if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isStationTimeSeriesDataType(selectedDataType) ) {
                 // Have a match in the datastore name so return the panel
+            	Message.printStatus(2, routine, "Matched datastore and station input panel.");
                 return panel;
             }
+        	Message.printStatus(2, routine, "Did not match datastore and station input panel.");
         }
         else if ( (panel instanceof ColoradoHydroBaseRest_Structure_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
-        	Message.printStatus(1, routine, "Checking ColoradoHydroBaseRest structure input panel...");
+        	Message.printStatus(2, routine, "Checking ColoradoHydroBaseRest structure input panel...");
             ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_Structure_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
-            Message.printStatus(1, routine, "Panel datastore name is \"" + datastore.getName() + "\"");
+            Message.printStatus(2, routine, "Panel datastore name is \"" + datastore.getName() + "\"");
             if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isStructureTimeSeriesDataType(selectedDataType) ) {
                 // Have a match in the datastore name so return the panel
-            	Message.printStatus(1, routine, "Have matching datastore and structure input panel...");
+            	Message.printStatus(2, routine, "Matched datastore and structure input panel...");
                 return panel;
             }
-        	Message.printStatus(1, routine, "Did not match datastore and structure input panel.");
+        	Message.printStatus(2, routine, "Did not match datastore and structure input panel.");
         }
         else if ( (panel instanceof ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
+        	Message.printStatus(2, routine, "Checking ColoradoHydroBaseRest telemetry station input panel...");
             ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
+            Message.printStatus(2, routine, "Panel datastore name is \"" + datastore.getName() + "\"");
             if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isTelemetryStationTimeSeriesDataType(selectedDataType)) {
                 // Have a match in the datastore name so return the panel
+            	Message.printStatus(2, routine, "Matched datastore and telemetry station input panel.");
                 return panel;
             }
+        	Message.printStatus(2, routine, "Did not match datastore and telemetry station input panel.");
         }
         else if ( (panel instanceof ColoradoHydroBaseRest_Well_InputFilter_JPanel) ) {
             // This type of filter uses a DataStore
+        	Message.printStatus(2, routine, "Checking ColoradoHydroBaseRest well input panel...");
         	ColoradoHydroBaseRestDataStore datastore =
                 ((ColoradoHydroBaseRest_Well_InputFilter_JPanel)panel).getColoradoHydroBaseRestDataStore();
+            Message.printStatus(2, routine, "Panel datastore name is \"" + datastore.getName() + "\"");
             if ( datastore.getName().equalsIgnoreCase(selectedDataStoreName) && datastore.isWellTimeSeriesDataType(selectedDataType)) {
                 // Have a match in the datastore name so return the panel
+            	Message.printStatus(2, routine, "Matched datastore and well input panel.");
                 return panel;
             }
+        	Message.printStatus(2, routine, "Did not match datastore and well input panel.");
         }
         // Start ColoradoWaterHBGuestDataStore SOAP web service
         else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
@@ -8169,8 +8162,10 @@ private DataStore ui_GetSelectedDataStore ()
 {
     // TODO SAM 2010-09-02 How to ensure that name is unique until datastores are handled consistently?
     String dataStoreName = __dataStore_JComboBox.getSelected();
-    Message.printStatus(2, "ui_GetSelectedDataStore", "Getting datastore for selected name \"" +
-        dataStoreName + "\"" );
+    if ( Message.isDebugOn ) {
+    	Message.printDebug(2, "ui_GetSelectedDataStore", "Getting datastore for selected name \"" +
+    		dataStoreName + "\"" );
+    }
     if ( (dataStoreName == null) || dataStoreName.equals("") ) {
         // No need to request from processor
         return null;
@@ -9188,6 +9183,7 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
             JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType, selectedTimeStep );
             // If the previous instance is not null, remove it from the list...
             if ( ifp != null ) {
+            	Message.printStatus(2, routine, "Removing matched ColoradoHydroBaseRest input filter \"" + ifp.getName() + ".");
                 __inputFilterJPanelList.remove ( ifp );
             }
             else {
@@ -9201,15 +9197,12 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
     
         // Add input filters for stations, for historical data (see telemetry stations for real-time data)...
         try {
-            if ( __inputFilter_ColoradoHydroBaseRest_Station_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_Station_JPanel );
-            }
-            __inputFilter_ColoradoHydroBaseRest_Station_JPanel = new ColoradoHydroBaseRest_Station_InputFilter_JPanel( ds );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilter_ColoradoHydroBaseRest_Station_JPanel,
+            ColoradoHydroBaseRest_Station_InputFilter_JPanel inputFilter_ColoradoHydroBaseRest_Station_JPanel = new ColoradoHydroBaseRest_Station_InputFilter_JPanel( ds );
+            JGUIUtil.addComponent(__queryInput_JPanel, inputFilter_ColoradoHydroBaseRest_Station_JPanel,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            __inputFilter_ColoradoHydroBaseRest_Station_JPanel.setName ( "ColoradoHydroBaseRest.StationInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_Station_JPanel );
+            inputFilter_ColoradoHydroBaseRest_Station_JPanel.setName ( "ColoradoHydroBaseRest." + dataStore.getName() + ".StationInputFilterPanel" );
+            __inputFilterJPanelList.add ( inputFilter_ColoradoHydroBaseRest_Station_JPanel );
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest stations for data type \""
@@ -9219,16 +9212,13 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
         
         // Add input filters for structures, including DivTotal, RelTotal, and reservoir measurements.
         try {
-            if ( __inputFilter_ColoradoHydroBaseRest_Structure_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_Structure_JPanel );
-            }
-            __inputFilter_ColoradoHydroBaseRest_Structure_JPanel = new
+            ColoradoHydroBaseRest_Structure_InputFilter_JPanel inputFilter_ColoradoHydroBaseRest_Structure_JPanel = new
                 ColoradoHydroBaseRest_Structure_InputFilter_JPanel( ds, false );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilter_ColoradoHydroBaseRest_Structure_JPanel,
+            JGUIUtil.addComponent(__queryInput_JPanel, inputFilter_ColoradoHydroBaseRest_Structure_JPanel,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            __inputFilter_ColoradoHydroBaseRest_Structure_JPanel.setName ( "ColoradoHydroBaseRest.StructureInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_Structure_JPanel );
+            inputFilter_ColoradoHydroBaseRest_Structure_JPanel.setName ( "ColoradoHydroBaseRest." + dataStore.getName() + ".StructureInputFilterPanel" );
+            __inputFilterJPanelList.add ( inputFilter_ColoradoHydroBaseRest_Structure_JPanel );
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest structures for data type \""
@@ -9238,15 +9228,13 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
         
         // Add input filters for telemetry stations, for real-time data...
         try {
-            if ( __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel );
-            }
-            __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel = new ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel( ds );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel,
+            ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel =
+            	new ColoradoHydroBaseRest_TelemetryStation_InputFilter_JPanel( ds );
+            JGUIUtil.addComponent(__queryInput_JPanel, inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel.setName ( "ColoradoHydroBaseRest.TelemetryStationInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel );
+            inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel.setName ( "ColoradoHydroBaseRest." + dataStore.getName() + ".TelemetryStationInputFilterPanel" );
+            __inputFilterJPanelList.add ( inputFilter_ColoradoHydroBaseRest_TelemetryStation_JPanel );
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest telemetry stations for data type \""
@@ -9256,15 +9244,12 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
         
         // Well water levels (pumping is under diversion records)
         try {
-            if ( __inputFilter_ColoradoHydroBaseRest_Well_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilter_ColoradoHydroBaseRest_Well_JPanel );
-            }
-            __inputFilter_ColoradoHydroBaseRest_Well_JPanel = new ColoradoHydroBaseRest_Well_InputFilter_JPanel( ds );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilter_ColoradoHydroBaseRest_Well_JPanel,
+            ColoradoHydroBaseRest_Well_InputFilter_JPanel inputFilter_ColoradoHydroBaseRest_Well_JPanel = new ColoradoHydroBaseRest_Well_InputFilter_JPanel( ds );
+            JGUIUtil.addComponent(__queryInput_JPanel, inputFilter_ColoradoHydroBaseRest_Well_JPanel,
                 0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
                 GridBagConstraints.WEST );
-            __inputFilter_ColoradoHydroBaseRest_Well_JPanel.setName ( "ColoradoHydroBaseRest.WellInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilter_ColoradoHydroBaseRest_Well_JPanel );
+            inputFilter_ColoradoHydroBaseRest_Well_JPanel.setName ( "ColoradoHydroBaseRest." + dataStore.getName() + ".WellInputFilterPanel" );
+            __inputFilterJPanelList.add ( inputFilter_ColoradoHydroBaseRest_Well_JPanel );
         }
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest wells for data type \""
@@ -12107,6 +12092,10 @@ private void ui_SetInputFilterForSelections()
         // This handles input filters associated with datastores, including plugin datastores
         selectedInputFilter_JPanel =
             ui_GetInputFilterPanelForDataStoreName(selectedDataStoreName, selectedDataType, selectedTimeStep);
+        Message.printStatus(2, routine,
+           "Unable to determine input panel to use for selected datastore \"" + selectedDataStoreName +
+                "\" using datastore name \"" + selectedDataStoreName + "\" data type \"" + selectedDataType +
+                "\" time step \"" + selectedTimeStep + "\"." );
     }
     else if(selectedInputType.equals(__INPUT_TYPE_HECDSS) && (__inputFilterHecDss_JPanel != null) ) {
         selectedInputFilter_JPanel = __inputFilterHecDss_JPanel;

@@ -171,62 +171,32 @@ Command file being processed when run in batch mode with -commands File.
 private static String __commandFile = null;
 
 /**
- * Find the list of plugin jar files using old (TSTool 12.07.00 and later approach).
+ * Find the list of plugin jar files using new (TSTool 12.07.00 and later approach).
+ * This simply finds candidate jar files in the expected locations.
+ * The loadPluginDataStores*, etc. methods then examine the jar files and use if appropriate.
  * @param session TSTool session.
  * @param pluginJarList List of full path to plugin jar file.
  */
 private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List<String> pluginJarList ) {
 	String routine = "TSToolMain.findDataStorePluginJarFilesNew";
-	// Get a list of jar files in the plugins folder
-	File pluginsFolder = new File(session.getUserPluginsFolder());
-	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + pluginsFolder + "\"");
+	// Get a list of jar files in the user plugins folder (will take precedent over installation files)
+	File userPluginsFolder = new File(session.getUserPluginsFolder());
+	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + userPluginsFolder + "\"");
 	try {
-		getMatchingFilenamesInTree ( pluginJarList, pluginsFolder, ".*.jar" );
+		getMatchingFilenamesInTree ( pluginJarList, userPluginsFolder, ".*.jar" );
 	}
 	catch ( Exception e ) {
 		// Should not happen
 	}
-	// Loop through the jar files and make sure the manifest contains at least one "DataStore-Class" value.
-	/* For now return all found jars without trying to filter to only those containing DataStore class
-	for ( String file : fileList ) {
-		JarInputStream jarStream = null;
-		try {
-			// Open the META-INF/MANIFEST.MF file and get the property Datastore-Class, which is what needs to be loaded
-			jarStream = new JarInputStream(pluginClassURLs[i].openStream());
-			Manifest manifest = jarStream.getManifest();
-			Attributes attributes = manifest.getMainAttributes();
-			// TODO SAM 2016-04-03 may also need the datastore factory class
-			String dataStoreClassToLoad = attributes.getValue("Datastore-Class");
-			if ( dataStoreClassToLoad == null ) {
-				Message.printWarning(3, routine,
-					"Cannot find Datastore-Class property in jar file MANIFEST.  Cannot load datastore class \"" + dataStoreClassToLoad + "\"");
-			}
-			else {
-				// The following will search the list of URLs that was provided to the constructor
-				Message.printStatus(2, routine, "Trying to load datastore class \"" + dataStoreClassToLoad + "\"");
-				// This class is an instance of URLClassLoader so can run the super-class loadClass()
-				Class<?> loadedClass = loadClass(dataStoreClassToLoad);
-				Message.printStatus(2, routine, "Loaded datastore class \"" + dataStoreClassToLoad + "\"");
-				pluginDataStoreList.add(loadedClass);
-			}
-		}
-		catch ( IOException ioe ) {
-			Message.printWarning(3,routine,"Error loading plugin datastore from \"" + pluginClassURLs[i] + "\"");
-		}
-		finally {
-			if ( jarStream != null ) {
-				try {
-					jarStream.close();
-				}
-				catch ( IOException e ) {
-					// Ignore - should not happen
-				}
-			}
-		}
-		// The file contains necessary metadata so assume the datastore is OK to load
-		pluginJarList.add(file);
+	// Get a list of jar files in the installation plugins folder
+	File installPluginsFolder = new File(session.getInstallPluginsFolder());
+	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + installPluginsFolder + "\"");
+	try {
+		getMatchingFilenamesInTree ( pluginJarList, installPluginsFolder, ".*.jar" );
 	}
-	*/
+	catch ( Exception e ) {
+		// Should not happen
+	}
 }
 
 /**
@@ -240,7 +210,7 @@ private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List
 			// InstallHome/plugin-datastore
 			__tstoolInstallHome + File.separator + "plugin-datastore",
 			// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
-			session.getUserFolder() + File.separator + "plugin-datastore"
+			session.getUserTstoolFolder() + File.separator + "plugin-datastore"
 		};
 	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
 		// First get a list of candidate URLs, using path to jar file
@@ -662,7 +632,7 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 		// InstallHome/plugin-command
 		__tstoolInstallHome + File.separator + "plugin-commnd",
 		// .tstool/plugin-command/Command/bin/Datastore-version.jar
-		session.getUserFolder() + File.separator + "plugin-command"
+		session.getUserTstoolFolder() + File.separator + "plugin-command"
 	};
 	List<Class> pluginCommandList = new ArrayList<Class>();
 	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
@@ -1312,6 +1282,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
     }
     else {
+    	// No package path to load datastore
         return null;
     }
 }
@@ -1340,13 +1311,13 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	// First list the cfg files
 	String installDatastoresFolder = session.getInstallDatastoresFolder();
 	List<File> installConfigFiles = IOUtil.getFilesMatchingPattern(installDatastoresFolder, "cfg", true);
-	Message.printStatus(2, routine, "Found " + installConfigFiles.size() + " *.cfg files in \"" + installDatastoresFolder );
+	Message.printStatus(2, routine, "Found " + installConfigFiles.size() + " installation datastore *.cfg files in \"" + installDatastoresFolder );
 	// Convert to String
 	for ( File f : installConfigFiles ) {
 		dataStoreConfigFiles.add(f.getAbsolutePath());
 	}
 
-    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/datastores
+    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/N/datastores
     if ( session.createUserDatastoresFolder() ) {
 	    String datastoreFolder = session.getUserDatastoresFolder();
 	    File f = new File(datastoreFolder);
@@ -1374,8 +1345,8 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     // - if a duplicate is found, use the user version first
     int nDataStores = dataStoreConfigFiles.size();
     // Datastore names that have been opened, so as to avoid reopening.  User datastores are opened first.
-    List<String> openDataStoreNameList = new ArrayList<String>(); // Datastore names that have been opened
-    Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " data stores (first user, then installation)." );
+    List<DataStore> openDataStoreList = new ArrayList<DataStore>(); // Datastores that have been opened, to avoid re-opening
+    Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " datastores (first user, then installation)." );
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
         Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
@@ -1406,12 +1377,18 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 	continue;
                 }
                 // See if the datastore name matches one that is already open and if so, ignore it.
+                // - name must match, and must be enabled.
                 boolean dataStoreAlreadyOpened = false;
-                for ( String openDataStoreName : openDataStoreNameList ) {
-                	if ( openDataStoreName.equalsIgnoreCase(dataStoreName)) {
+                for ( DataStore openDataStore : openDataStoreList ) {
+                	String prop = openDataStore.getProperty("Enabled");
+                	boolean isEnabled = false;
+                	if ( (prop != null) && prop.equalsIgnoreCase("true") ) {
+                		isEnabled = true;
+                	}
+                	if ( openDataStore.getName().equalsIgnoreCase(dataStoreName) && isEnabled ) {
                 		// Found a matching datastore
                 		Message.printStatus(2,routine,"Datastore \"" + dataStoreName +
-                			"\" is already open (user datastores are used before system datastores).  Skipping.");
+                			"\" matches previous enabled datastore (user datastores are used before system datastores).  Skipping.");
                 		dataStoreAlreadyOpened = true;
                 		break;
                 	}
@@ -1423,9 +1400,11 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // (e.g., to locate related files referenced in the configuration file, such as lists of data
                 // that are not available from web services)
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
-                openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
+                DataStore dataStore = openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
                 // Save the datastore name so duplicates are not opened
-                openDataStoreNameList.add(dataStoreName);
+                if ( dataStore != null ) {
+                	openDataStoreList.add(dataStore);
+                }
             }
             catch ( ClassNotFoundException e ) {
                 Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
