@@ -87,7 +87,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "13.00.00 (2019-07-12)";
+public static final String PROGRAM_VERSION = "13.00.01 (2019-07-30)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1020,7 +1020,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     // Open the datastore depending on the type
     String dataStoreType = dataStoreProps.getValue("Type");
     String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
-    Message.printStatus(2,routine,"DataStoreConfigFile="+dataStoreConfigFile);
+    Message.printStatus(2,routine,"DataStoreConfigFile=\""+dataStoreConfigFile+"\"");
     // For now hard-code this here
     // TODO SAM 2010-09-01 Make this more elegant
     String packagePath = ""; // Make sure to include trailing period below
@@ -1190,7 +1190,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             return null;
         }
         else {
-            // Datastore is enabled
+            // Datastore is enabled so construct the instance
             StopWatch sw = new StopWatch();
             sw.start();
             String className = packagePath + dataStoreType + "Factory";
@@ -1346,7 +1346,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     int nDataStores = dataStoreConfigFiles.size();
     // Datastore names that have been opened, so as to avoid reopening.  User datastores are opened first.
     List<DataStore> openDataStoreList = new ArrayList<DataStore>(); // Datastores that have been opened, to avoid re-opening
-    Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " datastores (first user, then installation)." );
+    Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " datastores (first user, then installation configuration files)." );
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
         Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
@@ -1366,6 +1366,10 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
             try {
                 // Get the properties from the file.
                 dataStoreProps.readPersistent();
+                // Also assign the configuration file path property to facilitate file processing later
+                // (e.g., to locate related files referenced in the configuration file, such as lists of data
+                // that are not available from web services).  This is also used for View / Datastores in the UI.
+                dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                 String dataStoreName = dataStoreProps.getValue("Name");
                 String dataStoreType = dataStoreProps.getValue("Type");
                 // If the datastore type is no longer supported, skip because it can slow down startup.
@@ -1396,10 +1400,6 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 if ( dataStoreAlreadyOpened ) {
                 	continue;
                 }
-                // Also assign the configuration file path property to facilitate file processing later
-                // (e.g., to locate related files referenced in the configuration file, such as lists of data
-                // that are not available from web services)
-                dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                 DataStore dataStore = openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
                 // Save the datastore name so duplicates are not opened
                 if ( dataStore != null ) {

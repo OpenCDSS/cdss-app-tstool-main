@@ -9148,7 +9148,10 @@ private void ui_InitGUIInputFilters ( final int y )
         	// Because a component is added to the original GUI, need to refresh the GUI layout...
         	ui_SetInputFilterForSelections();
             ui_SetInputPanelTitle (null, Color.black );
-            if ( __dataStoreInitializing_JPanel != null ) { // TODO SAM 2013-04-05 Why is this null here?
+            if ( __dataStoreInitializing_JPanel != null ) {
+            	// TODO SAM 2013-04-05 Why is this null here?
+            	// TODO smalers 2019-07-30 having a hard time clearing the text in the following
+                __dataStoreInitializing_JLabel.setText(""); // No longer need to show message
                 __dataStoreInitializing_JPanel.setVisible(false); // No longer need to show message
             }
             __dataStore_JTabbedPane.setVisible(true); // This should now be visible
