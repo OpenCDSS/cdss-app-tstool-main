@@ -355,12 +355,13 @@ public boolean createUserSystemFolder () {
 }
 
 /**
- * Return the the File for the graph template file, for example:
+ * Return the the File for the graph template file, for example.
  * <pre>
- * Windows: C:/Users/user/.tstool/13/template-graph/tspFilename
- * Linux:   $HOME/user/.tstool/13/template-graph/tspFilename
+ * Windows: C:/Users/user/.tstool/13/template-graphs/tspFilename
+ * Linux:   $HOME/user/.tstool/13/template-graphs/tspFilename
  * </pre>
  * The user's file location for templates is prepended to the specific file.
+ * The folder is plural for TSTool 13 and later, consistent with plurals for "datastores", "plugins", etc..
  * @param tspFilename a *.tsp file, without leading path, one of the items from getGraphTemplateFileList().
  */
 public File getGraphTemplateFile ( String tspFilename ) {
@@ -369,12 +370,24 @@ public File getGraphTemplateFile ( String tspFilename ) {
 		return new File(getUserTstoolFolder() + File.separator + "template-graph" + File.separator + tspFilename );
 	}
 	else {
-		return new File(getMajorVersionFolder() + File.separator + "template-graph" + File.separator + tspFilename );
+		// For version 13, migrate to folder with "s"
+		// - however, if not found, support the version 12 name
+		File templateGraph = new File(getMajorVersionFolder() + File.separator + "template-graphs" + File.separator + tspFilename );
+		if ( templateGraph.exists() ) {
+			return templateGraph;
+		}
+		else {
+			// Check the version 12 folder
+			// - directly under ./tstool and singular folder
+			return new File(getUserTstoolFolder() + File.separator + "template-graph" + File.separator + tspFilename );
+		}
 	}
 }
 
 /**
-Return the list of graph templates.
+Return the list of graph template files.
+Template *.tsp files should be in ".tstool/NN/template-graph" (version 13) or
+".tstool/template-graph" (version 12).
 */
 public List<File> getGraphTemplateFileList ()
 {
@@ -382,11 +395,18 @@ public List<File> getGraphTemplateFileList ()
 	int majorVersion = getMajorVersion();
 	if ( majorVersion <= 12 ) {
 	    graphTemplateFolder = getUserTstoolFolder() + File.separator + "template-graph";
+	    return IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
 	}
 	else {
-	    graphTemplateFolder = getMajorVersionFolder() + File.separator + "template-graph";
+	    graphTemplateFolder = getMajorVersionFolder() + File.separator + "template-graphs";
+	    List<File> fileList = IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
+	    // Also support version 12 folder name for compatibility
+	    // - directly under ./tstool and singular folder
+	    graphTemplateFolder = getUserTstoolFolder() + File.separator + "template-graph";
+	    List<File> fileList12 = IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
+	    fileList.addAll(fileList12);
+	    return fileList;
 	}
-    return IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
 }
 
 /**

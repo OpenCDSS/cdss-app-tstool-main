@@ -824,6 +824,7 @@ private DefaultListModel<String> __resultsTS_JListModel;
 
 /**
  * Button to cause a graph template to be used to graph a time series.
+ * - this is allows a user to streamline producing standard graphs
  */
 private SimpleJButton __resultsTSGraphTemplates_JButton;
 
@@ -14194,7 +14195,9 @@ throws Exception
 				runner.getProcessor().setPropContents("Recursive","true");
 				runner.runCommands();
 				// Now get the time series out and use for the graphing.
-				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				@SuppressWarnings("unchecked")
+				List<TS> tslist1 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				tslist = tslist1;
 				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
 			}
 			else {
@@ -14258,6 +14261,7 @@ throws Exception
 				PropList overrideProps = new PropList ( "OverrideProps" );
 				overrideProps.set ( "InitialView", "Graph" ); // Initial view when display opened
 				overrideProps.set ( "PreviewOutput", "True" ); // Display a view window (not just file output)
+	 			overrideProps.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 				TSProduct tsp = new TSProduct ( tempTSPFile, overrideProps );
 				// Now process the product...
 				p.addTSSupplier(graphTemplateProcessor);
@@ -14478,13 +14482,16 @@ throws Exception
 				// so it can be found for subsequent processing
 				Message.printStatus(2,"","Running internal processor to preprocess time series for graphing");
 				// First get the empty time series list
+				@SuppressWarnings("unchecked")
 				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
 				tslist0.add(ts);
 				PropList runProps = new PropList ( "run");
 				runProps.set("AppendResults","true");
 				runner.runCommands(runProps);
 				// Now get the time series out and use for the graphing.
-				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				@SuppressWarnings("unchecked")
+				List<TS> tslist1 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+				tslist = tslist1;
 				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
 			}
 			else {
@@ -23238,7 +23245,9 @@ private class ActionListener_ResultsEnsembles implements ActionListener
 	    				runner.runCommands();
 	    				// Now get the time series out and use for the graphing.
 	    				// - the main difference is that the new time series list might include statistics
-	    				tslist = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+	    				@SuppressWarnings("unchecked")
+						List<TS> tslist1 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+	    				tslist = tslist1;
 	    				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
 	    			}
 	    			// If any statistics were requested, process and add to the list, but not in the ensemble itself.
@@ -23292,6 +23301,7 @@ private class ActionListener_ResultsEnsembles implements ActionListener
 	    				PropList overrideProps = new PropList ( "OverrideProps" );
 	    				overrideProps.set ( "InitialView", "Graph" ); // Initial view when display opened
 	    				overrideProps.set ( "PreviewOutput", "True" ); // Display a view window (not just file output)
+	    				overrideProps.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
 	    				TSProduct tsp = new TSProduct ( tempTSPFile, overrideProps );
 	    				// Now process the product...
 	    				p.addTSSupplier(graphTemplateProcessor);
