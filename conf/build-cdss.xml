@@ -26,7 +26,9 @@
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
     	<!-- The following is a useful utility to help create a Linux distribution from a Windows distribution -->
         <copy todir="${install.dir}/bin" file="resources/runtime/bin/build-linux-distro.bash"/>
-    	<!-- Script to run TSTool on Linux -->
+    	<!-- Scripts to build and run TSTool on Linux -->
+    	<copy todir="${install.dir}/bin" file="resources/runtime/bin/build-linux-distro.bash"/>
+    	<copy todir="${install.dir}/bin" file="resources/runtime/bin/setup-linux-tstool.sh"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
     	<!-- Binary files needed for HEC-DSS support beyond the jar files, which are handled automatically. -->
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
