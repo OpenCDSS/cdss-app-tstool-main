@@ -154,7 +154,7 @@ uploadIndexHtmlFile() {
 	echo '<body>' >> $indexHtmlTmpFile
 	echo '<h1>TSTool Software Downloads</h1>' >> $indexHtmlTmpFile
 	echo '<p>' >> $indexHtmlTmpFile
-	echo '<a href="http://opencdss.state.co.us/opencdss/tstool/tstool/">See also the OpenCDSS TSTool page</a>, which provides additional information about TSTool.' >> $indexHtmlTmpFile
+	echo '<a href="http://opencdss.state.co.us/opencdss/tstool/">See also the OpenCDSS TSTool page</a>, which provides additional information about TSTool.' >> $indexHtmlTmpFile
 	echo '</p>' >> $indexHtmlTmpFile
 	echo '<a href="http://www.colorado.gov/pacific/cdss/tstool">See also the CDSS TSTool page</a>, which provides access to TSTool releases used in State of Colorado projects.' >> $indexHtmlTmpFile
 	echo '<p>' >> $indexHtmlTmpFile
@@ -183,7 +183,7 @@ uploadIndexHtmlFile() {
 	echo '<hr>' >> $indexHtmlTmpFile
 	echo '<h2>Linux Download</h2>' >> $indexHtmlTmpFile
 	echo '<p>' >> $indexHtmlTmpFile
-	echo 'Install TSTool by downloading the tar.gz file and installing in /opt/tstool-version.' >> $indexHtmlTmpFile
+	echo 'Install TSTool by downloading the *.run file, and run to install in /opt/tstool-version.' >> $indexHtmlTmpFile
 	echo 'Then run tstool from the Linux command line.' >> $indexHtmlTmpFile
 	echo '</p>' >> $indexHtmlTmpFile
 	# Generate a table of available versions for Linux
@@ -217,9 +217,12 @@ uploadIndexHtmlFile() {
 # - second argument is operating system long name to match installers:  "Windows", "Linux", or "Cygwin"
 uploadIndexHtmlFile_Table() {
 	local downloadOs dowloadPattern
+	local indexHtmlTmpCatalogFile
 	# Operating system is passed in as the required first argument
 	downloadOs=$1
 	downloadOsLong=$2
+	# The following allows sorting the list in reverse order
+	indexHtmlTmpCatalogFile="/tmp/$USER-tstool-catalog-${downloadOs}.html"
 	if [ "${downloadOs}" = "win" ]; then
 		downloadPattern="exe"
 	elif [ "${downloadOs}" = "lin" ]; then
@@ -274,8 +277,26 @@ uploadIndexHtmlFile_Table() {
 				}
 				# Currently always 32-bit but 64-bit will be added
 				# downloadFileArch=downloadFileParts[5]
-				docDevUrl=""
-				docUserUrl=""
+				# Documentation links for development and user documentation are only shown if exist
+				# - the file returned by curl is actually the index.html file
+				docDevUrl=sprintf("http://opencdss.state.co.us/tstool/%s/doc-dev",downloadFileVersion)
+				docDevCurl=sprintf("curl --output /dev/null --silent --head --fail \"%s\"",docDevUrl)
+				returnStatus=system(docDevCurl)
+				if ( returnStatus == 0 ) {
+					docDevHtml=sprintf("<a href=\"%s\">View</a>",docDevUrl)
+				}
+				else {
+					docDevHtml=""
+				}
+				docUserUrl=sprintf("http://opencdss.state.co.us/tstool/%s/doc-user",downloadFileVersion)
+				docDevCurl=sprintf("curl --output /dev/null --silent --head --fail \"%s\"",docUserUrl)
+				returnStatus=system(docDevCurl)
+				if ( returnStatus == 0 ) {
+					docUserHtml=sprintf("<a href=\"%s\">View</a>",docUserUrl)
+				}
+				else {
+					docUserHtml=""
+				}
 				docApiUrl=""
 				#if ( downloadFileOs == "cyg" ) {
 				#	downloadFileOs = "Cygwin"
@@ -286,9 +307,12 @@ uploadIndexHtmlFile_Table() {
 				#else if ( downloadFileOs == "win" ) {
 				#	downloadFileOs = "Windows"
 				#}
-				printf "<tr><td><a href=\"%s\"><code>%s</code></a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", downloadFileUrl, downloadFile, downloadFileProduct, downloadFileVersion, downloadFileDateTime, downloadFileSize, downloadFileOs, docUserUrl, docDevUrl, docApiUrl
-			}' >> $indexHtmlTmpFile
+				printf "<tr><td><a href=\"%s\"><code>%s</code></a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n", downloadFileUrl, downloadFile, downloadFileProduct, downloadFileVersion, downloadFileDateTime, downloadFileSize, downloadFileOs, docUserHtml, docDevHtml, docApiUrl
+			}' > $indexHtmlTmpCatalogFile
+			# The above is the table body, but needs to be sorted
+			echo "See unsorted table content in:  ${indexHtmlTmpCatalogFile}"
 	fi
+	cat $indexHtmlTmpCatalogFile | sort -r >> $indexHtmlTmpFile
 	echo '</table>' >> $indexHtmlTmpFile
 }
 

@@ -3,6 +3,13 @@
 # Cause line endings in the repository to be newline (\n) and local files to be that of the operating system.
 * text=auto
 
+# Linux scripts need to have Linux NL line endings always because files are typically edited and run on Linux
+# from shared Windows folder.
+# - this ensures that dos2unix does not need to be run
+/resources/runtime/bin/build-linux-distro.bash text eol=lf
+/resources/runtime/bin/setup-linux-tstool.sh text eol=lf
+/resources/runtime/bin/tstool text eol=lf
+
 # Denote binary files
 
 *.png binary

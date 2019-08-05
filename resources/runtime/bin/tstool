@@ -1,88 +1,156 @@
 #!/bin/bash
+(set -o igncr) 2>/dev/null && set -o igncr; # this comment is required
+# The above line ensures that the script can be run on Cygwin/Linux even with Windows CRNL
 #
-# Script to run TSTool on UNIX
-# Set the INSTALL_HOME to the main installation folder.
-# Set the JAVA_EXE to the "java" program that is the Java Runtime Environment
+# tstool - script to run TSTool on Linux and Mac
 #
-# History (newest at top):
-# 2016-05-03 Steve Malers, OWF    Update for TSTool 11.10.01.  Add javax.mail.jar, mysql.
-# 2015-04-08 Steve Malers, OWF    Update for TSTool 11.00.00, which uses Java 7 and Git/Eclipse names for jars.
-# 2014-04-19 Steve Malers, OWF    Original version of this script to streamline Linux builds.
 
-# Installation home for TSTool, under which will be bin, logs, system, etc.
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-INSTALL_HOME="$SCRIPT_DIR/.."
+# Supporting functions, alphabetized
 
-# Location of Java runtime environment
-# Typical Linux install (JRE distributed with TSTool)...
-JRE_HOME="$INSTALL_HOME/jre_17"
-JAVA_EXE="$JRE_HOME/bin/java"
-# Or, use the one on the operating system (must be 1.7+)...
-# Use this by default for Mac OS X
-if [[ "$(uname)" == "Darwin" ]]
-then
-    JAVA_EXE="/usr/bin/java"
+checkConfiguration() {
+	# Check to confirm the configuration.
+	local testfile
+	# Verify that the installation folder exists
+	if [ ! -d "${installFolder}" ]; then
+		echo ""
+		echo "TSTool installation folder ${installFolder} does not exist."
+		echo ""
+		exit 1
+	fi
+	# Verify that expected main jar file exists
+	# - this is consistent with the Java version used to compile the application
+	testFile="${installFolder}/bin/cdss-app-tstool-main_18.jar"
+	if [ ! -e "${testFile}" ]; then
+		echo ""
+		echo "TSTool installation folder ${installFolder} does not seem correct."
+		echo "The main jar file does not exist:"
+		echo "  ${testFile}"
+		echo ""
+		exit 1
+	fi
+}
+
+# Determine the operating system that is running the script
+# - global variable ${operatingSystem} is set
+checkOperatingSystem() {
+	local os
+
+	if [ ! -z "${operatingSystem}" ]; then
+		# Have already checked operating system so return
+		return
+	fi
+	operatingSystem="unknown"
+	os=$(uname | tr [a-z] [A-Z])
+	case "${os}" in
+		CYGWIN*)
+			operatingSystem="cygwin"
+			;;
+		DARWIN*)
+			operatingSystem="mac"
+			;;
+		LINUX*)
+			operatingSystem="linux"
+			# Also determine the distribution
+			# - TODO smalers 2019-08-01 for now hard-code debian
+			# - could make this dynamic to support various distributions
+			# - mainly care about the syntax needed to find appropriate Java, etc.
+			linuxDistro="debian"
+			#linuxDistroVersion="jessie"
+			;;
+		MINGW*)
+			operatingSystem="mingw"
+			;;
+		*)
+			# Don't know the operating system
+			echo "Cannot determine operating system.  Exiting."
+			exit 1
+	esac
+}
+
+# Determine the location of the Java runtime environment
+# - set the jreExe global variable to Java executable that it is used to run TSTool
+# - search for candidate Java 8 programs and confirm the version is 8
+determineJavaExe() {
+	local jreExeCandidates javaExe8VersionCount javaExeTry
+	local java8AlternativeExe java8AlternativeExeCount
+	# First check to see if available in TSTool distribution
+	# - use standard and likely folders used with TSTool on Linux
+	# - also check likely folders
+
+	# Get the likely locations of Java from the operating system
+	if [ "$linuxDistro" = "debian" ]; then
+		# Get a list of available Java
+		# - for now assume openjdk package names like:
+		#   update-alternatives --list java
+		#   /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+		#   /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+		# - may be able to add Java newer than 8 but for now filter to only Java 8
+		#   (need to test with newer Java to make sure it works)
+		java8AlternativeExeCount=$(update-alternatives --list java | grep 'java-8' | wc -l)
+		java8AlternativeExe=$(update-alternatives --list java | grep 'java-8' | head -1)
+		# Make sure only one option is used (TODO improve logic to handle more)
+		if [ "$java8AlternativeExeCount" -eq 0 ]; then
+			echo "Found NO Java 8 alternatives on system.  Will check standard locations."
+		else
+			echo "Found ${java8AlternativeExeCount} Java 8 alternatives on system (will check first found)"
+		fi
+	fi
+	# The candidate java8 programs are checked in order so list the best candidates first
+	# - variables like ${java8AlternativeExe} if not defined will not add to the list so OK
+	jreExeCandidates=(${installFolder}/jre_18/bin/java ${installFolder}/jre8/bin/java ${java8AlternativeExe} /usr/bin/java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java java)
+	javaExe=""
+	for javaExeTry in "${jreExeCandidates[@]}"; do
+		echo "Checking candidate java program for existence and Java 8:  ${javaExeTry}"
+		if [ -e "${javaExeTry}" ]; then
+			# Java executable file exists, check the version
+			# - version may be printed to stderr rather than stdout
+			javaExe8VersionCount=$(${javaExeTry} -version 2>&1 | grep '1.8.' | wc -l)
+			if [ "${javaExe8VersionCount}" -ne 0 ]; then
+				# Found a Java 8 to use
+				javaExe=${javaExeTry}
+				echo "   ...found Java8 'java' program to use"
+				break
+			else
+				echo "   ...does not appear to be Java 8 using: ${javaExeTry} -version"
+			fi
+		fi
+	done
+	if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
+		echo "Unable to determine Java8 'java' program needed by TSTool."
+		echo "Need to install Java 8 (does not need to be the default Java)."
+		exit 1
+	fi
+}
+
+# Main entry point into the script
+
+# Folder where tstool script is located, should be the "bin" folder in a TSTool install
+scriptFolder=$(cd $(dirname "$0") && pwd)
+scriptName=$(basename $0)
+# Adjust the folder if a symbolic link such as /usr/bin/tstool
+if [ -L $0 ]; then
+	linkTarget=$(readlink -f $0)
+	scriptLink=$0
+	scriptFolder=$(dirname ${linkTarget})
+	echo "tstool script is a symbolic link:"
+	echo "    link: $scriptLink"
+	echo "  target: $scriptFolder"
 fi
+binFolder=${scriptFolder}
+# Installation home for TSTool, under which will be bin, logs, system, etc.
+installFolder=$(dirname ${scriptFolder})
 
-# ------- Below this should not normally need to edit -------
+# Get the operating system
+checkOperatingSystem
 
-# Indicate where the JAR files live.
-JAR_HOME="$INSTALL_HOME/bin"
-# Classpath for TSTool, including all Jar files needed for runtime features
-# List core files first for rapid access with less used features later.
-# These can be compared with the TSTool Help...About TSTool...Show Software/System Details
-# output for the classpath, which is a list of jar files in the "bin" folder under the
-# TSTool install.  Manually resort a few to have primary jar files at the top and third-party
-# libraries after that.
-TSTOOL_CP="\
-$JAR_HOME/cdss-app-tstool-main_17.jar:\
-$JAR_HOME/cdss-lib-common-java_17.jar:\
-$JAR_HOME/cdss-lib-processor-ts-java_17.jar:\
-$JAR_HOME/cdss-lib-cdss-java_17.jar:\
-$JAR_HOME/cdss-lib-dmi-hydrobase-java_17.jar:\
-$JAR_HOME/cdss-lib-models-java_17.jar:\
-$JAR_HOME/cdss-lib-dmi-nwsrfs-java_17.jar:\
-$JAR_HOME/cdss-lib-dmi-satmonsys-java_17.jar:\
-$JAR_HOME/batik-awt-util.jar:\
-$JAR_HOME/batik-dom.jar:\
-$JAR_HOME/batik-ext.jar:\
-$JAR_HOME/batik-svggen.jar:\
-$JAR_HOME/batik-util.jar:\
-$JAR_HOME/batik-xml.jar:\
-$JAR_HOME/Blowfish_142.jar:\
-$JAR_HOME/com.noelios.restlet.jar:\
-$JAR_HOME/commons-codec-1.5.jar:\
-$JAR_HOME/commons-logging-1.1.jar:\
-$JAR_HOME/commons-math3-3.0.jar:\
-$JAR_HOME/commons-net-3.3.jar:\
-$JAR_HOME/dom4j-1.6.1.jar:\
-$JAR_HOME/freemarker.jar:\
-$JAR_HOME/gson-2.2.1.jar:\
-$JAR_HOME/h2.jar:\
-$JAR_HOME/hec.jar:\
-$JAR_HOME/heclib.jar:\
-$JAR_HOME/jakarta-oro-2.0.8.jar:\
-$JAR_HOME/javax.mail.jar:\
-$JAR_HOME/jcommon.jar:\
-$JAR_HOME/jfreechart.jar:\
-$JAR_HOME/jython.jar:\
-$JAR_HOME/log4j-1.2.13.jar:\
-$JAR_HOME/mysql-connector-java-5.1.36-bin.jar:\
-$JAR_HOME/ojdbc6.jar:\
-$JAR_HOME/org.restlet.jar:\
-$JAR_HOME/poi-3.9-20121203.jar:\
-$JAR_HOME/poi-ooxml-3.9-20121203.jar:\
-$JAR_HOME/poi-ooxml-schemas-3.9-20121203.jar:\
-$JAR_HOME/postgresql-9.3-1102.jdbc4.jar:\
-$JAR_HOME/rma.jar:\
-$JAR_HOME/sqljdbc4.jar:\
-$JAR_HOME/stax-api-1.0.1.jar:\
-$JAR_HOME/xerces.jar:\
-$JAR_HOME/xmlbeans-2.3.0.jar:\
-"
+# Check configuration main folders and files
+checkConfiguration
 
-# Make sure the line above this is a double quote
-# This allows processing of the Linux distribution
+# Determine the Java executable
+# - sets the javaExe global variable
+determineJavaExe
+
+# use the bin folder for the classpath.
 
 # If TSTool is running out of memory, increase the -Xmx option below
 # (maximum megabytes of memory allowed for TSTool).  This seems to go up to 
@@ -103,30 +171,23 @@ $JAR_HOME/xmlbeans-2.3.0.jar:\
 #
 # The above will interfere with GUI mode so a separate batch file may be needed.
 #
-JAVA_COMMAND="$JAVA_EXE -Xmx1024m -Djava.net.useSystemProxies=true"
+javaCommand="${javaExe} -Xmx1024m -Djava.net.useSystemProxies=true"
 
-# Checks to confirm the configuration...
-# Verify that the installation folder exists
-if [ ! -d "$INSTALL_HOME" ]
-    then
-    echo ""
-    echo "Configured INSTALL_HOME=$INSTALL_HOME folder does not exist."
-    echo ""
-    exit 1
-fi
-# Verify that an expected software file exists
-if [ ! -e "$INSTALL_HOME/bin/cdss-app-tstool-main_17.jar" ]
-    then
-    echo ""
-    echo "Configured INSTALL_HOME=$INSTALL_HOME does not seem correct."
-    echo "Unable to find bin/cdss-app-tstool-main_17.jar in this folder."
-    echo ""
-    exit 1
-fi
+# Run TSTool, passing the original command line arguments
+# - make sure that asterisk is not expanded, because want Java to do it to find *.jar
+mainClass="DWR.DMI.tstool.TSToolMain"
+command="${javaCommand} -classpath ${binFolder}/"
+command+='*'
+command+=" ${mainClass} -home ${installFolder} $@"
+# Run the TSTool command...
+# - use quotes in echo to avoid filename expansion in echo statement
+echo "Running:"
+echo "$command"
 
-# Run TSTool, passing up to 9 command line parameters.
-command="$JAVA_COMMAND -classpath $TSTOOL_CP rti.app.tstool.TSTool -home $INSTALL_HOME $1 $2 $3 $4 $5 $6 $7 $8 $9"
-# Uncomment for troubleshooting...
-# echo $command
-# Run it...
-$command
+# Cannot use:
+#  ${command}        because filename expansion will include all files in path including bash files
+#  "${command}"      because entire command is run as the program rather than space-delimited arguments
+${javaCommand} -classpath ${binFolder}/\* ${mainClass} -home ${installFolder} $@
+
+# Exit with status from java
+exit $?
