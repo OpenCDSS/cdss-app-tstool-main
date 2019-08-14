@@ -49,6 +49,9 @@ rem - also set the title of the window
 echo Starting Eclipse using %eclipseExe%
 title Eclipse configured for TSTool development
 %eclipseExe% -vm %javawExe% -vmargs -Xmx1024M
+rem Tried the following when Eclipse fails to start
+rem %eclipseExe% -vm %javawExe% -vmargs -Xmx1024M -consoleLog
+rem %eclipseExe% -vm %javawExe% -vmargs -Xmx1024M -clean -clearPersistedState
 goto end
 
 :noeclipse
