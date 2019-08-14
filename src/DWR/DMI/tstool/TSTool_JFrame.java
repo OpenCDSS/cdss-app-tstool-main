@@ -1581,6 +1581,7 @@ JMenuItem
     __Commands_TableManipulate_DeleteTableColumns_JMenuItem,
     __Commands_TableManipulate_DeleteTableRows_JMenuItem,
     __Commands_TableManipulate_InsertTableRow_JMenuItem,
+    __Commands_TableManipulate_RenameTableColumns_JMenuItem,
     __Commands_TableManipulate_SetTableValues_JMenuItem,
     __Commands_TableManipulate_SplitTableColumn_JMenuItem,
     __Commands_TableManipulate_SplitTableRow_JMenuItem,
@@ -2123,6 +2124,7 @@ private String
     __Commands_TableManipulate_DeleteTableColumns_String = TAB + "DeleteTableColumns()... <delete table column(s)>",
     __Commands_TableManipulate_DeleteTableRows_String = TAB + "DeleteTableRows()... <delete table row(s)>",
     __Commands_TableManipulate_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
+    __Commands_TableManipulate_RenameTableColumns_String = TAB + "RenameTableColumns()... <rename table column(s)>",
     __Commands_TableManipulate_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_TableManipulate_SplitTableColumn_String = TAB + "SplitTableColumn()... <split a column into multiple columns>",
     __Commands_TableManipulate_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
@@ -10977,12 +10979,27 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     
     __Commands_Table_JMenu.add( __Commands_TableManipulate_JMenu = new JMenu( __Commands_TableManipulate_String, true ) );
     __Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
+    // Add commands that manipulate table columns...
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableColumns_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableColumns_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_RenameTableColumns_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_RenameTableColumns_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableColumn_String, this ) );
+    __Commands_TableManipulate_JMenu.addSeparator();
+    // Add commands that manipulate table rows...
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableRows_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableRows_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableRow_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SortTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SortTable_String, this ) );
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRow_String, this ) );
+    // Manipulation of data...
+    __Commands_TableManipulate_JMenu.addSeparator();
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableDateTime_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_FormatTableDateTime_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableString_JMenuItem =
@@ -10991,19 +11008,10 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_TableManipulate_ManipulateTableString_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableValues_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableColumn_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableColumn_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableMath_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_TableMath_String, this ) );
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_TableTimeSeriesMath_String, this ) );
-    __Commands_TableManipulate_JMenu.addSeparator();
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableRow_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableRow_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SortTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SortTable_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRow_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRow_String, this ) );
     
     __Commands_Table_JMenu.add( __Commands_TableAnalyze_JMenu = new JMenu( __Commands_TableAnalyze_String, true ) );
     __Commands_TableAnalyze_JMenu.setToolTipText("Analyze table.");
@@ -13721,6 +13729,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableManipulate_InsertTableRow_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_InsertTableRow_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableManipulate_RenameTableColumns_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_RenameTableColumns_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableManipulate_SetTableValues_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_SetTableValues_String, null, CommandEditType.INSERT );
