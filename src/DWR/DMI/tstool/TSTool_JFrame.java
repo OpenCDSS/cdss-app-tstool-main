@@ -753,7 +753,8 @@ have been modified and need to be saved (or cancel) before exit.
 private boolean __commandsDirty = false;
 
 /**
-Name of the command file.  Don't set until selected by the user (or on the command line).
+Name of the command file, as absolute path.
+Don't set until selected by the user (or on the command line).
 */
 private String __commandFileName = null;	
 
@@ -1181,6 +1182,7 @@ private JMenuItem
 private JMenu
 	__View_JMenu = null;
 private JMenuItem
+    __View_CommandFileDiff_JMenuItem = null,
     __View_DataStores_JMenuItem = null,
     __View_DataUnits_JMenuItem = null;
 private JCheckBoxMenuItem
@@ -1781,6 +1783,7 @@ private String
 	// View menu (order in GUI)...
 
 	__View_String = "View",
+		__View_CommandFileDiff_String = "Command File Diff",
 		__View_DataStores_String = "Datastores",
 		__View_DataUnits_String = "Data Units",
 	    __View_Map_String = "Map",
@@ -8547,15 +8550,15 @@ private void ui_InitGUI ( )
 	__Run_SelectedCommands_JButton =
 		new SimpleJButton(__Button_RunSelectedCommands_String,__Run_SelectedCommandsCreateOutput_String, this);
 	__Run_SelectedCommands_JButton.setToolTipText (
-		"<html>Run selected commands from above to generate time " +
-		"series,<br>which will be shown in the Results - Time Series tab below.</html>" );
+		"<html>Run selected commands from above to generate time series and other results," +
+		"<br>which will be shown in the Results tabs below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_SelectedCommands_JButton,
 		5, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__Run_AllCommands_JButton =
 		new SimpleJButton(__Button_RunAllCommands_String, __Run_AllCommandsCreateOutput_String, this);
 	__Run_AllCommands_JButton.setToolTipText (
-		"<html>Run all commands from above to generate time series," +
-		"<br>which will be shown in the Results - Time Series tab below.</html>" );
+		"<html>Run all commands from above to generate time series and other results," +
+		"<br>which will be shown in the Results tabs below.</html>" );
 	JGUIUtil.addComponent(__commands_JPanel, __Run_AllCommands_JButton,
 		6, 5, 1, 1, 0.0, 0.0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	// Put on right because we want it to be a decision to clear...
@@ -11834,13 +11837,19 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 {	__View_JMenu = new JMenu (__View_String, true);
 	menuBar.add (__View_JMenu);
 
+    __View_JMenu.add ( __View_CommandFileDiff_JMenuItem=new SimpleJMenuItem( __View_CommandFileDiff_String, this));
+    __View_CommandFileDiff_JMenuItem.setToolTipText("Use visual diff program to compare current commands with last saved version.");
     __View_JMenu.add ( __View_DataStores_JMenuItem=new SimpleJMenuItem( __View_DataStores_String, this));
+    __View_DataStores_JMenuItem.setToolTipText("View a list of datastores, with status and connection errors.");
 	__View_JMenu.add ( __View_DataUnits_JMenuItem=new SimpleJMenuItem( __View_DataUnits_String, this));
+    __View_DataUnits_JMenuItem.setToolTipText("View a list of data units, used to convert units.");
     __View_JMenu.add ( __View_MapInterface_JCheckBoxMenuItem=new JCheckBoxMenuItem(__View_Map_String) );
+    __View_MapInterface_JCheckBoxMenuItem.setToolTipText("Toggle the map view.");
     __View_MapInterface_JCheckBoxMenuItem.setState ( false );
     __View_MapInterface_JCheckBoxMenuItem.addItemListener ( this );
     __View_JMenu.addSeparator();
     __View_JMenu.add ( __View_CloseAllViewWindows_JMenuItem=new SimpleJMenuItem( __View_CloseAllViewWindows_String, this));
+    __View_CloseAllViewWindows_JMenuItem.setToolTipText("Close all graphs and other views.");
 }
 
 /**
@@ -12954,13 +12963,17 @@ throws Exception
 {   String command = event.getActionCommand();
     //String routine = getClass().getSimpleName() + ".uiAction_ActionPerformed3b_ViewMenu";
 
-    if ( command.equals(__View_DataUnits_String) ) {
-        // Show the data units
-        uiAction_ShowDataUnits();
+    if ( command.equals(__View_CommandFileDiff_String) ) {
+        // Show visual diff of current command file and saved version
+        uiAction_ViewCommandFileDiff();
     }
     else if ( command.equals(__View_DataStores_String) ) {
         // Show the datastores
         uiAction_ShowDataStores();
+    }
+    else if ( command.equals(__View_DataUnits_String) ) {
+        // Show the data units
+        uiAction_ShowDataUnits();
     }
     else if ( command.equals(__View_CloseAllViewWindows_String) ) {
         // Show the datastores
@@ -15448,7 +15461,8 @@ private void uiAction_FileExitClicked ()
 	                }
 	                else {
 	                     x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                             "Do you want to save the changes you made?",
+                             "Do you want to save the changes you made?\n\n" +
+                             "To view differences, Cancel and use View / Command File Diff.",
                              ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
 	                }
 	            }
@@ -15486,7 +15500,8 @@ private void uiAction_FileExitClicked ()
                     else {
                         x = new ResponseJDialog ( this,
                                 IOUtil.getProgramName(), "Do you want to save the changes made to\n\""
-                                + __commandFileName + "\"?",
+                                + __commandFileName + "\"?\n\n" +
+                                "To view differences, Cancel and use View / Command File Diff.",
                                 ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
                     }
 				}
@@ -18712,7 +18727,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         int x = ResponseJDialog.NO; // Blank commands will not be saved
         if ( __commands_JListModel.size() > 0 ) {
             x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-            "Do you want to save the changes you made?",
+            "Do you want to save the changes you made?\n\n" +
+            "To view differences, Cancel and use View / Command File Diff.",
             ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
         }
         if ( x == ResponseJDialog.CANCEL ) {
@@ -18736,7 +18752,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
                     "The commands are marked read-only (#@readOnly comment).\n" +
                     "Press Yes to update the read-only file before opening a new file.\n" +
                     "Press No to discard edits before opening a new file.\n" +
-                    "Press Cancel and then save to a new name if desired.\n",
+                    "Press Cancel and then save to a new name if desired.\n" +
+                    "To view differences, Cancel and use View / Command File Diff.",
                     ResponseJDialog.YES|ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
             }
             else if ( commandsAreTemplate = __tsProcessor.areCommandsTemplate() ) {
@@ -18750,7 +18767,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
             else {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
                 "Do you want to save the changes made to:\n"
-                + "\"" + __commandFileName + "\"?",
+                + "\"" + __commandFileName + "\"?\n\n" +
+                "To view differences, Cancel and use View / Command File Diff.",
                 ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
             }
         }
@@ -21700,11 +21718,12 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
 Show the datastores.
 */
 private void uiAction_ShowDataStores ()
-{   String routine = getClass().getSimpleName() + "uiAction_ShowDataStores";
+{
     try {
         new DataStores_JFrame ( "Datastores", this, __tsProcessor.getDataStores() );
     }
     catch ( Exception e ) {
+		String routine = getClass().getSimpleName() + "uiAction_ShowDataStores";
         Message.printWarning ( 1, routine, "Error displaying datastores (" + e + ")." );
     }
 }
@@ -22902,6 +22921,67 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 }
 
 /**
+ * Show the difference between the current commands and the saved on disk command file.
+ */
+private void uiAction_ViewCommandFileDiff () {
+	// If the diff tool is not configured, provide information.
+	Prop prop = IOUtil.getProp("DiffProgram");
+	String diffProgram = null;
+	if ( prop != null ) {
+		diffProgram = prop.getValue();
+	}
+	else {
+         new ResponseJDialog ( this, IOUtil.getProgramName(),
+             "The visual diff program has not been configured in the TSTool configuration file.\n" +
+             "Define the \"DiffProgram\" property as the path to a visual diff program, for example kdiff3\n" +
+             "Cannot show the command file difference.",
+             ResponseJDialog.OK).response();
+         return;
+	}
+	if ( IOUtil.fileExists(diffProgram) ) {
+		// Diff program exists so save a temporary file with UI commands and then compare with file version.
+		// Run the diff program on the input and output files
+		// (they should have existed because the button will have been disabled if not)
+		String file1Path = this.__commandFileName;
+		if ( file1Path == null ) {
+	         new ResponseJDialog ( this, IOUtil.getProgramName(),
+                  "No command file was previously read or saved.  Cannot show difference.",
+                  ResponseJDialog.OK).response();
+	         return;
+		}
+		// Write the commands to a temporary file
+		String tempCommandFile = IOUtil.tempFileName();
+		File f = new File(tempCommandFile);
+		String tempFolder = f.getParent();
+		String file2Path = tempFolder + File.separator + "TSTool-commands.TSTool";
+		try {
+			uiAction_WriteCommandFile_Helper(file2Path, false);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
+			return;
+		}
+		// Run the diff program
+		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
+		try {
+			ProcessManager pm = new ProcessManager ( programAndArgsList,
+					0, // No timeout
+	                null, // Exit status indicator
+	                false, // Use command shell
+	                new File(tempFolder) );
+			Thread t = new Thread ( pm );
+            t.start();
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
+		}
+	}
+	else {
+		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
+	}
+}
+
+/**
 View the documentation by displaying using the desktop application.
 @param command the string from the action event (menu string).
 */
@@ -22978,23 +23058,7 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 	}
 	// Now write the file...
 	try {
-	    PrintWriter out = new PrintWriter(new FileOutputStream(file));
-		int size = __commands_JListModel.size();
-		Command command;
-		for (int i = 0; i < size; i++) {
-		    command = (Command)__commands_JListModel.get(i);
-		    if ( saveVersion9 && command instanceof CommandSavesMultipleVersions ) {
-		        // TODO SAM This is a work-around to transition from the "TS Alias = " notation to
-		        // Command(Alias=...), which was introduced in version 10
-		        CommandSavesMultipleVersions versionCommand = (CommandSavesMultipleVersions)command;
-		        out.println(versionCommand.toString(command.getCommandParameters(),9));
-		    }
-		    else {
-		        out.println(command.toString());
-		    }
-		}
-	
-		out.close();
+		uiAction_WriteCommandFile_Helper(file, saveVersion9);
 		commandList_SetDirty(false);
 		commandList_SetCommandFileName ( file );
 		// Save the file in the history
@@ -23016,6 +23080,30 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 	}
 	// Update the status information...
 	ui_UpdateStatus ( false );
+}
+
+
+/** Helper method to write the commands to a file.
+ * @param saveVersion9 if true, save version 9 syntax, false to save current syntax.
+ * @param file Path to file to write.
+ */
+private void uiAction_WriteCommandFile_Helper(String file, boolean saveVersion9) throws FileNotFoundException {
+	PrintWriter out = new PrintWriter(new FileOutputStream(file));
+	int size = __commands_JListModel.size();
+	Command command;
+	for (int i = 0; i < size; i++) {
+		command = (Command)__commands_JListModel.get(i);
+		if ( saveVersion9 && command instanceof CommandSavesMultipleVersions ) {
+		    // TODO SAM This is a work-around to transition from the "TS Alias = " notation to
+		    // Command(Alias=...), which was introduced in version 10
+		    CommandSavesMultipleVersions versionCommand = (CommandSavesMultipleVersions)command;
+		    out.println(versionCommand.toString(command.getCommandParameters(),9));
+		}
+		else {
+		    out.println(command.toString());
+		}
+	}
+	out.close();
 }
 
 /**

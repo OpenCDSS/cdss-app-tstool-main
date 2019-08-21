@@ -10,3 +10,8 @@
 
 # Ignore Microsoft Office temporary files
 ~$*
+
+# Ignore Java crash log files
+# - not sure why Java crashes, maybe memory issue?
+# - for example:   build-util/hs_err_pid11760.log
+hs_err*.log
