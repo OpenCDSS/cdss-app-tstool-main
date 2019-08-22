@@ -1744,7 +1744,6 @@ private String
 		__File_Open_String = "Open",
 			__File_Open_CommandFile_String = "Command File...",
 			__File_Open_CommandFileNoDiscovery_String = "Command File (no discovery)...",
-			__File_Open_CommandFileRecent_String[], // Initialize to MAX_RECENT_FILES when configuring menus
 			__File_Open_DIADvisor_String = "DIADvisor...",
 			__File_Open_HydroBase_String = "HydroBase...",
 			__File_Open_ReclamationHDB_String = "Reclamation HDB...",
@@ -1770,7 +1769,7 @@ private String
 	__Edit_String = "Edit",
 		__Edit_CutCommands_String = "Cut Command(s)",
 		__Edit_CopyCommands_String = "Copy Command(s)",
-		__Edit_PasteCommands_String = "Paste Command(s) (After Selected)",
+		__Edit_PasteCommands_String = "Paste Command(s) (after last selected)",
 		__Edit_DeleteCommands_String = "Delete Command(s)",
 		__Edit_SelectAllCommands_String ="Select All Commands",
 		__Edit_DeselectAllCommands_String = "Deselect All Commands",
@@ -10335,36 +10334,44 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	__Commands_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
 
 	__Commands_JMenu.add ( __Commands_SelectTimeSeries_JMenu = new JMenu(__Commands_SelectTimeSeries_String) );
-	__Commands_SelectTimeSeries_JMenu.setToolTipText("Select time series for processing (use with TSList=SelectedTS).");
+	//__Commands_SelectTimeSeries_JMenu.setToolTipText("Select, free, and sort time series results.");
     __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_DeselectTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Select_DeselectTimeSeries_String, this ) );
+	__Commands_Select_DeselectTimeSeries_JMenuItem.setToolTipText("Deselect time series for processing (use with command parameter TSList=SelectedTS).");
     __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_SelectTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Select_SelectTimeSeries_String, this ) );
+	__Commands_Select_SelectTimeSeries_JMenuItem.setToolTipText("Select time series for processing (use with command parameter TSList=SelectedTS).");
     __Commands_SelectTimeSeries_JMenu.addSeparator();
     __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_Free_JMenuItem =
         new SimpleJMenuItem(__Commands_Select_Free_String, this ) );
+	__Commands_Select_Free_JMenuItem.setToolTipText("Delete time series in results and free memory, useful for large workflows.");
     __Commands_SelectTimeSeries_JMenu.addSeparator();
     __Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_SortTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Select_SortTimeSeries_String, this ) );
+	__Commands_Select_SortTimeSeries_JMenuItem.setToolTipText("Sort time series in results.");
     __Commands_JMenu.addSeparator();
 
 	__Commands_JMenu.add ( __Commands_CreateTimeSeries_JMenu = new JMenu(__Commands_CreateTimeSeries_String) );
-	__Commands_CreateTimeSeries_JMenu.setToolTipText("Create time series from supplied values or other time series.");
+	//__Commands_CreateTimeSeries_JMenu.setToolTipText("Create time series from supplied values or other time series.");
 
 	// Create (break into logical groups)...
 	// Commands that create new simple data (maybe add functions or random)...
 	   
     __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_NewPatternTimeSeries_JMenuItem =
        new SimpleJMenuItem(__Commands_Create_NewPatternTimeSeries_String, this ) );
+	__Commands_Create_NewPatternTimeSeries_JMenuItem.setToolTipText("Create time series and initialize with a pattern of values.");
     __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_NewTimeSeries_String, this ) );
+	__Commands_Create_NewTimeSeries_JMenuItem.setToolTipText("Create time series and initialize with values.");
     __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_TSID_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_TSID_String, this ) );
+	__Commands_Create_TSID_JMenuItem.setToolTipText("Create time series identifier (TSID) command, which will cause a read based on the TSID.");
     
     __Commands_CreateTimeSeries_JMenu.addSeparator();
 	// Commands that perform other processing and create new time series...
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeInterval_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ChangeInterval_String, this) );
+	__Commands_Create_ChangeInterval_JMenuItem.setToolTipText("Create time series by changing the interval time series, handles small<->large, irregular/regular, etc.");
     // TODO SAM 2017-04-24 need to enable these commands when they work
     //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalLarger_JMenuItem =
     //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalLarger_String, this) );
@@ -10377,370 +10384,472 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_Copy_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Copy_String, this) );
+	__Commands_Create_Copy_JMenuItem.setToolTipText("Create time series by copying a time series.");
     
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_Delta_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Delta_String, this) );
+	__Commands_Create_Delta_JMenuItem.setToolTipText("Create a time series by calculating each input time series' interval delta.");
     
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_Disaggregate_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Disaggregate_String, this) );
+	__Commands_Create_Disaggregate_JMenuItem.setToolTipText("Create a time series by disaggregating a large interval to small interval.");
     
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_LookupTimeSeriesFromTable_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_LookupTimeSeriesFromTable_String, this) );
+	__Commands_Create_LookupTimeSeriesFromTable_JMenuItem.setToolTipText("Create a time series by looking up values from a table.");
     
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_NewDayTSFromMonthAndDayTS_String, this) );
+	__Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem.setToolTipText("Create a day interval time series from daily time series (pattern) and monthly time series (amount).");
 
     __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_NewEndOfMonthTSFromDayTS_String, this ) );
+	__Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem.setToolTipText("Create an end-of-month time series from daily time series by searching for values near the end of each month.");
     
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_Normalize_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_Normalize_String, this ) );
+	__Commands_Create_Normalize_JMenuItem.setToolTipText("Create a time series by normalizing input time series to range of valus (e.g., 0.0 to 1.0).");
 
     __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_RelativeDiff_JMenuItem =
         new SimpleJMenuItem( __Commands_Create_RelativeDiff_String, this ) );
+	__Commands_Create_RelativeDiff_JMenuItem.setToolTipText("Create a time series as relative difference of two input time series values.");
     
     __Commands_CreateTimeSeries_JMenu.add( __Commands_Create_ResequenceTimeSeriesData_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ResequenceTimeSeriesData_String, this ) );
+	__Commands_Create_ResequenceTimeSeriesData_JMenuItem.setToolTipText("Create a time series by resequencing the years in the input time series.");
     
     // Statistic commands...
     __Commands_CreateTimeSeries_JMenu.addSeparator();
 	__Commands_CreateTimeSeries_JMenu.add (	__Commands_Create_NewStatisticTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_NewStatisticTimeSeries_String, this ) );
+	__Commands_Create_NewStatisticTimeSeries_JMenuItem.setToolTipText("Create a time series as statistic of each interval's historical data (e.g, mean of all January 1 values).");
     __Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewStatisticMonthTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_NewStatisticMonthTimeSeries_String, this ) );
+	__Commands_Create_NewStatisticMonthTimeSeries_JMenuItem.setToolTipText("Create a month interval time series as statistic of each month's data values.");
 	__Commands_CreateTimeSeries_JMenu.add (__Commands_Create_NewStatisticYearTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Create_NewStatisticYearTS_String, this ) );
+	__Commands_Create_NewStatisticYearTS_JMenuItem.setToolTipText("Create a year interval time series as statistic of each year's data values.");
     __Commands_CreateTimeSeries_JMenu.add ( __Commands_Create_RunningStatisticTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_RunningStatisticTimeSeries_String, this ) );
+	__Commands_Create_RunningStatisticTimeSeries_JMenuItem.setToolTipText("Create a time series as statistic of values from a moving window in the input time series.");
 
 	// Read...
 
 	__Commands_JMenu.add ( __Commands_ReadTimeSeries_JMenu=	new JMenu(__Commands_ReadTimeSeries_String) );
-	__Commands_ReadTimeSeries_JMenu.setToolTipText("Read time series from files, databases, and the internet.");
+	//__Commands_ReadTimeSeries_JMenu.setToolTipText("Read time series from files, databases, and web services.");
 
 	__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_SetIncludeMissingTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Read_SetIncludeMissingTS_String, this ) );
+	__Commands_Read_SetIncludeMissingTS_JMenuItem.setToolTipText("Indicate whether missing time series should be included in results, with minimal properties.");
 
 	__Commands_ReadTimeSeries_JMenu.add (__Commands_Read_SetInputPeriod_JMenuItem=
         new SimpleJMenuItem(__Commands_Read_SetInputPeriod_String, this ) );
+	__Commands_Read_SetInputPeriod_JMenuItem.setToolTipText("Set the default input period for queries/reads, will impact calculations.  See also SetOutputPeriod.");
 
 	__Commands_ReadTimeSeries_JMenu.addSeparator ();
 	
 	__Commands_ReadTimeSeries_JMenu.add( __Commands_Read_CreateFromList_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_CreateFromList_String, this) );
+	__Commands_Read_CreateFromList_JMenuItem.setToolTipText("Read time series using a delimited file for the list.  Replaced by ReadTimeSeriesList command.");
    
     __Commands_ReadTimeSeries_JMenu.addSeparator ();
 
     if ( __source_ColoradoHydroBaseRest_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadColoradoHydroBaseRest_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadColoradoHydroBaseRest_String, this) );
+			__Commands_Read_ReadColoradoHydroBaseRest_JMenuItem.setToolTipText("Read time series from Colorado HydroBase REST web services datastore.");
 	}
 	if ( __source_DateValue_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDateValue_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDateValue_String, this) );
+			__Commands_Read_ReadDateValue_JMenuItem.setToolTipText("Read time series from a DateValue time series text file."); 
 	}
 	if ( __source_DelftFews_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelftFewsPiXml_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadDelftFewsPiXml_String, this) );
+			__Commands_Read_ReadDelftFewsPiXml_JMenuItem.setToolTipText("Read time series from Delft FEWS software PiXml text file.");
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadDelimitedFile_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadDelimitedFile_String, this) );
+	__Commands_Read_ReadDelimitedFile_JMenuItem.setToolTipText("Read time series from a delimited text file (CSV, tab-delimited, etc.)."); 
     if ( __source_HECDSS_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHecDss_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadHecDss_String, this) );
+        __Commands_Read_ReadHecDss_JMenuItem.setToolTipText("Read time series from US Army Corps HEC-DSS binary database file."); 
     }
     if ( __source_HydroBase_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadHydroBase_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadHydroBase_String, this) );
+        __Commands_Read_ReadHydroBase_JMenuItem.setToolTipText("Read time series from Colorado HydroBase database."); 
 	}
 	if ( __source_MODSIM_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadMODSIM_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadMODSIM_String, this) );
+        __Commands_Read_ReadMODSIM_JMenuItem.setToolTipText("Read time series from MODSIM modeling software text file."); 
 	}
     if ( __source_NrcsAwdb_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNrcsAwdb_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadNrcsAwdb_String, this) );
+        __Commands_Read_ReadNrcsAwdb_JMenuItem.setToolTipText("Read time series from US Natural Resources Conservation Service (NRCS) web service."); 
     }
 	if ( __source_NWSCard_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsCard_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadNwsCard_String, this) );
+        __Commands_Read_ReadNwsCard_JMenuItem.setToolTipText("Read time series from US National Weather Service (NWS) \"card\" format text file."); 
 	}
     if ( __source_NWSRFS_FS5Files_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadNwsrfsFS5Files_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadNwsrfsFS5Files_String, this) );
+        __Commands_Read_ReadNwsrfsFS5Files_JMenuItem.setToolTipText("Read time series from US National Weather Service (NWS) River Forecast System (RFS) binary files."); 
     }
     if ( __source_RCCACIS_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRccAcis_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadRccAcis_String, this) );
+        __Commands_Read_ReadRccAcis_JMenuItem.setToolTipText("Read time series from US Reginal Climate Center (RCC) Applied Climate Information System (ACIS) web service."); 
     }
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationHDB_String, this) );
+        __Commands_Read_ReadReclamationHDB_JMenuItem.setToolTipText("Read time series from US Bureau of Reclamation HDB database."); 
     }
     if ( __source_ReclamationPisces_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadReclamationPisces_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadReclamationPisces_String, this) );
+        __Commands_Read_ReadReclamationPisces_JMenuItem.setToolTipText("Read time series from US Bureau of Reclamation Pisces database."); 
     }
     if ( __source_RiverWare_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadRiverWare_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadRiverWare_String, this) );
+        __Commands_Read_ReadRiverWare_JMenuItem.setToolTipText("Read time series from RiverWare modeling software text files."); 
     }
 	if ( __source_StateCU_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCU_JMenuItem =
 			new SimpleJMenuItem( __Commands_Read_ReadStateCU_String, this) );
+        __Commands_Read_ReadStateCU_JMenuItem.setToolTipText("Read time series from StateCU (consumptive use modeling software) text input files."); 
 	}
     if ( __source_StateCUB_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateCUB_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadStateCUB_String, this) );
+        __Commands_Read_ReadStateCUB_JMenuItem.setToolTipText("Read time series from StateCU (consumptive use modeling software) binary output files."); 
     }
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateMod_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadStateMod_String, this) );
+        __Commands_Read_ReadStateMod_JMenuItem.setToolTipText("Read time series from StateMod (water allocation modeling software) text input files."); 
 	}
 	if ( __source_StateModB_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadStateModB_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_ReadStateModB_String, this) );
+        __Commands_Read_ReadStateModB_JMenuItem.setToolTipText("Read time series from StateMod (water allocation modeling software) binary output files."); 
 	}
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
+    __Commands_Read_ReadTimeSeries_JMenuItem.setToolTipText("Read time series given a time series identifier (TSID)."); 
     // Duplicate this menu from the Datastore menus because of common use
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
+    __Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem.setToolTipText("Read time series from a database datastore."); 
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesList_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeriesList_String, this) );
+	__Commands_Read_ReadTimeSeriesList_JMenuItem.setToolTipText("Read time series list using table to provide time series identifier information.");
     if ( __source_UsgsNwisDaily_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisDaily_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisDaily_String, this) );
+        __Commands_Read_ReadUsgsNwisDaily_JMenuItem.setToolTipText("Read daily time series from United States Geological Survey (USGS) National Water Information System (NWIS) web service.");
     }
     if ( __source_UsgsNwisGroundwater_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisGroundwater_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisGroundwater_String, this) );
+        __Commands_Read_ReadUsgsNwisGroundwater_JMenuItem.setToolTipText("Read groundwater time series from United States Geological Survey (USGS) National Water Information System (NWIS) web service.");
     }
     if ( __source_UsgsNwisInstantaneous_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisInstantaneous_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisInstantaneous_String, this) );
+        __Commands_Read_ReadUsgsNwisInstantaneous_JMenuItem.setToolTipText("Read instantaneous time series from United States Geological Survey (USGS) National Water Information System (NWIS) web service.");
     }
     if ( __source_UsgsNwisRdb_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadUsgsNwisRdb_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadUsgsNwisRdb_String, this) );
+        __Commands_Read_ReadUsgsNwisRdb_JMenuItem.setToolTipText("Read time series from United States Geological Survey (USGS) National Water Information System (NWIS) RDB text file.");
     }
     if ( __source_WaterML_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterML_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadWaterML_String, this) );
+        __Commands_Read_ReadWaterML_JMenuItem.setToolTipText("Read time series from WaterML XML text file.  See ReadWaterML2.");
     }
     if ( __source_WaterML_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterML2_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadWaterML2_String, this) );
+        __Commands_Read_ReadWaterML2_JMenuItem.setToolTipText("Read time series from WaterML 2 XML text file.");
     }
     if ( __source_WaterOneFlow_enabled ) {
         __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadWaterOneFlow_JMenuItem =
             new SimpleJMenuItem(__Commands_Read_ReadWaterOneFlow_String, this) );
+        __Commands_Read_ReadWaterOneFlow_JMenuItem.setToolTipText("Read time series from WaterOneFlow web service.");
     }
 	if ( __source_StateMod_enabled ) {
 		__Commands_ReadTimeSeries_JMenu.addSeparator ();
 		__Commands_ReadTimeSeries_JMenu.add(__Commands_Read_StateModMax_JMenuItem =
 			new SimpleJMenuItem(__Commands_Read_StateModMax_String, this) );
+        __Commands_Read_StateModMax_JMenuItem.setToolTipText("Create maximum of time series from two StateMod input files, for matching identifiers.");
 	}
 
 	// "Commands...Fill Time Series"...
 
 	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu = new JMenu(__Commands_FillTimeSeries_String));
-	__Commands_FillTimeSeries_JMenu.setToolTipText("Fill gaps in time series data.");
+	//__Commands_FillTimeSeries_JMenu.setToolTipText("Fill time series missing data values by estimating values.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillConstant_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillConstant_String, this ) );
+    __Commands_Fill_FillConstant_JMenuItem.setToolTipText("Fill time series missing data values using constant.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem =
 		new SimpleJMenuItem(__Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_String,this) );
+    __Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem.setToolTipText(
+    	"Fill day interval time series missing data values using day interval time series (pattern) and month interval time series (value).");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillFromTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillFromTS_String,this) );
+    __Commands_Fill_FillFromTS_JMenuItem.setToolTipText("Fill time series missing data values using data from another time series.");
 
 	__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_FillHistMonthAverage_JMenuItem =
 		new SimpleJMenuItem( __Commands_Fill_FillHistMonthAverage_String, this ) );
+    __Commands_Fill_FillHistMonthAverage_JMenuItem.setToolTipText("Fill month interval time series missing data values using historical monthly average values.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillHistYearAverage_JMenuItem =
 		new SimpleJMenuItem( __Commands_Fill_FillHistYearAverage_String, this ) );
+    __Commands_Fill_FillHistYearAverage_JMenuItem.setToolTipText("Fill year interval time series missing data values using historical yearly average values.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillInterpolate_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillInterpolate_String, this ) );
+    __Commands_Fill_FillInterpolate_JMenuItem.setToolTipText("Fill time series missing data values using interpolation.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillMixedStation_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillMixedStation_String, this ) );
+    __Commands_Fill_FillMixedStation_JMenuItem.setToolTipText("Fill time series missing data values using Mixed Station Analysis (best regression relationships).");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillMOVE2_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillMOVE2_String, this ) );
+    __Commands_Fill_FillMOVE2_JMenuItem.setToolTipText("Fill time series missing data values using Maintenance of Variation approach.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillPattern_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_FillPattern_String, this ) );
+    __Commands_Fill_FillPattern_JMenuItem.setToolTipText("Fill time series missing data values using Wet/Dry/Average historical average pattern.");
 	
     __Commands_FillTimeSeries_JMenu.add (__Commands_Fill_ReadPatternFile_JMenuItem=
         new SimpleJMenuItem(__Commands_Fill_ReadPatternFile_String, this ) );
+    __Commands_Fill_ReadPatternFile_JMenuItem.setToolTipText("Read input file containing pattern for FillPattern command.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillProrate_JMenuItem =
         new SimpleJMenuItem( __Commands_Fill_FillProrate_String, this ) );
+    __Commands_Fill_FillProrate_JMenuItem.setToolTipText("Fill time series missing data values by prorating values from another time series.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillRegression_JMenuItem =
         new SimpleJMenuItem( __Commands_Fill_FillRegression_String, this ) );
+    __Commands_Fill_FillRegression_JMenuItem.setToolTipText("Fill time series missing data values using ordinary least squares (OLS) regression.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_FillRepeat_JMenuItem =
         new SimpleJMenuItem( __Commands_Fill_FillRepeat_String, this ) );
+    __Commands_Fill_FillRepeat_JMenuItem.setToolTipText("Fill time series missing data values by repeating non-missing values.");
 
 	if ( __source_HydroBase_enabled ) {
 		__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_FillUsingDiversionComments_JMenuItem =
 			new SimpleJMenuItem(__Commands_Fill_FillUsingDiversionComments_String,this ) );
+			__Commands_Fill_FillUsingDiversionComments_JMenuItem.setToolTipText("Fill time series missing data values with additional zeros using HydroBase diversion comments.");
 	}
 
 	__Commands_FillTimeSeries_JMenu.addSeparator();
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetAutoExtendPeriod_JMenuItem =
 		new SimpleJMenuItem(__Commands_Fill_SetAutoExtendPeriod_String, this ) );
+	__Commands_Fill_SetAutoExtendPeriod_JMenuItem.setToolTipText(
+		"Set whether the period for time series is automatically extended to OutputPeriod when reading data, used when creating model datasets.");
 
 	__Commands_FillTimeSeries_JMenu.add (__Commands_Fill_SetAveragePeriod_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_SetAveragePeriod_String, this ) );
+    __Commands_Fill_SetAveragePeriod_JMenuItem.setToolTipText("Set the period used when computing historical averages, if full period is not to be used.");
 
 	__Commands_FillTimeSeries_JMenu.add(__Commands_Fill_SetIgnoreLEZero_JMenuItem =
         new SimpleJMenuItem(__Commands_Fill_SetIgnoreLEZero_String, this ) );
+    __Commands_Fill_SetIgnoreLEZero_JMenuItem.setToolTipText("Indicate whether values <= 0 should be ignored when computing historical averages.");
 
 	// "Commands...Set Time Series"...
 
 	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=new JMenu(__Commands_SetTimeSeries_String));
-	__Commands_SetTimeSeries_JMenu.setToolTipText("Set time series properties and data values.");
+	//__Commands_SetTimeSeries_JMenu.setToolTipText("Set time series properties and data values.");
 
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_ReplaceValue_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_ReplaceValue_String, this));
+    __Commands_Set_ReplaceValue_JMenuItem.setToolTipText("Replace a range of time series data values with alternate values.");
 	__Commands_SetTimeSeries_JMenu.addSeparator();
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetConstant_JMenuItem =
 		new SimpleJMenuItem( __Commands_Set_SetConstant_String, this ));
+    __Commands_Set_SetConstant_JMenuItem.setToolTipText("Set time series data values to constant values.");
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetDataValue_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetDataValue_String, this ) );
+    __Commands_Set_SetDataValue_JMenuItem.setToolTipText("Set time series single data value to a constant value.");
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetFromTS_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetFromTS_String, this ) );
+    __Commands_Set_SetFromTS_JMenuItem.setToolTipText("Set time series data values by using data in another time series.");
     __Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetTimeSeriesValuesFromLookupTable_String, this ) );
+    __Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem.setToolTipText("Set time series data values using a lookup table.");
     __Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetTimeSeriesValuesFromTable_String, this ) );
+    __Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem.setToolTipText("Set time series data values using values in a table.");
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMax_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetToMax_String, this ) );
+    __Commands_Set_SetToMax_JMenuItem.setToolTipText("Set time series data values to the maximum values from a list of time series.");
 	__Commands_SetTimeSeries_JMenu.add (__Commands_Set_SetToMin_JMenuItem =
         new SimpleJMenuItem(__Commands_Set_SetToMin_String, this ) );
+    __Commands_Set_SetToMin_JMenuItem.setToolTipText("Set time series data values to the minimum values from a list of time series.");
     
     __Commands_SetTimeSeries_JMenu.addSeparator ();
     __Commands_SetTimeSeries_JMenu.add ( __Commands_Set_SetTimeSeriesProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_Set_SetTimeSeriesProperty_String, this ) );
+    __Commands_Set_SetTimeSeriesProperty_JMenuItem.setToolTipText("Set time series properties.");
 
 	// "Commands...Manipulate Time Series"...
 
 	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=new JMenu("Manipulate Time Series"));
-	__Commands_ManipulateTimeSeries_JMenu.setToolTipText("Manipulate time series data values.");
+	//__Commands_ManipulateTimeSeries_JMenu.setToolTipText("Manipulate time series data values.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Add_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Add_String,this) );
+    __Commands_Manipulate_Add_JMenuItem.setToolTipText("Add 1+ time series values to another.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_AddConstant_JMenuItem=
         new SimpleJMenuItem( __Commands_Manipulate_AddConstant_String,this) );
+    __Commands_Manipulate_AddConstant_JMenuItem.setToolTipText("Add constant to time series values.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add(__Commands_Manipulate_AdjustExtremes_JMenuItem =
 		new SimpleJMenuItem(__Commands_Manipulate_AdjustExtremes_String, this ) );
+    __Commands_Manipulate_AdjustExtremes_JMenuItem.setToolTipText("Adjust minimum/maxumum time series values by balancing neighboring values.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ARMA_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_ARMA_String, this ) );
+    __Commands_Manipulate_ARMA_JMenuItem.setToolTipText("Calculate autoregressive moving average time series.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Blend_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Blend_String, this ) );
+    __Commands_Manipulate_Blend_JMenuItem.setToolTipText("Blend periods of two time series.");
     
     __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ChangePeriod_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_ChangePeriod_String, this ) );
+    __Commands_Manipulate_ChangePeriod_JMenuItem.setToolTipText("Change the period of time series by truncating or filling with missing data value.");
     
     __Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ChangeTimeZone_JMenuItem =
-            new SimpleJMenuItem( __Commands_Manipulate_ChangeTimeZone_String, this ) );
+        new SimpleJMenuItem( __Commands_Manipulate_ChangeTimeZone_String, this ) );
+    __Commands_Manipulate_ChangeTimeZone_JMenuItem.setToolTipText("Change the time zone for time series date/times.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_ConvertDataUnits_JMenuItem =
 		new SimpleJMenuItem( __Commands_Manipulate_ConvertDataUnits_String, this ) );
+    __Commands_Manipulate_ConvertDataUnits_JMenuItem.setToolTipText("Convert time series data units, including adjusting data values.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Cumulate_JMenuItem =
         new SimpleJMenuItem(__Commands_Manipulate_Cumulate_String, this ) );
+    __Commands_Manipulate_Cumulate_JMenuItem.setToolTipText("Cumulate time series data values.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Divide_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Divide_String, this ) );
+    __Commands_Manipulate_Divide_JMenuItem.setToolTipText("Divide one time series by another.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Multiply_JMenuItem =
         new SimpleJMenuItem( __Commands_Manipulate_Multiply_String, this ) );
+    __Commands_Manipulate_Multiply_JMenuItem.setToolTipText("Multiply one time series by another.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add ( __Commands_Manipulate_Scale_JMenuItem =
         new SimpleJMenuItem(__Commands_Manipulate_Scale_String, this ) );
+    __Commands_Manipulate_Scale_JMenuItem.setToolTipText("Scale time series data values by multiplying by a constant value.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_ShiftTimeByInterval_JMenuItem=
 		new SimpleJMenuItem(__Commands_Manipulate_ShiftTimeByInterval_String, this ) );
+    __Commands_Manipulate_ShiftTimeByInterval_JMenuItem.setToolTipText("Shift time series data values by date/time offset.");
 
 	__Commands_ManipulateTimeSeries_JMenu.add (	__Commands_Manipulate_Subtract_JMenuItem =
         new SimpleJMenuItem(__Commands_Manipulate_Subtract_String, this ) );
+    __Commands_Manipulate_Subtract_JMenuItem.setToolTipText("Subtract 1+ time series from a time series.");
 	
 	// "Commands...Analyze Time Series"...
 
 	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu= new JMenu(__Commands_AnalyzeTimeSeries_String) );
-	__Commands_AnalyzeTimeSeries_JMenu.setToolTipText("Analyze time series data values.");
+	//__Commands_AnalyzeTimeSeries_JMenu.setToolTipText("Analyze time series data values.");
 	__Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_AnalyzePattern_JMenuItem =
         new SimpleJMenuItem(__Commands_Analyze_AnalyzePattern_String, this ) );
+    __Commands_Analyze_AnalyzePattern_JMenuItem.setToolTipText("Analyze Wet/Dry/Average (or other categories) pattern to create input for FillPattern command.");
     __Commands_AnalyzeTimeSeries_JMenu.add ( __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem =
         new SimpleJMenuItem(__Commands_Analyze_CalculateTimeSeriesStatistic_String, this ) );
+    __Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem.setToolTipText("Calculate a single statistic from time series data values.");
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_CompareTimeSeries_JMenuItem =
 		new SimpleJMenuItem(__Commands_Analyze_CompareTimeSeries_String, this ) );
+    __Commands_Analyze_CompareTimeSeries_JMenuItem.setToolTipText("Compare time series to identify differences.");
 	
 	__Commands_AnalyzeTimeSeries_JMenu.addSeparator ();
 	__Commands_AnalyzeTimeSeries_JMenu.add (__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Analyze_ComputeErrorTimeSeries_String, this ) );
+    __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem.setToolTipText("Create time series as the difference (error) between input time series, useful for simulation.");
 
 	// "Commands...Models"...
 
 	__Commands_JMenu.add ( __Commands_Models_Routing_JMenu = new JMenu(__Commands_Models_Routing_String) );
-	__Commands_Models_Routing_JMenu.setToolTipText("Route time series (lag and attenuate over time).");
+	//__Commands_Models_Routing_JMenu.setToolTipText("Route time series (lag and attenuate over time).");
 	__Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_LagK_JMenuItem =
         new SimpleJMenuItem( __Commands_Models_Routing_LagK_String, this ) );
-   __Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_VariableLagK_JMenuItem =
+    __Commands_Models_Routing_LagK_JMenuItem.setToolTipText("Route (lag and attenuate) a time series using LagK approach.");
+    __Commands_Models_Routing_JMenu.add ( __Commands_Models_Routing_VariableLagK_JMenuItem =
         new SimpleJMenuItem( __Commands_Models_Routing_VariableLagK_String, this ) );
+    __Commands_Models_Routing_VariableLagK_JMenuItem.setToolTipText("Route (lag and attenuate) a time series using variable LagK approach.");
 
 	// "Commands...Output Time Series"...
 
 	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=new JMenu(__Commands_OutputTimeSeries_String) );
-	__Commands_OutputTimeSeries_JMenu.setToolTipText("Write time series to files and databases.");
+	//__Commands_OutputTimeSeries_JMenu.setToolTipText("Output (write) time series to files and databases.");
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SetOutputDetailedHeaders_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputDetailedHeaders_String, this ) );
+    __Commands_Output_SetOutputDetailedHeaders_JMenuItem.setToolTipText("Indicate whether to output detailed headers in summary reports.");
 	__Commands_OutputTimeSeries_JMenu.add(	__Commands_Output_SetOutputPeriod_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputPeriod_String, this ) );
+    __Commands_Output_SetOutputPeriod_JMenuItem.setToolTipText("Set the default output period (can be overridden by specific commands parameters).");
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_SetOutputYearType_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_SetOutputYearType_String, this ) );
+    __Commands_Output_SetOutputYearType_JMenuItem.setToolTipText("Set the default output year type (can be overridden by specific command parameters).");
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDateValue_JMenuItem =
 		new SimpleJMenuItem(__Commands_Output_WriteDateValue_String, this ) );
+    __Commands_Output_WriteDateValue_JMenuItem.setToolTipText("Write time series to DateValue text file.");
     //if ( __source_DelftFews_enabled ) {
     //	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteDelftFewsPiXml_JMenuItem =
     //		new SimpleJMenuItem(__Commands_Output_WriteDelftFewsPiXml_String, this ) );
     //}
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteDelimitedFile_JMenuItem =
         new SimpleJMenuItem(__Commands_Output_WriteDelimitedFile_String, this ) );
+    __Commands_Output_WriteDelimitedFile_JMenuItem.setToolTipText("Write time series to delimited text file (CSV, tab-delimited, etc.).");
 
     if ( __source_HECDSS_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteHecDss_JMenuItem =
             new SimpleJMenuItem( __Commands_Output_WriteHecDss_String, this ) );
+        __Commands_Output_WriteHecDss_JMenuItem.setToolTipText("Write time series to US Army Corps HEC-DSS binary database file."); 
     }
 	
 	if ( __source_NWSCard_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteNwsCard_JMenuItem =
 			new SimpleJMenuItem( __Commands_Output_WriteNwsCard_String, this ) );
+        __Commands_Output_WriteNwsCard_JMenuItem.setToolTipText("Write time series to US National Weather Service (NWS) \"card\" format text file."); 
 	}
 	
     if ( __source_ReclamationHDB_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteReclamationHDB_JMenuItem =
             new SimpleJMenuItem(__Commands_Output_WriteReclamationHDB_String, this ) );
+        __Commands_Output_WriteReclamationHDB_JMenuItem.setToolTipText("Write time series to US Bureau of Reclamation HDB database."); 
     }
     
 	if ( __source_RiverWare_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add( __Commands_Output_WriteRiverWare_JMenuItem =
 			new SimpleJMenuItem(__Commands_Output_WriteRiverWare_String, this ) );
+        __Commands_Output_WriteRiverWare_JMenuItem.setToolTipText("Write time series to RiverWare modeling software text files."); 
 	}
 
 	/* TODO SAM 2017-03-05 disable for now - need to work on in a branch in the processor library
@@ -10753,44 +10862,59 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
 	if ( __source_StateCU_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteStateCU_JMenuItem =
             new SimpleJMenuItem( __Commands_Output_WriteStateCU_String, this ) );
+        __Commands_Output_WriteStateCU_JMenuItem.setToolTipText("Write time series to StateCU (consumptive use modeling software) text input files."); 
 	}
 
 	if ( __source_StateMod_enabled ) {
 		__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteStateMod_JMenuItem =
             new SimpleJMenuItem(__Commands_Output_WriteStateMod_String, this ) );
+        __Commands_Output_WriteStateMod_JMenuItem.setToolTipText("Write time series to StateMod (water allocation modeling software) text input files."); 
 	}
 
 	__Commands_OutputTimeSeries_JMenu.add (	__Commands_Output_WriteSummary_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteSummary_String, this ) );
+    __Commands_Output_WriteSummary_JMenuItem.setToolTipText("Write time series to summary text file."); 
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem =
         new SimpleJMenuItem( __Commands_Datastore_WriteTimeSeriesToDataStore_String, this ) );
+    __Commands_Output_WriteTimeSeriesToDataStore_JMenuItem.setToolTipText("Write time series to datastore."); 
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToDataStream_String, this ) );
+    __Commands_Output_WriteTimeSeriesToDataStream_JMenuItem.setToolTipText("Write time series to data stream text file."); 
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToHydroJSON_String, this ) );
+    __Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem.setToolTipText("Write time series to HydroJSON text file."); 
     __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesToJson_JMenuItem =
         new SimpleJMenuItem( __Commands_Output_WriteTimeSeriesToJson_String, this ) );
+    __Commands_Output_WriteTimeSeriesToJson_JMenuItem.setToolTipText("Write time series to JSON text file."); 
 	
     if ( __source_WaterML_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteWaterML_JMenuItem =
             new SimpleJMenuItem(__Commands_Output_WriteWaterML_String, this ) );
+        __Commands_Output_WriteWaterML_JMenuItem.setToolTipText("Write time series to WaterML XML text file.  See WriteWaterML2.");
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteWaterML2_JMenuItem =
             new SimpleJMenuItem(__Commands_Output_WriteWaterML2_String, this ) );
+        __Commands_Output_WriteWaterML2_JMenuItem.setToolTipText("Write time series to WaterML 2 XML text file.");
     }
 
 	__Commands_OutputTimeSeries_JMenu.addSeparator ();
 	
 	__Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, this ) );
+    __Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem.setToolTipText("Write time series properties to text file.");
+    
+    // Check time series
 
     __Commands_JMenu.add( __Commands_Check_CheckTimeSeries_JMenu = new JMenu( __Commands_Check_CheckingResults_String, true ) );
-    __Commands_Check_CheckTimeSeries_JMenu.setToolTipText("Check time series against criteria.");
+    //__Commands_Check_CheckTimeSeries_JMenu.setToolTipText("Check time series against criteria.");
     __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_Check_CheckingResults_CheckTimeSeries_String, this ) );
+    __Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem.setToolTipText("Check time series values against criteria.");
     __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem =
         new SimpleJMenuItem( __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_String, this ) );
+    __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem.setToolTipText("Check time series statistic against criteria.");
     __Commands_Check_CheckTimeSeries_JMenu.add ( __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Check_CheckingResults_WriteCheckFile_String, this ) );
+    __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem.setToolTipText("Write check result to file.");
 }
 
 /**
@@ -10805,92 +10929,124 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_JMenu.add ( __Commands_Datastore_JMenu = new JMenu(__Commands_Datastore_String) );
     __Commands_Datastore_JMenu.add(__Commands_Datastore_NewDerbyDatabase_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_NewDerbyDatabase_String, this) );
+    __Commands_Datastore_NewDerbyDatabase_JMenuItem.setToolTipText("Create a new Derby (built-in Java) database."); 
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTableFromDataStore_String, this) );
+    __Commands_Datastore_ReadTableFromDataStore_JMenuItem.setToolTipText("Read a table from a database datastore."); 
     __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTableToDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_WriteTableToDataStore_String, this) );
+    __Commands_Datastore_WriteTableToDataStore_JMenuItem.setToolTipText("Write a table to a database datastore."); 
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add( __Commands_Datastore_RunSql_JMenuItem =
         new SimpleJMenuItem( __Commands_Datastore_RunSql_String, this ) );
+    __Commands_Datastore_RunSql_JMenuItem.setToolTipText("Run an Structured Query Language (SQL) statement on a database datastore."); 
     __Commands_Datastore_JMenu.add( __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem =
         new SimpleJMenuItem( __Commands_Datastore_DeleteDataStoreTableRows_String, this ) );
+    __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem.setToolTipText("Delete datastore table rows.");
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
+    __Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem.setToolTipText("Read time series from database datastore.");
     __Commands_Datastore_JMenu.add(__Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_WriteTimeSeriesToDataStore_String, this) );
+    __Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem.setToolTipText("Write time series to database datastore.");
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_CloseDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_CloseDataStore_String, this) );
+    __Commands_Datastore_CloseDataStore_JMenuItem.setToolTipText("Close a database datastore.");
     __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_CreateDataStoreDataDictionary_String, this) );
+    __Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem.setToolTipText("Create an HTML database dictionary for a database datastore.");
     
     // "Commands...Ensemble processing"...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
-    __Commands_Ensemble_JMenu.setToolTipText("Process ensembles (groups of related time series).");
+    //__Commands_Ensemble_JMenu.setToolTipText("Process ensembles (groups of related time series).");
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String, this) );
+    __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem.setToolTipText("Create a time series ensemble from one time series.");
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_CopyEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_CopyEnsemble_String, this) );
+    __Commands_Ensemble_CopyEnsemble_JMenuItem.setToolTipText("Copy a time series ensemble to a new ensemble.");
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_NewEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_NewEnsemble_String, this) );
+    __Commands_Ensemble_NewEnsemble_JMenuItem.setToolTipText("Create a new time series ensemble.");
     
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
         __Commands_Ensemble_JMenu.add( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_String, this) );
+        __Commands_Ensemble_ReadNwsrfsEspTraceEnsemble_JMenuItem.setToolTipText(
+        	"Read time series ensemble from National Weather Service (NWS) River Forecast System (RFS) " +
+            "ensemble stremaflow prediction binary format file.");
     }
     
     __Commands_Ensemble_JMenu.addSeparator();
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_String, this) );
+    __Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem.setToolTipText("Insert time series into a time series ensemble.");
     __Commands_Ensemble_JMenu.add( __Commands_Ensemble_SetEnsembleProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_SetEnsembleProperty_String, this) );
+    __Commands_Ensemble_SetEnsembleProperty_JMenuItem.setToolTipText("Set time series ensemble property.");
 
     __Commands_Ensemble_JMenu.addSeparator();
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_NewStatisticEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_NewStatisticEnsemble_String, this ) );
+    __Commands_Ensemble_NewStatisticEnsemble_JMenuItem.setToolTipText(
+    	"Create a new time series ensemble where each time series in the ensemble is a statistic time series.");
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_String, this ) );
+    __Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem.setToolTipText(
+    	"Create a new time series as a statistic computed from input ensemble.");
     
     __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WeightTraces_JMenuItem =
         new SimpleJMenuItem(__Commands_Ensemble_WeightTraces_String, this ) );
+    __Commands_Ensemble_WeightTraces_JMenuItem.setToolTipText("Create a time series by weighting ensemble trace time series.");
     if ( __source_NWSRFS_ESPTraceEnsemble_enabled ) {
         __Commands_Ensemble_JMenu.addSeparator();
         __Commands_Ensemble_JMenu.add ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem=
             new SimpleJMenuItem(__Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String,this ));
+        __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem.setToolTipText(
+        	"Write time series ensemble to National Weather Service (NWS) River Forecast System (RFS)" +
+        	" Ensemble Streamflow Prediction (ESP) binary file.");
     }
     
     // Commands...Network processing...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Network_JMenu = new JMenu( __Commands_Network_String, true ) );
-    __Commands_Network_JMenu.setToolTipText("Process time series associated with network of nodes and links.");
+    //__Commands_Network_JMenu.setToolTipText("Process time series associated with network of nodes and links.");
     __Commands_Network_JMenu.add( __Commands_Network_CreateNetworkFromTable_JMenuItem =
         new SimpleJMenuItem( __Commands_Network_CreateNetworkFromTable_String, this ) );
+    __Commands_Network_CreateNetworkFromTable_JMenuItem.setToolTipText("Create a network from data in a table.");
     __Commands_Network_JMenu.addSeparator();
     __Commands_Network_JMenu.add( __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem =
         new SimpleJMenuItem( __Commands_Network_AnalyzeNetworkPointFlow_String, this ) );
+    __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem.setToolTipText("Analyze a network point flow model and create output time series at each network node.");
     
     // Commands...Spatial processing...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
-    __Commands_Spatial_JMenu.setToolTipText("Process spatial data).");
+    //__Commands_Spatial_JMenu.setToolTipText("Process spatial data).");
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToGeoJSON_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTableToGeoJSON_String, this ) );
+    __Commands_Spatial_WriteTableToGeoJSON_JMenuItem.setToolTipText("Write a table with coordinate data to a GeoJSON file.");
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToKml_JMenuItem =
-        new SimpleJMenuItem( __Commands_Spatial_WriteTableToShapefile_String, this ) );
-    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToShapefile_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTableToKml_String, this ) );
+    __Commands_Spatial_WriteTableToKml_JMenuItem.setToolTipText("Write a table with coordinate data to a KML file.");
+    __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTableToShapefile_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spatial_WriteTableToShapefile_String, this ) );
+    __Commands_Spatial_WriteTableToShapefile_JMenuItem.setToolTipText("Write a table with coordinate data to a shapefile.");
     __Commands_Spatial_JMenu.addSeparator();
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToGeoJSON_String, this ) );
+    __Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem.setToolTipText("Write time series with coordinate properties to a GeoJSON file.");
     __Commands_Spatial_JMenu.add( __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
+    __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem.setToolTipText("Write time series with coordinate properties to a KML file.");
     
     // Commands...Spreadsheet processing...
     
@@ -10898,146 +11054,49 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_JMenu.add( __Commands_Spreadsheet_JMenu = new JMenu( __Commands_Spreadsheet_String, true ) );
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_NewExcelWorkbook_String, this ) );
+    __Commands_Spreadsheet_NewExcelWorkbook_JMenuItem.setToolTipText("Create a new Excel workbook file.");
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadExcelWorkbook_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadExcelWorkbook_String, this ) );
+    __Commands_Spreadsheet_ReadExcelWorkbook_JMenuItem.setToolTipText("Read an Excel workbook file into TSTool memory.");
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
+    __Commands_Spreadsheet_ReadTableFromExcel_JMenuItem.setToolTipText("Read a table from an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableCellsFromExcel_String, this ) );
+    __Commands_Spreadsheet_ReadTableCellsFromExcel_JMenuItem.setToolTipText("Read table cells from an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_ReadPropertiesFromExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_ReadPropertiesFromExcel_String, this ) );
+    __Commands_Spreadsheet_ReadPropertiesFromExcel_JMenuItem.setToolTipText("Read processor properties from an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_SetExcelCell_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_SetExcelCell_String, this ) );
+    __Commands_Spreadsheet_SetExcelCell_JMenuItem.setToolTipText("Set a specific Excel worksheet's cell's values.");
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_SetExcelWorksheetViewProperties_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_SetExcelWorksheetViewProperties_String, this ) );
+    __Commands_Spreadsheet_SetExcelWorksheetViewProperties_JMenuItem.setToolTipText("Set an Excel worksheet's view properties, such as freeze panes.");
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
+    __Commands_Spreadsheet_WriteTableToExcel_JMenuItem.setToolTipText("Write a table to an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableCellsToExcel_String, this ) );
+    __Commands_Spreadsheet_WriteTableCellsToExcel_JMenuItem.setToolTipText("Write specific table cells to an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcel_String, this ) );
+    __Commands_Spreadsheet_WriteTimeSeriesToExcel_JMenuItem.setToolTipText("Write time series to an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String, this ) );
+    __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_JMenuItem.setToolTipText("Write time series to a block of cells in an Excel worksheet.");
     __Commands_Spreadsheet_JMenu.addSeparator();
     __Commands_Spreadsheet_JMenu.add( __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_CloseExcelWorkbook_String, this ) );
+    __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem.setToolTipText("Close an Excel workbook.");
     
     // Commands...Table processing...
 
-    menu_bar.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
-	__Commands_Table_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
-	
-    __Commands_Table_JMenu.add( __Commands_TableCreate_JMenu = new JMenu( __Commands_TableCreate_String, true ) );
-    __Commands_TableCreate_JMenu.setToolTipText("Create new tables.");
-    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_NewTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableCreate_NewTable_String, this ) );
-    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_CopyTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableCreate_CopyTable_String, this ) );
-    __Commands_TableCreate_JMenu.addSeparator();
-    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_FreeTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableCreate_FreeTable_String, this ) );
- 
-    __Commands_Table_JMenu.add( __Commands_TableRead_JMenu = new JMenu( __Commands_TableRead_String, true ) );
-    __Commands_TableRead_JMenu.setToolTipText("Read tables.");
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDataStore_JMenuItem =
-        new SimpleJMenuItem( __Commands_Datastore_ReadTableFromDataStore_String, this ) );
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDBF_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromDBF_String, this ) );
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDelimitedFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromDelimitedFile_String, this ) );
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromExcel_JMenuItem =
-        new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromFixedFormatFile_String, this ) );
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromJSON_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromJSON_String, this ) );
-    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromXML_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromXML_String, this ) );
-
-    __Commands_Table_JMenu.add( __Commands_TableJoin_JMenu = new JMenu( __Commands_TableJoin_String, true ) );
-    __Commands_TableJoin_JMenu.setToolTipText("Append/join tables.");
-    __Commands_TableJoin_JMenu.add( __Commands_TableJoin_AppendTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableJoin_AppendTable_String, this ) );
-    __Commands_TableJoin_JMenu.add( __Commands_TableJoin_JoinTables_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableJoin_JoinTables_String, this ) );
-
-    __Commands_Table_JMenu.add( __Commands_TableTimeSeries_JMenu = new JMenu( __Commands_TableTimeSeries_String, true ) );
-    __Commands_TableTimeSeries_JMenu.setToolTipText("Processing tables to/from time series.");
-    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_TimeSeriesToTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableTimeSeries_TimeSeriesToTable_String, this ) );
-    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_TableToTimeSeries_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableTimeSeries_TableToTimeSeries_String, this ) );
-    __Commands_TableTimeSeries_JMenu.addSeparator();
-    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String, this ) );
-    __Commands_TableTimeSeries_JMenu.addSeparator();
-    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String, this ) );
-    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String, this ) );
-    
-    __Commands_Table_JMenu.add( __Commands_TableManipulate_JMenu = new JMenu( __Commands_TableManipulate_String, true ) );
-    __Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
-    // Add commands that manipulate table columns...
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableColumns_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableColumns_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_RenameTableColumns_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_RenameTableColumns_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableColumn_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableColumn_String, this ) );
-    __Commands_TableManipulate_JMenu.addSeparator();
-    // Add commands that manipulate table rows...
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableRows_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableRows_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableRow_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableRow_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SortTable_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SortTable_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRow_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRow_String, this ) );
-    // Manipulation of data...
-    __Commands_TableManipulate_JMenu.addSeparator();
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableDateTime_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_FormatTableDateTime_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableString_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_FormatTableString_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_ManipulateTableString_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_ManipulateTableString_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableValues_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableMath_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_TableMath_String, this ) );
-    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableManipulate_TableTimeSeriesMath_String, this ) );
-    
-    __Commands_Table_JMenu.add( __Commands_TableAnalyze_JMenu = new JMenu( __Commands_TableAnalyze_String, true ) );
-    __Commands_TableAnalyze_JMenu.setToolTipText("Analyze table.");
-    __Commands_TableAnalyze_JMenu.add( __Commands_TableAnalyze_CompareTables_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableAnalyze_CompareTables_String, this ) );
- 
-    __Commands_Table_JMenu.add( __Commands_TableOutput_JMenu = new JMenu( __Commands_TableOutput_String, true ) );
-    __Commands_TableOutput_JMenu.setToolTipText("Output table.");
-    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToDataStore_JMenuItem =
-        new SimpleJMenuItem( __Commands_Datastore_WriteTableToDataStore_String, this ) );
-    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToDelimitedFile_String, this ) );
-    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToExcel_JMenuItem =
-        new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
-    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToHTML_JMenuItem =
-        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToHTML_String, this ) );
-    
-    __Commands_Table_JMenu.add( __Commands_TableRunning_JMenu = new JMenu( __Commands_TableRunning_String, true ) );
-    __Commands_TableRunning_JMenu.setToolTipText("Commands to integrate table data with processor properties.");
-    __Commands_TableRunning_JMenu.add( __Commands_TableRunning_SetPropertyFromTable_JMenuItem =
-         new SimpleJMenuItem( __Commands_TableRunning_SetPropertyFromTable_String, this ) );
-    __Commands_TableRunning_JMenu.add( __Commands_TableRunning_CopyPropertiesToTable_JMenuItem =
-         new SimpleJMenuItem( __Commands_TableRunning_CopyPropertiesToTable_String, this ) );
+    ui_InitGUIMenus_CommandsTable(menu_bar);
     
     // Plugin commands
     
@@ -11047,173 +11106,250 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Template_JMenu = new JMenu( __Commands_Template_String, true ) );
-    __Commands_Template_JMenu.setToolTipText("Process templates (to handle dynamic logic and data).");
+    //__Commands_Template_JMenu.setToolTipText("Process templates (to handle dynamic logic and data).");
     __Commands_Template_JMenu.add( __Commands_Template_ExpandTemplateFile_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_ExpandTemplateFile_String, this ) );
+    __Commands_Template_ExpandTemplateFile_JMenuItem.setToolTipText("Expand a template file by providing processing properties and other data.");
     __Commands_Template_JMenu.addSeparator();
     __Commands_Template_JMenu.add (__Commands_Template_Comments_Template_JMenuItem =
         new SimpleJMenuItem( __Commands_Template_Comments_Template_String, this ) );
+    __Commands_Template_Comments_Template_JMenuItem.setToolTipText("Insert a comment indicating that the commmand file is a template.");
     
     // Commands...Visualization Processing...
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Visualization_JMenu = new JMenu( __Commands_Visualization_String, true ) );
-    __Commands_Visualization_JMenu.setToolTipText("Automate creation of data visualization products.");
+    //__Commands_Visualization_JMenu.setToolTipText("Automate creation of data visualization products.");
     __Commands_Visualization_JMenu.add ( __Commands_Visualization_ProcessTSProduct_JMenuItem =
         new SimpleJMenuItem( __Commands_Visualization_ProcessTSProduct_String, this ) );
+    __Commands_Visualization_ProcessTSProduct_JMenuItem.setToolTipText("Process a time series product (*.tsp) file into a data product file (e.g., graph image).");
     __Commands_Visualization_JMenu.add ( __Commands_Visualization_ProcessRasterGraph_JMenuItem =
         new SimpleJMenuItem( __Commands_Visualization_ProcessRasterGraph_String, this ) );
+    __Commands_Visualization_ProcessRasterGraph_JMenuItem.setToolTipText("Process time series into a raster graph (heat map) data product file (e.g., graph image).");
     __Commands_Visualization_JMenu.addSeparator();
     __Commands_Visualization_JMenu.add( __Commands_Visualization_NewTreeView_JMenuItem =
         new SimpleJMenuItem( __Commands_Visualization_NewTreeView_String, this ) );
+    __Commands_Visualization_NewTreeView_JMenuItem.setToolTipText("Create a new tree view in the Results / View tab with hierarchy organizing time series.");
     
     // Commands...General...
 
 	__Commands_JMenu.addSeparator(); // Separate general commands from others
 	__Commands_JMenu.addSeparator(); // Results in double separator
+
+    // Commands / General / Comments
 	
     __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
-    __Commands_General_Comments_JMenu.setToolTipText("Insert comments.");
+    //__Commands_General_Comments_JMenu.setToolTipText("Insert comments.");
     __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Comment_String, this ) );
+    __Commands_General_Comments_Comment_JMenuItem.setToolTipText("Insert a # comment.");
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_StartComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_StartComment_String, this ) );
+    __Commands_General_Comments_StartComment_JMenuItem.setToolTipText("Insert a /* (start comment).");
     __Commands_General_Comments_JMenu.add( __Commands_General_Comments_EndComment_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Comments_EndComment_String, this ) );
+    __Commands_General_Comments_EndComment_JMenuItem.setToolTipText("Insert a */ (end comment).");
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
+    __Commands_General_Comments_ReadOnlyComment_JMenuItem.setToolTipText("Insert a #@readOnly comment - TSTool will not allow saving over the file.");
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RunDiscoveryFalseComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_RunDiscoveryFalseComment_String, this ) );
+    __Commands_General_Comments_RunDiscoveryFalseComment_JMenuItem.setToolTipText("Insert a #@runDiscovery False comment - TSTool will not run discovery when loading the file.");
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_TemplateComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_TemplateComment_String, this ) );
+    __Commands_General_Comments_TemplateComment_JMenuItem.setToolTipText("Insert a #@template comment - TSTool will treat the command file as a template to be expanded.");
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_EnabledComment_String, this ) );
+    __Commands_General_Comments_EnabledComment_JMenuItem.setToolTipText("Insert a #@enabled True|False comment - if False, TSTool will ignore when running as a test.");
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusFailureComment_String, this ) );
+    __Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem.setToolTipText("Insert a #@expectedStatus Failure comment - used with testing to indicate expected status.");
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusWarningComment_String, this ) );
+    __Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem.setToolTipText("Insert a #@expectedStatus Warning comment - used with testing to indicate expected status.");
     __Commands_General_Comments_JMenu.addSeparator();
-    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_Empty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Empty_String, this ) );
+    __Commands_General_Comments_Empty_JMenuItem.setToolTipText("Insert a empty (blank) line, to improve readability of the command file.");
+
+    // Commands / General / File Handling
     
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
-    __Commands_General_FileHandling_JMenu.setToolTipText("Manipulate files.");
+    //__Commands_General_FileHandling_JMenu.setToolTipText("Manipulate files.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_FTPGet_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_FTPGet_String, this ) );
+    __Commands_General_FileHandling_FTPGet_JMenuItem.setToolTipText("Retrieve a file from an FTP site and save as a local file.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_WebGet_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_WebGet_String, this ) );
+    __Commands_General_FileHandling_WebGet_JMenuItem.setToolTipText("Retrieve a file from an web site URL and save as a local file.");
     __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_AppendFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_AppendFile_String, this ) );
+    __Commands_General_FileHandling_AppendFile_JMenuItem.setToolTipText("Append a file to another file.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_CopyFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_CopyFile_String, this ) );
+    __Commands_General_FileHandling_CopyFile_JMenuItem.setToolTipText("Copy a file to a new file.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_ListFiles_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_ListFiles_String, this ) );
+    __Commands_General_FileHandling_ListFiles_JMenuItem.setToolTipText("List files in a folder and save in a table.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_RemoveFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_RemoveFile_String, this ) );
+    __Commands_General_FileHandling_RemoveFile_JMenuItem.setToolTipText("Remove a file.");
     __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_UnzipFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_UnzipFile_String, this ) );
+    __Commands_General_FileHandling_UnzipFile_JMenuItem.setToolTipText("Unzip a zip file.");
     __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_PrintTextFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_PrintTextFile_String, this ) );
+    __Commands_General_FileHandling_PrintTextFile_JMenuItem.setToolTipText("Print a text file to a printer.");
+    
+    // Commands / General / Logging and Messaging
     
 	__Commands_JMenu.add( __Commands_General_Logging_JMenu = new JMenu( __Commands_General_Logging_String, true ) );	
-	__Commands_General_Logging_JMenu.setToolTipText("Control logging (tracking).");
+	//__Commands_General_Logging_JMenu.setToolTipText("Control logging (tracking).");
 	__Commands_General_Logging_JMenu.add(__Commands_General_Logging_ConfigureLogging_JMenuItem =
 	    new SimpleJMenuItem(__Commands_General_Logging_ConfigureLogging_String, this ) );
+    __Commands_General_Logging_ConfigureLogging_JMenuItem.setToolTipText("Configure logging properties, useful for testing.");
 	__Commands_General_Logging_JMenu.add(__Commands_General_Logging_StartLog_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_StartLog_String, this ) );
+    __Commands_General_Logging_StartLog_JMenuItem.setToolTipText("(Re)start the log file.");
 	__Commands_General_Logging_JMenu.add (__Commands_General_Logging_SetDebugLevel_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_SetDebugLevel_String, this ) );
+    __Commands_General_Logging_SetDebugLevel_JMenuItem.setToolTipText("Set the logging level for debug messages.");
 	__Commands_General_Logging_JMenu.add ( __Commands_General_Logging_SetWarningLevel_JMenuItem =
 		new SimpleJMenuItem(__Commands_General_Logging_SetWarningLevel_String, this ) );
+    __Commands_General_Logging_SetWarningLevel_JMenuItem.setToolTipText("Set the logging level for warning messages.");
 	__Commands_General_Logging_JMenu.addSeparator();
     __Commands_General_Logging_JMenu.add ( __Commands_General_Logging_Message_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_Message_String, this ) );
+    __Commands_General_Logging_Message_JMenuItem.setToolTipText(
+    	"Output a message to the logging system, including log file, and set command status.");
     __Commands_General_Logging_JMenu.add ( __Commands_General_Logging_SendEmailMessage_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Logging_SendEmailMessage_String, this ) );
+    __Commands_General_Logging_SendEmailMessage_JMenuItem.setToolTipText("Send an email message.");
+
+    // Commands / General / Running and Properties
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
-    __Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
+    //__Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_ReadPropertiesFromFile_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_ReadPropertiesFromFile_String, this ) );
+    __Commands_General_Running_ReadPropertiesFromFile_JMenuItem.setToolTipText("Read processor properties from a file, various formats are supported.");
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetProperty_String,this));
+    __Commands_General_Running_SetProperty_JMenuItem.setToolTipText("Set a processor property to use as ${Property} in commands parameters.");
     if ( __source_NWSRFS_FS5Files_enabled ) {
         __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem =
-        new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String,this));
+        	new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_String,this));
+        __Commands_General_Running_SetPropertyFromNwsrfsAppDefault_JMenuItem.setToolTipText(
+        	"Set a processor property from National Weather Service (NWS) River Forecast System (RFS) application default property.");
     }
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromEnsemble_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromEnsemble_String,this));
+    __Commands_General_Running_SetPropertyFromEnsemble_JMenuItem.setToolTipText(
+    	"Set a processor property from a time series ensemble, to use as ${Property} in commands parameters.");
     __Commands_General_Running_JMenu.add (__Commands_General_Running_SetPropertyFromTimeSeries_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetPropertyFromTimeSeries_String,this));
+    __Commands_General_Running_SetPropertyFromTimeSeries_JMenuItem.setToolTipText(
+    	"Set a processor property from a time series, to use as ${Property} in commands parameters.");
     __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatDateTimeProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_FormatDateTimeProperty_String,this));
+    __Commands_General_Running_FormatDateTimeProperty_JMenuItem.setToolTipText("Format a date/time property to use as ${Property} in command parameters.");
     __Commands_General_Running_JMenu.add (__Commands_General_Running_FormatStringProperty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_FormatStringProperty_String,this));
+    __Commands_General_Running_FormatStringProperty_JMenuItem.setToolTipText("Format a string property to use as ${Property} in command parameters.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_WritePropertiesToFile_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_WritePropertiesToFile_String, this ) );
+    __Commands_General_Running_WritePropertiesToFile_JMenuItem.setToolTipText("Write processor properties to a file.");
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add (__Commands_General_Running_RunCommands_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_RunCommands_String,this));
+    __Commands_General_Running_RunCommands_JMenuItem.setToolTipText("Run a command file, useful for testing and implementing modular workflows.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunProgram_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunProgram_String,this));
+    __Commands_General_Running_RunProgram_JMenuItem.setToolTipText("Run a program given the command line.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
+    __Commands_General_Running_RunPython_JMenuItem.setToolTipText("Run a Python program.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunDSSUTL_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunDSSUTL_String,this));
+    __Commands_General_Running_RunDSSUTL_JMenuItem.setToolTipText("Run the US Army Corps DSSUTL program.");
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_If_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_If_String, this ) );
+    __Commands_General_Running_If_JMenuItem.setToolTipText("Insert If block start.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_EndIf_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_EndIf_String, this ) );
+    __Commands_General_Running_EndIf_JMenuItem.setToolTipText("Insert If block end.");
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_For_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_For_String, this ) );
+    __Commands_General_Running_For_JMenuItem.setToolTipText("Insert For block start.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_EndFor_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_EndFor_String, this ) );
+    __Commands_General_Running_EndFor_JMenuItem.setToolTipText("Insert EndFor block end.");
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
+    __Commands_General_Running_Exit_JMenuItem.setToolTipText("Exit command processing.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Wait_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Wait_String, this ) );
+    __Commands_General_Running_Wait_JMenuItem.setToolTipText("Wait for a time before resuming running the workflow.");
     __Commands_General_Running_JMenu.addSeparator();
 	__Commands_General_Running_JMenu.add(__Commands_General_Running_SetWorkingDir_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_SetWorkingDir_String, this ) );
-   __Commands_General_Running_JMenu.add(__Commands_General_Running_ProfileCommands_JMenuItem =
+    __Commands_General_Running_SetWorkingDir_JMenuItem.setToolTipText("Set the working directory - PHASING OUT.");
+    __Commands_General_Running_JMenu.add(__Commands_General_Running_ProfileCommands_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Running_ProfileCommands_String, this ) );
+    __Commands_General_Running_ProfileCommands_JMenuItem.setToolTipText(
+    	"Save additional information about each command's run time, to optimize software and workflows.");
+
+    // Commands / General / Test Processing
 
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
-    __Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
+    //__Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, this ) );
+    __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_JMenuItem.setToolTipText("Write time series properties to a file, facilitates testing.");
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesProperty_String, this ) );
+    __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem.setToolTipText("Write time series property to a file, facilitates testing - PHASING OUT.");
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareFiles_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_CompareFiles_String, this ) );
+    __Commands_General_TestProcessing_CompareFiles_JMenuItem.setToolTipText("Compare two files, used in testing.");
     __Commands_General_TestProcessing_JMenu.addSeparator();
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_String, this ) );
+    __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem.setToolTipText("Create test suite to run multiple testing command files.");
     __Commands_General_TestProcessing_JMenu.add (__Commands_General_TestProcessing_StartRegressionTestResultsReport_JMenuItem =
         new SimpleJMenuItem( __Commands_General_TestProcessing_StartRegressionTestResultsReport_String,this));
+    __Commands_General_TestProcessing_StartRegressionTestResultsReport_JMenuItem.setToolTipText("Start the regression test report, used to save test results.");
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_TestCommand_JMenuItem =
         new SimpleJMenuItem( __Commands_General_TestProcessing_TestCommand_String, this ) );
+    __Commands_General_TestProcessing_TestCommand_JMenuItem.setToolTipText("Command to test user interface features.");
 
     // Add the deprecated menu if any datastores are enabled that have deprecated commands...
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.addSeparator();
+
+    // Commands / General / Deprecated Commands
+
     __Commands_JMenu.add( __Commands_Deprecated_JMenu = new JMenu( __Commands_Deprecated_String, true ) );
     // Handle each datastore type separately under the main menu...
     if ( __source_HydroBase_enabled ) {
         __Commands_Deprecated_JMenu.setToolTipText("Commands that are slated for removal.");
         __Commands_Deprecated_JMenu.add (__Commands_Deprecated_OpenHydroBase_JMenuItem =
             new SimpleJMenuItem(__Commands_Deprecated_OpenHydroBase_String, this ) );
+        __Commands_Deprecated_OpenHydroBase_JMenuItem.setToolTipText(
+        	"Open a HydroBase database connection.  Use datastores to configure database connections.");
     }
     __Commands_Deprecated_JMenu.add ( __Commands_Deprecated_RunningAverage_JMenuItem =
         new SimpleJMenuItem(__Commands_Deprecated_RunningAverage_String, this ) );
+    __Commands_Deprecated_OpenHydroBase_JMenuItem.setToolTipText(
+     	"Calculate a running average time series.  Replaced by the RunningStatisticTimeSeries command.");
 }
 
 /**
@@ -11248,6 +11384,163 @@ private void ui_InitGUIMenus_CommandsPlugin ( JMenuBar menu_bar )
 }
 
 /**
+Initialize the GUI "Commands(Table)" menu.
+*/
+private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar )
+{
+    menu_bar.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
+	__Commands_Table_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
+	
+    __Commands_Table_JMenu.add( __Commands_TableCreate_JMenu = new JMenu( __Commands_TableCreate_String, true ) );
+    //__Commands_TableCreate_JMenu.setToolTipText("Create new tables.");
+    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_NewTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableCreate_NewTable_String, this ) );
+    __Commands_TableCreate_NewTable_JMenuItem.setToolTipText("Create a new table by defining column names and data types.");
+    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_CopyTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableCreate_CopyTable_String, this ) );
+    __Commands_TableCreate_CopyTable_JMenuItem.setToolTipText("Copy a table, with filters to copy a subset of columns and rows.");
+    __Commands_TableCreate_JMenu.addSeparator();
+    __Commands_TableCreate_JMenu.add( __Commands_TableCreate_FreeTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableCreate_FreeTable_String, this ) );
+    __Commands_TableCreate_FreeTable_JMenuItem.setToolTipText("Delete a table and free memory used by the table.");
+ 
+    __Commands_Table_JMenu.add( __Commands_TableRead_JMenu = new JMenu( __Commands_TableRead_String, true ) );
+    //__Commands_TableRead_JMenu.setToolTipText("Read tables.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDataStore_JMenuItem =
+        new SimpleJMenuItem( __Commands_Datastore_ReadTableFromDataStore_String, this ) );
+    __Commands_TableRead_ReadTableFromDataStore_JMenuItem.setToolTipText("Read a table from a database datastore.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDBF_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromDBF_String, this ) );
+    __Commands_TableRead_ReadTableFromDBF_JMenuItem.setToolTipText(
+    	"Read a table from a dBASE database binary file, with column properties take from database.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromDelimitedFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromDelimitedFile_String, this ) );
+    __Commands_TableRead_ReadTableFromDelimitedFile_JMenuItem.setToolTipText(
+    	"Read a table from a delimited file (CSV, tab-delimited, etc.).");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_ReadTableFromExcel_String, this ) );
+    __Commands_TableRead_ReadTableFromExcel_JMenuItem.setToolTipText("Read a table from an Excel worksheet, using Excel data types.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromFixedFormatFile_String, this ) );
+    __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem.setToolTipText("Read a table from a fixed-format text file with constant column widths.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromJSON_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromJSON_String, this ) );
+    __Commands_TableRead_ReadTableFromJSON_JMenuItem.setToolTipText("Read a table from a JSON text file.");
+    __Commands_TableRead_JMenu.add( __Commands_TableRead_ReadTableFromXML_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableRead_ReadTableFromXML_String, this ) );
+    __Commands_TableRead_ReadTableFromXML_JMenuItem.setToolTipText("Read a table from an XML text file.");
+
+    __Commands_Table_JMenu.add( __Commands_TableJoin_JMenu = new JMenu( __Commands_TableJoin_String, true ) );
+    //__Commands_TableJoin_JMenu.setToolTipText("Append/join tables.");
+    __Commands_TableJoin_JMenu.add( __Commands_TableJoin_AppendTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableJoin_AppendTable_String, this ) );
+    __Commands_TableJoin_AppendTable_JMenuItem.setToolTipText("Append one table to another (add rows from one to the other).");
+    __Commands_TableJoin_JMenu.add( __Commands_TableJoin_JoinTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableJoin_JoinTables_String, this ) );
+    __Commands_TableJoin_JoinTables_JMenuItem.setToolTipText("Join one table to another (add columns from one table to the other).");
+
+    __Commands_Table_JMenu.add( __Commands_TableTimeSeries_JMenu = new JMenu( __Commands_TableTimeSeries_String, true ) );
+    //__Commands_TableTimeSeries_JMenu.setToolTipText("Processing tables to/from time series.");
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_TimeSeriesToTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_TimeSeriesToTable_String, this ) );
+    __Commands_TableTimeSeries_TimeSeriesToTable_JMenuItem.setToolTipText("Convert time series to a table.");
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_TableToTimeSeries_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_TableToTimeSeries_String, this ) );
+    __Commands_TableTimeSeries_TableToTimeSeries_JMenuItem.setToolTipText("Convert a table to time series.");
+    __Commands_TableTimeSeries_JMenu.addSeparator();
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String, this ) );
+    __Commands_TableTimeSeries_CreateTimeSeriesEventTable_JMenuItem.setToolTipText("Create a table listing events from time series.");
+    __Commands_TableTimeSeries_JMenu.addSeparator();
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String, this ) );
+    __Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_JMenuItem.setToolTipText("Set time series properties from values in a table.");
+    __Commands_TableTimeSeries_JMenu.add( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String, this ) );
+    __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_JMenuItem.setToolTipText("Copy time series properties to values in a table.");
+    
+    __Commands_Table_JMenu.add( __Commands_TableManipulate_JMenu = new JMenu( __Commands_TableManipulate_String, true ) );
+    //__Commands_TableManipulate_JMenu.setToolTipText("Manipulate table contents.");
+    // Add commands that manipulate table columns...
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableColumns_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableColumns_String, this ) );
+    __Commands_TableManipulate_DeleteTableColumns_JMenuItem.setToolTipText("Delete columns from a table.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableColumn_String, this ) );
+    __Commands_TableManipulate_InsertTableColumn_JMenuItem.setToolTipText("Insert a column into a table.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_RenameTableColumns_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_RenameTableColumns_String, this ) );
+    __Commands_TableManipulate_RenameTableColumns_JMenuItem.setToolTipText("Rename a table's columns.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableColumn_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableColumn_String, this ) );
+    __Commands_TableManipulate_SplitTableColumn_JMenuItem.setToolTipText("Split a table's column into multiple columns.");
+    __Commands_TableManipulate_JMenu.addSeparator();
+    // Add commands that manipulate table rows...
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_DeleteTableRows_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_DeleteTableRows_String, this ) );
+    __Commands_TableManipulate_DeleteTableRows_JMenuItem.setToolTipText("Delete a table's rows based on criteria.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_InsertTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_InsertTableRow_String, this ) );
+    __Commands_TableManipulate_InsertTableRow_JMenuItem.setToolTipText("Insert a row into a table.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SortTable_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SortTable_String, this ) );
+    __Commands_TableManipulate_SortTable_JMenuItem.setToolTipText("Sort a table's rows.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SplitTableRow_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SplitTableRow_String, this ) );
+    __Commands_TableManipulate_SplitTableRow_JMenuItem.setToolTipText("Split a table's row into multiple rows.");
+    // Manipulation of data...
+    __Commands_TableManipulate_JMenu.addSeparator();
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableDateTime_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_FormatTableDateTime_String, this ) );
+    __Commands_TableManipulate_FormatTableDateTime_JMenuItem.setToolTipText("Format table date/time column, for example based on precision of date/time.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_FormatTableString_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_FormatTableString_String, this ) );
+    __Commands_TableManipulate_FormatTableString_JMenuItem.setToolTipText("Format a table string column values, for example format width and number of digits.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_ManipulateTableString_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_ManipulateTableString_String, this ) );
+    __Commands_TableManipulate_ManipulateTableString_JMenuItem.setToolTipText("Manipulate a table string column, for example concatenate string column values.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableValues_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
+    __Commands_TableManipulate_SetTableValues_JMenuItem.setToolTipText("Set table data values.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableMath_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_TableMath_String, this ) );
+    __Commands_TableManipulate_TableMath_JMenuItem.setToolTipText("Perform table math, for example adding column values.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_TableTimeSeriesMath_String, this ) );
+    __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem.setToolTipText("Perform table math involving column values and time series values.");
+    
+    __Commands_Table_JMenu.add( __Commands_TableAnalyze_JMenu = new JMenu( __Commands_TableAnalyze_String, true ) );
+    //__Commands_TableAnalyze_JMenu.setToolTipText("Analyze table.");
+    __Commands_TableAnalyze_JMenu.add( __Commands_TableAnalyze_CompareTables_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableAnalyze_CompareTables_String, this ) );
+    __Commands_TableAnalyze_CompareTables_JMenuItem.setToolTipText("Compare tables, useful for testing.");
+ 
+    __Commands_Table_JMenu.add( __Commands_TableOutput_JMenu = new JMenu( __Commands_TableOutput_String, true ) );
+    //__Commands_TableOutput_JMenu.setToolTipText("Output table.");
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToDataStore_JMenuItem =
+        new SimpleJMenuItem( __Commands_Datastore_WriteTableToDataStore_String, this ) );
+    __Commands_TableOutput_WriteTableToDataStore_JMenuItem.setToolTipText("Write a table to a database datastore.");
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToDelimitedFile_String, this ) );
+    __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem.setToolTipText("Write a table to a delimited file (CSV, tab-delimited, etc.).");
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToExcel_JMenuItem =
+        new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
+    __Commands_TableOutput_WriteTableToExcel_JMenuItem.setToolTipText("Write a table to an Excel worksheet.");
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToHTML_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToHTML_String, this ) );
+    __Commands_TableOutput_WriteTableToHTML_JMenuItem.setToolTipText("Write a table to an HTML text file, for web data visualization.");
+    
+    __Commands_Table_JMenu.add( __Commands_TableRunning_JMenu = new JMenu( __Commands_TableRunning_String, true ) );
+    //__Commands_TableRunning_JMenu.setToolTipText("Commands to integrate table data with processor properties.");
+    __Commands_TableRunning_JMenu.add( __Commands_TableRunning_SetPropertyFromTable_JMenuItem =
+         new SimpleJMenuItem( __Commands_TableRunning_SetPropertyFromTable_String, this ) );
+    __Commands_TableRunning_SetPropertyFromTable_JMenuItem.setToolTipText("Set a processor property from a table to use ${Property} in command parameters.");
+    __Commands_TableRunning_JMenu.add( __Commands_TableRunning_CopyPropertiesToTable_JMenuItem =
+         new SimpleJMenuItem( __Commands_TableRunning_CopyPropertiesToTable_String, this ) );
+    __Commands_TableRunning_CopyPropertiesToTable_JMenuItem.setToolTipText("Copy processor properties to a table.");
+}
+
+/**
 Define the popup menu for the commands area.  In some cases the words that are
 shown are different from the corresponding menu because the popup mixes submenus
 from different menus and also popup menus are typically more abbreviated.
@@ -11268,7 +11561,7 @@ private void ui_InitGUIMenus_CommandsPopup ()
 	__Commands_JPopupMenu.add( __CommandsPopup_Copy_JMenuItem =
         new SimpleJMenuItem ( "Copy", __Edit_CopyCommands_String,this));
 	__Commands_JPopupMenu.add( __CommandsPopup_Paste_JMenuItem=
-        new SimpleJMenuItem("Paste (After Selected)", __Edit_PasteCommands_String,this));
+        new SimpleJMenuItem("Paste (after last selected)", __Edit_PasteCommands_String,this));
 	__Commands_JPopupMenu.addSeparator();
 	__Commands_JPopupMenu.add(__CommandsPopup_Delete_JMenuItem=
 		new SimpleJMenuItem( __Edit_DeleteCommands_String, __Edit_DeleteCommands_String, this ) );
@@ -11307,40 +11600,48 @@ private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar )
 	menu_bar.add( __Edit_JMenu );	
 
 	__Edit_JMenu.add( __Edit_CutCommands_JMenuItem = new SimpleJMenuItem( __Edit_CutCommands_String, this ) );
+    __Edit_CutCommands_JMenuItem.setToolTipText("Cut (delete) selected commands, will be able to paste elsewhere in the commands.");
 	__Edit_CutCommands_JMenuItem.setEnabled ( false );
 
 	__Edit_JMenu.add( __Edit_CopyCommands_JMenuItem = new SimpleJMenuItem( __Edit_CopyCommands_String, this ) );
+    __Edit_CopyCommands_JMenuItem.setToolTipText("Copy selected commands, will be able to paste elsewhere in the commands.");
 	__Edit_CopyCommands_JMenuItem.setEnabled ( false );
 
 	__Edit_JMenu.add( __Edit_PasteCommands_JMenuItem = new SimpleJMenuItem( __Edit_PasteCommands_String, this ) );
+    __Edit_PasteCommands_JMenuItem.setToolTipText("Paste selected commands after last selected command.");
 	__Edit_PasteCommands_JMenuItem.setEnabled ( false );
 
 	__Edit_JMenu.addSeparator( );
 
 	__Edit_JMenu.add( __Edit_DeleteCommands_JMenuItem = new SimpleJMenuItem(__Edit_DeleteCommands_String, this) );
+    __Edit_DeleteCommands_JMenuItem.setToolTipText("Delete selected commands.");
 	__Edit_DeleteCommands_JMenuItem.setEnabled ( false );
 
 	__Edit_JMenu.addSeparator( );
 
-	__Edit_JMenu.add(
-		__Edit_SelectAllCommands_JMenuItem = new SimpleJMenuItem( __Edit_SelectAllCommands_String, this ) );
-	__Edit_JMenu.add(
-		__Edit_DeselectAllCommands_JMenuItem = new SimpleJMenuItem( __Edit_DeselectAllCommands_String, this ) );
+	__Edit_JMenu.add(__Edit_SelectAllCommands_JMenuItem = new SimpleJMenuItem( __Edit_SelectAllCommands_String, this ) );
+    __Edit_SelectAllCommands_JMenuItem.setToolTipText("Select all commands.");
+	__Edit_JMenu.add(__Edit_DeselectAllCommands_JMenuItem = new SimpleJMenuItem( __Edit_DeselectAllCommands_String, this ) );
+    __Edit_DeselectAllCommands_JMenuItem.setToolTipText("Deselect all commands.");
 
 	__Edit_JMenu.addSeparator( );
 
-	__Edit_JMenu.add(
-	    __Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(__Edit_CommandWithErrorChecking_String, this ) );
+	__Edit_JMenu.add(__Edit_CommandWithErrorChecking_JMenuItem = new SimpleJMenuItem(__Edit_CommandWithErrorChecking_String, this ) );
+    __Edit_CommandWithErrorChecking_JMenuItem.setToolTipText("Edit the command using the command editor.");
 
 	__Edit_JMenu.addSeparator( );
 	__Edit_JMenu.add(__Edit_ConvertSelectedCommandsToComments_JMenuItem=
 		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsToComments_String, this ) );
+    __Edit_ConvertSelectedCommandsToComments_JMenuItem.setToolTipText("Convert selected commands to # commments.");
 	__Edit_JMenu.add( __Edit_ConvertSelectedCommandsFromComments_JMenuItem =
 		new SimpleJMenuItem (__Edit_ConvertSelectedCommandsFromComments_String, this ) );
+    __Edit_ConvertSelectedCommandsFromComments_JMenuItem.setToolTipText("Convert selected # comments to commands.");
     __Edit_JMenu.add(__Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem=
         new SimpleJMenuItem (__Edit_ConvertTSIDTo_ReadTimeSeries_String, this ) );
+    __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem.setToolTipText("Convert selected TSID command to ReadTimeSeries command, provides more options.");
     __Edit_JMenu.add( __Edit_ConvertTSIDTo_ReadCommand_JMenuItem =
         new SimpleJMenuItem (__Edit_ConvertTSIDTo_ReadCommand_String, this ) );
+    __Edit_ConvertTSIDTo_ReadCommand_JMenuItem.setToolTipText("Convert selected TSID command to corresponding read command - UNDER DEVELOPMENT.");
 }
 
 /**
@@ -11353,15 +11654,17 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 	__File_JMenu.add( __File_New_JMenu=new JMenu(__File_New_String,true));
     __File_New_JMenu.add( __File_New_CommandFile_JMenuItem =
         new SimpleJMenuItem( __File_New_CommandFile_String, this ) );
+    __File_New_CommandFile_JMenuItem.setToolTipText("Create a new command file by clearing current commands.");
 
 	__File_JMenu.add( __File_Open_JMenu=new JMenu(__File_Open_String,true));
 
 	__File_Open_JMenu.add( __File_Open_CommandFile_JMenuItem =
 		new SimpleJMenuItem( __File_Open_CommandFile_String, this ) );
+    __File_Open_CommandFile_JMenuItem.setToolTipText("Open a command file, starting in the folder of the previously opened command file.");
     __File_Open_JMenu.add( __File_Open_CommandFileNoDiscovery_JMenuItem =
         new SimpleJMenuItem( __File_Open_CommandFileNoDiscovery_String, this ) );
     __File_Open_CommandFileNoDiscovery_JMenuItem.setToolTipText(
-        "For faster loading...use for large command files that will not be interactively edited.");
+        "Open a command file for faster loading ... use for large command files that will not be interactively edited.");
     __File_Open_JMenu.addSeparator();
     __File_Open_CommandFileRecent_JMenuItem = new JMenuItem[this.MAX_RECENT_FILES];
     for ( int i = 0; i < this.MAX_RECENT_FILES; i++ ) {
@@ -11386,6 +11689,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 		}
 		__File_Open_JMenu.add (
 			__File_Open_HydroBase_JMenuItem = new SimpleJMenuItem( __File_Open_HydroBase_String, this ) );
+		__File_Open_HydroBase_JMenuItem.setToolTipText(
+			"Open a State of Colorado HydroBase database connection (legacy input type rather than datastore).");
 	}
 	if ( __source_ReclamationHDB_enabled ) {
 		if ( !separator_added ) {
@@ -11394,23 +11699,29 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 		}
 		__File_Open_JMenu.add (
 			__File_Open_ReclamationHDB_JMenuItem = new SimpleJMenuItem( __File_Open_ReclamationHDB_String, this ) );
+		__File_Open_ReclamationHDB_JMenuItem.setToolTipText("Open a Reclamation HDB database datastore connection");
 	}
 
 	__File_JMenu.add( __File_Save_JMenu=new JMenu(__File_Save_String,true));
 	//__File_Save_Commands_JMenuItem = new SimpleJMenuItem(
 		//__File_Save_Commands_String,__File_Save_Commands_ActionString,this );
 	__File_Save_JMenu.add ( __File_Save_Commands_JMenuItem = new SimpleJMenuItem( __File_Save_Commands_String, this ) );
+    __File_Save_Commands_JMenuItem.setToolTipText("Save commands using the same name as the original.");
 	__File_Save_JMenu.add ( __File_Save_CommandsAs_JMenuItem = new SimpleJMenuItem( __File_Save_CommandsAs_String, this ) );
+    __File_Save_CommandsAs_JMenuItem.setToolTipText("Save commands using a new file name.");
 	__File_Save_JMenu.add ( __File_Save_CommandsAsVersion9_JMenuItem =
 	   new SimpleJMenuItem( __File_Save_CommandsAsVersion9_String, this ) );
-	__File_Save_CommandsAsVersion9_JMenuItem.setToolTipText ( "Save old TS Alias = Command(...) syntax" );
+    __File_Save_CommandsAsVersion9_JMenuItem.setToolTipText("Save commands using a new file name, using Version 9 syntax.");
+	__File_Save_CommandsAsVersion9_JMenuItem.setToolTipText ( "Save commands using a new file name, using old TS Alias = Command(...) syntax" );
 	__File_Save_JMenu.addSeparator();
 	__File_Save_JMenu.add (	__File_Save_TimeSeriesAs_JMenuItem =
         new SimpleJMenuItem(__File_Save_TimeSeriesAs_String, this ) );
+    __File_Save_TimeSeriesAs_JMenuItem.setToolTipText("Save time series results in a file, for commonly-used formats.");
 
 	__File_JMenu.add( __File_Print_JMenu=new JMenu(__File_Print_String,true));
     __File_Print_JMenu.add ( __File_Print_Commands_JMenuItem =
         new SimpleJMenuItem( __File_Print_Commands_String,__File_Print_Commands_String, this ) );
+    __File_Print_Commands_JMenuItem.setToolTipText("Print the commands.");
 
 	__File_JMenu.addSeparator( );
 
@@ -11418,23 +11729,18 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 	if ( __source_DIADvisor_enabled ) {
 		__File_Properties_JMenu.add (__File_Properties_DIADvisor_JMenuItem =
 			new SimpleJMenuItem(__File_Properties_DIADvisor_String, this ) );
+		__File_Properties_DIADvisor_JMenuItem.setToolTipText("View properties for DIADvisor database.");
 	}
 
 	__File_Properties_JMenu.add(__File_Properties_CommandsRun_JMenuItem =
         new SimpleJMenuItem( __File_Properties_CommandsRun_String, this ) );
+    __File_Properties_CommandsRun_JMenuItem.setToolTipText("View properties for the most recent command file run.");
 	__File_Properties_JMenu.add( __File_Properties_TSToolSession_JMenuItem =
         new SimpleJMenuItem( __File_Properties_TSToolSession_String, this ) );
+    __File_Properties_TSToolSession_JMenuItem.setToolTipText("View properties for the current TSTool session.");
 
 	boolean seperator_added = false;
 
-	if ( __source_ColoradoSMS_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add ( __File_Properties_ColoradoSMS_JMenuItem =
-			new SimpleJMenuItem( __File_Properties_ColoradoSMS_String, this ) );
-	}
 	if ( __source_HydroBase_enabled ) {
 		if ( !seperator_added ) {
 			__File_Properties_JMenu.addSeparator ();
@@ -11442,21 +11748,13 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 		}
 		__File_Properties_JMenu.add ( __File_Properties_HydroBase_JMenuItem =
 			new SimpleJMenuItem( __File_Properties_HydroBase_String, this ) );
-	}
-
-	if ( __source_NWSRFS_FS5Files_enabled ) {
-		if ( !seperator_added ) {
-			__File_Properties_JMenu.addSeparator ();
-			seperator_added = true;
-		}
-		__File_Properties_JMenu.add ( __File_Properties_NWSRFSFS5Files_JMenuItem =
-			new SimpleJMenuItem ( __File_Properties_NWSRFSFS5Files_String, this ) );
-		__File_Properties_NWSRFSFS5Files_JMenuItem.setEnabled ( false );
+		__File_Properties_HydroBase_JMenuItem.setToolTipText("View Colorado HydroBae properties.");
 	}
 
 	__File_JMenu.addSeparator( );
 	__File_JMenu.add ( __File_SetWorkingDirectory_JMenuItem =
 		new SimpleJMenuItem( __File_SetWorkingDirectory_String, this ));
+	__File_SetWorkingDirectory_JMenuItem.setToolTipText("Set working directory (folder) - PHASING OUT.");
 
 	// Add a test menu...
 
@@ -11477,7 +11775,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 	args = null;
 
 	__File_JMenu.addSeparator( );
-	__File_JMenu.add( new SimpleJMenuItem( __File_Exit_String, this ) );
+	__File_JMenu.add( __File_Exit_JMenuItem = new SimpleJMenuItem( __File_Exit_String, this ) );
+	__File_Exit_JMenuItem.setToolTipText("Exit TSTool, with option to save unsaved work.");
 }
 
 /**
@@ -11725,21 +12024,26 @@ Initialize the GUI "Run" menu.
 */
 private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 {	__Run_JMenu = new JMenu( "Run", true);
+	__Run_JMenu.setToolTipText("Run commands.  See also Run Selected Commands and Run All Commands buttons.");
 	menu_bar.add ( __Run_JMenu );	
 	__Run_JMenu.add( __Run_AllCommandsCreateOutput_JMenuItem =
 		new SimpleJMenuItem(__Run_AllCommandsCreateOutput_String,this));
+	__Run_AllCommandsCreateOutput_JMenuItem.setToolTipText("Run all commands and create output files.");
 	__Run_JMenu.add( __Run_AllCommandsIgnoreOutput_JMenuItem =
 		new SimpleJMenuItem(__Run_AllCommandsIgnoreOutput_String,this));
+	__Run_AllCommandsIgnoreOutput_JMenuItem.setToolTipText("Run all commands and ignore creating output files.");
 	__Run_JMenu.add( __Run_SelectedCommandsCreateOutput_JMenuItem =
 		new SimpleJMenuItem(__Run_SelectedCommandsCreateOutput_String,this));
+	__Run_SelectedCommandsCreateOutput_JMenuItem.setToolTipText("Run selected commands and create output files.");
 	__Run_JMenu.add( __Run_SelectedCommandsIgnoreOutput_JMenuItem =
 		new SimpleJMenuItem(__Run_SelectedCommandsIgnoreOutput_String,this));
+	__Run_SelectedCommandsIgnoreOutput_JMenuItem.setToolTipText("Run selected commands and ignore creating output files.");
 	__Run_JMenu.add ( __Run_CancelCommandProcessing_JMenuItem =
 		new SimpleJMenuItem(__Run_CancelCommandProcessing_String,this));
-	__Run_CancelCommandProcessing_JMenuItem.setToolTipText("Tell the processor to stop when the current command completes running.");
+	__Run_CancelCommandProcessing_JMenuItem.setToolTipText("Stop processing commands after the current command completes running.");
 	__Run_JMenu.add ( __Run_CancelCommandProcessingKill_JMenuItem =
 	new SimpleJMenuItem(__Run_CancelCommandProcessingKill_String,this));
-	__Run_CancelCommandProcessingKill_JMenuItem.setToolTipText("Interrupt processing immediately.");
+	__Run_CancelCommandProcessingKill_JMenuItem.setToolTipText("Interrupt processing immediately, may result in lost data.");
 	/* TODO SAM 2009-04-10 Evaluate whether to allow this - the problem is that although the command processor
 	 * is run on a thread, the individual commands are not and therefore if a process hangs, it is hung in the
 	 * processor and the Process instances cannot be retrieved
@@ -11749,11 +12053,14 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 	__Run_JMenu.addSeparator();
 	__Run_JMenu.add(__Run_CommandsFromFile_JMenuItem =
 	    new SimpleJMenuItem ( __Run_CommandsFromFile_String, this ));
+	__Run_CommandsFromFile_JMenuItem.setToolTipText("Run commands in selected commmand file (will not load into TSTool main window).");
 	__Run_JMenu.addSeparator();
 	__Run_JMenu.add ( __Run_ProcessTSProductPreview_JMenuItem =
 		new SimpleJMenuItem(__Run_ProcessTSProductPreview_String,this));
+	__Run_ProcessTSProductPreview_JMenuItem.setToolTipText("Process a time series product file (*.tsp) and preview the resulting product).");
 	__Run_JMenu.add ( __Run_ProcessTSProductOutput_JMenuItem =
 		new SimpleJMenuItem(__Run_ProcessTSProductOutput_String,this));
+	__Run_ProcessTSProductOutput_JMenuItem.setToolTipText("Process a time series product file (*.tsp) to create output, but do not preview).");
 }
 
 /**
