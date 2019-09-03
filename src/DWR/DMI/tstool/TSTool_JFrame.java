@@ -11832,50 +11832,6 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	}
     __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
-	/* TODO SAM 2004-05-24 Help index features are not working as well now that
-	documentation is huge and PDF is available.  Rely on tool tips and PDF
-	and not extensive on-line help.
-	__Help_JMenu.addSeparator();
-	// Initialize help to run-time values...
-	// Specify URL end parts for documentation home and help index file...
-	// To debug the help file...
-	Vector helphome = new Vector();
-	if (	(__license_manager == null) ||
-		__license_manager.getLicenseType().equalsIgnoreCase("CDSS") ) {
-		// Default behavior is CDSS...
-		// Development - do not leave uncommented for an official
-		// release...
-		//helphome.addElement (
-		//"J:/crdss/dmi/apps/TSTool/doc/UserManual/05.03.00/html");
-		helphome.addElement ( HBParse.getHome() +
-				"\\doc\\TSTool\\UserManual" );
-		helphome.addElement ( "http://cdss.state.co.us/manuals/TSTool");
-	}
-	else {	// Assume an RTi installation and look for help in RTi
-		// locations (home will be something like
-		// C:\Program Files\RTi\RiverTrak...
-		helphome.addElement ( HBParse.getHome() +
-				"\\doc\\TSTool\\UserManual" );
-		helphome.addElement(
-		"C:\\Program Files\\RTi\\RiverTrak\\doc\\TSTool\\UserManual" );
-		helphome.addElement(
-		"D:\\Program Files\\RTi\\RiverTrak\\doc\\TSTool\\UserManual" );
-		// Need to get TSTool documentation on the RTi web site once all
-		// the licensing issues are resolved...
-	}
-	URLHelp.initialize ( null, helphome, "tstool_help_index.txt" );
-	helphome = null;
-	// Now hook in the help system.  For some reason the code does not
-	// seem to be synchronizing...
-	try {	_help_index_gui = new URLHelpGUI ( 0, "TSTool Help");
-		_help_index_gui.attachMainMenu ( _help_JMenu );
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error setting up help system:" );
-		Message.printWarning ( 2, routine, e );
-	}
-*/
 }
 
 /**
@@ -23252,7 +23208,7 @@ private void uiAction_ViewCommandFileDiff () {
 		String file1Path = this.__commandFileName;
 		if ( file1Path == null ) {
 	         new ResponseJDialog ( this, IOUtil.getProgramName(),
-                  "No command file was previously read or saved.  Cannot show difference.",
+                  "No command file was previously read or saved.  The commands being edited are new.",
                   ResponseJDialog.OK).response();
 	         return;
 		}
