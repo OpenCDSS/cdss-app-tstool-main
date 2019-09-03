@@ -11348,7 +11348,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     }
     __Commands_Deprecated_JMenu.add ( __Commands_Deprecated_RunningAverage_JMenuItem =
         new SimpleJMenuItem(__Commands_Deprecated_RunningAverage_String, this ) );
-    __Commands_Deprecated_OpenHydroBase_JMenuItem.setToolTipText(
+    __Commands_Deprecated_RunningAverage_JMenuItem.setToolTipText(
      	"Calculate a running average time series.  Replaced by the RunningStatisticTimeSeries command.");
 }
 
