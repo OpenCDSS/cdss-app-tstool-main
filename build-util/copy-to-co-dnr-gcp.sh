@@ -95,8 +95,9 @@ syncFiles() {
 		if [ -f "$installerFile32" ]; then
 			echo ""
 			echo "Will copy current development version to latest on GCP..."
-			echo "source:       $installerFile32"
-			echo "destination:  ${gsFileLatest32}"
+			echo "  source:       $installerFile32"
+			echo "  destination:  ${gsFileLatest32}"
+			echo "If 'n' is entered, the index file can still be regenerated."
 			read -p "Continue with copy [y/n/q]? " answer
 			if [ "$answer" = "y" ]; then
 				gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileLatest32}
@@ -111,8 +112,9 @@ syncFiles() {
 	if [ -f "$installerFile32" ]; then
 		echo ""
 		echo "Will copy current development version to same version on GCP..."
-		echo "source:       $installerFile32"
-		echo "destination:  ${gsFileVersion32}"
+		echo "  source:       $installerFile32"
+		echo "  destination:  ${gsFileVersion32}"
+		echo "If 'n' is entered, the index file can still be regenerated."
 		read -p "Continue with copy [y/n/q]? " answer
 		if [ "$answer" = "y" ]; then
 			echo "gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileVersion32}"

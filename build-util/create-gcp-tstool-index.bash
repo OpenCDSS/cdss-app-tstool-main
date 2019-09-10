@@ -223,6 +223,7 @@ uploadIndexHtmlFile_Table() {
 	downloadOsLong=$2
 	# The following allows sorting the list in reverse order
 	indexHtmlTmpCatalogFile="/tmp/$USER-tstool-catalog-${downloadOs}.html"
+	indexHtmlTmpCatalogSortedFile="/tmp/$USER-tstool-catalog-sorted-${downloadOs}.html"
 	if [ "${downloadOs}" = "win" ]; then
 		downloadPattern="exe"
 	elif [ "${downloadOs}" = "lin" ]; then
@@ -309,10 +310,14 @@ uploadIndexHtmlFile_Table() {
 				#}
 				printf "<tr><td><a href=\"%s\"><code>%s</code></a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n", downloadFileUrl, downloadFile, downloadFileProduct, downloadFileVersion, downloadFileDateTime, downloadFileSize, downloadFileOs, docUserHtml, docDevHtml, docApiUrl
 			}' > $indexHtmlTmpCatalogFile
-			# The above is the table body, but needs to be sorted
-			echo "See unsorted table content in:  ${indexHtmlTmpCatalogFile}"
 	fi
-	cat $indexHtmlTmpCatalogFile | sort -r >> $indexHtmlTmpFile
+	# The above is the table body, but needs to be sorted in reverse order so most recent version is listed first
+	cat $indexHtmlTmpCatalogFile | sort -r > $indexHtmlTmpCatalogSortedFile
+	echo "See sorted table content in:  ${indexHtmlTmpCatalogSortedFile}"
+	# TODO smalers 2019-09-10 need to sort so "dev" releases are listed after non-dev releases
+	echo "If necessary, edit the file to change sort order."
+	read -p "Continue with index.html creation [press return]? " answer
+	cat $indexHtmlTmpCatalogSortedFile  >> $indexHtmlTmpFile
 	echo '</table>' >> $indexHtmlTmpFile
 }
 
