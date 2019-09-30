@@ -1510,6 +1510,7 @@ JMenuItem
 	__Commands_General_Running_RunCommands_JMenuItem = null,
 	__Commands_General_Running_RunProgram_JMenuItem = null,
     __Commands_General_Running_RunPython_JMenuItem = null,
+    __Commands_General_Running_RunR_JMenuItem = null,
     __Commands_General_Running_RunDSSUTL_JMenuItem = null,
     __Commands_General_Running_If_JMenuItem = null,
     __Commands_General_Running_EndIf_JMenuItem = null,
@@ -2069,6 +2070,7 @@ private String
     __Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	__Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     __Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
+    __Commands_General_Running_RunR_String = TAB + "RunR()... <run an R script>",
     __Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
     __Commands_General_Running_If_String = TAB + "If() <check a condition and start a block of commands>",
     __Commands_General_Running_EndIf_String = TAB + "EndIf() <end an If() block>",
@@ -3623,7 +3625,7 @@ public void commandProgress ( int istep, int nstep, Command command, float perce
 // beyond basic command list insert/delete/update.
 
 /**
-Kill all processes that are still running for RunProgram(), RunDSSUTL(), and RunPython() commands.
+Kill all processes that are still running for RunProgram(), RunDSSUTL(), RunPython(), and RunR commands.
 This may be needed because a process is hung (e.g., waiting for input).
 */
 private void commandProcessor_CancelCommandProcessesExternal ()
@@ -11274,6 +11276,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunPython_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunPython_String,this));
     __Commands_General_Running_RunPython_JMenuItem.setToolTipText("Run a Python program.");
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunR_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_RunR_String,this));
+    __Commands_General_Running_RunR_JMenuItem.setToolTipText("Run an R script.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_RunDSSUTL_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_RunDSSUTL_String,this));
     __Commands_General_Running_RunDSSUTL_JMenuItem.setToolTipText("Run the US Army Corps DSSUTL program.");
@@ -14218,6 +14223,9 @@ throws Exception
 	}
     else if (command.equals( __Commands_General_Running_RunPython_String) ) {
         commandList_EditCommand ( __Commands_General_Running_RunPython_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_Running_RunR_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_RunR_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_Running_RunDSSUTL_String) ) {
         commandList_EditCommand ( __Commands_General_Running_RunDSSUTL_String, null, CommandEditType.INSERT );
