@@ -1526,6 +1526,8 @@ JMenu
     __Commands_General_TestProcessing_JMenu = null;
 JMenuItem
     __Commands_General_TestProcessing_CompareFiles_JMenuItem = null,
+    __Commands_General_TestProcessing_CompareTables_JMenuItem = null,
+    __Commands_General_TestProcessing_CompareTimeSeries_JMenuItem = null,
     __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_JMenuItem = null,
     __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem = null,
     //-- separator ---
@@ -11322,8 +11324,15 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_WriteTimeSeriesProperty_String, this ) );
     __Commands_General_TestProcessing_WriteTimeSeriesProperty_JMenuItem.setToolTipText("Write time series property to a file, facilitates testing - PHASING OUT.");
+    __Commands_General_TestProcessing_JMenu.addSeparator();
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareFiles_JMenuItem =
         new SimpleJMenuItem(__Commands_General_TestProcessing_CompareFiles_String, this ) );
+    // The following menu is also in Tables menu
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareTables_JMenuItem =
+        new SimpleJMenuItem(__Commands_TableAnalyze_CompareTables_String, this ) );
+    // The following menu is also in Time Series menu
+    __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CompareTimeSeries_JMenuItem =
+        new SimpleJMenuItem(__Commands_Analyze_CompareTimeSeries_String, this ) );
     __Commands_General_TestProcessing_CompareFiles_JMenuItem.setToolTipText("Compare two files, used in testing.");
     __Commands_General_TestProcessing_JMenu.addSeparator();
     __Commands_General_TestProcessing_JMenu.add ( __Commands_General_TestProcessing_CreateRegressionTestCommandFile_JMenuItem =
@@ -23607,7 +23616,8 @@ private class ActionListener_ResultsEnsembles implements ActionListener
 	    				// Seed the processor with all the time series from the original processor
 	    				// so it can be found for subsequent processing
 	    				Message.printStatus(2,"","Running internal processor with ensemble time series");
-	    				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
+	    				@SuppressWarnings("unchecked")
+						List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
 	    				for ( TS ts2 : tslist ) {
 	    					tslist0.add(ts2);
 	    				}
