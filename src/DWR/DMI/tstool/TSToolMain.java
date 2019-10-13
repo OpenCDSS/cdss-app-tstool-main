@@ -1899,6 +1899,15 @@ private static void readConfigFile ( String configFile )
                 	IOUtil.setProp("DiffProgram", prop.getValue());
                 }
             }
+            // Override with user properties
+            TSToolSession session = TSToolSession.getInstance();
+            String userPropValue = session.getUserConfigPropValue ( "TSTool.DiffProgram" );
+            if ( (userPropValue == null) || userPropValue.isEmpty() ) {
+            	userPropValue = session.getUserConfigPropValue ( "DiffProgram" );
+            }
+            if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+               	IOUtil.setProp("DiffProgram", userPropValue );
+            }
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine,
