@@ -7272,7 +7272,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoHydroBaseRest_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoHydroBaseRestEnabled" );
-    String propValueUser = session.getUserConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
+    String propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoHydroBaseRestEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7285,7 +7288,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoSMS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "ColoradoSMSEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoSMSEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "ColoradoSMSEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7299,7 +7305,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoWaterHBGuest_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7313,7 +7322,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ColoradoWaterSMS_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "ColoradoWaterSMSEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "ColoradoWaterSMSEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7326,7 +7338,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DateValue_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.DateValueEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "DateValueEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.DateValueEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "DateValueEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7339,7 +7354,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DelftFews_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.DelftFewsEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "DelftFewsEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.DelftFewsEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "DelftFewsEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7352,7 +7370,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_DIADvisor_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.DIADvisorEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "DIADvisorEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.DIADvisorEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "DIADvisorEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7371,7 +7392,10 @@ private void ui_EnableInputTypesForConfiguration ()
     else {
         __source_HECDSS_enabled = true;
         propValue = TSToolMain.getPropValue ( "TSTool.HEC-DSSEnabled" );
-        propValueUser = session.getUserConfigPropValue ( "HEC-DSSEnabled" );
+        propValueUser = session.getUserConfigPropValue ( "TSTool.HEC-DSSEnabled" );
+        if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+        	propValueUser = session.getUserConfigPropValue ( "HEC-DSSEnabled" );
+        }
         if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
         	// User configuration value takes precedence
         	propValue = propValueUser;
@@ -7390,7 +7414,11 @@ private void ui_EnableInputTypesForConfiguration ()
         // Older...
         propValue = TSToolMain.getPropValue ("TSTool.HydroBaseCOEnabled" );
     }
-    propValueUser = session.getUserConfigPropValue ( "HydroBaseEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.HydroBaseEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	// Try alternative
+    	propValueUser = session.getUserConfigPropValue ( "HydroBaseEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7424,7 +7452,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_MODSIM_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.MODSIMEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "MODSIMEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.MODSIMEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "MODSIMEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7437,7 +7468,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSCard_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSCardEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "NWSCardEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.NWSCardEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "NWSCardEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7450,7 +7484,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSRFS_ESPTraceEnsemble_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "NWSRFSESPTraceEnsembleEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.NWSRFSESPTraceEnsembleEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "NWSRFSESPTraceEnsembleEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7467,7 +7504,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_NWSRFS_FS5Files_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "NWSRFSFS5FilesEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.NWSRFSFS5FilesEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "NWSRFSFS5FilesEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7493,7 +7533,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RCCACIS_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.RCCACISEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "RCCACISEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.RCCACISEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "RCCACISEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7506,7 +7549,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ReclamationHDB_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "ReclamationHDBEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.ReclamationHDBEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "ReclamationHDBEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7519,7 +7565,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_ReclamationPisces_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationPiscesEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "ReclamationPiscesEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.ReclamationPiscesEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "ReclamationPiscesEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7532,7 +7581,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_RiverWare_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.RiverWareEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "RiverWareEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.RiverWareEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "RiverWareEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7545,7 +7597,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_SHEF_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.SHEFEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "SHEFEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.SHEFEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "SHEFEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7558,7 +7613,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateCU_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateCUEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "StateCUEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.StateCUEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "StateCUEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7571,7 +7629,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateCUB_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateCUBEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "StateCUBEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.StateCUBEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "StateCUBEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7584,7 +7645,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateMod_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateModEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "StateModEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.StateModEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "StateModEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7597,7 +7661,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_StateModB_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.StateModBEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "StateModBEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.StateModBEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "StateModBEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7610,7 +7677,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisDaily_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisDailyEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "UsgsNwisDailyEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.UsgsNwisDailyEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "UsgsNwisDailyEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7623,7 +7693,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisGroundwater_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisGroundwaterEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.UsgsNwisGroundwaterEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "UsgsNwisGroundwaterEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7636,7 +7709,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_UsgsNwisInstantaneous_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisInstantaneousEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.UsgsNwisInstantaneousEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "UsgsNwisInstantaneousEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7650,7 +7726,10 @@ private void ui_EnableInputTypesForConfiguration ()
     __source_UsgsNwisRdb_enabled = true;
     // New...
     propValue = TSToolMain.getPropValue ( "TSTool.UsgsNwisRdbEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "UsgsNwisRdbEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.UsgsNwisRdbEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "UsgsNwisRdbEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7667,7 +7746,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_WaterML_enabled = true;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterMLEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "WaterMLEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.WaterMLEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "WaterMLEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
@@ -7680,7 +7762,10 @@ private void ui_EnableInputTypesForConfiguration ()
 
     __source_WaterOneFlow_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.WaterOneFlowEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "WaterOneFlowEnabled" );
+    propValueUser = session.getUserConfigPropValue ( "TSTool.WaterOneFlowEnabled" );
+    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
+    	propValueUser = session.getUserConfigPropValue ( "WaterOneFlowEnabled" );
+    }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
     	// User configuration value takes precedence
     	propValue = propValueUser;
