@@ -19029,7 +19029,10 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
 		Message.printStatus ( 2, routine, "Initial directory for browsing:  \"" + initial_dir + "\"" );
 		JFileChooser fc = JFileChooserFactory.createJFileChooser ( initial_dir );
 		fc.setDialogTitle("Open " + IOUtil.getProgramName() + " Command File");
-		SimpleFileFilter sff = new SimpleFileFilter("TSTool", "TSTool Command File");
+		List<String> extensionList = new ArrayList<>();
+		extensionList.add("tstool");
+		extensionList.add("TSTool");
+		SimpleFileFilter sff = new SimpleFileFilter(extensionList, "TSTool Command File");
 		fc.addChoosableFileFilter(sff);
 		fc.setFileFilter(sff);
 		if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -23408,12 +23411,16 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		// Default name...
 		File default_file = new File("commands.TSTool");
 		fc.setSelectedFile ( default_file );
-		SimpleFileFilter sff = new SimpleFileFilter("TSTool","TSTool Command File");
+		List<String> extensions = new ArrayList<>();
+		extensions.add("tstool");
+		extensions.add("TSTool");
+		SimpleFileFilter sff = new SimpleFileFilter(extensions,"TSTool Command File");
 		fc.setFileFilter(sff);
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			directory = fc.getSelectedFile().getParent();
 			file = fc.getSelectedFile().getPath();
-			IOUtil.enforceFileExtension ( file, "TSTool" );
+			// Enforce extension
+			file = IOUtil.enforceFileExtension ( file, extensions );
 			ui_SetDir_LastCommandFileOpened( directory );
 		}		
 		else {

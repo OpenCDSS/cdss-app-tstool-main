@@ -728,6 +728,11 @@ public static void main ( String args[] )
 
 	try {
 	// Main try...
+		
+	// Turn on POI (Excel integration) logging, used for troubleshooting
+	// - see:  https://poi.apache.org/components/logging.html
+	// - TODO smalers 2019-10-07 Need to enable in limited way to troubleshoot
+	//System.setProperty("org.apache.poi.util.POILogger", "org.apache.poi.util.CommonsLogger" );
 
 	// TSTool session properties are a singleton
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args ); // Do first, needed by session to find local files, plugins, etc.

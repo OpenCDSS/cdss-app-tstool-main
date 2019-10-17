@@ -346,7 +346,10 @@ jreFolder=""
 
 # Self-extracting file
 # - use makeself convention of using 'run'
-selfExtractingShFile="${tmpDistFolder}/TSTool-linux-${tstoolVersion}.run"
+# - the installer filename is of format:
+#      TSTool-linux-13.03.00.dev.YYMMDDHHMM.run
+timeStamp=$(date '+%y%m%d%H%M')
+selfExtractingShFile="${tmpDistFolder}/TSTool-linux-${tstoolVersion}.${timeStamp}.run"
 
 echo ""
 echo "Original TSTool files are in folder: ${installFolder}"
