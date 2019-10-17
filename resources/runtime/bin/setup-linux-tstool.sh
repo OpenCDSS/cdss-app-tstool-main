@@ -219,11 +219,12 @@ promptForInstallFolder() {
 	while [ "1" = "1" ]; do
 		echo ""
 		echo "Indicate the installation folder."
-		echo "Default is:  ${defaultInstallFolder}"
+		echo "Default system folder is:  ${defaultSystemInstallFolder}"
+		echo "User install folder suggestion:  ${defaultUserInstallFolder}"
 		echo "Install folder [return to use default/q]:"
 		read answer
 		if [ -z "$answer" -o "$answer" = "" ]; then
-			installFolder=${defaultInstallFolder}
+			installFolder=${defaultSystemInstallFolder}
 			break
 		elif [ "$answer" = "q" ]; then
 			exit 0
@@ -252,8 +253,9 @@ scriptName=$(basename $0)
 tmpFolderWithPath=$(dirname $scriptFolder)
 # Temporary folder without path
 tmpFolderWithoutPath=$(basename $tmpFolderWithPath)
-# Default install folder
-defaultInstallFolder="/opt/${tmpFolderWithoutPath}"
+# Default install folders
+defaultSystemInstallFolder="/opt/${tmpFolderWithoutPath}"
+defaultUserInstallFolder="$HOME/${tmpFolderWithoutPath}"
 
 echo "Setup script folder: ${scriptFolder}"
 echo "Tmp install folder: ${tmpFolder}"
