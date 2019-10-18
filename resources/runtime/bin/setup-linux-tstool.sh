@@ -221,7 +221,7 @@ promptForInstallFolder() {
 		echo "Indicate the installation folder."
 		echo "Default system folder is:  ${defaultSystemInstallFolder}"
 		echo "User install folder suggestion:  ${defaultUserInstallFolder}"
-		echo "Install folder [return to use default/q]:"
+		echo "Install folder [return to use default system folder/q]:"
 		read answer
 		if [ -z "$answer" -o "$answer" = "" ]; then
 			installFolder=${defaultSystemInstallFolder}
