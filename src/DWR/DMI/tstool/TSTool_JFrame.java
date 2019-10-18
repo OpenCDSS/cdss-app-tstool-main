@@ -23321,7 +23321,7 @@ private void uiAction_ViewCommandFileDiff () {
 		String tempCommandFile = IOUtil.tempFileName();
 		File f = new File(tempCommandFile);
 		String tempFolder = f.getParent();
-		String file2Path = tempFolder + File.separator + "TSTool-commands.TSTool";
+		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
 		try {
 			uiAction_WriteCommandFile_Helper(file2Path, false);
 		}
@@ -23409,7 +23409,7 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		JFileChooser fc = JFileChooserFactory.createJFileChooser(ui_GetDir_LastCommandFileOpened() );
 		fc.setDialogTitle("Save Command File");
 		// Default name...
-		File default_file = new File("commands.TSTool");
+		File default_file = new File("commands.tstool");
 		fc.setSelectedFile ( default_file );
 		List<String> extensions = new ArrayList<>();
 		extensions.add("tstool");
