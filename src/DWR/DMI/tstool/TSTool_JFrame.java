@@ -1491,6 +1491,7 @@ JMenuItem
     __Commands_General_FileHandling_WebGet_JMenuItem = null,
     __Commands_General_FileHandling_AppendFile_JMenuItem = null,
     __Commands_General_FileHandling_CopyFile_JMenuItem = null,
+    __Commands_General_FileHandling_FormatFile_JMenuItem = null,
     __Commands_General_FileHandling_ListFiles_JMenuItem = null,
     __Commands_General_FileHandling_RemoveFile_JMenuItem = null,
     __Commands_General_FileHandling_UnzipFile_JMenuItem = null,
@@ -2046,6 +2047,7 @@ private String
     __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
     __Commands_General_FileHandling_AppendFile_String = TAB + "AppendFile()... <append file(s)>",
     __Commands_General_FileHandling_CopyFile_String = TAB + "CopyFile()... <copy file(s)>",
+    __Commands_General_FileHandling_FormatFile_String = TAB + "FormatFile()... <format a file>",
     __Commands_General_FileHandling_ListFiles_String = TAB + "ListFiles()... <list file(s) to a table>",
     __Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
     __Commands_General_FileHandling_UnzipFile_String = TAB + "UnzipFile()... <unzip file>",
@@ -11280,6 +11282,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_CopyFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_CopyFile_String, this ) );
     __Commands_General_FileHandling_CopyFile_JMenuItem.setToolTipText("Copy a file to a new file.");
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_FormatFile_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_FormatFile_String, this ) );
+    __Commands_General_FileHandling_CopyFile_JMenuItem.setToolTipText("Format a file, for example for web output.");
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_ListFiles_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_ListFiles_String, this ) );
     __Commands_General_FileHandling_ListFiles_JMenuItem.setToolTipText("List files in a folder and save in a table.");
@@ -14335,6 +14340,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_FileHandling_CopyFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_CopyFile_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_FileHandling_FormatFile_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_FormatFile_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_ListFiles_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_ListFiles_String, null, CommandEditType.INSERT );
