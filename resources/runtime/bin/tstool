@@ -4,6 +4,8 @@
 #
 # tstool - script to run TSTool on Linux and Mac
 #
+# - all informational echo statements are directed to /dev/stderr so that they don't interfere with
+#   TSTool output to stdout
 
 # Supporting functions, alphabetized
 
@@ -12,20 +14,20 @@ checkConfiguration() {
 	local testfile
 	# Verify that the installation folder exists
 	if [ ! -d "${installFolder}" ]; then
-		echo ""
-		echo "TSTool installation folder ${installFolder} does not exist."
-		echo ""
+		echoStderr ""
+		echoStderr "TSTool installation folder ${installFolder} does not exist."
+		echoStderr ""
 		exit 1
 	fi
 	# Verify that expected main jar file exists
 	# - this is consistent with the Java version used to compile the application
 	testFile="${installFolder}/bin/cdss-app-tstool-main_18.jar"
 	if [ ! -e "${testFile}" ]; then
-		echo ""
-		echo "TSTool installation folder ${installFolder} does not seem correct."
-		echo "The main jar file does not exist:"
-		echo "  ${testFile}"
-		echo ""
+		echoStderr ""
+		echoStderr "TSTool installation folder ${installFolder} does not seem correct."
+		echoStderr "The main jar file does not exist:"
+		echoStderr "  ${testFile}"
+		echoStderr ""
 		exit 1
 	fi
 }
@@ -62,7 +64,7 @@ checkOperatingSystem() {
 			;;
 		*)
 			# Don't know the operating system
-			echo "Cannot determine operating system.  Exiting."
+			echoStderr "Cannot determine operating system.  Exiting."
 			exit 1
 	esac
 }
@@ -90,9 +92,9 @@ determineJavaExe() {
 		java8AlternativeExe=$(update-alternatives --list java | grep 'java-8' | head -1)
 		# Make sure only one option is used (TODO improve logic to handle more)
 		if [ "$java8AlternativeExeCount" -eq 0 ]; then
-			echo "Found NO Java 8 alternatives on system.  Will check standard locations."
+			echoStderr "Found NO Java 8 alternatives on system.  Will check standard locations."
 		else
-			echo "Found ${java8AlternativeExeCount} Java 8 alternatives on system (will check first found)"
+			echoStderr "Found ${java8AlternativeExeCount} Java 8 alternatives on system (will check first found)"
 		fi
 	fi
 	# The candidate java8 programs are checked in order so list the best candidates first
@@ -100,7 +102,7 @@ determineJavaExe() {
 	jreExeCandidates=(${installFolder}/jre_18/bin/java ${installFolder}/jre8/bin/java ${java8AlternativeExe} /usr/bin/java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java java)
 	javaExe=""
 	for javaExeTry in "${jreExeCandidates[@]}"; do
-		echo "Checking candidate java program for existence and Java 8:  ${javaExeTry}"
+		echoStderr "Checking candidate java program for existence and Java 8:  ${javaExeTry}"
 		if [ -e "${javaExeTry}" ]; then
 			# Java executable file exists, check the version
 			# - version may be printed to stderr rather than stdout
@@ -108,18 +110,26 @@ determineJavaExe() {
 			if [ "${javaExe8VersionCount}" -ne 0 ]; then
 				# Found a Java 8 to use
 				javaExe=${javaExeTry}
-				echo "   ...found Java8 'java' program to use"
+				echoStderr "   ...found Java8 'java' program to use"
 				break
 			else
-				echo "   ...does not appear to be Java 8 using: ${javaExeTry} -version"
+				echoStderr "   ...does not appear to be Java 8 using: ${javaExeTry} -version"
 			fi
 		fi
 	done
 	if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
-		echo "Unable to determine Java8 'java' program needed by TSTool."
-		echo "Need to install Java 8 (does not need to be the default Java)."
+		echoStderr "Unable to determine Java8 'java' program needed by TSTool."
+		echoStderr "Need to install Java 8 (does not need to be the default Java)."
 		exit 1
 	fi
+}
+
+# Echo a string to standard error (stderr).
+# This is done so that TSTool results output printed to stdout is not mixed with stderr.
+# For example, TSTool may be run headless on a server to output to CGI,
+# where stdout formatting is important.
+echoStderr() {
+	echo "$@" >&2
 }
 
 # Main entry point into the script
@@ -132,9 +142,9 @@ if [ -L $0 ]; then
 	linkTarget=$(readlink -f $0)
 	scriptLink=$0
 	scriptFolder=$(dirname ${linkTarget})
-	echo "tstool script is a symbolic link:"
-	echo "    link: $scriptLink"
-	echo "  target: $scriptFolder"
+	echoStderr "tstool script is a symbolic link:"
+	echoStderr "    link: $scriptLink"
+	echoStderr "  target: $scriptFolder"
 fi
 binFolder=${scriptFolder}
 # Installation home for TSTool, under which will be bin, logs, system, etc.
@@ -181,13 +191,15 @@ command+='*'
 command+=" ${mainClass} -home ${installFolder} $@"
 # Run the TSTool command...
 # - use quotes in echo to avoid filename expansion in echo statement
-echo "Running:"
-echo "$command"
+echoStderr "Running:"
+echoStderr "$command"
 
 # Cannot use:
 #  ${command}        because filename expansion will include all files in path including bash files
 #  "${command}"      because entire command is run as the program rather than space-delimited arguments
 ${javaCommand} -classpath ${binFolder}/\* ${mainClass} -home ${installFolder} $@
+exitStatus=$?
+echoStderr "Exit code from java: $exitStatus"
 
 # Exit with status from java
-exit $?
+exit $exitStatus

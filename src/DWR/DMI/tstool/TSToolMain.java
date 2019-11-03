@@ -304,9 +304,9 @@ public static JFrame getJFrame ()
 private static int getMajorVersion () {
     int majorVersion = 0;
     try {
-    	System.out.println("program version: " + IOUtil.getProgramVersion());
+    	System.err.println("program version: " + IOUtil.getProgramVersion());
     	majorVersion = Integer.parseInt(IOUtil.getProgramVersion().split("\\.")[0].trim());
-    	System.out.println("Major version: " + majorVersion);
+    	System.err.println("Major version: " + majorVersion);
     }
     catch ( Exception e ) {
     	Message.printWarning(1,"TSTool", "Error getting TSTool major version number (" + e + ")." );
@@ -737,8 +737,8 @@ public static void main ( String args[] )
 	// TSTool session properties are a singleton
 	IOUtil.setProgramData ( PROGRAM_NAME, PROGRAM_VERSION, args ); // Do first, needed by session to find local files, plugins, etc.
 	JGUIUtil.setAppNameForWindows("TSTool");
-	//System.out.println("Program version: " + IOUtil.getProgramVersion());
-	//System.out.println("Program major version: " + getMajorVersion());
+	//System.err.println("Program version: " + IOUtil.getProgramVersion());
+	//System.err.println("Program major version: " + getMajorVersion());
 	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
 	initializeLoggingLevelsBeforeLogOpened();
 	setWorkingDirInitial ();
@@ -1838,7 +1838,7 @@ public static void printUsage ( )
 	"                Opens up the main GUI and loads the command file." + nl +
 	"" + nl+
 	"See the TSTool documentation for more information." + nl + nl;
-	System.out.println ( usage );
+	System.err.println ( usage );
 	Message.printStatus ( 1, routine, usage );
 	quitProgram(0);
 }
@@ -1848,7 +1848,7 @@ Print the program version and exit the program.
 */
 public static void printVersion ( )
 {	String nl = System.getProperty ( "line.separator" );
-	System.out.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
+	System.err.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
 	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
 	"Copyright (C) 1997-2019 Colorado Department of Natural Resources\n" +
     "\n" +
@@ -1876,7 +1876,7 @@ public static void quitProgram ( int status )
 
 	Message.printStatus ( 1, routine, "Exiting with status " + status + "." );
 
-	System.out.print( "STOP " + status + "\n" );
+	System.err.print( "STOP " + status + "\n" );
 	Message.closeLogFile ();
 	System.exit ( status ); 
 }
@@ -2012,7 +2012,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
         String message = "Unable to determine canonical path for \"" + command_file_arg + "\"." +
         "Check that the file exists and read permissions are granted.  Not using command file.";
         Message.printWarning ( 1, routine, message );
-        System.out.println ( message );
+        System.err.println ( message );
                 
         return;
     }
@@ -2043,7 +2043,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     if ( !command_file_full_File.exists() ) {
         String message = "Command file \"" + command_file_full + "\" does not exist.";
         Message.printWarning(1, routine, message );
-        System.out.println ( message );
+        System.err.println ( message );
         if ( is_batch ) {
              // Exit because there is nothing to do...
             quitProgram ( 1 );
@@ -2070,7 +2070,7 @@ private static void setWorkingDirInitial()
     JGUIUtil.setLastFileDialogDirectory( working_dir );
     String message = "Setting working directory to user directory \"" + working_dir +"\".";
     Message.printStatus ( 1, routine, message );
-    System.out.println(message);
+    System.err.println(message);
 }
 
 /**
@@ -2087,7 +2087,7 @@ private static void setWorkingDirUsingCommandFile ( String commandFileFull )
     // Print at level 1 because the log file is not yet initialized.
     String message = "Setting working directory to command file folder \"" + workingDir + ".\"";
     //Message.printStatus ( 1, routine, message );
-    System.out.println(message);
+    System.err.println(message);
 }
 
 // TODO SAM 2015-12-14 This does not seem to work as intended
