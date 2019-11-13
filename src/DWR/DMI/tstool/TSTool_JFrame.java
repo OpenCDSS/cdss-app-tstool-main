@@ -1517,6 +1517,8 @@ JMenuItem
     __Commands_General_Running_EndIf_JMenuItem = null,
     __Commands_General_Running_For_JMenuItem = null,
     __Commands_General_Running_EndFor_JMenuItem = null,
+    __Commands_General_Running_Break_JMenuItem = null,
+    __Commands_General_Running_Continue_JMenuItem = null,
     __Commands_General_Running_Exit_JMenuItem = null,
     __Commands_General_Running_Wait_JMenuItem = null,
     __Commands_General_Running_SetWorkingDir_JMenuItem = null,
@@ -2080,6 +2082,8 @@ private String
     __Commands_General_Running_EndIf_String = TAB + "EndIf() <end an If() block>",
     __Commands_General_Running_For_String = TAB + "For() <repeatedly execute a block of commands>",
     __Commands_General_Running_EndFor_String = TAB + "EndFor() <end a For() block>",
+    __Commands_General_Running_Break_String = TAB + "Break() <break out of a For() block>",
+    __Commands_General_Running_Continue_String = TAB + "Continue() <continue to next iteration of a For() block>",
     __Commands_General_Running_Exit_String = TAB + "Exit() <end processing>",
     __Commands_General_Running_Wait_String = TAB + "Wait() <pause processing within the command>",
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
@@ -11387,7 +11391,13 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Running_For_JMenuItem.setToolTipText("Insert For block start.");
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_EndFor_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_EndFor_String, this ) );
-    __Commands_General_Running_EndFor_JMenuItem.setToolTipText("Insert EndFor block end.");
+    __Commands_General_Running_EndFor_JMenuItem.setToolTipText("Insert For block end.");
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_Break_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_Break_String, this ) );
+    __Commands_General_Running_EndFor_JMenuItem.setToolTipText("Insert For block break.");
+    __Commands_General_Running_JMenu.add ( __Commands_General_Running_Continue_JMenuItem =
+        new SimpleJMenuItem(__Commands_General_Running_Continue_String, this ) );
+    __Commands_General_Running_EndFor_JMenuItem.setToolTipText("Insert For block continue.");
     __Commands_General_Running_JMenu.addSeparator();
     __Commands_General_Running_JMenu.add ( __Commands_General_Running_Exit_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Running_Exit_String, this ) );
@@ -14280,6 +14290,12 @@ throws Exception
     }
     else if (command.equals(__Commands_General_Running_EndFor_String) ) {
         commandList_EditCommand ( __Commands_General_Running_EndFor_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Running_Break_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_Break_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Running_Continue_String) ) {
+        commandList_EditCommand ( __Commands_General_Running_Continue_String, null, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Running_Exit_String) ) {
 		commandList_EditCommand ( __Commands_General_Running_Exit_String, null, CommandEditType.INSERT );
@@ -22613,7 +22629,7 @@ private void uiAction_ShowResultsTable ( String selected )
             Message.printWarning (1, routine,
                 "Unable to get table \"" + tableId + "\" from processor to view." );  
         }
-        new DataTable_JFrame ( "Table \"" + tableId + "\"", table );
+        new DataTable_JFrame ( this, "Table \"" + tableId + "\"", table );
     }
     catch (Exception e2) {
         Message.printWarning (1, routine, "Unable to view table \"" + tableId + "\"" );
