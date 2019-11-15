@@ -1710,6 +1710,7 @@ private JMenuItem
 	__Help_ViewDocumentation_CommandReference_JMenuItem = null,
 	__Help_ViewDocumentation_DatastoreReference_JMenuItem = null,
 	__Help_ViewDocumentation_Troubleshooting_JMenuItem = null,
+	__Help_CheckForUpdates_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
 // String labels for buttons and menus...
@@ -2244,6 +2245,7 @@ private String
 		__Help_ViewDocumentation_CommandReference_String = "View Documentation - Command Reference",
 		__Help_ViewDocumentation_DatastoreReference_String = "View Documentation - Datastore Reference",
 		__Help_ViewDocumentation_Troubleshooting_String = "View Documentation - Troubleshooting",
+		__Help_CheckForUpdates_String = "Check for Updates...",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
 	// Strings used in popup menu for other components...
@@ -11945,6 +11947,7 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
            new SimpleJMenuItem(__Help_ViewDocumentation_Troubleshooting_String,this));
 	}
     __Help_JMenu.addSeparator();
+    __Help_JMenu.add ( __Help_CheckForUpdates_JMenuItem = new SimpleJMenuItem(__Help_CheckForUpdates_String,this));
     __Help_JMenu.add ( __Help_ImportConfiguration_JMenuItem = new SimpleJMenuItem(__Help_ImportConfiguration_String,this));
 }
 
@@ -15174,6 +15177,9 @@ throws Exception
     //else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
     //    uiAction_ViewTrainingMaterials ();
     //}
+	else if ( command.equals ( __Help_CheckForUpdates_String )) {
+        uiAction_CheckForUpdates ();
+    }
 	else if ( command.equals ( __Help_ImportConfiguration_String )) {
         uiAction_ImportConfiguration ( IOUtil.getApplicationHomeDir() + File.separator + "system" +
             File.separator + "TSTool.cfg");
@@ -15208,6 +15214,70 @@ throws Exception
 			}
 		}
 	}
+}
+
+private void uiAction_CheckForUpdates ( ) {
+	// Read the available TSTool versions from the OpenCDSS website.
+	String latestVersion = "unable to determine";
+	String message = "A newer development version may be available on the OpenCDSS website.\n\n";
+	try {
+	    String currentVersionNum = IOUtil.getProgramVersion().split(" ")[0].trim();
+        String versionUri = "http://opencdss.state.co.us/tstool/index.csv";
+        String versionFile = IOUtil.tempFileName();
+		int code = IOUtil.getUriContent(versionUri, versionFile, null);
+		if ( code == 200 ) {
+			// Success - determine the version from the file
+			// - read into a DataTable since a csv with headers
+	        PropList props = new PropList ("");
+	        props.set ( "Delimiter=," );		// see existing prototype
+	        props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this
+	        props.set ( "TrimStrings=True" );	// If true, trim strings after reading.
+	        DataTable table = DataTable.parseFile ( versionFile, props );
+			// Versions are in column named 'Version' with first row being the newest
+			// - but don't check dev version because most users won't care
+			int col = table.getFieldIndex("Version");
+			TableRecord rec;
+			String version;
+			for ( int irec = 0; irec < table.getNumberOfRecords(); irec++ ) {
+				rec = table.getRecord(irec);
+				version = rec.getFieldValueString(col);
+				if ( version.toUpperCase().indexOf("DEV") < 0 ) {
+					// Not a development version
+					latestVersion = version;
+					break;
+				}
+			}
+			// Determine if latest version is newer than current
+			// - should be able to just do a string comparison
+			if ( latestVersion.compareTo(currentVersionNum) > 0 ) {
+			    message = "A newer version is available on the OpenCDSS website.\n\n";
+			}
+		}
+	}
+	catch ( Exception e ) {
+		message = "A newer release or development version may be available on the OpenCDSS website.\n\n";
+	}
+	// Display the information and allow user to open the download website
+    int x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+    "\nTSTool version:  " + IOUtil.getProgramVersion() + "\n" +
+    "Latest available release version:  " + latestVersion + "\n\n" +
+    message +
+    "Open the OpenCDSS TSTool download web page?",
+    ResponseJDialog.YES|ResponseJDialog.NO).response();
+    if ( x == ResponseJDialog.NO ) {
+        return;
+    }
+    else {
+    	// Open the OpenCDSS web page.
+        String docUri = "http://opencdss.state.co.us/tstool/";
+        try {
+            Desktop desktop = Desktop.getDesktop();
+            desktop.browse ( new URI(docUri) );
+        }
+        catch ( Exception e ) {
+            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+        }
+    }
 }
 
 /**
@@ -18720,6 +18790,7 @@ private void uiAction_ImportConfiguration ( String configFilePath )
     // Print an explanation before continuing
     int x = ResponseJDialog.NO;
     x = new ResponseJDialog ( this, IOUtil.getProgramName(),
+        "This functionality is being reviewed.  Refer to documentation instead of using this tool.\n\n" +
         "The current TSTool configuration information will be updated as follows:\n\n" +
         "1) You will select a configuration file to merge (e.g., containing old preferences).\n" +
         "2) The properties in the current configuration file will be updated to matching properties in the selected file.\n" +
