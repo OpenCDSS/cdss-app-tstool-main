@@ -1,6 +1,12 @@
 #!/bin/bash
 #
-# Create the opencdss.state.co.us/tstool/index.html file
+# Create the following files on GCP bucket:
+#
+#   opencdss.state.co.us/tstool/index.html
+#   opencdss.state.co.us/tstool/index.csv
+#
+# The former is used as the default web page.
+# The latter is used by TSTool to check versions when "Help / Check for Updates" is used.
 
 # Supporting functions, alphabetized
 
@@ -100,6 +106,7 @@ printUsage() {
 #   software.openwaterfoundation.org page, but for only one product, with list of variants and versions
 uploadIndexHtmlFile() {
 	local indexHtmlTmpFile gcpIndexHtmlUrl
+	local indexCsvTmpFile gcpIndexCsvlUrl
 	# List available software installer files
 	# - $gcpFolderUrl ends with /tstool
 	# - the initial output will look like the following, with size, timestamp, resource URL:
@@ -128,6 +135,9 @@ uploadIndexHtmlFile() {
 	# Create an index.html file for upload
 	indexHtmlTmpFile="/tmp/$USER-tstool-index.html"
 	gcpIndexHtmlUrl="${gcpFolderUrl}/index.html"
+	# Also create index as CSV to facilitate listing available versions
+	indexCsvTmpFile="/tmp/$USER-tstool-index.csv"
+	gcpIndexCsvUrl="${gcpFolderUrl}/index.csv"
 	echo '<!DOCTYPE html>' > $indexHtmlTmpFile
 	echo '<head>' >> $indexHtmlTmpFile
 	echo '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />' >> $indexHtmlTmpFile
@@ -210,6 +220,21 @@ uploadIndexHtmlFile() {
 		echo "[Error] Error uploading index.html file."
 		exit 1
 	fi
+
+	# Similarly create the index.csv file
+
+	# First create the index
+	# - use some string replacements to make sure that dev versions are listed after non-dev release
+	#   with the same number is listed first
+	echo '"Version"' > $indexCsvTmpFile
+	cat $tmpGcpCatalogPath | awk '{print $3}' | cut -d '/' -f 5 | sed -E 's/([0-9]$)/\1-zzz/g' | sed 's/0dev/0-dev/g' | sort -r | sed 's/-zzz//g' >> $indexCsvTmpFile
+	# Then upload to the website
+	gsutil.cmd cp $indexCsvTmpFile $gcpIndexCsvUrl
+	if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+		echo ""
+		echo "[Error] Error uploading index.csv file."
+		exit 1
+	fi
 }
 
 # Create a table of downloads for an operating system to be used in the index.html file.
@@ -223,7 +248,6 @@ uploadIndexHtmlFile_Table() {
 	downloadOsLong=$2
 	# The following allows sorting the list in reverse order
 	indexHtmlTmpCatalogFile="/tmp/$USER-tstool-catalog-${downloadOs}.html"
-	indexHtmlTmpCatalogSortedFile="/tmp/$USER-tstool-catalog-sorted-${downloadOs}.html"
 	if [ "${downloadOs}" = "win" ]; then
 		downloadPattern="exe"
 	elif [ "${downloadOs}" = "lin" ]; then
@@ -240,19 +264,13 @@ uploadIndexHtmlFile_Table() {
 		#
 		# 12464143  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/12.06.00/software/TSTool_CDSS_12.06.00_Setup.exe
 		#
+		# Use awk below to print the line with single space between tokens.
+		# Replace normal version to have -zzz at end and "dev" version to be "-dev" so that sort is correct,
+		#   then change back to previous strings for output.
+		# The use space as the delimiter and sort on the 3rd token.
+		#
 		echo '<tr><th>Download File</th><th>Product</th><th>Version</th><th>File Timestamp</th><th>Size (KB)</th><th>Operating System</th><th>User Doc</th><th>Dev Doc</th><th>API Doc</th></tr>' >> $indexHtmlTmpFile
-		#cat "${tmpGcpCatalogPath}" | awk '
-		## TODO smalers 2019-04-27 need to figure out how to check for documentation for each executable
-		##		# Determine if matching documentation URL is valid
-		##		docUserUrl0="gs://opencdss.state.co.us/tstool/${downloadFileVersion}/doc-user/index.html"
-		##		if ! gcpUtilFileExists "$docUserUrl0"; then
-		##			# Documentation is available so show link
-		##			docUserUrl="<a href="http://opencdss.state.co.us/tstool/$downloadFileVersion/doc-user/">Doc</a>"
-		##		else
-		##			# No documentation available
-		##			docUserUrl="-"
-		##		fi
-		cat "${tmpGcpCatalogPath}" | grep "${downloadPattern}" | sort -r | awk '
+		cat "${tmpGcpCatalogPath}" | grep "${downloadPattern}" | awk '{ printf "%s %s %s\n", $1, $2, $3 }' | sed -E 's|([0-9][0-9]/)|\1-zzz|g' | sed 's|/-zzz|-zzz|g' | sed 's|dev|-dev|g' | sort -r -k3,3 | sed 's|-zzz||g' | sed 's|-dev|dev|g' | awk '
 			{
 				# Download file is the full line
 				downloadFileSize = $1
@@ -309,15 +327,8 @@ uploadIndexHtmlFile_Table() {
 				#	downloadFileOs = "Windows"
 				#}
 				printf "<tr><td><a href=\"%s\"><code>%s</code></a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n", downloadFileUrl, downloadFile, downloadFileProduct, downloadFileVersion, downloadFileDateTime, downloadFileSize, downloadFileOs, docUserHtml, docDevHtml, docApiUrl
-			}' > $indexHtmlTmpCatalogFile
+			}' >> $indexHtmlTmpFile
 	fi
-	# The above is the table body, but needs to be sorted in reverse order so most recent version is listed first
-	cat $indexHtmlTmpCatalogFile | sort -r > $indexHtmlTmpCatalogSortedFile
-	echo "See sorted table content in:  ${indexHtmlTmpCatalogSortedFile}"
-	# TODO smalers 2019-09-10 need to sort so "dev" releases are listed after non-dev releases
-	echo "If necessary, edit the file to change sort order."
-	read -p "Continue with index.html creation [press return]? " answer
-	cat $indexHtmlTmpCatalogSortedFile  >> $indexHtmlTmpFile
 	echo '</table>' >> $indexHtmlTmpFile
 }
 
