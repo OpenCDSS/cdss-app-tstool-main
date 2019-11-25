@@ -17698,6 +17698,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders()
 	        }
 	        catch ( Exception e ) {
 	        	Message.printWarning ( 1, rtn, "Error querying time series list (" + e + ")." );
+	        	Message.printWarning(2, rtn, e);
 	            results = null;
 	        }
         }
