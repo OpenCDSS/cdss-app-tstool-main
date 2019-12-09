@@ -16254,7 +16254,7 @@ private void uiAction_GetTimeSeriesListClicked()
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
     	// Have a plugin datastore
         try {
-            uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders(); 
+            uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog(); 
         }
         catch ( Exception e ) {
             message = "Error reading time series from plugin datastore \"" + selectedDataStore.getName() +
@@ -17658,8 +17658,8 @@ throws IOException
 /**
 Read plugin datastore time series and list in the GUI.
 */
-private void uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders()
-{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders";
+private void uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog()
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
@@ -17677,15 +17677,17 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders()
     	}
         queryResultsList_Clear ();
 
-        String dataType = __dataType_JComboBox.getSelected(); // Parameter
-        String timeStep = __timeStep_JComboBox.getSelected();
+        String dataType = __dataType_JComboBox.getSelected(); // May be "datatype" or "datatype - note", but generically can't know here
+        String timeStep = __timeStep_JComboBox.getSelected(); // May be "interval" or "interval - note", but generically can't know here
 
         List<Object> results = null;
         if ( pds != null ) {
 	        // Data type is shown without name so use full choice
 	        try {
 	        	__query_TableModel = pds.createTimeSeriesListTableModel(dataType,timeStep,__selectedInputFilter_JPanel);
-	        	results = __query_TableModel.getData();
+	        	@SuppressWarnings("unchecked")
+				List<Object> results0 = __query_TableModel.getData();
+	        	results = results0;
 	            if ( results != null ) {
 	                // TODO Does not work??
 	                //__query_TableModel.setNewData ( results );
@@ -17704,10 +17706,11 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginDataStoreHeaders()
         }
 
         int size = 0;
-        if ( (results == null) || (size == 0) ) {
+        if ( results == null ) {
             Message.printStatus ( 1, rtn, "Query complete.  No records returned." );
         }
         else {
+        	size = results.size();
             Message.printStatus ( 1, rtn, "Query complete. " + size + " records returned." );
         }
         ui_UpdateStatus ( false );
