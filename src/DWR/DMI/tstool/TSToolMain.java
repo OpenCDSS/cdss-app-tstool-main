@@ -1496,15 +1496,30 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
             // This uses the guest login.  If properties were not found,
             // then default HydroBase information will be used.
             HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
-            hbdmi.open();
-            List<HydroBaseDMI> hbdmi_Vector = new ArrayList<HydroBaseDMI>(1);
-            hbdmi_Vector.add ( hbdmi );
-            processor.setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
-            Message.printStatus(2, routine, "Successfully opened HydroBase connection." );
-            return hbdmi;
+            String dbname = props.getValue("DefaultDatabaseName");
+            if ( dbname == null ) {
+            	dbname = props.getValue("HydroBase.DefaultDatabaseName");
+            }
+            if ( (dbname != null) && dbname.equalsIgnoreCase("HydroBase") ) {
+            	// If the HydroBase name is generic "HydroBase", don't open the database because it will fail
+        	   	// because the database name needs to be something like HydroBase_CO_20180529.
+            	Message.printStatus(2, routine, "DefaultHydroBaseName=" + dbname );
+            	Message.printStatus(2, routine, "Not attempting to open database because generic name will fail in batch mode.");
+            	Message.printStatus(2, routine, "Recommend configuring a HydroBase datastore to use in batch mode.");
+            }
+            else {
+            	// A more specific database name is specified, so try to use it.
+            	hbdmi.open();
+            	List<HydroBaseDMI> hbdmi_Vector = new ArrayList<HydroBaseDMI>(1);
+            	hbdmi_Vector.add ( hbdmi );
+            	processor.setPropContents ( "HydroBaseDMIList", hbdmi_Vector );
+            	Message.printStatus(2, routine, "Successfully opened HydroBase connection." );
+            	return hbdmi;
+            }
         }
         catch ( Exception e ) {
-            Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase features will be disabled." );
+            Message.printWarning ( 1, routine, "Error opening HydroBase.  HydroBase input type features will be disabled." );
+            Message.printWarning ( 1, routine, "Equivalent datastore features may be enabled if defined." );
             Message.printWarning ( 3, routine, e );
             return null;
         }
@@ -1624,10 +1639,10 @@ throws Exception
 			i++;
 			__batchServerHotFolder = args[i];
 		}
-		else if (args[i].equalsIgnoreCase("-commands")) {
+		else if (args[i].equalsIgnoreCase("-commands") || args[i].equalsIgnoreCase("--commands") ) {
 		    // Command file name
 			if ((i + 1)== args.length) {
-				message = "No argument provided to '-commands'";
+				message = "No argument provided to '" + args[i] + "'";
 				Message.printWarning(1,routine, message);
 				throw new Exception(message);
 			}
@@ -1742,7 +1757,7 @@ throws Exception
 			    }
 			}
 			if ( !userSpecifiedConfig ) {
-			    Message.printStatus(1 , routine, "Using default configuration file: \"" + getConfigFile() + "\"" );
+			    Message.printStatus(1 , routine, "No user configuration file.  Using installation configuration file: \"" + getConfigFile() + "\"" );
 			    readConfigFile(getConfigFile());
 			}
 		}
