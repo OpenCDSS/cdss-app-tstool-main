@@ -1210,19 +1210,20 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 		    		factory = (DataStoreFactory)dataStoreFactory;
 		    	}
 		    	catch ( NoSuchMethodException e ) {
-		    		Message.printWarning(2,routine,"Error getting constructor for plugin command class \"" + className + "\" (" + e + ")");
+		    		Message.printWarning(2,routine,"Error getting constructor for plugin datastore class \"" + className + "\" (" + e + ")");
 		    	}
 		    	catch ( IllegalAccessException e ) {
-		    		Message.printWarning(2,routine,"Error creating instance of command for plugin command class \"" + className + "\" (" + e + ")");
+		    		Message.printWarning(2,routine,"Error creating instance of command for plugin datastore class \"" + className + "\" (" + e + ")");
 		    	}
 		    	catch ( InstantiationException e ) {
-		    		Message.printWarning(2,routine,"Error creating instance of command for plugin command class \"" + className + "\" (" + e + ")");
+		    		Message.printWarning(2,routine,"Error creating instance of command for plugin datastore class \"" + className + "\" (" + e + ")");
 		    	}
 		    	catch ( InvocationTargetException e ) {
-		    		Message.printWarning(2,routine,"Error creating instance of command for plugin command class \"" + className + "\" (" + e + ")");
+		    		Message.printWarning(2,routine,"Error creating instance of command for plugin datastore class \"" + className + "\" (" + e + ")");
 		    	}
             }
             else {
+            	// Plugin datastore class was not determined above
                 Message.printStatus(2, routine, "Getting class for name \"" + className + "\"" );
                 @SuppressWarnings("rawtypes")
 				Class clazz = Class.forName( className );
