@@ -214,7 +214,7 @@ customBuildSteps() {
 getTstoolVersion() {
 	local version
 	# Version is printed to stderr
-	version=$(${binFolder}/tstool --version 2&>1 | grep -i 'TSTool version' | cut -d ':' -f 2 | awk '{$1=$1};1' | cut -d ' ' -f 1)
+	version=$(${binFolder}/tstool --version 2>&1 | grep -i 'TSTool version' | cut -d ':' -f 2 | awk '{$1=$1};1' | cut -d ' ' -f 1)
 	# Echo so the output can be assigned to the calling code
 	echo $version
 }
