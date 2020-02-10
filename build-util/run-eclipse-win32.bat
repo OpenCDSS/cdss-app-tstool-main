@@ -4,6 +4,13 @@ rem - 32-bit is used until some legacy issues can be resolved, such as 32-bit li
 rem - this script assumes that Eclipse is installed in a specific location and more
 rem   locations can be added
 
+rem Determine the script folder and workspace folder.
+rem - %~dp0 has backslash at end
+set scriptFolder=%~dp0
+set workspaceFolder=%scriptFolder%..\..\..\eclipse-workspace
+echo Batch file folder:  %scriptFolder%
+echo Workspace folder: %workspaceFolder%
+
 rem It is assumed that the development environment follows the standard folder structure, for example:
 rem - %USERPROFILE%\cdss-dev\TSTool\git-repos\cdss-app-tstool-main
 rem - HECLIB_FOLDER environment variable is used in cdss-app-tstool-main run configuration to find
@@ -48,10 +55,11 @@ rem If here, run Eclipse using the executable that is known to exist from above 
 rem - also set the title of the window
 echo Starting Eclipse using %eclipseExe%
 title Eclipse configured for TSTool development
-%eclipseExe% -vm %javawExe% -vmargs -Xmx1024M
+rem The -data option must come before -vm, etc.
+%eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M
 rem Tried the following when Eclipse fails to start
-rem %eclipseExe% -vm %javawExe% -vmargs -Xmx1024M -consoleLog
-rem %eclipseExe% -vm %javawExe% -vmargs -Xmx1024M -clean -clearPersistedState
+rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M -consoleLog
+rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M -clean -clearPersistedState
 goto end
 
 :noeclipse

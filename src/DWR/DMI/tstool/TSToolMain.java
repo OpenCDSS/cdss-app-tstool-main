@@ -1190,7 +1190,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         propValue = dataStoreProps.getValue("Enabled");
         if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
             // Datastore is disabled.  Do not even attempt to load.  This will minimize in-memory resource use.
-            Message.printStatus(2, routine, "Created datastore \"" + dataStoreType + "\", name \"" +
+            Message.printStatus(2, routine, "Created datastore type \"" + dataStoreType + "\", name \"" +
                 dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
             return null;
         }
@@ -1409,6 +1409,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 DataStore dataStore = openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
                 // Save the datastore name so duplicates are not opened
                 if ( dataStore != null ) {
+                	// DataStore will be null if disabled or a serious error occurred opening
                 	openDataStoreList.add(dataStore);
                 }
             }
