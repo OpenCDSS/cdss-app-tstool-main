@@ -233,6 +233,7 @@ import RTi.TS.TSUtil;
 import RTi.TS.TSUtil_CreateTracesFromTimeSeries;
 import RTi.TS.TSUtil_NewStatisticTimeSeriesFromEnsemble;
 import RTi.TS.TimeSeriesIdentifierProvider;
+import RTi.TS.TransferDataHowType;
 import RTi.TS.UsgsNwisRdbTS;
 import RTi.Util.GUI.FindInJListJDialog;
 import RTi.Util.GUI.HelpAboutJDialog;
@@ -3108,26 +3109,26 @@ private List<Command> commandList_GetCommands ( boolean get_all )
 	if ( (selected_size == 0) || get_all ) {
 		// Nothing selected or want to get all, get all...
 		selected_size = __commands_JListModel.size();
-		List<Command> itemVector = new ArrayList<Command>(selected_size);
+		List<Command> itemList = new ArrayList<Command>(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.add ( (Command)__commands_JListModel.get(i) );
+			itemList.add ( (Command)__commands_JListModel.get(i) );
 		}
-		return itemVector;
+		return itemList;
 	}
 	else {
 	    // Else something selected so get them...
-	    List<Command> itemVector = new ArrayList<Command>(selected_size);
+	    List<Command> itemList = new ArrayList<Command>(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
-			itemVector.add ( (Command)__commands_JListModel.get(selected[i]) );
+			itemList.add ( (Command)__commands_JListModel.get(selected[i]) );
 		}
-		return itemVector;
+		return itemList;
 	}
 }
 
 /**
 Get the list of commands to process.  If any are selected, only they will be
 returned.  If none are selected, all will be returned.
-@return the commands as a list of String.
+@return the commands as a list of Command.
 */
 private List<Command> commandList_GetCommandsBasedOnUI ( )
 {	return commandList_GetCommands ( false );
@@ -14618,8 +14619,10 @@ throws Exception
 			}
 			else {
 				// Process the single time series from above into ensemble
+				TransferDataHowType transferDataHowType = TransferDataHowType.SEQUENTIALLY;
 		        tslist = util.getTracesFromTS ( ts, traceLength, referenceDateTime,
-			        outputYearType, shiftDataHow, inputStart, inputEnd, alias, descriptionFormat, createData );
+			        outputYearType, shiftDataHow, transferDataHowType,
+			        inputStart, inputEnd, alias, descriptionFormat, createData );
 		        // Create a new list for the ensemble because when statistic time series are computed and
 		        // added below the should not be added to the original list
 		        List<TS> tslist2 = new ArrayList<TS>();
@@ -23812,8 +23815,12 @@ private class ActionListener_ResultsEnsembles implements ActionListener
 	    				for ( TS ts2 : tslist ) {
 	    					tslist0.add(ts2);
 	    				}
-	    				runner.getProcessor().setPropContents("AppendResults","true");
-	    				runner.runCommands();
+	    				// TODO smalers 2020-02-22 the following throws an exception
+	    				// - instead do how it works elsewhere
+	    				//runner.getProcessor().setPropContents("AppendResults","true");
+	    				PropList runProps = new PropList ( "run");
+				 		runProps.set("AppendResults","true");
+	    				runner.runCommands(runProps);
 	    				// Now get the time series out and use for the graphing.
 	    				// - the main difference is that the new time series list might include statistics
 	    				@SuppressWarnings("unchecked")
