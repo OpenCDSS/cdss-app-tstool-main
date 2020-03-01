@@ -28,7 +28,7 @@ import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
 import DWR.DMI.HydroBaseDMI.HydroBase_GroundWaterWellsView;
-
+import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
@@ -369,7 +369,7 @@ public Object getValueAt(int row, int col)
 		case COL_START:
 		    //return new Integer(wv.getStart_year() );
 			i = wv.getStart_year();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -378,7 +378,7 @@ public Object getValueAt(int row, int col)
 		case COL_END:
 		    //return new Integer (wv.getEnd_year() );
 			i = wv.getEnd_year();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -386,7 +386,7 @@ public Object getValueAt(int row, int col)
 			}
 		case COL_MEAS_COUNT:
 		    i = wv.getMeas_count();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -395,7 +395,7 @@ public Object getValueAt(int row, int col)
 		case COL_DIV:
 		    //return new Integer ( wv.getDiv() );
 			i = wv.getDiv();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -404,7 +404,7 @@ public Object getValueAt(int row, int col)
 		case COL_DIST:
 		    //return new Integer ( wv.getWD() );
 			i = wv.getWD();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -434,7 +434,7 @@ public Object getValueAt(int row, int col)
             return wv.getAquifer_comment();
         case COL_LONG:
             d = wv.getLongdecdeg();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -442,7 +442,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_LAT:
             d = wv.getLatdecdeg();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -450,7 +450,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_UTM_X:
             d = wv.getUtm_x();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -458,7 +458,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_UTM_Y:
             d = wv.getUtm_y();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -468,7 +468,7 @@ public Object getValueAt(int row, int col)
             return wv.getSpotter_version();
         case COL_LOC_ACCURACY:
             i = wv.getLoc_accuracy();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -478,7 +478,7 @@ public Object getValueAt(int row, int col)
             return wv.getPM();
         case COL_TS:
             i = wv.getTS();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -490,7 +490,7 @@ public Object getValueAt(int row, int col)
             return wv.getTsa();
         case COL_RNG:
             i = wv.getRng();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -502,7 +502,7 @@ public Object getValueAt(int row, int col)
             return wv.getRnga();
         case COL_SEC:
             i = wv.getSec();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -518,7 +518,7 @@ public Object getValueAt(int row, int col)
             return wv.getQ10();
         case COL_COORDSNS:
             i = wv.getCoordsns();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -528,7 +528,7 @@ public Object getValueAt(int row, int col)
             return wv.getCoordsns_dir();
         case COL_COORDSEW:
             i = wv.getCoordsew();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -538,7 +538,7 @@ public Object getValueAt(int row, int col)
             return wv.getCoordsew_dir();
         case COL_ELEV:
             d = wv.getElev();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -546,7 +546,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_ELEV_ACCURACY:
             d = wv.getElev_accuracy();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -554,7 +554,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_WELL_DEPTH:
             i = wv.getWell_depth();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -562,7 +562,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_TPERF:
             i = wv.getTperf();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -570,7 +570,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_BPERF:
             i = wv.getBperf();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {
@@ -578,7 +578,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_YIELD:
             d = wv.getYield();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -586,7 +586,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_BEDROCK_ELEV:
             d = wv.getBedrock_elev();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -594,7 +594,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_SAT_1965:
             d = wv.getSat_1965();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -612,7 +612,7 @@ public Object getValueAt(int row, int col)
             return wv.getReceipt();
         case COL_PERMITNO:
             i = wv.getPermitno();
-            if ( DMIUtil.isMissing(i) ) {
+            if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
                 return "";
             }
             else {

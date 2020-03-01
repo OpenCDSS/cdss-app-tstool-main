@@ -26,6 +26,7 @@ package DWR.DMI.tstool;
 import java.util.List;
 
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
+import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import DWR.DMI.HydroBaseDMI.HydroBase_WaterDistrict;
 
 import RTi.DMI.DMIUtil;
@@ -302,7 +303,7 @@ public Object getValueAt(int row, int col)
 		case COL_START:
 		    //return new Integer(mt.getStart_year() );
 			i = mt.getStart_year();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -311,7 +312,7 @@ public Object getValueAt(int row, int col)
 		case COL_END:
 		    //return new Integer ( mt.getEnd_year() );
 			i = mt.getEnd_year();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -319,7 +320,7 @@ public Object getValueAt(int row, int col)
 			}
 		case COL_MEAS_COUNT:
 		    i = mt.getMeas_count();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -328,7 +329,7 @@ public Object getValueAt(int row, int col)
 		case COL_DIV:
 		    //return new Integer ( mt.getDiv() );
 			i = mt.getDiv();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -337,7 +338,7 @@ public Object getValueAt(int row, int col)
 		case COL_DIST:
 		    //return new Integer ( mt.getWD() );
 			i = mt.getWD();
-			if ( DMIUtil.isMissing(i) ) {
+			if ( DMIUtil.isMissing(i) || HydroBase_Util.isMissing(i)) {
 				return "";
 			}
 			else {
@@ -348,7 +349,7 @@ public Object getValueAt(int row, int col)
 		case COL_HUC: return mt.getHUC();
         case COL_LONG:
             d = mt.getLongdecdeg();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -356,7 +357,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_LAT:
             d = mt.getLatdecdeg();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -364,7 +365,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_UTM_X:
             d = mt.getUtm_x();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {
@@ -372,7 +373,7 @@ public Object getValueAt(int row, int col)
             }
         case COL_UTM_Y:
             d = mt.getUtm_y();
-            if ( DMIUtil.isMissing(d) ) {
+            if ( DMIUtil.isMissing(d) || HydroBase_Util.isMissing(d)) {
                 return "";
             }
             else {

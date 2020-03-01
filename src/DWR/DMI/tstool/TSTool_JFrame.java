@@ -17233,9 +17233,9 @@ throws Exception
 				hbdmi,
 				selectedInputFilterJPanel,
 				null,	// orderby
-				-999,	// structure_num
-				-999,	// wd
-				-999,	// id
+				HydroBase_Util.MISSING_INT,	// structure_num
+				HydroBase_Util.MISSING_INT,	// wd
+				HydroBase_Util.MISSING_INT,	// id
 				null,	// str_name
 				null,	// landuse
 				null,	// start
