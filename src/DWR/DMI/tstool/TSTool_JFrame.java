@@ -1208,8 +1208,8 @@ JMenuItem
     __Commands_Create_NewTimeSeries_JMenuItem,
     __Commands_Create_TSID_JMenuItem,
 	__Commands_Create_ChangeInterval_JMenuItem,
-	__Commands_Create_ChangeIntervalLarger_JMenuItem,
-	__Commands_Create_ChangeIntervalSmaller_JMenuItem,
+	__Commands_Create_ChangeIntervalToLarger_JMenuItem,
+	__Commands_Create_ChangeIntervalToSmaller_JMenuItem,
 	__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem,
 	__Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem,
 	__Commands_Create_Copy_JMenuItem,
@@ -1812,8 +1812,8 @@ private String
     __Commands_Create_TSID_String = TAB + "TSID... <add a time series identifier command>",
 	__Commands_Create_CreateFromList_String = TAB + "CreateFromList()... <read 1+ time series using a list of identifiers>",
 	__Commands_Create_ChangeInterval_String = TAB + "ChangeInterval()... <create time series with new interval (timestep)>",
-	__Commands_Create_ChangeIntervalLarger_String = TAB + "ChangeIntervalLarger()... <create time series with larger interval (timestep)>",
-	__Commands_Create_ChangeIntervalSmaller_String = TAB + "ChangeIntervalSmaller()... <create time series with smaller interval (timestep)>",
+	__Commands_Create_ChangeIntervalToLarger_String = TAB + "ChangeIntervalToLarger()... <create time series with larger interval (timestep)>",
+	__Commands_Create_ChangeIntervalToSmaller_String = TAB + "ChangeIntervalToSmaller()... <create time series with smaller interval (timestep)>",
 	__Commands_Create_ChangeIntervalIrregularToRegular_String = TAB + "ChangeIntervalIrregularToRegular()... <create regular interval time series from irregular>",
 	__Commands_Create_ChangeIntervalRegularToIrregular_String = TAB + "ChangeIntervalRegularToIrregular()... <create irregular interval time series from regular>",
 	__Commands_Create_Copy_String = TAB + "Copy()... <copy a time series>",
@@ -2503,7 +2503,7 @@ public void commandCanceled ( int icommand, int ncommand, Command command, float
 Indicate that a command has completed.  The success/failure of the command is not indicated (see CommandStatusProvider).
 @param icommand The command index (0+).
 @param ncommand The total number of commands to process
-@param command The reference to the command that is starting to run,
+@param command The reference to the command that is completed,
 provided to allow future interaction with the command.
 @param percent_complete If >= 0, the value can be used to indicate progress
 running a list of commands (not the single command).  If less than zero, then
@@ -6867,8 +6867,8 @@ private void ui_CheckGUIState ()
     JGUIUtil.setEnabled ( __Commands_Create_Delta_JMenuItem, enabled);
     JGUIUtil.setEnabled ( __Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_ChangeInterval_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalLarger_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalSmaller_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalToLarger_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalToSmaller_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Create_Copy_JMenuItem, enabled);
@@ -10471,12 +10471,12 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Create_ChangeInterval_String, this) );
 	__Commands_Create_ChangeInterval_JMenuItem.setToolTipText("Create time series by changing the interval time series, handles small<->large, irregular/regular, etc.");
     // TODO SAM 2017-04-24 need to enable these commands when they work
-    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalLarger_JMenuItem =
-    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalLarger_String, this) );
-    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalSmaller_JMenuItem =
-    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalSmaller_String, this) );
-    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem =
-    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalIrregularToRegular_String, this) );
+    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalToLarger_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalToLarger_String, this) );
+    //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalToSmaller_JMenuItem =
+    //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalToSmaller_String, this) );
+    __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem =
+        new SimpleJMenuItem(__Commands_Create_ChangeIntervalIrregularToRegular_String, this) );
     //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem =
     //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalRegularToIrregular_String, this) );
     
@@ -13458,11 +13458,11 @@ throws Exception
 	else if (command.equals( __Commands_Create_ChangeInterval_String)){
 		commandList_EditCommand ( __Commands_Create_ChangeInterval_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_ChangeIntervalLarger_String)){
-		commandList_EditCommand ( __Commands_Create_ChangeIntervalLarger_String, null, CommandEditType.INSERT );
+	else if (command.equals( __Commands_Create_ChangeIntervalToLarger_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeIntervalToLarger_String, null, CommandEditType.INSERT );
 	}
-	else if (command.equals( __Commands_Create_ChangeIntervalSmaller_String)){
-		commandList_EditCommand ( __Commands_Create_ChangeIntervalSmaller_String, null, CommandEditType.INSERT );
+	else if (command.equals( __Commands_Create_ChangeIntervalToSmaller_String)){
+		commandList_EditCommand ( __Commands_Create_ChangeIntervalToSmaller_String, null, CommandEditType.INSERT );
 	}
 	else if (command.equals( __Commands_Create_ChangeIntervalIrregularToRegular_String)){
 		commandList_EditCommand ( __Commands_Create_ChangeIntervalIrregularToRegular_String, null, CommandEditType.INSERT );
