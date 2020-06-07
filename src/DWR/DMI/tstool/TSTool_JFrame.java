@@ -1490,6 +1490,7 @@ JMenu
 JMenuItem
     __Commands_General_FileHandling_FTPGet_JMenuItem = null,
     __Commands_General_FileHandling_WebGet_JMenuItem = null,
+    __Commands_General_FileHandling_CreateFolder_JMenuItem = null,
     __Commands_General_FileHandling_AppendFile_JMenuItem = null,
     __Commands_General_FileHandling_CopyFile_JMenuItem = null,
     __Commands_General_FileHandling_FormatFile_JMenuItem = null,
@@ -2050,6 +2051,7 @@ private String
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
+    __Commands_General_FileHandling_CreateFolder_String = TAB + "CreateFolder()... <create a folder>",
     __Commands_General_FileHandling_AppendFile_String = TAB + "AppendFile()... <append file(s)>",
     __Commands_General_FileHandling_CopyFile_String = TAB + "CopyFile()... <copy file(s)>",
     __Commands_General_FileHandling_FormatFile_String = TAB + "FormatFile()... <format a file>",
@@ -11285,6 +11287,10 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_FileHandling_WebGet_String, this ) );
     __Commands_General_FileHandling_WebGet_JMenuItem.setToolTipText("Retrieve a file from an web site URL and save as a local file.");
     __Commands_General_FileHandling_JMenu.addSeparator();
+    __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_CreateFolder_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_FileHandling_CreateFolder_String, this ) );
+    __Commands_General_FileHandling_CreateFolder_JMenuItem.setToolTipText("Create a file and optionally all parent folders.");
+    __Commands_General_FileHandling_JMenu.addSeparator();
     __Commands_General_FileHandling_JMenu.add ( __Commands_General_FileHandling_AppendFile_JMenuItem =
         new SimpleJMenuItem( __Commands_General_FileHandling_AppendFile_String, this ) );
     __Commands_General_FileHandling_AppendFile_JMenuItem.setToolTipText("Append a file to another file.");
@@ -14359,6 +14365,9 @@ throws Exception
     }
     else if (command.equals( __Commands_General_FileHandling_WebGet_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_WebGet_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_General_FileHandling_CreateFolder_String)){
+        commandList_EditCommand ( __Commands_General_FileHandling_CreateFolder_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_General_FileHandling_AppendFile_String)){
         commandList_EditCommand ( __Commands_General_FileHandling_AppendFile_String, null, CommandEditType.INSERT );
