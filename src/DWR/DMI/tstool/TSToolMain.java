@@ -87,7 +87,7 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "13.03.00dev (2020-06-07)";
+public static final String PROGRAM_VERSION = "13.03.00dev (2020-06-11)";
 
 /**
 Main GUI instance, used when running interactively.
