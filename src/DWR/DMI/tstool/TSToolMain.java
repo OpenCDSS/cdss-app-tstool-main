@@ -468,32 +468,34 @@ public static boolean isRestServer()
 }
 
 /**
-Load plugin datastores.  Plugin files can exist in two locations:
+Load plugin datastores.  Plugin files can exist in three locations:
 <ul>
-<li> TSToolInstallFolder/plugin-datastore/DataStoreName/bin/DataStore-version.jar</li> - preferred plugin home,
-will ensure that it continues to work (prototyped in TSTool 12.06.00 and earlier)
-<li> UserHomeFolder/.tstool/plugin-datastore/DataStoreName/bin/DataStore-version.jar</li> - can be used during development
-but plugins will likely not work with all versions of TSTool (prototyped in TSTool 12.06.00 and earlier)
-<li> UserHomeFolder/.tstool/12/plugins or subfolder (prototyped in TSTool 12.07.00)
+<li> UserHomeFolder/.tstool/12/plugins or subfolder (prototyped in TSTool 12.07.00) - preferred for latest design</li>
+<li> TSToolInstallFolder/plugin-datastore/DataStoreName/bin/DataStore-version.jar - 
+will ensure that it continues to work (prototyped in TSTool 12.06.00 and earlier)</li>
+<li> UserHomeFolder/.tstool/plugin-datastore/DataStoreName/bin/DataStore-version.jar - old folder convention</li>
 </ul>
 @param session TSTool session, which provides user and environment information.
 @param pluginDataStoreList empty list of plugin datastores, will be populated by this method.
 @param pluginDataStoreFactoryList empty list of plugin datastore factories, will be populated by this method.
+@param pluginCommandList empty list of plugin commands, will be populated by this method.
 */
-private static void loadPluginDataStores(TSToolSession session, @SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
-	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList )
+private static void loadPluginDataStores(TSToolSession session,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
+	@SuppressWarnings("rawtypes") List<Class> pluginCommandList )
 {
 	final String routine = "TSToolMain.loadPluginDataStores";
 	// Find jar files that contain datastores
-	Message.printStatus(2, routine, "Loading plugin datastores using old and then new approach...");
+	Message.printStatus(2, routine, "Loading plugin datastores and commands using old and then new approach...");
 	// First use the old approach (TSTool 12.06.00 and earlier)
-	final List<String> pluginJarListOld = new ArrayList<String>();
+	final List<String> pluginJarListOld = new ArrayList<>();
 	findPluginDataStoreJarFilesOld ( session, pluginJarListOld );
-	loadPluginDataStoresOld("", session, pluginJarListOld, pluginDataStoreList, pluginDataStoreFactoryList );
+	loadPluginDataStoresOld("", session, pluginJarListOld, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 	// Next use the new approach (TSTool 12.07.00 and later)
-	final List<String> pluginJarListNew = new ArrayList<String>();
+	final List<String> pluginJarListNew = new ArrayList<>();
 	findPluginDataStoreJarFilesNew ( session, pluginJarListNew );
-	loadPluginDataStoresNew(session, pluginJarListNew, pluginDataStoreList, pluginDataStoreFactoryList );
+	loadPluginDataStoresNew(session, pluginJarListNew, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 }
 
 /**
@@ -503,12 +505,14 @@ private static void loadPluginDataStores(TSToolSession session, @SuppressWarning
  * @param pluginJarList
  * @param pluginDataStoreList
  * @param pluginDataStoreFactoryList
+ * @param pluginCommandList empty list of plugin commands, will be populated by this method.
  */
 private static void loadPluginDataStoresNew(TSToolSession session, List<String> pluginJarList,
-		@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
-		@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList ) {
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
+	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
 	// Try using the old logic for now
-	loadPluginDataStoresOld( "New", session, pluginJarList, pluginDataStoreList, pluginDataStoreFactoryList );
+	loadPluginDataStoresOld( "New", session, pluginJarList, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 }
 
 /**
@@ -517,10 +521,12 @@ private static void loadPluginDataStoresNew(TSToolSession session, List<String> 
  * @param pluginJarList
  * @param pluginDataStoreList
  * @param pluginDataStoreFactoryList
+ * @param pluginCommandList empty list of plugin commands, will be populated by this method.
  */
 private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession session, List<String> pluginJarList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
-	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList ) {
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
+	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
 	if ( messagePrefix.isEmpty() ) {
 		messagePrefix = "Old";
 		// Use for messages so it is clear whether processing old or new datastore configurations
@@ -554,11 +560,24 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			continue;
 		}
 		// Create a class loader specific to the datastore.  This expects the datastore to be in the jar file with class name XXXXXDataStore.
-		PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
+		// - TODO smalers 2020-07-26 using different class loaders for datastore and command classes causes an issue later
+		//PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
+		PluginDataStoreClassLoader pcl = null;
+		boolean oldCode = false;
+		if ( oldCode ) { 
+			// Old approach, which leads to ClassCastException because plugin classes are loaded from different class loaders.
+			pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
+		}
+		else {
+			boolean useChildClassLoader = false;
+			// New approach, which tries to overcome the ClassCastException issues
+			pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs, TSToolMain.class.getClassLoader(), useChildClassLoader );
+		}
 		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreList1 = null;
 		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreFactoryList1 = null;
+		// Load datastore classes
 		try {
 			pluginDataStoreList1 = pcl.loadDataStoreClasses();
 		}
@@ -566,6 +585,7 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			Message.printWarning(2,routine,"Error loading datastore plugin classes (" + e + ")." );
 			Message.printWarning(2,routine,e);
 		}
+		// Load datastore factory classes
 		try {
 			pluginDataStoreFactoryList1 = pcl.loadDataStoreFactoryClasses();
 		}
@@ -573,20 +593,10 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			Message.printWarning(2,routine,"Error loading datastore factory plugin classes (" + e + ")." );
 			Message.printWarning(2,routine,e);
 		}
-		finally {
-			/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
-			 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
-			try {
-				pcl.close();
-			}
-			catch ( IOException e ) {
-				// For now swallow - not sure what else to do
-			}
-			*/
-		}
 		// For now require that one datastore class and one datastore class factory are loaded for each datastore.
+		// Add the plugin datastore class to the list.
 		if ( pluginDataStoreList1 == null ) {
-			Message.printWarning(2,routine,"Null datastore for plugin Jar \"" + pluginJar + "\" - skipping plugin." );
+			Message.printWarning(2,routine,"Null datastore for plugin Jar \"" + pluginJar + "\" - skipping plugin datastore." );
 		}
 		else {
 			if ( pluginDataStoreList1.size() != 1 ) {
@@ -598,8 +608,9 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 				pluginDataStoreList.addAll(pluginDataStoreList1);
 			}
 		}
+		// Add the plugin datastore factory class to the list.
 		if ( pluginDataStoreFactoryList1 == null ) {
-			Message.printWarning(2,routine,"Null datastore factory for plugin Jar \"" + pluginJar + "\" - skipping plugin." );
+			Message.printWarning(2,routine,"Null datastore factory for plugin Jar \"" + pluginJar + "\" - skipping plugin datastore factory." );
 		}
 		else {
 			if ( pluginDataStoreFactoryList1.size() != 1 ) {
@@ -611,10 +622,156 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 				pluginDataStoreFactoryList.addAll(pluginDataStoreFactoryList1);
 			}
 		}
+
+		// Add the plugin command class to the list.
+		// Use a class loader to load the class file
+		@SuppressWarnings("rawtypes")
+		List<Class> pluginCommandList1 = null;
+		// Load command classes
+		try {
+			// TODO smalers 2020-08-03 for now use method in the datastore clas loader
+			//PluginCommandClassLoader pcl2 = new PluginCommandClassLoader ( dataStoreJarURLs );
+			//pluginCommandList1 = pcl2.loadCommandClasses();
+			pluginCommandList1 = pcl.loadCommandClasses();
+		}
+		catch ( ClassNotFoundException e ) {
+			Message.printWarning(2,routine,"Error loading command plugin classes (" + e + ")." );
+			Message.printWarning(2,routine,e);
+		}
+		finally {
+			/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
+		 	* The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+			try {
+				pcl.close();
+			}
+			catch ( IOException e ) {
+				// For now swallow - not sure what else to do
+			}
+			*/
+		}
+		if ( pluginCommandList1 == null ) {
+			Message.printWarning(2,routine,"Null plugin command list for plugin Jar \"" + pluginJar + "\" - skipping plugin commands." );
+		}
+		else {
+			// Add to the list to be known to TSTool
+			// - multiple commands can be associated with a plugin jar file
+			// - other plugins may also add to the list
+			Message.printStatus(2,routine,"Plugin command list for plugin Jar \"" + pluginJar + "\" includes " +
+				pluginCommandList1.size() + " commands." );
+			pluginCommandList.addAll(pluginCommandList1);
+		}
 	}
 }
 
 /**
+Load plugin commands.
+New version, uses the "plugins" folder in user files.
+TODO smalers 2020-07-25 confirm that this works OK with datastore plugin in the same jar file. Maybe this is not needed?
+Plugin files can exist in three locations:
+<ul>
+<li> TSToolInstallFolder/plugins/xxx.jar</li> - for general plugins (current development focuses on user-folder plugins)
+<li> UserHomeFolder/.tstool/13/plugins/xxx.jar</li> - plugins depend on major TSTool version
+</ul>
+@param session TSTool session, which provides user and environment information.
+*/
+@SuppressWarnings("rawtypes")
+private static List<Class> loadPluginCommands(TSToolSession session)
+{	final String routine = "TSToolMain.loadPluginCommands";
+	Message.printStatus(2, routine, "Loading plugin commands.");
+	final List<String> pluginJarList = new ArrayList<String>();
+	final String [] pluginHomeFolders = {
+		// TSToolInstallHome/plugins
+		session.getInstallPluginsFolder(),
+		// .tstool/13/plugins
+		session.getUserPluginsFolder()
+	};
+	List<Class> pluginCommandList = new ArrayList<Class>();
+	for ( int iPluginHome = 0; iPluginHome < pluginHomeFolders.length; iPluginHome++ ) {
+		// First get a list of candidate URLs, using path to jar file
+		String pluginDir = pluginHomeFolders[iPluginHome];
+		// First get a list of candidate URLs, which will be in the TSTool user files under, for example:
+		// .tstool/13/plugins/xxx.jar
+		// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
+		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
+		// in which case ** will need to be used somehow in the glob pattern
+		String glob = pluginDir + File.separator + "*.jar";
+		// For glob backslashes need to be escaped (this should not impact Linux)
+		glob = glob.replace ("\\","\\\\");
+		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + glob);
+		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
+				Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
+				if ( pathMatcher.matches(file)) {
+					Message.printStatus(2,routine,"Found jar file for potential plugin command: " + file);
+					pluginJarList.add("" + file);
+				}
+				return FileVisitResult.CONTINUE;
+			}
+			
+			@Override
+			public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
+				return FileVisitResult.CONTINUE;
+			}
+		};
+		try {
+			// The following walks the tree path under the specified folder
+			// The full path is returned during walking (not just under the starting folder)
+			Path pluginDirPath = Paths.get(pluginDir);
+			Message.printStatus(2,routine, "Trying to find plugin commands using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
+			Files.walkFileTree(pluginDirPath, matcherVisitor);
+		}
+		catch ( IOException e ) {
+			Message.printWarning(3,routine,"Error getting jar file list for plugin command(s) (" + e + ")" );
+			// Return empty list of command plugin classes
+			return pluginCommandList;
+		}
+	}
+	// Convert found jar files into an array of URL used by the class loader
+	// - from this point forward the jar file path does not care if in the user folder or TSTool installation folder
+	URL [] commandJarURLs = new URL[pluginJarList.size()];
+	int jarCount = 0;
+	for ( String pluginJar : pluginJarList ) {
+		try {
+			// Convert the file system filename to URL using forward slashes
+			commandJarURLs[jarCount] = new URL("file:///" + pluginJar.replace("\\", "/"));
+			++jarCount; // Only increment if successful
+		}
+		catch ( MalformedURLException e ) {
+			Message.printWarning(3,routine,"Error creating URL for plugin command jar file \"" + pluginJar + "\" (" + e + ")" );
+		}
+	}
+	// Create a class loader for commands.  This expects commands to be in the jar file with class name CommandName.
+	if ( jarCount != pluginJarList.size() ) {
+		// Resize the array
+		URL [] commandJarURLs2 = new URL[jarCount];
+		System.arraycopy(commandJarURLs,0,commandJarURLs2,0,jarCount);
+		commandJarURLs = commandJarURLs2;
+	}
+	PluginCommandClassLoader pcl = new PluginCommandClassLoader ( commandJarURLs );
+	try {
+		pluginCommandList = pcl.loadCommandClasses();
+	}
+	catch ( ClassNotFoundException e ) {
+		Message.printWarning(2,routine,"Error loading command plugin classes (" + e + ")." );
+		Message.printWarning(2,routine,e);
+	}
+	finally {
+		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
+		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+		try {
+			pcl.close();
+		}
+		catch ( IOException e ) {
+			// For now swallow - not sure what else to do
+		}
+		*/
+	}
+	return pluginCommandList;
+}
+
+/**
+Old version, prior to using the "plugins" folder in user files.
 Load plugin commands.  Plugin files can exist in three locations:
 <ul>
 <li> TSToolInstallFolder/plugin-command/CommandName/bin/Command-version.jar</li> - preferred plugin home,
@@ -625,7 +782,7 @@ but plugins will likely not work with all versions of TSTool
 @param session TSTool session, which provides user and environment information.
 */
 @SuppressWarnings("rawtypes")
-private static List<Class> loadPluginCommands(TSToolSession session)
+private static List<Class> loadPluginCommandsOld(TSToolSession session)
 {	final String routine = "TSToolMain.loadPluginCommands";
 	final List<String> pluginJarList = new ArrayList<String>();
 	final String [] pluginHomeFolders = {
@@ -790,21 +947,26 @@ public static void main ( String args[] )
 	// Load plugin datastore classes
 	
 	@SuppressWarnings("rawtypes")
-	List<Class> pluginDataStoreClasses = new ArrayList<Class>();
+	List<Class> pluginDataStoreClasses = new ArrayList<>();
 	@SuppressWarnings("rawtypes")
-	List<Class> pluginDataStoreFactoryClasses = new ArrayList<Class>();
+	List<Class> pluginDataStoreFactoryClasses = new ArrayList<>();
+	List<Class> pluginCommandClasses = new ArrayList<>();
 	try {
-		loadPluginDataStores(session, pluginDataStoreClasses, pluginDataStoreFactoryClasses);
+		loadPluginDataStores(session, pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses);
 	}
 	catch ( Throwable e ) {
 		Message.printWarning ( 1, routine, "Error loading plugin datastores.  See log file for details." );
 		Message.printWarning ( 1, routine, e );
 	}
+	Message.printStatus(2, routine, "Loaded " + pluginDataStoreClasses.size() + " plugin datastore classes for all datastore jars.");
+	Message.printStatus(2, routine, "Loaded " + pluginDataStoreFactoryClasses.size() + " plugin datastore factory classes for all datastore jars.");
+	Message.printStatus(2, routine, "Loaded " + pluginCommandClasses.size() + " plugin command classes for all datastore jars.");
 	
 	// Load plugin command classes
+	// - TODO smalers 2020-07-25 - these are now determined when loading datastore plugins, above
 	
-	@SuppressWarnings("rawtypes")
-	List<Class> pluginCommandClasses = loadPluginCommands(session);
+	// @SuppressWarnings("rawtypes")
+	// List<Class> pluginCommandClasses = loadPluginCommands(session);
 	
 	// Run TSTool in the run mode indicated by command line parameters
 	
