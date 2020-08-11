@@ -57,7 +57,7 @@ public class PluginCommandClassLoader extends URLClassLoader {
 	 * Load the command classes found in the jar file.
 	 */
 	public List<Class> loadCommandClasses () throws ClassNotFoundException {
-		String routine = "loadCommandClasses";
+		String routine = getClass().getSimpleName() + ".loadCommandClasses";
 		// Get all of the URLs that were specified to the loader
 		URL [] pluginClassURLs = getURLs();
 		// Plugin command classes that are loaded
@@ -70,22 +70,27 @@ public class PluginCommandClassLoader extends URLClassLoader {
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
-				String commandClassToLoad = attributes.getValue("Command-Class");
-				if ( commandClassToLoad == null ) {
-					Message.printWarning(3, routine,
-						"Cannot find Command-Class property in jar file MANIFEST.  Cannot load command class \"" + commandClassToLoad + "\"");
-				}
-				else {
-					// The following will search the list of URLs that was provided to the constructor
-					Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
-					// This class is an instance of URLClassLoader so can run the super-class loadClass()
-					Class<?> loadedClass = loadClass(commandClassToLoad);
-					Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
-					pluginCommandList.add(loadedClass);
+				for ( int iCommand = 1 ; ; ++iCommand ) {
+					String commandClassToLoad = attributes.getValue("Command-Class" + iCommand);
+					if ( commandClassToLoad == null ) {
+						// No more command classes so break out of the loop
+						Message.printStatus(2, routine,  "Read " + (iCommand - 1) + " MANIFEST entries for command classes.");
+						break;
+					}
+					else {
+						// The following will search the list of URLs that was provided to the constructor
+						Message.printStatus(2, routine,  "Found MANIFEST entry for command class: " +
+							commandClassToLoad.substring(0,(commandClassToLoad.length() - (("" + iCommand).length() - 1)) ));
+						Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
+						// This class is an instance of URLClassLoader so can run the super-class loadClass()
+						Class<?> loadedClass = loadClass(commandClassToLoad);
+						Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
+						pluginCommandList.add(loadedClass);
+					}
 				}
 			}
 			catch ( IOException ioe ) {
-				Message.printWarning(3,routine,"Error loading plugin command from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(3,routine,"Error loading plugin commands from \"" + pluginClassURLs[i] + "\"");
 			}
 			finally {
 				if ( jarStream != null ) {

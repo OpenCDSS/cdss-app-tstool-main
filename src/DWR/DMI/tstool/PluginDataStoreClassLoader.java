@@ -24,6 +24,7 @@ NoticeEnd */
 package DWR.DMI.tstool;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -42,13 +43,42 @@ import RTi.Util.Message.Message;
  * class loader, which will not find dependencies specific to this class loader.
  * Therefore, try to load plugin dependencies in this classloader first.
  * See:  https://dzone.com/articles/java-classloader-handling.
+ * There can be issue with multiple class loaders.
+ * - see:  https://medium.com/jrtapsell/java-classloaders-ec56b8f9c2bd
  * @author sam
  *
  */
 public class PluginDataStoreClassLoader extends URLClassLoader {
 	
-	private ChildClassLoader childClassLoader;
+	private ChildClassLoader childClassLoader = null;
 	
+	/**
+	 * TODO smalers 2020-07-26 this is new code to try to overcome class cast exception for same calls in different loaders..
+	 * Construct the class loader with a list of jar files that are candidates to load,
+	 * and specify a parent class loader.
+	 * @param dataStoreJarList list of jar files to load
+	 * @param prerent class loader
+	 * @param useChildClassLoader if true, use the child class loader before giving the parent class loader a chance to load a class;
+	 * if false, let the parent load the class first, which is the typical default.
+	 */
+	public PluginDataStoreClassLoader ( URL [] dataStoreJarList, ClassLoader parent, boolean useChildClassLoader ) {
+		// Using URLClassLoader for the base class should result in the parent (application) class
+		// loader being used for for any other class loads, then this class.
+		// This won't work for new classes that are not in the parent classpath (manifest)
+		super ( dataStoreJarList, parent );
+		String routine = getClass().getSimpleName() + ".PluginDataStoreClassLoader";
+		// The following is used to allow classes referenced by the plugin class loader to be loaded
+		// here rather than the parent class loader
+		Message.printStatus(2, routine, "Jar file list (classpath) size is " + dataStoreJarList.length );
+		for ( int i = 0; i < dataStoreJarList.length; i++ ) {
+			Message.printStatus(2, routine, "dataStoreJarList[" + i + "]=" + dataStoreJarList[i] );
+		}
+		Message.printStatus(2, routine, "In constructor, creating ChildClassLoader");
+		if ( useChildClassLoader ) {
+			this.childClassLoader = new ChildClassLoader(dataStoreJarList, new DetectClass(this.getParent()));
+		}
+	}
+
 	/**
 	 * Construct the class loader with a list of jar files that are candidates to load
 	 */
@@ -66,6 +96,60 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 		}
 		Message.printStatus(2, routine, "In constructor, creating ChildClassLoader");
 		this.childClassLoader = new ChildClassLoader(dataStoreJarList, new DetectClass(this.getParent()));
+	}
+	
+	/**
+	 * Load the command classes found in the jar file.
+	 * TODO smalers 2020-7-26 copied the code here because using different class loaders was causing class cast exception
+	 */
+	public List<Class> loadCommandClasses () throws ClassNotFoundException {
+		String routine = getClass().getSimpleName() + ".loadCommandClasses";
+		// Get all of the URLs that were specified to the loader
+		URL [] pluginClassURLs = getURLs();
+		// Plugin command classes that are loaded
+		List<Class> pluginCommandList = new ArrayList<>();
+		// Loop through all of the URLs
+		for ( int i = 0; i < pluginClassURLs.length; i++ ) {
+			JarInputStream jarStream = null;
+			try {
+				// Open the META-INF/MANIFEST.MF file and get the property Command-Class, which is what needs to be loaded
+				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
+				Manifest manifest = jarStream.getManifest();
+				Attributes attributes = manifest.getMainAttributes();
+				for ( int iCommand = 1 ; ; ++iCommand ) {
+					String commandClassToLoad = attributes.getValue("Command-Class" + iCommand);
+					if ( commandClassToLoad == null ) {
+						// No more command classes so break out of the loop
+						Message.printStatus(2, routine,  "Read " + (iCommand - 1) + " MANIFEST entries for command classes.");
+						break;
+					}
+					else {
+						// The following will search the list of URLs that was provided to the constructor
+						Message.printStatus(2, routine,  "Found MANIFEST entry for command class: " +
+							commandClassToLoad.substring(0,(commandClassToLoad.length() - (("" + iCommand).length() - 1)) ));
+						Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
+						// This class is an instance of URLClassLoader so can run the super-class loadClass()
+						Class<?> loadedClass = loadClass(commandClassToLoad);
+						Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
+						pluginCommandList.add(loadedClass);
+					}
+				}
+			}
+			catch ( IOException ioe ) {
+				Message.printWarning(3,routine,"Error loading plugin commands from \"" + pluginClassURLs[i] + "\"");
+			}
+			finally {
+				if ( jarStream != null ) {
+					try {
+						jarStream.close();
+					}
+					catch ( IOException e ) {
+						// Ignore - should not happen
+					}
+				}
+			}
+		}
+		return pluginCommandList;
 	}
 	
 	/**
@@ -145,7 +229,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 				Attributes attributes = manifest.getMainAttributes();
 				String dataStoreFactoryClassToLoad = attributes.getValue("DataStoreFactory-Class");
 				if ( dataStoreFactoryClassToLoad == null ) {
-					// Old spelling
+					// Try old spelling - if null then have an issue
 					dataStoreFactoryClassToLoad = attributes.getValue("DatastoreFactory-Class");
 				}
 				// If additional jar files are located in the path, they may be supporting packages rather than DataStore files
@@ -160,6 +244,23 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 					Class<?> loadedClass = loadClass(dataStoreFactoryClassToLoad);
 					Message.printStatus(2, routine, "Loaded datastore factory class \"" + dataStoreFactoryClassToLoad + "\"");
 					pluginDataStoreFactoryList.add(loadedClass);
+				}
+				
+				// Also try to load plugin commands since these are now bundled in the same jar file as a plugin datastore.
+				// - the MANIFEST line is similar to:  Command-Class1: trilynx.novastar5.ws.tstool.plugin.commands.ReadNovaStar_Command
+				
+				for ( int iCommand = 1; ; iCommand++ ) {
+					String commandClassToLoad = attributes.getValue("Command-Class" + iCommand);
+					if ( commandClassToLoad == null ) {
+						// No more command classes so break out of the loop
+						Message.printStatus(2, routine,  "Read " + (iCommand - 1) + " MANIFEST entries for command classes.");
+						break;
+					}
+					else {
+						// Found a command class
+						Message.printStatus(2, routine,  "Found MANIFEST entry for command class: " +
+							commandClassToLoad.substring(0,(commandClassToLoad.length() - (("" + iCommand).length() - 1)) ));
+					}
 				}
 			}
 			catch ( IOException ioe ) {
@@ -187,20 +288,26 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	 * @param resolve if true, then resolve the class (normally the case?)
 	 */
     @Override
-    protected synchronized Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException
-    {
-        try {
-        	Message.printStatus(2, "PluginDataStoreClassLoader", "Calling childClassLoader.findClass(" + className + ").");
-            return childClassLoader.findClass(className);
-        }
-        catch( ClassNotFoundException e ) {
-            return super.loadClass(className, resolve);
+    protected synchronized Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+      	if ( this.childClassLoader == null ) {
+       		// Load classes as normal.
+          	return super.loadClass(className, resolve);
+       	}
+       	else {
+       		try {
+       			// Load classes using the child class loader first, then the parent.
+       			Message.printStatus(2, "PluginDataStoreClassLoader", "Calling childClassLoader.findClass(" + className + ").");
+           		return childClassLoader.findClass(className);
+       		}
+        	catch( ClassNotFoundException e ) {
+        		// Unable to use child class loader so use the parent class.
+            	return super.loadClass(className, resolve);
+        	}
         }
     }
 
 	// This private class was added to support dependency loading
-    private static class ChildClassLoader extends URLClassLoader
-    {
+    private static class ChildClassLoader extends URLClassLoader {
         private DetectClass realParent;
         public ChildClassLoader( URL[] urls, DetectClass realParent ) {
             super(urls, null);
@@ -229,7 +336,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	// This private class was added to support dependency loading
 	/**
 	 * Private internal class to ensure that child class loader is used before parent,
-	 * therefore classes in local jars will be found.
+	 * therefore classes in local jars will be found first.
 	 */
 	private static class DetectClass extends ClassLoader {
 		public DetectClass(ClassLoader parent) {

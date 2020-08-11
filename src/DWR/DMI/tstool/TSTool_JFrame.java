@@ -366,17 +366,17 @@ private TSToolSession session = null;
 /**
 List of plugin datastore classes, which allow third-party datastores to be opened and used for data.
 */
-private List<Class> pluginDataStoreClassList = new ArrayList<Class>();
+private List<Class> pluginDataStoreClassList = new ArrayList<>();
 
 /**
 List of plugin datastore factory classes, which allow third-party datastores to be opened and used for data.
 */
-private List<Class> pluginDataStoreFactoryClassList = new ArrayList<Class>();
+private List<Class> pluginDataStoreFactoryClassList = new ArrayList<>();
 
 /**
 List of plugin command classes, which allow third-party commands to be recognized and run.
 */
-private List<Class> pluginCommandClassList = new ArrayList<Class>();
+private List<Class> pluginCommandClassList = new ArrayList<>();
 
 /**
 Map interface.
@@ -2360,11 +2360,16 @@ public TSTool_JFrame ( TSToolSession session, String commandFile, boolean runOnL
 	// Set the icon to use for windows.
 	TSToolMain.setIcon ( "CDSS" );
 
-	// create the GUI ...
+	// Create the GUI
+	// - this also creates the processor instance so will be non-null after this call
 	StopWatch in = new StopWatch();
 	in.start();
 	ui_InitGUI ();
 	in.stop();
+	
+	// Set the plugin command classes in the processor
+	// - this is necessary so that they can be used when TSCommandFactory instance is created
+	this.__tsProcessor.setPluginCommandClasses ( pluginCommandClassList, false );
 
     // Get database connection information.  Force a login if the
 	// database connection cannot be made.  The login is interactive and
@@ -2878,7 +2883,8 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 			Message.printStatus(2, routine, "New command string: " + newCommandString);
 			if ( !newCommandString.toUpperCase().startsWith(originalCommandName + "(") ) {
 				// Edit has change the command name so need to create a new command
-				TSCommandFactory factory = new TSCommandFactory();
+				//TSCommandFactory factory = new TSCommandFactory();
+				TSCommandFactory factory = new TSCommandFactory(this.pluginCommandClassList);
 				commandToEditNew = factory.newCommand(newCommandString);
 	 			// Clear out the old parameters first so there is no leftover
 				commandToEditNew.getCommandParameters().clear();
