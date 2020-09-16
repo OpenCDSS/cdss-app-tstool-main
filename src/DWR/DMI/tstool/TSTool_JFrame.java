@@ -164,7 +164,6 @@ import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalCASSLivestockStats_InputFi
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_CUPopulation_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_GroundWater_InputFilter_JPanel;
-import DWR.DMI.HydroBaseDMI.HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StationGeolocMeasType_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel;
 import DWR.DMI.HydroBaseDMI.HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel;
@@ -173,7 +172,6 @@ import DWR.DMI.HydroBaseDMI.HydroBase_StationGeolocMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureIrrigSummaryTS;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
-import DWR.DMI.HydroBaseDMI.HydroBase_WISSheetNameWISFormat;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
 import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
 import DWR.DMI.SatMonSysDMI.SatMonSys_Util;
@@ -555,11 +553,6 @@ private InputFilter_JPanel __inputFilterHydroBaseStructureSfut_JPanel = null;
 InputFilter_JPanel for groundwater wells data.
 */
 private InputFilter_JPanel __inputFilterHydroBaseWells_JPanel = null;
-
-/**
-InputFilter_JPanel for HydroBase WIS time series.
-*/
-private InputFilter_JPanel __inputFilterHydroBaseWIS_JPanel = null;
 
 /**
 InputFilter_JPanel for NWSRFS_FS5Files time series.
@@ -6092,20 +6085,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				"", // No comment
 				false, insertOffset );
 		}
-		else if ( __query_TableModel instanceof TSTool_HydroBase_WIS_TableModel){
-			TSTool_HydroBase_WIS_TableModel model =	(TSTool_HydroBase_WIS_TableModel)__query_TableModel;
-			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-				(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
-				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
-				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-				(String)__query_TableModel.getValueAt ( row, model.COL_SHEET_NAME),
-				null,	// No sequence number
-				(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
-				false, insertOffset );
-		}
 	}
 	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		// The location (id), type, and time step uniquely identify the
@@ -8160,20 +8139,6 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
                 return panel;
             }
         }
-        else if ( panel instanceof HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel ) {
-            // Water Information Sheet time series
-            HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel hbpanel =
-                (HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel)panel;
-            HydroBaseDMI hbdmi = (HydroBaseDMI)hbpanel.getDataStore().getDMI();
-            String [] hb_mt = HydroBase_Util.convertToHydroBaseMeasType( selectedDataType, selectedTimeStep );
-            String hbMeasType = hb_mt[0];
-            if (hbpanel.getDataStore().getName().equalsIgnoreCase(selectedDataStoreName) &&
-                HydroBase_Util.isWISTimeSeriesDataType ( hbdmi, hbMeasType) &&
-                !hbpanel.getDataStore().getIsLegacyDMI()) {
-                // Message.printStatus(2, routine, "Setting WIS input filter panel visible.");
-                return panel;
-            }
-        }
         // TODO SAM 2012-05-03 - May add input filter later
         // No input filter panel is used for ColoradoWaterSMS - only the data type is populated
         //
@@ -9577,28 +9542,6 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataSt
         }
         */
         
-        // Add input filters for WIS.  For now, just catch an exception when not supported.
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseWIS_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseWIS_JPanel );
-            }
-            __inputFilterHydroBaseWIS_JPanel = new
-            HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel ( __hbdmi );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseWIS_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseWIS_JPanel );
-        }
-        catch ( Exception e ) {
-            // WIS tables probably not in HydroBase...
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase WIS - data tables not in database?" );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
         // Groundwater wells
         
         try {
@@ -9851,27 +9794,6 @@ private void ui_InitGUIInputFiltersHydroBaseLegacy ( HydroBaseDataStore dataStor
         Message.printWarning ( 2, routine, e );
     }
     
-    // Add input filters for WIS.  For now, just catch an exception when not supported.
-    
-    try {
-        if ( __inputFilterHydroBaseWIS_JPanel != null ) {
-            __inputFilterJPanelList.remove ( __inputFilterHydroBaseWIS_JPanel );
-        }
-        __inputFilterHydroBaseWIS_JPanel = new
-        HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel ( ui_GetHydroBaseDataStoreLegacy() );
-        JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseWIS_JPanel,
-            0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-            GridBagConstraints.WEST );
-        __inputFilterHydroBaseWIS_JPanel.setName("HydroBase.WISInputFilterPanel.Legacy");
-        __inputFilterJPanelList.add ( __inputFilterHydroBaseWIS_JPanel );
-    }
-    catch ( Exception e ) {
-        // WIS tables probably not in HydroBase...
-        Message.printWarning ( 2, routine,
-        "Unable to initialize input filter for HydroBase WIS - data tables not in database?" );
-        Message.printWarning ( 2, routine, e );
-    }
-    
     try {
         if ( __inputFilterHydroBaseWells_JPanel != null ) {
             __inputFilterJPanelList.remove( __inputFilterHydroBaseWells_JPanel);
@@ -10050,25 +9972,6 @@ private void ui_InitGUIInputFiltersHydroBase ( List<DataStore> dataStoreList, in
             // Agricultural_NASS_crop_stats probably not in HydroBase...
             Message.printWarning ( 2, routine,
                 "Unable to initialize input filter for HydroBase agricultural_NASS_crop_stats for datastore \"" +
-                dataStore.getName() + "\" (" + e + ")." );
-            Message.printWarning ( 2, routine, e );
-        }
-        
-        // Add input filters for WIS.  For now, just catch an exception when not supported.
-        
-        try {
-            HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel panel = new
-                HydroBase_GUI_SheetNameWISFormat_InputFilter_JPanel ( (HydroBaseDataStore)dataStore );
-            JGUIUtil.addComponent(__queryInput_JPanel, panel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            panel.setName("HydroBase." + dsName + ".WISInputFilterPanel");
-            __inputFilterJPanelList.add ( panel );
-        }
-        catch ( Exception e ) {
-            // WIS tables probably not in HydroBase...
-            Message.printWarning ( 2, routine,
-                "Unable to initialize input filter for HydroBase WIS for datastore \"" +
                 dataStore.getName() + "\" (" + e + ")." );
             Message.printWarning ( 2, routine, e );
         }
@@ -12584,10 +12487,6 @@ private void ui_SetInputFilterForSelections()
 				selectedInputFilter_JPanel = __inputFilterHydroBaseWells_JPanel;
 			}
 		}		
-		else if ( (__inputFilterHydroBaseWIS_JPanel != null) &&
-			HydroBase_Util.isWISTimeSeriesDataType ( ui_GetHydroBaseDMILegacy(), selectedDataType) ) {
-			selectedInputFilter_JPanel = __inputFilterHydroBaseWIS_JPanel;
-		}
 		else {
             // Generic input filter does not have anything...
 			selectedInputFilter_JPanel = __inputFilterGeneric_JPanel;
@@ -15524,8 +15423,7 @@ private void uiAction_DataTypeChoiceClicked()
             //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
             //HydroBase_Util.DATA_TYPE_HARDWARE |
             //HydroBase_Util.DATA_TYPE_STATION_ALL |
-            HydroBase_Util.DATA_TYPE_STRUCTURE_ALL //|
-            //HydroBase_Util.DATA_TYPE_WIS
+            HydroBase_Util.DATA_TYPE_STRUCTURE_ALL
             );
         __timeStep_JComboBox.setData ( time_steps );
         __timeStep_JComboBox.select ( null );
@@ -15602,8 +15500,7 @@ private void uiAction_DataTypeChoiceClicked()
 			HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
 			HydroBase_Util.DATA_TYPE_HARDWARE |
 			HydroBase_Util.DATA_TYPE_STATION_ALL |
-			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
-			HydroBase_Util.DATA_TYPE_WIS );
+			HydroBase_Util.DATA_TYPE_STRUCTURE_ALL );
 		__timeStep_JComboBox.setData ( time_steps );
 		__timeStep_JComboBox.select ( null );
 		__timeStep_JComboBox.setEnabled ( true );
@@ -16602,18 +16499,6 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
                 __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
             }
             */
-            /* Not implemented
-            else if( HydroBase_Util.isWISTimeSeriesDataType ( __hbdmi, __selected_data_type ) ) {
-                // WIS TS...
-                __query_TableModel = new
-                    TSTool_HydroBase_WIS_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
-                TSTool_HydroBase_WIS_CellRenderer cr = new
-                    TSTool_HydroBase_WIS_CellRenderer( (TSTool_HydroBase_WIS_TableModel)__query_TableModel);
-                __query_JWorksheet.setCellRenderer ( cr );
-                __query_JWorksheet.setModel(__query_TableModel);
-                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            }
-            else */
             if ( selectedDataType.equalsIgnoreCase( "WellLevelElev") ||
                 selectedDataType.equalsIgnoreCase( "WellLevelDepth")) {
                 if (selectedTimeStep.equalsIgnoreCase("Day")) {
@@ -17346,21 +17231,6 @@ throws Exception
     				//__query_JWorksheet.removeColumn ( ((TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel).COL_ABBREV );
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
     			}
-			}
-		}
-		else if ( HydroBase_Util.isWISTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
-			// WIS TS...
-			List<HydroBase_WISSheetNameWISFormat> dataList = hbdmi.readWISSheetNameWISFormatListDistinct(selectedInputFilterJPanel);
-	    	size = dataList.size();
-	    	if ( size > 0 ) {
-	    		Message.printStatus ( 1, routine, "" + size + " HydroBase WIS time series read.  Displaying data..." );
-				__query_TableModel = new
-					TSTool_HydroBase_WIS_TableModel ( __query_JWorksheet, dataList, selectedDataType );
-				TSTool_HydroBase_WIS_CellRenderer cr = new
-					TSTool_HydroBase_WIS_CellRenderer( (TSTool_HydroBase_WIS_TableModel)__query_TableModel);
-				__query_JWorksheet.setCellRenderer ( cr );
-				__query_JWorksheet.setModel(__query_TableModel);
-				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
 			}
 		}
 		if ( size == 0 ) {
@@ -20372,8 +20242,7 @@ throws Exception
         //HydroBase_Util.DATA_TYPE_HARDWARE |
         // Comment out stations until performance is figured out
         HydroBase_Util.DATA_TYPE_STATION_ALL |
-        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL, // |
-        //HydroBase_Util.DATA_TYPE_WIS,
+        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL,
         true ); // Add notes
     __dataType_JComboBox.setData ( dataTypes );
     // Select the default (this causes the other choices to be updated)...
@@ -20509,8 +20378,7 @@ private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDat
         HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
         HydroBase_Util.DATA_TYPE_HARDWARE |
         HydroBase_Util.DATA_TYPE_STATION_ALL |
-        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
-        HydroBase_Util.DATA_TYPE_WIS,
+        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL,
         true ); // Add notes
     __dataType_JComboBox.setData ( data_types );
 
@@ -21192,8 +21060,7 @@ private void uiAction_SelectInputType_HydroBase ()
         HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
         HydroBase_Util.DATA_TYPE_HARDWARE |
         HydroBase_Util.DATA_TYPE_STATION_ALL |
-        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL |
-        HydroBase_Util.DATA_TYPE_WIS,
+        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL,
         true ); // Add notes
     __dataType_JComboBox.setData ( data_types );
 
