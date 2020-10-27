@@ -1374,6 +1374,7 @@ JMenu
 JMenuItem
     __Commands_Datastore_NewDerbyDatabase_JMenuItem,  
     __Commands_Datastore_NewSQLiteDatabase_JMenuItem,  
+    __Commands_Datastore_OpenDataStore_JMenuItem,  
     __Commands_Datastore_ReadTableFromDataStore_JMenuItem,
     __Commands_Datastore_WriteTableToDataStore_JMenuItem,
     __Commands_Datastore_DeleteDataStoreTableRows_JMenuItem,
@@ -1961,6 +1962,7 @@ private String
     __Commands_Datastore_String = "Datastore Processing",
     __Commands_Datastore_NewDerbyDatabase_String = TAB + "NewDerbyDatabase()... <create a Derby database (built-in Java database)>",
     __Commands_Datastore_NewSQLiteDatabase_String = TAB + "NewSQLiteDatabase()... <create a SQLite database>",
+    __Commands_Datastore_OpenDataStore_String = TAB + "OpenDataStore()... <open a database datastore>",
     __Commands_Datastore_ReadTableFromDataStore_String = TAB + "ReadTableFromDataStore()... <read a table from a database datastore>",
     __Commands_Datastore_WriteTableToDataStore_String = TAB + "WriteTableToDataStore()... <write a table to a database datastore>",
     __Commands_Datastore_DeleteDataStoreTableRows_String = TAB + "DeleteDataStoreTableRows()... <delete database datastore table rows>",
@@ -10947,6 +10949,10 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Datastore_NewSQLiteDatabase_String, this) );
     __Commands_Datastore_NewSQLiteDatabase_JMenuItem.setToolTipText("Create a new SQLite database."); 
     __Commands_Datastore_JMenu.addSeparator();
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_OpenDataStore_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_OpenDataStore_String, this) );
+    __Commands_Datastore_OpenDataStore_JMenuItem.setToolTipText("Open a database datastore."); 
+    __Commands_Datastore_JMenu.addSeparator();
     __Commands_Datastore_JMenu.add(__Commands_Datastore_ReadTableFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTableFromDataStore_String, this) );
     __Commands_Datastore_ReadTableFromDataStore_JMenuItem.setToolTipText("Read a table from a database datastore."); 
@@ -13887,6 +13893,9 @@ throws Exception
     }
     else if (command.equals( __Commands_Datastore_NewSQLiteDatabase_String) ) {
         commandList_EditCommand ( __Commands_Datastore_NewSQLiteDatabase_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Datastore_OpenDataStore_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_OpenDataStore_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Datastore_ReadTableFromDataStore_String) ) {
         commandList_EditCommand ( __Commands_Datastore_ReadTableFromDataStore_String, null, CommandEditType.INSERT );
