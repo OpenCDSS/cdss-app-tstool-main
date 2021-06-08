@@ -87,7 +87,11 @@ this file are called by the startup TSTool and CDSS versions of TSTool.
 public class TSToolMain
 {
 public static final String PROGRAM_NAME = "TSTool";
-public static final String PROGRAM_VERSION = "13.03.00dev (2020-08-11)";
+/**
+ * Semantic version, see:  https://semver.org/
+ * - previously did not use period after third part (13.03.00dev) but have started using period (13.03.00.dev).
+ */
+public static final String PROGRAM_VERSION = "13.03.00.dev (2021-06-07)";
 
 /**
 Main GUI instance, used when running interactively.

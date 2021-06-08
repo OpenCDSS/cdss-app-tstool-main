@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2021 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1478,6 +1478,8 @@ JMenuItem
 	__Commands_General_Comments_TemplateComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null,
+	__Commands_General_Comments_RequireApplicationComment_JMenuItem = null,
+	__Commands_General_Comments_RequireDatastoreComment_JMenuItem = null,
 	__Commands_General_Comments_Empty_JMenuItem = null;
 
 JMenu
@@ -2043,6 +2045,8 @@ private String
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
+    __Commands_General_Comments_RequireApplicationComment_String = "#@require application ... <check application version dependency>",
+    __Commands_General_Comments_RequireDatastoreComment_String = "#@require datastore ... <check datastore version dependency>",
     __Commands_General_Comments_Empty_String = TAB + "<empty line>",
     
     __Commands_General_FileHandling_String = "General - File Handling",
@@ -2781,6 +2785,8 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		    action.equals(__Commands_General_Comments_TemplateComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ||
+            action.equals(__Commands_General_Comments_RequireApplicationComment_String) ||
+            action.equals(__Commands_General_Comments_RequireDatastoreComment_String) ||
             action.equals(__Commands_Template_Comments_Template_String) ) {
 			isCommentBlock = true;
 		}
@@ -11192,6 +11198,11 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusWarningComment_String, this ) );
     __Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem.setToolTipText("Insert a #@expectedStatus Warning comment - used with testing to indicate expected status.");
     __Commands_General_Comments_JMenu.addSeparator();
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireApplicationComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_RequireApplicationComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireDatastoreComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_RequireDatastoreComment_String, this ) );
+    __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_Empty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Empty_String, this ) );
     __Commands_General_Comments_Empty_JMenuItem.setToolTipText("Insert a empty (blank) line, to improve readability of the command file.");
@@ -14183,6 +14194,22 @@ throws Exception
         comments.add ( commandList_NewCommand("#@expectedStatus Warning",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusWarningComment_String, comments, CommandEditType.INSERT );
     }
+    else if (command.equals(__Commands_General_Comments_RequireApplicationComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@require application TSTool >= X.YY.ZZ",true) );
+        commandList_EditCommand ( __Commands_General_Comments_RequireApplicationComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_RequireDatastoreComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@require datastore HydroBase >= YYYYMMDD",true) );
+        commandList_EditCommand ( __Commands_General_Comments_RequireDatastoreComment_String, comments, CommandEditType.INSERT );
+    }    
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
@@ -22127,7 +22154,7 @@ private void uiAction_ShowHelpAbout ()
     "TSTool - Time Series Tool " + IOUtil.getProgramVersion() + "\n" +
     " \n" +
     "TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-    "Copyright (C) 1997-2019 Colorado Department of Natural Resources\n" +
+    "Copyright (C) 1997-2021 Colorado Department of Natural Resources\n" +
     " \n" +
     "TSTool is free software:  you can redistribute it and/or modify\n" +
     "    it under the terms of the GNU General Public License as published by\n" +
