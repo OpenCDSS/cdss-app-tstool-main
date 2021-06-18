@@ -1478,8 +1478,14 @@ JMenuItem
 	__Commands_General_Comments_TemplateComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null,
+	//__Commands_General_Comments_FileModTimeComment_JMenuItem = null,
+	//__Commands_General_Comments_FileSizeComment_JMenuItem = null,
+	__Commands_General_Comments_IdComment_JMenuItem = null,
+	__Commands_General_Comments_OrderComment_JMenuItem = null,
 	__Commands_General_Comments_RequireApplicationComment_JMenuItem = null,
 	__Commands_General_Comments_RequireDatastoreComment_JMenuItem = null,
+	__Commands_General_Comments_FixMeComment_JMenuItem = null,
+	__Commands_General_Comments_ToDoComment_JMenuItem = null,
 	__Commands_General_Comments_Empty_JMenuItem = null;
 
 JMenu
@@ -2045,8 +2051,14 @@ private String
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
+    //__Commands_General_Comments_FileModTimeComment_String = TAB + "#@fileModTime ... <used to enforce dependencies>",
+    //__Commands_General_Comments_FileSizeComment_String = TAB + "#@fileSize ... <used to enforce dependencies>",
+    __Commands_General_Comments_IdComment_String = TAB + "#@id CommandFileId <command file identifier>",
+    __Commands_General_Comments_OrderComment_String = TAB + "#@order before/after CommandFileId <control test order>",
     __Commands_General_Comments_RequireApplicationComment_String = "#@require application ... <check application version dependency>",
     __Commands_General_Comments_RequireDatastoreComment_String = "#@require datastore ... <check datastore version dependency>",
+    __Commands_General_Comments_FixMeComment_String = "#@fixme ... <indicate something to fix>",
+    __Commands_General_Comments_ToDoComment_String = "#@todo ... <indicate something to do>",
     __Commands_General_Comments_Empty_String = TAB + "<empty line>",
     
     __Commands_General_FileHandling_String = "General - File Handling",
@@ -2785,8 +2797,14 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		    action.equals(__Commands_General_Comments_TemplateComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ||
+            //action.equals(__Commands_General_Comments_FileModTimeComment_String) ||
+            //action.equals(__Commands_General_Comments_FileSizeComment_String) ||
+            action.equals(__Commands_General_Comments_IdComment_String) ||
+            action.equals(__Commands_General_Comments_OrderComment_String) ||
             action.equals(__Commands_General_Comments_RequireApplicationComment_String) ||
             action.equals(__Commands_General_Comments_RequireDatastoreComment_String) ||
+            action.equals(__Commands_General_Comments_FixMeComment_String) ||
+            action.equals(__Commands_General_Comments_ToDoComment_String) ||
             action.equals(__Commands_Template_Comments_Template_String) ) {
 			isCommentBlock = true;
 		}
@@ -3110,7 +3128,7 @@ in which case all are returned.  If true, all are returned, regardless of which 
 */
 private List<Command> commandList_GetCommands ( boolean get_all )
 {	if ( __commands_JListModel.size() == 0 ) {
-		return new ArrayList<Command>();
+		return new ArrayList<>();
 	}
 
 	int [] selected = ui_GetCommandJList().getSelectedIndices();
@@ -3122,7 +3140,7 @@ private List<Command> commandList_GetCommands ( boolean get_all )
 	if ( (selected_size == 0) || get_all ) {
 		// Nothing selected or want to get all, get all...
 		selected_size = __commands_JListModel.size();
-		List<Command> itemList = new ArrayList<Command>(selected_size);
+		List<Command> itemList = new ArrayList<>(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
 			itemList.add ( (Command)__commands_JListModel.get(i) );
 		}
@@ -3130,7 +3148,7 @@ private List<Command> commandList_GetCommands ( boolean get_all )
 	}
 	else {
 	    // Else something selected so get them...
-	    List<Command> itemList = new ArrayList<Command>(selected_size);
+	    List<Command> itemList = new ArrayList<>(selected_size);
 		for ( int i = 0; i < selected_size; i++ ) {
 			itemList.add ( (Command)__commands_JListModel.get(selected[i]) );
 		}
@@ -11197,11 +11215,30 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusWarningComment_String, this ) );
     __Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem.setToolTipText("Insert a #@expectedStatus Warning comment - used with testing to indicate expected status.");
+    /* TODO smalers 2021-06-13 add if CheckFile does not do enough needed
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_FileModTimeComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_FileModTimeComment_String, this ) );
+    __Commands_General_Comments_FileModTimeComment_JMenuItem.setToolTipText("Insert a #@fileModTime file1 > file2 comment - compare file modification times.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_FileSizeComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_FileSizeComment_String, this ) );
+    __Commands_General_Comments_FileSizeComment_JMenuItem.setToolTipText("Insert a #@fileSize file1 > size comment - compare file size.");
+    */
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_IdComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_IdComment_String, this ) );
+    __Commands_General_Comments_IdComment_JMenuItem.setToolTipText("Insert an #@id CommandFileId comment - identify the command file.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_OrderComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_OrderComment_String, this ) );
+    __Commands_General_Comments_OrderComment_JMenuItem.setToolTipText("Insert an #@order CommandFileId comment - used to order tests.");
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireApplicationComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_RequireApplicationComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireDatastoreComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_RequireDatastoreComment_String, this ) );
+    __Commands_General_Comments_JMenu.addSeparator();
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_FixMeComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_FixMeComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ToDoComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_ToDoComment_String, this ) );
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_Empty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Empty_String, this ) );
@@ -14114,7 +14151,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@template",true) );
         commandList_EditCommand ( __Commands_Template_Comments_Template_String, comments, CommandEditType.INSERT );
     }
@@ -14174,7 +14211,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@enabled False",true) );
         commandList_EditCommand ( __Commands_General_Comments_EnabledComment_String, comments, CommandEditType.INSERT );
     }
@@ -14182,7 +14219,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@expectedStatus Failure",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusFailureComment_String, comments, CommandEditType.INSERT );
     }
@@ -14190,9 +14227,63 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@expectedStatus Warning",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusWarningComment_String, comments, CommandEditType.INSERT );
+    }
+    /*
+    else if (command.equals(__Commands_General_Comments_FileModTimeComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@fileModTime File1Path > File2Path",true) );
+        commandList_EditCommand ( __Commands_General_Comments_FileModTimeComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_FileSizeComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@fileSize File1Path > File1Bytes",true) );
+        commandList_EditCommand ( __Commands_General_Comments_FileSizeComment_String, comments, CommandEditType.INSERT );
+    }
+    */
+    else if (command.equals(__Commands_General_Comments_FixMeComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+    	DateTime now = new DateTime ( DateTime.DATE_CURRENT );
+        comments.add ( commandList_NewCommand("#@fixme " + IOUtil.getProgramUser() + " " +
+        	now.toString(DateTime.FORMAT_YYYY_MM_DD) + " Add text here", true) );
+        commandList_EditCommand ( __Commands_General_Comments_FixMeComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_ToDoComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+    	DateTime now = new DateTime ( DateTime.DATE_CURRENT );
+        comments.add ( commandList_NewCommand("#@todo " + IOUtil.getProgramUser() + " " +
+        	now.toString(DateTime.FORMAT_YYYY_MM_DD) + " Add text here", true) );
+        commandList_EditCommand ( __Commands_General_Comments_ToDoComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_IdComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@id CommandFileId",true) );
+        commandList_EditCommand ( __Commands_General_Comments_IdComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_OrderComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@order before/after CommandFileId",true) );
+        commandList_EditCommand ( __Commands_General_Comments_OrderComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_RequireApplicationComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
@@ -14209,12 +14300,12 @@ throws Exception
     	List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@require datastore HydroBase >= YYYYMMDD",true) );
         commandList_EditCommand ( __Commands_General_Comments_RequireDatastoreComment_String, comments, CommandEditType.INSERT );
-    }    
+    }
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@readOnly - command file is not intended to be saved from within TSTool",true) );
         commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, CommandEditType.INSERT );
     }
@@ -14222,7 +14313,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@runDiscovery False",true) );
         commandList_EditCommand ( __Commands_General_Comments_RunDiscoveryFalseComment_String, comments, CommandEditType.INSERT );
     }
@@ -14230,7 +14321,7 @@ throws Exception
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
         // the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<Command>(1);
+        List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@template - command file is not intended to be saved from within TSTool - use a text editor to edit",true) );
         commandList_EditCommand ( __Commands_General_Comments_TemplateComment_String, comments, CommandEditType.INSERT );
     }
@@ -15752,7 +15843,7 @@ private void uiAction_EditCommand ()
 			// This is handled in the called method, which brings up a multi-line editor for comments.
             // Only edit the contiguous # block. The first one is a # but stop adding when lines no longer
 			// start with #
-			commandsToEdit = new ArrayList<Command> ( selectedSize );
+			commandsToEdit = new ArrayList<> ( selectedSize );
 			for ( int i = 0; i < selectedSize; i++ ) {
 				command = (Command)__commands_JListModel.get(selected[i]);
 				if ( !(command instanceof Comment_Command) ) {
@@ -15764,7 +15855,7 @@ private void uiAction_EditCommand ()
 		}
 		else {
             // Commands are one line...
-			commandsToEdit = new ArrayList<Command> ( 1 );
+			commandsToEdit = new ArrayList<> ( 1 );
 			commandsToEdit.add ( command );
 		}
 		// Edit using the command dialog
@@ -15798,7 +15889,7 @@ private void uiAction_EditCommandAsText ()
 			// This is handled in the called method, which brings up a multi-line editor for comments.
 	        // Only edit the contiguous # block. The first one is a # but stop adding when lines no longer
 			// start with #
-			commandsToEdit = new ArrayList<Command> ( selectedSize );
+			commandsToEdit = new ArrayList<> ( selectedSize );
 			for ( int i = 0; i < selectedSize; i++ ) {
 				command = (Command)__commands_JListModel.get(selected[i]);
 				if ( !(command instanceof Comment_Command) ) {
@@ -15810,7 +15901,7 @@ private void uiAction_EditCommandAsText ()
 		}
 		else {
 	        // Commands are one line...
-			commandsToEdit = new ArrayList<Command> ( 1 );
+			commandsToEdit = new ArrayList<> ( 1 );
 			commandsToEdit.add ( command );
 		}
 		boolean editAsText = true;
