@@ -42,6 +42,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -122,9 +123,15 @@ Path to the configuration file.  This cannot be defaulted until the -home comman
 private static String __configFile = "";
 
 /**
-List of properties to control the software from the configuration file and passed in on the command line.
+List of application properties to control the software from the configuration file and passed in on the command line.
 */
 private static PropList __tstool_props = null;
+
+/**
+ * List of processor properties, which will be set for each command file run.
+ * Properties are parsed from command line Property==Value parameters.
+ */
+private static PropList processorProps = new PropList("ProcessorProps");
 
 /**
 Indicates whether TSTool is running in batch server mode (look for command files in hot folder).
@@ -132,7 +139,8 @@ Indicates whether TSTool is running in batch server mode (look for command files
 private static boolean __isBatchServer = false;
 
 /**
-Indicates whether TSTool is running in HTTP server mode (requires command files to match REST endpoints and URL parmeters will translate to ${Property}).
+Indicates whether TSTool is running in HTTP server mode (requires command files to match
+REST endpoints and URL parameters will translate to ${Property}).
 */
 private static boolean __isHttpServer = false;
 
@@ -163,6 +171,12 @@ Indicates whether the main GUI is shown, for cases where TSTool is run in in bat
 with only the plot window shown.  If running in interactive mode the GUI is always shown.
 */
 private static boolean __showMainGUI = true;
+
+/**
+ * Datastore map, which allows datastore names in command files to remain but use a different datastore,
+ * particularly useful when poining to different web service URL or database server.
+ */
+private static HashMap<String,String> datastoreSubstituteMap = new HashMap<>();
 
 /**
 Indicates whether the -nomaingui command line argument is set.  This is used instead of
@@ -977,7 +991,7 @@ public static void main ( String args[] )
 	
 	if ( IOUtil.isBatch() ) {
 		// Running like "tstool -commands file" (possibly with -nomaingui)
-		TSCommandFileRunner runner = new TSCommandFileRunner();
+		TSCommandFileRunner runner = new TSCommandFileRunner(processorProps, pluginCommandClasses);
 		// If the global timeout is set, start a thread that will time out when the batch run is complete.
 		startTimeoutThread ( getBatchTimeout());
 	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
@@ -986,6 +1000,8 @@ public static void main ( String args[] )
         // Open datastores in a generic way if the configuration file specifies the information.  Do this before
         // reading the command file because commands may try to run discovery during load.
         openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
+        // Set datastore substitutes, used later when requesting datastores.
+        runner.getProcessor().setDatastoreSubstituteMap(datastoreSubstituteMap);
 		try {
 		    String commandFileFull = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + commandFileFull + "\"" );
@@ -1070,7 +1086,8 @@ public static void main ( String args[] )
 			Message.printWarning ( 1, routine, "Can't read batch server hot folder \"" + batchServerHotFolder + "\"." );
 			quitProgram ( 1 );
 		}
-		TSCommandFileRunner runner = new TSCommandFileRunner();
+		// Create a processor using initial command line properties for the processor.
+		TSCommandFileRunner runner = new TSCommandFileRunner(processorProps, pluginCommandClasses);
 		// Open the HydroBase connection if the configuration file specifies the information.  Do this before
 		// reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner.getProcessor() );
@@ -1152,11 +1169,13 @@ public static void main ( String args[] )
 		runRestletServer();
 	}
 	else {
-		// Run the GUI...
-		Message.printStatus ( 2, routine, "Starting TSTool GUI..." );
+		// Run the UI:
+		// - the processor for the UI is created in the called code
+		Message.printStatus ( 2, routine, "Starting TSTool UI..." );
 		try {
             __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad(),
-            	pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
+            	pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses,
+            	processorProps, datastoreSubstituteMap);
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error starting TSTool GUI." );
@@ -1174,8 +1193,9 @@ public static void main ( String args[] )
 }
 
 /**
-Open a datastore given its configuration properties.  The datastore is also added to the processor
-(if the open fails then the datastore should set status=1).
+This is called by openDataStoresAtStartup, which processes all the datastores.
+Open a single datastore given its configuration properties.
+The datastore is also added to the processor (if the open fails then the datastore should set status=1).
 The TSTool configuration file properties are checked here to ensure that the datastore type is enabled.
 Otherwise, opening datastores takes time and impacts performance.
 @param session TSTool session, which provides user and environment information
@@ -1187,8 +1207,8 @@ Otherwise, opening datastores takes time and impacts performance.
 protected static DataStore openDataStore ( TSToolSession session, PropList dataStoreProps,
 	TSCommandProcessor processor, @SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
-throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception
-{   String routine = "TSToolMain.openDataStore";
+throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception {
+    String routine = "TSToolMain.openDataStore";
     // Open the datastore depending on the type
     String dataStoreType = dataStoreProps.getValue("Type");
     String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
@@ -1471,8 +1491,8 @@ that have a login of "prompt".
 */
 protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
-	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
-{   String routine = "TSToolMain.openDataStoresAtStartup";
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch ) {
+    String routine = "TSToolMain.openDataStoresAtStartup";
 
     // Allow multiple database connections via the new convention using datastore configuration files.
     // The following code processes all datastores.
@@ -1518,7 +1538,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     // - if a duplicate is found, use the user version first
     int nDataStores = dataStoreConfigFiles.size();
     // Datastore names that have been opened, so as to avoid reopening.  User datastores are opened first.
-    List<DataStore> openDataStoreList = new ArrayList<DataStore>(); // Datastores that have been opened, to avoid re-opening
+    List<DataStore> openDataStoreList = new ArrayList<>(); // Datastores that have been opened, to avoid re-opening
     Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " datastores (first user, then installation configuration files)." );
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
@@ -1544,6 +1564,17 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // that are not available from web services).  This is also used for View / Datastores in the UI.
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                 String dataStoreName = dataStoreProps.getValue("Name");
+                // Check datastore substitutions.
+                String datastoreSubstituteName = datastoreSubstituteMap.get(dataStoreName);
+                if ( datastoreSubstituteName != null ) {
+                	// The current datastore should use the substitute name:
+                	// - any command file datastore references to the old name will use the substitute datastore
+                	// - need to disable old datastores that match the 
+                	// - the old datastore will be disabled after all datastores are processed
+                	//dataStoreName = datastoreSubstituteName;
+                	// TODO smalers 2021-07-24 Evaluate whether need to deal with substitution here or
+                	// in the processor when datastore name is requested.
+                }
                 String dataStoreType = dataStoreProps.getValue("Type");
                 // If the datastore type is no longer supported, skip because it can slow down startup.
                 // - need more time to fully remove the code
@@ -1781,8 +1812,8 @@ throws Exception
 {	String routine = "TSToolMain.parseArgs", message;
 	int pos = 0; // Position in a string.
 
-    // Allow setting of -home via system property "tstool.home". This
-    // can be supplied by passing the -Dtstool.home=HOME option to the java vm.
+    // Allow setting of -home via system property "tstool.home".
+    // This can be supplied by passing the -Dtstool.home=HOME option to the JVM.
     // The following inserts the passed values into the front of the args array to
 	// make sure that the install home can be considered by following parameters.
     if (System.getProperty("tstool.home") != null) {
@@ -1793,13 +1824,16 @@ throws Exception
         args = extArgs;
     }
 
+    // Iterate through the command line parameters.
 	for (int i = 0; i < args.length; i++) {
-		if (args[i].equalsIgnoreCase("-batchServer")) {
+		//Message.printStatus(1, routine, "Parsing arg: " + args[i]);
+		//System.err.println("Parsing arg: " + args[i]);
+		if (args[i].equalsIgnoreCase("-batchServer") || args[i].equalsIgnoreCase("--batchServer") ) {
 			Message.printStatus ( 1, routine, "Will start TSTool in batch server mode." );
 			__isBatchServer = true;
 		}
-		else if (args[i].equalsIgnoreCase("-batchServerHotFolder")) {
-		    // Batch server hot folder name
+		else if (args[i].equalsIgnoreCase("-batchServerHotFolder") || args[i].equalsIgnoreCase("--batchServerHotFolder")) {
+		    // Batch server hot folder name.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-batchServerHotFolder'";
 				Message.printWarning(1,routine, message);
@@ -1809,7 +1843,7 @@ throws Exception
 			__batchServerHotFolder = args[i];
 		}
 		else if (args[i].equalsIgnoreCase("-commands") || args[i].equalsIgnoreCase("--commands") ) {
-		    // Command file name
+		    // Command file name.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '" + args[i] + "'";
 				Message.printWarning(1,routine, message);
@@ -1818,8 +1852,8 @@ throws Exception
 			i++;
 			setupUsingCommandFile ( args[i], true );
 		}
-		else if (args[i].equalsIgnoreCase("-batchTimeout")) {
-		    // Batch timeout in seconds
+		else if (args[i].equalsIgnoreCase("-batchTimeout") || args[i].equalsIgnoreCase("--batchTimeout")) {
+		    // Batch timeout in seconds.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-batchTimeout'";
 				Message.printWarning(1,routine,message);
@@ -1837,8 +1871,8 @@ throws Exception
 			}
 			i++;
 		}
-		else if (args[i].equalsIgnoreCase("-config")) {
-		    // Configuration file name
+		else if (args[i].equalsIgnoreCase("-config") || args[i].equalsIgnoreCase("--config")) {
+		    // Configuration file name.
 		    // TODO SAM 2011-12-07 Need to allow properties like ${UserHome} to read the configuration file from
 		    // a users' home folder, even if TSTool is installed in a central location
             if ((i + 1)== args.length) {
@@ -1854,16 +1888,16 @@ throws Exception
             readConfigFile(getConfigFile());
 	    }
 		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
-			// Set debug information...
+			// Set debug information.
 			if ((i + 1)== args.length) {
-				// No argument.  Turn terminal and log file debug on to level 1...
+				// No argument.  Turn terminal and log file debug on to level 1.
 				Message.isDebugOn = true;
 				Message.setDebugLevel ( Message.TERM_OUTPUT, 1);
 				Message.setDebugLevel ( Message.LOG_OUTPUT, 1);
 			}
 			i++;
 			if ( (i + 1) == args.length && args[i].indexOf(",") >= 0 ) {
-				// Comma, set screen and file debug to different levels...
+				// Comma, set screen and file debug to different levels.
 				String token = StringUtil.getToken(args[i],",",0,0);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
@@ -1876,7 +1910,7 @@ throws Exception
 				}
 			}
 			else if ( (i + 1) == args.length ) {
-			    // No comma.  Turn screen and log file debug on to the requested level...
+			    // No comma.  Turn screen and log file debug on to the requested level.
 				if ( StringUtil.isInteger(args[i]) ) {
 					Message.isDebugOn = true;
 					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(args[i]) );
@@ -1884,7 +1918,31 @@ throws Exception
 				}
 			}
 		}
-		else if (args[i].equalsIgnoreCase("-home")) {
+		else if ( args[i].toLowerCase().startsWith("--datastore-substitute") ) {
+			// Used to substitute one datastore name for another, used in testing when need to point at a different
+			// datastore without changing command files.
+			// --substitute-datastore=oldDatastore,newDatastore
+			pos = args[i].indexOf("=");
+			int pos2 = args[i].indexOf(",");
+			if ( (pos >= 0) && (pos2 >= 0) ) {
+				// Have well-formed parameter.
+				String [] parts = args[i].substring(pos + 1).split(",");
+				String oldDatastore = parts[0].trim();
+				String newDatastore = parts[1].trim();
+				Message.printStatus ( 1, routine, "Will substitute datastore \"" + newDatastore + "\" for \"" +
+					oldDatastore + "\" in commands that use datastores." );
+				datastoreSubstituteMap.put(oldDatastore, newDatastore);
+			}
+			else {
+				Message.printWarning(1, routine, "Bad parameter \"" + args[i] + "\", should be: --datastore-substitute=old,new");
+			}
+		}
+		else if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("-help") || args[i].equalsIgnoreCase("--help")) {
+			// Print usage.
+			printUsage();
+			quitProgram(0);
+		}
+		else if (args[i].equalsIgnoreCase("-home") || args[i].equalsIgnoreCase("--home")) {
 		    // Should be specified in batch file or script that runs TSTool, or in properties for
 	        // a executable launcher.  Therefore this should be processed before any user command line
 	        // parameters and the log file should open up before much else is done.
@@ -1898,18 +1956,19 @@ throws Exception
             //Changed __home since old way wasn't supporting relative paths __home = args[i];
             __tstoolInstallHome = (new File(args[i])).getCanonicalPath().toString();
            
-			// Open the log file so that remaining messages will be seen in the log file...
+			// Open the log file so that remaining messages will be seen in the log file.
 			openLogFile(session);
 			Message.printStatus ( 1, routine, "TSTool install folder from -home command line parameter is \"" +
 			    __tstoolInstallHome + "\"" );
-			// The default configuration file location is relative to the install home.  This works
-			// as long as the -home argument is first in the command line.
+			// The default configuration file location is relative to the install home.
+			// This works as long as the -home argument is first in the command line.
 			setConfigFile ( __tstoolInstallHome + File.separator + "system" + File.separator + "TSTool.cfg" );
-			// Don't call setProgramWorkingDir or setLastFileDialogDirectory this since we set to user.dir at startup
+			// Don't call setProgramWorkingDir or setLastFileDialogDirectory this since we set to user.dir at startup.
 			//IOUtil.setProgramWorkingDir(__home);
 			//JGUIUtil.setLastFileDialogDirectory(__home);
 			IOUtil.setApplicationHomeDir(__tstoolInstallHome);
-			// TODO SAM 2016-02-22 See http://fahdshariff.blogspot.be/2011/08/changing-java-library-path-at-runtime.html
+			// TODO SAM 2016-02-22:
+			// - see http://fahdshariff.blogspot.be/2011/08/changing-java-library-path-at-runtime.html
 			// - cannot change the path at runtime
 			// - trying some solutions when loading HEC-DSS libraries in static code and will remove following if it works
 			String javaLibraryPath = System.getProperty ( "java.library.path" );
@@ -1917,7 +1976,7 @@ throws Exception
 	        // Read the configuration file to get default TSTool properties,
             // so that later command-line parameters can override them.
 			// If any other command line arguments are -config, then skip the following because a user-specified
-			// command file will be read instead
+			// command file will be read instead.
 			boolean userSpecifiedConfig = false;
 			for ( int iarg2 = 0; iarg2 < args.length; iarg2++ ) {
 			    if ( args[iarg2].equalsIgnoreCase("-config") ) {
@@ -1930,11 +1989,11 @@ throws Exception
 			    readConfigFile(getConfigFile());
 			}
 		}
-		else if (args[i].equalsIgnoreCase("-httpServer")) {
+		else if (args[i].equalsIgnoreCase("-httpServer") || args[i].equalsIgnoreCase("--httpServer")) {
 			Message.printStatus ( 1, routine, "Will start TSTool in HTTP server mode." );
 			__isHttpServer = true;
 		}
-		else if (args[i].equalsIgnoreCase("-logFile")) {
+		else if (args[i].equalsIgnoreCase("-logFile") || args[i].equalsIgnoreCase("--logFile")) {
 		    // Specify the log file.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-logFile'";
@@ -1944,47 +2003,74 @@ throws Exception
 			i++;
 			__logFileFromCommandLine = args[i];
 		}
-        else if (args[i].equalsIgnoreCase("-nodiscovery")) {
-            // Don't run commands in discovery mode on initial load (should only be used in large batch runs)...
+        else if (args[i].equalsIgnoreCase("-nodiscovery") || args[i].equalsIgnoreCase("--nodiscovery")) {
+            // Don't run commands in discovery mode on initial load (should only be used in large batch runs).
             Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
             __runDiscoveryOnLoad = false;
         }
-		// User specified or specified by a script/system call to the normal TSTool script/launcher.
-		else if (args[i].equalsIgnoreCase("-nomaingui")) {
+		else if (args[i].equalsIgnoreCase("-nomaingui") || args[i].equalsIgnoreCase("--nomaingui")) {
+			// User specified or specified by a script/system call to the normal TSTool script/launcher.
 			// Don't make the main GUI visible...
 			Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
 			__showMainGUI = false;
 			__noMainGUIArgSpecified = true;
 		}
-	    // User specified or specified by a script/system call to the normal TSTool script/launcher.
-        else if (args[i].equalsIgnoreCase("-runcommandsonload")) {
+        else if (args[i].equalsIgnoreCase("-runcommandsonload") || args[i].equalsIgnoreCase("--runcommandsonload")) {
+        	// User specified or specified by a script/system call to the normal TSTool script/launcher.
             Message.printStatus ( 1, routine, "Will run commands on load." );
             __run_commands_on_load = true;
         }
-		// User specified or specified by a script/system call to the normal TSTool script/launcher.
-		else if (args[i].equalsIgnoreCase("-server")) {
+		else if (args[i].equalsIgnoreCase("-server") || args[i].equalsIgnoreCase("--server")) {
+			// User specified or specified by a script/system call to the normal TSTool script/launcher.
 			Message.printStatus ( 1, routine, "Will start TSTool in restlet server mode." );
 			__isRestletServer = true;
 		}
-		// User specified (generally by developers)
-		else if (args[i].equalsIgnoreCase("-test")) {
+		else if (args[i].equalsIgnoreCase("-test") || args[i].equalsIgnoreCase("--test")) {
+			// User specified (generally by developers).
 			IOUtil.testing(true);
 			Message.printStatus ( 1, routine, "Running in test mode." );
 		}
-		// User specified
-		else if (args[i].equalsIgnoreCase("-v") || args[i].equalsIgnoreCase("--version")) {
-			printVersion();
-			quitProgram(1);
+		else if (args[i].equalsIgnoreCase("-verbose") || args[i].equalsIgnoreCase("--verbose")) {
+			// Used to run verbose mode to see which classes are loaded by Java:
+			// - this is handled in the 'tstool' bash script so ignore here
 		}
-		// User specified or specified by a script/system call to the normal TSTool script/launcher.
-		else if ( (pos = args[i].indexOf("=")) > 0 ) {
-			// A command line argument of the form:  Property=Value
-			// For example, specify a database login for batch mode.
-		    // The properties can be interpreted by the GUI or other code.
+		else if (args[i].equalsIgnoreCase("-v") || args[i].equalsIgnoreCase("-version") || args[i].equalsIgnoreCase("--version")) {
+			// Print version.
+			printVersion();
+			quitProgram(0);
+		}
+		else if ( (pos = args[i].indexOf("==")) > 0 ) {
+			// User specified command processor property:
+			// - check before single equal sign
+			// - these properties will be initialized in the processor when running a command file
+			// - a command line argument of the form:  Property==Value
+			// - for example, specify a web service root URL for testing
 			String propname = args[i].substring(0,pos);
-			String propval = args[i].substring((pos+1), args[i].length());
+			String propval = args[i].substring(pos+2);
 			Prop prop = new Prop ( propname, propval );
-			Message.printStatus ( 1, routine, "Using run-time parameter " + propname + "=\"" + propval + "\"" );
+			//System.err.println("Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
+			//Message.printStatus ( 1, routine, "Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
+			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
+			processorProps.set ( prop );
+			// Also set in a global application list that can be accessed in deep code such as RunCommands command.
+			PropList appProps = IOUtil.getPropListManager().getPropList("TSTool.CommandLine");
+			if ( appProps == null ) {
+				appProps = new PropList("TSTool.CommandLine");
+				appProps.set(prop);
+				IOUtil.getPropListManager().addList(appProps, true);
+			}
+		}
+		else if ( (pos = args[i].indexOf("=")) > 0 ) {
+			// User specified TSTool application property:
+			// - specified by a script/system call to the normal TSTool script/launcher
+			// - a command line argument of the form:  Property=Value
+			// - for example, specify a database login for batch mode
+		    // - the properties can be interpreted by the GUI or other code
+			String propname = args[i].substring(0,pos);
+			String propval = args[i].substring(pos+1);
+			Prop prop = new Prop ( propname, propval );
+			//System.err.println( "Using application run-time parameter " + propname + "=\"" + propval + "\"" );
+			//Message.printStatus ( 1, routine, "Using application run-time parameter " + propname + "=\"" + propval + "\"" );
 			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 			if ( __tstool_props == null ) {
 				// Create a PropList.  This should not normally happen because a PropList should have been
@@ -1996,7 +2082,7 @@ throws Exception
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else {
 		    // Assume that a command file has been specified on the command line - normally this is triggered
-		    // by a double-click on a file with a *.TSTool extension.  In this case the GUI will start and
+		    // by a double-click on a file with a *.TSTool or *.tstool extension.  In this case the GUI will start and
 		    // load the command file.
 		    setupUsingCommandFile ( args[i], false );
 		}
@@ -2009,22 +2095,22 @@ Print the program usage to the log file.
 public static void printUsage ( )
 {	String nl = System.getProperty ( "line.separator" );
 	String routine = "TSToolMain.printUsage";
+	int len = PROGRAM_NAME.length();
+	String format = "%" + len + "." + len + "s";
+	String blanks = String.format(format,"");
 	String usage =  nl +
 	"Usage:  " + PROGRAM_NAME + " [options] [[-commands CommandFile] | CommandFile]" + nl + nl +
 	"TSTool displays, analyzes, and manipulates time series." + nl+
 	"" + nl+
-	PROGRAM_NAME + " -commands CommandFile" + nl +
-	"                Runs the commands in batch mode and exits." + nl+
-	PROGRAM_NAME + " -commands CommandFile -nomaingui" + nl +
-	"                Runs the commands in batch mode, displays product windows" + nl +
-	"                (no main window), and exists when the window(s) are closed." + nl+
-	PROGRAM_NAME + " CommandFile" + nl +
-	"                Opens up the main GUI and loads the command file." + nl +
+	PROGRAM_NAME + " --commands CommandFile               Runs the commands in batch mode and exits." + nl+
+	PROGRAM_NAME + " --commands CommandFile --nomaingui   Runs the commands in batch mode, displays product windows" + nl +
+	blanks + "                                      (no main window), and exists when the window(s) are closed." + nl+
+	PROGRAM_NAME + " CommandFile                          Opens the TSTool UI and loads the command file (but does not run it)" + nl +
+	blanks + "                                      (this may be used when a *.tstool file is selected in the desktop)." + nl+
 	"" + nl+
 	"See the TSTool documentation for more information." + nl + nl;
 	System.err.println ( usage );
 	Message.printStatus ( 1, routine, usage );
-	quitProgram(0);
 }
 
 /**
@@ -2034,7 +2120,7 @@ public static void printVersion ( )
 {	String nl = System.getProperty ( "line.separator" );
 	System.err.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
 	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-	"Copyright (C) 1997-2019 Colorado Department of Natural Resources\n" +
+	"Copyright (C) 1997-2021 Colorado Department of Natural Resources\n" +
     "\n" +
 	"TSTool is free software:  you can redistribute it and/or modify\n" +
 	"    it under the terms of the GNU General Public License as published by\n" +
