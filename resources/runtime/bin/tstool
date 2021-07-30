@@ -10,16 +10,44 @@
 #   but a more recent version can be used and normally should work
 # - sometimes packages are moved or removed from the official Java release,
 #   which may disable some TSTool features or require a different version
+# - can be run on Cygwin/Git Bash in developer mode with --dev,
+#   which assumes file locations for standard development environment
 
 # Supporting functions, alphabetized.
 
 checkConfiguration() {
   # Check to confirm the configuration.
-  local testfile
+  local parentFolder parent2Folder testfile
+
+  # Jar files should be in the 'bin' folder under software installation:
+  # - first check whether it seems that the software is being run from the development
+  #   files without --dev
+  # - path will be something like: cdss-app-tstool-main/resources/runtime/bin/tstool
+  # - running --help is allowed in any case
+  if [ "${devMode}" != "true" ]; then
+    echoStderr "Location of script is:  ${scriptFolder}"
+    parentFolder=$(dirname ${scriptFolder})
+    parentFolder=$(basename ${parentFolder})
+    if [ "${parentFolder}" = "runtime" ]; then
+      # Might be development files.
+      echoStderr ""
+      echoStderr "Looks like you trying to run the development 'tstool' script without --dev."
+      echoStderr "Run with --dev to use Eclipse software files."
+      echoStderr "Run with --help to see usage."
+      if [ "${doHelp}" = "false" ]; then
+        # Allow --help to continue but step otherwise.
+        echoStderr "Exiting."
+        exit 1
+      fi
+      echoStderr ""
+    fi
+  fi
+
   # Verify that the installation folder exists.
   if [ ! -d "${installFolder}" ]; then
     echoStderr ""
-    echoStderr "TSTool installation folder ${installFolder} does not exist."
+    echoStderr "TSTool installation folder does not exist:"
+    echoStderr "  ${installFolder}"
     echoStderr ""
     exit 1
   fi
@@ -28,7 +56,8 @@ checkConfiguration() {
   testFile="${installFolder}/bin/cdss-app-tstool-main_18.jar"
   if [ ! -e "${testFile}" ]; then
     echoStderr ""
-    echoStderr "TSTool installation folder ${installFolder} does not seem correct."
+    echoStderr "TSTool installation folder does not seem correct:"
+    echoStderr "  ${installFolder}"
     echoStderr "The main jar file does not exist:"
     echoStderr "  ${testFile}"
     echoStderr ""
@@ -71,6 +100,7 @@ checkOperatingSystem() {
       echoStderr "Cannot determine operating system.  Exiting."
       exit 1
   esac
+  echoStderr "Detected operating system:  ${operatingSystem}"
 }
 
 # Determine the location of the Java runtime environment:
@@ -125,7 +155,8 @@ determineJavaExe() {
   java)
   javaExe=""
   for javaExeTry in "${jreExeCandidates[@]}"; do
-    echoStderr "Checking candidate java program for existence and Java 8:  ${javaExeTry}"
+    echoStderr "Checking candidate java program for existence and Java 8:"
+    echoStderr "  ${javaExeTry}"
     if [ -e "${javaExeTry}" ]; then
       # Java executable file exists, check the version:
       # - version may be printed to stderr rather than stdout
@@ -146,7 +177,55 @@ determineJavaExe() {
     #exit 1
     echoStderr "Will use the closest version."
     for javaExeTry in "${jreExeCandidates[@]}"; do
-      echoStderr "Checking candidate java program for existence:  ${javaExeTry}"
+      echoStderr "Checking candidate java program for existence:"
+      echoStderr "  ${javaExeTry}"
+      if [ -e "${javaExeTry}" ]; then
+        # Java executable file exists, check the version.
+        javaExe=${javaExeTry}
+        echoStderr "   ...found 'java' program to use"
+        break
+      fi
+    done
+    if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
+      echoStderr "Unable to find 'java' program needed by TSTool."
+      echoStderr "Need to install Java 8 or higher (does not need to be the default Java)."
+      exit 1
+    fi
+  fi
+}
+
+# Determine the Java for development environment.
+determineJavaExeDev() {
+  # The java program in the development distribution should work.
+  jreExeCandidates=(
+  ${installFolder}/jre_18/bin/java
+  ${installFolder}/jre8/bin/java)
+  javaExe=""
+  for javaExeTry in "${jreExeCandidates[@]}"; do
+    echoStderr "Checking candidate java program for existence and Java 8:"
+    echoStderr "  ${javaExeTry}"
+    if [ -e "${javaExeTry}" ]; then
+      # Java executable file exists, check the version:
+      # - version may be printed to stderr rather than stdout
+      javaExe8VersionCount=$(${javaExeTry} -version 2>&1 | grep '1.8.' | wc -l)
+      if [ "${javaExe8VersionCount}" -ne 0 ]; then
+        # Found a Java 8 to use.
+        javaExe=${javaExeTry}
+        echoStderr "   ...found Java8 'java' program to use."
+        break
+      else
+        echoStderr "   ...does not appear to be Java 8 using: ${javaExeTry} -version"
+      fi
+    fi
+  done
+  if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
+    echoStderr "Unable to determine Java8 'java' program needed by TSTool."
+    #echoStderr "Need to install Java 8 (does not need to be the default Java)."
+    #exit 1
+    echoStderr "Will use the closest version."
+    for javaExeTry in "${jreExeCandidates[@]}"; do
+      echoStderr "Checking candidate java program for existence:"
+      echoStderr "  ${javaExeTry}"
       if [ -e "${javaExeTry}" ]; then
         # Java executable file exists, check the version.
         javaExe=${javaExeTry}
@@ -170,12 +249,145 @@ echoStderr() {
   echo "$@" >&2
 }
 
+# Parse the command line and set variables to control logic.
+parseCommandLine() {
+  local additionalOpts exitCode optstring optstringLong
+  # Indicate specification for single character options:
+  # - 1 colon after an option indicates that an argument is required
+  # - 2 colons after an option indicates that an argument is optional, must use -o=argument syntax
+  optstring="h"
+  # Indicate specification for long options:
+  # - 1 colon after an option indicates that an argument is required
+  # - 2 colons after an option indicates that an argument is optional, must use --option=argument syntax
+  optstringLong="addpath::,dev,headless,help"
+  # Parse the options using getopt command:
+  # - the -- is a separator between getopt options and parameters to be parsed
+  # - output is simple space-delimited command line
+  # - error message will be printed if unrecognized option or missing parameter but status will be 0
+  # - if an optional argument is not specified, output will include empty string ''
+  GETOPT_OUT=$(getopt --options ${optstring} --longoptions ${optstringLong} -- "$@")
+  exitCode=$?
+  if [ ${exitCode} -ne 0 ]; then
+    echoStderr ""
+    printUsage
+    exit 1
+  fi
+  # The following constructs the command by concatenating arguments:
+  # - the $1, $2, etc. variables are set as if typed on the command line
+  # - special cases like --option=value and missing optional arguments are generically handled
+  #   as separate parameters so shift can be done below
+  eval set -- "${GETOPT_OUT}"
+  # Loop over the options:
+  # - the error handling will catch cases were argument is missing
+  # - shift over the known number of options/arguments
+  while true; do
+    #echoStderr "Command line option is ${opt}"
+    case "$1" in
+      --addpath) # Add a folder/file to class path
+      case "$2" in
+        "") # Nothing specified so error.
+          logError "--addpath=path, path is missing."
+          exit 1
+          ;;
+        *) # path has been specified.
+          addpath1=$2
+          if [ -n "${addpath}" ]; then
+            addpath+=${pathSep}
+          fi
+          if [ "${operatingSystem}" = "cygwin" -o "${operatingSystem}" = "mingw" ]; then
+            addpath+=$(cygpath -w ${addpath1})
+          else
+            addpath+=${addpath1}
+          fi
+          shift 2
+          ;;
+      esac
+      ;;
+      #-d|--debug) # -d or --debug Turn on debug messages.
+      #  debug="true"
+      #  shift 1
+      #  ;;
+      --dev) # Run with development classes, such as when need to run on command line for testing
+        devMode="true"
+        shift
+        ;;
+      --headless) # Run headless, such as on remote Linux VM
+        headless="true"
+        shift
+        ;;
+      -h|--help) # Print usage of this script and also the main application.
+        printUsage
+        # Also need to run --help for full TSTool.
+        doHelp="true"
+        shift
+        ;;
+      --) # No more arguments - following arguments are passed to TSTool.
+        shift
+        break
+        ;;
+      *) # Unknown option - will never get here because getopt catches up front
+        # and remaining options are after --
+        # TODO smalers 2021-07-22 allow to pass through to Java TSTool to handle.
+        echoStderr " "
+        echoStderr "Invalid option $1." >&2
+        #printUsage
+        exit 1
+        ;;
+    esac
+  done
+  # Get a list of all command line options that do not correspond to dash options:
+  # - These are "non-option" arguments after --
+  # - For example, one or more file or folder names that need to be processed.
+  # - If multiple values, they will be delimited by spaces.
+  # - Command line * will result in expansion to matching files and folders.
+  shift $((OPTIND-1))
+  tstoolParameters=$*
+  echoStderr "TSTool parameters: ${tstoolParameters}"
+}
+
+# Print the script usage:
+printUsage() {
+  echoStderr ""
+  echoStderr "Usage:  ${scriptName} [options ...]"
+  echoStderr ""
+  echoStderr "Run TSTool in a Linux environment, also used to run TSTool for development and testing."
+  echoStderr "This script runs the full TSTool software."
+  echoStderr ""
+  echoStderr "Examples of commands:"
+  echoStderr "  ${scriptName} --dev -- TSTool-options...         (run using Eclipse code)"
+  echoStderr "  ${scriptName} --headless -- TSTool-options...    (run in headless mode in Linux environment)"
+  echoStderr ""
+  echoStderr "Command parameter options:"
+  echoStderr ""
+  echoStderr "--addpath=path       Exploratory: Add the 'path' to the Java classpath."
+  echoStderr "                       Currently not needed because plugins are detected and loaded dynamically."
+  echoStderr "--dev                Run using development Java files by controlling the run environment."
+  echoStderr "                     This is used to avoid saving run configurations in the TSTool repository"
+  echoStderr "                     that are not related to general TSTool development."
+  echoStderr "                     The classpath is configured to use development software files:"
+  echoStderr "                        - code package 'bin' folders to find recent code"
+  echoStderr "                        - 'dist/install-cdss/bin' folder to find third party libraries,"
+  echoStderr "                          TSTool code is found first in code package 'bin' folders"
+  echoStderr "                        - './tstool/N/plugins' are automatically read by TSTool"
+  echoStderr "                        - plugins still need to be installed to run that code"
+  echoStderr "                     Command line options should be set as needed to run TSTool for development."
+  echoStderr "--headless           Run in headless mode, used on Linux when running batch and unattended processing,"
+  echoStderr "                     will pass necessary command line parameter to the java command."
+  echoStderr "-h, --help           Print this script's usage and call TSTool with --help."
+  echoStderr "-- ...               All command parameters after double dash are ignored by this script and are"
+  echoStderr "                     passed to the TSTool software."
+  echoStderr ""
+  echoStderr "All logging messages are printed to stderr."
+  echoStderr ""
+}
+
 # Main entry point into the script.
 
 # Folder where tstool script is located, should be the "bin" folder in a TSTool install.
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
-# Adjust the folder if a symbolic link such as: /usr/bin/tstool
+# Adjust the script folder if a symbolic link is used such as:
+#   /usr/bin/tstool -> /opt/tstool-version/tstool/bin
 if [ -L $0 ]; then
   linkTarget=$(readlink -f $0)
   scriptLink=$0
@@ -184,19 +396,104 @@ if [ -L $0 ]; then
   echoStderr "    link: ${scriptLink}"
   echoStderr "  target: ${scriptFolder}"
 fi
-binFolder=${scriptFolder}
-# Installation home for TSTool, under which will be bin, logs, system, etc.
-installFolder=$(dirname ${scriptFolder})
+
+# Other options defaults:
+# - see --headless parameter to run headless on Linux
+# - see --dev parameter to use development environment class files
+# - set verbose to "" or "-verbose"
+headless="false"
+devMode="false"
+#verbose="-verbose"
+verbose=""
+# Additional classpath folders/files added with --addpath.
+addpath=""
+doHelp="false"
 
 # Get the operating system.
 checkOperatingSystem
+
+if [ "${operatingSystem}" = "mingw" -o "${operatingSystem}" = "mingw" ]; then
+  # Running on Windows using windows Java executable.
+  pathSep=";"
+  dirSep="\\"
+else
+  # Running on Linux using Linux Java executable.
+  pathSep=":"
+  dirSep="/"
+fi
+
+# Parse the command line:
+# - do this before checking for developer mode
+parseCommandLine $@
+
+if [ "${devMode}" = "true" ]; then
+  # Development mode:
+  # - class files prior to release build are in the Eclipse bin folder for each code repository
+  # - libraries are in jar files - use the 'dist/install-cdss/bin' folder from build process
+  #   which can be built as a staging step prior to full build
+  devResourcesRuntimeFolder=$(dirname ${scriptFolder})
+  devResourcesFolder=$(dirname ${devResourcesRuntimeFolder})
+  devTstoolRepoFolder=$(dirname ${devResourcesFolder})
+  devTstoolDistFolder=${devTstoolRepoFolder}/dist
+  devGitReposFolder=$(dirname ${devTstoolRepoFolder})
+  devTstoolInstallFolder=${devTstoolRepoFolder}/dist/install-cdss
+  # 'bin' contains all the libraries but not the most recent compiled classes,
+  # which are in each repositories 'bin' folder.
+  # Use the 'dist' folder as a fall-through and for libraries.
+  if [ "${operatingSystem}" = "cygwin" -o "${operatingSystem}" = "mingw" ]; then
+    binFolder=$(cygpath -w ${devTstoolInstallFolder}/bin)
+  else
+    binFolder=${devTstoolInstallFolder}/bin
+  fi
+  # Installation home for TSTool, under which will be bin, logs, system, etc.:
+  # - use 'install-cdss' folder
+  installFolder=${devTstoolInstallFolder}
+  # Additional folders that contain each repositories' 'bin' folder:
+  # - include each repository
+  # - class path delimiter is specific to operating system
+  if [ "${operatingSystem}" = "cygwin" -o "${operatingSystem}" = "mingw" ]; then
+    devBinFolders=$(cygpath -w "${devGitReposFolder}/cdss-app-tstool-main/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-cdss-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-common-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-dmi-hydrobase-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-dmi-hydrobase-rest-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-dmi-nwsrfs-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-dmi-satmonsys-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-models-java/bin")
+    devBinFolders+=${pathSep}$(cygpath -w "${devGitReposFolder}/cdss-lib-processor-ts-java/bin")
+
+    homeFolder=$(cygpath -w ${installFolder})
+  else
+    devBinFolders="${devGitReposFolder}/cdss-app-tstool-main/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-cdss-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-common-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-dmi-hydrobase-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-dmi-hydrobase-rest-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-dmi-nwsrfs-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-dmi-satmonsys-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-models-java/bin"
+    devBinFolders+="${pathSep}${devGitReposFolder}/cdss-lib-processor-ts-java/bin"
+
+    homeFolder=${installFolder}
+  fi
+else
+  devBinFolders=""
+  binFolder=${scriptFolder}
+  # Installation home for TSTool, under which will be bin, logs, system, etc.
+  installFolder=$(dirname ${scriptFolder})
+  homeFolder=${installFolder}
+fi
 
 # Check configuration main folders and files.
 checkConfiguration
 
 # Determine the Java runtime executable:
 # - sets the javaExe global variable
-determineJavaExe
+if [ "${devMode}" = "true" ]; then
+  determineJavaExeDev
+else
+  determineJavaExe
+fi
 
 # Use the bin folder for the classpath, not individual jar files.
 # If necessary, jar files can be moved to a different folder to disable for TSTool.
@@ -217,26 +514,66 @@ determineJavaExe
 #
 # If running in headless mode, the following may be needed (see http://www.jfree.org/phpBB2/viewtopic.php?t=1012):
 #  -Djava.awt.headless=true
-#
-# The above will interfere with GUI mode so a separate batch file may be needed.
-#
-javaCommand="${javaExe} -Xmx1024m -Djava.net.useSystemProxies=true"
+
+if [ "${headless}" = "true" ]; then
+  # Run in headless mode.
+  javaCommand="${javaExe} ${verbose} -Xmx1024m -Djava.net.useSystemProxies=true -Djava.awt.headless=true"
+else
+  # Normal execution.
+  javaCommand="${javaExe} ${verbose} -Xmx1024m -Djava.net.useSystemProxies=true"
+fi
+
+# Check for file and folder existence to ensure that location assumptions are correct.
+if [ ! -f "${javaExe}" ]; then
+  echoStderr "Java executable does not exist: ${javaExe}"
+  exit 1
+fi
+if [ ! -d "${binFolder}" ]; then
+  echoStderr "'bin' folder does not exist: ${binFolder}"
+  exit 1
+fi
+if [ ! -d "${installFolder}" ]; then
+  echoStderr "Install folder does not exist: ${binFolder}"
+  exit 1
+fi
+
+# Help option:
+# - needs special handling because print for this script and call TSTool with --help
+helpOpt=""
+if [ "${doHelp}" = "true" ]; then
+  echoStderr ""
+  echoStderr "TSTool command line usage will be printed below."
+  echoStderr ""
+  helpOpt="--help"
+fi
 
 # Run TSTool, passing the original command line arguments:
 # - make sure that asterisk is not expanded, because want Java to do it to find *.jar
 mainClass="DWR.DMI.tstool.TSToolMain"
-command="${javaCommand} -classpath ${binFolder}/"
-command+='*'
-command+=" ${mainClass} -home ${installFolder} $@"
+# The following is for echoing the command:
+if [ "${devMode}" = "true" ]; then
+  command="${javaCommand} -classpath ${addpath}${pathSep}${devBinFolders}${pathSep}${binFolder}${dirSep}*"
+else
+  command="${javaCommand} -classpath ${binFolder}${dirSep}*"
+fi
+command+=" ${mainClass} -home ${installFolder} ${tstoolParameters} ${helpOpt}"
 # Run the TSTool command:
 # - use quotes in echo to avoid filename expansion in echo statement
 echoStderr "Running:"
-echoStderr "${command}"
+echoStderr "  ${command}"
 
 # Cannot use:
 #  ${command}        because filename expansion will include all files in path including bash files
 #  "${command}"      because entire command is run as the program rather than space-delimited arguments
-${javaCommand} -classpath ${binFolder}/\* ${mainClass} -home ${installFolder} $@
+if [ "${devMode}" = "true" ]; then
+  #${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
+  # Only pass the extra parameters that are not understood by this script.
+  ${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt}
+else
+  # Only pass the extra parameters that are not understood by this script.
+  #${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
+  ${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt}
+fi
 exitStatus=$?
 echoStderr "Exit code from java: ${exitStatus}"
 
