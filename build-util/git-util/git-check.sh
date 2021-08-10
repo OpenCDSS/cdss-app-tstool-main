@@ -1,6 +1,6 @@
 #!/bin/sh
-(set -o igncr) 2>/dev/null && set -o igncr; # this comment is required
-# The above line ensures that the script can be run on Cygwin/Linux even with Windows CRNL
+(set -o igncr) 2>/dev/null && set -o igncr; # This comment is required.
+# The above line ensures that the script can be run on Cygwin/Linux even with Windows CRNL.
 
 #-----------------------------------------------------------------NoticeStart-
 # Git Utilities
@@ -25,13 +25,13 @@
 # - warn if any repositories use Cygwin because mixing with Git for Windows can cause confusion in tools
 #
 
-# List functions in alphabetical order
+# List functions in alphabetical order.
 
-# Determine the operating system that is running the script
+# Determine the operating system that is running the script:
 # - mainly care whether Cygwin
 checkOperatingSystem() {
   if [ ! -z "${operatingSystem}" ]; then
-    # Have already checked operating system so return
+    # Have already checked operating system so return.
     return
   fi
   operatingSystem="unknown"
@@ -50,42 +50,42 @@ checkOperatingSystem() {
   echo "operatingSystem=$operatingSystem (used to check for Cygwin and filemode compatibility)"
 }
 
-# Function to confirm that proper command-line Git client is being used.
+# Function to confirm that proper command-line Git client is being used:
 # - mainly to confirm that Cygwin is not used when filemode=false
 # - in order to see local config associated with a repo must cd into the repo folder
 checkCommandLineGitCompatibility() {
-  # Make sure that the operating system has been determined
+  # Make sure that the operating system has been determined:
   # - will set operatingSystem to "cygwin" if cygwin
   checkOperatingSystem
   filemodeLine=$(git config --list | grep filemode)
   #echo "${filemodeLine}"
   if [ ! -z "${filemodeLine}" ]; then
-    # filemode is usually printed by Git bash but may not be printed by Cygwin
+    # filemode is usually printed by Git bash but may not be printed by Cygwin:
     # - if repo was cloned using Git Bash:  core.filemode=false
     filemode=$(echo $filemodeLine | cut --delimiter='=' --fields=2)
     #echo "repository filemode=$filemode"
     if [ "${filemode}" = "true" ] && [ "${operatingSystem}" = "cygwin" ]; then
-      # Count Cygwin repos so message can be printed at the end
+      # Count Cygwin repos so message can be printed at the end.
       cygwinRepoCount=$(expr ${cygwinRepoCount} + 1)
       #echo "cygwinRepoCount=${cygwinRepoCount}"
     fi
     if [ "${operatingSystem}" = "linux" ]; then
-      # No need for any special logic because no Git Bash or Cygwin
+      # No need for any special logic because no Git Bash or Cygwin.
       if [ "${repoCount}" -eq 0 ]; then
         echo "Detected Linux operating system"
       fi
     elif [ "${operatingSystem}" = "cygwin" ] && [ "${filemode}" = "false" ]; then
-      # Probably cloned using Git Bash or other Windows-centric Git client
+      # Probably cloned using Git Bash or other Windows-centric Git client.
       ${echo2} "${actionWarnColor}DO NOT USE CygWin command line git with this repo (was likely NOT cloned with Cygwin, filemode=false).${colorEnd}"
     elif [ "${operatingSystem}" = "cygwin" ] && [ "${filemode}" = "true" ]; then
-      # Probably cloned using Cygwin so consistent with this environment
-      # A global warning is printed at the end if mixing filemodes
+      # Probably cloned using Cygwin so consistent with this environment.
+      # A global warning is printed at the end if mixing filemodes.
       echo "USE Cygwin or other filemode=true Git client with this repo (filemode=true)."
     elif [ "${operatingSystem}" = "mingw" ] && [ "${filemode}" = "true" ]; then
-      # Probably cloned using Cygwin but for consistency recommend Windows-centric Git client
+      # Probably cloned using Cygwin but for consistency recommend Windows-centric Git client.
       echo "${actionWarnColor}USE CygWin command line git with this repo (was likely cloned with Cygwin, filemode=true).${colorEnd}"
     elif [ "${operatingSystem}" = "mingw" ] && [ "${filemode}" = "false" ]; then
-      # Probably cloned using Git Bash or other Windows-centric Git client so OK
+      # Probably cloned using Git Bash or other Windows-centric Git client so OK.
       echo "USE Git Bash or other Windows Git client with this repo (filemode=false)."
     else
       ${echo2} "${actionColor}Unhandled operating system ${operatingSystem} - no git client recommendations provided.${colorEnd}"
@@ -93,53 +93,63 @@ checkCommandLineGitCompatibility() {
   fi
 }
 
-# Check whether any working files are different from commits in the repo
+# Check whether any working files are different from commits in the repo:
 # - have to include function before it is called
 # - print a message if so
 # - assumes that the current folder is a Git repository of interest
 # - see:  https://stackoverflow.com/questions/3882838/whats-an-easy-way-to-detect-modified-files-in-a-git-workspace
 checkWorkingFiles() {
-  local emptyFolderCount exitCode needStatusMessage untrackedFilesCount untrackedFilesNoEmptyFoldersCount
-  # The following won't work if run in Cygwin shell for non-Cygwin repo clone, or the other way
+  local exitCode needGitStatusMessage untrackedFilesCount untrackedFilesNoEmptyFoldersCount
+  # The following won't work if run in Cygwin shell for non-Cygwin repo clone, or the other way.
   git diff-index --quiet HEAD
-  # Therefore, use the following (although this could ignore newline cleanup that needs to be committed)
+  # Therefore, use the following (although this could ignore newline cleanup that needs to be committed):
   # - however, even though --quiet is specified, the following outputs a bunch of messages like:
   #   warning:  CRLF will be replaced by LF in ...
   #   The file will have its original line endings in your working directory.
   #git diff-index --ignore-cr-at-eol --quiet HEAD
   gitDiffExitCode=$?
   #echo "exitCode=$exitCode"
-  needStatusMessage="no"
+  # Indicate whether additional explanation of 'git status' is needed below.
+  needGitStatusMessage="no"
   if [ ${gitDiffExitCode} -eq 1 ]; then
+    if [ "${debug}" = "true" ]; then
+      echo "[DEBUG] gitDiffExitCode=${gitDiffExitCode}"
+    fi
     ${echo2} "${actionColor}Working files contain modified files that need to be committed, or staged files.${colorEnd}"
-    needStatusMessage="yes"
+    needGitStatusMessage="yes"
   fi
-  # The above won't detect untracked files but the following will find those
+  # The above won't detect untracked files but the following 'git ls-files' will find those:
   # - the following will return a value of 0 or greater
   # -o shows other (i.e., untracked) files in the output
-  # --directory shows entire untracked directories as directory name followed by slash
+  # --directory lists entire untracked directories as directory name followed by slash, such as:  parent/empty/
   # --exclude-standard excludes standard files such as indicated by .gitignore
   # --no-empty-directory excludes empty directories (won't be committed because Git does not save empty directories)
   untrackedFilesCount=$(git ls-files -o --directory --exclude-standard | wc -l)
+  # If empty directory, the following count will be less than the above.
   untrackedFilesNoEmptyFoldersCount=$(git ls-files -o --directory --exclude-standard --no-empty-directory | wc -l)
+  if [ "${debug}" = "true" ]; then
+    echo "[DEBUG] untrackedFilesCount=${untrackedFilesCount}"
+    echo "[DEBUG] untrackedFilesNoEmptyFoldersCount=${untrackedFilesNoEmptyFoldersCount}"
+  fi
   if [ ${untrackedFilesCount} -ne 0 ]; then
     ${echo2} "${actionColor}Working files contain ${untrackedFilesCount} untracked files that need to be committed.${colorEnd}"
-    needStatusMessage="yes"
+    needGitStatusMessage="yes"
   fi
   # Print additional instructions.
-  if [ ${needStatusMessage} = "yes" ]; then
+  if [ ${needGitStatusMessage} = "yes" ]; then
     ${echo2} "${actionColor}Use 'git status' to list files that need to be committed.${colorEnd}"
   fi
   if [ ${untrackedFilesCount} -ne ${untrackedFilesNoEmptyFoldersCount} ]; then
-    # There are some empty folders.
+    # There are some empty folders:
     # - list empty folders
-    ${echo2} "${actionColor}Empty folders (delete or add README, .gitignore, or other files):${colorEnd}"
+    ${echo2} "${actionColor}Empty folders (delete or add README, .gitignore, or other files to commit):${colorEnd}"
     git ls-files -o --directory --exclude-standard |
     while read -r name
     do
       if [ -d "${name}" ]; then
-        # Directory.  Get the number of files in the directory.
-        numFiles=$(ls -1a ${name} | grep -xv '.' | grep -xv '..' | wc -l)
+        # Directory:
+        # - get the number of files in the directory excluding the parent and current directory.
+        numFiles=$(ls -1a ${name} | grep -xv '.' | grep -xv '..' | grep -xv './' | grep -xv '../' | wc -l)
         if [ ${numFiles} -eq 0 ]; then
           # Empty folder.
           ${echo2} "${actionColor}  ${name}${colorEnd}"
@@ -149,19 +159,21 @@ checkWorkingFiles() {
     # Track repositories with empty folders, often indicate an issue.
     emptyFoldersRepoCount=$(expr ${emptyFoldersRepoCount} + 1)
   fi
-  # Global script data..
-  if [ ${gitDiffExitCode} -eq 1 -a ${untrackedFilesCount} -ne 0 ]; then
+  # Set global data used in output:
+  # - TODO smalers 2021-08-09 the following resulted in the final count being too low
+  #if [ ${gitDiffExitCode} -eq 1 -a ${untrackedFilesCount} -ne 0 ]; then
+  if [ ${gitDiffExitCode} -eq 1 -o ${untrackedFilesCount} -ne 0 ]; then
     localChangesRepoCount=$(expr ${localChangesRepoCount} + 1)
   fi
 }
 
-# Function to check the status of local compared to remote repository
+# Function to check the status of local compared to remote repository:
 # - see:  https://stackoverflow.com/questions/3258243/check-if-pull-needed-in-git
 # - Code from above was used as is with some additional lines for checks out output messages
 checkRepoStatus() {
-  # Current branch
+  # Current branch.
   currentRepo=$(git branch | grep \* | cut -d ' ' -f2)
-  # Repo that is the master, to which all work flows - used to check whether on a branch
+  # Repo that is the master, to which all work flows - used to check whether on a branch.
   masterRepo="master"
 
   if [ ! "${currentRepo}" = "${masterRepo}" ]; then
@@ -171,20 +183,20 @@ checkRepoStatus() {
     echo "Checked out branch:  ${masterRepo}"
   fi
 
-  # Get the remote information
+  # Get the remote information.
   git remote update
-  # Start code from above StackOverflow article
+  # Start code from above StackOverflow article.
   errorCount=0
   UPSTREAM=${1:-'@{u}'}
   LOCAL=$(git rev-parse @)
   if [ $? -ne 0 ]; then
     errorCount=$(expr ${errorCount} + 1)
   fi
-  REMOTE=$(git rev-parse "$UPSTREAM")
+  REMOTE=$(git rev-parse "${UPSTREAM}")
   if [ $? -ne 0 ]; then
     errorCount=$(expr ${errorCount} + 1)
   fi
-  BASE=$(git merge-base @ "$UPSTREAM")
+  BASE=$(git merge-base @ "${UPSTREAM}")
   if [ $? -ne 0 ]; then
     errorCount=$(expr ${errorCount} + 1)
   fi
@@ -197,97 +209,107 @@ checkRepoStatus() {
     ${echo2} "${actionColor}Remote repository name may have changed.${colorEnd}"
   fi
 
+  if [ "${debug}" = "true" ]; then
+    echo "[DEBUG] LOCAL  = ${LOCAL}"
+    echo "[DEBUG] REMOTE = ${REMOTE}"
+    echo "[DEBUG] BASE   = ${BASE}"
+  fi
+
+  lineDash="--------------------------------------------------------------------------------"
   repoCount=$(expr ${repoCount} + 1)
-  if [ "$LOCAL" = "$REMOTE" ]; then
-    echo "------------------"
-    ${echo2} "${okColor}Up-to-date${colorEnd}"
+  if [ "${LOCAL}" = "${REMOTE}" ]; then
+    echo "${lineDash}"
+    ${echo2} "${okColor}Up-to-date (no remote files need pulled/merged)${colorEnd}"
     checkWorkingFiles
-     upToDateRepoCount=$(expr ${upToDateRepoCount} + 1)
-    echo "------------------"
-  elif [ "$LOCAL" = "$BASE" ]; then
-    echo "------------------"
+    upToDateRepoCount=$(expr ${upToDateRepoCount} + 1)
+    echo "${lineDash}"
+  elif [ "${LOCAL}" = "${BASE}" ]; then
+    echo "${lineDash}"
     ${echo2} "${actionColor}Need to pull${colorEnd}"
     checkWorkingFiles
     needToPullRepoCount=$(expr ${needToPullRepoCount} + 1)
-    echo "------------------"
-  elif [ "$REMOTE" = "$BASE" ]; then
-    echo "------------------"
+    echo "${lineDash}"
+  elif [ "${REMOTE}" = "${BASE}" ]; then
+    echo "${lineDash}"
     ${echo2} "${actionColor}Need to push${colorEnd}"
     checkWorkingFiles
     needToPushRepoCount=$(expr ${needToPushRepoCount} + 1)
-    echo "------------------"
+    echo "${lineDash}"
   else
-    echo "------------------"
+    echo "${lineDash}"
     ${echo2} "${actionColor}Diverged${colorEnd}"
     checkWorkingFiles
     divergedRepoCount=$(expr ${divergedRepoCount} + 1)
-    echo "------------------"
+    echo "${lineDash}"
   fi
-  # End code from above StackOverflow article
+  # End code from above StackOverflow article.
 }
 
-# Determine which echo to use, needs to support -e to output colored text
+# Determine which echo to use, needs to support -e to output colored text:
 # - normally built-in shell echo is OK, but on Debian Linux dash is used, and it does not support -e
 configEcho() {
   echo2='echo -e'
   testEcho=$(echo -e test)
   if [ "${testEcho}" = '-e test' ]; then
-    # The -e option did not work as intended.
-    # -using the normal /bin/echo should work
-    # -printf is also an option
+    # The -e option did not work as intended:
+    # - using the normal /bin/echo should work
+    # - printf is also an option
     echo2='/bin/echo -e'
-    # The following does not seem to work
+    # The following does not seem to work.
     #echo2='printf'
   fi
 
-  # Strings to change colors on output, to make it easier to indicate when actions are needed
+  # Strings to change colors on output, to make it easier to indicate when actions are needed:
   # - Colors in Git Bash:  https://stackoverflow.com/questions/21243172/how-to-change-rgb-colors-in-git-bash-for-windows
   # - Useful info:  http://webhome.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
   # - See colors:  https://en.wikipedia.org/wiki/ANSI_escape_code#Unix-like_systems
   # - Set the background to black to eensure that white background window will clearly show colors contrasting on black.
   # - Yellow "33" in Linux can show as brown, see:  https://unix.stackexchange.com/questions/192660/yellow-appears-as-brown-in-konsole
   # - Tried to use RGB but could not get it to work - for now live with "yellow" as it is
-  actionColor='\e[0;40;33m' # user needs to do something, 40=background black, 33=yellow
-  actionWarnColor='\e[0;40;31m' # serious issue, 40=background black, 31=red
-  okColor='\e[0;40;32m' # status is good, 40=background black, 32=green
-  colorEnd='\e[0m' # To switch back to default color
+  actionColor='\e[0;40;33m' # User needs to do something, 40=background black, 33=yellow.
+  actionWarnColor='\e[0;40;31m' # Serious issue, 40=background black, 31=red.
+  okColor='\e[0;40;32m' # Status is good, 40=background black, 32=green.
+  colorEnd='\e[0m' # To switch back to default color.
 }
 
-# Parse the command parameters
+# Parse the command parameters.
 parseCommandLine() {
-  local OPTIND opt g h m p v
-  optstring=":g:hm:p:v"
-  while getopts $optstring opt; do
-    #echo "Command line option is ${opt}"
-    case $opt in
-      g) # -g  Specify folder containing Git repositories
-        gitReposFolder=$OPTARG
+  local OPTIND opt d g h m p v
+  optstring="dg:hm:p:v"
+  while getopts ${optstring} opt; do
+    #echo "Command line option is: ${opt}"
+    case ${opt} in
+      d) # -d  Turn on debug.
+        debug="true"
         ;;
-      h) # -h  Print the program usage
+      g) # -g  Specify folder containing Git repositories.
+        gitReposFolder=${OPTARG}
+        ;;
+      h) # -h  Print the program usage.
         printUsage
         exit 0
         ;;
-      m) # -m mainRepoName  Specify the main repository name, assumed that repository name will match folder for repository
-        mainRepo=$OPTARG
+      m) # -m mainRepoName  Specify the main repository name, assumed that repository name will match folder for repository.
+        mainRepo=${OPTARG}
         ;;
-      p) # -p productHome   Specify the product home, relative to $HOME, being phased out
+      p) # -p productHome   Specify the product home, relative to $HOME, being phased out.
         echo "" 
         echo "-p is obsolete.  Use -g instead." 
         exit 1
         ;;
-      v) # -v  Print the program version
+      v) # -v  Print the program version.
         printVersion
         exit 0
         ;;
       \?)
         echo "" 
-        echo "Invalid option:  -$OPTARG" >&2
+        echo "Invalid option:  -${OPTARG}" >&2
         printUsage
         exit 1
         ;;
       :)
         echo "" 
-        echo "Option -$OPTARG requires an argument" >&2
+        echo "Option -${OPTARG} requires an argument" >&2
         printUsage
         exit 1
         ;;
@@ -295,29 +317,30 @@ parseCommandLine() {
   done
 }
 
-# Print the script usage
+# Print the script usage:
 # - calling code must exist with appropriate code
 printUsage() {
   echo ""
-  echo "Usage:  git-check.sh -m product-main-repo -g gitReposFolder"
+  echo "Usage:  ${scriptName} -m product-main-repo -g gitReposFolder"
   echo ""
   echo "Check the status of all repositories that comprise a product."
   echo ""
   echo "Example:"
-  echo '  git-check.sh -m owf-util-git -g $HOME/owf-dev/Util-Git/git-repos'
+  echo "  ${scriptName} -m owf-util-git -g \$HOME/owf-dev/Util-Git/git-repos"
   echo ""
-  echo "-g specify the folder containing 1+ Git repos for product."
-  echo "-h print the usage"
-  echo "-m specify the main repo name."
-  echo "-v print the version"
+  echo "-d  Print additional debug messages."
+  echo "-g  Specify the folder containing 1+ Git repos for product."
+  echo "-h  Print the usage"
+  echo "-m  Specify the main repo name."
+  echo "-v  Print the version"
   echo ""
 }
 
-# Print the script version and copyright/license notices
+# Print the script version and copyright/license notices:
 # - calling code must exist with appropriate code
 printVersion() {
   echo ""
-  echo "git-check version ${version}"
+  echo "${scriptName} version ${version}"
   echo ""
   echo "Git Utilities"
   echo "Copyright 2017-2021 Open Water Foundation."
@@ -331,23 +354,32 @@ printVersion() {
   echo ""
 }
 
-# Entry point into main script
+# Entry point into main script:
 # - call functions from above as needed
 
-version="1.9.0 2021-06-07"
+# Script location and name:
+# - absolute location is typically only needed in development environment
+# - name is used in some output, use the actual script in case file was renamed
+scriptFolder=$(cd $(dirname "$0") && pwd)
+scriptName=$(basename $0)
 
-# Configure the echo command to print colors
+version="1.9.1 2021-08-09"
+
+# Set initial values.
+debug="false"
+
+# Configure the echo command to print colors.
 configEcho
 
-# Parse the command line
+# Parse the command line.
 parseCommandLine "$@"
 
-# Output some blank lines to make it easier to scroll back in window to see the start of output
+# Output some blank lines to make it easier to scroll back in window to see the start of output.
 
 echo ""
 echo ""
 
-# Check the operating system
+# Check the operating system.
 checkOperatingSystem
 
 if [ -z "${gitReposFolder}" ]; then
@@ -366,15 +398,15 @@ fi
 #          repo-name2/
 #          ...
 #
-# Main repository in a group of repositories for a product
+# Main repository in a group of repositories for a product:
 # - this is where the product repository list file will live
 mainRepoAbs="${gitReposFolder}/${mainRepo}"
-# The following is a list of repositories including the main repository
+# The following is a list of repositories including the main repository:
 # - one repo per line, no URL, just the repo name
 # - repositories must have previously been cloned to local files
 repoListFile="${mainRepoAbs}/build-util/product-repo-list.txt"
 
-# Check for local folder existence and exit if not as expected
+# Check for local folder existence and exit if not as expected:
 # - ensures that other logic will work as expected in folder structure
 
 if [ ! -d "${mainRepoAbs}" ]; then
@@ -392,7 +424,7 @@ if [ ! -f "${repoListFile}" ]; then
   exit 1
 fi
 
-# Count the number of Cygwin repositories so can remind developer at the end
+# Count the number of Cygwin repositories so can remind developer at the end.
 cygwinRepoCount=0
 repoCount=0
 upToDateRepoCount=0
@@ -403,28 +435,29 @@ localChangesRepoCount=0
 emptyFoldersRepoCount=0
 
 # Change folders to each repository and run the function to check that repository status
-# against its upstream repository.
+# against its upstream repository:
 # - use syntax that does not use pipe so that internal variables are in same scope as main script
 #   and can be processed after the loop
 # - ignore comment lines starting with #
 while IFS= read -r repoName
 do
-  # Make sure there are no carriage returns in the string
+  # Make sure there are no carriage returns in the string:
   # - can happen because file may have Windows-like endings but Git Bash is Linux-like
   #- use sed because it is more likely to be installed than dos2unix
   repoName=$(echo ${repoName} | sed 's/\r$//')
   if [ -z "${repoName}" ]; then
-    # Blank line
+    # Blank line.
     continue
   fi
   firstChar=$(expr substr "${repoName}" 1 1)
   if [ "${firstChar}" = "#" ]; then
-    # Comment line
+    # Comment line.
     continue
   fi
-  # Check the status on the specific repository
+  # Check the status on the specific repository.
   productRepoFolder="${gitReposFolder}/${repoName}"
-  echo "================================================================================"
+  lineDoubleDash="================================================================================"
+  echo "${lineDoubleDash}"
   echo "Checking status of repo:  $repoName"
   if [ ! -d "${productRepoFolder}" ]; then
     echo ""
@@ -432,10 +465,10 @@ do
     echo "Skipping."
     continue
   else
-    # Change to repo folder (otherwise Git commands don't know what to do)
+    # Change to repo folder (otherwise Git commands don't know what to do).
     cd ${productRepoFolder}
     checkRepoStatus
-    # Check to make sure that proper Git command line tool is being used
+    # Check to make sure that proper Git command line tool is being used:
     # - filemode=false indicates that Cygwin should not be used
     checkCommandLineGitCompatibility
   fi
@@ -443,22 +476,22 @@ do
 done < ${repoListFile}
 
 echo ""
-echo "================================================================================"
+echo "${lineDoubleDash}"
 echo "Summary of all repositories - see above for details"
-# Print a message to encourage not using Cygwin to clone repositories
+# Print a message to encourage not using Cygwin to clone repositories.
 if [ "${operatingSystem}" != "linux" ]; then
   # On windows so make sure that Cygwin and Git Bash is not mixed
-  # because can lead to confusion and technical issues
+  # because can lead to confusion and technical issues.
   if [ ${cygwinRepoCount} -ne 0 ] && [ ${repoCount} -ne ${cygwinRepoCount} ]; then
     ${echo2} "${actionColor}Number of Cygwin-cloned repos (filemode=true) is ${cygwinRepoCount}, which is not = the repo count ${repoCount}.${colorEnd}"
     ${echo2} "${actionColor}Mixing Cygwin (filemode=true) and Git Bash (filemode=false) can cause issues.${colorEnd}"
   fi
 fi
-# Print message to alert about attention needed on any repository
-# Don't need to color the number of repositories
+# Print message to alert about attention needed on any repository.
+# Don't need to color the number of repositories.
 echo "Product Git repositories folder: ${gitReposFolder}"
 echo "Repository repository list file: ${repoListFile}"
-echo "================================================================================"
+echo "${lineDoubleDash}"
 echo "Number of repositories:                                                   ${repoCount}"
 if [ ${upToDateRepoCount} -eq ${repoCount} ]; then
   ${echo2} "Number of up-to-date repositories:                                        ${okColor}${upToDateRepoCount}${colorEnd}"
@@ -468,29 +501,29 @@ fi
 if [ ${needToPullRepoCount} -eq 0 ]; then
   ${echo2} "Number of 'need to pull' repositories (remote commits available):         ${okColor}${needToPullRepoCount}${colorEnd}"
 else
-  ${echo2} "Number of 'need to pull' repositories (remote commits available):         ${actionColor}${needToPullRepoCount}${colorEnd}"
+  ${echo2} "${actionColor}Number of 'need to pull' repositories (remote commits available):         ${needToPullRepoCount}${colorEnd}"
 fi
 if [ ${needToPushRepoCount} -eq 0 ]; then
   ${echo2} "Number of 'need to push' repositories (local commits saved):              ${okColor}${needToPushRepoCount}${colorEnd}"
 else
-  ${echo2} "Number of 'need to push' repositories (local commits saved):              ${actionColor}${needToPushRepoCount}${colorEnd}"
+  ${echo2} "${actionColor}Number of 'need to push' repositories (local commits saved):              ${needToPushRepoCount}${colorEnd}"
 fi
 if [ ${divergedRepoCount} -eq 0 ]; then
   ${echo2} "Number of diverged repositories (need to pull and push):                  ${okColor}${divergedRepoCount}${colorEnd}"
 else
-  ${echo2} "Number of diverged repositories (need to pull and push):                  ${actionColor}${divergedRepoCount}${colorEnd}"
+  ${echo2} "${actionColor}Number of diverged repositories (need to pull and push):                  ${divergedRepoCount}${colorEnd}"
 fi
 if [ ${localChangesRepoCount} -eq 0 ]; then
   ${echo2} "Number of repositories with local changes (working and/or staged files):  ${okColor}${localChangesRepoCount}${colorEnd}"
 else
-  ${echo2} "Number of repositories with local changes (working and/or staged files):  ${actionColor}${localChangesRepoCount}${colorEnd}"
+  ${echo2} "${actionColor}Number of repositories with local changes (working and/or staged files):  ${localChangesRepoCount}${colorEnd}"
 fi
 if [ ${emptyFoldersRepoCount} -eq 0 ]; then
   ${echo2} "Number of repositories with empty folders:                                ${okColor}${emptyFoldersRepoCount}${colorEnd}"
 else
-  ${echo2} "Number of repositories with empty folders:                                ${actionColor}${emptyFoldersRepoCount}${colorEnd}"
+  ${echo2} "${actionColor}Number of repositories with empty folders:                                ${emptyFoldersRepoCount}${colorEnd}"
 fi
-echo "================================================================================"
+echo "${lineDoubleDash}"
 
 # Done
 exit 0
