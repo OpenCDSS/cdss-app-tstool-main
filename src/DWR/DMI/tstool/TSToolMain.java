@@ -2052,6 +2052,8 @@ throws Exception
 			//Message.printStatus ( 1, routine, "Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
 			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 			processorProps.set ( prop );
+			/* TODO smalers 2021-08-02 Thought I needed this but found a way to pass parameters without globals:
+			 * - remove when tested out
 			// Also set in a global application list that can be accessed in deep code such as RunCommands command.
 			PropList appProps = IOUtil.getPropListManager().getPropList("TSTool.CommandLine");
 			if ( appProps == null ) {
@@ -2059,6 +2061,7 @@ throws Exception
 				appProps.set(prop);
 				IOUtil.getPropListManager().addList(appProps, true);
 			}
+			*/
 		}
 		else if ( (pos = args[i].indexOf("=")) > 0 ) {
 			// User specified TSTool application property:
