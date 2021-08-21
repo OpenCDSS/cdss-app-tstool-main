@@ -93,7 +93,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - previously did not use period after third part (13.03.00dev) but have started using period (13.03.00.dev).
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  */
-public static final String PROGRAM_VERSION = "13.04.00.dev (2021-06-09)";
+public static final String PROGRAM_VERSION = "13.04.00.dev2 (2021-09-20)";
 
 /**
 Main GUI instance, used when running interactively.
