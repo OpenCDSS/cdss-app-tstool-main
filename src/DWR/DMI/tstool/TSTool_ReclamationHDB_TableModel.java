@@ -104,7 +104,7 @@ String __dataStoreName = null;
 Constructor.  This builds the model for displaying the given Reclamation HDB time series data.
 @param dataStore the data store for the data
 @param timeStep time-step for all time series
-@param data the list of BNDSS_DataMetaData that will be displayed in the
+@param data the list of ReclamationHDB_SiteTimeSeriesMetadata that will be displayed in the
 table (null is allowed - see setData()).
 @throws Exception if an invalid results passed in.
 */
