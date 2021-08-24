@@ -6,7 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-hydrobase-java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-nwsrfs-java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-processor-ts-java"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-satmonsys-java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-models-java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-common-java"/>
 	<classpathentry kind="lib" path="lib/Blowfish/Blowfish_142.jar"/>

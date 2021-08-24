@@ -150,9 +150,6 @@ import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StationGeolocMeasType_In
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel;
 import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel;
 import us.co.state.dwr.hbguest.datastore.ColoradoWaterHBGuestDataStore;
-import us.co.state.dwr.sms.ColoradoWaterSMS;
-import us.co.state.dwr.sms.ColoradoWaterSMSAPI;
-import us.co.state.dwr.sms.datastore.ColoradoWaterSMSDataStore;
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBaseDataStore;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
@@ -173,8 +170,6 @@ import DWR.DMI.HydroBaseDMI.HydroBase_StructureGeolocStructMeasType;
 import DWR.DMI.HydroBaseDMI.HydroBase_StructureIrrigSummaryTS;
 import DWR.DMI.HydroBaseDMI.HydroBase_Util;
 import DWR.DMI.HydroBaseDMI.SelectHydroBaseJDialog;
-import DWR.DMI.SatMonSysDMI.SatMonSysDMI;
-import DWR.DMI.SatMonSysDMI.SatMonSys_Util;
 import DWR.StateCU.StateCU_BTS;
 import DWR.StateCU.StateCU_CropPatternTS;
 import DWR.StateCU.StateCU_DataSet;
@@ -1012,9 +1007,7 @@ the configuration file properties are evaluated.
 */
 private boolean
     __source_ColoradoHydroBaseRest_enabled = true, // By default - allow all to access web service    
-    __source_ColoradoSMS_enabled = false,
     __source_ColoradoWaterHBGuest_enabled = true, // By default - allow all to access web service
-    __source_ColoradoWaterSMS_enabled = true, // By default - allow all to access web service
 	__source_DateValue_enabled = true,
 	__source_DelftFews_enabled = true,
 	__source_DIADvisor_enabled = false,
@@ -1065,12 +1058,6 @@ TODO SAM 2012-09-10 Begin phasing out in favor of datastores but need to figure 
 dialog and have best practices for modelers to configure datastores.
 */
 private HydroBaseDataStore __hbDataStoreLegacy = null;
-
-/**
-SatMonSysDMI object for ColoradoSMS input type, opened via TSTool.cfg information
-and the HydroBase select dialog, provided to the processor as the initial HydroBase DMI instance.
-*/
-private SatMonSysDMI __smsdmi = null;		
 
 /**
 NWSRFS_DMI object for NWSRFS_FS5Files input type, opened via TSTool.cfg information
@@ -1152,7 +1139,6 @@ private JMenu
 		private JMenuItem
 		__File_Properties_CommandsRun_JMenuItem = null,
 		__File_Properties_TSToolSession_JMenuItem = null,
-		__File_Properties_ColoradoSMS_JMenuItem = null,
 		__File_Properties_DIADvisor_JMenuItem = null,
 		__File_Properties_HydroBase_JMenuItem = null,
 		__File_Properties_NWSRFSFS5Files_JMenuItem = null;
@@ -1781,7 +1767,6 @@ private String
 		__File_Properties_String = "Properties",
 			__File_Properties_CommandsRun_String="Commands Run",
 			__File_Properties_TSToolSession_String="TSTool Session",
-			__File_Properties_ColoradoSMS_String = "ColoradoSMS",
 			__File_Properties_DIADvisor_String = "DIADvisor",
 			__File_Properties_HydroBase_String ="HydroBase",
 			__File_Properties_NWSRFSFS5Files_String = "NWSRFS FS5 Files",
@@ -2290,7 +2275,6 @@ private String
 	// Datastores are NOT listed here; consequently, the following are files or databases
 	// that have not been converted to datastores
 
-	//__INPUT_TYPE_ColoradoSMS = "ColoradoSMS",
 	__INPUT_TYPE_DateValue = "DateValue",
 	__INPUT_TYPE_DIADvisor = "DIADvisor",
 	__INPUT_TYPE_HECDSS = "HEC-DSS",
@@ -2418,13 +2402,6 @@ public TSTool_JFrame (
     // Get database connection information.  Force a login if the database connection cannot be made.
 	// The login is interactive and is disabled if no main GUI is to be shown.
 
-	StopWatch sms = new StopWatch();
-	sms.start();
-	if ( __source_ColoradoSMS_enabled ) {
-		// Login to Colorado SMS database using information in the CDSS.cfg file.
-		uiAction_OpenColoradoSMS ( true );
-	}
-	sms.stop();
 	swMain.stop();
 	
 	// Show the HydroBase login dialog only if a CDSS license.  For RTi, force the user to
@@ -5922,24 +5899,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 false, insertOffset );
         }
     }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
-        // The location (id), type, and time step uniquely
-        // identify the time series, but the input_name is needed to indicate the database.
-        TSTool_HydroBase_StationGeolocMeasType_TableModel model =
-            (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
-        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV ),
-            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-            (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-            (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-            "", // No scenario
-            null, // No sequence number
-            (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-            "", // No input name
-            (String)__query_TableModel.getValueAt( row, model.COL_ABBREV) + " - " +
-            (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-            false, insertOffset );
-    }
     else if ( selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
@@ -6665,45 +6624,6 @@ public synchronized void setVisible(boolean state)
 }
 
 /**
-Enable/disable the ColoradoSMS input type features depending on whether a
-ColoradoSMS connection has been made.
-*/
-private void ui_CheckColoradoSMSFeatures ()
-{	if ( (__smsdmi != null) && __smsdmi.isOpen() ) {
-		/* TODO SAM 2005-10-18 Currently time series features are not available...
-		if ( __input_type_JComboBox != null ) {
-			// Make sure HydroBase is in the input type list...
-			int count = __input_type_JComboBox.getItemCount();
-			boolean hbfound = false;
-			for ( int i = 0; i < count; i++ ) {
-				if ( __input_type_JComboBox.getItem(i).equals(__INPUT_TYPE_ColoradoSMS) ) {
-					hbfound = true;
-					break;
-				}
-			}
-			if ( !hbfound ) {
-				// Repopulate the input types...
-				setInputTypeChoices();
-			}
-		}
-		*/
-		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem, true );
-	}
-	else {
-	    // Remove ColoradoSMS from the data source list if necessary...
-		/* TODO SAM 2005-10-18 Currently time series cannot be queried
-		try {
-		    __input_type_JComboBox.remove ( __INPUT_TYPE_HydroBase);
-		}
-		catch ( Exception e ) {
-			// Ignore - probably already removed...
-		}
-		*/
-		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem, false );
-	}
-}
-
-/**
 Enable/disable DIADvisor menus and choices based on whether a connection was
 successful.  This method is called after a DIADvisor connection has been opened.
 For example, it turns on DIADvisor commands.
@@ -6824,12 +6744,6 @@ private void ui_CheckGUIState ()
 	}
 	JGUIUtil.setEnabled ( __File_Save_JMenu, enabled );
 
-	if ( __smsdmi != null ) {
-		JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,true );
-	}
-	else {
-        JGUIUtil.setEnabled ( __File_Properties_ColoradoSMS_JMenuItem,false );
-	}
 	if ( __DIADvisor_dmi != null ) {
 		JGUIUtil.setEnabled ( __File_Properties_DIADvisor_JMenuItem,true );
 	}
@@ -7347,22 +7261,6 @@ private void ui_EnableInputTypesForConfiguration ()
     	__source_ColoradoHydroBaseRest_enabled = true;
     }
     
-    // ColoradoSMS disabled by default (used in CDSS, requires direct SQL Server access)...
-
-    __source_ColoradoSMS_enabled = false;
-    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoSMSEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoSMSEnabled" );
-    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
-    	propValueUser = session.getUserConfigPropValue ( "ColoradoSMSEnabled" );
-    }
-    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
-    	propValue = propValueUser;
-    }
-    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
-        __source_ColoradoSMS_enabled = true;
-    }
-    
     // State of Colorado HBGuest web service disabled by default
     // (can be slow at startup due to input filter initialization) but can turn on...
 
@@ -7378,23 +7276,6 @@ private void ui_EnableInputTypesForConfiguration ()
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         __source_ColoradoWaterHBGuest_enabled = true;
-    }
-    
-    // State of Colorado Water SMS web service enabled by default
-    // (fast startup because no input filter initialization)...
-
-    __source_ColoradoWaterSMS_enabled = true;
-    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoWaterSMSEnabled" );
-    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
-    	propValueUser = session.getUserConfigPropValue ( "ColoradoWaterSMSEnabled" );
-    }
-    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
-    	propValue = propValueUser;
-    }
-    if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
-        __source_ColoradoWaterSMS_enabled = false;
     }
     
     // DateValue enabled by default...
@@ -8204,9 +8085,6 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
                 return panel;
             }
         }
-        // TODO SAM 2012-05-03 - May add input filter later
-        // No input filter panel is used for ColoradoWaterSMS - only the data type is populated
-        //
         else if ( panel instanceof RccAcis_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore
             DataStore dataStore = ((RccAcis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
@@ -9435,8 +9313,7 @@ private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataSt
         
         // If the an instance of a panel is not null, remove it from the list and then recreate it.
     
-        // Add input filters for stations, for historical data (since ColoradoWaterSMS provides access
-        // to real-time data)...
+        // Add input filters for stations, for historical data...
         
         try {
             if ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel != null ) {
@@ -13156,29 +13033,6 @@ throws Exception
     else if ( command.equals(__File_Properties_TSToolSession_String) ) {
         uiAction_ShowProperties_TSToolSession( ui_GetHydroBaseDataStoreLegacy() );
 	}
-    else if ( command.equals(__File_Properties_ColoradoSMS_String) ) {
-		// Simple text display of HydroBase properties.
-		PropList reportProp = new PropList ("Colorado SMS Properties");
-		reportProp.set ( "TotalWidth", "600" );
-		reportProp.set ( "TotalHeight", "300" );
-		reportProp.set ( "DisplayFont", __FIXED_WIDTH_FONT );
-		reportProp.set ( "DisplaySize", "11" );
-		reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
-		reportProp.set ( "PrintSize", "7" );
-		reportProp.set ( "Title", "Colorado SMS Properties" );
-		List<String> v = null;
-		if ( __smsdmi == null ) {
-		    v = new Vector<String>(3);
-			v.add ( "Colorado SMS Properties" );
-			v.add ( "" );
-			v.add("No Colorado SMS database is available." );
-		}
-		else {
-            v = __smsdmi.getDatabaseProperties();
-		}
-		reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
-		new ReportJFrame ( v, reportProp );
-	}
     else if ( command.equals(__File_Properties_DIADvisor_String) ) {
 		PropList reportProp = new PropList ("DIADvisor.props");
 		// Too big (make this big when we have more stuff)...
@@ -15509,9 +15363,6 @@ private void uiAction_DataStoreChoiceClicked()
         else if ( selectedDataStore instanceof ColoradoWaterHBGuestDataStore ) {
             uiAction_SelectDataStore_ColoradoWaterHBGuest ( (ColoradoWaterHBGuestDataStore)selectedDataStore );
         }
-        else if ( selectedDataStore instanceof ColoradoWaterSMSDataStore ) {
-            uiAction_SelectDataStore_ColoradoWaterSMS ( (ColoradoWaterSMSDataStore)selectedDataStore );
-        }
         else if ( selectedDataStore instanceof GenericDatabaseDataStore ) {
             uiAction_SelectDataStore_GenericDatabaseDataStore ( (GenericDatabaseDataStore)selectedDataStore );
         }
@@ -16168,17 +16019,6 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-	else if ( (selectedDataStore != null) && __source_ColoradoWaterSMS_enabled && (selectedDataStore instanceof ColoradoWaterSMSDataStore) ) {
-        try {
-            uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders ();
-        }
-        catch ( Exception e ) {
-            message = "Error reading ColoradoWaterSMS web service - cannot display time series list (" + e + ").";
-            Message.printWarning ( 1, routine, message );
-            Message.printWarning ( 3, routine, e );
-            return;
-        }
-    }
 	else if ( selectedInputType.equals (__INPUT_TYPE_DateValue)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
@@ -16748,91 +16588,6 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
             Message.printStatus ( 1, routine, "No ColoradoWaterHBGuest time series read." );
             queryResultsList_Clear ();
         }
-        JGUIUtil.setWaitCursor ( this, false );
-    }
-    catch ( Exception e ) {
-        // Messages elsewhere but catch so we can get the cursor back...
-        Message.printWarning ( 3, routine, e );
-        JGUIUtil.setWaitCursor ( this, false );
-    }
-}
-
-/**
-Read ColoradoWaterSWS time series via web service and list in the GUI.
-*/
-private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders()
-{   String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoWaterSMSHeaders";
-    JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, routine, "Please wait... retrieving data");
-
-    // The headers are a list of HydroBase_
-    try {
-        DataStore dataStore = ui_GetSelectedDataStore ();
-        ColoradoWaterSMSDataStore cwds = (ColoradoWaterSMSDataStore)dataStore;
-        //String selectedInputType = ui_GetSelectedInputType();
-        queryResultsList_Clear ();
-
-        //String location = "";
-        String dataType = __dataType_JComboBox.getSelected().trim();
-        String timestep = __timeStep_JComboBox.getSelected().trim();
-
-        Message.printStatus ( 2, "", "Datatype = \"" + dataType + "\" timestep = \"" + timestep + "\"" );
-
-        List<HydroBase_StationGeolocMeasType> tslist = null;
-        try {
-            ColoradoWaterSMS service = cwds.getColoradoWaterSMS();
-            // FIXME SAM 2009-11-20 Need to enable input filters for wd, div, abbrev
-            int wd = 0; // <= 0 means get all
-            int div = 0; // <= 0 meand get all
-            String abbrev = "";//null; // Get all
-            String stationName = null; // Get all
-            String dataProvider = null; // Get all
-            tslist = ColoradoWaterSMSAPI.readTimeSeriesHeaderObjects (
-                service, wd, div, abbrev, stationName, dataProvider, dataType, timestep,
-                null, null, false ); // Don't specify dates and don't request data
-        }
-        catch ( Exception e ) {
-            Message.printWarning(3, routine, "Error reading time series list." );
-            Message.printWarning(3,routine,e);
-            tslist = null;
-        }
-
-        int size = 0;
-        if ( (tslist != null) && (tslist.size() > 0) ) {
-            size = tslist.size();
-            // Does not work??
-            //__query_TableModel.setNewData ( results );
-            // Try brute force...
-            /* If objects are time series
-            __query_TableModel = new TSTool_TS_TableModel ( results );
-            TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer( (TSTool_TS_TableModel)__query_TableModel);
-
-            __query_JWorksheet.setCellRenderer ( cr );
-            __query_JWorksheet.setModel ( __query_TableModel );
-            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            */
-            // TODO SAM 2012-09-05 Should only be stations so no need to handle structures?
-            // Stations and structures...
-            __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel (
-                __query_JWorksheet, tslist, dataStore.getName() );
-            TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
-                new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
-                    (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
-            __query_JWorksheet.setCellRenderer ( cr );
-            __query_JWorksheet.setModel(__query_TableModel);
-            // Turn off columns in the table model that do not apply...
-            // TODO SAM 2012-09-05 Should ID be allowed to cross-reference USGS and other external IDs? 
-            __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel).COL_ID );
-            __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-        }
-        if ( (tslist == null) || (size == 0) ) {
-            Message.printStatus ( 1, routine,"Query complete.  No records returned." );
-        }
-        else {
-            Message.printStatus ( 1, routine, "Query complete. " + size + " records returned." );
-        }
-        ui_UpdateStatus ( false );
-
         JGUIUtil.setWaitCursor ( this, false );
     }
     catch ( Exception e ) {
@@ -19112,61 +18867,6 @@ private void uiAction_NewCommandFile ()
 }
 
 /**
-Open a connection to the ColoradoSMS database.  If running in batch mode, the
-CDSS configuration file is used to determine ColoradoSMS server and database
-name properties to use for the initial connection.  If no configuration file
-exists, then a default connection is attempted.
-@param startup If true, indicates that the database connection is being made
-at startup.  This is the case, for example, when multiple HydroBase databases
-may be available and there is no reason to automatically connect to one of them for all users.
-*/
-private void uiAction_OpenColoradoSMS ( boolean startup )
-{	String routine = "TSTool_JFrame.openColoradoSMS";
-	Message.printStatus ( 1, routine, "Opening ColoradoSMS connection..." );
-	// TODO SAM 2005-10-18
-	// Always connect, whether in batch mode or not.  Might need a way to configure this.
-	//if ( IOUtil.isBatch() || !__show_main ) {
-		// Running in batch mode or without a main GUI so automatically
-		// open HydroBase from the CDSS.cfg file information...
-		// Get the input needed to process the file...
-		String cfg = SatMonSys_Util.getConfigurationFile();
-		PropList props = null;
-		if ( IOUtil.fileExists(cfg) ) {
-			// Use the configuration file to get ColoradoSMS properties...
-			try {
-                props = SatMonSys_Util.readConfiguration(cfg);
-			}
-			catch ( Exception e ) {
-				Message.printWarning ( 1, routine, "Error reading ColoradoSMS configuration " + "file \""+ cfg +
-				"\".  Using defaults for ColoradoSMS." );
-				Message.printWarning ( 3, routine, e );
-				props = null;
-			}
-		}
-		// Override with any TSTool command-line arguments, in particular the user login...
-		String propval = TSToolMain.getPropValue("ColoradoSMS.UserLogin" );
-		if ( propval != null ) {
-			props.set ( "ColoradoSMS.UserLogin", propval );
-			Message.printStatus ( 1, routine, "Using batch login ColoradoSMS.UserLogin=\"" + propval + "\"" );
-		}
-		try {
-            // Now open the database...
-			// This uses the guest login.  If properties were not found,
-            // then default ColoradoSMS information will be used.
-			__smsdmi = new SatMonSysDMI ( props );
-			__smsdmi.open();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-                    "Error opening ColoradoSMS database.  ColoradoSMS features will be disabled." );
-			Message.printWarning ( 3, routine, e );
-			__smsdmi = null;
-		}
-	// Enable/disable ColoradoSMS features as necessary...
-	ui_CheckColoradoSMSFeatures();
-}
-
-/**
 Open a command file and read into the list of commands.  A check is made to
 see if the list contains anything and if it does the user is prompted as to
 whether need to save the previous commands.
@@ -19656,7 +19356,7 @@ throws Exception
 	TSEngine supplier_tsengine = new TSEngine ( __hbdmi, __rdmi,
 					__DIADvisor_dmi,
 					__DIADvisor_archive_dmi,
-					__nwsrfs_dmi, __smsdmi,
+					__nwsrfs_dmi,
 					null, this );
 
 	p.addTSSupplier ( supplier_tsengine );
@@ -20444,52 +20144,6 @@ throws Exception
     TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer cr =
         new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
             (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-}
-
-/**
-Refresh the query choices for the currently selected ColoradoWaterSMS datastore.
-*/
-private void uiAction_SelectDataStore_ColoradoWaterSMS ( ColoradoWaterSMSDataStore selectedDataStore )
-throws Exception
-{   //String routine = getClass().getSimpleName() + "uiAction_SelectInputName_ColoradoWaterSMS";
-    ui_SetInputNameVisible(false); // Not needed for datastores
-    __inputName_JComboBox.removeAll ();
-    __inputName_JComboBox.setEnabled ( false );
-    String selectedInputType = ui_GetSelectedInputType();
-    // Get the distinct list of data types (SMS variables) for all stations...
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
-    ColoradoWaterSMS service = selectedDataStore.getColoradoWaterSMS();
-    List<String> dataTypes = ColoradoWaterSMSAPI.readDistinctStationVariableList ( service, true );
-    __dataType_JComboBox.removeAll();
-    for ( String dataType : dataTypes  ) {
-        __dataType_JComboBox.add ( dataType );
-    }
-    __dataType_JComboBox.add ( "*" ); // Allow users to list all available data
-    __dataType_JComboBox.select ( null );
-    __dataType_JComboBox.select ( 0 );
-    
-    // Timestep is irregular (for real-time), and hour and day aggregations
-    __timeStep_JComboBox.setEnabled ( true );
-    __timeStep_JComboBox.removeAll ();
-    __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR );
-    __timeStep_JComboBox.add ( __TIMESTEP_HOUR );
-    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
-    __timeStep_JComboBox.select ( 0 );
-
-    // Initialize with blank data vector...
-
-    //__query_TableModel = new TSTool_TS_TableModel(null);
-    //TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
-    __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
-        __query_JWorksheet, null, selectedInputType);
-    TSTool_HydroBase_StationGeolocMeasType_CellRenderer cr =
-        new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
-            (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
@@ -22547,16 +22201,6 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     v.add ( "Current working directory (internal to TSTool):  " + IOUtil.getProgramWorkingDir() );
     v.add ( "Run commands in thread (internal to TSTool):  " + ui_Property_RunCommandProcessorInThread() );
     // List open database information...
-    if ( __source_ColoradoSMS_enabled ) {
-        v.add ( "" );
-        if ( __smsdmi == null ) {
-            v.add ( "GUI ColoradoSMS connection not defined.");
-        }
-        else {
-            v.add ( "GUI ColoradoSMS connection information:" );
-            StringUtil.addListToStringList ( v, StringUtil.toList( __smsdmi.getVersionComments() ) );
-        }
-    }
     if ( __source_HydroBase_enabled ) {
         v.add ( "" );
         if ( ui_GetHydroBaseDataStoreLegacy() == null ) {
@@ -22576,12 +22220,6 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     v.add ( "" );
     v.add ( "Input types and whether enabled:" );
     v.add ( "" );
-    if ( __source_ColoradoSMS_enabled ) {
-        v.add ( "ColoradoSMS input type is enabled" );
-    }
-    else {
-        v.add ( "ColoradoSMS input type is not enabled");
-    }
     if ( __source_DateValue_enabled ) {
         v.add ( "DateValue input type is enabled" );
     }

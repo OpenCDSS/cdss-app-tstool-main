@@ -69,7 +69,7 @@ public final int COL_INPUT_TYPE = 19;
 
 /**
 Input type for time series identifier (default to "HydroBase" but can be set to allow class to be used
-with other State-related data, such as ColoradoWaterSMS).
+with other State-related data, such as web services).
 */
 private String __inputType = "HydroBase";
 
@@ -79,8 +79,7 @@ The input type defaults to "HydroBase".
 @param worksheet the JWorksheet that displays the data from the table model.
 @param data the list of HydroBase_StationGeolocMeasType that will be displayed in the table
 (null is allowed - see setData()).
-@inputName input name for time series (default if not specified is "HydroBase").  Use this, for example,
-when using the class to display data from the ColoradoWaterSMS database.
+@inputName input name for time series (default if not specified is "HydroBase").
 @throws Exception if an invalid results passed in.
 */
 public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<HydroBase_StationGeolocMeasType> data )
@@ -94,8 +93,7 @@ Constructor.  This builds the model for displaying the given HydroBase time seri
 @param worksheet the JWorksheet that displays the data from the table model.
 @param data the list of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
 that will be displayed in the table (null is allowed - see setData()).
-@inputType input type for time series (default if null or blank is "HydroBase").  Use this, for example,
-when using the class to display data from the ColoradoWaterSMS database.
+@inputType input type for time series (default if null or blank is "HydroBase").
 @throws Exception if an invalid results passed in.
 */
 public TSTool_HydroBase_StationGeolocMeasType_TableModel ( JWorksheet worksheet, List<HydroBase_StationGeolocMeasType> data, String inputType )

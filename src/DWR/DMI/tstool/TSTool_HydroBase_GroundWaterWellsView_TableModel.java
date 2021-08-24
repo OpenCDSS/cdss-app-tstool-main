@@ -74,7 +74,7 @@ private int __wdid_length = 7; // The length to use when formatting WDIDs in IDs
 
 /**
 Input type for time series identifier (default to "HydroBase" but can be set to allow class to be used
-with other State-related data, such as ColoradoWaterSMS).
+with other State-related data such as web services).
 */
 private String __inputType = "HydroBase";
 
@@ -85,8 +85,7 @@ The input type defaults to "HydroBase".
 @param wdid_length Total length to use when formatting WDIDs.
 @param data the list of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
 that will be displayed in the table (null is allowed - see setData()).
-@inputName input name for time series (default if not specified is "HydroBase").  Use this, for example,
-when using the class to display data from the ColoradoWaterSMS database.
+@inputName input name for time series (default if not specified is "HydroBase").
 @throws Exception if an invalid results passed in.
 */
 public TSTool_HydroBase_GroundWaterWellsView_TableModel ( JWorksheet worksheet, int wdid_length,
@@ -102,8 +101,7 @@ Constructor.  This builds the model for displaying the given HydroBase time seri
 @param wdid_length Total length to use when formatting WDIDs.
 @param data the list of HydroBase_StationGeolocMeasType or HydroBase_StructureGeolocStructMeasType
 that will be displayed in the table (null is allowed - see setData()).
-@inputType input type for time series (default if null or blank is "HydroBase").  Use this, for example,
-when using the class to display data from the ColoradoWaterSMS database.
+@inputType input type for time series (default if null or blank is "HydroBase").
 @throws Exception if an invalid results passed in.
 */
 public TSTool_HydroBase_GroundWaterWellsView_TableModel ( JWorksheet worksheet, int wdid_length,
