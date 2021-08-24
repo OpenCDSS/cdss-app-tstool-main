@@ -15,7 +15,6 @@ datastore type.  The `Name` property in the configuration file is what is used b
 Datastore configuration files distributed with TSTool include:
 
 * `HydroBase.cfg` - local Colorado HydroBase database using CDSS acount
-* `HydroBase-HBGuest.cfg` - local Colorado HydroBase database using HBGuest account
 * `HydroBaseWeb.cfg` - Colorado HydroBase REST web services
 * `NrcsAwdb.cfg` - Natural Resources Conservation Service (NRCS) AWDB web services
 * `RCC-ACIS.cfg` - Regional Climate Center (RCC) Applied Climate Information System (ACIS) web services
