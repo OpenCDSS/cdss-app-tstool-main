@@ -1209,7 +1209,6 @@ JMenuItem
     __Commands_Read_ReadDelimitedFile_JMenuItem,
     __Commands_Read_ReadHecDss_JMenuItem,
 	__Commands_Read_ReadHydroBase_JMenuItem,
-	__Commands_Read_ReadColoradoBNDSS_JMenuItem,
 	__Commands_Read_ReadMODSIM_JMenuItem,
 	__Commands_Read_ReadNrcsAwdb_JMenuItem,
 	__Commands_Read_ReadNwsCard_JMenuItem,
