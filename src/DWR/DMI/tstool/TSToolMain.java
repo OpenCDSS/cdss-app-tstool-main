@@ -1233,16 +1233,6 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             packagePath = "cdss.dmi.hydrobase.rest.";
         }
     }
-    else if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ) {
-        propValue = getPropValue("TSTool.ColoradoWaterHBGuestEnabled");
-    	userPropValue = session.getUserConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
-    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
-    		propValue = userPropValue;
-    	}
-        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
-            packagePath = "us.co.state.dwr.hbguest.datastore.";
-        }
-    }
     else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
         // No need to check whether enabled or not since a generic connection
         // Specific configuration files will indicate if enabled

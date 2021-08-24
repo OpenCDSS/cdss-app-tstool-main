@@ -41,7 +41,6 @@
     	<mkdir dir="${install.dir}/datastores"/>
     	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/HydroBase.cfg"/>
     	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/HydroBaseWeb.cfg"/>
-    	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/HydroBase-HBGuest.cfg"/>
     	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/NrcsAwdb.cfg"/>
     	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/README.md"/>
     	<copy todir="${install.dir}/datastores" file="resources/runtime/datastores/RCC-ACIS.cfg"/>

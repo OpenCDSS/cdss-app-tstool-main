@@ -145,11 +145,6 @@ import rti.tscommandprocessor.commands.usgs.nwis.instantaneous.UsgsNwisInstantan
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
 import rti.tscommandprocessor.commands.util.Exit_Command;
-import us.co.state.dwr.hbguest.ColoradoWaterHBGuestService;
-import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel;
-import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel;
-import us.co.state.dwr.hbguest.ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel;
-import us.co.state.dwr.hbguest.datastore.ColoradoWaterHBGuestDataStore;
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBaseDataStore;
 import DWR.DMI.HydroBaseDMI.HydroBase_AgriculturalCASSCropStats;
@@ -485,21 +480,6 @@ private List<InputFilter_JPanel> __inputFilterJPanelList = new Vector<InputFilte
 The currently selected input filter JPanel, used to check input and get the filter information for queries.
 */
 private InputFilter_JPanel __selectedInputFilter_JPanel = null;
-
-/**
-InputFilter_JPanel for ColoradoWaterHBGuest station time series.
-*/
-private InputFilter_JPanel __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel = null;
-
-/**
-InputFilter_JPanel for ColoradoWaterHBGuest structure time series.
-*/
-private InputFilter_JPanel __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel = null;
-
-/**
-InputFilter_JPanel for ColoradoWaterHBGuest groundwater well time series.
-*/
-private InputFilter_JPanel __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel = null;
 
 /**
 InputFilter_JPanel for HEC-DSS time series.
@@ -1007,7 +987,6 @@ the configuration file properties are evaluated.
 */
 private boolean
     __source_ColoradoHydroBaseRest_enabled = true, // By default - allow all to access web service    
-    __source_ColoradoWaterHBGuest_enabled = true, // By default - allow all to access web service
 	__source_DateValue_enabled = true,
 	__source_DelftFews_enabled = true,
 	__source_DIADvisor_enabled = false,
@@ -5834,71 +5813,6 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         	}
         }
     }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
-        if ( __query_TableModel instanceof TSTool_HydroBase_WellLevel_Day_TableModel ) {
-            TSTool_HydroBase_WellLevel_Day_TableModel model = (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel;
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-        else if ( __query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel ) {
-            TSTool_HydroBase_StationGeolocMeasType_TableModel model =
-                (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-        else if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel ) {
-            TSTool_HydroBase_StructureGeolocStructMeasType_TableModel model =
-                (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel;
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-        else if ( __query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel ) {
-            TSTool_HydroBase_GroundWaterWellsView_TableModel model =
-                (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel;
-            numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
-                (String)__query_TableModel.getValueAt( row, model.COL_ID ),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
-                (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null, // No sequence number
-                (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
-                (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
-                (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
-                false, insertOffset );
-        }
-    }
     else if ( selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
@@ -7261,23 +7175,6 @@ private void ui_EnableInputTypesForConfiguration ()
     	__source_ColoradoHydroBaseRest_enabled = true;
     }
     
-    // State of Colorado HBGuest web service disabled by default
-    // (can be slow at startup due to input filter initialization) but can turn on...
-
-    __source_ColoradoWaterHBGuest_enabled = false;
-    propValue = TSToolMain.getPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
-    propValueUser = session.getUserConfigPropValue ( "TSTool.ColoradoWaterHBGuestEnabled" );
-    if ( (propValueUser == null) || propValueUser.isEmpty() ) {
-    	propValueUser = session.getUserConfigPropValue ( "ColoradoWaterHBGuestEnabled" );
-    }
-    if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
-    	propValue = propValueUser;
-    }
-    if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
-        __source_ColoradoWaterHBGuest_enabled = true;
-    }
-    
     // DateValue enabled by default...
 
     __source_DateValue_enabled = true;
@@ -7913,37 +7810,6 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
             }
         	Message.printStatus(2, routine, "Did not match datastore and well input panel.");
         }
-        // Start ColoradoWaterHBGuestDataStore SOAP web service
-        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel) ) {
-            // This type of filter uses a DataStore
-            ColoradoWaterHBGuestDataStore dataStore =
-                ((ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the datastore name so return the panel
-                return panel;
-            }
-        }
-        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel) && (selectedDataType != null) &&
-            (selectedDataType.equalsIgnoreCase("DivTotal") || selectedDataType.equalsIgnoreCase("IDivTotal") ||
-            selectedDataType.equalsIgnoreCase("RelTotal") || selectedDataType.equalsIgnoreCase("IRelTotal")) ) {
-            // This type of filter uses a DataStore
-            ColoradoWaterHBGuestDataStore dataStore =
-                ((ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the datastore name so return the panel
-                return panel;
-            }
-        }
-        else if ( (panel instanceof ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel) && (selectedDataType != null) &&
-            (selectedDataType.equalsIgnoreCase("WellLevelElev") || selectedDataType.equalsIgnoreCase("WellLevelDepth")) ) {
-            // This type of filter uses a DataStore
-            ColoradoWaterHBGuestDataStore dataStore =
-                ((ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel)panel).getColoradoWaterHBGuestDataStore();
-            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
-                // Have a match in the datastore name so return the panel
-                return panel;
-            }
-        }
         // Start GenericDatabaseDataStore direct database connection
         else if ( panel instanceof GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore.
@@ -8218,8 +8084,7 @@ private String ui_GetSelectedDataType ()
         }
     }
     else if (
-        ((selectedDataStore != null) && ((selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ||
-        (selectedDataStore instanceof HydroBaseDataStore))) ||
+        ((selectedDataStore != null) && ((selectedDataStore instanceof HydroBaseDataStore))) ||
         selectedInputType.equals(__INPUT_TYPE_HydroBase) || selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
         // Data type group is first and data type second.
         // HydroBase:  "Climate - Precip"
@@ -8973,19 +8838,6 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, e);
                 }
             }
-            if ( __source_ColoradoWaterHBGuest_enabled &&
-                (__tsProcessor.getDataStoresByType(ColoradoWaterHBGuestDataStore.class).size() > 0) ) {
-                try {
-                    ui_InitGUIInputFiltersColoradoWaterHBGuest(
-                        __tsProcessor.getDataStoresByType(ColoradoWaterHBGuestDataStore.class), y );
-                }
-                catch ( Throwable e ) {
-                    // This may happen if the web service cannot initialize.
-                    Message.printWarning(1, routine,
-                        "Error initializing ColoradoWaterHBGuest input filters (" + e + ").");
-                    Message.printWarning(3, routine, e);
-                }
-            }
             if ( __tsProcessor.getDataStoresByType(GenericDatabaseDataStore.class).size() > 0 ) {
                 try {
                     ui_InitGUIInputFiltersGenericDatabaseDataStore(__tsProcessor.getDataStoresByType(GenericDatabaseDataStore.class), y );
@@ -9190,7 +9042,7 @@ private void ui_InitGUIInputFilters ( final int y )
 }
 
 /**
-Initialize the ColoradoWaterHBGuest input filters, one filter panel for stations, structures,
+Initialize the ColoradoHydroBaseRest input filters, one filter panel for stations, structures,
 telemetry stations, and wells.
 */
 private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataStoreList, int y )
@@ -9279,230 +9131,6 @@ private void ui_InitGUIInputFiltersColoradoHydroBaseRest ( List<DataStore> dataS
         catch ( Exception e ) {
             Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoHydroBaseRest wells for data type \""
             	+ selectedDataType + "\" and time step \"" + selectedTimeStep + "\"" );
-            Message.printWarning ( 3, routine, e );
-        }
-    }
-}
-
-/**
-Initialize the ColoradoWaterHBGuest input filter.
-*/
-private void ui_InitGUIInputFiltersColoradoWaterHBGuest ( List<DataStore> dataStoreList, int y )
-{   String routine = getClass().getSimpleName() + ".ui_InitGUIInputFiltersColoradoWaterHBGuest";
-    int buffer = 3;
-    Insets insets = new Insets(0,buffer,0,0);
-    
-    Message.printStatus(2, routine, "Initializing ColoradoWaterHBGuest input filters.");
-    String selectedDataType = ui_GetSelectedDataType();
-    String selectedTimeStep = ui_GetSelectedTimeStep();
-    for ( DataStore dataStore: dataStoreList ) {
-        while ( true ) {
-            // Try to find existing input filter panels for the same name (may be more than one
-            // given that have stations, structures, etc.)...
-            JPanel ifp = ui_GetInputFilterPanelForDataStoreName ( dataStore.getName(), selectedDataType, selectedTimeStep );
-            // If the previous instance is not null, remove it from the list...
-            if ( ifp != null ) {
-                __inputFilterJPanelList.remove ( ifp );
-            }
-            else {
-                // No more filters matching the datastore
-                break;
-            }
-        }
-        ColoradoWaterHBGuestDataStore cwds = (ColoradoWaterHBGuestDataStore)dataStore;
-        
-        // If the an instance of a panel is not null, remove it from the list and then recreate it.
-    
-        // Add input filters for stations, for historical data...
-        
-        try {
-            if ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel );
-            }
-            __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel = new
-                ColoradoWaterHBGuest_GUI_StationGeolocMeasType_InputFilter_JPanel( cwds );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel.setName ( "ColoradoWaterHBGuest.StationInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilterColoradoWaterHBGuestStationGeolocMeasType_JPanel );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for HydroBase stations." );
-            Message.printWarning ( 2, routine, e );
-        }
-        
-        // Add input filters for structures - there is one panel for
-        // "total" time series and one for water class time series that can be filtered by SFUT...
-        
-        try {
-            if ( __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel );
-            }
-            __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel = new
-                ColoradoWaterHBGuest_GUI_StructureGeolocMeasType_InputFilter_JPanel( cwds, false );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel.setName ( "ColoradoWaterHBGuest.StructureInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilterColoradoWaterHBGuestStructureGeolocMeasType_JPanel );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoWaterHBGuest structures." );
-            Message.printWarning ( 3, routine, e );
-        }
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseStructureSfut_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseStructureSfut_JPanel);
-            }
-            __inputFilterHydroBaseStructureSfut_JPanel = new
-            HydroBase_GUI_StructureGeolocStructMeasType_InputFilter_JPanel( __hbdmi, true );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseStructureSfut_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseStructureSfut_JPanel);
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase structures with SFUT." );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
-        // Add input filters for structure irrig_summary_ts,
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseIrrigts_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseIrrigts_JPanel );
-            }
-            __inputFilterHydroBaseIrrigts_JPanel = new
-            HydroBase_GUI_StructureIrrigSummaryTS_InputFilter_JPanel( __hbdmi );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseIrrigts_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseIrrigts_JPanel );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase irrigation summary time series - old database?" );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
-        // Add input filters for CASS agricultural crop statistics,
-        // only available for newer databases.  For now, just catch an exception when not supported.
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseCASSCropStats_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseCASSCropStats_JPanel );
-            }
-            __inputFilterHydroBaseCASSCropStats_JPanel = new
-            HydroBase_GUI_AgriculturalCASSCropStats_InputFilter_JPanel ( __hbdmi );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseCASSCropStats_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseCASSCropStats_JPanel );
-        }
-        catch ( Exception e ) {
-            // Agricultural_CASS_crop_stats probably not in HydroBase...
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase CASS crop statistics - old database?" );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
-        // Add input filters for CASS agricultural livestock statistics,
-        // only available for newer databases.  For now, just catch an
-        // exception when not supported.
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseCASSLivestockStats_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseCASSLivestockStats_JPanel );
-            }
-            __inputFilterHydroBaseCASSLivestockStats_JPanel = new
-            HydroBase_GUI_AgriculturalCASSLivestockStats_InputFilter_JPanel ( __hbdmi );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseCASSLivestockStats_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseCASSLivestockStats_JPanel );
-        }
-        catch ( Exception e ) {
-            // Agricultural_CASS_livestock_stats probably not in HydroBase...
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase CASS livestock statistics - old database?" );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
-        // Add input filters for CU population data, only available for
-        // newer databases.  For now, just catch an exception when not supported.
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseCUPopulation_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseCUPopulation_JPanel );
-            }
-            __inputFilterHydroBaseCUPopulation_JPanel = new
-            HydroBase_GUI_CUPopulation_InputFilter_JPanel( __hbdmi);
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseCUPopulation_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseCUPopulation_JPanel );
-        }
-        catch ( Exception e ) {
-            // CUPopulation probably not in HydroBase...
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase CU population data - old database?" );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
-        // Add input filters for NASS agricultural statistics, only
-        // available for newer databases.  For now, just catch an exception when not supported.
-        
-        /*
-        try {
-            if ( __inputFilterHydroBaseNASS_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterHydroBaseNASS_JPanel );
-            }
-            __inputFilterHydroBaseNASS_JPanel = new
-            HydroBase_GUI_AgriculturalNASSCropStats_InputFilter_JPanel ( __hbdmi );
-            JGUIUtil.addComponent(__queryInput_JPanel, __inputFilterHydroBaseNASS_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterJPanelList.add ( __inputFilterHydroBaseNASS_JPanel );
-        }
-        catch ( Exception e ) {
-            // Agricultural_NASS_crop_stats probably not in HydroBase...
-            Message.printWarning ( 2, routine,
-            "Unable to initialize input filter for HydroBase agricultural_NASS_crop_stats - old database?" );
-            Message.printWarning ( 2, routine, e );
-        }
-        */
-        
-        // Groundwater wells
-        
-        try {
-            if ( __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel != null ) {
-                __inputFilterJPanelList.remove ( __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel );
-            }
-            __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel = new
-                ColoradoWaterHBGuest_GUI_GroundWaterWellsMeasType_InputFilter_JPanel( cwds );
-            JGUIUtil.addComponent(__queryInput_JPanel,
-                __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel,
-                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
-                GridBagConstraints.WEST );
-            __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel.setName (
-                "ColoradoWaterHBGuest.GroundWaterWellsInputFilterPanel");
-            __inputFilterJPanelList.add ( __inputFilterColoradoWaterHBGuestGroundWaterWellsMeasType_JPanel );
-        }
-        catch ( Exception e ) {
-            Message.printWarning ( 2, routine, "Unable to initialize input filter for ColoradoWaterHBGuest structures." );
             Message.printWarning ( 3, routine, e );
         }
     }
@@ -15360,9 +14988,6 @@ private void uiAction_DataStoreChoiceClicked()
         if ( selectedDataStore instanceof ColoradoHydroBaseRestDataStore ) {
             uiAction_SelectDataStore_ColoradoHydroBaseRest ( (ColoradoHydroBaseRestDataStore)selectedDataStore );
         }
-        else if ( selectedDataStore instanceof ColoradoWaterHBGuestDataStore ) {
-            uiAction_SelectDataStore_ColoradoWaterHBGuest ( (ColoradoWaterHBGuestDataStore)selectedDataStore );
-        }
         else if ( selectedDataStore instanceof GenericDatabaseDataStore ) {
             uiAction_SelectDataStore_GenericDatabaseDataStore ( (GenericDatabaseDataStore)selectedDataStore );
         }
@@ -15450,37 +15075,6 @@ private void uiAction_DataTypeChoiceClicked()
                 __timeStep_JComboBox.setEnabled ( false );
             }
         }
-    }
-    else if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
-	    ColoradoWaterHBGuestDataStore cwds = (ColoradoWaterHBGuestDataStore)selectedDataStore;
-        List<String> time_steps = cwds.getColoradoWaterHBGuestService().getTimeSeriesTimeSteps (
-            selectedDataType,
-            //HydroBase_Util.DATA_TYPE_AGRICULTURE |
-            //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
-            //HydroBase_Util.DATA_TYPE_HARDWARE |
-            //HydroBase_Util.DATA_TYPE_STATION_ALL |
-            HydroBase_Util.DATA_TYPE_STRUCTURE_ALL
-            );
-        __timeStep_JComboBox.setData ( time_steps );
-        __timeStep_JComboBox.select ( null );
-        __timeStep_JComboBox.setEnabled ( true );
-        // Select monthly as the default if available...
-        if ( JGUIUtil.isSimpleJComboBoxItem(__timeStep_JComboBox,"Month", JGUIUtil.NONE, null, null ) ) {
-            __timeStep_JComboBox.select ( "Month" );
-        }
-        else {
-            // Select the first item...
-            try {
-                __timeStep_JComboBox.select ( 0 );
-            }
-            catch ( Exception e ) {
-                // For cases when for some reason no choice is available.
-                __timeStep_JComboBox.setEnabled ( false );
-            }
-        }
-        // TODO SAM 2012-05-03 This is an old comment but need to do as it says
-        // If the data type is for a diversion or reservoir data type,
-        // hide the abbreviation column in the table model.  Else show the column.
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
 		// DateValue file...
@@ -16008,17 +15602,6 @@ private void uiAction_GetTimeSeriesListClicked()
             return;
         }
     }
-    else if ( (selectedDataStore != null) && __source_ColoradoWaterHBGuest_enabled && (selectedDataStore instanceof ColoradoWaterHBGuestDataStore) ) {
-        try {
-            uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders ();
-        }
-        catch ( Exception e ) {
-            message = "Error reading ColoradoWaterHBGuest web service - cannot display time series list (" + e + ").";
-            Message.printWarning ( 1, routine, message );
-            Message.printWarning ( 3, routine, e );
-            return;
-        }
-    }
 	else if ( selectedInputType.equals (__INPUT_TYPE_DateValue)) {
 		try {
             uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ();
@@ -16424,170 +16007,6 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
 	            queryResultsList_Clear ();
 	        }
     	}
-        JGUIUtil.setWaitCursor ( this, false );
-    }
-    catch ( Exception e ) {
-        // Messages elsewhere but catch so we can get the cursor back...
-        Message.printWarning ( 3, routine, e );
-        JGUIUtil.setWaitCursor ( this, false );
-    }
-}
-
-/**
-Read ColoradoWaterHBGuest time series via web service and list in the GUI.
-*/
-private void uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders()
-{   String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoWaterHBGuestHeaders";
-    JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, routine, "Please wait... retrieving data");
-
-    List tslist; // List contents vary depending on data type
-    int size = 0;
-    try {
-        DataStore dataStore = ui_GetSelectedDataStore ();
-        ColoradoWaterHBGuestDataStore cwds = (ColoradoWaterHBGuestDataStore)dataStore;
-        // Get the subject from the where filters.  If not set, warn and don't query
-        List<String> inputDivision = __selectedInputFilter_JPanel.getInput("Division", null, false, null );
-        List<String> inputDistrict = __selectedInputFilter_JPanel.getInput("District", null, false, null );
-        if ( (inputDistrict.size() + inputDivision.size()) == 0 ) {
-            Message.printWarning ( 1, routine,
-                "You must specify a district or division as a Where in the input filter." );
-            JGUIUtil.setWaitCursor ( this, false );
-            return;
-        }
-        queryResultsList_Clear ();
-
-        String selectedDataType = ui_GetSelectedDataType();
-        String selectedTimeStep = ui_GetSelectedTimeStep();
-
-        Message.printStatus ( 2, "", "Datatype = \"" + selectedDataType + "\" timestep = \"" + selectedTimeStep + "\"" );
-
-        ColoradoWaterHBGuestService service = cwds.getColoradoWaterHBGuestService();
-        tslist = service.getTimeSeriesHeaderObjects ( selectedDataType, selectedTimeStep, __selectedInputFilter_JPanel );
-        // Make sure that size is set...
-        if ( tslist != null ) {
-            size = tslist.size();
-        }
-        // Now display the data in the worksheet...
-        if ( (tslist != null) && (size > 0) ) {
-            Message.printStatus ( 1, routine, "" + size + " ColoradoWaterHBGuest time series read for data type \"" +
-                selectedDataType + "\" and timestep \"" + selectedTimeStep + "\".  Displaying data..." );
-            /* Not implemented
-            if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ||
-                HydroBase_Util.isAgriculturalNASSCropStatsTimeSeriesDataType ( __hbdmi, __selected_data_type ) ) {
-                // Data from agricultural_CASS_crop_statistics or agricultural_NASS_crop_statistics...
-                __query_TableModel = new
-                    TSTool_HydroBase_Ag_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
-                TSTool_HydroBase_Ag_CellRenderer cr = new
-                    TSTool_HydroBase_Ag_CellRenderer((TSTool_HydroBase_Ag_TableModel)__query_TableModel);
-                __query_JWorksheet.setCellRenderer ( cr );
-                __query_JWorksheet.setModel(__query_TableModel);
-                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            }
-            */
-            /* Not implemented
-            else if(HydroBase_Util.isAgriculturalCASSLivestockStatsTimeSeriesDataType ( __hbdmi, __selected_data_type) ) {
-                // Data from CASS livestock stats...
-                __query_TableModel = new
-                    TSTool_HydroBase_CASSLivestockStats_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
-                TSTool_HydroBase_CASSLivestockStats_CellRenderer cr = new
-                    TSTool_HydroBase_CASSLivestockStats_CellRenderer(
-                    (TSTool_HydroBase_CASSLivestockStats_TableModel)__query_TableModel);
-                __query_JWorksheet.setCellRenderer ( cr );
-                __query_JWorksheet.setModel(__query_TableModel);
-                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            }
-            */
-            /* Not implemented
-            else if(HydroBase_Util.isCUPopulationTimeSeriesDataType( __hbdmi, __selected_data_type) ) {
-                // Data from CUPopulation...
-                __query_TableModel = new
-                    TSTool_HydroBase_CUPopulation_TableModel ( __query_JWorksheet, tslist, __selected_data_type );
-                TSTool_HydroBase_CUPopulation_CellRenderer cr = new
-                    TSTool_HydroBase_CUPopulation_CellRenderer(
-                    (TSTool_HydroBase_CUPopulation_TableModel)__query_TableModel);
-                __query_JWorksheet.setCellRenderer ( cr );
-                __query_JWorksheet.setModel(__query_TableModel);
-                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            }
-            */
-            /* Not implemented
-            else if(HydroBase_Util.isIrrigSummaryTimeSeriesDataType( __hbdmi, __selected_data_type ) ) {
-                // Irrig summary TS...
-                __query_TableModel = new
-                    TSTool_HydroBase_AgGIS_TableModel ( __query_JWorksheet, tslist, __selected_data_type,
-                    StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")) );
-                TSTool_HydroBase_AgGIS_CellRenderer cr = new
-                    TSTool_HydroBase_AgGIS_CellRenderer( (TSTool_HydroBase_AgGIS_TableModel)__query_TableModel);
-                __query_JWorksheet.setCellRenderer ( cr );
-                __query_JWorksheet.setModel(__query_TableModel);
-                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            }
-            */
-            if ( selectedDataType.equalsIgnoreCase( "WellLevelElev") ||
-                selectedDataType.equalsIgnoreCase( "WellLevelDepth")) {
-                if (selectedTimeStep.equalsIgnoreCase("Day")) {
-                    __query_TableModel = new TSTool_HydroBase_WellLevel_Day_TableModel (
-                        __query_JWorksheet, StringUtil.atoi( __props.getValue("HydroBase.WDIDLength")), tslist,
-                        dataStore.getName());
-                    TSTool_HydroBase_WellLevel_Day_CellRenderer cr =
-                        new TSTool_HydroBase_WellLevel_Day_CellRenderer(
-                        (TSTool_HydroBase_WellLevel_Day_TableModel)__query_TableModel);
-                    __query_JWorksheet.setCellRenderer ( cr );
-                    __query_JWorksheet.setModel(__query_TableModel);
-                    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-    
-                }
-                else {
-                    // Real-time stations table model
-                    /*
-                    __query_TableModel = new TSTool_HydroBase_TableModel ( __query_JWorksheet, StringUtil.atoi(
-                        __props.getValue( "HydroBase.WDIDLength")), tslist );
-                    TSTool_HydroBase_CellRenderer cr =
-                        new TSTool_HydroBase_CellRenderer( (TSTool_HydroBase_TableModel)__query_TableModel);
-                    __query_JWorksheet.setCellRenderer ( cr );
-                    __query_JWorksheet.setModel(__query_TableModel);
-                    // Turn off columns in the table model that do not apply...
-                    __query_JWorksheet.removeColumn ( ((TSTool_HydroBase_TableModel)__query_TableModel).COL_ABBREV );
-                    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-                    */
-                }
-            }
-            else {
-                // Stations and structures.  Figure out from returned data which table model needs to be used.
-                // At least one object will have been returned based on checks above
-                Object o = (Object)tslist.get(0);
-                JWorksheet_DefaultTableCellRenderer cr = null;
-                if ( o instanceof HydroBase_StationGeolocMeasType ) {
-                    __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
-                        __query_JWorksheet, tslist,
-                        dataStore.getName() );
-                    cr = new TSTool_HydroBase_StationGeolocMeasType_CellRenderer(
-                        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
-                }
-                else if ( o instanceof HydroBase_StructureGeolocStructMeasType ) {
-                    __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel (
-                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist,
-                        dataStore.getName() );
-                    cr = new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
-                        (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
-                }
-                else if (o instanceof HydroBase_GroundWaterWellsView) {
-                    __query_TableModel = new TSTool_HydroBase_GroundWaterWellsView_TableModel (
-                        __query_JWorksheet, StringUtil.atoi(__props.getValue( "HydroBase.WDIDLength")), tslist,
-                        dataStore.getName());
-                    cr = new TSTool_HydroBase_GroundWaterWellsView_CellRenderer(
-                        (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel);
-                }
-                __query_JWorksheet.setCellRenderer ( cr );
-                __query_JWorksheet.setModel(__query_TableModel);
-                __query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
-            }
-        }
-        else {
-            Message.printStatus ( 1, routine, "No ColoradoWaterHBGuest time series read." );
-            queryResultsList_Clear ();
-        }
         JGUIUtil.setWaitCursor ( this, false );
     }
     catch ( Exception e ) {
@@ -20077,7 +19496,7 @@ throws Exception
     __inputName_JComboBox.removeAll ();
     __inputName_JComboBox.setEnabled ( false );
     String selectedInputType = ui_GetSelectedInputType();
-    // Get the distinct list of data types (HBGuest variables) for all stations...
+    // Get the distinct list of data types for all stations...
     __dataType_JComboBox.setEnabled ( true );
     __dataType_JComboBox.removeAll ();
     __dataType_JComboBox.removeAll();
@@ -20102,48 +19521,6 @@ throws Exception
     ColoradoHydroBaseRest_Structure_CellRenderer cr =
         new ColoradoHydroBaseRest_Structure_CellRenderer(
             (ColoradoHydroBaseRest_Structure_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    // Remove columns that are not appropriate...
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-}
-
-/**
-Refresh the query choices for a ColoradoWaterHBGuest web service.
-*/
-private void uiAction_SelectDataStore_ColoradoWaterHBGuest ( ColoradoWaterHBGuestDataStore selectedDataStore)
-throws Exception
-{   //String routine = getClass().getSimpleName() + "uiAction_SelectInputName_ColoradoWaterHBGuest";
-    // Input name is not currently used...
-    ui_SetInputNameVisible(false); // Not needed
-    __inputName_JComboBox.removeAll ();
-    __inputName_JComboBox.setEnabled ( false );
-    String selectedInputType = ui_GetSelectedInputType();
-    // Get the distinct list of data types (HBGuest variables) for all stations...
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
-    __dataType_JComboBox.removeAll();
-    ColoradoWaterHBGuestService service = selectedDataStore.getColoradoWaterHBGuestService();
-    List<String> dataTypes = service.getTimeSeriesDataTypes (
-        HydroBase_Util.DATA_TYPE_AGRICULTURE |
-        //HydroBase_Util.DATA_TYPE_DEMOGRAPHICS_ALL |
-        //HydroBase_Util.DATA_TYPE_HARDWARE |
-        // Comment out stations until performance is figured out
-        HydroBase_Util.DATA_TYPE_STATION_ALL |
-        HydroBase_Util.DATA_TYPE_STRUCTURE_ALL,
-        true ); // Add notes
-    __dataType_JComboBox.setData ( dataTypes );
-    // Select the default (this causes the other choices to be updated)...
-    // TODO SAM 2010-07-21 Default to Streamflow once implemented, like HydroBase
-    __dataType_JComboBox.select( null );
-    __dataType_JComboBox.select ( "Diversion - DivTotal" );
-    
-    // Initialize with blank DivTotal data - will be reset when a query occurs
-    __query_TableModel = new TSTool_HydroBase_StructureGeolocStructMeasType_TableModel(
-        __query_JWorksheet, StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")), null, selectedInputType);
-    TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer cr =
-        new TSTool_HydroBase_StructureGeolocStructMeasType_CellRenderer(
-            (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel);
     __query_JWorksheet.setCellRenderer ( cr );
     __query_JWorksheet.setModel ( __query_TableModel );
     // Remove columns that are not appropriate...
