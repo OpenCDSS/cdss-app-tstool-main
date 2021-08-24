@@ -71,8 +71,6 @@ Function SetCustomHydrobaseServer
   FileWrite $0 "# This file stores shared information for the system, including:$\r$\n"
   FileWrite $0 "#$\r$\n"
   FileWrite $0 "# * HydroBase database properties, defining connection defaults.$\r$\n"
-  FileWrite $0 "# * Satellite Monitoring System (ColoradoSMS) properties, defining connection$\r$\n"
-  FileWrite $0 "#   defaults.$\r$\n"
   FileWrite $0 "$\r$\n"
   FileWrite $0 "[HydroBase]$\r$\n"
   FileWrite $0 "$\r$\n"
