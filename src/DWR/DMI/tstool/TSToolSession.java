@@ -71,7 +71,7 @@ private static TSToolSession instance = null;
  * for example .tstool/13.
  * This is initialized as a parameter to the constructor.
  */
-private int majorVersion = 0; // 0 will be an obvious error if a folder is created
+private int majorVersion = 0; // 0 will be an obvious error if a folder is created.
 
 /**
 Private constructor for the session instance.
@@ -95,43 +95,46 @@ private boolean checkHistoryFile() {
 	String historyFile = getHistoryFile();
 	Message.printStatus(2, routine, "History file is \"" + historyFile + "\"");
 	File f = new File(historyFile);
+	// Folder should match the major version.
 	File folder = f.getParentFile();
 	if ( !folder.exists() ) {
-		// Create all the folders for the history file
+		// Create the folder for the history file.
+		Message.printStatus(2,routine,"Creating folder for history file \"" + folder + "\"" );
 		if ( !folder.mkdirs() ) {
-			// Unable to make folder
+			// Unable to make folder.
 			Message.printWarning(2,routine,"Error creating folder for history file \"" + folder + "\"" );
 			return false;
 		}
-		else {
-			Message.printStatus(2,routine,"Creating folder for history file \"" + folder + "\"" );
-		}
 	}
 	// If here the folder for the history file exists so can check for the file.
-	// If the file does not exist, see if one exists in a previous version of the software and copy it.
+	// If the file does not exist, see if one exists in a previous version of the software and copy it:
 	// - this is OK because currently the format has not changed since the original
-	// - go back two versions to allow for a year or two of gap for the user
-	for ( int i = 1; i <= 2; i++ ) {
+	for ( int iVersion = getMajorVersion() - 1; iVersion >= 12; iVersion-- ) {
 		if ( !f.exists() ) {
-			// The history file does not exist so check for an old version
-			String historyFileOld = getHistoryFile(getMajorVersion() - i);
+			// The history file for the current version does not exist so check for an old version:
+			// - only go back a couple of major versions because the format may change
+			String historyFileOld = getHistoryFile(iVersion);
 			File f2 = new File(historyFileOld);
 			if ( f2.exists() ) {
+				// Old history file exists so can copy.
 				Path original = Paths.get(historyFileOld);
 				Path copy = Paths.get(historyFile);
 				try {
+					Message.printStatus(2,routine, "Copying history file:");
+					Message.printStatus(2,routine, "  from: " + original);
+					Message.printStatus(2,routine, "    to: " + copy);
 					Files.copy(original, copy);
-					Message.printStatus(2,routine,"Copied history file \"" + original + "\" to \"" + copy + "\"" );
 					break;
 				}
 				catch ( IOException e ) {
-					Message.printWarning(2,routine,"Error copying old history file \"" + historyFileOld +
-						"\" history file to \"" + historyFile + "\"" );
+					Message.printWarning(2,routine,"Error copying old history file:");
+					Message.printStatus(2,routine, "  from: " + original);
+					Message.printStatus(2,routine, "    to: " + copy);
 				}
 			}
 		}
 	}
-	// If the file still does not exist, create an empty file
+	// If the file still does not exist, create an empty file.
 	if ( !f.exists() ) {
 		// The following will get overwritten by writeHistory()
 		StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
@@ -140,7 +143,7 @@ private boolean checkHistoryFile() {
 			Message.printStatus(2,routine,"Create empty history file \"" + f + "\"" );
 		}
 		catch ( IOException e ) {
-			// For now absorb
+			// For now absorb.
 			Message.printWarning(2,routine,"Error creating empty history file \"" + f + "\"" );
 			return false;
 		}
@@ -154,49 +157,55 @@ private boolean checkHistoryFile() {
  * @return true if the UI state file exists, false if an issue creating/finding the file.
  */
 private boolean checkUIStateFile() {
+	String routine = getClass().getSimpleName() + ".checkUIStateFile";
 	String uiStateFile = getUIStateFile();
+	Message.printStatus(2, routine, "UI state file is \"" + uiStateFile + "\"");
 	File f = new File(uiStateFile);
 	File folder = f.getParentFile();
 	if ( !folder.exists() ) {
-		// Create all the folders for the UI state file
+		// Create the folders for the UI state file.
+		Message.printStatus(2,routine,"Creating folder for user state file \"" + folder + "\"" );
 		if ( !folder.mkdirs() ) {
-			// Unable to make folder
+			// Unable to make folder.
+			Message.printWarning(2,routine,"Error creating folder for UI state file \"" + folder + "\"" );
 			return false;
 		}
 	}
 	// If here the folder for the UI state file exists so can check for the file.
-	// If the file does not exist, see if one exists in a previous version of the software and copy it.
+	// If the file does not exist, see if one exists in a previous version of the software and copy it:
 	// - this is OK because currently the format has not changed since the original
-	// - go back two versions to allow for a year or two of gap for the user
-	for ( int i = 1; i <= 2; i++ ) {
+	for ( int iVersion = getMajorVersion() - 1; iVersion >= 12; iVersion-- ) {
 		if ( !f.exists() ) {
-			// The UI state file does not exist so check for an old version
-			String uiStateFileOld = getUIStateFile(getMajorVersion() - i);
+			// The UI state file does not exist so check for an old version.
+			String uiStateFileOld = getUIStateFile(iVersion);
 			File f2 = new File(uiStateFileOld);
 			if ( f2.exists() ) {
 				Path original = Paths.get(uiStateFileOld);
 				Path copy = Paths.get(uiStateFile);
 				try {
+					Message.printStatus(2,routine, "Copying UI state file:");
+					Message.printStatus(2,routine, "  from: " + original);
+					Message.printStatus(2,routine, "    to: " + copy);
 					Files.copy(original, copy);
 					break;
 				}
 				catch ( IOException e ) {
-					String routine = getClass().getSimpleName() + ".checkUIStateFile";
-					Message.printWarning(2,routine,"Error copying old UI state file \"" + uiStateFileOld +
-						"\" UI state file to \"" + uiStateFile + "\"" );
+					Message.printWarning(2,routine,"Error copying old UI state file:");
+					Message.printStatus(2,routine, "  from: " + original);
+					Message.printStatus(2,routine, "    to: " + copy);
 				}
 			}
 		}
 	}
-	// If the file still does not exist, create an empty file
+	// If the file still does not exist, create an empty file.
 	if ( !f.exists() ) {
-		// The following will get overwritten by writeHistory()
+		// The following will get overwritten by writeHistory().
 		StringBuilder sb = new StringBuilder ( "# TSTool UI state" );
 		try {
 			IOUtil.writeFile ( f.getPath(), sb.toString() );
 		}
 		catch ( IOException e ) {
-			// For now absorb
+			// For now absorb.
 			return false;
 		}
 	}
@@ -210,17 +219,21 @@ This is used when transitioning from TSTool earlier than 11.09.00 to version lat
 */
 public boolean createUserConfigFile ( )
 {
-	if ( getUserTstoolFolder().equals("/") ) {
-		// Don't allow files to be created under root on Linux
+	String userTstoolFolder = getUserTstoolFolder();
+	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
+		// Don't allow files to be created under root on Linux.
+		Message.printWarning(3, "TSToolSession.createUserConfigFile",
+			"Unable to create user files in '" + userTstoolFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return false;
 	}
 
-	// Create the configuration folder if necessary
+	// Create the configuration folder if necessary.
 	File f = new File(getUserConfigFile());
 	File folder = f.getParentFile();
 	if ( !folder.exists() ) {
 		if ( !folder.mkdirs() ) {
-			// Unable to make folder
+			// Unable to make folder.
 			return false;
 		}
 	}
@@ -232,7 +245,7 @@ public boolean createUserConfigFile ( )
 		sb.append("# Refer to the TSTool.cfg file under the software installation folder for global configuration properties." + nl );
 		sb.append("# User settings in this file will override the installation settings." + nl );
 		sb.append(nl);
-		// Include a line for HydroBase since it often needs to be disabled on computers where HydroBase is not used
+		// Include a line for HydroBase since it often needs to be disabled on computers where HydroBase is not used.
 		sb.append("HydroBaseEnabled = true" + nl );
 		IOUtil.writeFile ( f.getPath(), sb.toString() );
 		return true;
@@ -244,53 +257,180 @@ public boolean createUserConfigFile ( )
 
 /**
 Create the user's datastores folder if necessary.
+This folder is handled separately because more specific logic may need to be implemented.
 @return true if datastores folder exists and is writable, false otherwise.
 */
-public boolean createUserDatastoresFolder () {
-	String datastoreFolder = getUserDatastoresFolder();
-	// Do not allow datastore folder to be created under Linux root but allow TSTool to run
-	if ( datastoreFolder.equals("/") ) {
+public boolean createUserDatastoresFolder ( boolean copyPreviousVersion ) {
+	String routine = getClass().getSimpleName() + ".createUserDatastoresFolder";
+	String datastoresFolder = getUserDatastoresFolder();
+	// Do not allow the datastores folder to be created under Linux root but allow TSTool to run.
+	if ( datastoresFolder.equals("/") || datastoresFolder.equals("/root") ) {
+		Message.printWarning(3, routine,
+			"Unable to create user datastore files in '" + datastoresFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return false;
 	}
-	File f = new File(datastoreFolder);
+	File f = new File(datastoresFolder);
 	if ( !f.exists() ) {
-		try {
-			f.mkdirs();
+		Message.printStatus(2, routine, "Creating user datastores folder: " + datastoresFolder );
+		if ( copyPreviousVersion ) {
+			// Copy the datastore files.
+			for ( int iVersion = getMajorVersion() - 1; iVersion >= 13; iVersion-- ) {
+				if ( !f.exists() ) {
+					// The UI state file does not exist so check for an old version:
+					// - version 13 was the first version that implemented current user folders
+					String datastoresFolderOld = getUserDatastoresFolder(iVersion);
+					File f2 = new File(datastoresFolderOld);
+					if ( f2.exists() ) {
+						Path original = Paths.get(datastoresFolderOld);
+						Path copy = Paths.get(datastoresFolder);
+						try {
+							Message.printStatus(2,routine, "Copying datastores folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+							List<String> problems = new ArrayList<>();
+							IOUtil.copyDirectory(original.toString(), copy.toString(), problems);
+							if ( problems.size() > 0 ) {
+								Message.printWarning(2,routine,"Errors copying datastores files from previous version:");
+								for ( String problem : problems ) {
+									Message.printWarning(2,routine,"  " + problem);
+								}
+							}
+							break;
+						}
+						catch ( IOException e ) {
+							Message.printWarning(2,routine,"Error copying datastores folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+						}
+					}
+				}
+			}
 		}
-		catch ( SecurityException e ) {
-			return false;
+		// File was not created:
+		// - just create an empty new folder
+		if ( !f.exists() ) {
+			try {
+				Message.printStatus(2, routine, "Creating empty user datastores folder (files must be copied later): " + datastoresFolder );
+				f.mkdirs();
+			}
+			catch ( SecurityException e ) {
+				Message.printWarning(3, routine, "Error creating user datastores folder: " + datastoresFolder);
+				return false;
+			}
 		}
+	}
+	// Make sure it is writable.
+	if ( !f.canWrite() ) {
+		return false;
 	}
 	else {
-		// Make sure it is writable
-		if ( !f.canWrite() ) {
-			return false;
+		return true;
+	}
+}
+
+/**
+Create the user's graph templates folder if necessary.
+This folder is handled separately because more specific logic may need to be implemented.
+@return true if 'template-graphs' folder exists and is writable, false otherwise.
+*/
+public boolean createUserGraphTemplatesFolder ( boolean copyPreviousVersion ) {
+	String routine = getClass().getSimpleName() + ".createUserGraphTemplatesFolder";
+	String templatesFolder = getUserGraphTemplatesFolder();
+	// Do not allow the folder to be created under Linux root but allow TSTool to run.
+	if ( templatesFolder.equals("/") || templatesFolder.equals("/root") ) {
+		Message.printWarning(3, routine,
+			"Unable to create user graph template files in '" + templatesFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
+		return false;
+	}
+	File f = new File(templatesFolder);
+	if ( !f.exists() ) {
+		Message.printStatus(2, routine, "Creating user graph templates folder: " + templatesFolder );
+		if ( copyPreviousVersion ) {
+			// Copy the graph template files.
+			for ( int iVersion = getMajorVersion() - 1; iVersion >= 13; iVersion-- ) {
+				if ( !f.exists() ) {
+					// The UI state file does not exist so check for an old version:
+					// - version 13 was the first version that implemented current user folders
+					String templatesFolderOld = getUserGraphTemplatesFolder(iVersion);
+					File f2 = new File(templatesFolderOld);
+					if ( f2.exists() ) {
+						Path original = Paths.get(templatesFolderOld);
+						Path copy = Paths.get(templatesFolder);
+						try {
+							Message.printStatus(2,routine, "Copying graph templates folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+							List<String> problems = new ArrayList<>();
+							IOUtil.copyDirectory(original.toString(), copy.toString(), problems);
+							if ( problems.size() > 0 ) {
+								Message.printWarning(2,routine,"Errors copying graph templates files from previous version:");
+								for ( String problem : problems ) {
+									Message.printWarning(2,routine,"  " + problem);
+								}
+							}
+							break;
+						}
+						catch ( IOException e ) {
+							Message.printWarning(2,routine,"Error copying graph template folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+						}
+					}
+				}
+			}
+		}
+		// Folder was not created:
+		// - just create an empty new folder
+		if ( !f.exists() ) {
+			try {
+				Message.printStatus(2, routine, "Creating empty user graph templates folder (files must be copied later): " + templatesFolder );
+				f.mkdirs();
+			}
+			catch ( SecurityException e ) {
+				Message.printWarning(3, routine, "Error creating user graph templates folder: " + templatesFolder);
+				return false;
+			}
 		}
 	}
-	return true;
+	// Make sure it is writable.
+	if ( !f.canWrite() ) {
+		return false;
+	}
+	else {
+		return true;
+	}
 }
 
 /**
 Create the "logs" folder if necessary.
+This folder is handled separately because more specific logic may need to be implemented.
 @return true if "logs" folder exists and is writable, false otherwise.
 */
-public boolean createUserLogsFolder () {
+public boolean createUserLogsFolder ( boolean copyPreviousVersion ) {
+	String routine = getClass().getSimpleName() + ".createUserLogsFolder";
 	String logsFolder = getUserLogsFolder();
-	// Do not allow log file to be created under Linux root but allow TSTool to run
-	if ( logsFolder.equals("/") ) {
+	// Do not allow log file to be created under Linux root but allow TSTool to run.
+	if ( logsFolder.equals("/") || logsFolder.equals("/root") ) {
+		Message.printWarning(3, routine,
+			"Unable to create user log files in '" + logsFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return false;
 	}
 	File f = new File(logsFolder);
 	if ( !f.exists() ) {
 		try {
+			Message.printStatus(2, routine, "Creating user logs folder: " + logsFolder );
 			f.mkdirs();
 		}
 		catch ( SecurityException e ) {
+			Message.printWarning(3, routine, "Error creating user logs folder: " + logsFolder);
 			return false;
 		}
 	}
 	else {
-		// Make sure it is writable
+		// Make sure it is writable.
 		if ( !f.canWrite() ) {
 			return false;
 		}
@@ -300,60 +440,152 @@ public boolean createUserLogsFolder () {
 
 /**
 Create the user's "plugins" folder if necessary.
+This folder is handled separately because more specific logic may need to be implemented.
 @return true if "plugins" folder exists and is writable, false otherwise.
 */
-public boolean createUserPluginsFolder () {
+public boolean createUserPluginsFolder ( boolean copyPreviousVersion ) {
+	String routine = getClass().getSimpleName() + ".createUserPluginsFolder";
 	String pluginsFolder = getUserPluginsFolder();
-	// Do not allow log file to be created under Linux root but allow TSTool to run
-	if ( pluginsFolder.equals("/") ) {
+	// Do not allow log file to be created under Linux root but allow TSTool to run.
+	if ( pluginsFolder.equals("/") || pluginsFolder.equals("/root") ) {
+		Message.printWarning(3, routine,
+			"Unable to create user plugin files in '" + pluginsFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return false;
 	}
 	File f = new File(pluginsFolder);
 	if ( !f.exists() ) {
-		try {
-			f.mkdirs();
+		Message.printStatus(2, routine, "Creating user plugins folder: " + pluginsFolder );
+		if ( copyPreviousVersion ) {
+			// Copy the plugin files.
+			for ( int iVersion = getMajorVersion() - 1; iVersion >= 13; iVersion-- ) {
+				if ( !f.exists() ) {
+					// The UI state file does not exist so check for an old version.
+					String pluginsFolderOld = getUserPluginsFolder(iVersion);
+					File f2 = new File(pluginsFolderOld);
+					if ( f2.exists() ) {
+						Path original = Paths.get(pluginsFolderOld);
+						Path copy = Paths.get(pluginsFolder);
+						try {
+							Message.printStatus(2,routine, "Copying plugins folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+							List<String> problems = new ArrayList<>();
+							IOUtil.copyDirectory(original.toString(), copy.toString(), problems);
+							if ( problems.size() > 0 ) {
+								Message.printWarning(2,routine,"Errors copying plugins files from previous version:");
+								for ( String problem : problems ) {
+									Message.printWarning(2,routine,"  " + problem);
+								}
+							}
+							break;
+						}
+						catch ( IOException e ) {
+							Message.printWarning(2,routine,"Error copying plugins folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+						}
+					}
+				}
+			}
 		}
-		catch ( SecurityException e ) {
-			return false;
+		// File was not created:
+		// - just create an empty new folder
+		if ( !f.exists() ) {
+			try {
+				Message.printStatus(2, routine, "Creating empty user plugins folder (files must be copied later): " + pluginsFolder );
+				f.mkdirs();
+			}
+			catch ( SecurityException e ) {
+				Message.printWarning(3, routine, "Error creating user plugins folder: " + pluginsFolder);
+				return false;
+			}
 		}
+	}
+	// Make sure it is writable.
+	if ( !f.canWrite() ) {
+		return false;
 	}
 	else {
-		// Make sure it is writable
-		if ( !f.canWrite() ) {
-			return false;
-		}
+		return true;
 	}
-	return true;
 }
 
 /**
 Create the user system folder if necessary.
+This folder is handled separately because more specific logic may need to be implemented.
 @return true if system folder exists and is writable, false otherwise.
 */
-public boolean createUserSystemFolder () {
+public boolean createUserSystemFolder ( boolean copyPreviousVersion ) {
+	String routine = getClass().getSimpleName() + ".createUserSystemFolder";
 	String systemFolder = getUserSystemFolder();
-	// Do not allow system folder to be created under Linux root but allow TSTool to run
-	if ( systemFolder.equals("/") ) {
+	// Do not allow system folder to be created under Linux root but allow TSTool to run.
+	if ( systemFolder.equals("/") || systemFolder.equals("/root") ) {
+		Message.printWarning(3, routine,
+			"Unable to create user system files in '" + systemFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return false;
 	}
 	File f = new File(systemFolder);
 	if ( !f.exists() ) {
-		try {
-			f.mkdirs();
+		Message.printStatus(2, routine, "Creating user system folder: " + systemFolder );
+		if ( copyPreviousVersion ) {
+			// Copy the system files.
+			for ( int iVersion = getMajorVersion() - 1; iVersion >= 13; iVersion-- ) {
+				if ( !f.exists() ) {
+					// The UI state file does not exist so check for an old version.
+					String systemFolderOld = getUserSystemFolder(iVersion);
+					File f2 = new File(systemFolderOld);
+					if ( f2.exists() ) {
+						Path original = Paths.get(systemFolderOld);
+						Path copy = Paths.get(systemFolder);
+						try {
+							Message.printStatus(2,routine, "Copying system folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+							List<String> problems = new ArrayList<>();
+							IOUtil.copyDirectory(original.toString(), copy.toString(), problems);
+							if ( problems.size() > 0 ) {
+								Message.printWarning(2,routine,"Errors copying system files from previous version:");
+								for ( String problem : problems ) {
+									Message.printWarning(2,routine,"  " + problem);
+								}
+							}
+							break;
+						}
+						catch ( IOException e ) {
+							Message.printWarning(2,routine,"Error copying system folder:");
+							Message.printStatus(2,routine, "  from: " + original);
+							Message.printStatus(2,routine, "    to: " + copy);
+						}
+					}
+				}
+			}
 		}
-		catch ( SecurityException e ) {
-			return false;
+		// File was not created:
+		// - just create an empty new folder
+		if ( !f.exists() ) {
+			try {
+				Message.printStatus(2, routine, "Creating empty user system folder (files must be copied later): " + systemFolder );
+				f.mkdirs();
+			}
+			catch ( SecurityException e ) {
+				Message.printWarning(3, routine, "Error creating user system folder: " + systemFolder);
+				return false;
+			}
 		}
+	}
+	// Make sure it is writable.
+	if ( !f.canWrite() ) {
+		return false;
 	}
 	else {
-		// Make sure it is writable
-		if ( !f.canWrite() ) {
-			return false;
-		}
+		return true;
 	}
-	return true;
 }
 
+// TODO smalers 2021-08-26 need to use the getUserGraphTemplatesFolder method,
+// but need to test with Reclamation.
 /**
  * Return the the File for the graph template file, for example.
  * <pre>
@@ -370,20 +602,22 @@ public File getGraphTemplateFile ( String tspFilename ) {
 		return new File(getUserTstoolFolder() + File.separator + "template-graph" + File.separator + tspFilename );
 	}
 	else {
-		// For version 13, migrate to folder with "s"
+		// For version 13, migrate to folder with "s":
 		// - however, if not found, support the version 12 name
 		File templateGraph = new File(getMajorVersionFolder() + File.separator + "template-graphs" + File.separator + tspFilename );
 		if ( templateGraph.exists() ) {
 			return templateGraph;
 		}
 		else {
-			// Check the version 12 folder
+			// Check the version 12 folder:
 			// - directly under ./tstool and singular folder
 			return new File(getUserTstoolFolder() + File.separator + "template-graph" + File.separator + tspFilename );
 		}
 	}
 }
 
+// TODO smalers 2021-08-26 need to use the getUserGraphTemplatesFolder method,
+// but need to test with Reclamation.
 /**
 Return the list of graph template files.
 Template *.tsp files should be in ".tstool/NN/template-graph" (version 13) or
@@ -400,7 +634,7 @@ public List<File> getGraphTemplateFileList ()
 	else {
 	    graphTemplateFolder = getMajorVersionFolder() + File.separator + "template-graphs";
 	    List<File> fileList = IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
-	    // Also support version 12 folder name for compatibility
+	    // Also support version 12 folder name for compatibility:
 	    // - directly under ./tstool and singular folder
 	    graphTemplateFolder = getUserTstoolFolder() + File.separator + "template-graph";
 	    List<File> fileList12 = IOUtil.getFilesMatchingPattern(graphTemplateFolder, "tsp", false);
@@ -425,12 +659,12 @@ public String getHistoryFile ( int majorVersion )
 {
 	String historyFile = "";
 	if ( majorVersion <= 12 ) {
-		// History file existed in ./tstool
+		// History file exists in ./tstool
 		historyFile = getUserTstoolFolder() + File.separator + "command-file-history.txt";
 	}
 	else {
 		// History file exists in, for example:  ./tstool/13/
-		historyFile = getMajorVersionFolder() + File.separator + "command-file-history.txt";
+		historyFile = getUserTstoolFolder() + File.separator + majorVersion + File.separator + "command-file-history.txt";
 	}
 	//Message.printStatus(1,"","History file \"" + historyFile + "\"");
 	return historyFile;
@@ -476,8 +710,10 @@ public static TSToolSession getInstance() {
 	if ( instance == null ) {
 		instance = new TSToolSession( 0 );
 	}
-	// Else instance is non-null and will be returned
-	instance.initializeUserFiles(instance.getMajorVersion()); // Won't do anything if already initialized
+	// Else instance is non-null and will be returned:
+	// - the following won't do anything if already initialized
+	boolean copyPreviousVersion = true;
+	instance.initializeUserFiles(instance.getMajorVersion(), copyPreviousVersion);
 	return instance;
 }
 
@@ -489,8 +725,10 @@ public static TSToolSession getInstance( int majorVersion ) {
 	if ( instance == null ) {
 		instance = new TSToolSession( majorVersion );
 	}
-	// Else instance is non-null and will be returned
-	instance.initializeUserFiles(instance.getMajorVersion()); // Won't do anything if already initialized
+	// Else instance is non-null and will be returned.
+	boolean copyPreviousVersion = true;
+	// The following won't do anything if already initialized.
+	instance.initializeUserFiles(instance.getMajorVersion(), copyPreviousVersion );
 	return instance;
 }
 
@@ -511,7 +749,19 @@ Return the folder to the major version:
 */
 public String getMajorVersionFolder ()
 {
-	String majorVersionFolder = getUserTstoolFolder() + File.separator + getMajorVersion();
+	return getMajorVersionFolder(getMajorVersion());
+}
+
+/**
+Return the folder to the major version:
+<ul>
+<li>	Windows:  C:\Users\UserName\.tstool\12</li>
+<li>	Linux: /home/UserName/.tstool/12</li>
+</ul>
+*/
+public String getMajorVersionFolder (int majorVersion)
+{
+	String majorVersionFolder = getUserTstoolFolder() + File.separator + majorVersion;
 	//Message.printStatus(1,"","Major version folder is \"" + majorVersionFolder + "\"");
 	return majorVersionFolder;
 }
@@ -537,7 +787,7 @@ public String getUIStateFile ( int majorVersion )
 	}
 	else {
 		// History file exists in, for example:  ./tstool/13/
-		uiStateFile = getMajorVersionFolder() + File.separator + "ui-state.txt";
+		uiStateFile = getUserTstoolFolder() + File.separator + majorVersion + File.separator + "ui-state.txt";
 	}
 	//Message.printStatus(1,"","UI state file \"" + uiStateFile + "\"");
 	return uiStateFile;
@@ -591,12 +841,50 @@ Return the name of the user's datastore configuration folder.
 */
 public String getUserDatastoresFolder ()
 {
+	return getUserDatastoresFolder ( getMajorVersion() );
+}
+
+/**
+Return the name of the user's datastore configuration folder.
+@return the "datastores" folder path (no trailing /).
+*/
+public String getUserDatastoresFolder ( int majorVersion )
+{
 	// 12.06.00 and earlier (not under version folder and singular)...
 	//String datastoreFolder = getUserFolder() + File.separator + "datastore";
 	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
-	String datastoresFolder = getMajorVersionFolder() + File.separator + "datastores";
+	String datastoresFolder = getMajorVersionFolder(majorVersion) + File.separator + "datastores";
 	//Message.printStatus(1,"","Datastores folder is \"" + datastoreFolder + "\"");
 	return datastoresFolder;
+}
+
+/**
+Return the name of the user's graph templates folder.
+@return the "template-graphs" folder path (no trailing /).
+*/
+public String getUserGraphTemplatesFolder ()
+{
+	return getUserGraphTemplatesFolder ( getMajorVersion() );
+}
+
+/**
+Return the name of the user's graph templates folder.
+@return the "template-graphs" folder path (no trailing /).
+*/
+public String getUserGraphTemplatesFolder ( int majorVersion )
+{
+	if ( majorVersion <= 12 ) {
+		// Version 12 folder:
+		// - under main .tstool folder
+		// - singular
+		return getUserTstoolFolder() + File.separator + "template-graph";
+	}
+	else {
+		// Version 13+
+		// - in folder for major version
+		// - plural "s" similar to other folders
+		return getMajorVersionFolder(majorVersion) + File.separator + "template-graphs";
+	}
 }
 
 /**
@@ -618,12 +906,12 @@ public String getUserLogsFolder ()
 	int majorVersion = getMajorVersion();
 	String logsFolder = "";
 	if ( majorVersion <= 12 ) {
-		// 12.06.00 and earlier (not under version folder and singular)...
+		// 12.06.00 and earlier (not under version folder and singular).
 		logsFolder = getUserTstoolFolder() + File.separator + "log";
 	}
 	else {
-		// 12.07.00 and later (under version folder and plural, which seems more appropriate)
-		// - 12.07.00 was never released so can check this change as version 13
+		// 12.07.00 and later (under version folder and plural, which seems more appropriate).
+		// 12.07.00 was never released so can check this change as version 13.
 		logsFolder = getMajorVersionFolder() + File.separator + "logs";
 	}
 	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
@@ -634,11 +922,20 @@ public String getUserLogsFolder ()
 Return the name of the user's plugins configuration folder.
 @return the "plugins" folder path (no trailing /).
 */
-public String getUserPluginsFolder ()
+public String getUserPluginsFolder () {
+	return getUserPluginsFolder(getMajorVersion());
+}
+
+/**
+Return the name of the user's plugins configuration folder.
+@param majorVersion the major software version
+@return the "plugins" folder path (no trailing /).
+*/
+public String getUserPluginsFolder ( int majorVersion )
 {
-	// 12.06.00 and earlier was split into plugin-command and plugin-datastore
-	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
-	String pluginsFolder = getMajorVersionFolder() + File.separator + "plugins";
+	// 12.06.00 and earlier was split into plugin-command and plugin-datastore.
+	// 12.07.00 and later (under version folder and plural, which seems more appropriate).
+	String pluginsFolder = getMajorVersionFolder(majorVersion) + File.separator + "plugins";
 	//Message.printStatus(1,"","Plugins folder is \"" + pluginsFolder + "\"");
 	return pluginsFolder;
 }
@@ -649,11 +946,20 @@ Return the name of the user's system folder.
 */
 public String getUserSystemFolder ()
 {
+	return getUserSystemFolder(getMajorVersion());
+}
 
-	// 12.06.00 and earlier (not under version folder)...
+/**
+Return the name of the user's system folder.
+@return the "system" folder path (no trailing /).
+*/
+public String getUserSystemFolder ( int majorVersion )
+{
+
+	// 12.06.00 and earlier (not under version folder).
 	//String systemFolder = getUserFolder() + File.separator + "system";
-	// 12.07.00 and later (under version folder)
-	String systemFolder = getMajorVersionFolder() + File.separator + "system";
+	// 12.07.00 and later (under version folder).
+	String systemFolder = getMajorVersionFolder(majorVersion) + File.separator + "system";
 	//Message.printStatus(1,"","System folder is \"" + systemFolder + "\"");
 	return systemFolder;
 }
@@ -707,12 +1013,12 @@ public String getUserTstoolFolder ()
  *   .tstool/
  *      12/
  *        datastores/
- *          somedatastore/
+ *          somedatastore/ (folder is optional)
  *            somedatastore.cfg
  *        logs/
  *          TSTool-user.log
  *        plugins/
- *          someplugin/
+ *          someplugin/ (folder is optional)
  *            someplugin.jar
  *            supporting files
  *      13/
@@ -729,21 +1035,27 @@ public String getUserTstoolFolder ()
  * allows different major versions of TSTool to remain functional if major design changes occur.
  * @param majorVersion the major TSTool version, a parameter to allow calling multiple times
  * for different TSTool versions if necessary.
+ * @param copyPreviousVersion if true, copy the nearest previous version's files,
+ * if false only create folders
  * @return true if the files were initialized, false for all other cases.
  */
-public boolean initializeUserFiles ( int version ) {
+public boolean initializeUserFiles ( int majorVersion, boolean copyPreviousVersion ) {
 	String routine = getClass().getSimpleName() + ".initializeUserFiles";
 	String userFolder = getUserTstoolFolder();
-	if ( userFolder.equals("/") ) {
-		// Don't allow files to be created under root on Linux
-		Message.printWarning(3, routine, "Unable to create user files in / (root) folder - need to run as normal user.");
+	if ( userFolder.equals("/") || userFolder.equals("/root") ) {
+		// Don't allow files to be created under root on Linux.
+		Message.printWarning(3, routine, "Unable to create user files in '" + userFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return false;
 	}
-	// Create the version folder if it does not exist
-	String versionFolder = userFolder + File.separator + version;
+	// Create the version folder if it does not exist.
+	String versionFolder = userFolder + File.separator + majorVersion;
 	File f = new File(versionFolder);
 	if ( !f.exists() ) {
+		Message.printStatus(2, routine, "It looks like this is a new TSTool major version installation.");
+		Message.printStatus(2, routine, "Will attempt to copy previous major version's configuration files.");
 		try {
+			Message.printStatus(2, routine, "Creating TSTool user files version folder \"" + versionFolder + "\".");
 			f.mkdirs();
 		}
 		catch ( SecurityException e ) {
@@ -752,17 +1064,20 @@ public boolean initializeUserFiles ( int version ) {
 		}
 	}
 	else {
-		// Make sure it is writeable
+		// Make sure it is writeable.
 		if ( !f.canWrite() ) {
 			Message.printWarning(3, routine, "TSTool user files version folder \"" + versionFolder + "\" is not writeable.");
 			return false;
 		}
 	}
-	// Create main folders under the version folder
-	createUserDatastoresFolder();
-	createUserLogsFolder();
-	createUserPluginsFolder();
-	createUserSystemFolder();
+	// Initialize user files under the version folder.
+	checkHistoryFile();
+	checkUIStateFile();
+	createUserDatastoresFolder(copyPreviousVersion);
+	createUserGraphTemplatesFolder(copyPreviousVersion);
+	createUserLogsFolder(copyPreviousVersion);
+	createUserPluginsFolder(copyPreviousVersion);
+	createUserSystemFolder(copyPreviousVersion);
 	return true;
 }
 
@@ -773,12 +1088,12 @@ This is done because if multiple TSTool sessions are running they, will share th
 */
 public void pushHistory ( String commandFile )
 {
-	// Read the history file from the .tstool-history file
+	// Read the history file from the .tstool-history file.
 	List<String> history = readHistory();
-	// Add in the first position so it will show up first in the File...Open... menu
+	// Add in the first position so it will show up first in the File...Open... menu.
 	history.add(0, commandFile);
-	// Process from the back so that old duplicates are removed and recent access is always at the top of the list
-	// TODO SAM 2014-12-17 use a TSTool configuration file property to set cap
+	// Process from the back so that old duplicates are removed and recent access is always at the top of the list.
+	// TODO SAM 2014-12-17 use a TSTool configuration file property to set cap.
 	int max = 100;
 	String old;
 	for ( int i = history.size() - 1; i >= 1; i-- ) {
@@ -788,12 +1103,12 @@ public void pushHistory ( String commandFile )
 			history.remove(i);
 		}
 		else if ( old.equals(commandFile) || old.equals("") || old.startsWith("#")) {
-			// Ignore comments, blank lines and duplicate to most recent access
+			// Ignore comments, blank lines and duplicate to most recent access.
 			history.remove(i--);
 		}
 	}
 	//Message.printStatus(2,"", "History length is " + history.size());
-	// Write the updated history
+	// Write the updated history.
 	writeHistory(history);
 }
 
@@ -811,7 +1126,7 @@ public List<String> readHistory()
 			return new ArrayList<String>();
 		}
 		List<String> history = IOUtil.fileToStringList(getHistoryFile());
-		// Remove comment lines
+		// Remove comment lines.
 		for ( int i = (history.size() - 1); i >= 0; i-- ) {
 			String f = history.get(i);
 			if ( f.startsWith("#") ) {
@@ -834,7 +1149,7 @@ Properties are saved in the uiStateProps PropList internally.
 */
 public void readUIState()
 {	//String routine = getClass().getSimpleName() + ".readUIState";
-	// Check that the UI state file exists in the expected location
+	// Check that the UI state file exists in the expected location.
 	checkUIStateFile();
 	try {
 		this.uiStateProps = new PropList("ui-state");
@@ -865,20 +1180,24 @@ private void writeHistory ( List<String> history )
 	String nl = System.getProperty("line.separator");
 	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
 	
-	if ( getUserTstoolFolder().equals("/") ) {
-		// Don't allow files to be created under root on Linux
+	String userTstoolFolder = getUserTstoolFolder();
+	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
+		// Don't allow files to be created under root on Linux.
+		Message.printWarning(3, "TSToolSession.writeHistory",
+			"Unable to create user system files in '" + userTstoolFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return;
 	}
 
 	long ms = System.currentTimeMillis();
 	while ( this.historyBeingWritten ) {
-		// Need to wait until another operation finishes writing
-		// But don't wait longer than a couple of seconds before moving on
+		// Need to wait until another operation finishes writing,
+		// gut don't wait longer than a couple of seconds before moving on.
 		if ( (System.currentTimeMillis() - ms) > 2000 ) {
 			break;
 		}
 	}
-	// Now can continue
+	// Now can continue.
 	try {
 	
 		for ( String s : history ) {
@@ -895,11 +1214,11 @@ private void writeHistory ( List<String> history )
 			IOUtil.writeFile ( f.getPath(), sb.toString() );
 		}
 		catch ( Exception e ) {
-			// Absorb exception for now
+			// Absorb exception for now.
 		}
 	}
 	finally {
-		// Make sure to do the following so don't lock up
+		// Make sure to do the following so don't lock up.
 		this.historyBeingWritten = false;
 	}
 }
@@ -909,8 +1228,12 @@ Write the UI state properties.
 */
 public void writeUIState ()
 {
-	if ( getUserTstoolFolder().equals("/") ) {
-		// Don't allow files to be created under root on Linux
+	String userTstoolFolder = getUserTstoolFolder();
+	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
+		// Don't allow files to be created under root on Linux.
+		Message.printWarning(3, "TSToolSession.writeHistory",
+			"Unable to create TSTool UI state file in '" + userTstoolFolder +
+			"' (root) folder - need to run TSTool as a non-root user.");
 		return;
 	}
 
@@ -919,13 +1242,13 @@ public void writeUIState ()
 
 	long ms = System.currentTimeMillis();
 	while ( this.uiStateBeingWritten ) {
-		// Need to wait until another operation finishes writing
-		// But don't wait longer than a couple of seconds before moving on
+		// Need to wait until another operation finishes writing,
+		// but don't wait longer than a couple of seconds before moving on.
 		if ( (System.currentTimeMillis() - ms) > 2000 ) {
 			break;
 		}
 	}
-	// Now can continue
+	// Now can continue.
 	this.uiStateBeingWritten = true;
 	try {
 		try {
@@ -933,11 +1256,11 @@ public void writeUIState ()
 			this.uiStateProps.writePersistent();
 		}
 		catch ( Exception e ) {
-			// Absorb exception for now
+			// Absorb exception for now.
 		}
 	}
 	finally {
-		// Make sure to do the following so don't lock up
+		// Make sure to do the following so don't lock up.
 		this.uiStateBeingWritten = false;
 	}
 }
