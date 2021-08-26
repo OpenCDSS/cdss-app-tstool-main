@@ -90,10 +90,11 @@ public class TSToolMain
 public static final String PROGRAM_NAME = "TSTool";
 /**
  * Semantic version, see:  https://semver.org/
- * - previously did not use period after third part (13.03.00dev) but have started using period (13.03.00.dev).
+ * - previously did not use period after third part (14.0.0dev) but have started using period (14.0.0.dev).
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
+ * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "13.04.00 (2021-08-24)";
+public static final String PROGRAM_VERSION = "14.0.0.dev1 (2021-08-26)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -915,15 +916,22 @@ public static void main ( String args[] )
 	JGUIUtil.setAppNameForWindows("TSTool");
 	//System.err.println("Program version: " + IOUtil.getProgramVersion());
 	//System.err.println("Program major version: " + getMajorVersion());
-	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
+
+	// Initialize logging levels before the log file is opened:
+	// - this only sets the levels and will result in messages to the console
 	initializeLoggingLevelsBeforeLogOpened();
+
+	// The first time the following is called the major version is saved in the session.
+	// Subsequent calls without the version will use the saved version.
+	TSToolSession session = TSToolSession.getInstance(getMajorVersion());
+	
 	setWorkingDirInitial ();
 	
-	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher
+	// Set up handler for GUI event queue, for exceptions that may otherwise get swallowed by a JRE launcher.
 	new MessageEventQueue();
 
-	// Note that messages will not be printed to the log file until the log file is opened below.
-
+	// Initialize the logging levels after the lot file is opened:
+	// - note that messages will not be printed to the log file until the log file is opened below
 	initializeLoggingLevelsAfterLogOpened();
 
 	try {
@@ -1484,14 +1492,15 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	// First list the cfg files
 	String installDatastoresFolder = session.getInstallDatastoresFolder();
 	List<File> installConfigFiles = IOUtil.getFilesMatchingPattern(installDatastoresFolder, "cfg", true);
-	Message.printStatus(2, routine, "Found " + installConfigFiles.size() + " installation datastore *.cfg files in \"" + installDatastoresFolder );
+	Message.printStatus(2, routine, "Found " + installConfigFiles.size() +
+		" installation datastore *.cfg files in \"" + installDatastoresFolder );
 	// Convert to String
 	for ( File f : installConfigFiles ) {
 		dataStoreConfigFiles.add(f.getAbsolutePath());
 	}
 
     // Also get names of datastore configuration files from configuration files in user's home folder .tstool/N/datastores
-    if ( session.createUserDatastoresFolder() ) {
+    if ( session.createUserDatastoresFolder(true) ) {
 	    String datastoreFolder = session.getUserDatastoresFolder();
 	    File f = new File(datastoreFolder);
 	    FilenameFilter ff = new FilenameFilter() {
@@ -1738,7 +1747,7 @@ private static void openLogFile ( TSToolSession session )
 		}
 		else {
 			// Get the log file name from the session object...under user home folder
-			if ( session.createUserLogsFolder() ) {
+			if ( session.createUserLogsFolder(true) ) {
 				// Log folder already exists or was created, so OK to use
 				logFile = session.getUserLogFile();
 				Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
