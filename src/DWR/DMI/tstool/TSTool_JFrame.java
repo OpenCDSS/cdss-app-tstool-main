@@ -7087,6 +7087,22 @@ private void ui_CheckNWSRFSFS5FilesFeatures ()
 }
 
 /**
+ * This function can be called to clear the initial label that is displayed.
+ * TODO SAM 2015-02-15 Need a graceful way to hide the following but set text to blank as work-around:
+ * - otherwise, some of the text shows through behind the datastore panel
+ * - I've tried several things and finally just call this in opportune places to make sure the old label is not shown
+ */
+private void ui_ClearDataStoreInitializing() {
+    if ( __dataStoreInitializing_JLabel != null ) {
+    	__dataStoreInitializing_JLabel.setText("");
+        __dataStoreInitializing_JLabel.setText(""); // No longer need to show message.
+    }
+    if ( __dataStoreInitializing_JPanel != null ) {
+        __dataStoreInitializing_JPanel.setVisible(false); // No longer need to show message.
+    }
+}
+
+/**
 Take a full filename string and if it is too long, create an abbreviated filename that fits into the GUI better.
 The front and the rear of the file are retained, with ... in the middle.
 @param fullFilename the full filename string to check.
@@ -9021,12 +9037,7 @@ private void ui_InitGUIInputFilters ( final int y )
         	// Because a component is added to the original GUI, need to refresh the GUI layout...
         	ui_SetInputFilterForSelections();
             ui_SetInputPanelTitle (null, Color.black );
-            if ( __dataStoreInitializing_JPanel != null ) {
-            	// TODO SAM 2013-04-05 Why is this null here?
-            	// TODO smalers 2019-07-30 having a hard time clearing the text in the following
-                __dataStoreInitializing_JLabel.setText(""); // No longer need to show message
-                __dataStoreInitializing_JPanel.setVisible(false); // No longer need to show message
-            }
+            ui_ClearDataStoreInitializing();
             __dataStore_JTabbedPane.setVisible(true); // This should now be visible
         	validate();
         	repaint();
@@ -14970,9 +14981,8 @@ private void uiAction_DataStoreChoiceClicked()
         }
         return; // Not done initializing.
     }
-    // TODO SAM 2015-02-15 Need a graceful way to hide the following but set text to blank as work-around.
-    // Otherwise, some of the text shows through behind the datastore panel.
-    __dataStoreInitializing_JLabel.setText("");
+    // Do the following to make sure the initial label is cleared.
+    ui_ClearDataStoreInitializing();
     String selectedDataStoreName = __dataStore_JComboBox.getSelected();
     Message.printStatus(2, routine, "Selected datastore \"" + selectedDataStoreName + "\"." );
     if ( selectedDataStoreName.equals("") ) {
@@ -15567,6 +15577,8 @@ private void uiAction_GetTimeSeriesListClicked()
 {	String message, routine = getClass().getSimpleName() + ".getTimeSeriesListClicked";
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore();
+    // Call the following to help clear out an initial message.
+    ui_ClearDataStoreInitializing();
     if ( selectedDataStore != null ) {
         Message.printStatus ( 1, routine, "Getting time series list from " + selectedDataStore.getName() + " datastore..." );
     }
