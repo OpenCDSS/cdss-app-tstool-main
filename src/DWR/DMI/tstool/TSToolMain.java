@@ -94,7 +94,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.0.0.dev1 (2021-08-26)";
+public static final String PROGRAM_VERSION = "14.0.0.dev2 (2021-08-30)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1813,6 +1813,10 @@ throws Exception
         args = extArgs;
     }
 
+    // String that will be replaced with a space in command parameters:
+    // - used to handle file/path parameters with spaces
+    // - for now only implement for parameters that are known to have issue with spaces
+    String spaceReplacement = null;
     // Iterate through the command line parameters.
 	for (int i = 0; i < args.length; i++) {
 		//Message.printStatus(1, routine, "Parsing arg: " + args[i]);
@@ -1839,7 +1843,8 @@ throws Exception
 				throw new Exception(message);
 			}
 			i++;
-			setupUsingCommandFile ( args[i], true );
+			String commandFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+			setupUsingCommandFile ( commandFile, true );
 		}
 		else if (args[i].equalsIgnoreCase("-batchTimeout") || args[i].equalsIgnoreCase("--batchTimeout")) {
 		    // Batch timeout in seconds.
@@ -1870,7 +1875,8 @@ throws Exception
                 throw new Exception(message);
             }
             i++;
-            setConfigFile ( IOUtil.verifyPathForOS(IOUtil.getPathUsingWorkingDir(args[i])) );
+			String configFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+            setConfigFile ( IOUtil.verifyPathForOS(IOUtil.getPathUsingWorkingDir(configFile)) );
             Message.printStatus(1 , routine, "Using configuration file from command line: \"" + getConfigFile() + "\"" );
             // Read the configuration file specified here.  If not specified, the defaults read immediately
             // after -home is parsed will be reset if in both files.
@@ -1941,9 +1947,10 @@ throws Exception
 				throw new Exception(message);
 			}
 			i++;
+			String homeFolder = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
            
             //Changed __home since old way wasn't supporting relative paths __home = args[i];
-            __tstoolInstallHome = (new File(args[i])).getCanonicalPath().toString();
+            __tstoolInstallHome = (new File(homeFolder)).getCanonicalPath().toString();
            
 			// Open the log file so that remaining messages will be seen in the log file.
 			openLogFile(session);
@@ -1968,7 +1975,7 @@ throws Exception
 			// command file will be read instead.
 			boolean userSpecifiedConfig = false;
 			for ( int iarg2 = 0; iarg2 < args.length; iarg2++ ) {
-			    if ( args[iarg2].equalsIgnoreCase("-config") ) {
+			    if ( args[iarg2].equalsIgnoreCase("-config") || args[iarg2].equalsIgnoreCase("--config") ) {
 			        userSpecifiedConfig = true;
 			        break;
 			    }
@@ -1990,7 +1997,8 @@ throws Exception
 				throw new Exception(message);
 			}
 			i++;
-			__logFileFromCommandLine = args[i];
+			String logFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+			__logFileFromCommandLine = logFile;
 		}
         else if (args[i].equalsIgnoreCase("-nodiscovery") || args[i].equalsIgnoreCase("--nodiscovery")) {
             // Don't run commands in discovery mode on initial load (should only be used in large batch runs).
@@ -2014,6 +2022,21 @@ throws Exception
 			Message.printStatus ( 1, routine, "Will start TSTool in restlet server mode." );
 			__isRestletServer = true;
 		}
+		else if ( args[i].toLowerCase().startsWith("--space-replacement") ) {
+			// Used to substitute spaces in command parameters with a sequence, for example multiple underscores.
+			// datastore without changing command files.
+			// --substitute-datastore=oldDatastore,newDatastore
+			pos = args[i].indexOf("=");
+			if ( pos >= 0 ) {
+				// Have well-formed parameter.
+				spaceReplacement = args[i].substring(pos+1).trim();
+				System.out.println("Will substitute a space for \"" + spaceReplacement + "\" in command parameters.");
+				Message.printStatus ( 1, routine, "Will substitute a space for \"" + spaceReplacement + "\" in command parameters." );
+			}
+			else {
+				Message.printWarning(1, routine, "Bad parameter \"" + args[i] + "\", should be: --space-replacement=string");
+			}
+		}
 		else if (args[i].equalsIgnoreCase("-test") || args[i].equalsIgnoreCase("--test")) {
 			// User specified (generally by developers).
 			IOUtil.testing(true);
@@ -2028,14 +2051,16 @@ throws Exception
 			printVersion();
 			quitProgram(0);
 		}
-		else if ( (pos = args[i].indexOf("==")) > 0 ) {
+		else if ( args[i].indexOf("==") > 0 ) {
 			// User specified command processor property:
 			// - check before single equal sign
 			// - these properties will be initialized in the processor when running a command file
 			// - a command line argument of the form:  Property==Value
 			// - for example, specify a web service root URL for testing
-			String propname = args[i].substring(0,pos);
-			String propval = args[i].substring(pos+2);
+			String arg = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+		    pos = arg.indexOf("==");
+			String propname = arg.substring(0,pos);
+			String propval = arg.substring(pos+2);
 			Prop prop = new Prop ( propname, propval );
 			//System.err.println("Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
 			//Message.printStatus ( 1, routine, "Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
@@ -2052,14 +2077,16 @@ throws Exception
 			}
 			*/
 		}
-		else if ( (pos = args[i].indexOf("=")) > 0 ) {
+		else if ( args[i].indexOf("=") > 0 ) {
 			// User specified TSTool application property:
 			// - specified by a script/system call to the normal TSTool script/launcher
 			// - a command line argument of the form:  Property=Value
 			// - for example, specify a database login for batch mode
 		    // - the properties can be interpreted by the GUI or other code
-			String propname = args[i].substring(0,pos);
-			String propval = args[i].substring(pos+1);
+			String arg = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+		    pos = arg.indexOf("=");
+			String propname = arg.substring(0,pos);
+			String propval = arg.substring(pos+1);
 			Prop prop = new Prop ( propname, propval );
 			//System.err.println( "Using application run-time parameter " + propname + "=\"" + propval + "\"" );
 			//Message.printStatus ( 1, routine, "Using application run-time parameter " + propname + "=\"" + propval + "\"" );
@@ -2076,8 +2103,26 @@ throws Exception
 		    // Assume that a command file has been specified on the command line - normally this is triggered
 		    // by a double-click on a file with a *.TSTool or *.tstool extension.  In this case the GUI will start and
 		    // load the command file.
-		    setupUsingCommandFile ( args[i], false );
+			String commandFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+		    setupUsingCommandFile ( commandFile, false );
 		}
+	}
+}
+
+/**
+ * Utility method to check for space replacement string.
+ * For example use --space-replacement=___ to replace command parameter substring '___' with a space ' '.
+ * This is used to work around command parameters that are difficult to protect with quotes, etc.
+ * @param arg command parameter argument to process
+ * @param spaceReplacement if not null, a string that will be replaced with a single space
+ */
+private static String parseArgsCheckSpaceReplacement(String arg, String spaceReplacement) {
+	if ( spaceReplacement == null ) {
+		// Return the original string.
+		return arg;
+	}
+	else {
+		return arg.replace(spaceReplacement, " ");
 	}
 }
 
