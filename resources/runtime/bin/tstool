@@ -35,7 +35,11 @@ checkConfiguration() {
       echoStderr "Run with --dev to use Eclipse software files."
       echoStderr "Run with --help to see usage."
       if [ "${doHelp}" = "false" ]; then
-        # Allow --help to continue but step otherwise.
+        # Allow --help to continue but stop otherwise.
+        echoStderr "Exiting."
+        exit 1
+      elif [ "${doVersion}" = "false" ]; then
+        # Allow --version to continue but stop otherwise.
         echoStderr "Exiting."
         exit 1
       fi
@@ -255,11 +259,11 @@ parseCommandLine() {
   # Indicate specification for single character options:
   # - 1 colon after an option indicates that an argument is required
   # - 2 colons after an option indicates that an argument is optional, must use -o=argument syntax
-  optstring="h"
+  optstring="hv"
   # Indicate specification for long options:
   # - 1 colon after an option indicates that an argument is required
   # - 2 colons after an option indicates that an argument is optional, must use --option=argument syntax
-  optstringLong="addpath::,dev,headless,help"
+  optstringLong="addpath::,dev,headless,help,java-xmx::,version"
   # Parse the options using getopt command:
   # - the -- is a separator between getopt options and parameters to be parsed
   # - output is simple space-delimited command line
@@ -284,24 +288,24 @@ parseCommandLine() {
     #echoStderr "Command line option is ${opt}"
     case "$1" in
       --addpath) # Add a folder/file to class path
-      case "$2" in
-        "") # Nothing specified so error.
-          logError "--addpath=path, path is missing."
-          exit 1
-          ;;
-        *) # path has been specified.
-          addpath1=$2
-          if [ -n "${addpath}" ]; then
-            addpath+=${pathSep}
-          fi
-          if [ "${operatingSystem}" = "cygwin" -o "${operatingSystem}" = "mingw" ]; then
-            addpath+=$(cygpath -w ${addpath1})
-          else
-            addpath+=${addpath1}
-          fi
-          shift 2
-          ;;
-      esac
+        case "$2" in
+          "") # Nothing specified so error.
+            logError "--addpath=path, path is missing."
+            exit 1
+            ;;
+          *) # path has been specified.
+            addpath1=$2
+            if [ -n "${addpath}" ]; then
+              addpath+=${pathSep}
+            fi
+            if [ "${operatingSystem}" = "cygwin" -o "${operatingSystem}" = "mingw" ]; then
+              addpath+=$(cygpath -w ${addpath1})
+            else
+              addpath+=${addpath1}
+            fi
+            shift 2
+            ;;
+        esac
       ;;
       #-d|--debug) # -d or --debug Turn on debug messages.
       #  debug="true"
@@ -320,6 +324,24 @@ parseCommandLine() {
         # Also need to run --help for full TSTool.
         doHelp="true"
         shift
+        ;;
+      -v|--version) # Print version of this script and also the main application.
+        printUsage
+        # Also need to run --version for full TSTool.
+        doVersion="true"
+        shift
+        ;;
+      --java-xmx) # Set the TSTool maximum memory.
+        case "$2" in
+          "") # Nothing specified so error.
+            logError "--java-xmx=memory, memory is missing."
+            exit 1
+            ;;
+          *) # Memory has been specified.
+            javaXmx=$2
+            shift 2
+            ;;
+        esac
         ;;
       --) # No more arguments - following arguments are passed to TSTool.
         shift
@@ -374,6 +396,8 @@ printUsage() {
   echoStderr "--headless           Run in headless mode, used on Linux when running batch and unattended processing,"
   echoStderr "                     will pass necessary command line parameter to the java command."
   echoStderr "-h, --help           Print this script's usage and call TSTool with --help."
+  echoStderr "-v, --version        Print this script's version and call TSTool with --help."
+  echoStderr "--java-xmx=2048m     Specify the Java maximum memory (example shows setting to 2048 MB)."
   echoStderr "-- ...               All command parameters after double dash are ignored by this script and are"
   echoStderr "                     passed to the TSTool software."
   echoStderr ""
@@ -381,11 +405,17 @@ printUsage() {
   echoStderr ""
 }
 
+# Print the script version:
+printVersion() {
+  echoStderr "${version}"
+}
+
 # Main entry point into the script.
 
 # Folder where tstool script is located, should be the "bin" folder in a TSTool install.
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
+version="2.0.0 (2021-09-09)"
 # Adjust the script folder if a symbolic link is used such as:
 #   /usr/bin/tstool -> /opt/tstool-version/tstool/bin
 if [ -L $0 ]; then
@@ -408,6 +438,12 @@ verbose=""
 # Additional classpath folders/files added with --addpath.
 addpath=""
 doHelp="false"
+doVersion="false"
+
+# Maximum memory option (Java runtime -Xmx value):
+# - empty string to use default
+# - the following is the part after the -Xmx
+javaXmx=""
 
 # Get the operating system.
 checkOperatingSystem
@@ -495,6 +531,12 @@ else
   determineJavaExe
 fi
 
+# Set the option for maximum memory.
+xmxOption="-Xmx1024m"
+if [ -n "${javaXmx}" ]; then
+  xmxOption=" -Xmx${javaXmx}"
+fi
+
 # Use the bin folder for the classpath, not individual jar files.
 # If necessary, jar files can be moved to a different folder to disable for TSTool.
 
@@ -517,10 +559,10 @@ fi
 
 if [ "${headless}" = "true" ]; then
   # Run in headless mode.
-  javaCommand="${javaExe} ${verbose} -Xmx1024m -Djava.net.useSystemProxies=true -Djava.awt.headless=true"
+  javaCommand="${javaExe} ${verbose} ${xmxOption} -Djava.net.useSystemProxies=true -Djava.awt.headless=true"
 else
   # Normal execution.
-  javaCommand="${javaExe} ${verbose} -Xmx1024m -Djava.net.useSystemProxies=true"
+  javaCommand="${javaExe} ${verbose} ${xmxOption} -Djava.net.useSystemProxies=true"
 fi
 
 # Check for file and folder existence to ensure that location assumptions are correct.
@@ -547,6 +589,16 @@ if [ "${doHelp}" = "true" ]; then
   helpOpt="--help"
 fi
 
+# Version option:
+# - needs special handling because print for this script and call TSTool with --version
+versionOpt=""
+if [ "${doVersion}" = "true" ]; then
+  echoStderr ""
+  echoStderr "TSTool version will be printed below."
+  echoStderr ""
+  versionOpt="--version"
+fi
+
 # Run TSTool, passing the original command line arguments:
 # - make sure that asterisk is not expanded, because want Java to do it to find *.jar
 mainClass="DWR.DMI.tstool.TSToolMain"
@@ -556,7 +608,7 @@ if [ "${devMode}" = "true" ]; then
 else
   command="${javaCommand} -classpath ${binFolder}${dirSep}*"
 fi
-command+=" ${mainClass} -home ${installFolder} ${tstoolParameters} ${helpOpt}"
+command+=" ${mainClass} -home ${installFolder} ${tstoolParameters} ${helpOpt} ${versionOpt}"
 # Run the TSTool command:
 # - use quotes in echo to avoid filename expansion in echo statement
 echoStderr "Running:"
@@ -568,11 +620,11 @@ echoStderr "  ${command}"
 if [ "${devMode}" = "true" ]; then
   #${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
   # Only pass the extra parameters that are not understood by this script.
-  ${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt}
+  ${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt} ${versionOpt}
 else
   # Only pass the extra parameters that are not understood by this script.
   #${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
-  ${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt}
+  ${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt} ${versionOpt}
 fi
 exitStatus=$?
 echoStderr "Exit code from java: ${exitStatus}"

@@ -94,7 +94,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.0.0.dev2 (2021-08-30)";
+public static final String PROGRAM_VERSION = "14.0.0 (2021-09-14)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -2062,8 +2062,8 @@ throws Exception
 			String propname = arg.substring(0,pos);
 			String propval = arg.substring(pos+2);
 			Prop prop = new Prop ( propname, propval );
-			//System.err.println("Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
-			//Message.printStatus ( 1, routine, "Using processor run-time parameter " + propname + "==\"" + propval + "\"" );
+			System.err.println("Setting processor startup parameter " + propname + "==\"" + propval + "\"" );
+			Message.printStatus ( 1, routine, "Setting processor startup  parameter " + propname + "==\"" + propval + "\"" );
 			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 			processorProps.set ( prop );
 			/* TODO smalers 2021-08-02 Thought I needed this but found a way to pass parameters without globals:
@@ -2088,8 +2088,8 @@ throws Exception
 			String propname = arg.substring(0,pos);
 			String propval = arg.substring(pos+1);
 			Prop prop = new Prop ( propname, propval );
-			//System.err.println( "Using application run-time parameter " + propname + "=\"" + propval + "\"" );
-			//Message.printStatus ( 1, routine, "Using application run-time parameter " + propname + "=\"" + propval + "\"" );
+			System.err.println( "Setting application startup parameter " + propname + "=\"" + propval + "\"" );
+			Message.printStatus ( 1, routine, "Setting application startup parameter " + propname + "=\"" + propval + "\"" );
 			prop.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
 			if ( __tstool_props == null ) {
 				// Create a PropList.  This should not normally happen because a PropList should have been
