@@ -4,7 +4,7 @@ This folder contains useful scripts and other files used in the development/buil
 
 | **File/Folder** | **Description** |
 | -- | -- |
-| `copy-to-co-dnr-gcp.sh` | Copy the TSTool installer to State of Colorado GCP server.  The istaller is in the repository `/dist` folder and the TSTool version correspond to current code version. |
+| `copy-to-co-dnr-gcp.bash` | Copy the TSTool installer to State of Colorado GCP server.  The istaller is in the repository `/dist` folder and the TSTool version correspond to current code version. |
 | `create-gcp-tstool-index.bash` | Create and upload an index of TSTool installers. |
 | `git-check-tstool.sh` | Determine status of TSTool repositories compared to remote repositories. |
 | `git-clone-all-tstool.sh | Clone all TSTool repositories, helpful when first setting up a development environment. |

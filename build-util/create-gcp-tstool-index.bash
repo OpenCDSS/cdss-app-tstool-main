@@ -81,7 +81,7 @@ parseCommandLine() {
   # Single character options.
   optstring="dhv"
   # Long options.
-  optstringLong="debug,dryrun,help,version"
+  optstringLong="debug,help,version"
   # Parse the options using getopt command.
   GETOPT_OUT=$(getopt --options ${optstring} --longoptions ${optstringLong} -- "$@")
   exitCode=$?
@@ -100,11 +100,6 @@ parseCommandLine() {
       --debug) # --debug  Indicate to output debug messages.
         echoStderr "--debug detected - will print debug messages."
         debug="true"
-        shift 1
-        ;;
-      -d|--dryrun) # -d or --dryrun  Indicate to do a dryrun but not actually upload.
-        echoStderr "--dryrun detected - will not change files on GCP"
-        dryrun="-n"
         shift 1
         ;;
       -h|--help) # -h or --help  Print the program usage.
@@ -134,14 +129,15 @@ printUsage() {
   echoStderr ""
   echoStderr "Usage: ${scriptName}"
   echoStderr ""
-  echoStderr "Create the opencdss.state.co.us/tstool/index.html file."
+  echoStderr "Create the product GCP index file:  ${gcpIndexHtmlUrl}"
   echoStderr ""
-  echoStderr "-d, --dryrun      Dry run (do not clobber files on GCP)."
+  echoStderr "--debug           Print debug messages, for troubleshooting."
   echoStderr "-h, --help        Print usage."
+  echoStderr "-v, --version     Print script version."
   echoStderr ""
 }
 
-# Print the usage.
+# Print the version.
 printVersion() {
   echoStderr "${version}"
 }
@@ -168,7 +164,6 @@ uploadIndexHtmlFile() {
   #
   # 94612246  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/12.06.00/software/TSTool_CDSS-12.06.00_Setup.exe
   # 94612246  2019-04-27T10:01:47Z  gs://opencdss.state.co.us/tstool/latest/software/TSTool_CDSS-12.06.00_Setup.exe
-  # TODO smalers 2019-04-29 need to use Bash PIPESTATUS for error code
 
   # First do a listing of the software folder.
   tmpGcpSoftwareCatalogPath="/tmp/${USER}-tstool-software-catalog-ls.txt"
@@ -216,7 +211,7 @@ uploadIndexHtmlFile() {
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <meta charset="utf-8"/>
-<link id="cdss-favicon" rel="shortcut icon" href="http://opencdss.state.co.us/opencdss/images/opencdss-favicon.ico" type="image.ico">
+<link id="cdss-favicon" rel="shortcut icon" href="https://opencdss.state.co.us/opencdss/images/opencdss-favicon.ico" type="image.ico">
 <style>
    body {
      font-family: "Trebuchet MS", Helvetica, sans-serif !important;
@@ -253,23 +248,23 @@ uploadIndexHtmlFile() {
 <body>
 <h1>TSTool Software Downloads</h1>
 <p>
-<a href="http://opencdss.state.co.us/opencdss/tstool/">See also the OpenCDSS TSTool page</a>,
+<a href="https://opencdss.state.co.us/opencdss/tstool/">See also the OpenCDSS TSTool page</a>,
 which provides additional information about TSTool.
 </p>
 <p>
-<a href="http://www.colorado.gov/pacific/cdss/tstool">See also the CDSS TSTool page</a>,
+<a href="https://www.colorado.gov/pacific/cdss/tstool">See also the CDSS TSTool page</a>,
 which provides access to TSTool releases used in State of Colorado projects.
 </p>
 <p>
 The TSTool software is available for Windows and Linux.
-See the <a href="http://opencdss.state.co.us/tstool/latest/doc-user/appendix-install/install/">latest TSTool documentation</a>
+See the <a href="https://opencdss.state.co.us/tstool/latest/doc-user/appendix-install/install/">latest TSTool documentation</a>
 for installation information (or follow a documentation link below for specific version documentation).
 </p>
 <p>
 <ul>
-<li>Multiple versions of TSTool can be installed on a computer.
-<li>Versions before 14 used zero-padding in version numbers.
-<li>TSTool user configuration files are shared between each major version.
+<li>Multiple versions of TSTool can be installed on a computer.</li>
+<li>Versions before 14 used zero-padding in version numbers.</li>
+<li>TSTool user configuration files are shared between each major version.</li>
 <li>Download files that include <code>dev</code> in the version are development versions that can be
 installed to test the latest features and bug fixes that are under development.</li>
 <li><b>If clicking on a file download link does not download the file,
@@ -387,7 +382,7 @@ uploadIndexHtmlFile_Table() {
     # Use GCP list from catalog file for the index.html file download file list, with format like
     # the following (no space at beginning of the line):
     #
-    # 12464143  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/12.06.00/software/TSTool_CDSS_12.06.00_Setup.exe
+    # 12464143  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/14.0.0/software/TSTool_CDSS_14.0.0_Setup.exe
     #
     # Use awk below to print the line with single space between tokens.
     # Replace normal version to have -zzz at end and "dev" version to be "-dev" so that sort is correct,
@@ -413,7 +408,7 @@ uploadIndexHtmlFile_Table() {
         nparts=split(downloadFilePath,downloadFilePathParts,"/")
         downloadFile = downloadFilePathParts[nparts]
         downloadFileUrl=downloadFilePath
-        gsub("gs:","http:",downloadFileUrl)
+        gsub("gs:","https:",downloadFileUrl)
         # Split the download file into parts to get other information:
         # - index is 1+
         split(downloadFile,downloadFileParts,"_")
@@ -431,7 +426,7 @@ uploadIndexHtmlFile_Table() {
         cmd=sprintf("cat %s | grep 'tstool/%s/doc-user/index.html' | wc -l", tmpGcpDocUserCatalogPath, downloadFileVersion)
         cmd | getline docCount
         if ( docCount > 0 ) {
-          docUserUrl=sprintf("http://opencdss.state.co.us/tstool/%s/doc-user",downloadFileVersion)
+          docUserUrl=sprintf("https://opencdss.state.co.us/tstool/%s/doc-user",downloadFileVersion)
           docUserHtml=sprintf("<a href=\"%s\">View</a>",docUserUrl)
         }
         else {
@@ -442,7 +437,7 @@ uploadIndexHtmlFile_Table() {
         cmd=sprintf("cat %s | grep 'tstool/%s/doc-dev/index.html' | wc -l", tmpGcpDocDevCatalogPath, downloadFileVersion)
         cmd | getline docCount
         if ( docCount > 0 ) {
-          docDevUrl=sprintf("http://opencdss.state.co.us/tstool/%s/doc-dev",downloadFileVersion)
+          docDevUrl=sprintf("https://opencdss.state.co.us/tstool/%s/doc-dev",downloadFileVersion)
           docDevHtml=sprintf("<a href=\"%s\">View</a>",docDevUrl)
         }
         else {
@@ -481,9 +476,6 @@ echoStderr "srcFolder=${srcFolder}"
 
 # Whether or not debug messages are printed.
 debug="false"
-
-# Whether or not dry run is done.
-dryrun=""
 
 # Root location where files are to be uploaded.
 gcpFolderUrl="gs://opencdss.state.co.us/tstool"
