@@ -139,42 +139,45 @@ syncFiles() {
   # - the -m option causes operations to run in parallel, which can be much faster
   # - the -d option means delete extra files in destination
   # - the -r option means recursive to sync the whole folder tree
+
+  # THIS IS DISABLED.
   # TODO smalers 2021-09-02 have traditionally only copied the documentation to "latest"
   if [ "1" = "2" ]; then
   if [ ${copyToLatest} = "yes" ]; then
-    if [ -f "${installerFile32}" ]; then
+    if [ -f "${installerFile}" ]; then
       echoStderr ""
       echoStderr "Will copy current development version to latest on GCP:"
-      echoStderr "       source:  $installerFile32"
-      echoStderr "  destination:  ${gsFileLatest32}"
+      echoStderr "  from:  ${installerFile}"
+      echoStderr "    to:  ${gsFileLatest}"
       echoStderr "If 'n' is entered, the index file can still be regenerated."
       read -p "Continue with copy [Y/n/q]? " answer
       if [ -z "{answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
-        gsutil.cmd cp ${dryrun} ${installerFile32} ${gsFileLatest32}
+        gsutil.cmd cp ${dryrun} ${installerFile} ${gsFileLatest}
       elif [ "${answer}" = "q" -o "${answer}" = "Q" ]; then
         exit 0
       fi
     else
-      echoStderr "[WARNING] File does not exist for 'latest' upload:  ${installerFile32}"
+      echoStderr "[WARNING] File does not exist for 'latest' upload:  ${installerFile}"
     fi
   fi
   fi
+
   # For now always upload to the versioned copy.
-  if [ -f "${installerFile32}" ]; then
+  if [ -f "${installerFile}" ]; then
     echoStderr ""
     echoStderr "Will copy current development version to same version on GCP:"
-    echoStderr "       source:  $installerFile32"
-    echoStderr "  destination:  ${gsFileVersion32}"
+    echoStderr "  from:  ${installerFile}"
+    echoStderr "    to:  ${gsFileVersion}"
     echoStderr "If 'n' is entered, the index file can still be regenerated."
     read -p "Continue with copy [Y/n/q]? " answer
-    if [ -z "{answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
-      echoStderr "gsutil.cmd cp ${dryrun} ${installerFile32} ${gsFileVersion32}"
-      gsutil.cmd cp ${dryrun} $installerFile32 ${gsFileVersion32}
+    if [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
+      echoStderr "gsutil.cmd cp ${dryrun} ${installerFile} ${gsFileVersion}"
+      gsutil.cmd cp ${dryrun} ${installerFile} ${gsFileVersion}
     elif [ "${answer}" = "q" -o "${answer}" = "Q" ]; then
       exit 0
     fi
   else
-    echoStderr "[WARNING] File does not exist for versioned upload:  ${installerFile32}"
+    echoStderr "[WARNING] File does not exist for versioned upload:  ${installerFile}"
   fi
 }
 
@@ -224,12 +227,12 @@ echoStderr "tstoolVersion=${tstoolVersion}"
 
 dryrun=""
 gsFolderLatest="gs://opencdss.state.co.us/tstool/latest/software"
-# Use historical installer file name
-# - might change this to follow other software, 32/64 bit, etc.
+# Use historical installer file name:
+# - don't differentiate between 32 and 64-bit other than 14+ is 64-bit
 gsFolderVersion="gs://opencdss.state.co.us/tstool/${tstoolVersion}/software"
 if [ "${operatingSystem}" = "mingw" ]; then
-  gsFileLatest32="${gsFolderLatest}/TSTool_CDSS_${tstoolVersion}_Setup.exe"
-  gsFileVersion32="${gsFolderVersion}/TSTool_CDSS_${tstoolVersion}_Setup.exe"
+  gsFileLatest="${gsFolderLatest}/TSTool_CDSS_${tstoolVersion}_Setup.exe"
+  gsFileVersion="${gsFolderVersion}/TSTool_CDSS_${tstoolVersion}_Setup.exe"
 else
   echoStderr ""
   echoStderr "[ERROR] Don't know how to handle operating system:  ${operatingSystem}"
@@ -250,7 +253,7 @@ if [ ! -z "${tstoolVersionModifier}" -a "${copyToLatest}" = "yes" ]; then
 fi
 
 # Sync the files to the cloud.
-installerFile32="${repoFolder}/dist/TSTool_CDSS_${tstoolVersion}_Setup.exe"
+installerFile="${repoFolder}/dist/TSTool_CDSS_${tstoolVersion}_Setup.exe"
 syncFiles
 exitStatus=$?
 
