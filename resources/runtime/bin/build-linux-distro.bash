@@ -28,7 +28,7 @@
 # 4) Package the installation with 'makeself' so that the installer can be downloaded and run
 #
 
-# Supporting functions, alphabetized...
+# Supporting functions, alphabetized.
 
 # Make sure Java is available to get TSTool version:
 # - Debian prints nothing if not found or something like /usr/bin/java if found
@@ -46,7 +46,7 @@ checkJava() {
     # - not sure what version will look like for 10, 11, etc. so check for older versions
     javaVersion=$(java -version 2>&1 | grep -i version | cut -d ' ' -f 3 | tr -d '"')
     if [ "$javaVersion" ]; then
-      echo "Java version is ${javaVersion}"
+      echo "Java version is: ${javaVersion}"
     fi
     java6Count=$(echo $javaVersion | grep '1\.6' | wc -l)
     java7Count=$(echo $javaVersion | grep '1\.7' | wc -l)
@@ -64,7 +64,8 @@ checkJava() {
 checkInput() {
   # If JRE is specified, make sure it exists.
   if [ ! -z "${jreFolder}" -a ! -d "${jreFolder}" ]; then
-    ${echo2} "${warnColor}JRE folder does not exist:  ${jreFolder}${endColor}"
+    ${echo2} "${warnColor}JRE folder does not exist:${endColor}"
+    ${echo2} "${warnColor}  ${jreFolder}${endColor}"
     printUsage
     exit 1
   fi
@@ -72,7 +73,8 @@ checkInput() {
   # Make sure that setup script exists.
   if [ ! -f "${setupScriptPath}" ]; then
     echo ""
-    ${echo2} "${warnColor}The 'makeself' setup script does not exist:  ${setupScriptPath}${endColor}"
+    ${echo2} "${warnColor}The 'makeself' setup script does not exist:${endColor}"
+    ${echo2} "${warnColor}  ${setupScriptPath}${endColor}"
     exit 1
   fi
 }
@@ -123,18 +125,21 @@ copyWindowsFilesToLinux() {
   # Remove the build folder.
 
   if [ -d "${tmpBuildFolder}" ]; then
-    echo "Removing previous build folder:  ${tmpBuildFolder}"
+    echo "Removing previous build folder:"
+    echo "  ${tmpBuildFolder}"
     rm -rf "${tmpBuildFolder}"
   fi
 
   # Create the build folder.
-  echo "Creating build folder:  ${tmpBuildFolder}"
+  echo "Creating build folder:"
+  echo "  ${tmpBuildFolder}"
   mkdir -p ${tmpBuildFolder}
 
   # Copy the files from the original install to the build folder.
 
-  echo "Copying files from: ${installFolder}"
-  echo "                to: ${tmpBuildFolder}"
+  echo "Copying files:"
+  echo "  from: ${installFolder}"
+  echo "    to: ${tmpBuildFolder}"
   cp -r "${installFolder}" "${tmpBuildFolder}"
 
   # Rename the folder to lowercase (e.g., TSTool-Version to tstool-version)
@@ -210,14 +215,17 @@ customBuildSteps() {
   echo "Custom build steps are not yet enabled."
 }
 
-# Get the TSTool version from string similar to:  TSTool version: 13.00.00 (2019-07-12)
+# Get the TSTool version from string:
+# - run:  tstool --version
+# - TSTool output has a lot of extra text but contains a string similar to:
+#      TSTool version: 13.00.00 (2019-07-12)
 # - this should work because 'tstool' script will run the program
 # - awk is used to remove surrounding whitespace
 # - version is echoed so can be assigned in calling code
 getTstoolVersion() {
   local version
   # Version is printed to stderr.
-  version=$(${binFolder}/tstool --version 2>&1 | grep -i 'TSTool version' | cut -d ':' -f 2 | awk '{$1=$1};1' | cut -d ' ' -f 1)
+  version=$(${binFolder}/tstool --version 2>&1 | grep -i 'TSTool version:' | cut -d ':' -f 2 | awk '{$1=$1};1' | cut -d ' ' -f 1)
   # Echo so the output can be assigned to the calling code.
   echo $version
 }
@@ -354,14 +362,14 @@ jreFolder=""
 # - the installer filename is of format:
 #      TSTool-linux-13.03.00.dev.YYMMDDHHMM.run
 timeStamp=$(date '+%y%m%d%H%M')
-selfExtractingShFile="${tmpDistFolder}/TSTool-linux-${tstoolVersion}.${timeStamp}.run"
+selfExtractingShFile="${tmpDistFolder}/tstool-linux-${tstoolVersion}.${timeStamp}.run"
 
 echo ""
-echo "Original TSTool files are in folder: ${installFolder}"
-echo "(optional) JRE files for Linux are in folder: ${jreFolder}"
-echo "Temporary TSTool distribution folder: ${tmpDistFolder}"
-echo "Temporary TSTool build folder: ${tmpBuildFolder}"
-echo "TSTool self-extracting makeself (sh) file: ${selfExtractingShFile}"
+echo "Original TSTool files are in folder: '${installFolder}'"
+echo "(optional) JRE files for Linux are in folder: '${jreFolder}'"
+echo "Temporary TSTool distribution folder: '${tmpDistFolder}'"
+echo "Temporary TSTool build folder: '${tmpBuildFolder}'"
+echo "TSTool self-extracting makeself (sh) file: '${selfExtractingShFile}'"
 echo ""
 
 # Make sure input exists.
