@@ -599,6 +599,16 @@ if [ "${doVersion}" = "true" ]; then
   versionOpt="--version"
 fi
 
+# Determine whether running as 'sudo' and if so,
+# set additional command line parameters so that properties can be used during processing.
+user=$(whoami)
+sudoParameters=""
+if [ "${user}" = "root" ]; then
+  if [ -n "${SUDO_USER}" ]; then
+    sudoParameters=" SudoUserName==${SUDO_USER} SudoUserHomeDir==/home/${SUDO_USER}"
+  fi
+fi
+
 # Run TSTool, passing the original command line arguments:
 # - make sure that asterisk is not expanded, because want Java to do it to find *.jar
 mainClass="DWR.DMI.tstool.TSToolMain"
@@ -608,7 +618,7 @@ if [ "${devMode}" = "true" ]; then
 else
   command="${javaCommand} -classpath ${binFolder}${dirSep}*"
 fi
-command+=" ${mainClass} -home ${installFolder} ${tstoolParameters} ${helpOpt} ${versionOpt}"
+command+=" ${mainClass} -home ${installFolder} ${tstoolParameters} ${sudoParameters} ${helpOpt} ${versionOpt}"
 # Run the TSTool command:
 # - use quotes in echo to avoid filename expansion in echo statement
 echoStderr "Running:"
@@ -620,11 +630,11 @@ echoStderr "  ${command}"
 if [ "${devMode}" = "true" ]; then
   #${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
   # Only pass the extra parameters that are not understood by this script.
-  ${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt} ${versionOpt}
+  ${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${sudoParameters} ${helpOpt} ${versionOpt}
 else
   # Only pass the extra parameters that are not understood by this script.
   #${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
-  ${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${helpOpt} ${versionOpt}
+  ${javaCommand} -classpath ${binFolder}${dirSep}\* ${mainClass} --home ${homeFolder} ${tstoolParameters} ${sudoParameters} ${helpOpt} ${versionOpt}
 fi
 exitStatus=$?
 echoStderr "Exit code from java: ${exitStatus}"
