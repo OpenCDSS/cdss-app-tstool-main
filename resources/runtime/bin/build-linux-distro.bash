@@ -45,15 +45,15 @@ checkJava() {
     # - version is printed to standard error so combine output
     # - not sure what version will look like for 10, 11, etc. so check for older versions
     javaVersion=$(java -version 2>&1 | grep -i version | cut -d ' ' -f 3 | tr -d '"')
-    if [ "$javaVersion" ]; then
+    if [ "${javaVersion}" ]; then
       echo "Java version is: ${javaVersion}"
     fi
-    java6Count=$(echo $javaVersion | grep '1\.6' | wc -l)
-    java7Count=$(echo $javaVersion | grep '1\.7' | wc -l)
-    if [ "$java6Count" -gt 0 ]; then
+    java6Count=$(echo ${javaVersion} | grep '1\.6' | wc -l)
+    java7Count=$(echo ${javaVersion} | grep '1\.7' | wc -l)
+    if [ "${java6Count}" -gt 0 ]; then
       ${echo2} "${warnColor}'java' program is version 6.  Version 8 or later is required.${endColor}"
       exit 1
-    elif [ "$java7Count" -gt 0 ]; then
+    elif [ "${java7Count}" -gt 0 ]; then
       ${echo2} "${warnColor}'java' program is version 7.  Version 8 or later is required.${endColor}"
       exit 1
     fi
@@ -227,42 +227,42 @@ getTstoolVersion() {
   # Version is printed to stderr.
   version=$(${binFolder}/tstool --version 2>&1 | grep -i 'TSTool version:' | cut -d ':' -f 2 | awk '{$1=$1};1' | cut -d ' ' -f 1)
   # Echo so the output can be assigned to the calling code.
-  echo $version
+  echo ${version}
 }
 
 # Parse the command line.
 parseCommandLine () {
   local opt optstring OPTARG
   optstring="hj:s:w:z:"
-  while getopts $optstring opt; do
-    case "$opt" in
+  while getopts ${optstring} opt; do
+    case "${opt}" in
       h) # Print usage and exit.
         printUsage
         exit 0
         ;;
       j) # Specify JRE folder to package with the installation:
          # - optional with default being to use system default java
-        jreFolder="$OPTARG"
+        jreFolder="${OPTARG}"
         ;;
       s) # Self-extracting executable file to create.
-        installerFile="$OPTARG"
+        installerFile="${OPTARG}"
         ;;
       w) # Windows TSTool installation folder:
          # - TODO smalers 2019-07-30, need to evaluate phasing this out since script can figure out its home
-        windowsTstoolInstallFolder="$OPTARG"
+        windowsTstoolInstallFolder="${OPTARG}"
         ;;
       z) # Zip file to create.
-        zipFile="$OPTARG"
+        zipFile="${OPTARG}"
         ;;
       \?) # Unknown - print the usage.
         echo "" 
-        echo "Invalid option:  -$OPTARG" >&2
+        echo "Invalid option:  -${OPTARG}" >&2
         printUsage
         exit 1
         ;;
       :)
         echo "" 
-        echo "Option -$OPTARG requires an argument" >&2
+        echo "Option -${OPTARG} requires an argument" >&2
         printUsage
         exit 1
         ;;
@@ -280,8 +280,8 @@ printUsage () {
   echo "The resulting installer is a shell script with internally-attached zipped archive."
   echo ""
   echo "Example:"
-  echo "  /path/to/shared/folder/TSTool-Version/bin/${scriptName} -s TSTool-linux-13.00.00.run"
-  echo "  /path/to/shared/folder/TSTool-Version/bin/${scriptName} -s TSTool-jre-linux-13.00.00.run  (if JRE is packaged)"
+  echo "  /path/to/shared/folder/TSTool-Version/bin/${scriptName} -s TSTool-linux-14.00.00-2109270058.run"
+  echo "  /path/to/shared/folder/TSTool-Version/bin/${scriptName} -s TSTool-jre-linux-14.00.00-2109270058.run  (if JRE is packaged)"
   echo "  Result will be located in:  /tmp/tstool-dist/"
   echo ""
   echo "-j JREInstallFolder           (optional) Path to the Linux JRE install folder."
@@ -289,7 +289,7 @@ printUsage () {
   echo "-w WindowsTSToolInstallFolder (optional) Path to the TSTool Windows install folder."
   echo "                              This is being phased out."
   echo "-s distro.sh                  (optional) distribution file to create (specify .sh to avoid confusion)."
-  echo "                              The default is:  TSTool-linux-NN.NN.NN.YYMMDDhhmm.run"
+  echo "                              The default is:  TSTool-linux-NN.NN.NN-YYMMDDhhmm.run"
   echo "-z distro.tar.gz              (optional) tar.gz file to create (specify .tar.gz to avoid confusion)."
   echo "                              The default is TSTool-linux-NN.NN.NN.tar.gz".
   echo "                              THIS IS BEING PHASED OUT BECAUSE -s IS USED."
@@ -337,7 +337,7 @@ checkJava
 
 # Get the TSTool version.
 tstoolVersion=$(getTstoolVersion)
-if [ -z "$tstoolVersion" ]; then
+if [ -z "${tstoolVersion}" ]; then
   echo "Unable to determine TSTool version."
   exit 1
 else
@@ -347,7 +347,7 @@ fi
 # Default values.
 # Folder where Linux files will be assembled.
 tmpDistFolder="/tmp/tstool-dist"
-tmpBuildFolder="$tmpDistFolder/build"
+tmpBuildFolder="${tmpDistFolder}/build"
 # JRE if being packaged with TSTool:
 # - default is to use system 'java' at runtime in 'tstool' script
 jreFolder=""
@@ -360,9 +360,9 @@ jreFolder=""
 # Self-extracting file:
 # - use makeself convention of using 'run'
 # - the installer filename is of format:
-#      TSTool-linux-13.03.00.dev.YYMMDDHHMM.run
+#      TSTool-linux-13.03.00.dev-YYMMDDHHMM.run
 timeStamp=$(date '+%y%m%d%H%M')
-selfExtractingShFile="${tmpDistFolder}/tstool-linux-${tstoolVersion}.${timeStamp}.run"
+selfExtractingShFile="${tmpDistFolder}/tstool-linux-${tstoolVersion}-${timeStamp}.run"
 
 echo ""
 echo "Original TSTool files are in folder: '${installFolder}'"
