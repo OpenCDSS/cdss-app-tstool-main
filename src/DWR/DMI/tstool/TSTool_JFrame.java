@@ -1458,6 +1458,7 @@ JMenuItem
 	__Commands_General_Comments_OrderComment_JMenuItem = null,
 	__Commands_General_Comments_RequireApplicationComment_JMenuItem = null,
 	__Commands_General_Comments_RequireDatastoreComment_JMenuItem = null,
+	__Commands_General_Comments_RequireUserComment_JMenuItem = null,
 	__Commands_General_Comments_FixMeComment_JMenuItem = null,
 	__Commands_General_Comments_ToDoComment_JMenuItem = null,
 	__Commands_General_Comments_Empty_JMenuItem = null;
@@ -2031,6 +2032,7 @@ private String
     __Commands_General_Comments_OrderComment_String = TAB + "#@order before/after CommandFileId <control test order>",
     __Commands_General_Comments_RequireApplicationComment_String = "#@require application ... <check application version dependency>",
     __Commands_General_Comments_RequireDatastoreComment_String = "#@require datastore ... <check datastore version dependency>",
+    __Commands_General_Comments_RequireUserComment_String = "#@require user ... <check user requirement>",
     __Commands_General_Comments_FixMeComment_String = "#@fixme ... <indicate something to fix>",
     __Commands_General_Comments_ToDoComment_String = "#@todo ... <indicate something to do>",
     __Commands_General_Comments_Empty_String = TAB + "<empty line>",
@@ -2525,14 +2527,27 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 	// For debugging...
 	//Message.printStatus(2,getClass().getSimpleName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
 	__command_JProgressBar.setValue ( __command_JProgressBar.getMaximum() );
-	// Set the tooltip text for the progress bar to indicate the numbers
+	// Set the tooltip text for the progress bar to indicate the numbers.
 	String tip = "Completed command " + (icommand + 1) + " of " + ncommand;
     __processor_JProgressBar.setToolTipText ( tip );
 	
-	if ( ((icommand + 1) == ncommand) || command instanceof Exit_Command ) {
+    // If the last command was a comment with @require that was not met, need to detect:
+    // - for now brute force design is to search for "Exit processing" in command log message.
+    // - TODO sam 2021-10-19 could detect specific case with more coding
+    boolean requireExit = false;
+    if ( command instanceof Comment_Command ) {
+    	Comment_Command comment = (Comment_Command)command;
+    	if ( comment.getCommandString().indexOf("@require user") > 0 ) {
+    		// Currently the only case where an exit may result:
+    		// - don't need to do a full update of results, just the gutters
+            // - repaint the list to reflect the status of the commands
+            ui_ShowCurrentCommandListStatus (CommandPhaseType.RUN);
+    	}
+    }
+	if ( ((icommand + 1) == ncommand) || command instanceof Exit_Command || requireExit ) {
 		// Last command has completed (or Exit() command) so refresh the time series results.
 		// Only need to do if threaded because otherwise will handle synchronously
-		// in the uiAction_RunCommands() method...
+		// in the uiAction_RunCommands() method.
 		String command_string = command.toString();
 		ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string, __STATUS_READY );
 		if ( ui_Property_RunCommandProcessorInThread() ) {
@@ -2788,6 +2803,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
             action.equals(__Commands_General_Comments_OrderComment_String) ||
             action.equals(__Commands_General_Comments_RequireApplicationComment_String) ||
             action.equals(__Commands_General_Comments_RequireDatastoreComment_String) ||
+            action.equals(__Commands_General_Comments_RequireUserComment_String) ||
             action.equals(__Commands_General_Comments_FixMeComment_String) ||
             action.equals(__Commands_General_Comments_ToDoComment_String) ||
             action.equals(__Commands_Template_Comments_Template_String) ) {
@@ -4547,19 +4563,19 @@ public void contentsChanged ( ListDataEvent e )
  */
 public String formatHelpViewerUrl ( String group, String item ) {
 	String routine = "formatHelpViewerUrl";
-	// The location of the documentation is relative to root URI on the web.
+	// The location of the documentation is relative to root URI on the web:
     // - two locations are allowed to help transition from OWF to OpenCDSS location
 	// - use the first found URL
     String docRootUri = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri" );
     String docRootUri2 = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri2" );
-    List<String> docRootUriList= new ArrayList<String>(2);
+    List<String> docRootUriList= new ArrayList<>(2);
    	String version = IOUtil.getProgramVersion();
    	int pos = version.indexOf(" ");
    	if ( pos > 0 ) {
    		version = version.substring(0, pos);
    	}
     if ( docRootUri != null ) {
-    	// First replace "latest" with the software version so that specific version is shown
+    	// First replace "latest" with the software version so that specific version is shown.
     	String docRootUriVersion = docRootUri.replace("latest", version);
     	docRootUriList.add(docRootUriVersion);
     	if ( !docRootUriVersion.equals(docRootUri) ) {
@@ -4568,7 +4584,7 @@ public String formatHelpViewerUrl ( String group, String item ) {
     	}
     }
     if ( docRootUri2 != null ) {
-    	// First replace "latest" with the software version so that specific version is shown
+    	// First replace "latest" with the software version so that specific version is shown.
     	String docRootUri2Version = docRootUri2.replace("latest", version);
     	docRootUriList.add(docRootUri2Version);
     	if ( !docRootUri2Version.equals(docRootUri2) ) {
@@ -4587,22 +4603,22 @@ public String formatHelpViewerUrl ( String group, String item ) {
     	int i = -1;
     	for ( String uri : docRootUriList ) {
     		Message.printStatus(2, routine, "URI is " + uri );
-    		// Initialize response code to -1 which means unchecked
+    		// Initialize response code to -1 which means unchecked.
     		++i;
     		responseCode[i] = -1;
-	    	// Make sure the URI has a slash at end
+	    	// Make sure the URI has a slash at end.
     		if ( (uri != null) && !uri.isEmpty() ) { 
 		    	String docUri = "";
 		    	if ( !uri.endsWith("/") ) {
 		    		uri += "/";
 		    	}
-		    	// Specific documentation requests from the UI
+		    	// Specific documentation requests from the UI.
 		    	docUri = null;
 			    if ( item.equals(__Help_ViewDocumentation_ReleaseNotes_String) ) {
 			        docUri = uri + "appendix-release-notes/release-notes/";
 			    }
 			    else if ( item.equals(__Help_ViewDocumentation_UserManual_String) ) {
-			        docUri = uri; // Go to the main documentation
+			        docUri = uri; // Go to the main documentation.
 			    }
 			    else if ( item.equals(__Help_ViewDocumentation_CommandReference_String) ) {
 			        docUri = uri + "command-ref/overview/";
@@ -4613,16 +4629,16 @@ public String formatHelpViewerUrl ( String group, String item ) {
 			    else if ( item.equals(__Help_ViewDocumentation_Troubleshooting_String) ) {
 			        docUri = uri + "troubleshooting/troubleshooting/";
 			    }
-			    // Generic requests by group
+			    // Generic requests by group, such as for command reference from editors.
 			    else if ( group.equalsIgnoreCase("command") ) {
 			    	docUri = uri + "command-ref/" + item + "/" + item + "/";
 			    }
 			    if ( docUri != null ) {
-			    	// Now display using the default application for the file extension
+			    	// Now display using the default application for the file extension.
 			    	Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
 			    	// The Desktop.browse() method will always open, even if the page does not exist,
 			    	// and it won't return the HTTP error code in this case.
-			    	// Therefore, do a check to see if the URI is available before opening in a browser
+			    	// Therefore, do a check to see if the URI is available before opening in a browser.
 			    	URL url = null;
 			    	try {
 			    		url = new URL(docUri);
@@ -4642,8 +4658,8 @@ public String formatHelpViewerUrl ( String group, String item ) {
 			    	finally {
 			    		// Any cleanup?
 			    	}
-			    	if ( responseCode[i] < 400 ) {
-			    		// Looks like a valid URI to display
+			    	if ( responseCode[i] == 200 ) {
+			    		// Looks like a valid URI to display.
 			    		return docUri.toString();
 			    	}
 			    	else {
@@ -4651,13 +4667,13 @@ public String formatHelpViewerUrl ( String group, String item ) {
 			    	}
 			    }
 			    else {
-			    	// URL could not be determined
+			    	// URL could not be determined.
 			    	++failCount;	
 			    }
     		}
     	}
         if ( failCount == docRootUriList.size() ) {
-        	// Log the a message - show a visible dialog in calling code
+        	// Log the a message - show a visible dialog in calling code.
         	Message.printWarning(2, "",
         		"Unable to determine documentation for group \"" + group + "\" and item \"" +
         		item + "\" - all URIs that were tried return error code." );
@@ -10787,6 +10803,8 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_RequireApplicationComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireDatastoreComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_RequireDatastoreComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireUserComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_RequireUserComment_String, this ) );
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_FixMeComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_FixMeComment_String, this ) );
@@ -13834,6 +13852,14 @@ throws Exception
         comments.add ( commandList_NewCommand("#@require datastore HydroBase version >= YYYYMMDD",true) );
         commandList_EditCommand ( __Commands_General_Comments_RequireDatastoreComment_String, comments, CommandEditType.INSERT );
     }
+    else if (command.equals(__Commands_General_Comments_RequireUserComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific
+        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
+        // the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@require user == username",true) );
+        commandList_EditCommand ( __Commands_General_Comments_RequireUserComment_String, comments, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
         // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
@@ -14828,14 +14854,14 @@ private void uiAction_CheckForUpdates ( ) {
         String versionFile = IOUtil.tempFileName();
 		int code = IOUtil.getUriContent(versionUri, versionFile, null);
 		if ( code == 200 ) {
-			// Success - determine the version from the file
+			// Success - determine the version from the file:
 			// - read into a DataTable since a csv with headers
 	        PropList props = new PropList ("");
-	        props.set ( "Delimiter=," );		// see existing prototype
-	        props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this
-	        props.set ( "TrimStrings=True" );	// If true, trim strings after reading.
+	        props.set ( "Delimiter=," ); // See existing prototype.
+	        props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this.
+	        props.set ( "TrimStrings=True" ); // If true, trim strings after reading.
 	        DataTable table = DataTable.parseFile ( versionFile, props );
-			// Versions are in column named 'Version' with first row being the newest
+			// Versions are in column named 'Version' with first row being the newest:
 			// - but don't check dev version because most users won't care
 			int col = table.getFieldIndex("Version");
 			TableRecord rec;
@@ -14849,7 +14875,7 @@ private void uiAction_CheckForUpdates ( ) {
 					break;
 				}
 			}
-			// Determine if latest version is newer than current
+			// Determine if latest version is newer than current:
 			// - should be able to just do a string comparison
 			if ( latestVersion.compareTo(currentVersionNum) > 0 ) {
 			    message = "A newer version is available on the OpenCDSS website.\n\n";
@@ -14859,7 +14885,7 @@ private void uiAction_CheckForUpdates ( ) {
 	catch ( Exception e ) {
 		message = "A newer release or development version may be available on the OpenCDSS website.\n\n";
 	}
-	// Display the information and allow user to open the download website
+	// Display the information and allow user to open the download website.
     int x = new ResponseJDialog ( this, IOUtil.getProgramName(),
     "\nTSTool version:  " + IOUtil.getProgramVersion() + "\n" +
     "Latest available release version:  " + latestVersion + "\n\n" +
@@ -15450,21 +15476,21 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 }
 
 /**
-Handle "File...Exit" and X actions.
+Handle "File...Exit" and Window X actions.
 */
 private void uiAction_FileExitClicked ()
-{	// If the commands are dirty, see if they want to save them...
+{	// If the commands are dirty, see if they want to save them.
 	// This code is also in openCommandFile - might be able to remove
-	// copy once all actions are implemented...
-	int x = ResponseJDialog.YES;	// Default for batch mode
+	// copy once all actions are implemented.
+	int x = ResponseJDialog.YES;	// Default for batch mode.
 	boolean commandsAreTemplate = false;
 	if ( !TSToolMain.isRestServer() && !IOUtil.isBatch() ) {
 		if ( __commandsDirty ) {
 			if ( __commandFileName == null ) {
-				// Have not been saved before...
+				// Have not been saved before.
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
-					// Have at least one command
+					// Have at least one command.
 	                if ( __tsProcessor.getReadOnly() ) {
 	                    x = new ResponseJDialog ( this, IOUtil.getProgramName(),
 	                            "The command file is marked read-only (#@readOnly comment).\n" +
@@ -15488,20 +15514,20 @@ private void uiAction_FileExitClicked ()
 	                }
 	            }
 				if ( x == ResponseJDialog.CANCEL ) {
-					// Want to return to editing
+					// Want to return to editing.
 					setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 					return;
 				}
 				else if ( (__commands_JListModel.size() > 0) && !commandsAreTemplate && (x == ResponseJDialog.YES) ) {
-					// DO NOT let empty command file save becauase it is probably an accident where all old commands were cleared
-					// Prompt for the name and then save...
+					// DO NOT let empty command file save because it is probably an accident where all old commands were cleared
+					// Prompt for the name and then save.
 					uiAction_WriteCommandFile (	__commandFileName, true, false );
 				}
-				// No will continue without saving
+				// No will continue without saving.
 			}
 			else {
                 // A command file exists...  Warn the user. They can save to the existing file name or
-				// can cancel and File...Save As... to a different name.  Have not been saved before...
+				// can cancel and File...Save As... to a different name.  Have not been saved before.
 				x = ResponseJDialog.NO;
 				if ( __commands_JListModel.size() > 0 ) {
 				    if ( __tsProcessor.getReadOnly() ) {
@@ -15520,8 +15546,8 @@ private void uiAction_FileExitClicked ()
                     }
                     else {
                         x = new ResponseJDialog ( this,
-                                IOUtil.getProgramName(), "Do you want to save the changes made to\n\""
-                                + __commandFileName + "\"?\n\n" +
+                                IOUtil.getProgramName(), "Do you want to save the changes made to the command file?\n"
+                                + "    " + __commandFileName + "\n\n" +
                                 "To view differences, Cancel and use View / Command File Diff.",
                                 ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
                     }
@@ -15531,20 +15557,19 @@ private void uiAction_FileExitClicked ()
 					return;
 				}
 				else if ( (__commands_JListModel.size() > 0) && !commandsAreTemplate && (x == ResponseJDialog.YES) ) {
-					// DO NOT let empty commands get saved because it is likely an accident
+					// DO NOT let empty commands get saved because it is likely an accident.
 					uiAction_WriteCommandFile (	__commandFileName, false, false );
 				}
-				// Else if No will just exit below...
+				// Else if No will just exit below.
 			}
 		}
-		// Now make sure the user wants to exit - they might have a lot of data processed...
+		// Now make sure the user wants to exit - they might have a lot of data processed.
 		StringBuilder b = new StringBuilder("Are you sure you want to exit TSTool?");
 		if ( (__commands_JListModel.size() == 0) && (__commandFileName != null) ) {
-			// Only need to warn if an empty file with a name is being used
+			// Only need to warn if an empty file with a name is being used.
 			b.append("\nCurrent commands are empty.\nTSTool WILL NOT save an empty file.\nThe previous file contents will remain." );
 		}
-		x = new ResponseJDialog (this, "Exit TSTool", b.toString(),
-			ResponseJDialog.YES| ResponseJDialog.NO).response();
+		x = new ResponseJDialog (this, "Exit TSTool", b.toString(), ResponseJDialog.YES| ResponseJDialog.NO).response();
 	}
 	if ( x == ResponseJDialog.YES ) {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -15555,9 +15580,9 @@ private void uiAction_FileExitClicked ()
 		catch ( Exception e ) {
 			// Why is this a problem?
 		}
-		// Close the currently opened log file
+		// Close the currently opened log file.
 		Message.closeLogFile();
-		// Write the UI state so settings are remembered for the next session
+		// Write the UI state so settings are remembered for the next session.
 		this.session.writeUIState();
 		// Exit with status 0 indicating normal exit
 		System.exit(0);
@@ -15565,7 +15590,7 @@ private void uiAction_FileExitClicked ()
 		__tsProcessor.closeDataConnections(true);
 	}
 	else {
-        // Cancel...
+        // Cancel.
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
 }
@@ -18425,8 +18450,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         if ( __commands_JListModel.size() > 0 ) {
             if ( __tsProcessor.getReadOnly() ) {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                    "Do you want to save the changes made to:\n"
-                    + "\"" + __commandFileName + "\"?\n\n" +
+                    "Do you want to save the changes made to the command file?\n"
+                    + "    " + __commandFileName + "\n\n" +
                     "The commands are marked read-only (#@readOnly comment).\n" +
                     "Press Yes to update the read-only file before opening a new file.\n" +
                     "Press No to discard edits before opening a new file.\n" +
@@ -18444,8 +18469,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
             }
             else {
                 x = new ResponseJDialog ( this, IOUtil.getProgramName(),
-                "Do you want to save the changes made to:\n"
-                + "\"" + __commandFileName + "\"?\n\n" +
+                "Do you want to save the changes made to the command file?\n"
+                + "    " + __commandFileName + "\n\n" +
                 "To view differences, Cancel and use View / Command File Diff.",
                 ResponseJDialog.YES| ResponseJDialog.NO|ResponseJDialog.CANCEL).response();
             }
@@ -22509,16 +22534,32 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
  * Show the difference between the current commands and the saved on disk command file.
  */
 private void uiAction_ViewCommandFileDiff () {
-	// If the diff tool is not configured, provide information.
+	// If the diff tool is not configured, provide information:
+	// - handle generic property name and versions for the operating system
 	Prop prop = IOUtil.getProp("DiffProgram");
 	String diffProgram = null;
 	if ( prop != null ) {
 		diffProgram = prop.getValue();
 	}
+	if ( IOUtil.isUNIXMachine() ) {
+		prop = IOUtil.getProp("DiffProgram.Linux");
+		if ( prop != null ) {
+			diffProgram = prop.getValue();
+		}
+	}
 	else {
+		prop = IOUtil.getProp("DiffProgram.Windows");
+		if ( prop != null ) {
+			diffProgram = prop.getValue();
+		}
+	}
+	if ( diffProgram == null ) {
          new ResponseJDialog ( this, IOUtil.getProgramName(),
-             "The visual diff program has not been configured in the TSTool configuration file.\n" +
-             "Define the \"DiffProgram\" property as the path to a visual diff program, for example kdiff3\n" +
+             "The visual diff program has not been configured in the TSTool.cfg file.\n" +
+             "Define the \"DiffProgram\" (or \"DiffProgram.Windows\" and \"DiffProgram.Linux\") property\n" +
+             "as the path to a visual diff program, for example:\n" +
+             "    DiffProgram.Windows = C:\\Program Files\\KDiff3\\kdiff3.exe\n" +
+             "    DiffProgram.Linux = /usr/bin/kdiff3\n" +
              "Cannot show the command file difference.",
              ResponseJDialog.OK).response();
          return;
