@@ -94,7 +94,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.0.1.dev3 (2021-10-25)";
+public static final String PROGRAM_VERSION = "14.0.1.dev3 (2021-10-27)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -2210,8 +2210,17 @@ private static void readConfigFile ( String configFile )
                 	// Also set global properties that are used more generically
                 	IOUtil.setProp("DiffProgram", prop.getValue());
                 }
+                else if ( prop.getKey().equalsIgnoreCase("TSTool.DiffProgram.Linux") ) {
+                	// Also set global properties that are used more generically
+                	IOUtil.setProp("DiffProgram.Linux", prop.getValue());
+                }
+                else if ( prop.getKey().equalsIgnoreCase("TSTool.DiffProgram.Windows") ) {
+                	// Also set global properties that are used more generically
+                	IOUtil.setProp("DiffProgram.Windows", prop.getValue());
+                }
             }
-            // Override with user properties
+            // Override with user properties:
+            // - allow property name to be prefixed with 'TSTool.' or not.
             TSToolSession session = TSToolSession.getInstance();
             String userPropValue = session.getUserConfigPropValue ( "TSTool.DiffProgram" );
             if ( (userPropValue == null) || userPropValue.isEmpty() ) {
@@ -2219,6 +2228,20 @@ private static void readConfigFile ( String configFile )
             }
             if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
                	IOUtil.setProp("DiffProgram", userPropValue );
+            }
+            userPropValue = session.getUserConfigPropValue ( "TSTool.DiffProgram.Linux" );
+            if ( (userPropValue == null) || userPropValue.isEmpty() ) {
+            	userPropValue = session.getUserConfigPropValue ( "DiffProgram.Linux" );
+            }
+            if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+               	IOUtil.setProp("DiffProgram.Linux", userPropValue );
+            }
+            userPropValue = session.getUserConfigPropValue ( "TSTool.DiffProgram.Windows" );
+            if ( (userPropValue == null) || userPropValue.isEmpty() ) {
+            	userPropValue = session.getUserConfigPropValue ( "DiffProgram.Windows" );
+            }
+            if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+               	IOUtil.setProp("DiffProgram.Windows", userPropValue );
             }
 		}
 		catch ( Exception e ) {
