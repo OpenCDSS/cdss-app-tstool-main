@@ -94,7 +94,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.0.1.dev3 (2021-10-27)";
+public static final String PROGRAM_VERSION = "14.0.1 (2021-10-29)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -583,16 +583,9 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 		// - TODO smalers 2020-07-26 using different class loaders for datastore and command classes causes an issue later
 		//PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
 		PluginDataStoreClassLoader pcl = null;
-		boolean oldCode = false;
-		if ( oldCode ) { 
-			// Old approach, which leads to ClassCastException because plugin classes are loaded from different class loaders.
-			pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
-		}
-		else {
-			boolean useChildClassLoader = false;
-			// New approach, which tries to overcome the ClassCastException issues
-			pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs, TSToolMain.class.getClassLoader(), useChildClassLoader );
-		}
+		boolean useChildClassLoader = false;
+		// Create a class loader for plugins.
+		pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs, TSToolMain.class.getClassLoader(), useChildClassLoader );
 		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreList1 = null;
 		@SuppressWarnings("rawtypes")
@@ -725,112 +718,6 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 				if ( pathMatcher.matches(file)) {
 					Message.printStatus(2,routine,"Found jar file for potential plugin command: " + file);
 					pluginJarList.add("" + file);
-				}
-				return FileVisitResult.CONTINUE;
-			}
-			
-			@Override
-			public FileVisitResult visitFileFailed(Path file,IOException exc) throws IOException {
-				return FileVisitResult.CONTINUE;
-			}
-		};
-		try {
-			// The following walks the tree path under the specified folder
-			// The full path is returned during walking (not just under the starting folder)
-			Path pluginDirPath = Paths.get(pluginDir);
-			Message.printStatus(2,routine, "Trying to find plugin commands using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
-			Files.walkFileTree(pluginDirPath, matcherVisitor);
-		}
-		catch ( IOException e ) {
-			Message.printWarning(3,routine,"Error getting jar file list for plugin command(s) (" + e + ")" );
-			// Return empty list of command plugin classes
-			return pluginCommandList;
-		}
-	}
-	// Convert found jar files into an array of URL used by the class loader
-	// - from this point forward the jar file path does not care if in the user folder or TSTool installation folder
-	URL [] commandJarURLs = new URL[pluginJarList.size()];
-	int jarCount = 0;
-	for ( String pluginJar : pluginJarList ) {
-		try {
-			// Convert the file system filename to URL using forward slashes
-			commandJarURLs[jarCount] = new URL("file:///" + pluginJar.replace("\\", "/"));
-			++jarCount; // Only increment if successful
-		}
-		catch ( MalformedURLException e ) {
-			Message.printWarning(3,routine,"Error creating URL for plugin command jar file \"" + pluginJar + "\" (" + e + ")" );
-		}
-	}
-	// Create a class loader for commands.  This expects commands to be in the jar file with class name CommandName.
-	if ( jarCount != pluginJarList.size() ) {
-		// Resize the array
-		URL [] commandJarURLs2 = new URL[jarCount];
-		System.arraycopy(commandJarURLs,0,commandJarURLs2,0,jarCount);
-		commandJarURLs = commandJarURLs2;
-	}
-	PluginCommandClassLoader pcl = new PluginCommandClassLoader ( commandJarURLs );
-	try {
-		pluginCommandList = pcl.loadCommandClasses();
-	}
-	catch ( ClassNotFoundException e ) {
-		Message.printWarning(2,routine,"Error loading command plugin classes (" + e + ")." );
-		Message.printWarning(2,routine,e);
-	}
-	finally {
-		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
-		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
-		try {
-			pcl.close();
-		}
-		catch ( IOException e ) {
-			// For now swallow - not sure what else to do
-		}
-		*/
-	}
-	return pluginCommandList;
-}
-
-/**
-Old version, prior to using the "plugins" folder in user files.
-Load plugin commands.  Plugin files can exist in three locations:
-<ul>
-<li> TSToolInstallFolder/plugin-command/CommandName/bin/Command-version.jar</li> - preferred plugin home,
-will ensure that it continues to work
-<li> UserHomeFolder/.tstool/plugin-command/CommandName/bin/Command-version.jar</li> - can be used during development
-but plugins will likely not work with all versions of TSTool
-</ul>
-@param session TSTool session, which provides user and environment information.
-*/
-@SuppressWarnings("rawtypes")
-private static List<Class> loadPluginCommandsOld(TSToolSession session)
-{	final String routine = "TSToolMain.loadPluginCommands";
-	final List<String> pluginJarList = new ArrayList<String>();
-	final String [] pluginHomeFolders = {
-		// InstallHome/plugin-command
-		__tstoolInstallHome + File.separator + "plugin-commnd",
-		// .tstool/plugin-command/Command/bin/Datastore-version.jar
-		session.getUserTstoolFolder() + File.separator + "plugin-command"
-	};
-	List<Class> pluginCommandList = new ArrayList<Class>();
-	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
-		// First get a list of candidate URLs, using path to jar file
-		String pluginDir = pluginHomeFolders[iPluginHome];
-		// First get a list of candidate URLs, which will be in the TSTool user files under, for example:
-		// .tstool/plugin-command/CommandName/bin/CommandName-version.jar
-		// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
-		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
-		// in which case ** will need to be used somehow in the glob pattern
-		String glob = pluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
-		// For glob backslashes need to be escaped (this should not impact Linux)
-		glob = glob.replace ("\\","\\\\");
-		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
-		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) throws IOException {
-				Message.printStatus(2,routine, "Checking path \"" + file + "\" for match" );
-				if ( pathMatcher.matches(file)) {
-					Message.printStatus(2,routine,"Found jar file for plugin command: " + file);
-					pluginJarList.add(""+file);
 				}
 				return FileVisitResult.CONTINUE;
 			}
