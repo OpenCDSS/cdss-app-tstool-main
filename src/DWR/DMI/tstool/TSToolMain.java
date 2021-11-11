@@ -90,11 +90,11 @@ public class TSToolMain
 public static final String PROGRAM_NAME = "TSTool";
 /**
  * Semantic version, see:  https://semver.org/
- * - previously did not use period after third part (14.0.0dev) but have started using period (14.0.0.dev).
+ * - previously did not use period after third part (14.0.0dev) but have started using period (14.0.0.dev1).
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.0.1 (2021-10-29)";
+public static final String PROGRAM_VERSION = "14.0.2.dev2 (2021-11-10)";
 
 /**
 Main GUI instance, used when running interactively.

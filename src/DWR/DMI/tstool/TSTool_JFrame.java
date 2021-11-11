@@ -68,6 +68,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -5794,15 +5795,28 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int row, boolean update_status, int insertOffset ) 
 {	String routine = "queryResultsList_TransferOneTSFromQueryResultsListToCommandList";
 	boolean use_alias = false;
-    int numCommandsAdded = 0; // Used when inserting blocks of time series
+    int numCommandsAdded = 0; // Used when inserting blocks of time series.
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore();
+    String selectedDataStoreName = selectedDataStore.getName();
+
+    // The selected datastore might be the actual datastore name or a substitute:
+    // - if a substitute name is used (and was selected in the UI), the substitute name will result in returning the original datastore with original name
+    // - therefore, need to look up the substitute name here again
+    HashMap<String,String> datastoreSubstituteMap = this.__tsProcessor.getDataStoreSubstituteMap();
+    for ( Map.Entry<String,String> set : datastoreSubstituteMap.entrySet() ) {
+    	if ( set.getKey().equals(selectedDataStoreName) ) {
+    		// The selected datastore name matches a substitute's original name so use the substitute name.
+    		selectedDataStoreName = set.getValue();
+    	}
+    }
+
     if ( (selectedDataStore != null) && (selectedDataStore instanceof ColoradoHydroBaseRestDataStore) ) {
-    	// Start ColoradoHydroBaseRestDataStore
-        if ( __query_TableModel instanceof ColoradoHydroBaseRest_Station_TableModel // Historical stations
-        	|| __query_TableModel instanceof ColoradoHydroBaseRest_WaterClass_TableModel // Structures with DivTotal, WaterClass, etc. types
-        	|| __query_TableModel instanceof ColoradoHydroBaseRest_TelemetryStation_TableModel  // Stations with real-time data
-        	|| __query_TableModel instanceof ColoradoHydroBaseRest_Well_TableModel // Wells with groundwater levels
+    	// Start ColoradoHydroBaseRestDataStore.
+        if ( __query_TableModel instanceof ColoradoHydroBaseRest_Station_TableModel // Historical stations.
+        	|| __query_TableModel instanceof ColoradoHydroBaseRest_WaterClass_TableModel // Structures with DivTotal, WaterClass, etc. types.
+        	|| __query_TableModel instanceof ColoradoHydroBaseRest_TelemetryStation_TableModel  // Stations with real-time data.
+        	|| __query_TableModel instanceof ColoradoHydroBaseRest_Well_TableModel // Wells with groundwater levels.
         	) {
         	TimeSeriesIdentifierProvider tsidProvider = (TimeSeriesIdentifierProvider)__query_TableModel;
         	TSIdent tsident = null;
@@ -5821,7 +5835,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	                tsident.getInterval(),
 	                tsident.getScenario(),
 	                tsident.getSequenceID(),
-	                selectedDataStore.getName(),
+	                selectedDataStoreName,
 	                tsident.getInputName(),
 	                tsident.getComment(),
 	                use_alias, insertOffset );
@@ -5829,13 +5843,13 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         }
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_DateValue) ) {
-		// The location (id), type, and time step uniquely identify the
-		// time series, but the input_name is needed to find the data.
+		// The location (id), type, and time step uniquely identify the time series,
+    	// but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used instead of the normal TSID.
 		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 		String alias = ((String)model.getValueAt ( row, model.COL_ALIAS )).trim();
 		if ( !alias.equals("") ) {
-			// Alias is available so use it...
+			// Alias is available so use it.
 			use_alias = true;
 		}
 		// TODO SAM 2004-01-06 - for now don't use the alias to put
@@ -5843,14 +5857,14 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		// DateValueTS.readTimeSeries() handles the ID.
 		use_alias = false;
 		if ( use_alias ) {
-			// Use the alias instead of the identifier...
+			// Use the alias instead of the identifier.
 		    try {
 		        numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( alias,
     			null,
     			null,
     			null,
     			null,
-    			null,	// No sequence number
+    			null, // No sequence number.
     			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
     			(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", use_alias, insertOffset );
 			}
@@ -5859,7 +5873,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			}
 		}
 		else {
-		    // Use full ID and all other fields...
+		    // Use full ID and all other fields.
 			Message.printStatus ( 1, "", "Calling append (no alias)..." );
 			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 			(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
@@ -5874,11 +5888,11 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		}
 	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof GenericDatabaseDataStore) ) {
-        // TODO SAM 2013-08-27 Try this model but need to deal with location type
+        // TODO SAM 2013-08-27 Try this model but need to deal with location type.
         GenericDatabaseDataStore_TS_TableModel model = (GenericDatabaseDataStore_TS_TableModel)__query_TableModel;
         String locType = (String)__query_TableModel.getValueAt( row, model.COL_LOC_TYPE );
         if ( !locType.equals("") ) {
-            // Add the separator
+            // Add the separator.
             locType += TSIdent.LOC_TYPE_SEPARATOR;
         }
         numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
@@ -5887,16 +5901,16 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
             (String)__query_TableModel.getValueAt ( row, model.COL_SCENARIO),
-            null, // No sequence number
+            null, // No sequence number.
             (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-            "", // No input name
+            "", // No input name.
             "",
             false, insertOffset );
     }
 	else if (  selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
-	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns
-	    // Currently essentially the same as the generic model but have custom headings
-        // The location (id), type, and time step uniquely identify the time series...
+	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns.
+	    // Currently essentially the same as the generic model but have custom headings.
+        // The location (id), type, and time step uniquely identify the time series.
         TSTool_HecDss_TableModel model = (TSTool_HecDss_TableModel)__query_TableModel;
         String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
         if ( seqnum.length() == 0 ) {
@@ -5907,14 +5921,14 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
         (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
         (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
-        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
+        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number.
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
         (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
     }
 	else if ( ((selectedDataStore != null) && (selectedDataStore instanceof HydroBaseDataStore)) ||
 	    selectedInputType.equals ( __INPUT_TYPE_HydroBase )) {
 		if ( __query_TableModel instanceof TSTool_HydroBase_StationGeolocMeasType_TableModel){
-		    // Station time series
+		    // Station time series.
 		    TSTool_HydroBase_StationGeolocMeasType_TableModel model =
 		        (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel;
 			numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
@@ -5922,16 +5936,16 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
+				"",	// No scenario.
+				null, // No sequence number.
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-				"", // No input name
+				"", // No input name.
 				(String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
 				(String)__query_TableModel.getValueAt (	row, model.COL_NAME),
 				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof TSTool_HydroBase_StructureGeolocStructMeasType_TableModel){
-	        // Structure time series
+	        // Structure time series.
 		    TSTool_HydroBase_StructureGeolocStructMeasType_TableModel model =
 	            (TSTool_HydroBase_StructureGeolocStructMeasType_TableModel)__query_TableModel;
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
@@ -5939,16 +5953,16 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null,   // No sequence number
+                "", // No scenario.
+                null, // No sequence number.
                 (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
+                "", // No input name.
                 (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
                 (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
                 false, insertOffset );
         }
         else if ( __query_TableModel instanceof TSTool_HydroBase_GroundWaterWellsView_TableModel){
-            // Structure time series
+            // Structure time series.
             TSTool_HydroBase_GroundWaterWellsView_TableModel model =
                 (TSTool_HydroBase_GroundWaterWellsView_TableModel)__query_TableModel;
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
@@ -5956,10 +5970,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
                 (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-                "", // No scenario
-                null,   // No sequence number
+                "", // No scenario.
+                null, // No sequence number.
                 (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-                "", // No input name
+                "", // No input name.
                 (String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
                 (String)__query_TableModel.getValueAt ( row, model.COL_NAME),
                 false, insertOffset );
@@ -5972,10 +5986,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
+				"",	// No scenario.
+				null, // No sequence number.
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-				"", // No input name
+				"", // No input name.
 				(String)__query_TableModel.getValueAt( row, model.COL_ID) + " - " +
 				(String)__query_TableModel.getValueAt ( row, model.COL_NAME),
 				false, insertOffset );			
@@ -5987,11 +6001,11 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
+				"",	// No scenario.
+				null, // No sequence number.
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
+				"", // No input name.
+				"", // No comment.
 				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof	TSTool_HydroBase_AgGIS_TableModel){
@@ -6001,11 +6015,11 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
+				"",	// No scenario.
+				null, // No sequence number.
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
+				"", // No input name.
+				"", // No comment.
 				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof TSTool_HydroBase_CASSLivestockStats_TableModel){
@@ -6016,11 +6030,11 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
+				"",	// No scenario.
+				null,	// No sequence number.
 				(String)__query_TableModel.getValueAt ( row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
+				"", // No input name.
+				"", // No comment.
 				false, insertOffset );
 		}
 		else if ( __query_TableModel instanceof TSTool_HydroBase_CUPopulation_TableModel){
@@ -6031,27 +6045,26 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_SOURCE),
 				(String)__query_TableModel.getValueAt (	row, model.COL_DATA_TYPE),
 				(String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-				"",	// No scenario
-				null,	// No sequence number
+				"",	// No scenario.
+				null, // No sequence number.
 				(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
-				"", // No input name
-				"", // No comment
+				"", // No input name.
+				"", // No comment.
 				false, insertOffset );
 		}
 	}
 	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
 		// The location (id), type, and time step uniquely identify the
 		// time series, but the input_name is needed to find the data.
-		// If an alias is specified, assume that it should be used
-		// instead of the normal TSID.
+		// If an alias is specified, assume that it should be used instead of the normal TSID.
 		TSTool_ESPTraceEnsemble_TableModel model = (TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
 		//String alias = ((String)__query_TableModel.getValueAt ( row, model.COL_ALIAS )).trim();
 		boolean use_alias_in_id = false;
 		if ( use_alias_in_id ) {
-			// Need to figure out what to do here...
+			// Need to figure out what to do here.
 		}
 		else {
-		    // Use full ID and all other fields...
+		    // Use full ID and all other fields.
 		    numCommandsAdded = queryResultsList_AppendTSIDToCommandList ( 
 			(String)__query_TableModel.getValueAt ( row, model.COL_ID ),
 			(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
@@ -6065,7 +6078,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		}
 	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
-    	// The time series identifier parts are retrieved from the datastore
+    	// The time series identifier parts are retrieved from the datastore.
     	PluginDataStore pds = (PluginDataStore)selectedDataStore;
     	TSIdent tsident = pds.getTimeSeriesIdentifierFromTableModel(__query_TableModel,row);
         String comment = "";
@@ -6076,7 +6089,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             tsident.getInterval(),
             tsident.getScenario(),
             tsident.getSequenceID(),
-            selectedDataStore.getName(),
+            selectedDataStoreName,
             tsident.getInputName(),
             comment,
             use_alias, insertOffset );
@@ -6100,8 +6113,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
             dataType,
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-            null, // No scenario
-            null, // No sequence number
+            null, // No scenario.
+            null, // No sequence number.
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
             "", "",
             use_alias, insertOffset );
@@ -6114,10 +6127,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         // Check the connection in case timeouts, etc.
         ds.checkDatabaseConnection();
         ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
-        // Format the TSID using the older format that uses common names, but these are not guaranteed unique
+        // Format the TSID using the older format that uses common names, but these are not guaranteed unique.
         String tsType = (String)__query_TableModel.getValueAt( row, model.COL_TYPE_REAL_MODEL);
         if ( dmi.getTSIDStyleSDI() ) {
-            // Format the TSID using the newer SDI and MRI style
+            // Format the TSID using the newer SDI and MRI style.
             String loc, scenario = "";
             String siteCommonName = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
             siteCommonName = siteCommonName.replace('.', ' ').replace('-',' ');
@@ -6131,13 +6144,13 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 String hydrologicIndicator = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_HYDROLOGIC_INDICATOR );
                 hydrologicIndicator = hydrologicIndicator.replace('.', ' ').replace('-',' ');
                 String modelRunDate = "" + (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
-                // Trim off the hundredths of a second since that interferes with the TSID conventions.  It always
-                // appears to be ".0", also remove seconds :00 at end
+                // Trim off the hundredths of a second since that interferes with the TSID conventions.
+                // It always appears to be ".0", also remove seconds :00 at end.
                 int pos = modelRunDate.indexOf(".");
                 if ( pos > 0 ) {
                     modelRunDate = modelRunDate.substring(0,pos - 3);
                 }
-                // The following should uniquely identify a model time series (in addition to other TSID parts)
+                // The following should uniquely identify a model time series (in addition to other TSID parts).
                 scenario = siteCommonName + "-" + modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
             }
             else {
@@ -6145,7 +6158,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 scenario = siteCommonName;
             }
             // Use data type common name as FYI and make sure no periods are in it because they will interfere
-            // with TSID syntax
+            // with TSID syntax.
             String dataType = ((String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE_COMMON_NAME)).replace("."," ");
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
                 (String)__query_TableModel.getValueAt( row, model.COL_OBJECT_TYPE_NAME ) + ":" + loc,
@@ -6153,7 +6166,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 dataType,
                 (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
                 scenario,
-                null,   // No sequence number
+                null, // No sequence number.
                 (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
                 "",
                 "", false, insertOffset );
@@ -6162,8 +6175,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             String scenario = "";
             if ( tsType.equalsIgnoreCase("Model") ) {
                 String modelRunDate = "" + (Date)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_DATE );
-                // Trim off the hundredths of a second since that interferes with the TSID conventions.  It always
-                // appears to be ".0"
+                // Trim off the hundredths of a second since that interferes with the TSID conventions.
+                // It always appears to be ".0".
                 int pos = modelRunDate.indexOf(".");
                 if ( pos > 0 ) {
                     modelRunDate = modelRunDate.substring(0,pos);
@@ -6176,19 +6189,19 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 modelRunName = modelRunName.replace('.', '?');
                 String hydrologicIndicator = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_HYDROLOGIC_INDICATOR );
                 hydrologicIndicator = hydrologicIndicator.replace('.', '?');
-                // The following should uniquely identify a model time series (in addition to other TSID parts)
+                // The following should uniquely identify a model time series (in addition to other TSID parts).
                 scenario = modelName + "-" + modelRunName + "-" + hydrologicIndicator + "-" + modelRunDate;
             }
             String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_COMMON_NAME );
             String dataType = (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE_COMMON_NAME);
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
             //(String)__query_TableModel.getValueAt( row, model.COL_SUBJECT_TYPE ) + ":" +
-            tsType + ":" + loc.replace('.','?'), // Replace period because it will interfere with TSID
+            tsType + ":" + loc.replace('.','?'), // Replace period because it will interfere with TSID.
             (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
             dataType,
             (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP),
             scenario,
-            null,   // No sequence number
+            null, // No sequence number.
             (String)__query_TableModel.getValueAt( row,model.COL_DATASTORE_NAME),
             "",
             "", false, insertOffset );
@@ -6201,7 +6214,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
         ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)selectedDataStore;
         // Check the connection in case timeouts, etc.
         ds.checkDatabaseConnection();
-        // Format the TSID using the older format that uses common names, but these are not guaranteed unique
+        // Format the TSID using the older format that uses common names, but these are not guaranteed unique.
         String loc = (String)__query_TableModel.getValueAt( row, model.COL_SITE_ID );
         String dataSource = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_SERVER);
         String dataType = (String)__query_TableModel.getValueAt( row, model.COL_SERIES_PARAMETER);
@@ -6213,15 +6226,15 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	        dataType,
 	        interval,
 	        scenario,
-	        null, // No sequence number
+	        null, // No sequence number.
 	        (String)__query_TableModel.getValueAt( row, model.COL_DATASTORE_NAME),
 	        "",
 	        "", false, insertOffset );
     }
 	else if ( selectedInputType.equals ( __INPUT_TYPE_StateMod ) ) {
-	    // Most time series are still handled generically but XOP time series have additional columns in the table
+	    // Most time series are still handled generically but XOP time series have additional columns in the table.
 	    if ( __query_TableModel instanceof StateMod_TS_TableModel ) {
-	        // The location (id), type, and time step uniquely identify the time series...
+	        // The location (id), type, and time step uniquely identify the time series.
             StateMod_TS_TableModel model = (StateMod_TS_TableModel)__query_TableModel;
             String scenario = null;
             String seqnum = null;
@@ -6235,7 +6248,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
 	    }
 	    else {
-	        // The location (id), type, and time step uniquely identify the time series...
+	        // The location (id), type, and time step uniquely identify the time series.
 	        TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 	        String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
 	        if ( seqnum.length() == 0 ) {
@@ -6246,7 +6259,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	        (String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
 	        (String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
 	        (String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
-	        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
+	        (String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number.
 	        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 	        (String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
 	    }
@@ -6264,8 +6277,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
             ts.formatDataTypeForTSID(),
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-            null, // No scenario
-            null, // No sequence number
+            null, // No scenario.
+            null, // No sequence number.
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
             "", "",
             use_alias, insertOffset );
@@ -6283,8 +6296,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
             ts.formatDataTypeForTSID(),
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-            null, // No scenario
-            null, // No sequence number
+            null, // No scenario.
+            null, // No sequence number.
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
             "", "",
             use_alias, insertOffset );
@@ -6302,8 +6315,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
             ts.formatDataTypeForTSID(),
             (String)__query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
-            null, // No scenario
-            null, // No sequence number
+            null, // No scenario.
+            null, // No sequence number.
             (String)__query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
             "", "",
             use_alias, insertOffset );
@@ -6321,7 +6334,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		selectedInputType.equals ( __INPUT_TYPE_StateCUB ) ||
 		selectedInputType.equals ( __INPUT_TYPE_StateModB ) ||
 		selectedInputType.equals(__INPUT_TYPE_UsgsNwisRdb) ) {
-		// The location (id), type, and time step uniquely identify the time series...
+		// The location (id), type, and time step uniquely identify the time series.
 		TSTool_TS_TableModel model = (TSTool_TS_TableModel)__query_TableModel;
 		String seqnum = (String)__query_TableModel.getValueAt( row, model.COL_SEQUENCE );
 		if ( seqnum.length() == 0 ) {
@@ -6332,7 +6345,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
 		(String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
 		(String)__query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
-		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number
+		(String)__query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number.
 		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
 		(String)__query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
 	}
@@ -6341,7 +6354,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             selectedInputType + "\" input type." );
 	    numCommandsAdded = 0;
 	}
-	// Check the GUI...
+	// Check the GUI.
 	if ( update_status ) {
 		ui_UpdateStatus ( true );
 	}
@@ -7144,22 +7157,21 @@ Populate the datastore list from available processor datastores.
 private void ui_DataStoreList_Populate ()
 {
     __dataStore_JComboBox.removeAll();
-    List<String> dataStoreNameList = new ArrayList<String>();
-    dataStoreNameList.add ( "" ); // Blank when picking input type and name separately
-    // Get all enabled datastores, even those not active - the View ... Datastores menu can be used to show errors
+    List<String> dataStoreNameList = new ArrayList<>();
+    // Get all enabled datastores, even those not active - the View ... Datastores menu can be used to show errors.
     List<DataStore> dataStoreList = __tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
         if ( dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisDailyDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
-            // For now disable in the main browser since no interactive browsing ability has been implemented
+            // For now disable in the main browser since no interactive browsing ability has been implemented.
             // FIXME SAM 2012-10-26 For USGS enable when USGS site service is enabled.
             // FIXME SAM 2012-12-18 Enable with filter panel is developed specific to web services.
             continue;
         }
         else if ( dataStore.getClass().getName().endsWith(".GenericDatabaseDataStore") ) {
-            // Only populate if configured for time series
+            // Only populate if configured for time series.
             GenericDatabaseDataStore ds = (GenericDatabaseDataStore)dataStore;
             if ( !ds.hasTimeSeriesInterface(true) ) {
                 continue;
@@ -7167,13 +7179,30 @@ private void ui_DataStoreList_Populate ()
         }
         String name = dataStore.getName();
         if ( dataStore.getStatus() != 0 ) {
-        	// Show the user but make sure they know there is a problem so they avoid selecting
+        	// Show the user but make sure they know there is a problem so they avoid selecting.
         	name = name + " (ERROR)";
         }
         dataStoreNameList.add ( name );
     }
+    // Also list any substitute datastore names so the original or substitute can be used.
+    HashMap<String,String> datastoreSubstituteMap = __tsProcessor.getDataStoreSubstituteMap();
+    for ( Map.Entry<String,String> set : datastoreSubstituteMap.entrySet() ) {
+    	boolean found = false;
+    	for ( String choice : dataStoreNameList ) {
+    		if ( choice.equals(set.getKey()) ) {
+    			// The substitute original name matches a datastore name so also add the alias.
+    			found = true;
+    			break;
+    		}
+    	}
+    	if ( found ) {
+    		dataStoreNameList.add(set.getValue());
+    	}
+    }
+    Collections.sort(dataStoreNameList, String.CASE_INSENSITIVE_ORDER);
+    dataStoreNameList.add ( 0, "" ); // Blank when picking input type and name separately.
     __dataStore_JComboBox.setData(dataStoreNameList);
-    // Select the blank
+    // Select the blank.
     __dataStore_JComboBox.select("");
 }
 
@@ -8073,6 +8102,7 @@ private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
 
 /**
 Return the datastore for the selected datastore name.
+If the datastore name is a substitute, return the original datastore to which it refers.
 @return the datastore for the selected datastore name, or null if the selected name is blank (or for some
 reason is not in the processor - should not happen if data are being kept consistent).
 */
@@ -8088,6 +8118,7 @@ private DataStore ui_GetSelectedDataStore ()
         // No need to request from processor
         return null;
     }
+    // The following handles substitutions.
     return __tsProcessor.getDataStoreForName ( dataStoreName, null );
 }
 
@@ -15819,7 +15850,7 @@ private void uiAction_GetTimeSeriesListClicked()
         }
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
-    	// Have a plugin datastore
+    	// Have a plugin datastore.
         try {
             uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog(); 
         }
@@ -16959,7 +16990,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog()
     if ( dataStore instanceof PluginDataStore ) {
     	pds = (PluginDataStore)dataStore;
     }
-    // The headers are a list of objects controlled by the plugin datastore
+    // The headers are a list of objects controlled by the plugin datastore.
     try {
     	if ( dataStore instanceof DatabaseDataStore ) {
 	        // Check the connection in case the connection timed out.
@@ -16968,12 +16999,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog()
     	}
         queryResultsList_Clear ();
 
-        String dataType = __dataType_JComboBox.getSelected(); // May be "datatype" or "datatype - note", but generically can't know here
-        String timeStep = __timeStep_JComboBox.getSelected(); // May be "interval" or "interval - note", but generically can't know here
+        String dataType = __dataType_JComboBox.getSelected(); // May be "datatype" or "datatype - note", but generically can't know here.
+        String timeStep = __timeStep_JComboBox.getSelected(); // May be "interval" or "interval - note", but generically can't know here.
 
         List<Object> results = null;
         if ( pds != null ) {
-	        // Data type is shown without name so use full choice
+	        // Data type is shown without name so use full choice.
 	        try {
 	        	__query_TableModel = pds.createTimeSeriesListTableModel(dataType,timeStep,__selectedInputFilter_JPanel);
 	        	@SuppressWarnings("unchecked")
@@ -16982,7 +17013,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog()
 	            if ( results != null ) {
 	                // TODO Does not work??
 	                //__query_TableModel.setNewData ( results );
-	                // Try brute force...
+	                // Try brute force.
 	            	JWorksheet_AbstractExcelCellRenderer cr = pds.getTimeSeriesListCellRenderer(__query_TableModel);
 	                __query_JWorksheet.setCellRenderer ( cr );
 	                __query_JWorksheet.setModel ( __query_TableModel );
@@ -17009,7 +17040,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog()
         JGUIUtil.setWaitCursor ( this, false );
     }
     catch ( Exception e ) {
-        // Messages elsewhere but catch so we can get the cursor back...
+        // Messages elsewhere but catch so we can get the cursor back.
         Message.printWarning ( 3, rtn, e );
         JGUIUtil.setWaitCursor ( this, false );
     }
@@ -22517,7 +22548,7 @@ private void uiAction_TransferSelectedQueryResultsToCommandList ()
 	int iend = nrows - 1;
 	int numInserted = 0;
 	for ( int i = 0; i < nrows; i++ ) {
-		// Only update the GUI state if transferring the last command...
+		// Only update the GUI state if transferring the last command.
 		if ( i == iend ) {
 			numInserted += queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			    selected[i], true, numInserted ); 
