@@ -178,7 +178,7 @@ copyWindowsFilesToLinux() {
 
   # Make sure file permissions are correct for Linux.
   chmod a+x ${tmpBuildFolder}/${installFolderNoPathLower}/bin/tstool
-  chmod a+x ${tmpBuildFolder}/${installFolderNoPathLower}/bin/setup-linux-tstool.sh
+  chmod a+x ${tmpBuildFolder}/${installFolderNoPathLower}/bin/${setupScript}
   # Make sure log folder is writeable.
   chmod a+w ${tmpBuildFolder}/${installFolderNoPathLower}/logs
   # Make sure directories are executable.
@@ -199,7 +199,7 @@ createMakeselfInstaller() {
   # - seems to be cleaner to work with relative files
   cd ${tmpBuildFolder}
   # The following will be something like:
-  #   makeself ./tstool-13.00.00 /tmp/tstool-dist/TSTool-linux-13.00.00.sh "TSTool Software" bin/setup-linux-tstool.sh
+  #   makeself ./tstool-13.00.00 /tmp/tstool-dist/TSTool-linux-13.00.00.sh "TSTool Software" bin/setup-linux-tstool.bash
   #makeself ./${installFolderNoPathLower} ${selfExtractingShFile} "TSTool Software" bin/${setupScript}
   makeself . ${selfExtractingShFile} "TSTool Software" ${installFolderNoPathLower}/bin/${setupScript}
 }
@@ -304,7 +304,7 @@ scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
 binFolder=${scriptFolder}
 tstoolScript=${binFolder}/tstool
-setupScript=setup-linux-tstool.sh
+setupScript=setup-linux-tstool.bash
 setupScriptPath=${binFolder}/${setupScript}
 # Installation home for TSTool, under which will be bin, logs, system, etc.
 installFolder=$(dirname ${scriptFolder})

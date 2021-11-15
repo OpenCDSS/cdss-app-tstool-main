@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # setup-linux-tstool.sh - install TSTool from makeself-created installer
 #
@@ -23,7 +23,8 @@ checkSudo() {
     echo "There should be no permissions issues installing in system folders such as /opt."
     echo ""
   fi
-  echo "Continuing in 5 seconds (CTRL-c if you want to read usage above)..."
+  echo "CTRL-c now or quit using 'q' in later steps if need to restart the process."
+  echo "Continuing in 5 seconds."
   sleep 5
 }
 
@@ -35,25 +36,35 @@ createSymbolicLinks() {
   installUser=$(whoami)
 
   echo ""
-  echo "Create symbolic link /usr/bin/tstool -> ${installFolder}/bin/tstool?"
-  echo "This will ensure that 'tstool' is found in the PATH for all users on the system."
-  read -p "Create link [Y/n/q]? " answer
-  if [ "${answer}" = "q" ]; then
-    exit 0
-  elif [ "${answer}" = "n" ]; then
-    break
-  elif [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
-    # Default action.
-    if [ "${installUser}" = 'root' ]; then
+  if [ "${installUser}" = 'root' ]; then
+    echo "Create symbolic link /usr/bin/tstool -> ${installFolder}/bin/tstool?"
+    echo "This will ensure that 'tstool' is found in the PATH for all users on the system."
+    read -p "Create link [Y/n/q]? " answer
+    if [ "${answer}" = "q" ]; then
+      exit 0
+    elif [ "${answer}" = "n" ]; then
+      break
+    elif [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
+      # Default action.
       ln -sf ${installFolder}/bin/tstool /usr/bin/tstool
       if [ $? -ne 0 ]; then
         echo "Error creating symbolic link."
       fi
-    else
-      # Don't run 'sudo' here because want people to enter credentials on their command line.
-      echo ""
-      echo "You are not logged in as root or sudo user.  Run the following:"
-      echo "  sudo ln -sf ${installFolder}/bin/tstool /usr/bin/tstool"
+    fi
+  else
+    echo "Create symbolic link ${HOME}/bin/tstool -> ${installFolder}/bin/tstool?"
+    echo "This will ensure that the latest 'tstool' is found in the PATH for ${USER}."
+    read -p "Create link [Y/n/q]? " answer
+    if [ "${answer}" = "q" ]; then
+      exit 0
+    elif [ "${answer}" = "n" ]; then
+      break
+    elif [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
+      # Default action.
+      ln -sf ${installFolder}/bin/tstool ${HOME}/bin/tstool
+      if [ $? -ne 0 ]; then
+        echo "Error creating symbolic link."
+      fi
     fi
   fi
 }
@@ -73,24 +84,38 @@ installFiles() {
     fi
   fi
   # First remove existing folder so new files are all current.
-  while [ "1" = "1" ]; do
+  while true; do
     if [ -d "${installFolder}" ]; then
       echo "Install folder exists:  ${installFolder}"
-      read -p "Remove before reinstalling [Y/q]? " answer
+      echo "Select Y (default) to do a clean install."
+      echo "Select n to install over the existing version"
+      echo "  and keep previously installed plugins and datastore configurations."
+      read -p "Remove before reinstalling [Y/n/q]? " answer
       if [ "${answer}" = "q" ]; then
         exit 0
       elif [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
         # Default action.
         rm -rf ${installFolder}
+      elif [ "${answer}" = "n" -o "${answer}" = "N" ]; then
+        # Continue with install without removing.
+        break
       fi
     else
-      # Folder does not exist.
+      # Install folder does not exist so no need for decision about removing.
       break
     fi
   done
-  # Copy the files.
+  # Copy the files:
+  # - make sure the parent folder of the install folder exists
+  installFolderParent=$(dirname ${installFolder})
+  if [ ! -d "${installFolderParent}" ]; then
+    echo "Creating parent of install folder:"
+    mkdir -vp "${installFolderParent}"
+  fi
+  # Copy to the parent folder to make sure that it always works without
+  # adding a redundant installation folder.
   echo "Copying files to:  ${installFolder}"
-  cp -r ${tmpFolderWithPath} ${installFolder}
+  cp -r ${tmpFolderWithPath} ${installFolderParent}
   if [ $? -ne 0 ]; then
     echo ""
     echo "Error copying files to installation folder."
@@ -102,13 +127,21 @@ installFiles() {
   # - not sure why they get changed oddly
   # - make all files rw by owner and group and r by other (mode xxx)
   # - make all folders additionally be executable by all
+  chmod 0755 ${installFolderParent}
   find ${installFolder} -type f | xargs chmod 0664
   find ${installFolder} -type d | xargs chmod 0755
   chmod a+x ${installFolder}/bin/tstool
 
-  # Remove unneeded files.
-  rm ${installFolder}/bin/build-linux-distro.bash
-  rm ${installFolder}/bin/setup-linux-tstool.sh
+  # Remove unneeded files since these files are only used on Windows to create Linux installer:
+  # - need to check for existence because installing over an existing install will warn
+  if [ -f "${installFolder}/bin/build-linux-distro.bash" ]; then
+    rm ${installFolder}/bin/build-linux-distro.bash
+  fi
+  if [ -f "${installFolder}/bin/setup-linux-tstool.bash" ]; then
+    rm ${installFolder}/bin/setup-linux-tstool.bash
+  fi
+
+  echo "Finished installing TSTool files."
 }
 
 # Parse the command line and set variables to control logic.
@@ -120,7 +153,7 @@ parseCommandLine() {
   # Indicate specification for long options:
   # - 1 colon after an option indicates that an argument is required
   # - 2 colons after an option indicates that an argument is optional, must use --option=argument syntax
-  optstringLong="help,version"
+  optstringLong="help,installdefault:,installhint:,version"
   # Parse the options using getopt command:
   # - the -- is a separator between getopt options and parameters to be parsed
   # - output is simple space-delimited command line
@@ -147,6 +180,32 @@ parseCommandLine() {
       -h|--help) # -h or --help  Print usage
         printUsage
         exit 0
+        ;;
+      --installdefault)
+        case "$2" in
+          "") # Nothing specified so error
+            echoStderr "--installdefault=folder is missing folder."
+            exit 1
+            ;;
+          *)
+            installdefault=$2
+            #logDebug "Detected using install default folder: ${installdefault}"
+            shift 2
+            ;;
+        esac
+        ;;
+      --installhint)
+        case "$2" in
+          "") # Nothing specified so error
+            echoStderr "--installhint=hint is missing hint."
+            exit 1
+            ;;
+          *)
+            installhint=$2
+            #logDebug "Detected using install hint: ${installhint}"
+            shift 2
+            ;;
+        esac
         ;;
       -v|--version) # -v or --version  Print the version
         printVersion
@@ -177,18 +236,23 @@ parseCommandLine() {
 # - calling code needs to exit with the appropriate status
 printUsage() {
   echo ""
-  echo "$scriptName [makeself-options] -- [options]"
+  echo "${scriptName} [makeself-options] -- [options]"
   echo ""
   echo "Install TSTool software on Linux from self-extracting executable."
-  echo "The installer was created with 'makeself', which provides options."
-  echo "Additinal options are provided but must follow -- on the command line."
+  echo "The installer was created with 'makeself'."
   echo ""
-  echo "Options are:"
+  echo "--------------------------------------------------------------------------------------------------"
+  echo "TSTool installer specific 'options' that must follow -- are:"
   echo ""
-  echo "-h, --help      Print help."
-  echo "-v, --version   Print version."
+  echo "-h, --help               Print help."
+  echo "--installdefault=ENVVAR  Indicate the default installation folder,"
+  echo "                         using an environment variable."
+  echo "--installhint=ENVVAR     Provide a hint to print for the suggested installation folder,"
+  echo "                         using an environment variable."
+  echo "-v, --version            Print version."
   echo ""
-  echo "makeself options that makeself-constructed installer recognizes (see: https://makeself.io/):"
+  echo "--------------------------------------------------------------------------------------------------"
+  echo "'makeself-options' that the makeself-constructed installer recognizes (see: https://makeself.io/):"
   echo ""
   echo "--check         Check the archive for integrity using the embedded checksums,"
   echo "                without extracting."
@@ -216,6 +280,7 @@ printUsage() {
   echo "--verbose       Verbose output (not enabled?)."
   # The following will be suggested if cannot write to current folder.
   echo "--target dir    Extract the archive to an arbitrary place."
+  echo "--------------------------------------------------------------------------------------------------"
   echo ""
 }
 
@@ -225,21 +290,47 @@ promptForInstallFolder() {
 
   echo ""
   installUser=$(whoami)
-  while [ "1" = "1" ]; do
+  while true; do
     echo ""
     echo "Specify the installation folder for TSTool."
-    if [ ${installUser} = 'root' ]; then
-      echo "Default system install folder (since running as root):  ${defaultSystemInstallFolder}"
+    if [ -n "${installhint}" ]; then
+      # Check for environment variable specified by the --installhint parameter for a hint to print,
+      # used because passing hint on command line with whitespace can be challenging.
+      # TODO smalers 2021-11-11 the following works in bash:
+      installhintenv="${!installhint}"
+      # The following works for sh:
+      #installhintenv=$(eval "echo \"\$${installhint}\"")
+      if [ -n "${installhintenv}" ]; then
+        echo "${installhintenv}"
+      fi
+    fi
+    if [ -n "${installdefault}" ]; then
+      # Check for environment variable specified by the --installdefault for default install folder,
+      # used because passing hint on command line with whitespace can be challenging.
+      # TODO smalers 2021-11-11 the following works in bash:
+      installdefaultenv="${!installdefault}"
+      # The following works for sh:
+      #installdefaultenv=$(eval "echo \"\$${installdefault}\"")
     else
-      echo "Default user install folder (since running as ${installUser}):  ${defaultUserInstallFolder}"
+      # Use the normal default.
+      if [ "${installUser}" = 'root' ]; then
+        echo "Default system install folder (since running as root):  ${defaultSystemInstallFolder}"
+      else
+        echo "Default user install folder (since running as ${installUser}):  ${defaultUserInstallFolder}"
+      fi
     fi
     echo "Install folder [return to use default/q to quit]:"
+    # TODO smalers 2021-11-12 evaluate using read -e for file completion.
     read answer
     if [ -z "${answer}" -o "${answer}" = "" ]; then
-      if [ ${installUser} = 'root' ]; then
+      if [ "${installUser}" = 'root' ]; then
         installFolder=${defaultSystemInstallFolder}
       else
         installFolder=${defaultUserInstallFolder}
+      fi
+      if [ -n "${installdefaultenv}" ]; then
+        # Use the custom default.
+        installFolder="${installdefaultenv}"
       fi
       break
     elif [ "${answer}" = "q" ]; then
@@ -247,6 +338,8 @@ promptForInstallFolder() {
     else
       # User specified the folder.
       installFolder=${answer}
+      # Because this is 'sh' and not 'bash', replace ~ with home folder in case user has used ~.
+      installFolder=$(echo ${installFolder} | sed "s#~#${HOME}#")
       break
     fi
   done
@@ -271,7 +364,10 @@ tmpFolderWithPath=$(dirname ${scriptFolder})
 tmpFolderWithoutPath=$(basename ${tmpFolderWithPath})
 # Default install folders.
 defaultSystemInstallFolder="/opt/${tmpFolderWithoutPath}"
-defaultUserInstallFolder="$HOME/${tmpFolderWithoutPath}"
+defaultUserInstallFolder="${HOME}/${tmpFolderWithoutPath}"
+# Install hint and default folder for custom installations.
+installdefault=""
+installhint=""
 
 echo "Setup script folder: ${scriptFolder}"
 echo "Tmp install folder: ${tmpFolder}"
@@ -301,7 +397,17 @@ createSymbolicLinks
 
 # Explain how to run.
 echo ""
-echo "Run TSTool with:  ${installFolder}/bin/tstool"
-if [ -L "/usr/bin/tstool" ]; then
-  echo "or run TSTool with:  tstool"
+echo "Run TSTool with one of the following:"
+echo "  ${installFolder}/bin/tstool"
+echo "  ~/bin/tstool"
+if [ "${installUser}" = 'root' ]; then
+  # Installing as root.
+  if [ -L "/usr/bin/tstool" ]; then
+    echo "  tstool"
+  fi
+else
+  # Installing as a normal user.
+  if [ -L "${HOME}/${SUDO_USER}/bin/tstool" ]; then
+    echo "  tstool"
+  fi
 fi
