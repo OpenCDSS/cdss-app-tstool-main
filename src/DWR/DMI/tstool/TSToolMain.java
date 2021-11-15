@@ -94,7 +94,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.0.2.dev2 (2021-11-10)";
+public static final String PROGRAM_VERSION = "14.0.2.dev2 (2021-11-15)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -191,6 +191,11 @@ Command file being processed when run in batch mode with -commands File.
 private static String __commandFile = null;
 
 /**
+ * Modification string for the title, used to customize TSTool.
+ */
+private static String titleMod = "";
+
+/**
  * Find the list of plugin jar files using new (TSTool 12.07.00 and later approach).
  * This simply finds candidate jar files in the expected locations.
  * The loadPluginDataStores*, etc. methods then examine the jar files and use if appropriate.
@@ -199,23 +204,23 @@ private static String __commandFile = null;
  */
 private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List<String> pluginJarList ) {
 	String routine = "TSToolMain.findDataStorePluginJarFilesNew";
-	// Get a list of jar files in the user plugins folder (will take precedent over installation files)
+	// Get a list of jar files in the user plugins folder (will take precedent over installation files).
 	File userPluginsFolder = new File(session.getUserPluginsFolder());
 	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + userPluginsFolder + "\"");
 	try {
 		getMatchingFilenamesInTree ( pluginJarList, userPluginsFolder, ".*.jar" );
 	}
 	catch ( Exception e ) {
-		// Should not happen
+		// Should not happen.
 	}
-	// Get a list of jar files in the installation plugins folder
+	// Get a list of jar files in the installation plugins folder.
 	File installPluginsFolder = new File(session.getInstallPluginsFolder());
 	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + installPluginsFolder + "\"");
 	try {
 		getMatchingFilenamesInTree ( pluginJarList, installPluginsFolder, ".*.jar" );
 	}
 	catch ( Exception e ) {
-		// Should not happen
+		// Should not happen.
 	}
 }
 
@@ -233,12 +238,12 @@ private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List
 			session.getUserTstoolFolder() + File.separator + "plugin-datastore"
 		};
 	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
-		// First get a list of candidate URLs, using path to jar file
+		// First get a list of candidate URLs, using path to jar file.
 		String pluginDir = pluginHomeFolders[iPluginHome];
 		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
-		// in which case ** will need to be used somehow in the glob pattern
+		// in which case ** will need to be used somehow in the glob pattern.
 		String glob = pluginDir + File.separator + "*" + File.separator + "bin" + File.separator + "*.jar";
-		// For glob backslashes need to be escaped (this should not impact Linux)
+		// For glob backslashes need to be escaped (this should not impact Linux).
 		glob = glob.replace ("\\","\\\\");
 		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:"+glob);
 		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
@@ -258,15 +263,15 @@ private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List
 			}
 		};
 		try {
-			// The following walks the tree path under the specified folder
-			// The full path is returned during walking (not just under the starting folder)
+			// The following walks the tree path under the specified folder.
+			// The full path is returned during walking (not just under the starting folder).
 			Path pluginDirPath = Paths.get(pluginDir);
 			Message.printStatus(2,routine, "Trying to find plugin datastores using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
 			Files.walkFileTree(pluginDirPath, matcherVisitor);
 		}
 		catch ( IOException e ) {
 			Message.printWarning(3,routine,"Error getting jar file list for plugin datastore(s) (" + e + ")" );
-			// Return empty list of datastore plugin classes
+			// Return empty list of datastore plugin classes.
 			return;
 		}
 	}
@@ -354,7 +359,7 @@ throws IOException
         }
     }
     else {
-        //add to list if command file is valid
+        // Add to list if command file is valid.
         String pathName = path.getName();
     	//Message.printStatus(2, routine, "Checking path \"" + pathName + "\" against \"" + pattern + "\"" );
     	// Do comparison on file name without directory.
@@ -405,7 +410,7 @@ public static boolean getRunOnLoad ()
 Initialize important data and set message levels for application after startup.
 */
 private static void initializeLoggingLevelsAfterLogOpened ()
-{	// Initialize message levels...
+{	// Initialize message levels.
     // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
 	Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
 	Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );
@@ -415,7 +420,7 @@ private static void initializeLoggingLevelsAfterLogOpened ()
 	Message.setWarningLevel ( Message.LOG_OUTPUT, 3 );
 
 	// Indicate that message levels should be shown in messages, to allow
-	// for a filter when displaying messages...
+	// for a filter when displaying messages.
 
 	Message.setPropValue ( "ShowMessageLevel=true" );
 	Message.setPropValue ( "ShowMessageTag=true" );
@@ -425,7 +430,7 @@ private static void initializeLoggingLevelsAfterLogOpened ()
 Initialize important data and set message levels for console startup.
 */
 private static void initializeLoggingLevelsBeforeLogOpened ()
-{   // Initialize message levels...
+{   // Initialize message levels.
     // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
     Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
     Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );
@@ -435,7 +440,7 @@ private static void initializeLoggingLevelsBeforeLogOpened ()
     Message.setWarningLevel ( Message.LOG_OUTPUT, 3 );
 
     // Indicate that message levels should be shown in messages, to allow
-    // for a filter when displaying messages...
+    // for a filter when displaying messages.
 
     Message.setPropValue ( "ShowMessageLevel=true" );
     Message.setPropValue ( "ShowMessageTag=true" );
@@ -447,7 +452,7 @@ Initialize important data relative to the installation home.
 private static void initializeAfterHomeIsKnown ()
 {	String routine = "TSToolMain.initializeAfterHomeIsKnown";
 
-	// Initialize the system data...
+	// Initialize the system data.
 
 	String units_file = __tstoolInstallHome + File.separator + "system" + File.separator + "DATAUNIT";
 
@@ -506,20 +511,20 @@ private static void loadPluginDataStores(TSToolSession session,
 	@SuppressWarnings("rawtypes") List<Class> pluginCommandList )
 {
 	final String routine = "TSToolMain.loadPluginDataStores";
-	// Find jar files that contain datastores
+	// Find jar files that contain datastores.
 	Message.printStatus(2, routine, "Loading plugin datastores and commands using old and then new approach...");
-	// First use the old approach (TSTool 12.06.00 and earlier)
+	// First use the old approach (TSTool 12.06.00 and earlier).
 	final List<String> pluginJarListOld = new ArrayList<>();
 	findPluginDataStoreJarFilesOld ( session, pluginJarListOld );
 	loadPluginDataStoresOld("", session, pluginJarListOld, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
-	// Next use the new approach (TSTool 12.07.00 and later)
+	// Next use the new approach (TSTool 12.07.00 and later).
 	final List<String> pluginJarListNew = new ArrayList<>();
 	findPluginDataStoreJarFilesNew ( session, pluginJarListNew );
 	loadPluginDataStoresNew(session, pluginJarListNew, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 }
 
 /**
- * Load plugin datastore clases using new (TSTool 12.07.00 and later approach).
+ * Load plugin datastore classes using new (TSTool 12.07.00 and later approach).
  * Currently uses the old approach because at this point the list of candidate jar files is processed.
  * @param session
  * @param pluginJarList
@@ -531,7 +536,7 @@ private static void loadPluginDataStoresNew(TSToolSession session, List<String> 
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
 	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
-	// Try using the old logic for now
+	// Try using the old logic for now.
 	loadPluginDataStoresOld( "New", session, pluginJarList, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 }
 
@@ -549,20 +554,20 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
 	if ( messagePrefix.isEmpty() ) {
 		messagePrefix = "Old";
-		// Use for messages so it is clear whether processing old or new datastore configurations
+		// Use for messages so it is clear whether processing old or new datastore configurations.
 	}
 	String routine = "TSToolMain.loadPluginDataStores" + messagePrefix;
-	// Create a separate class loader for each plugin to maintain separation
-	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder
+	// Create a separate class loader for each plugin to maintain separation.
+	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder.
 	Message.printStatus(2, routine, "Trying to load plugin datastores from " + pluginJarList.size() + " candidate jar files");
 	for ( String pluginJar : pluginJarList ) {
-		// TODO figure out if only the top level datastore Jar file should be included
+		// TODO figure out if only the top level datastore Jar file should be included.
 		Message.printStatus(2, routine, "Trying to load plugin datastores from \"" + pluginJar + "\"");
 		URL [] dataStoreJarURLs = new URL[2];
 		try {
-			// Convert the file system filename to URL using forward slashes
+			// Convert the file system filename to URL using forward slashes.
 			dataStoreJarURLs[0] = new URL("file:///" + pluginJar.replace("\\", "/"));
-			// Also add all the jar files in the "/dep" folder
+			// Also add all the jar files in the "/dep" folder:
 			// -tried to figure out how to use MANIFEST-MF Class-Path property but seemed confusing
 			//  so just add all jar files that are found
 			File f = new File(pluginJar);
@@ -590,7 +595,7 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 		List<Class> pluginDataStoreList1 = null;
 		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreFactoryList1 = null;
-		// Load datastore classes
+		// Load datastore classes.
 		try {
 			pluginDataStoreList1 = pcl.loadDataStoreClasses();
 		}
@@ -598,7 +603,7 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			Message.printWarning(2,routine,"Error loading datastore plugin classes (" + e + ")." );
 			Message.printWarning(2,routine,e);
 		}
-		// Load datastore factory classes
+		// Load datastore factory classes.
 		try {
 			pluginDataStoreFactoryList1 = pcl.loadDataStoreFactoryClasses();
 		}
@@ -617,7 +622,7 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 					") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
 			}
 			else {
-				// Add to the list to be known to TSTool
+				// Add to the list to be known to TSTool.
 				pluginDataStoreList.addAll(pluginDataStoreList1);
 			}
 		}
@@ -631,18 +636,18 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 					") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
 			}
 			else {
-				// Add to the list to be known to TSTool
+				// Add to the list to be known to TSTool.
 				pluginDataStoreFactoryList.addAll(pluginDataStoreFactoryList1);
 			}
 		}
 
 		// Add the plugin command class to the list.
-		// Use a class loader to load the class file
+		// Use a class loader to load the class file.
 		@SuppressWarnings("rawtypes")
 		List<Class> pluginCommandList1 = null;
-		// Load command classes
+		// Load command classes.
 		try {
-			// TODO smalers 2020-08-03 for now use method in the datastore clas loader
+			// TODO smalers 2020-08-03 for now use method in the datastore class loader.
 			//PluginCommandClassLoader pcl2 = new PluginCommandClassLoader ( dataStoreJarURLs );
 			//pluginCommandList1 = pcl2.loadCommandClasses();
 			pluginCommandList1 = pcl.loadCommandClasses();
@@ -652,13 +657,13 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			Message.printWarning(2,routine,e);
 		}
 		finally {
-			/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
-		 	* The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+			/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin.
+		 	* The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime.
 			try {
 				pcl.close();
 			}
 			catch ( IOException e ) {
-				// For now swallow - not sure what else to do
+				// For now swallow - not sure what else to do.
 			}
 			*/
 		}
@@ -666,7 +671,7 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			Message.printWarning(2,routine,"Null plugin command list for plugin Jar \"" + pluginJar + "\" - skipping plugin commands." );
 		}
 		else {
-			// Add to the list to be known to TSTool
+			// Add to the list to be known to TSTool:
 			// - multiple commands can be associated with a plugin jar file
 			// - other plugins may also add to the list
 			Message.printStatus(2,routine,"Plugin command list for plugin Jar \"" + pluginJar + "\" includes " +
@@ -700,15 +705,15 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 	};
 	List<Class> pluginCommandList = new ArrayList<Class>();
 	for ( int iPluginHome = 0; iPluginHome < pluginHomeFolders.length; iPluginHome++ ) {
-		// First get a list of candidate URLs, using path to jar file
+		// First get a list of candidate URLs, using path to jar file.
 		String pluginDir = pluginHomeFolders[iPluginHome];
 		// First get a list of candidate URLs, which will be in the TSTool user files under, for example:
 		// .tstool/13/plugins/xxx.jar
 		// See:  http://stackoverflow.com/questions/9148528/how-do-i-use-directory-globbing-in-jdk7
 		// TODO SAM 2016-04-03 it may be desirable to include sub-folders under bin for third-party software
-		// in which case ** will need to be used somehow in the glob pattern
+		// in which case ** will need to be used somehow in the glob pattern.
 		String glob = pluginDir + File.separator + "*.jar";
-		// For glob backslashes need to be escaped (this should not impact Linux)
+		// For glob backslashes need to be escaped (this should not impact Linux).
 		glob = glob.replace ("\\","\\\\");
 		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + glob);
 		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
@@ -728,25 +733,25 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 			}
 		};
 		try {
-			// The following walks the tree path under the specified folder
-			// The full path is returned during walking (not just under the starting folder)
+			// The following walks the tree path under the specified folder.
+			// The full path is returned during walking (not just under the starting folder).
 			Path pluginDirPath = Paths.get(pluginDir);
 			Message.printStatus(2,routine, "Trying to find plugin commands using pluginDirPath \"" + pluginDirPath + "\" and glob pattern \"" + glob + "\"" );
 			Files.walkFileTree(pluginDirPath, matcherVisitor);
 		}
 		catch ( IOException e ) {
 			Message.printWarning(3,routine,"Error getting jar file list for plugin command(s) (" + e + ")" );
-			// Return empty list of command plugin classes
+			// Return empty list of command plugin classes.
 			return pluginCommandList;
 		}
 	}
-	// Convert found jar files into an array of URL used by the class loader
+	// Convert found jar files into an array of URL used by the class loader:
 	// - from this point forward the jar file path does not care if in the user folder or TSTool installation folder
 	URL [] commandJarURLs = new URL[pluginJarList.size()];
 	int jarCount = 0;
 	for ( String pluginJar : pluginJarList ) {
 		try {
-			// Convert the file system filename to URL using forward slashes
+			// Convert the file system filename to URL using forward slashes.
 			commandJarURLs[jarCount] = new URL("file:///" + pluginJar.replace("\\", "/"));
 			++jarCount; // Only increment if successful
 		}
@@ -756,7 +761,7 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 	}
 	// Create a class loader for commands.  This expects commands to be in the jar file with class name CommandName.
 	if ( jarCount != pluginJarList.size() ) {
-		// Resize the array
+		// Resize the array.
 		URL [] commandJarURLs2 = new URL[jarCount];
 		System.arraycopy(commandJarURLs,0,commandJarURLs2,0,jarCount);
 		commandJarURLs = commandJarURLs2;
@@ -770,13 +775,13 @@ private static List<Class> loadPluginCommands(TSToolSession session)
 		Message.printWarning(2,routine,e);
 	}
 	finally {
-		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin
-		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime
+		/* FIXME SAM 2016-04-03 Try not closing class loader because it is needed for other classes in the plugin.
+		 * The compiler may show as a warning as a memory leak but it needs to be around throughout the runtime.
 		try {
 			pcl.close();
 		}
 		catch ( IOException e ) {
-			// For now swallow - not sure what else to do
+			// For now swallow - not sure what else to do.
 		}
 		*/
 	}
@@ -793,7 +798,7 @@ public static void main ( String args[] )
 	try {
 	// Main try...
 		
-	// Turn on POI (Excel integration) logging, used for troubleshooting
+	// Turn on POI (Excel integration) logging, used for troubleshooting:
 	// - see:  https://poi.apache.org/components/logging.html
 	// - TODO smalers 2019-10-07 Need to enable in limited way to troubleshoot
 	//System.setProperty("org.apache.poi.util.POILogger", "org.apache.poi.util.CommonsLogger" );
@@ -840,25 +845,24 @@ public static void main ( String args[] )
 
 	Message.printStatus( 2, routine, "isBatch=" + IOUtil.isBatch() + " -nomaingui specified = " + __noMainGUIArgSpecified );
 	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified || !isBatchServer() ) {
-	    // Not "pure" batch so need to have the icon initialized
+	    // Not "pure" batch so need to have the icon initialized.
 	    try {
 	        setIcon ( "CDSS" );
 	    }
 	    catch ( Exception e ) {
-	        // FIXME SAM 2008-08-29 Why doesn't the above work on Linux in batch mode
-	        // to avoid trying?
+	        // FIXME SAM 2008-08-29 Why doesn't the above work on Linux in batch mode to avoid trying?
 	        Message.printWarning( 2, routine, "Error setting icon graphic." );
 	        Message.printWarning( 3, routine, e );
 	    }
 	}
 
-	// Read the data units...
+	// Read the data units.
 
 	initializeAfterHomeIsKnown ();
 
 	Message.printStatus ( 1, routine, "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
 
-	// Load plugin datastore classes
+	// Load plugin datastore classes.
 	
 	@SuppressWarnings("rawtypes")
 	List<Class> pluginDataStoreClasses = new ArrayList<>();
@@ -876,24 +880,24 @@ public static void main ( String args[] )
 	Message.printStatus(2, routine, "Loaded " + pluginDataStoreFactoryClasses.size() + " plugin datastore factory classes for all datastore jars.");
 	Message.printStatus(2, routine, "Loaded " + pluginCommandClasses.size() + " plugin command classes for all datastore jars.");
 	
-	// Load plugin command classes
+	// Load plugin command classes:
 	// - TODO smalers 2020-07-25 - these are now determined when loading datastore plugins, above
 	
 	// @SuppressWarnings("rawtypes")
 	// List<Class> pluginCommandClasses = loadPluginCommands(session);
 	
-	// Run TSTool in the run mode indicated by command line parameters
+	// Run TSTool in the run mode indicated by command line parameters.
 	
 	if ( IOUtil.isBatch() ) {
-		// Running like "tstool -commands file" (possibly with -nomaingui)
+		// Running like "tstool -commands file" (possibly with -nomaingui).
 		TSCommandFileRunner runner = new TSCommandFileRunner(processorProps, pluginCommandClasses);
 		// If the global timeout is set, start a thread that will time out when the batch run is complete.
 		startTimeoutThread ( getBatchTimeout());
-	    // Open the HydroBase connection if the configuration file specifies the information.  Do this before
-		// reading the command file because commands may try to run discovery during load.
+	    // Open the HydroBase connection if the configuration file specifies the information.
+		// Do this before reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner.getProcessor() );
-        // Open datastores in a generic way if the configuration file specifies the information.  Do this before
-        // reading the command file because commands may try to run discovery during load.
+        // Open datastores in a generic way if the configuration file specifies the information.
+        // Do this before reading the command file because commands may try to run discovery during load.
         openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
         // Set datastore substitutes, used later when requesting datastores.
         runner.getProcessor().setDatastoreSubstituteMap(datastoreSubstituteMap);
@@ -909,7 +913,7 @@ public static void main ( String args[] )
 			quitProgram ( 1 );
 		}
 		// If running with -nomaingui, then plot windows should be displayed and when closed cause the
-		// run to end - this should be used with external applications that use TSTool as a plotting tool
+		// run to end - this should be used with external applications that use TSTool as a plotting tool>
 		if ( !__showMainGUI ) {
 		    // Create a hidden listener to handle close-out of the application when a plot window is closed.
 		    Message.printStatus(2,routine, "Displaying plots with no main GUI.");
@@ -924,19 +928,18 @@ public static void main ( String args[] )
                 quitProgram ( 0 );
             }
             else {
-                // Not showing the main GUI.  Exit here if there are no plot windows - otherwise
-                // will hang.  If windows are found, let the GUI WindowListener handle when to close the
-                // application.
+                // Not showing the main GUI.  Exit here if there are no plot windows - otherwise will hang.
+            	// If windows are found, let the GUI WindowListener handle when to close the application.
                 Frame [] frameArray = Frame.getFrames();
                 int size = 0;
                 if ( frameArray != null ) {
                     size = frameArray.length;
                 }
-                boolean openWindowFound = false;    // Are any windows open?  If no, exit
-                // Check for windows that could be open as part of visualization, including
-                // the graph, summary, and table windows.  If any are visible, then need to wait
-                // until the user closes all.  Then WindowClosing will be called since no more
-                // windows are shown.
+                boolean openWindowFound = false;    // Are any windows open?  If no, exit.
+                // Check for windows that could be open as part of visualization,
+                // including the graph, summary, and table windows.
+                // If any are visible, then need to wait until the user closes all.
+                // Then WindowClosing will be called since no more windows are shown.
                 for ( int i = 0; i < size; i++ ) {
                     if ( frameArray[i] instanceof TSViewGraphJFrame || frameArray[i] instanceof TSViewSummaryJFrame ||
                         frameArray[i] instanceof TSViewTableJFrame ) {
@@ -948,8 +951,7 @@ public static void main ( String args[] )
                         }
                     }
                 }
-                // If no open window was found quit.  Otherwise let the TSToolBatchWindowListener
-                // handle the close.
+                // If no open window was found quit.  Otherwise let the TSToolBatchWindowListener handle the close.
                 if ( !openWindowFound ) {
                     Message.printStatus(2,routine, "No open, visible windows detected.  Exiting.");
                     quitProgram ( 0 );
@@ -957,7 +959,7 @@ public static void main ( String args[] )
             }
 		}
 		catch ( Exception e ) {
-			// Some type of error
+			// Some type of error.
 			Message.printWarning ( 1, routine, "Error running command file \"" + getCommandFile() + "\"." );
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
@@ -966,8 +968,8 @@ public static void main ( String args[] )
 	else if ( isBatchServer() ) {
 		String batchServerHotFolder0 = getBatchServerHotFolder();
 		Message.printStatus ( 1, routine, "Starting in batch server mode with hot folder \"" + batchServerHotFolder0 + "\"" );
-		// TODO SAM 2016-02-09 For now keep code here but may make more modular
-		// Create a runner that will be re-used
+		// TODO SAM 2016-02-09 For now keep code here but may make more modular.
+		// Create a runner that will be re-used.
 		if ( batchServerHotFolder0.isEmpty() ) {
 			Message.printWarning ( 1, routine, "No batch server hot folder specified - use -batchServerHotFolder command line parameter." );
 			quitProgram ( 1 );
@@ -983,11 +985,11 @@ public static void main ( String args[] )
 		}
 		// Create a processor using initial command line properties for the processor.
 		TSCommandFileRunner runner = new TSCommandFileRunner(processorProps, pluginCommandClasses);
-		// Open the HydroBase connection if the configuration file specifies the information.  Do this before
-		// reading the command file because commands may try to run discovery during load.
+		// Open the HydroBase connection if the configuration file specifies the information.
+		// Do this before reading the command file because commands may try to run discovery during load.
         openHydroBase ( runner.getProcessor() );
-        // Open datastores in a generic way if the configuration file specifies the information.  Do this before
-        // reading the command file because commands may try to run discovery during load.
+        // Open datastores in a generic way if the configuration file specifies the information.
+        // Do this before reading the command file because commands may try to run discovery during load.
         openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
         File f = null;
 		String commandFileFull = "";
@@ -995,30 +997,30 @@ public static void main ( String args[] )
 	    boolean doStop = false;
 	    long sleep = 50;
         while ( true ) {
-        	Thread.sleep(sleep); // Do this to keep the loop from eating up a lot of CPU
-        	// Wait for configured wait time between processing
-        	// Look for files in the batch server hot folder
+        	Thread.sleep(sleep); // Do this to keep the loop from eating up a lot of CPU.
+        	// Wait for configured wait time between processing.
+        	// Look for files in the batch server hot folder.
         	List<File> files = IOUtil.getFilesMatchingPattern(batchServerHotFolder0, "*", true);
         	//Message.printStatus(1,routine,"Have " + files.size() + " files in hot folder.");
         	// TODO SAM 2016-02-08 need to sort so oldest file processed first.
-        	// Also perhaps need to check for a command like "End()" to make sure file is complete from copy into hot folder
+        	// Also perhaps need to check for a command like "End()" to make sure file is complete from copy into hot folder.
         	for ( int i = 0; i < files.size(); i++ ) {
         		f = files.get(i);
-        		// Make sure the file exists and is readable
+        		// Make sure the file exists and is readable.
         		Message.printStatus(1,routine,"Processing command file \"" + f.getAbsolutePath() + "\".");
         		if ( f.exists() && f.canRead() ) {
     				commandFileFull = f.getAbsolutePath();
         			String filename = f.getName();
-        			// Special actions based on command file name
+        			// Special actions based on command file name.
         			if ( filename.equalsIgnoreCase("stop") ) {
         				doStop = true;
         				break;
         			}
         			if ( !commandFileFull.toUpperCase().endsWith(".TSTOOL") ) {
-        				// Not a command file so don't process
+        				// Not a command file so don't process.
         				continue;
         			}
-        			// Open the command file...
+        			// Open the command file.
         			try {
         			    Message.printStatus( 1, routine, "Running command file in batch server mode:  \"" + commandFileFull + "\"" );
         				runner.readCommandFile ( commandFileFull, runDiscoveryOnLoad );
@@ -1028,7 +1030,7 @@ public static void main ( String args[] )
         				Message.printWarning ( 1, routine, e );
         				continue;
         			}
-        			// Run the command file..
+        			// Run the command file.
         			try {
         			    // The following will throw an exception if there are any errors running.
         	            runner.runCommands();
@@ -1037,7 +1039,7 @@ public static void main ( String args[] )
         				Message.printWarning ( 1, routine, "Error running command file \"" + commandFileFull + "\"." );
         				Message.printWarning ( 1, routine, e );
         			}
-        			// Remove the command file
+        			// Remove the command file.
         			f.delete();
         		}
         	}
@@ -1051,7 +1053,7 @@ public static void main ( String args[] )
 	}
 	else if ( isHttpServer() ) {
 		// See:  http://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
-		// Do something simple for now to test
+		// Do something simple for now to test.
 		int port = 8000;
 		HttpServer server = HttpServer.create(new InetSocketAddress(port),0);
 		String root = "/tstool";
@@ -1060,7 +1062,7 @@ public static void main ( String args[] )
 		server.start();
 	}
 	else if ( isRestServer() ) {
-		// Run in server mode using REST API
+		// Run in server mode using REST API.
 		runRestletServer();
 	}
 	else {
@@ -1068,9 +1070,16 @@ public static void main ( String args[] )
 		// - the processor for the UI is created in the called code
 		Message.printStatus ( 2, routine, "Starting TSTool UI..." );
 		try {
-            __tstool_JFrame = new TSTool_JFrame ( session, getCommandFile(), getRunOnLoad(),
-            	pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses,
-            	processorProps, datastoreSubstituteMap);
+            __tstool_JFrame = new TSTool_JFrame (
+            	session,
+            	getCommandFile(),
+            	getRunOnLoad(),
+            	pluginDataStoreClasses,
+            	pluginDataStoreFactoryClasses,
+            	pluginCommandClasses,
+            	processorProps,
+            	datastoreSubstituteMap,
+            	titleMod);
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error starting TSTool GUI." );
@@ -1104,20 +1113,20 @@ protected static DataStore openDataStore ( TSToolSession session, PropList dataS
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception {
     String routine = "TSToolMain.openDataStore";
-    // Open the datastore depending on the type
+    // Open the datastore depending on the type.
     String dataStoreType = dataStoreProps.getValue("Type");
     String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
     Message.printStatus(2,routine,"DataStoreConfigFile=\""+dataStoreConfigFile+"\"");
-    // For now hard-code this here
-    // TODO SAM 2010-09-01 Make this more elegant
-    String packagePath = ""; // Make sure to include trailing period below
-    // TODO SAM 2016-03-25 Need to figure out how software feature set can be generically disabled without coding name here
-    // Similar checks are done in the TSTool UI to enable/disable UI features
-    String propValue = null; // From software installation configuration
-    String userPropValue = null; // From user configuration
-	//Class pluginDataStoreClass = null; // Will be used if a plugin
+    // For now hard-code this here.
+    // TODO SAM 2010-09-01 Make this more elegant.
+    String packagePath = ""; // Make sure to include trailing period below.
+    // TODO SAM 2016-03-25 Need to figure out how software feature set can be generically disabled without coding name here.
+    // Similar checks are done in the TSTool UI to enable/disable UI features.
+    String propValue = null; // From software installation configuration.
+    String userPropValue = null; // From user configuration.
+	//Class pluginDataStoreClass = null; // Will be used if a plugin.
     @SuppressWarnings("rawtypes")
-	Class pluginDataStoreFactoryClass = null; // Will be used if a plugin
+	Class pluginDataStoreFactoryClass = null; // Will be used if a plugin.
     if ( dataStoreType.equalsIgnoreCase("ColoradoHydroBaseRestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoHydroBaseRestEnabled");
     	userPropValue = session.getUserConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
@@ -1129,9 +1138,9 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
-        // No need to check whether enabled or not since a generic connection
-        // Specific configuration files will indicate if enabled
-    	// TODO SAM 2016-02-19 Need to move to more appropriate path
+        // No need to check whether enabled or not since a generic connection.
+        // Specific configuration files will indicate if enabled.
+    	// TODO SAM 2016-02-19 Need to move to more appropriate path.
         packagePath = "riverside.datastore.";
     }
     else if ( dataStoreType.equalsIgnoreCase("HydroBaseDataStore") ) {
@@ -1225,18 +1234,18 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
     }
     else {
-    	// Try to load plugin by matching the datastore type with the datastore class name
+    	// Try to load plugin by matching the datastore type with the datastore class name.
     	boolean loaded = false;
-		// Loop through the datastore classes to find which has a name that matches the datastore type in configuration file
+		// Loop through the datastore classes to find which has a name that matches the datastore type in configuration file.
     	String dataStoreFactory = dataStoreType + "Factory";
 		for ( @SuppressWarnings("rawtypes") Class c : pluginDataStoreFactoryClassList ) {
-			String nameFromClass = c.getSimpleName(); // Something like DatabaseXDataStoreFactory
+			String nameFromClass = c.getSimpleName(); // Something like DatabaseXDataStoreFactory.
 			Message.printStatus(2, routine, "Checking plugin datastore config file \"" +
 				dataStoreConfigFile + "\" for configuration datastore type \"" + nameFromClass + "\"");
 			if ( nameFromClass.equals(dataStoreFactory) ) {
-				// Construction will occur by the datastore factory below but need the package name
-				packagePath = c.getPackage().toString() + "."; // Actually have problems with this
-				pluginDataStoreFactoryClass = c; // Use directly below
+				// Construction will occur by the datastore factory below but need the package name.
+				packagePath = c.getPackage().toString() + "."; // Actually have problems with this.
+				pluginDataStoreFactoryClass = c; // Use directly below.
 				loaded = true;
         		break;
 			}
@@ -1257,18 +1266,18 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             return null;
         }
         else {
-            // Datastore is enabled so construct the instance
+            // Datastore is enabled so construct the instance.
             StopWatch sw = new StopWatch();
             sw.start();
             String className = packagePath + dataStoreType + "Factory";
             DataStoreFactory factory = null;
             if ( pluginDataStoreFactoryClass != null ) {
-            	// This works for plugins
+            	// This works for plugins.
 	            try {
 		    		@SuppressWarnings("unchecked")
 					Constructor<?> constructor = pluginDataStoreFactoryClass.getConstructor();
 		    		Object dataStoreFactory = constructor.newInstance();
-		    		// The object must be a DataStore if it follows implementation requirements
+		    		// The object must be a DataStore if it follows implementation requirements.
 		    		factory = (DataStoreFactory)dataStoreFactory;
 		    	}
 		    	catch ( NoSuchMethodException e ) {
@@ -1285,31 +1294,31 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 		    	}
             }
             else {
-            	// Plugin datastore class was not determined above
+            	// Plugin datastore class was not determined above.
                 Message.printStatus(2, routine, "Getting class for name \"" + className + "\"" );
                 @SuppressWarnings("rawtypes")
 				Class clazz = Class.forName( className );
                 Message.printStatus(2, routine, "Creating instance of class \"" + className + "\"" );
             	factory = (DataStoreFactory)clazz.newInstance();
             }
-        	// Check for a login of "prompt"
+        	// Check for a login of "prompt".
         	String systemLogin = dataStoreProps.getValue("SystemLogin");
         	String systemPassword = dataStoreProps.getValue("SystemPassword");
             if ( ((systemLogin != null) && systemLogin.equalsIgnoreCase("prompt")) ||
             	((systemPassword != null) && systemPassword.equalsIgnoreCase("prompt"))	) {
-                // If in batch mode, skip
+                // If in batch mode, skip.
             	if ( isBatch ) {
                     Message.printStatus(2, routine, "Skipping datastore \"" + dataStoreType + "\", name \"" +
                         dataStoreProps.getValue("Name") + "\" because in batch mode.  Will prompt for login when not in batch mode." );
                     return null;
             	}
             	else {
-            		// Not in batch mode - open the datastore using a prompt initiated from the TSTool UI
+            		// Not in batch mode - open the datastore using a prompt initiated from the TSTool UI.
             		if ( factory instanceof DataStoreConnectionUIProvider ) {
         	            // Create the datastore instance using the properties in the configuration file
-            			// supplemented by login/password from interactive input
-        	        	// Add to the processor even if it does not successfully open so that UI can show
-        	        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens
+            			// supplemented by login/password from interactive input.
+        	        	// Add to the processor even if it does not successfully open so that UI can show.
+        	        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens.
             			Message.printStatus(2, routine, "Opening datastore \"" + dataStoreType + "\", name \"" +
                             dataStoreProps.getValue("Name") + "\" via prompt from TSTool GUI." );
             			DataStoreConnectionUIProvider uip = (DataStoreConnectionUIProvider)factory;
@@ -1320,7 +1329,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         	            		"\" is null after opening from TSTool GUI - this is unexpected." );
         	            }
         	            else {
-	        	            // Add the datastore to the processor
+	        	            // Add the datastore to the processor.
 	        	            processor.setPropContents ( "DataStore", dataStore );
 	        	            Message.printStatus(2, routine, "Opening datastore type \"" + dataStoreType + "\", name \"" +
 	        	                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
@@ -1335,11 +1344,11 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             	}
             }
             else {
-	            // Create the datastore instance using the properties in the configuration file
-	        	// Add to the processor even if it does not successfully open so that UI can show
-	        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens
+	            // Create the datastore instance using the properties in the configuration file.
+	        	// Add to the processor even if it does not successfully open so that UI can show.
+	        	// TODO SAM 2015-02-15 Need to update each factory to handle partial opens.
 	            DataStore dataStore = factory.create(dataStoreProps);
-	            // Add the datastore to the processor
+	            // Add the datastore to the processor.
 	            processor.setPropContents ( "DataStore", dataStore );
 	            Message.printStatus(2, routine, "DataStore properties are: " + dataStore.getProperties().toString(","));
 	            sw.stop();
@@ -1386,7 +1395,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 		dataStoreConfigFiles.add(f.getAbsolutePath());
 	}
 
-    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/N/datastores
+    // Also get names of datastore configuration files from configuration files in user's home folder .tstool/N/datastores.
     if ( session.createUserDatastoresFolder(true) ) {
 	    String datastoreFolder = session.getUserDatastoresFolder();
 	    File f = new File(datastoreFolder);
@@ -1400,7 +1409,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 	    		}
 	    	}
 	    };
-	    String [] dfs = f.list(ff); // Returns files without leading path
+	    String [] dfs = f.list(ff); // Returns files without leading path.
 	    if ( dfs != null ) {
 	    	for ( int i = 0; i < dfs.length; i++ ) {
 	    		String datastoreFile = datastoreFolder + File.separator + dfs[i];
@@ -1414,7 +1423,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     // - if a duplicate is found, use the user version first
     int nDataStores = dataStoreConfigFiles.size();
     // Datastore names that have been opened, so as to avoid reopening.  User datastores are opened first.
-    List<DataStore> openDataStoreList = new ArrayList<>(); // Datastores that have been opened, to avoid re-opening
+    List<DataStore> openDataStoreList = new ArrayList<>(); // Datastores that have been opened, to avoid re-opening.
     Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " datastores (first user, then installation configuration files)." );
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
@@ -1452,7 +1461,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 	// in the processor when datastore name is requested.
                 }
                 String dataStoreType = dataStoreProps.getValue("Type");
-                // If the datastore type is no longer supported, skip because it can slow down startup.
+                // If the datastore type is no longer supported, skip because it can slow down startup:
                 // - need more time to fully remove the code
                 if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ||
                 	dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore")) {
@@ -1460,7 +1469,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                			"\" type \"" + dataStoreType + "\" is obsolete.  Skipping." );
                 	continue;
                 }
-                // See if the datastore name matches one that is already open and if so, ignore it.
+                // See if the datastore name matches one that is already open and if so, ignore it:
                 // - name must match, and must be enabled.
                 boolean dataStoreAlreadyOpened = false;
                 for ( DataStore openDataStore : openDataStoreList ) {
@@ -1470,7 +1479,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 		isEnabled = true;
                 	}
                 	if ( openDataStore.getName().equalsIgnoreCase(dataStoreName) && isEnabled ) {
-                		// Found a matching datastore
+                		// Found a matching datastore.
                 		Message.printStatus(2,routine,"Datastore \"" + dataStoreName +
                 			"\" matches previous enabled datastore (user datastores are used before system datastores).  Skipping.");
                 		dataStoreAlreadyOpened = true;
@@ -1481,9 +1490,9 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 	continue;
                 }
                 DataStore dataStore = openDataStore ( session, dataStoreProps, processor, pluginDataStoreClassList, pluginDataStoreFactoryClassList, isBatch );
-                // Save the datastore name so duplicates are not opened
+                // Save the datastore name so duplicates are not opened.
                 if ( dataStore != null ) {
-                	// DataStore will be null if disabled or a serious error occurred opening
+                	// DataStore will be null if disabled or a serious error occurred opening.
                 	openDataStoreList.add(dataStore);
                 }
             }
@@ -1510,7 +1519,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
         }
     }
     
-    // TODO SAM 2010-09-01 Transition HydroBase and other datastores here
+    // TODO SAM 2010-09-01 Transition HydroBase and other datastores here.
 }
 
 // TODO SAM 2010-02-03 Evaluate whether non-null HydroBaseDMI return is OK or whether
@@ -1525,7 +1534,7 @@ exists, then a default connection is attempted.
 */
 public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
 {   String routine = "TSToolMain.openHydroBase";
-    boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool configuration file
+    boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool configuration file.
     String propval = __tstool_props.getValue ( "TSTool.HydroBaseEnabled");
     if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
         HydroBase_enabled = true;
@@ -1543,13 +1552,13 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
     }
     if ( IOUtil.isBatch() || autoConnect ) {
         // Running in batch mode or without a main GUI so automatically
-        // open HydroBase from the CDSS.cfg file information...
-        // Get the input needed to process the file...
+        // open HydroBase from the CDSS.cfg file information.
+        // Get the input needed to process the file.
         String hbcfg = HydroBase_Util.getConfigurationFile();
         PropList props = null;
         
         if ( IOUtil.fileExists(hbcfg) ) {
-            // Use the configuration file to get HydroBase properties...
+            // Use the configuration file to get HydroBase properties.
             Message.printStatus(2, routine, "HydroBase configuration file \"" + hbcfg +
             "\" is being used to open HydroBase connection at startup." );
             try {
@@ -1568,9 +1577,8 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
         }
         
         try {
-            // Now open the database...
-            // This uses the guest login.  If properties were not found,
-            // then default HydroBase information will be used.
+            // Now open the database. This uses the guest login.
+        	// If properties were not found, then default HydroBase information will be used.
             HydroBaseDMI hbdmi = new HydroBaseDMI ( props );
             String dbname = props.getValue("DefaultDatabaseName");
             if ( dbname == null ) {
@@ -1600,7 +1608,7 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
             return null;
         }
     }
-    return null; // Probably will not get here
+    return null; // Probably will not get here.
 }
 
 /**
@@ -1612,7 +1620,7 @@ private static void openLogFile ( TSToolSession session )
 	String user = IOUtil.getProgramUser();
 
 	String logFile = null;
-		// Default as of 2016-02-18 is to open the log file as $home/.tstool/NN/logs/TSTool_user.log file unless specified on command line
+		// Default as of 2016-02-18 is to open the log file as $home/.tstool/NN/logs/TSTool_user.log file unless specified on command line.
 		if ( __logFileFromCommandLine != null ) {
 			File f = new File(__logFileFromCommandLine);
 			if ( !f.getParentFile().exists() ) {
@@ -1624,7 +1632,7 @@ private static void openLogFile ( TSToolSession session )
 				Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
 				try {
 	                Message.openLogFile ( logFile );
-	                // Do it again so it goes into the log file
+	                // Do it again so it goes into the log file.
 	                Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
 				}
 				catch (Exception e) {
@@ -1633,14 +1641,14 @@ private static void openLogFile ( TSToolSession session )
 			}
 		}
 		else {
-			// Get the log file name from the session object...under user home folder
+			// Get the log file name from the session object...under user home folder.
 			if ( session.createUserLogsFolder(true) ) {
-				// Log folder already exists or was created, so OK to use
+				// Log folder already exists or was created, so OK to use.
 				logFile = session.getUserLogFile();
 				Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
 				try {
 	                Message.openLogFile ( logFile );
-	                // Also log for troubleshooting
+	                // Also log for troubleshooting.
 	                Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
 				}
 				catch (Exception e) {
@@ -1653,12 +1661,12 @@ private static void openLogFile ( TSToolSession session )
 		}
 	    boolean oldWay = false;
 	    if ( oldWay ) {
-	    	// TODO SAM 2016-02-19 Remove this if the above logic works for the log file
+	    	// TODO SAM 2016-02-19 Remove this if the above logic works for the log file.
 		    if ( (__tstoolInstallHome == null) || (__tstoolInstallHome.length() == 0) || (__tstoolInstallHome.charAt(0) == '.')) {
 				Message.printWarning ( 2, routine, "Home directory is not defined.  Not opening log file.");
 			}
 			else {
-				// Home folder was specified so create log file in that folder logs folder
+				// Home folder was specified so create log file in that folder logs folder.
 				String logfile = null;
 	            if ( (user == null) || user.trim().equals("")) {
 					logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool.log";
@@ -1929,6 +1937,16 @@ throws Exception
 			IOUtil.testing(true);
 			Message.printStatus ( 1, routine, "Running in test mode." );
 		}
+		else if ( args[i].toLowerCase().startsWith("--ui-titlemod") ) {
+			// Provide information to include in the title to help differentiate TSTool sessions that may be running.
+			pos = args[i].indexOf("=");
+			if ( (pos >= 0) && (args[i].length() > (pos + 1)) ) {
+				titleMod = args[i].substring(pos+1).trim();
+			}
+			else {
+				Message.printWarning(1, routine, "Bad parameter \"" + args[i] + "\", should be: --ui-titlemod=text");
+			}
+		}
 		else if (args[i].equalsIgnoreCase("-verbose") || args[i].equalsIgnoreCase("--verbose")) {
 			// Used to run verbose mode to see which classes are loaded by Java:
 			// - this is handled in the 'tstool' bash script so ignore here
@@ -1988,8 +2006,8 @@ throws Exception
 		// User specified or specified by a script/system call to the normal TSTool script/launcher.
 		else {
 		    // Assume that a command file has been specified on the command line - normally this is triggered
-		    // by a double-click on a file with a *.TSTool or *.tstool extension.  In this case the GUI will start and
-		    // load the command file.
+		    // by a double-click on a file with a *.TSTool or *.tstool extension.
+			// In this case the GUI will start and load the command file.
 			String commandFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
 		    setupUsingCommandFile ( commandFile, false );
 		}
@@ -2094,15 +2112,15 @@ private static void readConfigFile ( String configFile )
                 Prop prop = __tstool_props.elementAt(i);
                 Message.printStatus( 2, routine, prop.getKey() + "=" + prop.getValue() );
                 if ( prop.getKey().equalsIgnoreCase("TSTool.DiffProgram") ) {
-                	// Also set global properties that are used more generically
+                	// Also set global properties that are used more generically.
                 	IOUtil.setProp("DiffProgram", prop.getValue());
                 }
                 else if ( prop.getKey().equalsIgnoreCase("TSTool.DiffProgram.Linux") ) {
-                	// Also set global properties that are used more generically
+                	// Also set global properties that are used more generically.
                 	IOUtil.setProp("DiffProgram.Linux", prop.getValue());
                 }
                 else if ( prop.getKey().equalsIgnoreCase("TSTool.DiffProgram.Windows") ) {
-                	// Also set global properties that are used more generically
+                	// Also set global properties that are used more generically.
                 	IOUtil.setProp("DiffProgram.Windows", prop.getValue());
                 }
             }
@@ -2149,7 +2167,7 @@ Run TSTool in restlet server mode.
 private static void runRestletServer ()
 {   String routine = "TSToolMain.runRestletServer()";
     try {
-        int port = -1; // Default
+        int port = -1; // Default.
         TSToolServer server = new TSToolServer();
         server.startServer ( port, new ArrayList<Parameter>() );
     }
@@ -2189,7 +2207,7 @@ Set the icon for the application.  This will be used for all windows.
 TSToolXXXIcon32.gif (where XXX=iconType), both using a path for the main application.
 */
 public static void setIcon ( String iconType )
-{	// First try loading the icon from the JAR file or class path...
+{	// First try loading the icon from the JAR file or class path.
 	String iconFile = "TSTool" + iconType + "Icon32.gif";
 	String iconPath ="";
 	try {
@@ -2217,7 +2235,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     // directory for all other processing.
     String user_dir = System.getProperty("user.dir");
     Message.printStatus (1, routine, "Startup (user.dir) directory is \"" + user_dir + "\"");
-    String command_file_canonical = null;   // Does not need to be absolute
+    String command_file_canonical = null; // Does not need to be absolute.
     File command_file_File = new File(command_file_arg);
     File command_file_full_File = null;
     String command_file_full = null;
@@ -2241,8 +2259,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
         command_file_full = command_file_canonical;
     }
     else {
-        // Append the command file to the user directory and set the working directory to
-        // the resulting directory.
+        // Append the command file to the user directory and set the working directory to the resulting directory.
         command_file_full = user_dir + File.separator + command_file_full;
     }
     
@@ -2250,7 +2267,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     // TODO SAM 2007-09-09 Evaluate phasing global command file out - needs to be handled in
     // the command processor.
     Message.printStatus ( 1, routine, "Command file is \"" + command_file_full + "\"" );
-    // FIXME SAM 2008-09-04 Confirm no negative effects from taking this out
+    // FIXME SAM 2008-09-04 Confirm no negative effects from taking this out.
     //IOUtil.setProgramCommandFile ( command_file_full );
     setCommandFile ( command_file_full );
     
@@ -2262,7 +2279,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
         Message.printWarning(1, routine, message );
         System.err.println ( message );
         if ( is_batch ) {
-             // Exit because there is nothing to do...
+             // Exit because there is nothing to do.
             quitProgram ( 1 );
         }
         else {
@@ -2270,7 +2287,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
         }
     }
     
-    // Indicate whether running in batch mode...
+    // Indicate whether running in batch mode.
     
     IOUtil.isBatch ( is_batch );
 }
@@ -2307,7 +2324,7 @@ private static void setWorkingDirUsingCommandFile ( String commandFileFull )
     System.err.println(message);
 }
 
-// TODO SAM 2015-12-14 This does not seem to work as intended
+// TODO SAM 2015-12-14 This does not seem to work as intended:
 // -The Excecutor service itself is not a thread and so does not return immediately
 // -What will happen if -nomaingui is used with a thread timeout
 // -Probably need timeout on start-up but not once graph is displayed
@@ -2321,17 +2338,17 @@ due to limitations in the packages that are called.
 private static void startTimeoutThread ( int timeoutSeconds )
 {	String routine = "startTimeoutThread";
 	if ( timeoutSeconds <= 0 ) {
-		// No need to start timeout thread
+		// No need to start timeout thread.
 		return;
 	}
 	ExecutorService executor = Executors.newSingleThreadExecutor();
 	Future<String> future = executor.submit(new SleepTask(timeoutSeconds));
 	try {
 		Message.printStatus(2, routine, "Starting thread to time-out TSTool if not done after " + timeoutSeconds + " seconds.");
-		// Actually the task that is run above should sleep the number of seconds so specifying the seconds below is redundant
+		// Actually the task that is run above should sleep the number of seconds so specifying the seconds below is redundant.
 		future.get(timeoutSeconds,TimeUnit.SECONDS);
 		Message.printStatus(2, routine, "Exiting TSTool after waiting " + timeoutSeconds + " seconds.");
-		quitProgram(1); // TODO SAM 2015-02-14 need to evaluate a standard set of exit codes
+		quitProgram(1); // TODO SAM 2015-02-14 need to evaluate a standard set of exit codes.
 	}
 	catch ( TimeoutException e ) {
 		Message.printWarning(2, routine, e );
@@ -2351,7 +2368,7 @@ private static void startTimeoutThread ( int timeoutSeconds )
     Runnable r = new Runnable() {
         public void run() {
             try {
-                // Put in some protection against injection by checking for keywords other than SELECT
+                // Put in some protection against injection by checking for keywords other than SELECT.
                 Thread.sleep(freqms);
             }
             catch ( Exception e ) {
@@ -2368,8 +2385,7 @@ private static void startTimeoutThread ( int timeoutSeconds )
 /**
 Class used to run a timeout task, which is optional to end TSTool when running in batch mode.
 */
-class SleepTask implements Callable<String>
-{
+class SleepTask implements Callable<String> {
 	/**
 	Number of seconds the task should sleep before timing out.
 	*/
@@ -2378,8 +2394,7 @@ class SleepTask implements Callable<String>
 	/**
 	Construct with the timeout.
 	*/
-	public SleepTask ( int sleepSeconds )
-	{
+	public SleepTask ( int sleepSeconds ) {
 		this.sleepSeconds = sleepSeconds;
 	}
 	
@@ -2388,7 +2403,7 @@ class SleepTask implements Callable<String>
 	*/
 	@Override
 	public String call () throws Exception {
-		Thread.sleep(this.sleepSeconds*1000); // Task will wait the timeout and then return
+		Thread.sleep(this.sleepSeconds*1000); // Task will wait the timeout and then return.
 		return "Slept " + sleepSeconds;
 	}
 }

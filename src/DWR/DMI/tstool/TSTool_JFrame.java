@@ -352,6 +352,11 @@ TSTool session information, used to track command file open history, etc.
 */
 private TSToolSession session = null;
 
+/**
+ * Modifier for title, to customize the TSTool session.
+ */
+private String titleMod = null;
+
 private HashMap<String,String> datastoreSubstituteMap = new HashMap<>();
 
 /**
@@ -2309,6 +2314,7 @@ running the commands.  If false, the command file will be loaded but not automat
 @param initialProps properties to initialize in the command processor at the start of processing
 @param datastoreSubstituteMap used by the processor to map datastore names in command files
 with the datastore to be used, useful for testing to globally use a different datastore
+@param titleMod modifier for the title, used with --ui-title to customize the TSTool title
 */
 public TSTool_JFrame (
 	TSToolSession session,
@@ -2318,8 +2324,9 @@ public TSTool_JFrame (
 	List<Class> pluginDataStoreFactoryClassList,
 	List<Class> pluginCommandClassList,
 	PropList initialProps,
-	HashMap<String,String> datastoreSubstituteMap )
-{	super();
+	HashMap<String,String> datastoreSubstituteMap,
+	String titleMod ) {
+	super();
 	StopWatch swMain = new StopWatch();
 	swMain.start();
 	String rtn = "TSTool_JFrame";
@@ -2337,6 +2344,14 @@ public TSTool_JFrame (
 	
 	// Save the list of plugin classes, which will be used to initialize command menus.
 	this.pluginCommandClassList = pluginCommandClassList;
+	
+	// Save the title modifier.
+	if ( titleMod == null ) {
+		this.titleMod = "";
+	}
+	else {
+		this.titleMod = titleMod;
+	}
 	
 	// TODO smalers 2021-07-29 Remove when tested out - initial properties are in the processor
 	// Set the processor properties.
@@ -8203,6 +8218,20 @@ private String ui_GetSelectedTimeStep()
 }
 
 /**
+ * Get the modifier to use for the title, used with --ui-title program option.
+ * This string can be appended directly after "TSTool" in the title,
+ * for example setTitle ( "Title" + ui_GetTitleMod + " - other text" );
+ */
+private String ui_GetTitleMod () {
+	if ( (this.titleMod == null) || (this.titleMod.length() == 0) ) {
+		return "";
+	}
+	else {
+		return " - " + this.titleMod;
+	}
+}
+
+/**
 Initialize the graphical user interface (GUI).
 @param initProps initial properties, from TSTool command line
 */
@@ -12379,14 +12408,14 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 {	// Title bar (command file)...
 	
 	if ( __commandFileName == null ) {
-		setTitle ( "TSTool - no commands saved");
+		setTitle ( "TSTool" + this.ui_GetTitleMod() + " - no commands saved");
 	}
 	else {
         if ( __commandsDirty ) {
-			setTitle ( "TSTool - \"" + __commandFileName + "\" (modified)");
+			setTitle ( "TSTool" + this.ui_GetTitleMod() + " - \"" + __commandFileName + "\" (modified)");
 		}
 		else {
-            setTitle ( "TSTool - \"" + __commandFileName + "\"");
+            setTitle ( "TSTool" + this.ui_GetTitleMod() + " - \"" + __commandFileName + "\"");
 		}
 	}
 	
@@ -21335,7 +21364,7 @@ private void uiAction_ShowCommandStatus()
         String status = uiAction_ShowCommandStatus_GetCommandsStatus();
 
         HTMLViewer hTMLViewer = new HTMLViewer();
-        hTMLViewer.setTitle ( "TSTool - Command Status" );
+        hTMLViewer.setTitle ( "TSTool" + ui_GetTitleMod() + " - Command Status" );
         hTMLViewer.setHTML(status);
         hTMLViewer.setSize(750,600);
         hTMLViewer.setVisible(true);
