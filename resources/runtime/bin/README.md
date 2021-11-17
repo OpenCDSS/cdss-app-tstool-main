@@ -19,7 +19,7 @@ Scripts are also distributed on Windows to facilitate creating the Linux softwar
 Windows installed files.
 
 * `build-linux-distro.bash` - script to build Linux TSTool installer from Windows installation
-* `setup-linux-tstool.sh` - script that is packaged in TSTool installer and will run
+* `setup-linux-tstool.bash` - script that is packaged in TSTool installer and will run
 when files are uncompressed during installation
 * `tstool` - script to run TSTool on Linux, Mac, Cygwin, etc.
 * `*.jar` - Java archive files for libraries used by TSTool
