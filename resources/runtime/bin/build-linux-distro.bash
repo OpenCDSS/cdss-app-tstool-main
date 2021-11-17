@@ -97,7 +97,7 @@ configureEcho() {
   # - Colors in Git Bash:  https://stackoverflow.com/questions/21243172/how-to-change-rgb-colors-in-git-bash-for-windows
   # - Useful info:  http://webhome.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
   # - See colors:  https://en.wikipedia.org/wiki/ANSI_escape_code#Unix-like_systems
-  # - Set the background to black to eensure that white background window will clearly show colors contrasting on black.
+  # - Set the background to black to ensure that white background window will clearly show colors contrasting on black.
   # - Yellow "33" in Linux can show as brown, see:  https://unix.stackexchange.com/questions/192660/yellow-appears-as-brown-in-konsole
   # - Tried to use RGB but could not get it to work - for now live with "yellow" as it is
   warnColor='\e[0;40;93m' # user needs to do something, 40=background black, 33=yellow, 93=bright yellow

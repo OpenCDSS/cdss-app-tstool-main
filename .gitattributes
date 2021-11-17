@@ -7,7 +7,7 @@
 # from shared Windows folder.
 # - this ensures that dos2unix does not need to be run
 /resources/runtime/bin/build-linux-distro.bash text eol=lf
-/resources/runtime/bin/setup-linux-tstool.sh text eol=lf
+/resources/runtime/bin/setup-linux-tstool.bash text eol=lf
 /resources/runtime/bin/tstool text eol=lf
 
 # Denote binary files
