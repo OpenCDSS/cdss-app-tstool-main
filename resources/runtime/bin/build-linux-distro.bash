@@ -77,6 +77,16 @@ checkInput() {
     ${echo2} "${warnColor}  ${setupScriptPath}${endColor}"
     exit 1
   fi
+  # Make sure the setup script has Linux end of line:
+  # - the Git repository .gitattributes file tries to enforce but make sure here
+  dos2unix ${setupScriptPath}
+  if [ $? -ne 0 ]; then
+    echo "Error running dos2unix on setup script: ${setupScriptPath}"
+    echo "Exiting because issues may result later."
+    echo "Maybe dos2unix is not installed?"
+    echo "Maybe a permissions issue writing the file?"
+    exit 1
+  fi
 }
 
 # Determine which echo to use, needs to support -e to output colored text:
@@ -321,9 +331,10 @@ parseCommandLine $@
 # TODO smalers 2019-07-30 need to check for dos2unix being installed.
 # Make sure the 'tstool' script has Linux end of line:
 # - the script tries to handle this but not all Linux OS recognize
+# - the Git repository .gitattributes file tries to enforce but make sure here
 dos2unix ${tstoolScript}
 if [ $? -ne 0 ]; then
-  echo "Error running dos2unix on tstool script."
+  echo "Error running dos2unix on tstool script: ${tstoolScript}"
   echo "Exiting because issues may result later."
   echo "Maybe dos2unix is not installed?"
   echo "Maybe a permissions issue writing the file?"
