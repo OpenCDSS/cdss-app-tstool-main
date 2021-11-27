@@ -55,10 +55,8 @@ createSymbolicLinks() {
     echo "Create symbolic link ${HOME}/bin/tstool -> ${installFolder}/bin/tstool?"
     echo "This will ensure that the latest 'tstool' is found in the PATH for ${USER}."
     read -p "Create link [Y/n/q]? " answer
-    if [ "${answer}" = "q" ]; then
+    if [ "${answer}" = "q" -o "${answer}" = "Q" ]; then
       exit 0
-    elif [ "${answer}" = "n" ]; then
-      break
     elif [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
       # Default action.
       ln -sf ${installFolder}/bin/tstool ${HOME}/bin/tstool
