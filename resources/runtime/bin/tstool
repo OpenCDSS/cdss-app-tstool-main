@@ -147,6 +147,7 @@ determineJavaExe() {
   ${java8AlternativeExe}
   /usr/bin/java
   /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-1.8.0-openjdk/jre/bin/java
   /usr/lib/jvm/java-9-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-10-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-11-openjdk-amd64/jre/bin/java
