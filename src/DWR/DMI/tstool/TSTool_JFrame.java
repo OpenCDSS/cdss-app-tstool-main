@@ -563,14 +563,14 @@ private int __inputFilterY = 0;
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.  These are the full file strings.
 */
-private List<String> __inputNameHecDssList = new ArrayList<String>();
+private List<String> __inputNameHecDssList = new ArrayList<>();
 
 /**
 The HEC-DSS files that have been selected during the session, to allow switching
 between input types but not losing the list of files.  These are the abbreviated file strings, so as to not
 take up too much space in the interface.
 */
-private List<String> __inputNameHecDssVisibleList = new ArrayList<String>();
+private List<String> __inputNameHecDssVisibleList = new ArrayList<>();
 
 /**
 The last HEC-DSS file that was selected, to reset after canceling a browse.
@@ -581,13 +581,13 @@ private String __inputNameHecDssVisibleLast = null;
 The NWSFFS FS5Files directories that have been selected during the
 session, to allow switching between input types but not losing the list of files.
 */
-private List<String> __input_name_NWSRFS_FS5Files = new ArrayList<String>();
+private List<String> __input_name_NWSRFS_FS5Files = new ArrayList<>();
 
 /**
 The StateCU files that have been selected during the session, to allow switching
 between input types but not losing the list of files. 
 */
-private List<String> __inputNameStateCU = new ArrayList<String>();
+private List<String> __inputNameStateCU = new ArrayList<>();
 
 /**
 The last StateCU file that was selected, to reset after canceling a browse. 
@@ -598,7 +598,7 @@ private String __inputNameStateCULast = null;
 The StateCUB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private List<String> __input_name_StateCUB = new ArrayList<String>();
+private List<String> __input_name_StateCUB = new ArrayList<>();
 
 /**
 The last StateCUB file that was selected, to reset after canceling a browse.
@@ -609,7 +609,7 @@ private String __input_name_StateCUB_last = null;
 The StateModB files that have been selected during the session, to allow switching
 between input types but not losing the list of files.
 */
-private List<String> __input_name_StateModB = new ArrayList<String>();
+private List<String> __input_name_StateModB = new ArrayList<>();
 
 /**
 The last StateModB file that was selected, to reset after canceling a browse.
@@ -1698,6 +1698,7 @@ private JMenuItem
 	__Help_ViewDocumentation_CommandReference_JMenuItem = null,
 	__Help_ViewDocumentation_DatastoreReference_JMenuItem = null,
 	__Help_ViewDocumentation_Troubleshooting_JMenuItem = null,
+	__Help_View_TrainingMaterials_JMenuItem = null,
 	__Help_CheckForUpdates_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
@@ -2246,6 +2247,7 @@ private String
 		__Help_ViewDocumentation_CommandReference_String = "View Documentation - Command Reference",
 		__Help_ViewDocumentation_DatastoreReference_String = "View Documentation - Datastore Reference",
 		__Help_ViewDocumentation_Troubleshooting_String = "View Documentation - Troubleshooting",
+		__Help_View_TrainingMaterials_String = "View Training Materials",
 		__Help_CheckForUpdates_String = "Check for Updates...",
 		__Help_ImportConfiguration_String = "Import Configuration...",
 
@@ -2906,7 +2908,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	
 		boolean editCompleted = false;
 		Command commandToEditNew = null; // New command if editing as text resulted in completely new command
-		List<String> newComments = new ArrayList<String>(); // Used if comments are edited.
+		List<String> newComments = new ArrayList<>(); // Used if comments are edited.
 		if ( isCommentBlock ) {
 			// Edit using the old-style editor...
 			editCompleted = commandList_EditCommandOldStyleComments ( mode, action, commandsToEdit, newComments );
@@ -3112,7 +3114,7 @@ private boolean commandList_EditCommandOldStyleComments (
 	CommandEditType mode, String action, List<Command> commandList, List<String> newComments )
 {	//else if ( action.equals(__Commands_General_Comment_String) ||
 	//	command.startsWith("#") ) {
-    List<String> commandStrings = new ArrayList<String>();
+    List<String> commandStrings = new ArrayList<>();
 	int size = 0;
 	if ( commandList != null ) {
 		size = commandList.size();
@@ -3194,7 +3196,7 @@ private List<String> commandList_GetCommandStrings ( boolean get_all )
     List<Command> commands = commandList_GetCommands ( get_all );
 	// Convert to String instances
 	int size = commands.size();
-	List<String> strings = new ArrayList<String>(size);
+	List<String> strings = new ArrayList<>(size);
 	for ( int i = 0; i < size; i++ ) {
 		strings.add ( "" + commands.get(i) );
 	}
@@ -4228,7 +4230,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
 	        return;
 	    }
 	    // Get the list of ensembles...
-	    List<Integer> matchIndexList = new ArrayList<Integer>(); // List of matching time series indices
+	    List<Integer> matchIndexList = new ArrayList<>(); // List of matching time series indices
 	    for ( int i = 0; i < indices.length; i++ ) {
 	        PropList request_params = new PropList ( "" );
 	        // String is of format 1) EnsembleID - EnsembleName where Ensemble ID can contain dashes but generally not
@@ -5813,16 +5815,19 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     int numCommandsAdded = 0; // Used when inserting blocks of time series.
     String selectedInputType = ui_GetSelectedInputType();
     DataStore selectedDataStore = ui_GetSelectedDataStore();
-    String selectedDataStoreName = selectedDataStore.getName();
-
-    // The selected datastore might be the actual datastore name or a substitute:
-    // - if a substitute name is used (and was selected in the UI), the substitute name will result in returning the original datastore with original name
-    // - therefore, need to look up the substitute name here again
-    HashMap<String,String> datastoreSubstituteMap = this.__tsProcessor.getDataStoreSubstituteMap();
-    for ( Map.Entry<String,String> set : datastoreSubstituteMap.entrySet() ) {
-    	if ( set.getKey().equals(selectedDataStoreName) ) {
-    		// The selected datastore name matches a substitute's original name so use the substitute name.
-    		selectedDataStoreName = set.getValue();
+    // If the datastore name is null, an input type can be used below.
+    String selectedDataStoreName = null;
+    if ( selectedDataStore != null ) {
+    	selectedDataStoreName = selectedDataStore.getName();
+    	// The selected datastore might be the actual datastore name or a substitute:
+    	// - if a substitute name is used (and was selected in the UI), the substitute name will result in returning the original datastore with original name
+    	// - therefore, need to look up the substitute name here again
+    	HashMap<String,String> datastoreSubstituteMap = this.__tsProcessor.getDataStoreSubstituteMap();
+    	for ( Map.Entry<String,String> set : datastoreSubstituteMap.entrySet() ) {
+    		if ( set.getKey().equals(selectedDataStoreName) ) {
+    			// The selected datastore name matches a substitute's original name so use the substitute name.
+    			selectedDataStoreName = set.getValue();
+    		}
     	}
     }
 
@@ -8584,7 +8589,7 @@ private void ui_InitGUI ( PropList initProps )
 		6, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__resultsTSEnsemblesGraphTemplates_JComboBox = new SimpleJComboBox(false);
 	List<File> templateFileList = this.session.getGraphTemplateFileList();
-	List<String> templateFileList2 = new ArrayList<String>();
+	List<String> templateFileList2 = new ArrayList<>();
 	for ( File f : templateFileList ) {
 		templateFileList2.add(f.getName());
 	}
@@ -11543,8 +11548,9 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	__Help_JMenu.addSeparator();
 	File docFile = new File(IOUtil.verifyPathForOS(IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf",true));
 	if ( docFile.exists() ) {
-	    // Old single-PDF help document
-	    // TODO SAM 2013-01-08 Remove this when CDSS is only version of TSTool
+	    // Old single-PDF help document:
+	    // - TODO SAM 2013-01-08 Remove this when CDSS is only version of TSTool
+		// - TODO sam 2021-12-20 will probably never go back to local documentation
 	    __Help_JMenu.add ( __Help_ViewDocumentation_JMenuItem = new SimpleJMenuItem(__Help_ViewDocumentation_String,this));
 	}
 	else {
@@ -11559,6 +11565,12 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
            new SimpleJMenuItem(__Help_ViewDocumentation_DatastoreReference_String,this));
        __Help_JMenu.add ( __Help_ViewDocumentation_Troubleshooting_JMenuItem =
            new SimpleJMenuItem(__Help_ViewDocumentation_Troubleshooting_String,this));
+       __Help_JMenu.add ( __Help_ViewDocumentation_Troubleshooting_JMenuItem =
+           new SimpleJMenuItem(__Help_ViewDocumentation_Troubleshooting_String,this));
+
+       __Help_JMenu.addSeparator();
+       __Help_JMenu.add ( __Help_View_TrainingMaterials_JMenuItem =
+           new SimpleJMenuItem(__Help_View_TrainingMaterials_String,this));
 	}
     __Help_JMenu.addSeparator();
     __Help_JMenu.add ( __Help_CheckForUpdates_JMenuItem = new SimpleJMenuItem(__Help_CheckForUpdates_String,this));
@@ -14861,10 +14873,9 @@ throws Exception
         command.equals(__Help_ViewDocumentation_Troubleshooting_String) ) {
         uiAction_ViewDocumentation ( command );
     }
-	// TODO smalers 2018-07-01 figure out how to link these in
-    //else if ( command.equals ( __Help_ViewTrainingMaterials_String )) {
-    //    uiAction_ViewTrainingMaterials ();
-    //}
+    else if ( command.equals ( __Help_View_TrainingMaterials_String )) {
+        uiAction_ViewTrainingMaterials ();
+    }
 	else if ( command.equals ( __Help_CheckForUpdates_String )) {
         uiAction_CheckForUpdates ();
     }
@@ -18917,7 +18928,7 @@ private void uiAction_ResultsEnsembleProperties ()
     String ensembleDisplay;
     String ensembleID;
     TSEnsemble ensemble;
-    List<String> v = new ArrayList<String>();
+    List<String> v = new ArrayList<>();
     v.add ( "Ensemble Properties" );
     TS ts;
     for ( int i = 0; i < selected.length; i++ ) {
@@ -18935,7 +18946,7 @@ private void uiAction_ResultsEnsembleProperties ()
         v.add ( "EnsembleName = " + ensemble.getEnsembleName() );
         HashMap<String,Object> properties = ensemble.getProperties();
         if ( properties.size() > 0 ) {
-        	ArrayList<String> keyList = new ArrayList<String>(properties.keySet());
+        	ArrayList<String> keyList = new ArrayList<>(properties.keySet());
             Collections.sort(keyList);
             for ( String key : keyList ) {
             	if ( key.equals("EnsembleID") || key.equals("EnsembleName") ) {
@@ -19868,7 +19879,7 @@ throws Exception
     // Get the list of valid object/data types from the database
     List<ReclamationPisces_Ref_Parameter> parameters = dmi.getParameterList();
     // Add a wildcard option to get all data types
-    List<String> dataTypes = new ArrayList<String>();
+    List<String> dataTypes = new ArrayList<>();
     dataTypes.add(0,"*");
     for ( ReclamationPisces_Ref_Parameter p : parameters ) {
     	dataTypes.add(p.getID());
@@ -21465,7 +21476,7 @@ private void uiAction_ShowNetworkProperties ()
         reportProp.set ( "PrintFont", __FIXED_WIDTH_FONT );
         reportProp.set ( "PrintSize", "7" );
         reportProp.set ( "Title", "Network Properties" );
-        List<String> v = new ArrayList<String>();
+        List<String> v = new ArrayList<>();
         // Get the network of interest
         if ( __resultsNetworks_JList.getModel().getSize() > 0 ) {
             // If something is selected, show properties for the selected.  Otherwise, show properties for all.
@@ -22690,24 +22701,33 @@ private void uiAction_ViewDocumentation ( String command )
 }
 
 /**
-View the training materials by displaying in file browser.
+View the training materials by displaying in file browser in the training materials folder.
 */
 @SuppressWarnings("unused")
-private void uiAction_ViewTrainingMaterials ()
-{   String routine = getClass().getSimpleName() + ".uiAction_ViewTrainingMaterials";
-    // The location of the documentation is relative to the application home
-    String trainingFolderName = IOUtil.getApplicationHomeDir() + "/doc/Training";
+private void uiAction_ViewTrainingMaterials () {
+    String routine = getClass().getSimpleName() + ".uiAction_ViewTrainingMaterials";
+    // The location of the documentation is relative to the application home:
+    // - prior to 14.0.4 uppercase
+    // - as of 14.0.4 lowercase to be more portable
+    //String trainingFolderName = IOUtil.getApplicationHomeDir() + "/doc/Training";
+    String trainingFolderName = IOUtil.getApplicationHomeDir() + "/doc/training";
     // Convert for the operating system
     trainingFolderName = IOUtil.verifyPathForOS(trainingFolderName, true);
     // Now display using the default application for the file extension
     Message.printStatus(2, routine, "Opening training material folder \"" + trainingFolderName + "\"" );
-    try {
-        Desktop desktop = Desktop.getDesktop();
-        desktop.open ( new File(trainingFolderName) );
+    File f = new File(trainingFolderName);
+    if ( f.exists() ) {
+    	try {
+        	Desktop desktop = Desktop.getDesktop();
+        	desktop.open ( new File(trainingFolderName) );
+    	}
+    	catch ( Exception e ) {
+        	Message.printWarning(1, routine, "Unable to display training materials at \"" +
+            	trainingFolderName + "\" (" + e + ")." );
+    	}
     }
-    catch ( Exception e ) {
-        Message.printWarning(1, "", "Unable to display training materials at \"" +
-            trainingFolderName + "\" (" + e + ")." );
+    else {
+       	Message.printWarning(1, routine, "Training materials folder does not exist: " + trainingFolderName );
     }
 }
 

@@ -5,6 +5,7 @@ cdss-app-tstool-doc-dev
 cdss-app-tstool-doc-user
 cdss-app-tstool-main
 cdss-app-tstool-test
+cdss-app-tstool-training-user
 cdss-archive-nsis-2.46
 cdss-lib-cdss-java
 cdss-lib-common-java
