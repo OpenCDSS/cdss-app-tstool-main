@@ -66,8 +66,10 @@
     			<exclude name="**/*.chk"/>
     			<exclude name="**/*.log"/>
     			<exclude name="**/*.check.html"/>
+    			<exclude name="**/*.mp4"/>
     			<exclude name="**/*.ppt"/>
     			<exclude name="**/*.pptx"/>
+    			<exclude name="**/*video-script*"/>
     			<exclude name="**/images/**"/>
     			</fileset>
     		</copy>
