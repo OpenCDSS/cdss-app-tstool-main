@@ -13,7 +13,7 @@ checkOperatingSystem() {
     return
   fi
   operatingSystem="unknown"
-  os=`uname | tr [a-z] [A-Z]`
+  os=$(uname | tr [a-z] [A-Z])
   case "${os}" in
     CYGWIN*)
       operatingSystem="cygwin"
@@ -261,5 +261,5 @@ exitStatus=$?
 updateIndex
 exitStatus=$?
 
-# Exist with the status from the most recent call above.
+# Exit with the status from the most recent call above.
 exit ${exitStatus}

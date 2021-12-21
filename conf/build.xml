@@ -71,12 +71,13 @@
     	<copy todir="${install.dir}/system" file="resources/runtime/system/UsgsNwisInstantaneous.cfg"/>
         <!-- System configuration file for CDSS.cfg included because HydroBase may be enabled at a later time. -->
         <copy todir="${install.dir}/system" file="resources/runtime/system-CDSS/CDSS.cfg"/>
-    	<!-- Training slideshows under doc/Training -->
-    	<!-- If this becomes onerous, put in a separate target so it can be run like the PDF build -->
-    	<!-- Omit big files that can be regenerated, but otherwise include files for users to poke around -->
-    	<mkdir dir="${install.dir}/doc/Training"/>
-    	<copy todir="${install.dir}/doc/Training">
-    		<fileset dir="../cdss-app-tstool-doc/doc/Training">
+    	<!-- Training slideshows under doc/training -->
+    	<!-- If this becomes onerous, put in a separate target so it can be run like the PDF build. -->
+    	<!-- Omit big files that can be regenerated, but otherwise include files for users to poke around. -->
+    	<!-- Prior to 14.0.4 this was uppercase Training, as of 14.0.4 it is lowercase to be more portable. -->
+    	<mkdir dir="${install.dir}/doc/training"/>
+    	<copy todir="${install.dir}/doc/training">
+    		<fileset dir="../cdss-app-tstool-doc/doc/training">
     			<include name="**/*.*"/>
     			<exclude name="**/*.chk"/>
     			<exclude name="**/*.log"/>

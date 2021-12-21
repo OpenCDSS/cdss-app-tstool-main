@@ -53,16 +53,24 @@
     	<mkdir dir="${install.dir}/doc"/>
         <copy todir="${install.dir}/doc" file="resources/runtime/doc/README.md"/>
 
-    	<!-- TODO smalers 2019-07-12 need to move training to online docs, keep for now due to historical references -->
-    	<mkdir dir="${install.dir}/doc/Training"/>
-    	<copy todir="${install.dir}/doc/Training">
-    		<fileset dir="../cdss-app-tstool-doc/doc/Training">
+    	<!-- Training examples are distributed with the software: -->
+    	<!-- Previously was copied from ../cdss-app-tstool-doc but these are out of date by 10 years. -->
+    	<!-- Now copy from the training repository and also have PDF and mp4 online. -->
+    	<!-- TODO smalers 2021-12-19 Might need to exclude other files and folders to avoid packaging unnecessary files. -->
+    	<!--   For example, some training examples might use DateValue *.dv files as input whereas others create as output. -->
+    	<!--   Maybe need to have a script that cleans the training folders before building the installer? -->
+    	<mkdir dir="${install.dir}/doc/training"/>
+    	<copy todir="${install.dir}/doc/training">
+    		<fileset dir="../cdss-app-tstool-training-user/training">
     			<include name="**/*.*"/>
     			<exclude name="**/*.chk"/>
     			<exclude name="**/*.log"/>
     			<exclude name="**/*.check.html"/>
+    			<exclude name="**/*.mp4"/>
     			<exclude name="**/*.ppt"/>
-    			<exclude name="**/graphics/**"/>
+    			<exclude name="**/*.pptx"/>
+    			<exclude name="**/*video-script*"/>
+    			<exclude name="**/images/**"/>
     			</fileset>
     		</copy>
 

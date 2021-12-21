@@ -1,6 +1,0 @@
-# Ignore the html folder because it is a link and does not cleanly get handled in Git across operating systems
-
-# Not sure if symbolic link is treated as a file or folder so show as both
-html
-/html
-!.gitignore
