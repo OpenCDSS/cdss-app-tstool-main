@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2021 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21436,7 +21436,7 @@ private void uiAction_ShowHelpAbout ()
     "TSTool - Time Series Tool " + IOUtil.getProgramVersion() + "\n" +
     " \n" +
     "TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-    "Copyright (C) 1997-2021 Colorado Department of Natural Resources\n" +
+    "Copyright (C) 1997-2022 Colorado Department of Natural Resources\n" +
     " \n" +
     "TSTool is free software:  you can redistribute it and/or modify\n" +
     "    it under the terms of the GNU General Public License as published by\n" +
