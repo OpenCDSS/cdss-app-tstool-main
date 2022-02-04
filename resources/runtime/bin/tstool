@@ -117,27 +117,30 @@ determineJavaExe() {
   # - use standard and likely folders used with TSTool on Linux
   # - also check likely folders
 
-  # Get the likely locations of Java from the operating system
-  if [ "${linuxDistro}" = "debian" ]; then
-    # Get a list of available Java alternatives on Debian:
-    # - for now assume openjdk package names like:
-    #   update-alternatives --list java
-    #   /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
-    #   /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
-    # - may be able to add Java newer than 8 but for now filter to only Java 8
-    #   (need to test with newer Java to make sure it works)
-    java8AlternativeExeCount=$(update-alternatives --list java | grep 'java-8' | wc -l)
-    java8AlternativeExe=$(update-alternatives --list java | grep 'java-8' | head -1)
-    # Make sure only one option is used (TODO improve logic to handle more).
-    if [ "${java8AlternativeExeCount}" -eq 0 ]; then
-      echoStderr "Found NO Java 8 alternatives on system.  Will check standard locations."
+  # Get the likely locations of Java from the operating system.
+  if [ "${operatingSystem}" = "linux" ]; then
+    if [ "${linuxDistro}" = "debian" ]; then
+      # Get a list of available Java alternatives on Debian:
+      # - for now assume openjdk package names like:
+      #   update-alternatives --list java
+      #   /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+      #   /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+      # - may be able to add Java newer than 8 but for now filter to only Java 8
+      #   (need to test with newer Java to make sure it works)
+      java8AlternativeExeCount=$(update-alternatives --list java | grep 'java-8' | wc -l)
+      java8AlternativeExe=$(update-alternatives --list java | grep 'java-8' | head -1)
+      # Make sure only one option is used (TODO improve logic to handle more).
+      if [ "${java8AlternativeExeCount}" -eq 0 ]; then
+        echoStderr "Found NO Java 8 alternatives on system.  Will check standard locations."
+      else
+        echoStderr "Found ${java8AlternativeExeCount} Java 8 alternatives on system (will check first found)"
+      fi
     else
-      echoStderr "Found ${java8AlternativeExeCount} Java 8 alternatives on system (will check first found)"
+      echoStderr "Don't know how to handle Linux distro '${linuxDistro}' to determine Java 8 alternatives on system.  Will check standard locations."
     fi
-  else
-    echoStderr "Don't know how to handle Linux distro '${linuxDistro}' to determine Java 8 alternatives on system.  Will check standard locations."
   fi
   # The candidate java8 programs are checked in order so list the best candidates first:
+  # - first paths will be matched for a Windows install also
   # - variables like ${java8AlternativeExe} if not defined will not add to the list so OK
   # - Java version nearest the development version are checked first
   # - most likely only one or two versions are available on the computer
@@ -264,7 +267,7 @@ parseCommandLine() {
   # Indicate specification for long options:
   # - 1 colon after an option indicates that an argument is required
   # - 2 colons after an option indicates that an argument is optional, must use --option=argument syntax
-  optstringLong="addpath::,dev,headless,help,java-xmx::,version"
+  optstringLong="addpath::,debug,dev,headless,help,java-xmx::,version"
   # Parse the options using getopt command:
   # - the -- is a separator between getopt options and parameters to be parsed
   # - output is simple space-delimited command line
@@ -307,18 +310,20 @@ parseCommandLine() {
             shift 2
             ;;
         esac
-      ;;
+        ;;
+      # TODO smalers 2022-02-01 need to get working for this script.
       #-d|--debug) # -d or --debug Turn on debug messages.
+      #  # Turns on debug for this script and also gets passed to TSTool.
       #  debug="true"
       #  shift 1
       #  ;;
       --dev) # Run with development classes, such as when need to run on command line for testing
         devMode="true"
-        shift
+        shift 1
         ;;
       --headless) # Run headless, such as on remote Linux VM
         headless="true"
-        shift
+        shift 1
         ;;
       -h|--help) # Print usage of this script and also the main application.
         printUsage
@@ -416,7 +421,7 @@ printVersion() {
 # Folder where tstool script is located, should be the "bin" folder in a TSTool install.
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
-version="2.0.0 (2021-09-09)"
+version="2.1.0 (2022-02-01)"
 # Adjust the script folder if a symbolic link is used such as:
 #   /usr/bin/tstool -> /opt/tstool-version/tstool/bin
 if [ -L $0 ]; then
@@ -433,6 +438,7 @@ fi
 # - see --dev parameter to use development environment class files
 # - set verbose to "" or "-verbose"
 headless="false"
+debug="false"
 devMode="false"
 #verbose="-verbose"
 verbose=""
@@ -463,6 +469,9 @@ fi
 # - do this before checking for developer mode
 parseCommandLine $@
 
+if [ "${debug}" = "true" ]; then
+  echoStderr "[DEBUG] devMode=${devMode}"
+fi
 if [ "${devMode}" = "true" ]; then
   # Development mode:
   # - class files prior to release build are in the Eclipse bin folder for each code repository
@@ -519,6 +528,10 @@ else
   # Installation home for TSTool, under which will be bin, logs, system, etc.
   installFolder=$(dirname ${scriptFolder})
   homeFolder=${installFolder}
+  if [ "${debug}" = "true" ]; then
+    echoStderr "[DEBUG] installFolder=${installFolder}"
+    echoStderr "[DEBUG] homeFolder=${homeFolder}"
+  fi
 fi
 
 # Check configuration main folders and files.
@@ -619,7 +632,7 @@ if [ "${devMode}" = "true" ]; then
 else
   command="${javaCommand} -classpath ${binFolder}${dirSep}*"
 fi
-command+=" ${mainClass} -home ${installFolder} ${tstoolParameters} ${sudoParameters} ${helpOpt} ${versionOpt}"
+command+=" ${mainClass} --home ${installFolder} ${tstoolParameters} ${sudoParameters} ${helpOpt} ${versionOpt}"
 # Run the TSTool command:
 # - use quotes in echo to avoid filename expansion in echo statement
 echoStderr "Running:"
@@ -628,6 +641,11 @@ echoStderr "  ${command}"
 # Cannot use:
 #  ${command}        because filename expansion will include all files in path including bash files
 #  "${command}"      because entire command is run as the program rather than space-delimited arguments
+#
+# Use backslash for \* to escape file expansion.
+if [ "${operatingSystem}" = "cygwin" -o "${operatingSystem}" = "mingw" ]; then
+  binFolder=$(cygpath -w ${binFolder})
+fi
 if [ "${devMode}" = "true" ]; then
   #${javaCommand} -classpath ${devBinFolders}${pathSep}${binFolder}${dirSep}\* ${mainClass} -home ${homeFolder} $@
   # Only pass the extra parameters that are not understood by this script.
