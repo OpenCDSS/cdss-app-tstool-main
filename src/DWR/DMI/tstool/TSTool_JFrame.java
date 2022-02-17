@@ -1578,6 +1578,7 @@ JMenuItem
     __Commands_TableManipulate_DeleteTableRows_JMenuItem,
     __Commands_TableManipulate_InsertTableRow_JMenuItem,
     __Commands_TableManipulate_RenameTableColumns_JMenuItem,
+    __Commands_TableManipulate_SetTableColumnProperties_JMenuItem,
     __Commands_TableManipulate_SetTableValues_JMenuItem,
     __Commands_TableManipulate_SplitTableColumn_JMenuItem,
     __Commands_TableManipulate_SplitTableRow_JMenuItem,
@@ -1593,6 +1594,7 @@ JMenuItem
     __Commands_TableOutput_WriteTableToDataStore_JMenuItem, // Also duplicated in __Commands_Datastore_WriteTableToDataStore
     __Commands_TableOutput_WriteTableToExcel_JMenuItem, // Also duplicated in __Commands_Spreadsheet_WriteTableToExcel
     __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem,
+    __Commands_TableOutput_WriteTableToMarkdown_JMenuItem,
     __Commands_TableOutput_WriteTableToHTML_JMenuItem;
 JMenu
 	__Commands_TableRunning_JMenu;
@@ -2140,6 +2142,7 @@ private String
     __Commands_TableManipulate_DeleteTableRows_String = TAB + "DeleteTableRows()... <delete table row(s)>",
     __Commands_TableManipulate_InsertTableRow_String = TAB + "InsertTableRow()... <insert table row(s)>",
     __Commands_TableManipulate_RenameTableColumns_String = TAB + "RenameTableColumns()... <rename table column(s)>",
+    __Commands_TableManipulate_SetTableColumnProperties_String = TAB + "SetTableColumnProperties()... <set table column properties>",
     __Commands_TableManipulate_SetTableValues_String = TAB + "SetTableValues()... <set table cell values>",
     __Commands_TableManipulate_SplitTableColumn_String = TAB + "SplitTableColumn()... <split a column into multiple columns>",
     __Commands_TableManipulate_SortTable_String = TAB + "SortTable()... <sort a table's rows>",
@@ -2152,6 +2155,7 @@ private String
     // See __Commands_Datastore_WriteTableToDataStore, which is used to define menu here
     __Commands_TableOutput_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
     __Commands_TableOutput_WriteTableToHTML_String = TAB + "WriteTableToHTML()... <write a table to an HTML file>",
+    __Commands_TableOutput_WriteTableToMarkdown_String = TAB + "WriteTableToMarkdown()... <write a table to a Markdown file>",
     __Commands_TableCreate_FreeTable_String = TAB + "FreeTable()... <free a table (will not be available to later commands)>",
     __Commands_TableRunning_String = "Running and Properties",
     __Commands_TableRunning_SetPropertyFromTable_String = TAB + "SetPropertyFromTable()... <set a processor property from a table>",
@@ -11234,6 +11238,9 @@ private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar )
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_ManipulateTableString_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_ManipulateTableString_String, this ) );
     __Commands_TableManipulate_ManipulateTableString_JMenuItem.setToolTipText("Manipulate a table string column, for example concatenate string column values.");
+    __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableColumnProperties_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableManipulate_SetTableColumnProperties_String, this ) );
+    __Commands_TableManipulate_SetTableColumnProperties_JMenuItem.setToolTipText("Set table column properties.");
     __Commands_TableManipulate_JMenu.add( __Commands_TableManipulate_SetTableValues_JMenuItem =
         new SimpleJMenuItem( __Commands_TableManipulate_SetTableValues_String, this ) );
     __Commands_TableManipulate_SetTableValues_JMenuItem.setToolTipText("Set table data values.");
@@ -11261,6 +11268,9 @@ private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar )
     __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToExcel_JMenuItem =
         new SimpleJMenuItem( __Commands_Spreadsheet_WriteTableToExcel_String, this ) );
     __Commands_TableOutput_WriteTableToExcel_JMenuItem.setToolTipText("Write a table to an Excel worksheet.");
+    __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToMarkdown_JMenuItem =
+        new SimpleJMenuItem( __Commands_TableOutput_WriteTableToMarkdown_String, this ) );
+    __Commands_TableOutput_WriteTableToMarkdown_JMenuItem.setToolTipText("Write a table to an Markdown text file, for web data visualization.");
     __Commands_TableOutput_JMenu.add( __Commands_TableOutput_WriteTableToHTML_JMenuItem =
         new SimpleJMenuItem( __Commands_TableOutput_WriteTableToHTML_String, this ) );
     __Commands_TableOutput_WriteTableToHTML_JMenuItem.setToolTipText("Write a table to an HTML text file, for web data visualization.");
@@ -13731,6 +13741,9 @@ throws Exception
     else if (command.equals( __Commands_TableManipulate_RenameTableColumns_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_RenameTableColumns_String, null, CommandEditType.INSERT );
     }
+    else if (command.equals( __Commands_TableManipulate_SetTableColumnProperties_String) ) {
+        commandList_EditCommand ( __Commands_TableManipulate_SetTableColumnProperties_String, null, CommandEditType.INSERT );
+    }
     else if (command.equals( __Commands_TableManipulate_SetTableValues_String) ) {
         commandList_EditCommand ( __Commands_TableManipulate_SetTableValues_String, null, CommandEditType.INSERT );
     }
@@ -13754,6 +13767,9 @@ throws Exception
     }
     else if (command.equals( __Commands_TableOutput_WriteTableToHTML_String) ) {
         commandList_EditCommand ( __Commands_TableOutput_WriteTableToHTML_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_TableOutput_WriteTableToMarkdown_String) ) {
+        commandList_EditCommand ( __Commands_TableOutput_WriteTableToMarkdown_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_TableCreate_FreeTable_String) ) {
         commandList_EditCommand ( __Commands_TableCreate_FreeTable_String, null, CommandEditType.INSERT );
