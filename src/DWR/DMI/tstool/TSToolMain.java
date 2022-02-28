@@ -42,7 +42,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -62,6 +61,7 @@ import com.sun.net.httpserver.HttpServer;
 import riverside.datastore.DataStore;
 import riverside.datastore.DataStoreConnectionUIProvider;
 import riverside.datastore.DataStoreFactory;
+import riverside.datastore.DataStoreSubstitute;
 import rti.app.tstoolrestlet.TSToolServer;
 import rti.tscommandprocessor.core.TSCommandFileRunner;
 import rti.tscommandprocessor.core.TSCommandProcessor;
@@ -94,7 +94,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.1.1 (2022-02-23)";
+public static final String PROGRAM_VERSION = "14.1.1 (2022-02-28)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -174,10 +174,10 @@ with only the plot window shown.  If running in interactive mode the GUI is alwa
 private static boolean __showMainGUI = true;
 
 /**
- * Datastore map, which allows datastore names in command files to remain but use a different datastore,
- * particularly useful when poining to different web service URL or database server.
+ * Datastore substitute list, which allows datastore names in command files to remain but use a different datastore,
+ * particularly useful when pointing to different web service URL or database server for testing.
  */
-private static HashMap<String,String> datastoreSubstituteMap = new HashMap<>();
+private static List<DataStoreSubstitute> datastoreSubstituteList = new ArrayList<>();
 
 /**
 Indicates whether the -nomaingui command line argument is set.  This is used instead of
@@ -900,7 +900,7 @@ public static void main ( String args[] )
         // Do this before reading the command file because commands may try to run discovery during load.
         openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
         // Set datastore substitutes, used later when requesting datastores.
-        runner.getProcessor().setDatastoreSubstituteMap(datastoreSubstituteMap);
+        runner.getProcessor().setDatastoreSubstituteList(datastoreSubstituteList);
 		try {
 		    String commandFileFull = getCommandFile();
 		    Message.printStatus( 1, routine, "Running command file in batch mode:  \"" + commandFileFull + "\"" );
@@ -1078,7 +1078,7 @@ public static void main ( String args[] )
             	pluginDataStoreFactoryClasses,
             	pluginCommandClasses,
             	processorProps,
-            	datastoreSubstituteMap,
+            	datastoreSubstituteList,
             	titleMod);
 		}
 		catch ( Exception e ) {
@@ -1449,17 +1449,6 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // that are not available from web services).  This is also used for View / Datastores in the UI.
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                 String dataStoreName = dataStoreProps.getValue("Name");
-                // Check datastore substitutions.
-                String datastoreSubstituteName = datastoreSubstituteMap.get(dataStoreName);
-                if ( datastoreSubstituteName != null ) {
-                	// The current datastore should use the substitute name:
-                	// - any command file datastore references to the old name will use the substitute datastore
-                	// - need to disable old datastores that match the 
-                	// - the old datastore will be disabled after all datastores are processed
-                	//dataStoreName = datastoreSubstituteName;
-                	// TODO smalers 2021-07-24 Evaluate whether need to deal with substitution here or
-                	// in the processor when datastore name is requested.
-                }
                 String dataStoreType = dataStoreProps.getValue("Type");
                 // If the datastore type is no longer supported, skip because it can slow down startup:
                 // - need more time to fully remove the code
@@ -1810,21 +1799,24 @@ throws Exception
 		}
 		else if ( args[i].toLowerCase().startsWith("--datastore-substitute") ) {
 			// Used to substitute one datastore name for another, used in testing when need to point at a different
-			// datastore without changing command files.
-			// --substitute-datastore=oldDatastore,newDatastore
+			// datastore without changing command files:
+			// - example: --substitute-datastore=DatastoreNameToUse,DatastoreNameInCommands
+			//   where DatastoreNameToUse is the original (actual) and DatastoreNameInCommands is a substitute that
+			//   is in commands
 			pos = args[i].indexOf("=");
 			int pos2 = args[i].indexOf(",");
 			if ( (pos >= 0) && (pos2 >= 0) ) {
 				// Have well-formed parameter.
 				String [] parts = args[i].substring(pos + 1).split(",");
-				String oldDatastore = parts[0].trim();
-				String newDatastore = parts[1].trim();
-				Message.printStatus ( 1, routine, "Will substitute datastore \"" + newDatastore + "\" for \"" +
-					oldDatastore + "\" in commands that use datastores." );
-				datastoreSubstituteMap.put(oldDatastore, newDatastore);
+				String datastoreToUse = parts[0].trim();
+				String datastoreInCommands = parts[1].trim();
+				Message.printStatus ( 1, routine, "Will use datastore \"" + datastoreToUse + "\" for \"" +
+					datastoreInCommands + "\" in commands that use datastores." );
+				datastoreSubstituteList.add(new DataStoreSubstitute(datastoreToUse, datastoreInCommands));
 			}
 			else {
-				Message.printWarning(1, routine, "Bad parameter \"" + args[i] + "\", should be: --datastore-substitute=old,new");
+				Message.printWarning(1, routine, "Bad parameter \"" + args[i] +
+					"\", should be: --datastore-substitute=DatastoreNameToUse,DatastoreNameInCommands");
 			}
 		}
 		else if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("-help") || args[i].equalsIgnoreCase("--help")) {
