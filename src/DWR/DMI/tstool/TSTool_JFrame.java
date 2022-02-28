@@ -102,6 +102,7 @@ import javax.swing.filechooser.FileFilter;
 import org.openwaterfoundation.network.NodeNetwork;
 
 import riverside.datastore.DataStore;
+import riverside.datastore.DataStoreSubstitute;
 import riverside.datastore.DataStores_JFrame;
 import riverside.datastore.GenericDatabaseDataStore;
 import riverside.datastore.GenericDatabaseDataStore_TS_CellRenderer;
@@ -357,7 +358,7 @@ private TSToolSession session = null;
  */
 private String titleMod = null;
 
-private HashMap<String,String> datastoreSubstituteMap = new HashMap<>();
+private List<DataStoreSubstitute> datastoreSubstituteList = new ArrayList<>();
 
 /**
 List of plugin datastore classes, which allow third-party datastores to be opened and used for data.
@@ -2330,7 +2331,7 @@ public TSTool_JFrame (
 	List<Class> pluginDataStoreFactoryClassList,
 	List<Class> pluginCommandClassList,
 	PropList initialProps,
-	HashMap<String,String> datastoreSubstituteMap,
+	List<DataStoreSubstitute> datastoreSubstituteList,
 	String titleMod ) {
 	super();
 	StopWatch swMain = new StopWatch();
@@ -2398,8 +2399,8 @@ public TSTool_JFrame (
 	
 	// Set the datastore substitute map:
 	// - also save locally for use when showing the datastores
-	this.__tsProcessor.setDatastoreSubstituteMap(datastoreSubstituteMap);
-	this.datastoreSubstituteMap = datastoreSubstituteMap;
+	this.__tsProcessor.setDatastoreSubstituteList(datastoreSubstituteList);
+	this.datastoreSubstituteList = datastoreSubstituteList;
 
     // Get database connection information.  Force a login if the database connection cannot be made.
 	// The login is interactive and is disabled if no main GUI is to be shown.
@@ -5826,11 +5827,11 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     	// The selected datastore might be the actual datastore name or a substitute:
     	// - if a substitute name is used (and was selected in the UI), the substitute name will result in returning the original datastore with original name
     	// - therefore, need to look up the substitute name here again
-    	HashMap<String,String> datastoreSubstituteMap = this.__tsProcessor.getDataStoreSubstituteMap();
-    	for ( Map.Entry<String,String> set : datastoreSubstituteMap.entrySet() ) {
-    		if ( set.getKey().equals(selectedDataStoreName) ) {
+    	List<DataStoreSubstitute> datastoreSubstituteList = this.__tsProcessor.getDataStoreSubstituteList();
+    	for ( DataStoreSubstitute dssub : datastoreSubstituteList ) {
+    		if ( dssub.getDatastoreNameToUse().equals(selectedDataStoreName) ) {
     			// The selected datastore name matches a substitute's original name so use the substitute name.
-    			selectedDataStoreName = set.getValue();
+    			selectedDataStoreName = dssub.getDatastoreNameInCommands();
     		}
     	}
     }
@@ -7208,19 +7209,30 @@ private void ui_DataStoreList_Populate ()
         }
         dataStoreNameList.add ( name );
     }
-    // Also list any substitute datastore names so the original or substitute can be used.
-    HashMap<String,String> datastoreSubstituteMap = __tsProcessor.getDataStoreSubstituteMap();
-    for ( Map.Entry<String,String> set : datastoreSubstituteMap.entrySet() ) {
+    // Also list any substitute datastore names so the original or substitute can be used:
+    // - only add if not already in the datastore list
+    List<DataStoreSubstitute> datastoreSubstituteList = __tsProcessor.getDataStoreSubstituteList();
+    for ( DataStoreSubstitute dssub : datastoreSubstituteList ) {
     	boolean found = false;
+		String substituteName = null;
     	for ( String choice : dataStoreNameList ) {
-    		if ( choice.equals(set.getKey()) ) {
-    			// The substitute original name matches a datastore name so also add the alias.
+    		if ( choice.equals(dssub.getDatastoreNameToUse()) ) {
+    			// The substitute original name matches a datastore name so also add the substitute.
     			found = true;
+    			substituteName = dssub.getDatastoreNameInCommands();
     			break;
     		}
     	}
     	if ( found ) {
-    		dataStoreNameList.add(set.getValue());
+    		boolean found2 = false;
+    		for ( String dsname : dataStoreNameList ) {
+    			if ( dsname.equals(substituteName) ) {
+    				found2 = true;
+    			}
+    		}
+    		if ( !found2 ) {
+    			dataStoreNameList.add(substituteName);
+    		}
     	}
     }
     Collections.sort(dataStoreNameList, String.CASE_INSENSITIVE_ORDER);
@@ -8142,7 +8154,12 @@ private DataStore ui_GetSelectedDataStore ()
         // No need to request from processor
         return null;
     }
-    // The following handles substitutions.
+    boolean isActive = true;
+    // Want to interact with the specified datastore:
+    // - do not process substitutes
+    // - only return the original datastore when processing commands
+    boolean checkSubstitutes = false;
+    //return __tsProcessor.getDataStoreForName ( dataStoreName, null, isActive, checkSubstitutes );
     return __tsProcessor.getDataStoreForName ( dataStoreName, null );
 }
 
@@ -21419,10 +21436,9 @@ private String uiAction_ShowCommandStatus_GetCommandsStatus()
 /**
 Show the datastores.
 */
-private void uiAction_ShowDataStores ()
-{
+private void uiAction_ShowDataStores () {
     try {
-        new DataStores_JFrame ( "Datastores", this, __tsProcessor.getDataStores(), this.datastoreSubstituteMap );
+        new DataStores_JFrame ( "Datastores", this, __tsProcessor.getDataStores(), this.datastoreSubstituteList );
     }
     catch ( Exception e ) {
 		String routine = getClass().getSimpleName() + "uiAction_ShowDataStores";
