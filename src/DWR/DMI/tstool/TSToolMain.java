@@ -95,7 +95,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.2.1 (2022-03-24)";
+public static final String PROGRAM_VERSION = "14.2.2 (2022-04-07)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -460,6 +460,7 @@ private static void initializeAfterHomeIsKnown ()
 	Message.printStatus ( 2, routine, "Reading the units file \"" +	units_file + "\"" );
 	try {
         DataUnits.readUnitsFile( units_file );
+        Message.printStatus ( 2, routine, "  Read " + DataUnits.getUnitsData().size() + " definitions." );
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine,
