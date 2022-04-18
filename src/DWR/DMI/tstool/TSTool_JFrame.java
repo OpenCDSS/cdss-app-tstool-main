@@ -4466,8 +4466,6 @@ public void contentsChanged ( ListDataEvent e )
 	ui_UpdateStatus ( true );	// true = also call checkGUIState();
 }
 
-// TODO smalers 2018-08-28 in the future may need a lookup file to ensure portability
-// of documentation across software versions but for now assume the organization.
 /**
  * Format a URL to display help for a topic.
  * The document root is taken from TSTool configuration properties and otherwise the
@@ -4478,13 +4476,30 @@ public void contentsChanged ( ListDataEvent e )
  * For example, the item might be a command name.
  */
 public String formatHelpViewerUrl ( String group, String item ) {
+	return formatHelpViewerUrl ( group, item, null );
+}
+
+// TODO smalers 2018-08-28 in the future may need a lookup file to ensure portability
+// of documentation across software versions but for now assume the organization.
+/**
+ * Format a URL to display help for a topic.
+ * The document root is taken from TSTool configuration properties and otherwise the
+ * URL pattern follows the standard created for the documentation.
+ * @param group a group (category) to organize items.
+ * For example, the group might be "command".
+ * @param item the specific item for the URL.
+ * For example, the item might be a command name.
+ * @param rootUrl root URL to try, useful for plugins that provide documentation in an alternative location
+ * than the defaults for an application, pass as null to ignore
+ */
+public String formatHelpViewerUrl ( String group, String item, String rootUrl ) {
 	String routine = "formatHelpViewerUrl";
 	// The location of the documentation is relative to root URI on the web:
     // - two locations are allowed to help transition from OWF to OpenCDSS location
 	// - use the first found URL
     String docRootUri = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri" );
     String docRootUri2 = TSToolMain.getPropValue ( "TSTool.UserDocumentationUri2" );
-    List<String> docRootUriList= new ArrayList<>(2);
+    List<String> docRootUriList= new ArrayList<>();
    	String version = IOUtil.getProgramVersion();
    	int pos = version.indexOf(" ");
    	if ( pos > 0 ) {
@@ -4506,6 +4521,15 @@ public String formatHelpViewerUrl ( String group, String item ) {
     	if ( !docRootUri2Version.equals(docRootUri2) ) {
     		// Add the URL with "latest"
     		docRootUriList.add(docRootUri2);
+    	}
+    }
+    if ( (rootUrl != null) && !rootUrl.isEmpty() ) {
+    	// First replace "latest" with the software version so that specific version is shown.
+    	String docRootUriVersion = rootUrl.replace("latest", version);
+    	docRootUriList.add(docRootUriVersion);
+    	if ( !docRootUriVersion.equals(rootUrl) ) {
+    		// Add the URL with "latest"
+    		docRootUriList.add(rootUrl);
     	}
     }
     if ( (docRootUri == null) || docRootUri.isEmpty() ) {
