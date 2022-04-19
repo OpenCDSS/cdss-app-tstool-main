@@ -1444,6 +1444,8 @@ JMenuItem
 	__Commands_General_Comments_StartComment_JMenuItem = null,
 	__Commands_General_Comments_EndComment_JMenuItem = null,
 	__Commands_General_Comments_EnabledComment_JMenuItem = null,
+	__Commands_General_Comments_EnabledIfApplicationComment_JMenuItem = null,
+	__Commands_General_Comments_EnabledIfDatastoreComment_JMenuItem = null,
 	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
 	__Commands_General_Comments_RunDiscoveryFalseComment_JMenuItem = null,
 	__Commands_General_Comments_TemplateComment_JMenuItem = null,
@@ -2022,6 +2024,8 @@ private String
     __Commands_General_Comments_RunDiscoveryFalseComment_String = TAB + "#@runDiscovery False <used to disable running discovery at load>",
    	__Commands_General_Comments_TemplateComment_String = TAB + "#@template <indicate that command file is a template file>",
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
+    __Commands_General_Comments_EnabledIfApplicationComment_String = "#@enabledif application ... <enable command file for application version>",
+    __Commands_General_Comments_EnabledIfDatastoreComment_String = "#@enabledif datastore ... <enable command file for datastore version>",
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
     //__Commands_General_Comments_FileModTimeComment_String = TAB + "#@fileModTime ... <used to enforce dependencies>",
@@ -2710,6 +2714,8 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 		// New command, so look for comment actions.
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
 		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
+            action.equals(__Commands_General_Comments_EnabledIfApplicationComment_String) ||
+            action.equals(__Commands_General_Comments_EnabledIfDatastoreComment_String) ||
 		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
 		    action.equals(__Commands_General_Comments_RunDiscoveryFalseComment_String) ||
 		    action.equals(__Commands_General_Comments_TemplateComment_String) ||
@@ -10732,6 +10738,11 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_EnabledComment_String, this ) );
     __Commands_General_Comments_EnabledComment_JMenuItem.setToolTipText("Insert a #@enabled True|False comment - if False, TSTool will ignore when running as a test.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledIfApplicationComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_EnabledIfApplicationComment_String, this ) );
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledIfDatastoreComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_EnabledIfDatastoreComment_String, this ) );
+    __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusFailureComment_String, this ) );
     __Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem.setToolTipText("Insert a #@expectedStatus Failure comment - used with testing to indicate expected status.");
@@ -13683,6 +13694,20 @@ throws Exception
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@enabled False",true) );
         commandList_EditCommand ( __Commands_General_Comments_EnabledComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_EnabledIfApplicationComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@enabledif application TSTool version >= X.YY.ZZ",true) );
+        commandList_EditCommand ( __Commands_General_Comments_EnabledIfApplicationComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_EnabledIfDatastoreComment_String) ) {
+        // Most inserts let the editor format the command.  However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much verbage.
+    	List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@enabledif datastore HydroBase version >= YYYYMMDD",true) );
+        commandList_EditCommand ( __Commands_General_Comments_EnabledIfDatastoreComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ) {
         // Most inserts let the editor format the command.  However, in this case the specific
