@@ -314,8 +314,8 @@ import cdss.domain.hydrology.network.HydrologyNode;
 import cdss.domain.hydrology.network.HydrologyNodeNetwork;
 
 /**
-JFrame to provide the application interface for TSTool.  This class provides the
-following main functionality:
+JFrame to provide the application interface for TSTool.
+This class provides the following main functionality:
 <ol>
 <li>	Provide a left-to-right, top-to-bottom control of user interaction.</li>
 <li>	Provide capability to interactively insert/delete/move/edit commands.</li>
@@ -327,21 +327,21 @@ following main functionality:
 @SuppressWarnings("serial")
 public class TSTool_JFrame extends JFrame
 implements
-ActionListener, // To handle menu selections in GUI
-CommandListUI, // To integrate this UI with command tools
-CommandProcessorListener, // To handle command processor progress updates (when commands start/finish)
-CommandProgressListener, // To update the status based on progress within a command
-GeoViewListener, // To handle map interaction (not well developed)
-ItemListener, // To handle choice selections in GUI
-HelpViewerUrlFormatter, // To format URLs to display in a web browser
-JWorksheet_Listener, // To handle query result interaction
-KeyListener, // To handle keyboard input in GUI
-ListDataListener, // To change the GUI state when commands list change
+ActionListener, // To handle menu selections in GUI.
+CommandListUI, // To integrate this UI with command tools.
+CommandProcessorListener, // To handle command processor progress updates (when commands start/finish).
+CommandProgressListener, // To update the status based on progress within a command.
+GeoViewListener, // To handle map interaction (not well developed).
+ItemListener, // To handle choice selections in GUI.
+HelpViewerUrlFormatter, // To format URLs to display in a web browser.
+JWorksheet_Listener, // To handle query result interaction.
+KeyListener, // To handle keyboard input in GUI.
+ListDataListener, // To change the GUI state when commands list change.
 ListSelectionListener,
-MessageLogListener, // To handle interaction between log view and command list
+MessageLogListener, // To handle interaction between log view and command list.
 MouseListener,
-TSProductProcessor, // To handle requests from components to process *.tsp files
-WindowListener // To handle window/app shutdown, in particular if called in headless mode and TSView controls
+TSProductProcessor, // To handle requests from components to process *.tsp files.
+WindowListener // To handle window/app shutdown, in particular if called in headless mode and TSView controls.
 {
 
 //================================
@@ -568,8 +568,8 @@ private List<String> __inputNameHecDssList = new ArrayList<>();
 
 /**
 The HEC-DSS files that have been selected during the session, to allow switching
-between input types but not losing the list of files.  These are the abbreviated file strings, so as to not
-take up too much space in the interface.
+between input types but not losing the list of files.
+These are the abbreviated file strings, so as to not take up too much space in the interface.
 */
 private List<String> __inputNameHecDssVisibleList = new ArrayList<>();
 
@@ -722,7 +722,7 @@ The list of Command that is used with cut/copy/paste user actions.
 */
 private List<Command> __commandsCutBuffer = new Vector<>(100,100);
 
-// TODO SAM 2007-11-02 Evaluate putting in the processor
+// TODO SAM 2007-11-02 Evaluate putting in the processor.
 /**
 Indicates whether the commands have been edited without being saved.
 This will trigger some changes in the UI, for example indicating that the commands
@@ -777,12 +777,14 @@ Popup menu for ensemble results.
 private JPopupMenu __resultsTSEnsembles_JPopupMenu = null;
 
 /**
-Worksheet that contains a list of problems from processing.
+Worksheet that contains a list of problems from processing:
+- created once and reused
 */
 private JWorksheet __resultsProblems_JWorksheet = null;
 
 /**
-Worksheet that contains a list of processor properties.
+Worksheet that contains a list of processor properties:
+- created once and reused
 */
 private JWorksheet __resultsProperties_JWorksheet = null;
 
@@ -6326,10 +6328,11 @@ private void results_Clear() {
     results_Ensembles_Clear();
     results_Networks_Clear();
     results_OutputFiles_Clear();
-	results_TimeSeries_Clear();
+    results_Problems_Clear();
+    results_Properties_Clear();
     results_Tables_Clear();
+	results_TimeSeries_Clear();
     results_Views_Clear();
-    // TODO sam 2017-03-26 need to clear the output properties
 }
 
 /**
@@ -6447,6 +6450,20 @@ Add the specified table to the list of tables that can be selected for viewing.
 */
 private void results_Tables_AddTable ( String tableid ) {
     __resultsTables_JListModel.addElement( tableid );
+}
+
+/**
+Clear the list of results problems.  This is normally called immediately before the commands are run.
+*/
+private void results_Problems_Clear() {
+    __resultsProblems_JWorksheet.clear();
+}
+
+/**
+Clear the list of results processor properties.  This is normally called immediately before the commands are run.
+*/
+private void results_Properties_Clear() {
+    __resultsProperties_JWorksheet.clear();
 }
 
 /**
@@ -8564,6 +8581,7 @@ private void ui_InitGUI ( PropList initProps )
     try {
         propsTableModel = new PropList_TableModel(new PropList("processor"),false,false);
         propsTableModel.setKeyColumnName("Property Name");
+        propsTableModel.setTypeColumnName("Property Type");
         propsTableModel.setValueColumnName("Property Value");
     }
     catch ( Exception e ) {
@@ -18552,17 +18570,17 @@ Show properties for the selected ensemble(s).
 private void uiAction_ResultsEnsembleProperties ()
 {   String routine = getClass().getSimpleName() + ".uiAction_ResultsEnsembleProperties";
     String message;
-    // Get the selected ensembles
+    // Get the selected ensembles.
     int selected [] = __resultsTSEnsembles_JList.getSelectedIndices();
     if ( (selected == null) || (selected.length == 0) ) {
-        // Nothing is selected to process all
+        // Nothing is selected to process all.
         int size = __resultsTSEnsembles_JListModel.size();
         selected = new int[size];
         for ( int i = 0; i < size; i++ ) {
             selected[i] = i;
         }
     }
-    // Get the list of time series from the processor, to check whether time series are shared
+    // Get the list of time series from the processor, to check whether time series are shared.
     List<TS> tslist = null;
     int tsResultsSize = -1;
     try {
@@ -18572,12 +18590,12 @@ private void uiAction_ResultsEnsembleProperties ()
         tsResultsSize = tslist.size();
     }
     catch ( Exception e ) {
-        // Should not happen
+        // Should not happen.
         message = "Error getting time series list from processor:";
         Message.printWarning ( 3, routine, message );
         Message.printWarning ( 3, routine, e );
     }
-    // Get the properties from the ensembles, including included time series properties
+    // Get the properties from the ensembles, including included time series properties.
     String ensembleDisplay;
     String ensembleID;
     TSEnsemble ensemble;
@@ -18877,28 +18895,36 @@ Display the list of properties from the command processor.
 private void uiAction_RunCommands_ShowResultsProperties()
 {   String routine = getClass().getSimpleName() + ".uiAction_RunCommands_ShowResultsProperties";
     try {
-        // Create a new table model for the command processor properties.
-        // TODO SAM 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
+        // Create a new table model for the command processor properties:
+    	// - make a copy of the properties so as to not impact the processor
+        // - TODO SAM 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
         TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
         Collection<String> propertyNames = processor.getPropertyNameList(true, true);
         PropList props = new PropList("processor");
-        Object propVal = null;
+        Object propContents = null;
         for ( String propertyName : propertyNames ) {
         	try {
-        		propVal = processor.getPropContents(propertyName);
+        		propContents = processor.getPropContents(propertyName);
+        		if ( propContents != null ) {
+		     		Message.printStatus(2, "", "Property " + propertyName + " = " + propContents);
+		     		Message.printStatus(2, "", "Property " + propertyName + " = " + propContents.getClass());
+	     		}
         	}
         	catch ( Exception e ) {
         		Message.printWarning(2,routine,e);
         	}
-            if ( propVal == null) {
-                props.set(new Prop(propertyName, propVal, ""));
+            if ( propContents == null) {
+            	// Set as null object with blank string value.
+                props.set(new Prop(propertyName, propContents, ""));
             }
             else {
-                props.set(new Prop(propertyName, propVal, "" + processor.getPropContents(propertyName) ) );
+            	// Set the object pointer and string equivalent.
+                props.set(new Prop(propertyName, propContents, "" + propContents) );
             }
         }
         PropList_TableModel tableModel = new PropList_TableModel ( props, false, false );
         tableModel.setKeyColumnName("Property Name");
+        tableModel.setTypeColumnName("Property Type");
         tableModel.setValueColumnName("Property Value");
         PropList_CellRenderer cellRenderer = new PropList_CellRenderer( tableModel );
         __resultsProperties_JWorksheet.setCellRenderer ( cellRenderer );
@@ -21467,6 +21493,7 @@ private void uiAction_ShowResultsTable ( String selected )
     String tableId = "";
     try {
         tableId = uiAction_ShowResultsTable_GetTableID ( selected );
+        // If column widths are set, they are used.
         DataTable table = commandProcessor_GetTable ( tableId );
         if ( table == null ) {
             Message.printWarning (1, routine,
