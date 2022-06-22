@@ -2159,7 +2159,6 @@ private String
     // Commands(Plugin) menu.
 
     __Commands_Plugin_String = "Commands(Plugin)",
-    __Commands_Plugin_ReadTimeSeries_String = "Read Time Series",
     
 	// Results menu choices (order in GUI).
 
@@ -8960,7 +8959,7 @@ private void ui_InitGUIInputFilters ( final int y )
                     Message.printWarning(3, routine, e);
                 }
             }
-            // Loop through all the plug-in datastores and initialize input filters if they provide
+            // Loop through all the plug-in datastores and initialize input filters if they provide.
             for ( DataStore ds : __tsProcessor.getDataStores() ) {
             	if ( ds == null ) {
             		continue;
@@ -8968,7 +8967,7 @@ private void ui_InitGUIInputFilters ( final int y )
             	else if ( ds instanceof PluginDataStore ) {
             		PluginDataStore pds = (PluginDataStore)ds;
             		if ( pds.providesTimeSeriesListInputFilterPanel() ) {
-            			// Plugin provides an input filter panel 
+            			// Plugin provides an input filter panel.
             			try {
             				Message.printStatus(2,routine,"Adding input filter for plugin datastore \"" + ds.getName() + "\"..." );
             				InputFilter_JPanel ifp = pds.createTimeSeriesListInputFilterPanel();
@@ -8977,7 +8976,7 @@ private void ui_InitGUIInputFilters ( final int y )
             	                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             	                GridBagConstraints.WEST );
             	            // TODO SAM 2016-04-16 might need more care setting this name.
-            	            // However, class name, plus datastore name should be unique
+            	            // However, class name, plus datastore name should be unique.
             	            ifp.setName(ds.getClass().getSimpleName() + "." + ds.getName() + ".InputFilterPanel");
             	            __inputFilterJPanelList.add ( ifp );
             	            Message.printStatus(2,routine,"...added input filter for plugin datastore \"" + ds.getName() + "\"" );

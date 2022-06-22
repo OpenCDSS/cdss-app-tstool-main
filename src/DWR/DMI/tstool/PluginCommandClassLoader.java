@@ -35,10 +35,12 @@ import java.util.jar.Manifest;
 import RTi.Util.Message.Message;
 
 /**
- * Load plugin command classes.  This loader loads the command class as an entry point into
- * the plugin commands integrated with TSTool.  Once the commands have been loaded, other
- * classes will be loaded, such as the editor dialog and all the underlying classes that
- * are needed to run the command, such as database interface.
+ * THIS CLASS IS NOT CURRENTLY USED - plugin classes are loaded when plugin datastores are checked.
+ * 
+ * Load plugin command classes.
+ * This loader loads the command class as an entry point into the plugin commands integrated with TSTool.
+ * Once the commands have been loaded, other classes will be loaded,
+ * such as the editor dialog and all the underlying classes that are needed to run the command, such as database interface.
  * See:  http://docs.oracle.com/javase/tutorial/ext/basics/load.html
  * @author sam
  *
@@ -58,31 +60,31 @@ public class PluginCommandClassLoader extends URLClassLoader {
 	 */
 	public List<Class> loadCommandClasses () throws ClassNotFoundException {
 		String routine = getClass().getSimpleName() + ".loadCommandClasses";
-		// Get all of the URLs that were specified to the loader
+		// Get all of the URLs that were specified to the loader.
 		URL [] pluginClassURLs = getURLs();
-		// Plugin command classes that are loaded
+		// Plugin command classes that are loaded.
 		List<Class> pluginCommandList = new ArrayList<Class>();
-		// Loop through all of the URLs
+		// Loop through all of the URLs.
 		for ( int i = 0; i < pluginClassURLs.length; i++ ) {
 			JarInputStream jarStream = null;
 			try {
-				// Open the META-INF/MANIFEST.MF file and get the property Command-Class, which is what needs to be loaded
+				// Open the META-INF/MANIFEST.MF file and get the property Command-Class, which is what needs to be loaded.
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
 				for ( int iCommand = 1 ; ; ++iCommand ) {
 					String commandClassToLoad = attributes.getValue("Command-Class" + iCommand);
 					if ( commandClassToLoad == null ) {
-						// No more command classes so break out of the loop
+						// No more command classes so break out of the loop.
 						Message.printStatus(2, routine,  "Read " + (iCommand - 1) + " MANIFEST entries for command classes.");
 						break;
 					}
 					else {
-						// The following will search the list of URLs that was provided to the constructor
+						// The following will search the list of URLs that was provided to the constructor.
 						Message.printStatus(2, routine,  "Found MANIFEST entry for command class: " +
 							commandClassToLoad.substring(0,(commandClassToLoad.length() - (("" + iCommand).length() - 1)) ));
 						Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
-						// This class is an instance of URLClassLoader so can run the super-class loadClass()
+						// This class is an instance of URLClassLoader so can run the super-class loadClass().
 						Class<?> loadedClass = loadClass(commandClassToLoad);
 						Message.printStatus(2, routine, "Loaded command class \"" + commandClassToLoad + "\"");
 						pluginCommandList.add(loadedClass);
@@ -98,7 +100,7 @@ public class PluginCommandClassLoader extends URLClassLoader {
 						jarStream.close();
 					}
 					catch ( IOException e ) {
-						// Ignore - should not happen
+						// Ignore - should not happen.
 					}
 				}
 			}
