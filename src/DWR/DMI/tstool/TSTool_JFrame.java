@@ -1345,6 +1345,7 @@ JMenuItem
 JMenu
     __Commands_Datastore_JMenu = null;
 JMenuItem
+    __Commands_Datastore_NewAccessDatabase_JMenuItem,  
     __Commands_Datastore_NewDerbyDatabase_JMenuItem,  
     __Commands_Datastore_NewSQLiteDatabase_JMenuItem,  
     __Commands_Datastore_OpenDataStore_JMenuItem,  
@@ -1945,6 +1946,7 @@ private String
 	// Commands...Datastore processing menu.
 	
     __Commands_Datastore_String = "Datastore Processing",
+    __Commands_Datastore_NewAccessDatabase_String = TAB + "NewAccessDatabase()... <create a Microsoft Access database>",
     __Commands_Datastore_NewDerbyDatabase_String = TAB + "NewDerbyDatabase()... <create a Derby database (built-in Java database)>",
     __Commands_Datastore_NewSQLiteDatabase_String = TAB + "NewSQLiteDatabase()... <create a SQLite database>",
     __Commands_Datastore_OpenDataStore_String = TAB + "OpenDataStore()... <open a database datastore>",
@@ -10512,6 +10514,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Datastore_JMenu = new JMenu(__Commands_Datastore_String) );
+    __Commands_Datastore_JMenu.add(__Commands_Datastore_NewAccessDatabase_JMenuItem =
+        new SimpleJMenuItem(__Commands_Datastore_NewAccessDatabase_String, this) );
+    __Commands_Datastore_NewAccessDatabase_JMenuItem.setToolTipText("Create a new Microsoft Access database."); 
     __Commands_Datastore_JMenu.add(__Commands_Datastore_NewDerbyDatabase_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_NewDerbyDatabase_String, this) );
     __Commands_Datastore_NewDerbyDatabase_JMenuItem.setToolTipText("Create a new Derby (built-in Java) database."); 
@@ -13427,7 +13432,10 @@ throws Exception
 
     // Datastore commands.
 
-    if (command.equals( __Commands_Datastore_NewDerbyDatabase_String) ) {
+    if (command.equals( __Commands_Datastore_NewAccessDatabase_String) ) {
+        commandList_EditCommand ( __Commands_Datastore_NewAccessDatabase_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( __Commands_Datastore_NewDerbyDatabase_String) ) {
         commandList_EditCommand ( __Commands_Datastore_NewDerbyDatabase_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( __Commands_Datastore_NewSQLiteDatabase_String) ) {
