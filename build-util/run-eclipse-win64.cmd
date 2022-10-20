@@ -16,10 +16,15 @@ set workspaceFolder=%scriptFolder%..\..\..\eclipse-workspace
 echo Batch file folder:  %scriptFolder%
 echo Workspace folder: %workspaceFolder%
 
+rem Set the DEVUSERPROFILE for the drive that contains the files:
+rem - special check for Steve Malers
+SET DEVUSERPROFILE=%USERPROFILE%
+if exist D:\Users\steve set DEVUSERPROFILE=D:\Users\steve
+
 rem TODO smalers 2017-03-11 Need to evaluate how to handle 64-bit and Linux versions of libraries:
 rem - try using this and then disable for 64-bit if necessary
-rem SET HECLIB_FOLDER=%USERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib\win32
-SET HECLIB_FOLDER=%USERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib
+rem SET HECLIB_FOLDER=%DEVUSERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib\win32
+SET HECLIB_FOLDER=%DEVUSERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib
 
 rem Run Eclipse:
 rem - the following specifically sets the VM location, which works fine if developers follow that convention
@@ -36,7 +41,7 @@ echo Therefore, the newest supported version will be found and used.
 set eclipseTryExe="C:\Program Files\Eclipse\eclipse-java-2019-03\eclipse.exe"
 echo Checking %eclipseTryExe%
 if exist %eclipseTryExe% set eclipseExe=%eclipseTryExe%
-rem If a newer version is available, try it here.
+rem If a newer version or a different drive is available, try it here.
 rem set eclipseTryExe="C:\Program Files (x86)\eclipse-java-neon-3-win32\eclipse\eclipse.exe"
 rem echo Checking %eclipseTryExe%
 rem if exist %eclipseTryExe% set eclipseExe=%eclipseTryExe%

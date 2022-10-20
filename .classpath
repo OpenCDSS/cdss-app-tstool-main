@@ -14,5 +14,9 @@
 	<classpathentry kind="lib" path="/cdss-util-buildtools/lib/junit-3.8.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-cdss-java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cdss-lib-dmi-hydrobase-rest-java"/>
+	<classpathentry kind="lib" path="/cdss-lib-common-java/lib/Jackson/jackson-annotations-2.9.10.jar"/>
+	<classpathentry kind="lib" path="/cdss-lib-common-java/lib/Jackson/jackson-core-2.9.10.jar"/>
+	<classpathentry kind="lib" path="/cdss-lib-common-java/lib/Jackson/jackson-databind-2.9.10.jar"/>
+	<classpathentry kind="lib" path="/cdss-lib-common-java/lib/Jackson/jackson-datatype-jsr310-2.9.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
