@@ -2295,7 +2295,12 @@ private String
 	__InputName_BrowseStateModB_String = "Browse for a StateMod binary file...",
 	__InputName_BrowseStateCUB_String = "Browse for a StateCU binary file...",
 
+	// Used when data type and time step choices are not available but are automatically handled,
+	// such as in DateValue time series files.
 	__DATA_TYPE_AUTO = "Auto",
+
+	// Used with HEC-DSS because filters provide data type and time step choices.
+	__DATA_TYPE_USE_FILTERS = "Use filters below",
 
 	// Input types for the __input_type_JComboBox.
 	// Datastores are NOT listed here; consequently, the following are files or databases
@@ -8132,8 +8137,7 @@ home, or the location of new command files.
 This directory is suitable for initializing a workflow processing run.
 @return the initial working directory, which should always be non-null.
 */
-private String ui_GetInitialWorkingDir ()
-{
+private String ui_GetInitialWorkingDir () {
 	return __initialWorkingDir;
 }
 
@@ -8142,8 +8146,7 @@ Return the NWSRFSFS5Files instance that is active for the UI, opened from
 the configuration file information or the NWSRFS FS5Files select dialog.
 @return the NWSRFSDMI instance that is active for the UI.
 */
-private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI ()
-{
+private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI () {
 	return __nwsrfs_dmi;
 }
 
@@ -8153,8 +8156,7 @@ If the datastore name is a substitute, return the original datastore to which it
 @return the datastore for the selected datastore name, or null if the selected name is blank (or for some
 reason is not in the processor - should not happen if data are being kept consistent).
 */
-private DataStore ui_GetSelectedDataStore ()
-{
+private DataStore ui_GetSelectedDataStore () {
     // TODO SAM 2010-09-02 How to ensure that name is unique until datastores are handled consistently?
     String dataStoreName = __dataStore_JComboBox.getSelected();
     if ( Message.isDebugOn ) {
@@ -8218,32 +8220,31 @@ private String ui_GetSelectedDataType () {
 /**
 Return the selected data type full string, which may include a note.
 */
-private String ui_GetSelectedDataTypeFull ()
-{
+private String ui_GetSelectedDataTypeFull () {
     return __dataType_JComboBox.getSelected();
 }
 
 /**
 Return the selected input name.
+This is the visible name shown in the UI.
+If a shortened name is shown, it needs to be looked up from the visible name.
+@return the selected input name.
 */
-private String ui_GetSelectedInputName()
-{
+private String ui_GetSelectedInputName() {
     return __inputName_JComboBox.getSelected();
 }
 
 /**
 Return the selected input type.  Use this to ensure that operations are based on the current setting.
 */
-private String ui_GetSelectedInputType()
-{
+private String ui_GetSelectedInputType() {
     return __input_type_JComboBox.getSelected();
 }
 
 /**
 Return the selected time step.
 */
-private String ui_GetSelectedTimeStep()
-{
+private String ui_GetSelectedTimeStep() {
     return __timeStep_JComboBox.getSelected();
 }
 
@@ -12185,7 +12186,7 @@ private void ui_SetInputFilterForSelections()
     String selectedInputType = ui_GetSelectedInputType();
     String selectedDataType = ui_GetSelectedDataType();
     String selectedTimeStep = ui_GetSelectedTimeStep();
-    Message.printStatus(2, routine, "Setting input filter based on selected datastore \"" +
+    Message.printStatus(2, routine, "Setting the input filter based on selected datastore \"" +
         selectedDataStoreName + "\", input type \"" + selectedInputType +
         "\", and data type \"" + selectedDataType + "\"" );
     try {
@@ -12199,6 +12200,8 @@ private void ui_SetInputFilterForSelections()
                 "\" time step \"" + selectedTimeStep + "\"." );
     }
     else if(selectedInputType.equals(__INPUT_TYPE_HECDSS) && (__inputFilterHecDss_JPanel != null) ) {
+    	// One input filter panel is reused among different HEC-DSS files:
+    	// - the previously-selected filter choices will still be selected
         selectedInputFilter_JPanel = __inputFilterHecDss_JPanel;
     }
     else if ( selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
@@ -16318,7 +16321,7 @@ The filename is taken from the selected item in the __inputName_JComboBox.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadHECDSSHeaders ()
 throws IOException
-{   String routine = "TSTool_JFrame.readHECDSSHeaders";
+{   String routine = getClass().getSimpleName() + ".readHECDSSHeaders";
 
     try {
         // Visible path might be abbreviated so look up in list that has full paths.
@@ -16336,39 +16339,50 @@ throws IOException
         String ePartReq = "*";
         String fPartReq = "*";
         // Try to get filter choices for all the parts.
-        List inputList = __inputFilterHecDss_JPanel.getInput ( "A part", null, true, null );
+        List<String> inputList = __inputFilterHecDss_JPanel.getInput ( HecDssTSInputFilter_JPanel.A_PART_LABEL, null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter.
             aPartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "B part", null, true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( HecDssTSInputFilter_JPanel.B_PART_LABEL, null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter.
             bPartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "C part", null, true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( HecDssTSInputFilter_JPanel.C_PART_LABEL, null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter.
             cPartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "E part", null, true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( HecDssTSInputFilter_JPanel.E_PART_LABEL, null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter.
             ePartReq = (String)inputList.get(0);
         }
-        inputList = __inputFilterHecDss_JPanel.getInput ( "F part", null, true, null );
+        inputList = __inputFilterHecDss_JPanel.getInput ( HecDssTSInputFilter_JPanel.F_PART_LABEL, null, true, null );
         if ( inputList.size() > 0 ) {
             // Use the first matching filter.
             fPartReq = (String)inputList.get(0);
         }
+        String cPartReq2 = "";
+        // TODO smalers 2022-10-21 the following is needed to avoid ** but may be able to clean up better.
+        if ( cPartReq.equals("*") ) {
+        	cPartReq2 = "*";
+        }
+        else {
+        	cPartReq2 = "*" + cPartReq;
+        }
         // Use the : to separate the parts.
-        String tsidPattern = aPartReq + ":" + bPartReq + "." + "*" + cPartReq + "." + ePartReq + "." + fPartReq +
+        String tsidPattern = aPartReq + ":" + bPartReq + ".HEC-DSS." + cPartReq2 + "." + ePartReq + "." + fPartReq +
             "~HEC-DSS~" + inputNameSelected;
         Message.printStatus ( 1, routine, "Reading HEC-DSS file \"" + inputNameSelected + "\" for TSID pattern \"" + tsidPattern + "\"" );
-        List tslist = null;
+        List<TS> tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
-        // TODO SAM 2008-09-03 Enable searchable fields
-        tslist = HecDssAPI.readTimeSeriesList ( new File(inputNameSelected), tsidPattern, null, null, null, false );
+        // TODO SAM 2008-09-03 Enable searchable fields.
+        boolean readData = false;
+        boolean closeAfterRead = false;
+        tslist = HecDssAPI.readTimeSeriesList ( new File(inputNameSelected), tsidPattern, null, null, null,
+        	readData, closeAfterRead );
         int size = 0;
         if ( tslist != null ) {
             size = tslist.size();
@@ -18134,7 +18148,7 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
     if ( selectedDataStore != null ) {
         Message.printStatus(2, routine, "Blanking out input type because datastore \"" +
             selectedDataStore.getName() + "\" has been selected." );
-        // Set the input name to blank, adding the blank item if necessary
+        // Set the input name to blank, adding the blank item if necessary.
         if ( __inputName_JComboBox.getItemCount() == 0 ) {
             __inputName_JComboBox.add("");
         }
@@ -18147,9 +18161,10 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
         return;
     }
 
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Input name has been selected:  \"" + selectedInputName + "\"" );
-	}
+	//if ( Message.isDebugOn ) {
+	//	Message.printDebug ( 1, routine, "Input name has been selected:  \"" + selectedInputName + "\"" );
+	//}
+	Message.printStatus ( 2, routine, "Input name has been selected:  \"" + selectedInputName + "\"" );
 
 	// List alphabetically.
 	try {
@@ -18161,15 +18176,20 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
             selectedInputName = __inputNameHecDssList.get(listIndex);
             Message.printStatus( 2, routine, "File corresponding to visible item is \"" + selectedInputName + "\"" );
             // A new file was selected so clear the part choices and regenerate the lists.
+            Message.printStatus( 2, routine, "  Setting the input filter to use this file." );
+            Message.printStatus( 2, routine, "    Visible name:            " + selectedInputNameVisible );
+            Message.printStatus( 2, routine, "    Invisible (actual) name: " + selectedInputName);
             ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).setHecDssFile(new File(selectedInputName));
-            ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).refreshChoices(true);
+            Message.printStatus( 2, routine, "    Refreshing the input filter choices for the selected file." );
+            ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).refreshChoices();
+            Message.printStatus( 2, routine, "    Back from refreshing the input filter choices for the selected file." );
         }
         else if ( selectedInputType.equals ( __INPUT_TYPE_NWSRFS_FS5Files ) ) {
     		// Reset the data types.
     		__dataType_JComboBox.setEnabled ( true );
     		__dataType_JComboBox.removeAll ();
     		// TODO SAM 2004-09-01 need to find a way to not re-read the data types file.
-    		List<String> dataTypes = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description
+    		List<String> dataTypes = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description.
     		__dataType_JComboBox.setData ( dataTypes );
     		__dataType_JComboBox.select ( null );
     		__dataType_JComboBox.select ( 0 );
@@ -18199,7 +18219,7 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 	if ( selectedDataStore != null ) {
 	    Message.printStatus(2, routine, "Blanking out input type because datastore \"" +
 	        selectedDataStore.getName() + "\" has been selected." );
-	    // Set the input type to blank, adding the blank item if necessary
+	    // Set the input type to blank, adding the blank item if necessary.
         if ( __input_type_JComboBox.getItemCount() == 0 ) {
             __input_type_JComboBox.add("");
         }
@@ -18209,11 +18229,11 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
         ui_SetIgnoreItemEvent(true);
         __input_type_JComboBox.select("");
         ui_SetIgnoreItemEvent(false);
-	    // Now chain to selecting the input name - this will blank the input name selection
+	    // Now chain to selecting the input name - this will blank the input name selection.
 	    uiAction_InputNameChoiceClicked(selectedDataStore);
 	    return;
 	}
-	// Get the selected input type
+	// Get the selected input type.
     String selectedInputType = ui_GetSelectedInputType();
 	if ( selectedInputType == null ) {
 		// Apparently this happens when setData() or similar is called
@@ -18223,8 +18243,7 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 		}
 		return;
 	}
-	// If here, make sure to blank out the selection on the datastore so that the user is not confused by
-	// seeing both
+	// If here, make sure to blank out the selection on the datastore so that the user is not confused by seeing both.
 	ui_SetIgnoreItemEvent(true);
 	__dataStore_JComboBox.select ( "" );
 	ui_SetIgnoreItemEvent(false);
@@ -19886,22 +19905,31 @@ Set up query choices because a HECDSS file name has been selected.
 Prompt for a HECDSS input name (binary file name).  When selected, update the choices.
 @param resetInputNames If true, the input names will be repopulated with values from __inputNameHecDssListVisible.
 @exception Exception if there is an error.
+@return false if cancel, true if a file is selected
 */
-private void uiAction_SelectInputName_HECDSS ( boolean resetInputNames )
+private boolean uiAction_SelectInputName_HECDSS ( boolean resetInputNames )
 throws Exception
-{   String routine = "TSTool_JFrame.uiAction_SelectInputName_HECDSS";
+{   String routine = getClass().getSimpleName() + ".uiAction_SelectInputName_HECDSS";
     if ( resetInputNames ) {
         // The  input type has been selected as a change from another type.
-    	// Repululate the list if previous choices exist.
+    	// Repopulate the list if previous choices exist:
+    	// - will either select a different file (not in the list) below
+    	//   or cancel, in which case the initial selection is reset
         __inputName_JComboBox.setData ( __inputNameHecDssVisibleList );
     }
     // Check the item that is selected.
     String inputName = __inputName_JComboBox.getSelected();
+    String inputNameVisible = null;
     if ( (inputName == null) || inputName.equals(__BROWSE) ) {
-        // Prompt for the name of a HEC-DSS file.
+        // First HEC-DSS file is being selected (nothing in the choices) or have selected "Browse":
+    	// - prompt for the name of a HEC-DSS file.
+    	Message.printStatus ( 2, routine, "Prompting for HEC-DSS input file..." );
+
         // Based on the file extension, set the data types and other information.
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
-        fc.setDialogTitle("Select HEC-DSS Database File");
+        // Request focus because otherwise focus may still be on another component.
+        fc.requestFocusInWindow();
+        fc.setDialogTitle("Select a HEC-DSS Database File");
         SimpleFileFilter sff = new SimpleFileFilter("dss","HEC-DSS Database File");
         fc.addChoosableFileFilter( sff );
         // Only allow recognized extensions.
@@ -19912,18 +19940,24 @@ throws Exception
                 ui_SetIgnoreItemEvent ( true );
                 __inputName_JComboBox.select(null);
                 if ( __inputNameHecDssVisibleLast != null ) {
+                	// Reselect the previous selection without regenerating a select event.
                     __inputName_JComboBox.select ( __inputNameHecDssVisibleLast );
                 }
                 ui_SetIgnoreItemEvent ( false );
             }
-            return;
+            // Cancelled so don't process the file.
+            return false;
         }
         // User has chosen a file.
 
+        // Get the name of the actual file selection.
         inputName = fc.getSelectedFile().getPath();
+    	Message.printStatus ( 2, routine, "Input file from file selector: " + inputName );
         // Save as last selection, using the shorter visible path.
         //__inputNameHecDssLast = inputName; // Not needed?
-        String inputNameVisible = ui_CreateAbbreviatedVisibleFilename(inputName);
+        // Create a filename that is visible but may contain ... when the filename is long,
+        // otherwise, very long filenames cause layout issues.
+        inputNameVisible = ui_CreateAbbreviatedVisibleFilename(inputName);
         __inputNameHecDssVisibleLast = inputNameVisible;
         JGUIUtil.setLastFileDialogDirectory (fc.getSelectedFile().getParent() );
 
@@ -19931,15 +19965,16 @@ throws Exception
 
         ui_SetIgnoreItemEvent ( true );
         if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox,__BROWSE, JGUIUtil.NONE, null, null ) ) {
-            // The "Browse" choice is not already in the visible list so add it at the beginning.  Also add to
-            // the invisible file list to keep the indices the same.
+            // The "Browse" choice is not already in the visible list so add it at the beginning
+        	// for subsequent selections.
+        	// Also add to the invisible file list to keep the indices the same.
             __inputNameHecDssVisibleList.add ( __BROWSE );
             __inputNameHecDssList.add ( __BROWSE );
             __inputName_JComboBox.add ( __BROWSE );
         }
-        if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox,inputName, JGUIUtil.NONE, null, null ) ) {
-            // The selected file is not already in so add after the browse string (files
-            // are listed chronologically by select with most recent at the top).
+        if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox,inputNameVisible, JGUIUtil.NONE, null, null ) ) {
+            // The selected file is not already in the list of input names so add after the browse string
+        	// (files are listed chronologically by select with most recent at the top).
             if ( __inputName_JComboBox.getItemCount() > 1 ) {
                 __inputName_JComboBox.addAt ( inputNameVisible, 1 );
                 __inputNameHecDssVisibleList.add ( 1, inputNameVisible );
@@ -19952,46 +19987,92 @@ throws Exception
             }
         }
         ui_SetIgnoreItemEvent ( false );
-        // Select the file in the input name because leaving it on
-        // browse will disable the user's ability to reselect brows.
+
+        // Select the file in the input name:
+        // - otherwise, leaving it on browse will disable the user's ability to reselect browse.
+        // - disable events so that logic can continue below
+    	Message.printStatus ( 2, routine, "Selecting the visible input file without generating an event: " );
+    	Message.printStatus ( 2, routine, "  " + inputName );
+        ui_SetIgnoreItemEvent ( true );
         __inputName_JComboBox.select ( null );
         __inputName_JComboBox.select ( inputNameVisible );
+        ui_SetIgnoreItemEvent ( false );
+    }
+    else {
+    	// Picking an existing file:
+    	// - need to look up the invisible (actual) file name from the visible file name.
+    	inputNameVisible = inputName;
+    	// Figure out the position in the list.
+    	int foundChoice = -1;
+    	for ( int i = 0; i < this.__inputNameHecDssVisibleList.size(); i++ ) {
+    		String choice = this.__inputNameHecDssVisibleList.get(i);
+    		if ( choice.equals(inputNameVisible) ) {
+    			foundChoice = i;
+    			break;
+    		}
+    	}
+    	if ( foundChoice < 0 ) {
+    		// Should not happen.
+    		return false;
+    	}
+    	inputName = this.__inputNameHecDssList.get(foundChoice);
+        __inputNameHecDssVisibleLast = inputNameVisible;
     }
 
+    // Make sure the input name is enabled in case it was deselected elsewhere.
     __inputName_JComboBox.setEnabled ( true );
 
-    // Set the data types and time step based on the file extension.
-
-    __dataType_JComboBox.setEnabled ( true );
-    __dataType_JComboBox.removeAll ();
+    // Set the data types and time step to tell the user to use filters.
 
     List<String> dataTypes = new ArrayList<>();
-    int intervalBase = TimeInterval.MONTH; // Default
+    dataTypes.add(__DATA_TYPE_USE_FILTERS);
 
-    // Fill data types choice.
-
-    Message.printStatus ( 2, routine, "Setting HEC-DSS data types..." );
+    // Fill data types choice (set to an empty list since data types are in the input filters).
+    ui_SetIgnoreItemEvent ( true );
+    __dataType_JComboBox.setEnabled ( false );
+    __dataType_JComboBox.removeAll ();
+    Message.printStatus ( 2, routine, "Setting HEC-DSS data types without generating event..." );
     __dataType_JComboBox.setData ( dataTypes );
-    Message.printStatus ( 2, routine, "Selecting the first HEC-DSS data type..." );
     __dataType_JComboBox.select ( null );
-    if ( dataTypes.size() > 0 ) {
+    //if ( dataTypes.size() > 0 ) {
         __dataType_JComboBox.select ( 0 );
-    }
+    //}
+    ui_SetIgnoreItemEvent ( false );
 
     // Set time step appropriately.
 
+    ui_SetIgnoreItemEvent ( true );
     __timeStep_JComboBox.removeAll ();
-    if ( intervalBase == TimeInterval.MONTH ) {
-        __timeStep_JComboBox.add ( __TIMESTEP_MONTH );
-    }
-    else if ( intervalBase == TimeInterval.DAY ) {
-        __timeStep_JComboBox.add ( __TIMESTEP_DAY );
-    }
-    __timeStep_JComboBox.setEnabled ( true ); // Enabled, but one visible.
+    __timeStep_JComboBox.add(__DATA_TYPE_USE_FILTERS);
+    //int intervalBase = TimeInterval.MONTH; // Default
+    //if ( intervalBase == TimeInterval.MONTH ) {
+    //    __timeStep_JComboBox.add ( __TIMESTEP_MONTH );
+    //}
+    //else if ( intervalBase == TimeInterval.DAY ) {
+    //    __timeStep_JComboBox.add ( __TIMESTEP_DAY );
+    //}
+    //__timeStep_JComboBox.setEnabled ( true ); // Enabled, but one visible.
     __timeStep_JComboBox.select ( null );
     __timeStep_JComboBox.select ( 0 );
+    __timeStep_JComboBox.setEnabled ( false ); // Disabled and empty.
+    ui_SetIgnoreItemEvent ( false );
 
-    // Initialize with blank data list.
+	// Show the input filters that are appropriate for data time and timestep choices:
+    // - must be called because normally it is triggered from other events
+    // - for HEC-DSS it is the input type that controls
+	ui_SetInputFilterForSelections();
+
+    // Refresh other choices.  Input filter choices.
+    // A new file was selected so clear the part choices and regenerate the lists.
+    Message.printStatus( 2, routine, "  Setting the input filter to use this file:" );
+    Message.printStatus( 2, routine, "    Visible name:            " + inputNameVisible );
+    Message.printStatus( 2, routine, "    Invisible (actual) name: " + inputName);
+    ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).setHecDssFile(new File(inputName));
+    Message.printStatus( 2, routine, "    Refreshing the input filter choices for the selected file." );
+    ((HecDssTSInputFilter_JPanel)__inputFilterHecDss_JPanel).refreshChoices();
+    Message.printStatus( 2, routine, "    Back from refreshing the input filter choices for the selected file." );
+
+    // Initialize the time series with a blank data list.
 
     __query_TableModel = new TSTool_HecDss_TableModel(null);
     TSTool_HecDss_CellRenderer cr = new TSTool_HecDss_CellRenderer((TSTool_HecDss_TableModel)__query_TableModel);
@@ -20000,6 +20081,9 @@ throws Exception
     // Turn off columns in the table model that do not apply.
     __query_JWorksheet.removeColumn (((TSTool_HecDss_TableModel)__query_TableModel).COL_SEQUENCE);
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+    
+    // File was selected.
+    return true;
 }
 
 /**
@@ -20160,21 +20244,25 @@ Set up the query choices because the HEC DSS input type has been selected.
 */
 private void uiAction_SelectInputType_HECDSS ()
 throws Exception
-{   ui_SetInputNameVisible(true); // Lists files
-    // Prompt for a HEC-DSS file and update choices.
-    uiAction_SelectInputName_HECDSS ( true );
-    // Empty and disable the data type and time step because an input filter with choices from the file is used.
-    __dataType_JComboBox.setEnabled ( false );
-    __dataType_JComboBox.removeAll ();
-    __timeStep_JComboBox.setEnabled ( false );
-    __timeStep_JComboBox.removeAll ();
-    // Initialize with blank data list.
+{   ui_SetInputNameVisible(true); // Lists HEC-DSS (.dss) files using a shortened name if necessary.
+    // Prompt for a HEC-DSS:
+    boolean fileSelected = uiAction_SelectInputName_HECDSS ( true );
 
-    __query_TableModel = new TSTool_HecDss_TableModel ( null, true );
-    TSTool_HecDss_CellRenderer cr = new TSTool_HecDss_CellRenderer( (TSTool_HecDss_TableModel)__query_TableModel);
-    __query_JWorksheet.setCellRenderer ( cr );
-    __query_JWorksheet.setModel ( __query_TableModel );
-    __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+    if ( fileSelected ) {
+    	// TODO smalers 2022-10-21 these are set in the uiAction_SelectInputName_HECDSS() method.
+    	// Empty and disable the data type and time step because an input filter with choices from the file is used.
+    	//__dataType_JComboBox.setEnabled ( false );
+    	//__dataType_JComboBox.removeAll ();
+    	//__timeStep_JComboBox.setEnabled ( false );
+    	//__timeStep_JComboBox.removeAll ();
+    
+    	// Initialize the time series list with blank data list.
+    	__query_TableModel = new TSTool_HecDss_TableModel ( null, false );
+    	TSTool_HecDss_CellRenderer cr = new TSTool_HecDss_CellRenderer( (TSTool_HecDss_TableModel)__query_TableModel);
+    	__query_JWorksheet.setCellRenderer ( cr );
+    	__query_JWorksheet.setModel ( __query_TableModel );
+    	__query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
+    }
 }
 
 /**
@@ -22424,7 +22512,7 @@ private void uiAction_TimeStepChoiceClicked()
 	if ( Message.isDebugOn ) {
 		Message.printStatus ( 2, rtn, "Time step has been selected:  \"" + selectedTimeStep + "\"" );
 	}
-	// Show the input filters that are appropriate for data time and timestep choices
+	// Show the input filters that are appropriate for data time and timestep choices.
 	ui_SetInputFilterForSelections();
 }
 

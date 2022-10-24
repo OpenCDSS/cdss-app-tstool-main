@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,16 +46,17 @@ private int __COLUMNS = 13;
 Absolute column indices, for column lookups (includes the alias).
 */
 public final int COL_ID = 0;
-public final int COL_ALIAS = 1;
-public final int COL_NAME = 2;
-public final int COL_DATA_SOURCE= 3;
-public final int COL_DATA_TYPE = 4;
-public final int COL_TIME_STEP = 5;
-public final int COL_SCENARIO = 6;
-public final int COL_SEQUENCE = 7;
-public final int COL_UNITS = 8;
-public final int COL_START = 9;
-public final int COL_END = 10;
+//public final int COL_ALIAS = 1;
+public final int COL_NAME = 1;
+public final int COL_DATA_SOURCE= 2;
+public final int COL_DATA_TYPE = 3;
+public final int COL_TIME_STEP = 4;
+public final int COL_SCENARIO = 5;
+public final int COL_SEQUENCE = 6;
+public final int COL_UNITS = 7;
+public final int COL_START = 8;
+public final int COL_END = 9;
+public final int COL_DSS_PATH = 10;
 public final int COL_INPUT_TYPE	= 11;
 public final int COL_INPUT_NAME	= 12;
 
@@ -71,12 +72,13 @@ throws Exception
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the lst of TS that will be displayed in the table (null is allowed).
-@param include_alias If true, an alias column will be included after the
+@param data the list of TS that will be displayed in the table (null is allowed).
+@param includeAlias If true, an alias column will be included after the
 location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
+This is currently ignored and the alias column is never shown.
 @throws Exception if an invalid results passed in.
 */
-public TSTool_HecDss_TableModel ( List<TS> data, boolean include_alias )
+public TSTool_HecDss_TableModel ( List<TS> data, boolean includeAlias )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -85,6 +87,7 @@ throws Exception
 	    _rows = data.size();
 	}
 	_data = data;
+	//this.includeAlias = includeAlias;
 }
 
 /**
@@ -95,7 +98,7 @@ column.  All values are treated as strings.
 public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID:		return String.class;
-		case COL_ALIAS:		return String.class;
+		//case COL_ALIAS:		return String.class;
 		case COL_NAME:		return String.class;
 		case COL_DATA_SOURCE:	return String.class;
 		case COL_DATA_TYPE:	return String.class;
@@ -105,6 +108,7 @@ public Class<?> getColumnClass (int columnIndex) {
 		case COL_UNITS:		return String.class;
 		case COL_START:		return String.class;
 		case COL_END:		return String.class;
+		case COL_DSS_PATH:		return String.class;
 		case COL_INPUT_TYPE:	return String.class;
 		case COL_INPUT_NAME:	return String.class;
 		default:		return String.class;
@@ -125,8 +129,8 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return "ID\n(A Part - B Part)";
-		case COL_ALIAS:		return "\nAlias";
+		case COL_ID:		return "ID\n(A Part : B Part)";
+		//case COL_ALIAS:		return "\nAlias";
 		case COL_NAME:		return "Name/\nDescription";
 		case COL_DATA_SOURCE:	return "Data\nSource";
 		case COL_DATA_TYPE:	return "Data Type\n(C Part)";
@@ -134,12 +138,36 @@ public String getColumnName(int columnIndex) {
 		case COL_SCENARIO:	return "Scenario\n(F Part)";
 		case COL_SEQUENCE:	return "Sequence\nNumber";
 		case COL_UNITS:		return "\nUnits";
-		case COL_START:		return "Start\n(D Part)";
-		case COL_END:		return "End\n(D Part)";
+		case COL_START:		return "Start\n(from D Part)";
+		case COL_END:		return "End\n(from D Part)";
+		case COL_DSS_PATH:		return "DSS Path\n(from /A/B/C/D/E/F/ parts)";
 		case COL_INPUT_TYPE:	return "Input\nType";
 		case COL_INPUT_NAME:	return "Input\nName";
 		default:		return "";
 	}
+}
+
+/**
+Returns an array containing the column tool tips.
+@return an array containing the column tool tips.
+*/
+public String[] getColumnToolTips() {
+    String[] tt = new String[__COLUMNS];
+    tt[COL_ID] = "Location identifier (A part:B part)";
+    //tt[COL_ALIAS] = "Time series alias";
+    tt[COL_NAME] = "Time series name";
+    tt[COL_DATA_SOURCE] = "Data source, always HEC-DSS";
+    tt[COL_DATA_TYPE] = "Data type (C part)";
+    tt[COL_TIME_STEP] = "Time step (E part)";
+    tt[COL_SCENARIO] = "Scenario (F part)";
+    tt[COL_SEQUENCE] = "Sequence number for ensembles";
+    tt[COL_UNITS] = "Data units for time series";
+    tt[COL_START] = "Available start date (from D part)";
+    tt[COL_END] = "Available end date (from D part)";
+    tt[COL_DSS_PATH] = "DSS path, used in DSS catalog";
+    tt[COL_INPUT_TYPE] = "Input type, always HEC-DSS";
+    tt[COL_INPUT_NAME] = "File name";
+    return tt;
 }
 
 /**
@@ -166,8 +194,8 @@ From AbstractTableMode.  Returns the data that should be placed in the JTable at
 @param col the absolute column for which to return data.
 @return the data that should be placed in the JTable at the given row and column.
 */
-public Object getValueAt(int row, int col)
-{	// make sure the row numbers are never sorted ...
+public Object getValueAt(int row, int col) {
+	// Make sure the row numbers are never sorted.
 
 	if (_sortOrder != null) {
 		row = _sortOrder[row];
@@ -179,27 +207,51 @@ public Object getValueAt(int row, int col)
 	}
 	switch (col) {
 		case COL_ID:
-		    return ts.getIdentifier().getLocation();
-		case COL_ALIAS:
-		    return ts.getAlias();
+			// A-part is the location type.
+			// B-part is the location ID.
+		    return ts.getIdentifier().getLocationType() + ":" + ts.getIdentifier().getLocation();
+		//case COL_ALIAS:
+		//    return ts.getAlias();
 		case COL_NAME:
 		    return ts.getDescription();
 		case COL_DATA_SOURCE:
+			// Typically HEC-DSS but is not required to match time series.
 		    return ts.getIdentifier().getSource();
 		case COL_DATA_TYPE:
+			// C-part
 		    return ts.getDataType();
 		case COL_TIME_STEP:
+			// E-part
 		    return ts.getIdentifier().getInterval();
 		case COL_SCENARIO:
+			// F-part
 		    return ts.getIdentifier().getScenario();
 		case COL_SEQUENCE:
 		    return ts.getIdentifier().getSequenceID();
 		case COL_UNITS:
 		    return ts.getDataUnits();
 		case COL_START:
+			// D-part
 		    return ts.getDate1();
 		case COL_END:
+			// D-part
 		    return ts.getDate2();
+		case COL_DSS_PATH:
+			// /A-part/B-part/C-part/D-part/E-part/F-part/
+			StringBuilder b = new StringBuilder("/");
+		    b.append(ts.getIdentifier().getLocationType()); // A
+		    b.append("/");
+		    b.append(ts.getIdentifier().getLocation()); // B
+		    b.append("/");
+		    b.append(ts.getDataType()); // C
+		    b.append("/");
+		    b.append(ts.getDate1()); // D
+		    b.append("/");
+		    b.append(ts.getIdentifier().getInterval()); // E
+		    b.append("/");
+		    b.append(ts.getIdentifier().getScenario()); // F
+		    b.append("/");
+		    return b.toString();
 		case COL_INPUT_TYPE:
 		    return ts.getIdentifier().getInputType();
 		case COL_INPUT_NAME:
@@ -216,7 +268,8 @@ Returns an array containing the column widths (in number of characters).
 public int[] getColumnWidths() {
 	int[] widths = new int[__COLUMNS];
 	widths[COL_ID] = 12;
-	widths[COL_ALIAS] = 12;
+	//widths[COL_ALIAS] = 12;
+	//widths[COL_ALIAS] = 0;
 	widths[COL_NAME] = 20;
 	widths[COL_DATA_SOURCE] = 10;
 	widths[COL_DATA_TYPE] = 8;
@@ -226,6 +279,7 @@ public int[] getColumnWidths() {
 	widths[COL_UNITS] = 8;
 	widths[COL_START] = 10;
 	widths[COL_END] = 10;
+	widths[COL_DSS_PATH] = 45;
 	widths[COL_INPUT_TYPE] = 12;
 	widths[COL_INPUT_NAME] = 20;
 	return widths;
