@@ -21,6 +21,7 @@
     	<!-- Copy files from bin and bin-CDSS. -->
 
         <copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/TSTool.bat"/>
+    	<copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/tstool-windows.cmd"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/README.md"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool-latest.bat"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
@@ -31,10 +32,15 @@
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/setup-linux-tstool.bash"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
     	<!-- Binary files needed for HEC-DSS support beyond the jar files, which are handled automatically. -->
+    	<!-- As of TSTool 14.4.0 use the following. -->
+    	<!-- Prior to TSTool 14.4.0 use the following. -->
+    	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
+    	<!--
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/rmaUtil.dll"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/DFORMDD.DLL"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/MSVCRTD.DLL"/>
+    	-->
 
     	<!-- datastores - datastore configuration files -->
 
