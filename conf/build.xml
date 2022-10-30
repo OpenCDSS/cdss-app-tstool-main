@@ -15,13 +15,19 @@
     <target name="-install-local">
     	<!-- Run-time binary files. -->
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/tstool-latest.bat"/>
+    	<copy todir="${install.dir}/bin" file="resources/runtime/bin-CDSS/tstool-windows.cmd"/>
     	<copy todir="${install.dir}/bin" file="resources/runtime/bin/tstool"/>
         <copy todir="${install.dir}/bin" file="installer/common/TSTool.l4j.ini"/>
     	<!-- Binary files needed for HEC-DSS support beyond the jar files, which are handled automatically. -->
+    	<!-- As of TSTool 14.4.0 use the newer files listed below. -->
+    	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
+    	<!-- Prior to TSTool 14.4.0 use the newer files listed below. -->
+    	<!--
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/javaHeclib.dll"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/rmaUtil.dll"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/DFORMDD.DLL"/>
     	<copy todir="${install.dir}/bin" file="../cdss-lib-processor-ts-java/lib/heclib/MSVCRTD.DLL"/>
+    	-->
     	<!-- Documentation -->
     	<mkdir dir="${install.dir}/doc/UserManual"/>
         <copy todir="${install.dir}/doc/UserManual" file="../cdss-app-tstool-doc/doc/UserManual/dist_RTi/TSTool.pdf"/>

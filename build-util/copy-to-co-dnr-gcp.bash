@@ -5,11 +5,11 @@
 
 # Supporting functions, alphabetized.
 
-# Determine the operating system that is running the script
+# Determine the operating system that is running the script:
 # - mainly care whether Cygwin
 checkOperatingSystem() {
   if [ ! -z "${operatingSystem}" ]; then
-    # Have already checked operating system so return
+    # Have already checked operating system so return.
     return
   fi
   operatingSystem="unknown"
@@ -109,7 +109,7 @@ parseCommandLine() {
   done
 }
 
-# Print the usage
+# Print the usage.
 printUsage() {
   echoStderr ""
   echoStderr "Usage:  ${scriptName} [options]"
@@ -127,7 +127,7 @@ printUsage() {
   echoStderr ""
 }
 
-# Print the version.
+# Print the version of this script
 printVersion() {
   echoStderr "${version}"
 }
@@ -141,7 +141,7 @@ syncFiles() {
   # - the -r option means recursive to sync the whole folder tree
 
   # THIS IS DISABLED.
-  # TODO smalers 2021-09-02 have traditionally only copied the documentation to "latest"
+  # TODO smalers 2021-09-02 have traditionally only copied the documentation to "latest".
   if [ "1" = "2" ]; then
   if [ ${copyToLatest} = "yes" ]; then
     if [ -f "${installerFile}" ]; then
@@ -186,7 +186,7 @@ updateIndex() {
   local answer
   echo ""
   read -p "Do you want to update the GCP index file [Y/n]? " answer
-  if [ -z "${answer}" -o "${answer}" = "y" -o "$answer" = "Y" ]; then
+  if [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
     ${scriptFolder}/create-gcp-tstool-index.bash
   fi
 }
@@ -247,7 +247,7 @@ copyToLatest="no"
 parseCommandLine $@
 
 if [ ! -z "${tstoolVersionModifier}" -a "${copyToLatest}" = "yes" ]; then
-  # The version contains "dev" or "beta" so don't allow to be used for "latest"
+  # The version contains "dev" or "beta" so don't allow to be used for "latest".
   echoStderr "[WARNING] TSTool version ${tstoolVersion} contains modifier ${tstoolVersionModifier} - not copying to latest."
   copyToLatest="no"
 fi

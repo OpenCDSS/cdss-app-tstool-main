@@ -406,7 +406,7 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${StartMenu} "Enabling this component will install start menu folders."
   !insertmacro MUI_DESCRIPTION_TEXT ${DesktopShortcut} "Enabling this component will install a desktop shortcut to run the ${DISPLAYNAME} application."
   !insertmacro MUI_DESCRIPTION_TEXT ${BaseComponents} "Enabling this component will install the CDSS base components, including software and configuration files"
-  !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java™ Runtime Environment (JRE), which is used to run CDSS software.  CDSS software uses its own copy of the JRE, regardless of what may already by installed elsewhere on the computer."
+  !insertmacro MUI_DESCRIPTION_TEXT ${JRE} "Enabling this component will install the Java${U+2122} Runtime Environment (JRE), which is used to run CDSS software.  CDSS software uses its own copy of the JRE, regardless of what may already by installed elsewhere on the computer."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
