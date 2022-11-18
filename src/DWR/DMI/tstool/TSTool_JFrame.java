@@ -1474,23 +1474,35 @@ JMenuItem
 	__Commands_General_Comments_Comment_JMenuItem = null,
 	__Commands_General_Comments_StartComment_JMenuItem = null,
 	__Commands_General_Comments_EndComment_JMenuItem = null,
-	__Commands_General_Comments_EnabledComment_JMenuItem = null,
-	__Commands_General_Comments_EnabledIfApplicationComment_JMenuItem = null,
-	__Commands_General_Comments_EnabledIfDatastoreComment_JMenuItem = null,
+	// ------------------
+	__Commands_General_Comments_AuthorComment_JMenuItem = null,
+	__Commands_General_Comments_VersionComment_JMenuItem = null,
+	__Commands_General_Comments_VersionDateComment_JMenuItem = null,
+	__Commands_General_Comments_SourceUrlComment_JMenuItem = null,
+	__Commands_General_Comments_DocUrlComment_JMenuItem = null,
+	// ------------------
 	__Commands_General_Comments_ReadOnlyComment_JMenuItem = null,
 	__Commands_General_Comments_RunDiscoveryFalseComment_JMenuItem = null,
 	__Commands_General_Comments_TemplateComment_JMenuItem = null,
+	// ------------------
+	__Commands_General_Comments_EnabledComment_JMenuItem = null,
+	__Commands_General_Comments_EnabledIfApplicationComment_JMenuItem = null,
+	__Commands_General_Comments_EnabledIfDatastoreComment_JMenuItem = null,
+	// ------------------
 	__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem = null,
 	__Commands_General_Comments_ExpectedStatusWarningComment_JMenuItem = null,
 	//__Commands_General_Comments_FileModTimeComment_JMenuItem = null,
 	//__Commands_General_Comments_FileSizeComment_JMenuItem = null,
 	__Commands_General_Comments_IdComment_JMenuItem = null,
 	__Commands_General_Comments_OrderComment_JMenuItem = null,
+	// ------------------
 	__Commands_General_Comments_RequireApplicationComment_JMenuItem = null,
 	__Commands_General_Comments_RequireDatastoreComment_JMenuItem = null,
 	__Commands_General_Comments_RequireUserComment_JMenuItem = null,
+	// ------------------
 	__Commands_General_Comments_FixMeComment_JMenuItem = null,
 	__Commands_General_Comments_ToDoComment_JMenuItem = null,
+	// ------------------
 	__Commands_General_Comments_Empty_JMenuItem = null;
 
 JMenu
@@ -1687,6 +1699,10 @@ private JMenu
 private JMenuItem
 	__Tools_Analysis_PrincipalComponentAnalysis_JMenuItem = null,
 	__Tools_Analysis_MixedStationAnalysis_JMenuItem = null;
+private JMenu __Tools_Commands_JMenu = null;
+private JMenuItem
+	__Tools_Commands_CheckForUpdate_JMenuItem = null,
+	__Tools_Commands_CompareCommandsWithSource_JMenuItem = null;
 private JMenu
 	__Tools_Datastore_JMenu = null;
 private JMenuItem
@@ -2045,7 +2061,7 @@ private String
 
     __Commands_Template_String = "Template Processing",
     __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
-    __Commands_Template_Comments_Template_String = TAB + "#@template <comment that indicates a template command file>",
+    //__Commands_Template_Comments_Template_String = TAB + "#@template <comment that indicates a template command file>",
 
     // Visualization commands menu.
 
@@ -2060,23 +2076,35 @@ private String
     __Commands_General_Comments_Comment_String = TAB + "# comment(s) <insert 1+ comments, each starting with #>",
     __Commands_General_Comments_StartComment_String = TAB + "/* <start multi-line comment section>",
     __Commands_General_Comments_EndComment_String = TAB + "*/ <end multi-line comment section>",
+    // -----------------
+    __Commands_General_Comments_AuthorComment_String = TAB + "#@author <author of the command file>",
+    __Commands_General_Comments_VersionComment_String = TAB + "#@version <command file version>",
+    __Commands_General_Comments_VersionDateComment_String = TAB + "#@versionDate <command file version date/time>",
+    __Commands_General_Comments_SourceUrlComment_String = TAB + "#@sourceUrl <URL for the source>",
+    __Commands_General_Comments_DocUrlComment_String = TAB + "#@docUrl <URL for the documentation for the command file>",
+    // -----------------
     __Commands_General_Comments_ReadOnlyComment_String = TAB + "#@readOnly <protect command file from saving>",
     __Commands_General_Comments_RunDiscoveryFalseComment_String = TAB + "#@runDiscovery False <used to disable running discovery at load>",
    	__Commands_General_Comments_TemplateComment_String = TAB + "#@template <indicate that command file is a template file>",
+    // -----------------
     __Commands_General_Comments_EnabledComment_String = TAB + "#@enabled False <used to disable command for tests>",
     __Commands_General_Comments_EnabledIfApplicationComment_String = "#@enabledif application ... <enable command file for application version>",
     __Commands_General_Comments_EnabledIfDatastoreComment_String = "#@enabledif datastore ... <enable command file for datastore version>",
+    // -----------------
     __Commands_General_Comments_ExpectedStatusFailureComment_String = TAB + "#@expectedStatus Failure <used to test commands>",
     __Commands_General_Comments_ExpectedStatusWarningComment_String = TAB + "#@expectedStatus Warning <used to test commands>",
     //__Commands_General_Comments_FileModTimeComment_String = TAB + "#@fileModTime ... <used to enforce dependencies>",
     //__Commands_General_Comments_FileSizeComment_String = TAB + "#@fileSize ... <used to enforce dependencies>",
     __Commands_General_Comments_IdComment_String = TAB + "#@id CommandFileId <command file identifier>",
     __Commands_General_Comments_OrderComment_String = TAB + "#@order before/after CommandFileId <control test order>",
+    // -----------------
     __Commands_General_Comments_RequireApplicationComment_String = "#@require application ... <check application version dependency>",
     __Commands_General_Comments_RequireDatastoreComment_String = "#@require datastore ... <check datastore version dependency>",
     __Commands_General_Comments_RequireUserComment_String = "#@require user ... <check user requirement>",
+    // -----------------
     __Commands_General_Comments_FixMeComment_String = "#@fixme ... <indicate something to fix>",
     __Commands_General_Comments_ToDoComment_String = "#@todo ... <indicate something to do>",
+    // -----------------
     __Commands_General_Comments_Empty_String = TAB + "<empty line>",
 
     __Commands_General_FileHandling_String = "General - File Handling",
@@ -2259,6 +2287,9 @@ private String
 		__Tools_Analysis_String = "Analysis",
 			__Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
 			__Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
+		__Tools_Commands_String = "Commands",
+			__Tools_Commands_CheckForUpdate_String = "Check for Updated Command File",
+			__Tools_Commands_CompareCommandsWithSource_String = "Compare Commands With Source",
 		__Tools_Datastore_String = "Datastore",
 			__Tools_Datastore_ERDiagram_String = "Entity Relationship Diagram (under development)",
 		__Tools_DateTimeTools_String = "Date/time Tools",
@@ -2757,26 +2788,37 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 			true );	// Comments must be contiguous
 	}
 	else {
-		// New command, so look for comment actions.
+		// New command, so look for comment actions:
+		// - list in the order of the UI
 		if ( action.equals(__Commands_General_Comments_Comment_String) ||
-		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
-            action.equals(__Commands_General_Comments_EnabledIfApplicationComment_String) ||
-            action.equals(__Commands_General_Comments_EnabledIfDatastoreComment_String) ||
+		    // -----------
+		    action.equals(__Commands_General_Comments_AuthorComment_String) ||
+		    action.equals(__Commands_General_Comments_VersionComment_String) ||
+		    action.equals(__Commands_General_Comments_VersionDateComment_String) ||
+		    action.equals(__Commands_General_Comments_SourceUrlComment_String) ||
+		    // -----------
 		    action.equals(__Commands_General_Comments_ReadOnlyComment_String) ||
 		    action.equals(__Commands_General_Comments_RunDiscoveryFalseComment_String) ||
 		    action.equals(__Commands_General_Comments_TemplateComment_String) ||
+		    // -----------
+		    action.equals(__Commands_General_Comments_EnabledComment_String) ||
+            action.equals(__Commands_General_Comments_EnabledIfApplicationComment_String) ||
+            action.equals(__Commands_General_Comments_EnabledIfDatastoreComment_String) ||
+		    // -----------
             action.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ||
             action.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ||
             //action.equals(__Commands_General_Comments_FileModTimeComment_String) ||
             //action.equals(__Commands_General_Comments_FileSizeComment_String) ||
             action.equals(__Commands_General_Comments_IdComment_String) ||
             action.equals(__Commands_General_Comments_OrderComment_String) ||
+		    // -----------
             action.equals(__Commands_General_Comments_RequireApplicationComment_String) ||
             action.equals(__Commands_General_Comments_RequireDatastoreComment_String) ||
             action.equals(__Commands_General_Comments_RequireUserComment_String) ||
+		    // -----------
             action.equals(__Commands_General_Comments_FixMeComment_String) ||
-            action.equals(__Commands_General_Comments_ToDoComment_String) ||
-            action.equals(__Commands_Template_Comments_Template_String) ) {
+            action.equals(__Commands_General_Comments_ToDoComment_String) ) {
+		    // -----------
 			isCommentBlock = true;
 		}
 	}
@@ -6996,6 +7038,12 @@ private void ui_CheckGUIState ()
 	else {
         JGUIUtil.setEnabled ( __Tools_SelectOnMap_JMenuItem, false );
 	}
+	if ( commandListSize > 0 ) {
+        JGUIUtil.setEnabled ( __Tools_Commands_JMenu, true );
+	}
+	else {
+        JGUIUtil.setEnabled ( __Tools_Commands_JMenu, false );
+	}
 
 	// Enable/disable features related to the query list.
 
@@ -10866,7 +10914,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Template_ExpandTemplateFile_JMenuItem.setToolTipText("Expand a template file by providing processing properties and other data.");
     __Commands_Template_JMenu.addSeparator();
     __Commands_Template_JMenu.add (__Commands_Template_Comments_Template_JMenuItem =
-        new SimpleJMenuItem( __Commands_Template_Comments_Template_String, this ) );
+        new SimpleJMenuItem( __Commands_General_Comments_TemplateComment_String, this ) );
     __Commands_Template_Comments_Template_JMenuItem.setToolTipText("Insert a comment indicating that the commmand file is a template.");
 
     // Commands...Visualization Processing commands.
@@ -10903,6 +10951,24 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.add( __Commands_General_Comments_EndComment_JMenuItem =
         new SimpleJMenuItem(__Commands_General_Comments_EndComment_String, this ) );
     __Commands_General_Comments_EndComment_JMenuItem.setToolTipText("Insert a */ (end comment).");
+    // ---------
+    __Commands_General_Comments_JMenu.addSeparator();
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_AuthorComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_AuthorComment_String, this ) );
+    __Commands_General_Comments_AuthorComment_JMenuItem.setToolTipText("Insert an #@author comment - used for attribution.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_VersionComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_VersionComment_String, this ) );
+    __Commands_General_Comments_VersionComment_JMenuItem.setToolTipText("Insert a #@version comment.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_VersionDateComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_VersionDateComment_String, this ) );
+    __Commands_General_Comments_VersionDateComment_JMenuItem.setToolTipText("Insert a #@versionDate comment.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_SourceUrlComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_SourceUrlComment_String, this ) );
+    __Commands_General_Comments_SourceUrlComment_JMenuItem.setToolTipText("Insert a #@sourceUrl comment - location of the maintained command file.");
+    __Commands_General_Comments_JMenu.add (__Commands_General_Comments_DocUrlComment_JMenuItem =
+        new SimpleJMenuItem( __Commands_General_Comments_DocUrlComment_String, this ) );
+    __Commands_General_Comments_DocUrlComment_JMenuItem.setToolTipText("Insert a #@docUrl comment - documentation for the command file.");
+    // ---------
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ReadOnlyComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ReadOnlyComment_String, this ) );
@@ -10913,6 +10979,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_TemplateComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_TemplateComment_String, this ) );
     __Commands_General_Comments_TemplateComment_JMenuItem.setToolTipText("Insert a #@template comment - TSTool will treat the command file as a template to be expanded.");
+    // ---------
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_EnabledComment_String, this ) );
@@ -10921,6 +10988,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_EnabledIfApplicationComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_EnabledIfDatastoreComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_EnabledIfDatastoreComment_String, this ) );
+    // ---------
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ExpectedStatusFailureComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ExpectedStatusFailureComment_String, this ) );
@@ -10942,6 +11010,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_OrderComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_OrderComment_String, this ) );
     __Commands_General_Comments_OrderComment_JMenuItem.setToolTipText("Insert an #@order CommandFileId comment - used to order tests.");
+    // ---------
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireApplicationComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_RequireApplicationComment_String, this ) );
@@ -10949,11 +11018,13 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_RequireDatastoreComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_RequireUserComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_RequireUserComment_String, this ) );
+    // ---------
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_FixMeComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_FixMeComment_String, this ) );
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_ToDoComment_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_ToDoComment_String, this ) );
+    // ---------
     __Commands_General_Comments_JMenu.addSeparator();
     __Commands_General_Comments_JMenu.add (__Commands_General_Comments_Empty_JMenuItem =
         new SimpleJMenuItem( __Commands_General_Comments_Empty_String, this ) );
@@ -11364,8 +11435,8 @@ private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar )
 }
 
 /**
-Define the popup menu for the commands area.  In some cases the words that are
-shown are different from the corresponding menu because the popup mixes submenus
+Define the popup menu for the commands area.
+In some cases the words that are shown are different from the corresponding menu because the popup mixes submenus
 from different menus and also popup menus are typically more abbreviated.
 */
 private void ui_InitGUIMenus_CommandsPopup ()
@@ -11841,18 +11912,26 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 
 /**
 Initialize the GUI "Tools" menu.
+@param menu_bar menu bar to add menus
 */
 private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 {	__Tools_JMenu = new JMenu();
 	menu_bar.add( __Tools_JMenu = new JMenu( __Tools_String, true ) );	
 
-	__Tools_JMenu.add ( __Tools_Analysis_JMenu =new JMenu(__Tools_Analysis_String, true ) );
+	__Tools_JMenu.add ( __Tools_Analysis_JMenu = new JMenu(__Tools_Analysis_String, true ) );
 
 	__Tools_Analysis_JMenu.add(	__Tools_Analysis_MixedStationAnalysis_JMenuItem =
 		new SimpleJMenuItem(__Tools_Analysis_MixedStationAnalysis_String, this ) );
 
 	__Tools_Analysis_JMenu.add(	__Tools_Analysis_PrincipalComponentAnalysis_JMenuItem =
 		new SimpleJMenuItem(__Tools_Analysis_PrincipalComponentAnalysis_String, this ) );
+
+	__Tools_JMenu.add ( __Tools_Commands_JMenu = new JMenu(__Tools_Commands_String, true ) );
+
+	__Tools_Commands_JMenu.add(	__Tools_Commands_CheckForUpdate_JMenuItem =
+		new SimpleJMenuItem(__Tools_Commands_CheckForUpdate_String, this ) );
+	__Tools_Commands_JMenu.add(	__Tools_Commands_CompareCommandsWithSource_JMenuItem =
+		new SimpleJMenuItem(__Tools_Commands_CompareCommandsWithSource_String, this ) );
 	
 	__Tools_JMenu.add ( __Tools_Datastore_JMenu = new JMenu(__Tools_Datastore_String, true ) );
 	__Tools_Datastore_JMenu.add(__Tools_Datastore_ERDiagram_JMenuItem =
@@ -13833,14 +13912,6 @@ throws Exception
     else if (command.equals( __Commands_Template_ExpandTemplateFile_String) ) {
         commandList_EditCommand ( __Commands_Template_ExpandTemplateFile_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals(__Commands_Template_Comments_Template_String) ) {
-        // Most inserts let the editor format the command.
-    	// However, in this case the specific comment needs to be supplied.
-    	// Otherwise, the comment will be blank or the string from the menu, which has too much verbage.
-        List<Command> comments = new ArrayList<>(1);
-        comments.add ( commandList_NewCommand("#@template",true) );
-        commandList_EditCommand ( __Commands_Template_Comments_Template_String, comments, CommandEditType.INSERT );
-    }
 
     // Data visualization commands.
 
@@ -13893,66 +13964,84 @@ throws Exception
 	else if (command.equals(__Commands_General_Comments_Comment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_Comment_String, null, CommandEditType.INSERT );
 	}
+    else if (command.equals(__Commands_General_Comments_AuthorComment_String) ) {
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@author insert name, organization, contact, etc.",true) );
+        commandList_EditCommand ( __Commands_General_Comments_AuthorComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_DocUrlComment_String) ) {
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@docUrl https://path/to/command-file-documentation/",true) );
+        commandList_EditCommand ( __Commands_General_Comments_DocUrlComment_String, comments, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_General_Comments_EnabledComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@enabled False",true) );
         commandList_EditCommand ( __Commands_General_Comments_EnabledComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_EnabledIfApplicationComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific comment needs to be supplied.
-    	// Otherwise, the comment will be blank or the string from the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@enabledif application TSTool version >= X.YY.ZZ",true) );
         commandList_EditCommand ( __Commands_General_Comments_EnabledIfApplicationComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_EnabledIfDatastoreComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific comment needs to be supplied.
-    	// Otherwise, the comment will be blank or the string from the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@enabledif datastore HydroBase version >= YYYYMMDD",true) );
         commandList_EditCommand ( __Commands_General_Comments_EnabledIfDatastoreComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_ExpectedStatusFailureComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@expectedStatus Failure",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusFailureComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_ExpectedStatusWarningComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@expectedStatus Warning",true) );
         commandList_EditCommand ( __Commands_General_Comments_ExpectedStatusWarningComment_String, comments, CommandEditType.INSERT );
     }
     /*
     else if (command.equals(__Commands_General_Comments_FileModTimeComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+        // However, in this case the specific comment needs to be supplied.
+        // Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@fileModTime File1Path > File2Path",true) );
         commandList_EditCommand ( __Commands_General_Comments_FileModTimeComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_FileSizeComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+        // However, in this case the specific comment needs to be supplied.
+        // Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@fileSize File1Path > File1Bytes",true) );
         commandList_EditCommand ( __Commands_General_Comments_FileSizeComment_String, comments, CommandEditType.INSERT );
     }
     */
     else if (command.equals(__Commands_General_Comments_FixMeComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
     	DateTime now = new DateTime ( DateTime.DATE_CURRENT );
         comments.add ( commandList_NewCommand("#@fixme " + IOUtil.getProgramUser() + " " +
@@ -13960,9 +14049,9 @@ throws Exception
         commandList_EditCommand ( __Commands_General_Comments_FixMeComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_ToDoComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
     	DateTime now = new DateTime ( DateTime.DATE_CURRENT );
         comments.add ( commandList_NewCommand("#@todo " + IOUtil.getProgramUser() + " " +
@@ -13970,68 +14059,92 @@ throws Exception
         commandList_EditCommand ( __Commands_General_Comments_ToDoComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_IdComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@id CommandFileId",true) );
         commandList_EditCommand ( __Commands_General_Comments_IdComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_OrderComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@order before/after CommandFileId",true) );
         commandList_EditCommand ( __Commands_General_Comments_OrderComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_RequireApplicationComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@require application TSTool version >= X.YY.ZZ",true) );
         commandList_EditCommand ( __Commands_General_Comments_RequireApplicationComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_RequireDatastoreComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@require datastore HydroBase version >= YYYYMMDD",true) );
         commandList_EditCommand ( __Commands_General_Comments_RequireDatastoreComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_RequireUserComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
     	List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@require user == username",true) );
         commandList_EditCommand ( __Commands_General_Comments_RequireUserComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_ReadOnlyComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@readOnly - command file is not intended to be saved from within TSTool",true) );
         commandList_EditCommand ( __Commands_General_Comments_ReadOnlyComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(__Commands_General_Comments_RunDiscoveryFalseComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@runDiscovery False",true) );
         commandList_EditCommand ( __Commands_General_Comments_RunDiscoveryFalseComment_String, comments, CommandEditType.INSERT );
     }
+    else if (command.equals(__Commands_General_Comments_SourceUrlComment_String) ) {
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@sourceUrl https://path/to/command-file.tstool",true) );
+        commandList_EditCommand ( __Commands_General_Comments_SourceUrlComment_String, comments, CommandEditType.INSERT );
+    }
     else if (command.equals(__Commands_General_Comments_TemplateComment_String) ) {
-        // Most inserts let the editor format the command.  However, in this case the specific
-        // comment needs to be supplied.  Otherwise, the comment will be blank or the string from
-        // the menu, which has too much verbage.
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@template - command file is not intended to be saved from within TSTool - use a text editor to edit",true) );
         commandList_EditCommand ( __Commands_General_Comments_TemplateComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_VersionComment_String) ) {
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@version 1.2.3 or YYYY-MM-DD, etc., use a @versionDate comment for date",true) );
+        commandList_EditCommand ( __Commands_General_Comments_VersionComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(__Commands_General_Comments_VersionDateComment_String) ) {
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
+        List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@versionDate YYYY-MM-DD or YYYY-MM-DDThh:mm, etc.",true) );
+        commandList_EditCommand ( __Commands_General_Comments_VersionDateComment_String, comments, CommandEditType.INSERT );
     }
 	else if (command.equals(__Commands_General_Comments_StartComment_String) ) {
 		commandList_EditCommand ( __Commands_General_Comments_StartComment_String, null, CommandEditType.INSERT );
@@ -14749,6 +14862,30 @@ throws Exception
 			Message.printWarning ( 3, routine, e );
 		}
 	}
+	else if ( o == __Tools_Commands_CheckForUpdate_JMenuItem ) {
+		// Check for an update to the command file:
+		// - use the @sourceUrl to retrieve the source copy
+		// - then use the @version and @versionDate in source and local copy to compare versions
+		try {
+			uiAction_CheckForCommandFileUpdate();
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error checking for command file update (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
+	else if ( o == __Tools_Commands_CompareCommandsWithSource_JMenuItem ) {
+		// Compare the current command file with the source:
+		// - this is similar to comparing the in-memory commands with file version,
+		//   but use the @sourceUrl to determine the source
+		try {
+			uiAction_CompareCommandsWithSource();
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error comparing commands with source (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
 	else if ( o == __Tools_Datastore_ERDiagram_JMenuItem ) {
 		// Create the dialog using the available time series results (accessed by the processor).
 		try {
@@ -14992,15 +15129,235 @@ throws Exception
 	}
 }
 
+/**
+ * Check for newer command file.
+ * Retrieve the remote copy from #@sourceUrl.
+ * Check the @version from local and remote copies.
+ * Provide feedback if there is a newer version
+ */
+private void uiAction_CheckForCommandFileUpdate() {
+	// Get the remote file:
+	// - time out is 5 seconds
+	String tempFolder = System.getProperty("java.io.tmpdir");
+	String file1Path = tempFolder + File.separator + "TSTool-commands-source.tstool";
+	// Get the annotation values from the local command file.
+	List<Command> commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"sourceUrl");
+	StringBuilder warning = new StringBuilder();
+	String sourceUrl = "";
+	String localVersion = "";
+	String localVersionDate = "";
+	String sourceVersion = "";
+	String sourceVersionDate = "";
+	if ( commands.size() == 0 ) {
+		warning.append ( "The commands have no #@sourceUrl annotation - can't get command file source.\n" );
+	}
+	else if ( commands.size() > 1 ) {
+		warning.append ( "The commands have multiple #@sourceUrl annotations - can't get command file source.\n" );
+	}
+	else {
+		// Get the URL from the command.
+		sourceUrl = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+	}
+	commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"version");
+	if ( commands.size() == 0 ) {
+		// OK, checked below - must have version and/or versionDate.
+	}
+	else if ( commands.size() > 1 ) {
+		warning.append ( "The commands have multiple #@version annotations - can't check for updates.\n" );
+	}
+	else {
+		localVersion = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+	}
+	commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"versionDate");
+	if ( commands.size() == 0 ) {
+		// OK, checked below - must have version and/or versionDate.
+	}
+	else if ( commands.size() > 1 ) {
+		warning.append ( "The commands have multiple #@versionDate annotations - can't check for updates.\n" );
+	}
+	else {
+		localVersionDate = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+	}
+	
+	if ( localVersion.isEmpty() && localVersionDate.isEmpty() ) {
+		warning.append ( "The commands have no #@version or #@versionDate annotation - can't check for updates.\n" );
+	}
+	
+	// Retrieve the source file and get the properties
+	if ( !sourceUrl.isEmpty() ) {
+		if ( IOUtil.getUriContent(sourceUrl, file1Path, null, 5000, 5000) != 200 ) {
+			Message.printWarning(1, "", "Error retrieving command file source from: " + sourceUrl + "\n");
+		}
+		else {
+			// Get the version properties out of the source command file:
+			// - use a second command processor
+			TSCommandProcessor sourceProcessor = new TSCommandProcessor(null);
+			try {
+				sourceProcessor.readCommandFile ( file1Path, true, false, false );
+				commands = TSCommandProcessorUtil.getAnnotationCommands(sourceProcessor,"version");
+				if ( commands.size() == 0 ) {
+					// OK, checked below - must have version and/or versionDate.
+				}
+				else if ( commands.size() > 1 ) {
+					warning.append ( "The source commands have multiple #@version annotations - can't check for updates.\n" );
+				}
+				else {
+					sourceVersion = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+				}
+				commands = TSCommandProcessorUtil.getAnnotationCommands(sourceProcessor,"versionDate");
+				if ( commands.size() == 0 ) {
+					// OK, checked below - must have version and/or versionDate.
+				}
+				else if ( commands.size() > 1 ) {
+					warning.append ( "The source commands have multiple #@versionDate annotations - can't check for updates.\n" );
+				}
+				else {
+					sourceVersionDate = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+				}
+			}
+			catch ( Exception e ) {
+				warning.append ( "Error reading source command file: " + file1Path + "\n");
+			}
+		}
+	}
+
+	// If there are any warnings with input, display and return.
+	if ( warning.length() > 0 ) {
+		Message.printWarning(1, "", warning.toString() );
+		return;
+	}
+	
+	// Do the version comparison and create a note for output:
+	// - if 'version' is available for both use it
+	// - else if 'versionDate' is available for both use it
+	// - if both 'version' and 'versionDate' are available?
+	
+	StringBuilder note = new StringBuilder();
+	boolean checkDate = false;
+	if ( !localVersion.isEmpty() && !sourceVersion.isEmpty() ) {
+		// Compare the versions:
+		// - both must be either semantic versions or dates
+		// - dates are redundant with @versionDate but may be used if semantic versions are not used
+		int localPeriodCount = StringUtil.patternCount(localVersion,".");
+		int sourcePeriodCount = StringUtil.patternCount(sourceVersion,".");
+		int localDashCount = StringUtil.patternCount(localVersion,"-");
+		int sourceDashCount = StringUtil.patternCount(sourceVersion,"-");
+		if ( (localPeriodCount > 0) && (sourcePeriodCount > 0) ) {
+			// Assume semantic versioning.
+			if ( StringUtil.compareSemanticVersions(localVersion, "<", sourceVersion, 3) ) {
+				note.append("The source commands (" + sourceVersion + ") has a newer @version than local commands (" + localVersion +
+					") - need to update the local copy from the original source.\n");
+			}
+			else if ( StringUtil.compareSemanticVersions(localVersion, ">", sourceVersion, 3) ) {
+				note.append("The source commands (" + sourceVersion + ") has an older @versionDate than local commands (" + localVersion +
+					") - need to update the original source copy from the local copy.\n");
+			}
+			else {
+				note.append("The source commands (" + sourceVersion + ") and local commands (" + localVersion +
+					") have the same @version (to 3 parts).\n");
+				// Also check the date as the tie-breaker.
+				checkDate = true;
+			}
+		}
+		else if ( (localDashCount > 0) && (sourceDashCount > 0) ) {
+			// Compare the versions.
+			DateTime localDate = null;
+			DateTime sourceDate = null;
+			try {
+				localDate = DateTime.parse(localVersionDate);
+			}
+			catch ( Exception e ) {
+				warning.append("The local commands @version seems to be a date/time but is invalid.\n");
+			}
+			try {
+				sourceDate = DateTime.parse(sourceVersionDate);
+			}
+			catch ( Exception e ) {
+				warning.append("The source commands @version seems to be a date/time but is invalid.\n");
+			}
+			if ( (localDate != null) && (sourceDate != null) ) {
+				if ( sourceDate.greaterThan(localDate) ) {
+					// The source is newer than local.
+					note.append("The source commands (" + sourceVersion + ") has a newer @version than local commands (" + localVersion +
+						") - need to update the local copy from the original source.");
+				}
+				else if ( sourceDate.lessThan(localDate) ) {
+					// The source is newer than local.
+					note.append("The source commands (" + sourceVersion + ") has an older @version than local commands (" + localVersion +
+						") - need to update the original source copy from the local copy.");
+				}
+				else {
+					note.append("The source commands (" + sourceVersion + ") and local commands (" + localVersion +
+						") have the same @versionDate.");
+				}
+			}
+		}
+		else {
+			warning.append("The source and local @version don't appear to be consistent semantic versions or dates - can't check the version.\n");
+		}
+	}
+	else if ( !localVersionDate.isEmpty() && !sourceVersionDate.isEmpty() ) {
+		checkDate = true;
+	}
+	if ( checkDate ) {
+		// Compare the versions.
+		DateTime localDate = null;
+		DateTime sourceDate = null;
+		try {
+			localDate = DateTime.parse(localVersionDate);
+		}
+		catch ( Exception e ) {
+			warning.append("The local commands @versionDate date/time is invalid.\n");
+		}
+		try {
+			sourceDate = DateTime.parse(sourceVersionDate);
+		}
+		catch ( Exception e ) {
+			warning.append("The source commands @versionDate date/time is invalid.\n");
+		}
+		if ( (localDate != null) && (sourceDate != null) ) {
+			if ( sourceDate.greaterThan(localDate) ) {
+				// The source is newer than local.
+				note.append("The source commands (" + sourceVersionDate + ") has a newer @versionDate than local commands (" + localVersionDate +
+					") - need to update the local copy from the original source.");
+			}
+			else if ( sourceDate.lessThan(localDate) ) {
+				// The source is newer than local.
+				note.append("The source commands (" + sourceVersionDate + ") has an older @versionDate than local commands (" + localVersionDate +
+					") - need to update the original source copy from the local copy.");
+			}
+			else {
+				note.append("The source commands (" + sourceVersionDate + ") and local commands (" + localVersionDate +
+					") have the same @versionDate.");
+			}
+		}
+	}
+	
+    new ResponseJDialog ( this, IOUtil.getProgramName(),
+    "\nThe update check relies on the following comment annotations.\n\n" +
+    "Local commands:  \n" +
+    "  @sourceUrl: " + sourceUrl + "\n" +
+    "  @version: " + localVersion + "\n" +
+    "  @versionDate: " + localVersionDate + "\n" +
+    "\nSource commands (using the URL from the above @sourceUrl):  \n" +
+    "  @version: " + sourceVersion + "\n" +
+    "  @versionDate: " + sourceVersionDate + "\n\n" + note,
+    ResponseJDialog.OK).response();
+    // TODO smalers 2022-11-17 could prompt to see if download/update is requested.
+}
+
+/**
+ * Check for TSTool software update.
+ */
 private void uiAction_CheckForUpdates ( ) {
 	// Read the available TSTool versions from the OpenCDSS website.
 	String latestVersion = "unable to determine";
 	String message = "A newer development version may be available on the OpenCDSS website.\n\n";
 	try {
 	    String currentVersionNum = IOUtil.getProgramVersion().split(" ")[0].trim();
-        String versionUri = "http://opencdss.state.co.us/tstool/index.csv";
+        String versionUri = "https://opencdss.state.co.us/tstool/index.csv";
         String versionFile = IOUtil.tempFileName();
-		int code = IOUtil.getUriContent(versionUri, versionFile, null);
+		int code = IOUtil.getUriContent(versionUri, versionFile, null, -1, -1);
 		if ( code == 200 ) {
 			// Success - determine the version from the file:
 			// - read into a DataTable since a csv with headers
@@ -15018,7 +15375,7 @@ private void uiAction_CheckForUpdates ( ) {
 				rec = table.getRecord(irec);
 				version = rec.getFieldValueString(col);
 				if ( version.toUpperCase().indexOf("DEV") < 0 ) {
-					// Not a development version
+					// Not a development version.
 					latestVersion = version;
 					break;
 				}
@@ -15054,6 +15411,122 @@ private void uiAction_CheckForUpdates ( ) {
             Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
         }
     }
+}
+
+/**
+ * Show the difference between the current commands and the source.
+ */
+private void uiAction_CompareCommandsWithSource () {
+	// If the diff tool is not configured, provide information:
+	// - handle generic property name and versions for the operating system
+	// - the DiffProgram property can be a comma-separated list of paths to program to run,
+	//   or program name without path to find in the PATH
+	Prop prop = IOUtil.getProp("DiffProgram");
+	String diffProgram = null;
+	if ( prop != null ) {
+		diffProgram = prop.getValue();
+	}
+	if ( IOUtil.isUNIXMachine() ) {
+		prop = IOUtil.getProp("DiffProgram.Linux");
+		if ( prop != null ) {
+			diffProgram = prop.getValue();
+		}
+	}
+	else {
+		prop = IOUtil.getProp("DiffProgram.Windows");
+		if ( prop != null ) {
+			diffProgram = prop.getValue();
+		}
+	}
+	if ( diffProgram == null ) {
+         new ResponseJDialog ( this, IOUtil.getProgramName(),
+             "The visual diff program has not been configured in the TSTool.cfg file.\n" +
+             "Define the \"DiffProgram\" (or \"DiffProgram.Windows\" and \"DiffProgram.Linux\") property\n" +
+             "as the path to a visual diff program, for example:\n" +
+             "    DiffProgram.Windows = C:\\Program Files\\KDiff3\\kdiff3.exe\n" +
+             "    DiffProgram.Linux = /usr/bin/kdiff3\n" +
+             "Cannot show the command file difference.",
+             ResponseJDialog.OK).response();
+         return;
+	}
+	// Figure out the difference program to run as the first existing found program (from a path),
+	// or a program name found in the PATH.
+	// Make sure that the difference program exists specified as a path or in the PATH.
+	List<String> diffPrograms = new ArrayList<>();
+	if ( diffProgram.indexOf(",") < 0) {
+		// Have a single program.
+		diffPrograms.add(diffProgram);
+	}
+	else {
+		// Have more than one program.
+		diffPrograms = StringUtil.breakStringList(diffProgram, ",", StringUtil.DELIM_TRIM_STRINGS);
+	}
+	diffProgram = null;
+	for ( String prog : diffPrograms ) {
+		if ( prog == null ) {
+			continue;
+		}
+		File f = new File(prog);
+		// TODO smalers 2022-10-20 the following does not handle just a program found in the path.
+		if ( f.exists() || (IOUtil.findProgramInPath(prog) != null) ) {
+			diffProgram = prog;
+			break;
+		}
+	}
+	if ( diffProgram != null ) {
+		// Diff program exists so save a temporary file with UI commands,
+		// retrieve the source to another temporary file, and then compare.
+		// Then run the diff program on the files.
+
+		// Get the remote file:
+		// - time out is 5 seconds
+		String tempFolder = System.getProperty("java.io.tmpdir");
+		String file1Path = tempFolder + File.separator + "TSTool-commands-source.tstool";
+		// Get the source URL from the #@sourceUrl annotation.
+		List<Command> commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"sourceUrl");
+		if ( commands.size() == 0 ) {
+			Message.printWarning(1, "", "The commands have no #@sourceUrl annotation - can't get command file source." );
+			return;
+		}
+		if ( commands.size() > 1 ) {
+			Message.printWarning(1, "", "The commands have multiple #@sourceUrl annotations - can't get command file source." );
+			return;
+		}
+		// Get the URL from the command.
+		String sourceUrl = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+
+		if ( IOUtil.getUriContent(sourceUrl, file1Path, null, 5000, 5000) != 200 ) {
+			Message.printWarning(1, "", "Error retrieving command file source from: " + sourceUrl );
+			return;
+		}
+
+		// Write the commands to a temporary file.
+		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
+		try {
+			uiAction_WriteCommandFile_Helper(file2Path, false);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
+			return;
+		}
+		// Run the diff program.
+		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
+		try {
+			ProcessManager pm = new ProcessManager ( programAndArgsList,
+					0, // No timeout.
+	                null, // Exit status indicator.
+	                false, // Use command shell.
+	                new File(tempFolder) );
+			Thread t = new Thread ( pm );
+            t.start();
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
+		}
+	}
+	else {
+		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
+	}
 }
 
 /**
@@ -19143,7 +19616,7 @@ private void uiAction_RunCommands_ShowResultsProperties()
         		propContents = processor.getPropContents(propertyName);
         		if ( propContents != null ) {
 		     		Message.printStatus(2, "", "Property " + propertyName + " = " + propContents);
-		     		Message.printStatus(2, "", "Property " + propertyName + " = " + propContents.getClass());
+		     		Message.printStatus(2, "", "Property " + propertyName + " (class) = " + propContents.getClass());
 	     		}
         	}
         	catch ( Exception e ) {
@@ -22634,8 +23107,7 @@ private void uiAction_ViewCommandFileDiff () {
 	}
 	if ( diffProgram != null ) {
 		// Diff program exists so save a temporary file with UI commands and then compare with file version.
-		// Run the diff program on the input and output files
-		// (they should have existed because the button will have been disabled if not)
+		// Run the diff program on the two files.
 		String file1Path = this.__commandFileName;
 		if ( file1Path == null ) {
 	         new ResponseJDialog ( this, IOUtil.getProgramName(),
@@ -22644,9 +23116,7 @@ private void uiAction_ViewCommandFileDiff () {
 	         return;
 		}
 		// Write the commands to a temporary file
-		String tempCommandFile = IOUtil.tempFileName();
-		File f = new File(tempCommandFile);
-		String tempFolder = f.getParent();
+		String tempFolder = System.getProperty("java.io.tmpdir");
 		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
 		try {
 			uiAction_WriteCommandFile_Helper(file2Path, false);

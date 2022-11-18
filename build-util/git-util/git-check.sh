@@ -4,7 +4,7 @@
 
 #-----------------------------------------------------------------NoticeStart-
 # Git Utilities
-# Copyright 2017-2021 Open Water Foundation.
+# Copyright 2017-2022 Open Water Foundation.
 #
 # License GPLv3+:  GNU GPL version 3 or later
 #
@@ -17,13 +17,12 @@
 # git-check.sh
 #
 # Check the status of multiple repositories for this project and indicate whether pull
-# or push or other action is needed.
+# or push or other action is needed:
 # - see the main entry point at the bottom of the script for script configuration
 # - currently must adhere to prescribed folder structure
 # - useful when multiple repositories form a product
 # - this script does not do anything to change repositories
 # - warn if any repositories use Cygwin because mixing with Git for Windows can cause confusion in tools
-#
 
 # List functions in alphabetical order.
 
@@ -47,7 +46,7 @@ checkOperatingSystem() {
       operatingSystem="mingw"
       ;;
   esac
-  echo "operatingSystem=${operatingSystem} (used to check for Cygwin and filemode compatibility)"
+  echo "operatingSystem=${operatingSystem} (used to check for Cygwin and filemode compatibility)."
 }
 
 # Function to confirm that proper command-line Git client is being used:
@@ -100,72 +99,83 @@ checkCommandLineGitCompatibility() {
 # - assumes that the current folder is a Git repository of interest
 # - see:  https://stackoverflow.com/questions/3882838/whats-an-easy-way-to-detect-modified-files-in-a-git-workspace
 checkWorkingFiles() {
-  local exitCode needGitStatusMessage untrackedFilesCount untrackedFilesNoEmptyFoldersCount
-  # The following won't work if run in Cygwin shell for non-Cygwin repo clone, or the other way.
+  local emptyFolderCount exitCode untrackedFilesCount
+  # The following won't work if run in Cygwin shell for non-Cygwin repo clone, or the other way:
+  # --quiet causes --exit-code, which exits 0 if same, 1 if differences exist.
   git diff-index --quiet HEAD
+  gitDiffExitCode=$?
   # Therefore, use the following (although this could ignore newline cleanup that needs to be committed):
   # - however, even though --quiet is specified, the following outputs a bunch of messages like:
   #   warning:  CRLF will be replaced by LF in ...
   #   The file will have its original line endings in your working directory.
   #git diff-index --ignore-cr-at-eol --quiet HEAD
-  gitDiffExitCode=$?
   #echo "exitCode=$exitCode"
-  # Indicate whether additional explanation of 'git status' is needed below.
-  needGitStatusMessage="no"
   if [ ${gitDiffExitCode} -eq 1 ]; then
-    if [ "${debug}" = "true" ]; then
-      echo "  [DEBUG] gitDiffExitCode=${gitDiffExitCode}"
-    fi
+    # The following is checked below to indicate whether local files need to be committed.
     ${echo2} "  ${actionColor}Working files contain modified files that need to be committed, or staged files.${colorEnd}"
-    needGitStatusMessage="yes"
   fi
-  # The above won't detect untracked files but the following 'git ls-files' will find those:
+  # The above won't detect untracked files but the following will find those:
   # - the following will return a value of 0 or greater
   # -o shows other (i.e., untracked) files in the output
-  # --directory lists entire untracked directories as directory name followed by slash, such as:  parent/empty/
+  # --directory shows entire untracked directories as directory name followed by slash
   # --exclude-standard excludes standard files such as indicated by .gitignore
-  # --no-empty-directory excludes empty directories (won't be committed because Git does not save empty directories)
-  untrackedFilesCount=$(git ls-files -o --directory --exclude-standard | wc -l)
-  # If empty directory, the following count will be less than the above.
-  untrackedFilesNoEmptyFoldersCount=$(git ls-files -o --directory --exclude-standard --no-empty-directory | wc -l)
-  if [ "${debug}" = "true" ]; then
-    echo "  [DEBUG] untrackedFilesCount=${untrackedFilesCount}"
-    echo "  [DEBUG] untrackedFilesNoEmptyFoldersCount=${untrackedFilesNoEmptyFoldersCount}"
-  fi
+  # --no-empty-directory excludes empty directories,
+  # which won't be committed anyhow because Git does not save empty directories
+  untrackedFilesCount=$(git ls-files -o --directory --no-empty-directory --exclude-standard | wc -l)
+  untrackedFilesAndEmptyFoldersCount=$(git ls-files -o --directory --exclude-standard | wc -l)
   if [ ${untrackedFilesCount} -ne 0 ]; then
     ${echo2} "  ${actionColor}Working files contain ${untrackedFilesCount} untracked files that need to be committed.${colorEnd}"
-    needGitStatusMessage="yes"
   fi
-  # Print additional instructions.
-  if [ ${needGitStatusMessage} = "yes" ]; then
-    ${echo2} "  ${actionColor}Use 'git status' to list files that need to be committed.${colorEnd}"
-  fi
-  if [ ${untrackedFilesCount} -ne ${untrackedFilesNoEmptyFoldersCount} ]; then
-    # There are some empty folders:
-    # - list empty folders
-    ${echo2} "  ${actionColor}Empty folders (or .gitignore folder with no committed file) -${colorEnd}"
-    ${echo2} "  ${actionColor}to fix, delete or add README, .gitignore, or other files to commit.${colorEnd}"
-    git ls-files -o --directory --exclude-standard |
-    while read -r name
-    do
-      if [ -d "${name}" ]; then
-        # Directory:
-        # - get the number of files in the directory excluding the parent and current directory.
-        numFiles=$(ls -1a ${name} | grep -xv '.' | grep -xv '..' | grep -xv './' | grep -xv '../' | wc -l)
-        # Don't count files because folder may be in .gitignore with no placeholder file in the folder.
-        #if [ ${numFiles} -eq 0 ]; then
-          # Empty folder.
-          ${echo2} "    ${actionColor}  ${name}${colorEnd}"
-        #fi
+  # List empty folders that are not .git-ignored because may be an oversight:
+  # - gitDiffExitCode will be nonzero
+  # - to make sure it is not confusing, list the directories here
+  # - will only be confusing if the untracked files are zero (since they ignore empty folders)
+  untrackedEmptyFoldersCount=$(expr ${untrackedFilesAndEmptyFoldersCount} - ${untrackedFilesCount})
+  #echo "untrackedEmptyFoldersCount=${untrackedEmptyFoldersCount}"
+  if [ ${untrackedEmptyFoldersCount} -ne 0 ]; then
+    # List modified files into a temporary file:
+    # - include empty folders (will only list if not .gitignored)
+    # - modified folders will also be listed
+    now=$(date +%Y%m%d%H%M%S.%N)
+    modifiedFilesTmpFile=/tmp/git-check-${now}-modified-files
+    emptyFoldersTmpFile=/tmp/git-check-${now}-empty-folders
+    # The following does not have the leading ./ like 'find' command output below:
+    # - set 'line2' below to remove leading ./ and add / for grep call
+    git ls-files -o --directory --exclude-standard > ${modifiedFilesTmpFile}
+    touch ${emptyFoldersTmpFile}
+    # Only list files that are not git ignored.
+    # Example line from find:
+    #   ./doxygen-project/doxygen-novastar-5.3.0.0.dev2/html/d1/d32
+    find . -type d -empty | grep -v '.git' | while read -r line; do
+      # See if the file matches a file in the temporary file:
+      # - remove the leading ./ before finding
+      # - add the trailing / before finding
+      # - use line start and end to make sure the whole line is matched and not substring
+      line2=$(echo ${line} | cut -c 3-)
+      line2="${line2}/"
+      #echo "Trying to match: '${line2}'"
+      matchCount=$(grep --fixed-strings --line-regexp "${line2}" ${modifiedFilesTmpFile} | wc -l)
+      if [ ${matchCount} -ge 1 ]; then
+        # Empty folder found that is not git ignored.
+        ${echo2} "  ${line2}" > ${emptyFoldersTmpFile}
       fi
-    done
+      done
     # Track repositories with empty folders, often indicate an issue.
     emptyFoldersRepoCount=$(expr ${emptyFoldersRepoCount} + 1)
+    # If any empty untracked folders were detected, print the following.
+    if [ -s "${emptyFoldersTmpFile}" ]; then
+      matchCountTotal=$(cat ${emptyFoldersTmpFile} | wc -l)
+      ${echo2} "  ${actionColor}${matchCountTotal} empty folder(s) should be removed, added to .gitignore, add README to folder, etc.:"
+      cat ${emptyFoldersTmpFile}
+      ${echo2} "${colorEnd}"
+    fi
+    # Remove the temporary file.
+    rm ${modifiedFilesTmpFile}
+    rm ${emptyFoldersTmpFile}
   fi
-  # Set global data used in output:
-  # - TODO smalers 2021-08-09 the following resulted in the final count being too low
-  #if [ ${gitDiffExitCode} -eq 1 -a ${untrackedFilesCount} -ne 0 ]; then
+  # Global script data.
   if [ ${gitDiffExitCode} -eq 1 -o ${untrackedFilesCount} -ne 0 ]; then
+    # The local repository has uncommitted working files.
     localChangesRepoCount=$(expr ${localChangesRepoCount} + 1)
   fi
 }
@@ -266,15 +276,23 @@ configEcho() {
   fi
 
   # Strings to change colors on output, to make it easier to indicate when actions are needed:
+  # - Bash colors and formatting:  https://misc.flogisoft.com/bash/tip_colors_and_formatting
   # - Colors in Git Bash:  https://stackoverflow.com/questions/21243172/how-to-change-rgb-colors-in-git-bash-for-windows
   # - Useful info:  http://webhome.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
   # - See colors:  https://en.wikipedia.org/wiki/ANSI_escape_code#Unix-like_systems
-  # - Set the background to black to eensure that white background window will clearly show colors contrasting on black.
+  # - Set the background to black to ensure that white background window will clearly show colors contrasting on black.
   # - Yellow "33" in Linux can show as brown, see:  https://unix.stackexchange.com/questions/192660/yellow-appears-as-brown-in-konsole
   # - Tried to use RGB but could not get it to work - for now live with "yellow" as it is
+  # - TODO smalers 2022-11-11 why is background hazy? Tried some different combinations to fix but no solutions in debian.
+  # Warning.
   actionColor='\e[0;40;33m' # User needs to do something, 40=background black, 33=yellow.
+  #actionColor='\e[48;5;0m\e[33m' # User needs to do something, 40=background black, 33=yellow.
+  # Error.
   actionErrorColor='\e[0;40;31m' # Serious issue, 40=background black, 31=red.
+  #actionErrorColor='\e[48;5;0m\e[31m' # Serious issue, 40=background black, 31=red.
+  # OK.
   okColor='\e[0;40;32m' # Status is good, 40=background black, 32=green.
+  # Reset.
   colorEnd='\e[0m' # To switch back to default color.
 }
 
@@ -317,7 +335,7 @@ parseCommandLine() {
       m) # -m mainRepoName  Specify the main repository name, assumed that repository name will match folder for repository.
         mainRepo=${OPTARG}
         ;;
-      p) # -p productHome   Specify the product home, relative to $HOME, being phased out.
+      p) # -p productHome   Specify the product home, relative to ${HOME}, being phased out.
         echo ""
         echo "[ERROR] -p is obsolete.  Use -g instead."
         exit 1
@@ -354,9 +372,9 @@ printUsage() {
   echo "  ${scriptName} -m owf-util-git -g \$HOME/owf-dev/Util-Git/git-repos"
   echo ""
   echo "-d  Print additional debug messages."
-  echo "-g  Specify the folder containing 1+ Git repos for product."
+  echo "-g  Specify the folder containing 1+ Git repositories for the product."
   echo "-h  Print the usage"
-  echo "-m  Specify the main repo name."
+  echo "-m  Specify the main repository name."
   echo "-v  Print the version"
   echo ""
 }
@@ -368,7 +386,7 @@ printVersion() {
   echo "${scriptName} version ${version}"
   echo ""
   echo "Git Utilities"
-  echo "Copyright 2017-2021 Open Water Foundation."
+  echo "Copyright 2017-2022 Open Water Foundation."
   echo ""
   echo "License GPLv3+:  GNU GPL version 3 or later"
   echo ""
@@ -388,7 +406,7 @@ printVersion() {
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
 
-version="1.9.3 2022-09-23"
+version="1.9.1 2022-11-15"
 
 # Set initial values.
 debug="false"
@@ -468,7 +486,7 @@ while IFS= read -r repoName
 do
   # Make sure there are no carriage returns in the string:
   # - can happen because file may have Windows-like endings but Git Bash is Linux-like
-  #- use sed because it is more likely to be installed than dos2unix
+  # - use sed because it is more likely to be installed than dos2unix
   repoName=$(echo ${repoName} | sed 's/\r$//')
   if [ -z "${repoName}" ]; then
     # Blank line.
@@ -555,5 +573,5 @@ else
 fi
 echo "${lineDoubleDash}"
 
-# Done
+# Done.
 exit 0
