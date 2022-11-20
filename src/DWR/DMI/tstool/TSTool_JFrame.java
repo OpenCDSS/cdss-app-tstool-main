@@ -21,7 +21,7 @@ TSTool is free software:  you can redistribute it and/or modify
 
 NoticeEnd */
 
-// TODO SAM 2004-08-29 Need to use HydroBase_Util preferredWDIDLength instead
+// TODO smalers 2004-08-29 Need to use HydroBase_Util preferredWDIDLength instead
 // of carrying around a property - isolate all HydroBase properties to that
 // package
 
@@ -407,13 +407,13 @@ private final String __COMMANDS_FONT = "Lucida Console";
 // Query area.
 //================================
 
-// TODO SAM 2013-04-15 Make local if tabbed pane works well for datastores and input types.
+// TODO smalers 2013-04-15 Make local if tabbed pane works well for datastores and input types.
 /**
 Label for datastores, necessary because label will be set not visible if no datastores.
 */
 private JLabel __dataStore_JLabel = null;
 
-// TODO SAM phase in file datastore at some point.
+// TODO smalers phase in file datastore at some point.
 /**
 Tabbed panel to keep datastores and input types separate.
 */
@@ -552,8 +552,8 @@ JPanel for input types that do not support input filters.
 private InputFilter_JPanel __inputFilterGeneric_JPanel = null;
 
 /**
-JPanel for message when input input filters are disabled (e.g., input type is selected but database connection
-is not available.
+JPanel for message when input input filters are disabled
+(e.g., input type is selected but database connection is not available.
 */
 private InputFilter_JPanel __inputFilterMessage_JPanel = null;
 
@@ -564,14 +564,14 @@ panel cannot be initialized until after database connections are made.
 private int __inputFilterY = 0;
 
 /**
-The HEC-DSS files that have been selected during the session, to allow switching
-between input types but not losing the list of files.  These are the full file strings.
+The HEC-DSS files that have been selected during the session,
+to allow switching between input types but not losing the list of files.  These are the full file strings.
 */
 private List<String> __inputNameHecDssList = new ArrayList<>();
 
 /**
-The HEC-DSS files that have been selected during the session, to allow switching
-between input types but not losing the list of files.
+The HEC-DSS files that have been selected during the session,
+to allow switching between input types but not losing the list of files.
 These are the abbreviated file strings, so as to not take up too much space in the interface.
 */
 private List<String> __inputNameHecDssVisibleList = new ArrayList<>();
@@ -582,14 +582,14 @@ The last HEC-DSS file that was selected, to reset after canceling a browse.
 private String __inputNameHecDssVisibleLast = null;
 
 /**
-The NWSFFS FS5Files directories that have been selected during the
-session, to allow switching between input types but not losing the list of files.
+The NWSFFS FS5Files directories that have been selected during the session,
+to allow switching between input types but not losing the list of files.
 */
 private List<String> __input_name_NWSRFS_FS5Files = new ArrayList<>();
 
 /**
-The StateCU files that have been selected during the session, to allow switching
-between input types but not losing the list of files.
+The StateCU files that have been selected during the session,
+to allow switching between input types but not losing the list of files.
 */
 private List<String> __inputNameStateCU = new ArrayList<>();
 
@@ -599,8 +599,8 @@ The last StateCU file that was selected, to reset after canceling a browse.
 private String __inputNameStateCULast = null;
 
 /**
-The StateCUB files that have been selected during the session, to allow switching
-between input types but not losing the list of files.
+The StateCUB files that have been selected during the session,
+to allow switching between input types but not losing the list of files.
 */
 private List<String> __input_name_StateCUB = new ArrayList<>();
 
@@ -610,8 +610,8 @@ The last StateCUB file that was selected, to reset after canceling a browse.
 private String __input_name_StateCUB_last = null;
 
 /**
-The StateModB files that have been selected during the session, to allow switching
-between input types but not losing the list of files.
+The StateModB files that have been selected during the session,
+to allow switching between input types but not losing the list of files.
 */
 private List<String> __input_name_StateModB = new ArrayList<>();
 
@@ -620,11 +620,10 @@ The last StateModB file that was selected, to reset after canceling a browse.
 */
 private String __input_name_StateModB_last = null;
 
-//TODO Evaluate usability - does not seem to work! - popup on popup.
+// TODO smalers Evaluate usability - does not seem to work! - popup on popup.
 /**
-Used with input name to allow a new input name to be specified.  SAM tried using
-a "Browse..." choice but the problem is that an event will not be generated if the
-item state does not change.
+Used with input name to allow a new input name to be specified.
+Tried using a "Browse..." choice but the problem is that an event will not be generated if the item state does not change.
 */
 private JPopupMenu __input_name_JPopupMenu = null;
 
@@ -635,9 +634,8 @@ input type should use the current apps defaults to find the files to read.
 private final String __USE_APPS_DEFAULTS = "Use Apps Defaults";
 
 /**
-String to display in input name combo box to indicate that something should be
-selected.  The selection will force an event to happen,
-which will allow the proper settings.
+String to display in input name combo box to indicate that something should be selected.
+The selection will force an event to happen, which will allow the proper settings.
 */
 private final String __PLEASE_SELECT = "Please select...";
 
@@ -725,7 +723,7 @@ The list of Command that is used with cut/copy/paste user actions.
 */
 private List<Command> __commandsCutBuffer = new Vector<>(100,100);
 
-// TODO SAM 2007-11-02 Evaluate putting in the processor.
+// TODO smalers 2007-11-02 Evaluate putting in the processor.
 /**
 Indicates whether the commands have been edited without being saved.
 This will trigger some changes in the UI, for example indicating that the commands
@@ -807,7 +805,7 @@ JList data model for final time series (basically a list of time series associat
 private DefaultListModel<String> __resultsTS_JListModel;
 
 /**
- * Button to cause a graph template to be used to graph a time series.
+ * Button to cause a graph template to be used to graph a time series:
  * - this is allows a user to streamline producing standard graphs
  */
 private SimpleJButton __resultsTSGraphTemplates_JButton;
@@ -818,11 +816,10 @@ private SimpleJButton __resultsTSGraphTemplates_JButton;
 private SimpleJComboBox __resultsTSGraphTemplates_JComboBox;
 
 /**
-The command processor, which maintains a list of command objects, process
-the data, and the time series results.  There is only one command processor
-instance for a TSTool session and it is kept current with the application.
-TODO SAM 2009-03-06 In the future, if threading is implemented, it may be possible to have, for
-example, tabs for different command files, each with a TSCommandProcessor.
+The command processor, which maintains a list of command objects, process the data, and the time series results.
+There is only one command processor instance for a TSTool session and it is kept current with the application.
+TODO smalers 2009-03-06 In the future, if threading is implemented, it may be possible to have,
+for example, tabs for different command files, each with a TSCommandProcessor.
 */
 private TSCommandProcessor __tsProcessor = new TSCommandProcessor(null);
 // Create an instance to avoid null, but is recreated when initializing the UI.
@@ -952,8 +949,8 @@ private JTextField __status_JTextField;
 // General.
 //================================
 
-// TODO SAM 2011-05-18 It may be OK to phase these out in favor of processor properties (like the
-// working directory) in particular since only a select few properties are handled here.
+// TODO smalers 2011-05-18 It may be OK to phase these out in favor of processor properties
+// (like the working directory) in particular since only a select few properties are handled here.
 /**
 A subset of TSTool application configuration properties, which are initialized from the configuration file
 and are then updated in the TSTool environment.
@@ -970,8 +967,8 @@ private PropList __props = null;
 /**
 The initial working directory corresponding to a command file read/write or File... Set Working Dir.
 This is used when processing the list of setWorkingDir() commands passed to command editors.
-Without the initial working directory, relative changes in the working directory will
-result in an inaccurate initial state.
+Without the initial working directory,
+relative changes in the working directory will result in an inaccurate initial state.
 */
 private String __initialWorkingDir = "";
 
@@ -991,15 +988,15 @@ Lets the checkGUIState() method avoid checking for many null components during s
 private boolean __guiInitialized = false;
 
 /**
-Use this to temporarily ignore item action performed events, necessary when
-programmatically modifying the contents of combo boxes.
+Use this to temporarily ignore item action performed events,
+necessary when programmatically modifying the contents of combo boxes.
 */
 private boolean __ignoreActionEvent = false;
 
-// TODO SAM 2007-10-19 Evaluate whether still needed with new list model.
+// TODO smalers 2007-10-19 Evaluate whether still needed with new list model.
 /**
-Use this to temporarily ignore item listener events, necessary when
-programmatically modifying the contents of combo boxes.
+Use this to temporarily ignore item listener events,
+necessary when programmatically modifying the contents of combo boxes.
 */
 private boolean __ignoreItemEvent = false;
 
@@ -1009,8 +1006,8 @@ This is used in some cases to disable updates during bulk operations to the comm
 private boolean __ignoreListSelectionEvent = false;
 
 /**
-Indicates which data sources are enabled.  Defaults are actually definitively set when
-the configuration file properties are evaluated.
+Indicates which data sources are enabled.
+Defaults are actually definitively set when the configuration file properties are evaluated.
 */
 private boolean
     __source_ColoradoHydroBaseRest_enabled = true, // By default - allow all to access web service.
@@ -1040,26 +1037,26 @@ private boolean
 	__source_WaterOneFlow_enabled = false;
 
 /**
-Indicates if the main GUI should be shown.  This is normally true but if false
-then only graph windows will be shown, and when closed the app will close.  This
-is used when calling TSTool from other software (e.g., to provide graphing
-capabilities to GIS applications).
+Indicates if the main GUI should be shown.
+This is normally true but if false then only graph windows will be shown, and when closed the app will close.
+This is used when calling TSTool from other software (e.g., to provide graphing capabilities to GIS applications).
 */
 //private boolean __show_main = true;
 
 /**
-HydroBaseDataStore for HydroBase input type, opened via TSTool.cfg information
-and the HydroBase select dialog, provided to the processor as the initial HydroBase DMI instance.
+HydroBaseDataStore for HydroBase input type, opened via TSTool.cfg information and the HydroBase select dialog,
+provided to the processor as the initial HydroBase DMI instance.
 When working with HydroBase if the UI has a HydroBase datastore selected, then the datastore will be used; otherwise,
 the legacy datastore will be used.
-TODO SAM 2012-09-10 Begin phasing out in favor of datastores but need to figure out how to get rid of login
+TODO smalers 2012-09-10 Begin phasing out in favor of datastores but need to figure out how to get rid of login
 dialog and have best practices for modelers to configure datastores.
 */
 private HydroBaseDataStore __hbDataStoreLegacy = null;
 
 /**
-NWSRFS_DMI object for NWSRFS_FS5Files input type, opened via TSTool.cfg information
-and the NWSRFS FS5Files directory select dialog, provided to the processor as the initial NWSRFSS DMI instance.
+NWSRFS_DMI object for NWSRFS_FS5Files input type,
+opened via TSTool.cfg information and the NWSRFS FS5Files directory select dialog,
+provided to the processor as the initial NWSRFSS DMI instance.
 */
 private NWSRFS_DMI __nwsrfs_dmi = null;
 
@@ -1106,14 +1103,14 @@ private JMenuItem
     __CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,
     __CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem;
 
-// File menu.
+// Menu: File
 
 private JMenu
 	__File_JMenu = null,
 	__File_New_JMenu = null;
         private JMenuItem
         __File_New_CommandFile_JMenuItem = null;
-	JMenu __File_Open_JMenu = null;
+private JMenu __File_Open_JMenu = null;
 		private JMenuItem
 		__File_Open_CommandFile_JMenuItem = null,
 		__File_Open_CommandFileNoDiscovery_JMenuItem = null,
@@ -1142,7 +1139,7 @@ private JMenuItem
 	__File_SetWorkingDirectory_JMenuItem = null,
 	__File_Exit_JMenuItem = null;
 
-// Edit menu.
+// Menu: Edit
 
 private JMenu
 	__Edit_JMenu = null;
@@ -1163,7 +1160,7 @@ private JMenuItem
     __Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem = null,
     __Edit_ConvertTSIDTo_ReadCommand_JMenuItem = null;
 
-// View menu.
+// Menu: View
 
 private JMenu
 	__View_JMenu = null;
@@ -1176,7 +1173,7 @@ private JCheckBoxMenuItem
 private JMenuItem
     __View_CloseAllViewWindows_JMenuItem = null;
 
-// Commands (Create Time Series).
+// Menu: Commands / Create Time Series
 
 JMenu
 	__Commands_JMenu = null,
@@ -1211,7 +1208,7 @@ JMenuItem
 	__Commands_Create_NewStatisticMonthTimeSeries_JMenuItem,
 	__Commands_Create_NewStatisticYearTS_JMenuItem;
 
-// Commands (Read Time Series).
+// Menu: Commands / Read Time Series
 
 JMenu
 	__Commands_ReadTimeSeries_JMenu = null;
@@ -1250,7 +1247,8 @@ JMenuItem
 	__Commands_Read_ReadWaterOneFlow_JMenuItem,
 	__Commands_Read_StateModMax_JMenuItem;
 
-	// Commands...Fill Time Series....
+// Menu: Commands / Fill Time Series Missing Data
+
 JMenu
 	__Commands_FillTimeSeries_JMenu = null;
 JMenuItem
@@ -1274,7 +1272,8 @@ JMenuItem
 	__Commands_Fill_SetAveragePeriod_JMenuItem,
 	__Commands_Fill_SetIgnoreLEZero_JMenuItem;
 
-	// Commands...Set Time Series....
+// Menu: Commands / Set Time Series Contents
+
 JMenu
 	__Commands_SetTimeSeries_JMenu = null;
 JMenuItem
@@ -1290,7 +1289,8 @@ JMenuItem
 	__Commands_Set_SetToMin_JMenuItem,
     __Commands_Set_SetTimeSeriesProperty_JMenuItem;
 
-// Commands...Manipulate Time Series...
+// Menu: Commands / Manipulate Time Series
+
 JMenu
 	__Commands_ManipulateTimeSeries_JMenu = null;
 JMenuItem
@@ -1309,7 +1309,8 @@ JMenuItem
 	__Commands_Manipulate_ShiftTimeByInterval_JMenuItem,
 	__Commands_Manipulate_Subtract_JMenuItem;
 
-// Commands...Analyze Time Series...
+// Menu: Commands / Analyze Time Series
+
 JMenu
 	__Commands_AnalyzeTimeSeries_JMenu = null;
 JMenuItem
@@ -1318,14 +1319,16 @@ JMenuItem
 	__Commands_Analyze_CompareTimeSeries_JMenuItem = null,
 	__Commands_Analyze_ComputeErrorTimeSeries_JMenuItem = null;
 
-// Commands...Models...
+// Menu: Commands / Models - Routing
+
 JMenu
 	__Commands_Models_Routing_JMenu = null;
 JMenuItem
 	__Commands_Models_Routing_LagK_JMenuItem = null,
 	__Commands_Models_Routing_VariableLagK_JMenuItem = null;
 
-// Commands...Output Time Series...
+// Menu: Commands / Output Time Series
+
 JMenu
 	__Commands_OutputTimeSeries_JMenu = null;
 JMenuItem
@@ -1343,13 +1346,15 @@ JMenuItem
 	__Commands_Output_WriteStateCU_JMenuItem,
 	__Commands_Output_WriteStateMod_JMenuItem,
 	__Commands_Output_WriteSummary_JMenuItem,
-	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, // Also duplicated as __Commands_Datastore_WriteTimeSeriesToDataStore
+	__Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, // Also duplicated as __Commands_Datastore_WriteTimeSeriesToDataStore.
 	__Commands_Output_WriteTimeSeriesToDataStream_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem,
 	__Commands_Output_WriteTimeSeriesToJson_JMenuItem,
 	__Commands_Output_WriteWaterML_JMenuItem,
 	__Commands_Output_WriteWaterML2_JMenuItem,
-	__Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem; // Also duplicated in testing commands __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile
+	__Commands_Output_WriteTimeSeriesPropertiesToFile_JMenuItem; // Also duplicated in testing commands __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile.
+
+// Menu: Commands / Check Time Series
 
 JMenu
     __Commands_Check_CheckTimeSeries_JMenu = null;
@@ -1358,7 +1363,7 @@ JMenuItem
     __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem = null,
     __Commands_Check_CheckingResults_WriteCheckFile_JMenuItem = null;
 
-// Commands...Datastore Processing...
+// Menu: Commands / Datastore Processing
 
 JMenu
     __Commands_Datastore_JMenu = null;
@@ -1376,7 +1381,7 @@ JMenuItem
     __Commands_Datastore_CloseDataStore_JMenuItem,
     __Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem;
 
-// Commands...Ensemble Processing...
+// Menu: Commands / Ensemble Processing
 
 JMenu
     __Commands_Ensemble_JMenu = null;
@@ -1392,7 +1397,7 @@ JMenuItem
     __Commands_Ensemble_WeightTraces_JMenuItem,
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem;
 
-// Commands (Network)...
+// Menu: Commands / Network Processing
 
 JMenu
     __Commands_Network_JMenu = null;
@@ -1400,7 +1405,7 @@ JMenuItem
 	__Commands_Network_CreateNetworkFromTable_JMenuItem,
     __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem;
 
-// Commands (Object)...
+// Menu: Commands / Object Processing
 
 JMenu
     __Commands_Object_JMenu = null;
@@ -1410,7 +1415,7 @@ JMenuItem
     __Commands_Object_SetObjectPropertiesFromTable_JMenuItem,
     __Commands_Object_WriteObjectToJSON_JMenuItem;
 
-// Commands (Spatial)...
+// Menu: Commands / Spatial Processing
 
 JMenu
     __Commands_Spatial_JMenu = null;
@@ -1421,7 +1426,7 @@ JMenuItem
     __Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem,
     __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
 
-// Commands (Spreadsheet)...
+// Menu: Commands / Spreadsheet Processing
 
 JMenu
     __Commands_Spreadsheet_JMenu = null;
@@ -1439,7 +1444,7 @@ JMenuItem
     __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_JMenuItem,
     __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem;
 
-// Commands (Template Processing)...
+// Menu: Commands / Template Processing
 
 JMenu
     __Commands_Template_JMenu = null;
@@ -1447,7 +1452,7 @@ JMenuItem
     __Commands_Template_ExpandTemplateFile_JMenuItem,
     __Commands_Template_Comments_Template_JMenuItem;
 
-// Commands (visualization)...
+// Menu: Commands / Visualization Processing
 
 JMenu
     __Commands_Visualization_JMenu = null;
@@ -1456,17 +1461,7 @@ JMenuItem
     __Commands_Visualization_ProcessRasterGraph_JMenuItem,
     __Commands_Visualization_NewTreeView_JMenuItem;
 
-// Commands (General)...
-
-JMenu
-	__Commands_General_Logging_JMenu = null;
-JMenuItem
-	__Commands_General_Logging_ConfigureLogging_JMenuItem = null,
-	__Commands_General_Logging_StartLog_JMenuItem = null,
-	__Commands_General_Logging_SetDebugLevel_JMenuItem = null,
-	__Commands_General_Logging_SetWarningLevel_JMenuItem = null,
-	__Commands_General_Logging_Message_JMenuItem = null,
-	__Commands_General_Logging_SendEmailMessage_JMenuItem = null;
+// Menu: Commands / General - Comments
 
 JMenu
     __Commands_General_Comments_JMenu = null;
@@ -1505,6 +1500,8 @@ JMenuItem
 	// ------------------
 	__Commands_General_Comments_Empty_JMenuItem = null;
 
+// Menu: Commands / General - File Handling
+
 JMenu
     __Commands_General_FileHandling_JMenu = null;
 JMenuItem
@@ -1520,6 +1517,20 @@ JMenuItem
     __Commands_General_FileHandling_TextEdit_JMenuItem = null,
     __Commands_General_FileHandling_UnzipFile_JMenuItem = null,
     __Commands_General_FileHandling_PrintTextFile_JMenuItem = null;
+
+// Menu: Commands / General - Logging and Messaging
+
+JMenu
+	__Commands_General_Logging_JMenu = null;
+JMenuItem
+	__Commands_General_Logging_ConfigureLogging_JMenuItem = null,
+	__Commands_General_Logging_StartLog_JMenuItem = null,
+	__Commands_General_Logging_SetDebugLevel_JMenuItem = null,
+	__Commands_General_Logging_SetWarningLevel_JMenuItem = null,
+	__Commands_General_Logging_Message_JMenuItem = null,
+	__Commands_General_Logging_SendEmailMessage_JMenuItem = null;
+
+// Menu: Commands / General - Running and Properties
 
 JMenu
     __Commands_General_Running_JMenu = null;
@@ -1548,7 +1559,8 @@ JMenuItem
     __Commands_General_Running_SetWorkingDir_JMenuItem = null,
     __Commands_General_Running_ProfileCommands_JMenuItem = null;
 
-//Commands (General - Test Processing)...
+// Menu: Commands / General - Test Processing
+
 JMenu
     __Commands_General_TestProcessing_JMenu = null;
 JMenuItem
@@ -1563,14 +1575,16 @@ JMenuItem
     //-- separator ---
     __Commands_General_TestProcessing_TestCommand_JMenuItem = null;
 
-// Commands (Deprecated) - legacy commands that will be phased out...
+// Menu: Commands (Deprecated) - legacy commands that will be phased out.
+
 JMenu
 	__Commands_Deprecated_JMenu = null;
 JMenuItem
 	__Commands_Deprecated_OpenHydroBase_JMenuItem,
 	__Commands_Deprecated_RunningAverage_JMenuItem;
 
-// Commands (Table)
+// Menu: Commands (Table) / Create, Copy, Free Table
+
 JMenu
 	__Commands_Table_JMenu = null;
 JMenu
@@ -1579,6 +1593,9 @@ JMenuItem
     __Commands_TableCreate_NewTable_JMenuItem,
     __Commands_TableCreate_CopyTable_JMenuItem,
 	__Commands_TableCreate_FreeTable_JMenuItem;
+
+// Menu: Commands (Table) / Read Table
+
 JMenu
 	__Commands_TableRead_JMenu = null;
 JMenuItem
@@ -1589,12 +1606,18 @@ JMenuItem
     __Commands_TableRead_ReadTableFromFixedFormatFile_JMenuItem,
     __Commands_TableRead_ReadTableFromJSON_JMenuItem,
     __Commands_TableRead_ReadTableFromXML_JMenuItem;
+
+// Menu: Commands (Table) / Append, Join Tables
+
 JMenu
 	__Commands_TableJoin_JMenu = null;
 JMenuItem
     __Commands_TableJoin_AppendTable_JMenuItem,
     __Commands_TableJoin_JoinTables_JMenuItem,
     __Commands_TableManipulate_SortTable_JMenuItem;
+
+// Menu: Commands (Table) / Table, Time Series Processing
+
 JMenu
 	__Commands_TableTimeSeries_JMenu = null;
 JMenuItem
@@ -1603,6 +1626,9 @@ JMenuItem
     __Commands_TableTimeSeries_CreateTimeSeriesEventTable_JMenuItem,
 	__Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_JMenuItem,
 	__Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_JMenuItem;
+
+// Menu: Commands (Table) / Manipulate Table Values
+
 JMenu
 	__Commands_TableManipulate_JMenu = null;
 JMenuItem
@@ -1620,10 +1646,16 @@ JMenuItem
     __Commands_TableManipulate_SplitTableRow_JMenuItem,
     __Commands_TableManipulate_TableMath_JMenuItem,
     __Commands_TableManipulate_TableTimeSeriesMath_JMenuItem;
+
+// Menu: Commands (Table) / Analyze Table
+
 JMenu
 	__Commands_TableAnalyze_JMenu;
 JMenuItem
     __Commands_TableAnalyze_CompareTables_JMenuItem;
+
+// Menu: Commands (Table) / Output Table
+
 JMenu
 	__Commands_TableOutput_JMenu;
 JMenuItem
@@ -1632,19 +1664,22 @@ JMenuItem
     __Commands_TableOutput_WriteTableToDelimitedFile_JMenuItem,
     __Commands_TableOutput_WriteTableToMarkdown_JMenuItem,
     __Commands_TableOutput_WriteTableToHTML_JMenuItem;
+
+// Menu: Commands (Table) / Running and Properties
+
 JMenu
 	__Commands_TableRunning_JMenu;
 JMenuItem
 	__Commands_TableRunning_SetPropertyFromTable_JMenuItem,
 	__Commands_TableRunning_CopyPropertiesToTable_JMenuItem;
 
-// Commands(Plugin)
+// Menu: Commands(Plugin)
 
 JMenu
 	__Commands_Plugin_JMenu,
 	__Commands_Plugin_ReadTimeSeries_JMenu;
 
-// Run...
+// Menu: Run
 
 private JMenu
 	__Run_JMenu = null;
@@ -1660,7 +1695,7 @@ private JMenuItem
 	__Run_ProcessTSProductPreview_JMenuItem,
 	__Run_ProcessTSProductOutput_JMenuItem;
 
-// Results...
+// Menu: Results
 
 private JMenu
 	__Results_JMenu = null,
@@ -1691,7 +1726,7 @@ private JMenuItem
 	__Results_DeselectAll_JMenuItem = null,
 	__Results_TimeSeriesProperties_JMenuItem = null;
 
-// Tools...
+// Menu: Tools
 
 private JMenu
 	__Tools_JMenu = null,
@@ -1730,6 +1765,8 @@ private JMenuItem
 	__Tools_Options_JMenuItem = null,
 	__Tools_ViewLogFile_Startup_JMenuItem = null;
 
+// Menu: Help
+
 private JMenu		
 	__Help_JMenu = null;
 private JMenuItem
@@ -1744,7 +1781,7 @@ private JMenuItem
 	__Help_CheckForUpdates_JMenuItem = null,
 	__Help_ImportConfiguration_JMenuItem = null;
 
-// String labels for buttons and menus.
+// Button: String labels for buttons and menus.
 
 private String	
 
@@ -1760,7 +1797,7 @@ private String
 	__Button_RunAllCommands_String = "Run All Commands",
 	__Button_ClearCommands_String = "Clear Commands",
 
-	// TODO sam 2017-04-16 Why is this called a button?  Seems to only be in menus.
+	// TODO smalers 2017-04-16 Why is this called a button?  Seems to only be in menus.
 	BUTTON_TS_SELECT_ALL = "Select All for Output",
 	BUTTON_TS_DESELECT_ALL = "Deselect All",
 
@@ -1774,7 +1811,7 @@ private String
 	
 	__CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
 
-	// File menu (order in GUI).
+	// Menu: File
 
 	__File_String = "File",
 	   __File_New_String = "New",
@@ -1799,7 +1836,7 @@ private String
 		__File_SetWorkingDirectory_String = "Set Working Directory...",
 		__File_Exit_String = "Exit",
 
-	// Edit menu (order in GUI).
+	// Menu: Edit
 
 	__Edit_String = "Edit",
 		__Edit_CutCommands_String = "Cut Command(s)",
@@ -1814,7 +1851,7 @@ private String
 		__Edit_ConvertTSIDTo_ReadTimeSeries_String = "Convert TSID command to general ReadTimeSeries() command",
 		__Edit_ConvertTSIDTo_ReadCommand_String = "Convert TSID command to specific Read...() command",
 
-	// View menu (order in GUI).
+	// Menu: View
 
 	__View_String = "View",
 		__View_CommandFileDiff_String = "Command File Diff",
@@ -1823,15 +1860,19 @@ private String
 	    __View_Map_String = "Map",
 	    __View_CloseAllViewWindows_String = "Close All View Windows",
 
-	// Commands menu (order in GUI).
+	// Menu: Commands
 
 	__Commands_String = "Commands",
+
+	// Menu: Commands / Select, Free, Sort Time Series
 	
 	__Commands_SelectTimeSeries_String = "Select, Free, Sort Time Series",
 	__Commands_Select_DeselectTimeSeries_String = TAB + "DeselectTimeSeries()... <deselect time series for output/processing>",
 	__Commands_Select_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
 	__Commands_Select_Free_String = TAB + "Free()... <free time series (will not be available to later commands)>",
 	__Commands_Select_SortTimeSeries_String = TAB + "SortTimeSeries()... <sort time series>",
+
+	// Menu: Commands / Create Time Series
 
 	__Commands_CreateTimeSeries_String = "Create Time Series",
 	__Commands_Create_NewPatternTimeSeries_String = TAB + "NewPatternTimeSeries()... <create a time series with repeating data values>",
@@ -1856,6 +1897,8 @@ private String
 	__Commands_Create_NewStatisticTimeSeries_String = TAB + "NewStatisticTimeSeries()... <create a time series as repeating statistics from a time series>",
 	__Commands_Create_NewStatisticMonthTimeSeries_String = TAB + "NewStatisticMonthTimeSeries()... <create a time series where each Month value is a statistic>",
 	__Commands_Create_NewStatisticYearTS_String = TAB + "NewStatisticYearTS()... <create a time series where Year value is a statistic>",
+
+	// Menu: Commands / Read Time Series
 
 	__Commands_Read_SetIncludeMissingTS_String = TAB + "SetIncludeMissingTS()... <create empty time series if no data>",
 	__Commands_Read_SetInputPeriod_String = TAB + "SetInputPeriod()... <for reading data>",
@@ -1891,7 +1934,7 @@ private String
     __Commands_Read_ReadWaterOneFlow_String = TAB + "ReadWaterOneFlow()... <read 1+ time series from a WaterOneFlow web service>",
 	__Commands_Read_StateModMax_String = TAB + "StateModMax()... <generate 1+ time series as Max() of TS in two StateMod files>",
 
-	// Commands... Fill Time Series.
+	// Menu: Commands / Fill Time Series Missing Data
 
 	__Commands_FillTimeSeries_String = "Fill Time Series Missing Data",
 	__Commands_Fill_FillConstant_String = TAB + "FillConstant()... <fill TS with constant>",
@@ -1924,7 +1967,7 @@ private String
 	__Commands_Set_SetToMin_String = TAB + "SetToMin()... <set values to minimum of time series>",
     __Commands_Set_SetTimeSeriesProperty_String = TAB + "SetTimeSeriesProperty()... <set time series properties>",
 
-	// Commands...Manipulate Time Series menu.
+	// Menu: Commands / Manipulate Time Series
 
 	__Commands_Manipulate_Add_String = TAB + "Add()... <add one or more TS to another>",
 	__Commands_Manipulate_AddConstant_String = TAB + "AddConstant()... <add a constant value to a TS>",
@@ -1941,7 +1984,7 @@ private String
 	__Commands_Manipulate_ShiftTimeByInterval_String = TAB + "ShiftTimeByInterval()... <shift TS by an even interval>",
 	__Commands_Manipulate_Subtract_String = TAB + "Subtract()... <subtract one or more TS from another>",
 
-	// Commands...Output Series menu.
+	// Menu: Commands / Output Time Series
 
 	__Commands_OutputTimeSeries_String = "Output Time Series",
 	__Commands_Output_SetOutputDetailedHeaders_String = TAB + "SetOutputDetailedHeaders()... <in summary reports>",
@@ -1966,14 +2009,14 @@ private String
 	__Commands_Output_WriteWaterML2_String = TAB + "WriteWaterML2()... <write time series to WaterML 2 file>",
 	// See __Commands_General_TestProcessing_WriteTimeSeriesPropertiesToFile_String, which is used for this menu.
 
-    // Commands...Check Time Series menu.
+    // Menu: Commands / Check Time Series
 
     __Commands_Check_CheckingResults_String = "Check Time Series",
     __Commands_Check_CheckingResults_CheckTimeSeries_String = TAB + "CheckTimeSeries()... <check time series data values>",
     __Commands_Check_CheckingResults_CheckTimeSeriesStatistic_String = TAB + "CheckTimeSeriesStatistic()... <check time series statistic>",
     __Commands_Check_CheckingResults_WriteCheckFile_String = TAB + "WriteCheckFile()... <write check file>",
 
-	// Commands...Analyze Time Series menu.
+	// Menu: Commands / Analyze Time Series
 
 	__Commands_AnalyzeTimeSeries_String = "Analyze Time Series",
 	__Commands_Analyze_CalculateTimeSeriesStatistic_String = TAB + "CalculateTimeSeriesStatistic()... <determine statistic for time series>",
@@ -1981,13 +2024,13 @@ private String
 	__Commands_Analyze_CompareTimeSeries_String = TAB + "CompareTimeSeries()... <find differences between time series>",
 	__Commands_Analyze_ComputeErrorTimeSeries_String = TAB + "ComputeErrorTimeSeries()... <compute error between time series>",
 
-	// Commands...Models menu.
+	// Menu: Commands / Models - Routing
 
 	__Commands_Models_Routing_String = "Models - Routing",
 	__Commands_Models_Routing_LagK_String = "LagK()... <lag and attenuate (route)>",
 	__Commands_Models_Routing_VariableLagK_String = "VariableLagK()... <lag and attenuate (route)>",
 	
-	// Commands...Datastore processing menu.
+	// Menu: Commands / Datastore Processing
 	
     __Commands_Datastore_String = "Datastore Processing",
     __Commands_Datastore_NewAccessDatabase_String = TAB + "NewAccessDatabase()... <create a Microsoft Access database>",
@@ -2003,7 +2046,7 @@ private String
    	__Commands_Datastore_CloseDataStore_String = TAB + "CloseDataStore()... <close a database datastore>",
     __Commands_Datastore_CreateDataStoreDataDictionary_String = TAB + "CreateDataStoreDataDictionary()... <create a data dictionary for a datastore>",
 
-    // Commands...Ensemble processing menu.
+    // Menu: Commands / Ensemble Processing
 
     __Commands_Ensemble_String = "Ensemble Processing",
     __Commands_Ensemble_CreateEnsembleFromOneTimeSeries_String =
@@ -2018,13 +2061,13 @@ private String
     __Commands_Ensemble_WeightTraces_String = TAB + "WeightTraces()... <weight traces to create a new time series>",
     __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String = TAB + "WriteNwsrfsEspTraceEnsemble()... <write NWSRFS ESP trace ensemble file>",
 
-    // Network Commands menu.
+    // Menu: Commands / Network Processing
 
     __Commands_Network_String = "Network Processing",
     __Commands_Network_CreateNetworkFromTable_String = TAB + "CreateNetworkFromTable()... <create network from table>",
     __Commands_Network_AnalyzeNetworkPointFlow_String = TAB + "AnalyzeNetworkPointFlow()... <perform point flow analysis>",
 
-    // Object Commands menu.
+    // Menu: Commands / Object Processing
 
     __Commands_Object_String = "Object Processing",
     __Commands_Object_NewObject_String = TAB + "NewObject()... <create a new object>",
@@ -2032,7 +2075,7 @@ private String
     __Commands_Object_SetObjectPropertiesFromTable_String = TAB + "SetObjectPropertiesFromTable()... <set object properties from a table>",
     __Commands_Object_WriteObjectToJSON_String = TAB + "WriteObjectToJSON()... <write an object to a JSON file>",
 
-    // Spatial Commands menu.
+    // Menu: Commands / Spatial Processing
 
     __Commands_Spatial_String = "Spatial Processing",
     __Commands_Spatial_WriteTableToGeoJSON_String = TAB + "WriteTableToGeoJSON()... <write table to a GeoJSON file>",
@@ -2041,7 +2084,7 @@ private String
     __Commands_Spatial_WriteTimeSeriesToGeoJSON_String = TAB + "WriteTimeSeriesToGeoJSON()... <write 1+ time series to a GeoJSON file>",
     __Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
 
-    // Spreadsheet Commands menu.
+    // Menu: Commands / Spreadsheet Processing
 
     __Commands_Spreadsheet_String = "Spreadsheet Processing",
     __Commands_Spreadsheet_NewExcelWorkbook_String = TAB + "NewExcelWorkbook()... <create a new Excel workbook file>",
@@ -2057,20 +2100,20 @@ private String
     __Commands_Spreadsheet_WriteTimeSeriesToExcelBlock_String = TAB + "WriteTimeSeriesToExcelBlock()... <write 1+ time series to an Excel file as data block(s)>",
     __Commands_Spreadsheet_CloseExcelWorkbook_String = TAB + "CloseExcelWorkbook()... <close and optionally write an Excel file>",
 
-    // Template Commands menu.
+    // Menu: Commands / Template Processing
 
     __Commands_Template_String = "Template Processing",
     __Commands_Template_ExpandTemplateFile_String = TAB + "ExpandTemplateFile()... <expand a template to the full file>",
     //__Commands_Template_Comments_Template_String = TAB + "#@template <comment that indicates a template command file>",
 
-    // Visualization commands menu.
+    // Menu: Commands / Visualization Processing
 
     __Commands_Visualization_String = "Visualization Processing",
     __Commands_Visualization_ProcessTSProduct_String = TAB + "ProcessTSProduct()... <process a time series product file>",
     __Commands_Visualization_ProcessRasterGraph_String = TAB + "ProcessRasterGraph()... <process time series product file for raster graph>",
     __Commands_Visualization_NewTreeView_String = TAB + "NewTreeView()... <create a tree view for time series results>",
 
-	// General Commands menu.
+	// Menu: Commands / General - Comments
 
     __Commands_General_Comments_String = "General - Comments",
     __Commands_General_Comments_Comment_String = TAB + "# comment(s) <insert 1+ comments, each starting with #>",
@@ -2107,6 +2150,8 @@ private String
     // -----------------
     __Commands_General_Comments_Empty_String = TAB + "<empty line>",
 
+	// Menu: Commands / General - File Handling
+
     __Commands_General_FileHandling_String = "General - File Handling",
     __Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     __Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
@@ -2121,6 +2166,8 @@ private String
     __Commands_General_FileHandling_UnzipFile_String = TAB + "UnzipFile()... <unzip file>",
     __Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
 
+	// Menu: Commands / General - Logging and Messaging
+
 	__Commands_General_Logging_String = "General - Logging and Messaging",
 	__Commands_General_Logging_ConfigureLogging_String = TAB + "ConfigureLogging()... <configure logging>",
 	__Commands_General_Logging_StartLog_String = TAB + "StartLog()... <(re)start the log file>",
@@ -2128,6 +2175,8 @@ private String
 	__Commands_General_Logging_SetWarningLevel_String = TAB + "SetWarningLevel()... <set debug message level>",
 	__Commands_General_Logging_Message_String = TAB + "Message()... <print a message>",
 	__Commands_General_Logging_SendEmailMessage_String = TAB + "SendEmailMessage()... <send an email message>",
+
+	// Menu: Commands / General - Running and Properties
 
     __Commands_General_Running_String = "General - Running and Properties",
     __Commands_General_Running_ReadPropertiesFromFile_String = TAB + "ReadPropertiesFromFile()... <read processor properties from file>",
@@ -2155,6 +2204,8 @@ private String
     __Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
     __Commands_General_Running_ProfileCommands_String = TAB + "ProfileCommands()... <profile command performance>",
 
+	// Menu: Commands / General - Test Processing
+
     __Commands_General_TestProcessing_String = "General - Test Processing",
     __Commands_General_TestProcessing_StartRegressionTestResultsReport_String = TAB + "StartRegressionTestResultsReport()... <for test results>",
 	__Commands_General_TestProcessing_CompareFiles_String = TAB + "CompareFiles()... <compare files, to test software>",
@@ -2164,18 +2215,21 @@ private String
 	__Commands_General_TestProcessing_CreateRegressionTestCommandFile_String = TAB + "CreateRegressionTestCommandFile()... <to test software>",
     __Commands_General_TestProcessing_TestCommand_String = TAB + "TestCommand()... <to test software>",
 
-    // Deprecated commands menu.
+    // Menu: Commands / Deprecated Commands
 
     __Commands_Deprecated_String = "Deprecated Commands",
     __Commands_Deprecated_OpenHydroBase_String = TAB + "OpenHydroBase()... <open HydroBase database connection - PHASING OUT>",
     __Commands_Deprecated_RunningAverage_String = TAB + "RunningAverage()... <convert TS to running average - PHASING OUT>",
 
-    // Table Commands menu.
+    // Menu: Commands(Table) / Create, Copy, Free Table
 
     __Commands_Table_String = "Commands(Table)",
     __Commands_TableCreate_String = "Create, Copy, Free Table",
     __Commands_TableCreate_NewTable_String = TAB + "NewTable()... <create a new empty table>",
     __Commands_TableCreate_CopyTable_String = TAB + "CopyTable()... <create a new table as a full/partial copy of another>",
+
+    // Menu: Commands(Table) / Read Table
+
     __Commands_TableRead_String = "Read Table",
     // Menu inserted here uses __Commands_Datastore_ReadTableFromDataStore string.
     __Commands_TableRead_ReadTableFromDelimitedFile_String = TAB + "ReadTableFromDelimitedFile()... <read a table from a delimited file>",
@@ -2183,10 +2237,16 @@ private String
     __Commands_TableRead_ReadTableFromFixedFormatFile_String = TAB + "ReadTableFromFixedFormatFile()... <read a table from a fixed format file>",
     __Commands_TableRead_ReadTableFromJSON_String = TAB + "ReadTableFromJSON()... <read a table from a JSON file>",
     __Commands_TableRead_ReadTableFromXML_String = TAB + "ReadTableFromXML()... <read a table from an XML file>",
+
+    // Menu: Commands(Table) / Append, Join Table
+
     __Commands_TableJoin_String = "Append, Join Tables",
     __Commands_TableJoin_AppendTable_String = TAB + "AppendTable()... <append a table's rows to another table>",
     __Commands_TableJoin_JoinTables_String = TAB + "JoinTables()... <join a table's rows to another table by matching column value(s)>",
-    __Commands_TableTimeSeries_String = "Table, Timeseries Processing",
+
+    // Menu: Commands(Table) / Table, Time Series Processing
+
+    __Commands_TableTimeSeries_String = "Table, Time Series Processing",
     __Commands_TableTimeSeries_TimeSeriesToTable_String = TAB + "TimeSeriesToTable()... <copy time series to a table>",
     __Commands_TableTimeSeries_TableToTimeSeries_String = TAB + "TableToTimeSeries()... <create time series from a table>",
 	__Commands_TableTimeSeries_SetTimeSeriesPropertiesFromTable_String =
@@ -2194,6 +2254,9 @@ private String
     __Commands_TableTimeSeries_CopyTimeSeriesPropertiesToTable_String =
         TAB + "CopyTimeSeriesPropertiesToTable()... <copy time series properties to table>",
     __Commands_TableTimeSeries_CreateTimeSeriesEventTable_String = TAB + "CreateTimeSeriesEventTable()... <create time series event table>",
+
+    // Menu: Commands(Table) / Manipulate Table Values
+
     __Commands_TableManipulate_String = "Manipulate Table Values",
     __Commands_TableManipulate_FormatTableDateTime_String = TAB + "FormatTableDateTime()... <format table date/time column into output column>",
     __Commands_TableManipulate_FormatTableString_String = TAB + "FormatTableString()... <format table columns into a string column>",
@@ -2210,8 +2273,14 @@ private String
     __Commands_TableManipulate_SplitTableRow_String = TAB + "SplitTableRow()... <split a row into multiple rows>",
     __Commands_TableManipulate_TableMath_String = TAB + "TableMath()... <perform simple math on table columns>",
     __Commands_TableManipulate_TableTimeSeriesMath_String = TAB + "TableTimeSeriesMath()... <perform simple math on table columns and time series>",
+
+    // Menu: Commands(Table) / Analyze Table
+
     __Commands_TableAnalyze_String = "Analyze Table",
     __Commands_TableAnalyze_CompareTables_String = TAB + "CompareTables()... <compare two tables (indicate differences)>",
+
+    // Menu: Commands(Table) / Output Table
+
     __Commands_TableOutput_String = "Output Table",
     // See __Commands_Datastore_WriteTableToDataStore, which is used to define menu here.
     __Commands_TableOutput_WriteTableToDelimitedFile_String = TAB + "WriteTableToDelimitedFile()... <write a table to a delimited file>",
@@ -2222,11 +2291,11 @@ private String
     __Commands_TableRunning_SetPropertyFromTable_String = TAB + "SetPropertyFromTable()... <set a processor property from a table>",
     __Commands_TableRunning_CopyPropertiesToTable_String = TAB + "CopyPropertiesToTable()... <copy processor properties to a table>",
 
-    // Commands(Plugin) menu.
+    // Menu: Commands(Plugin)
 
     __Commands_Plugin_String = "Commands(Plugin)",
 
-	// Results menu choices (order in GUI).
+	// Menu: Results
 
 	__Results_Graph_AnnualTraces_String = "Graph - Annual Traces...",
 	__Results_Graph_Area_String = "Graph - Area",
@@ -2256,7 +2325,7 @@ private String
 
 	__Results_Table_Properties_String = "Table properties...",
 
-	// TODO SAM 2012-10-12 Need to clarify name on the following so grouped with time series choices.
+	// TODO smalers 2012-10-12 Need to clarify name on the following so grouped with time series choices.
 	__Results_Table_String = "Table",
 	__Results_Report_Summary_Html_String = "Report - Summary (HTML)",
 	__Results_Report_Summary_Text_String = "Report - Summary (Text)",
@@ -2268,7 +2337,7 @@ private String
 	__Results_SelectAllForOutput_String = BUTTON_TS_SELECT_ALL,
 	__Results_DeselectAll_String = BUTTON_TS_DESELECT_ALL,
 
-	// Run menu (order in GUI).
+	// Menu: Run
 
 	__Run_AllCommandsCreateOutput_String = "All Commands (create all output)",
 	__Run_AllCommandsIgnoreOutput_String = "All Commands (ignore output commands)",
@@ -2281,7 +2350,7 @@ private String
 	__Run_ProcessTSProductPreview_String = "Process TS Product File (preview)...",
 	__Run_ProcessTSProductOutput_String = "Process TS Product File (create output)...",
 
-	// Tools menu (order in GUI).
+	// Menu: Tools
 
 	__Tools_String = "Tools",
 		__Tools_Analysis_String = "Analysis",
@@ -2306,7 +2375,7 @@ private String
 		__Tools_Options_String = "Options...",
 		__Tools_ViewLogFile_Startup_String = "Diagnostics - View Log File (Startup)...",
 
-	// Help menu (order in GUI).
+	// Menu: Help
 
 	__Help_String = "Help",
 		__Help_AboutTSTool_String = "About TSTool",
@@ -2394,7 +2463,7 @@ public TSTool_JFrame (
 	
 	Message.setTopLevel ( this );
 	
-	// Session to track command file history and other user session properties
+	// Session to track command file history and other user session properties.
 	this.session = session;
 
 	// Save the list of plugin datastores, which will be used to initialize datastores.
@@ -2412,12 +2481,11 @@ public TSTool_JFrame (
 		this.titleMod = titleMod;
 	}
 	
-	// TODO smalers 2021-07-29 Remove when tested out - initial properties are in the processor
+	// TODO smalers 2021-07-29 Remove when tested out - initial properties are in the processor.
 	// Set the processor properties.
 	//this.initialProps = initialProps;
 
-	// Set the initial working directory up front because it is used in the
-	// command processor and edit dialogs.
+	// Set the initial working directory up front because it is used in the command processor and edit dialogs.
 
 	__props = new PropList("TSTool_JFrame");
 	__props.set ("WorkingDir=" + IOUtil.getProgramWorkingDir());	
@@ -2460,9 +2528,8 @@ public TSTool_JFrame (
 	swMain.stop();
 	
 	// Show the HydroBase login dialog only if a CDSS license.
-	// For RTi, force the user to use File...Open HydroBase.
 	// Or, configure HydroBase information in the TSTool configuration file.
-	// FIXME SAM 2008-10-02 Need to confirm that information can be put in the file.
+	// FIXME smalers 2008-10-02 Need to confirm that information can be put in the file.
 	if ( __source_HydroBase_enabled ) { //&& license_IsInstallCDSS(__licenseManager) ) {
 		// Login to HydroBase using information in the TSTool configuration file.
 		uiAction_OpenHydroBase ( true );
@@ -2478,7 +2545,7 @@ public TSTool_JFrame (
 		uiAction_OpenNWSRFSFS5Files ( null, true );
 		// Force the choices to refresh.
 		if ( __nwsrfs_dmi != null ) {
-			/* TODO SAM 2004-09-10 DO NOT DO THIS BECAUSE IT THEN PROMPTS FOR a choice.
+			/* TODO smalers 2004-09-10 DO NOT DO THIS BECAUSE IT THEN PROMPTS FOR a choice.
 			__input_type_JComboBox.select ( null );
 			__input_type_JComboBox.select ( __INPUT_TYPE_NWSRFS_FS5Files );
 			*/
@@ -2486,7 +2553,7 @@ public TSTool_JFrame (
 	}
 
 	// Open remaining datastores, displaying dialog if SystemLogin or SystemPassword property is "prompt".
-	// TODO SAM 2010-09-03 migrate more input types to datastores.
+	// TODO smalers 2010-09-03 migrate more input types to datastores.
 	try {
 		Message.printStatus(2, rtn, "Opening datastores from TSTool GUI...");
 	    TSToolMain.openDataStoresAtStartup(session,__tsProcessor,this.pluginDataStoreClassList,this.pluginDataStoreFactoryClassList,false);
@@ -2501,8 +2568,7 @@ public TSTool_JFrame (
 	
 	// Add GUI features that depend on the databases.
 	// The appropriate panel will be set visible as input types and data types are chosen.
-	// The panels are currently only initialized once so
-	// changing databases or enabling new databases after setup may require
+	// The panels are currently only initialized once so changing databases or enabling new databases after setup may require
 	// some code changes if not implemented already.
 	// Set the wait cursor because queries are done during setup.
 
@@ -2514,7 +2580,7 @@ public TSTool_JFrame (
 		Message.printWarning ( 3, rtn, "For developers:  caught exception initializing input filters at setup." );
 		Message.printWarning ( 3, rtn, e );
 	}
-	// TODO SAM 2007-01-23 Evaluate use.
+	// TODO smalers 2007-01-23 Evaluate use.
 	// Force everything to refresh based on the current GUI layout.  Still evaluating this.
 	this.invalidate ();
 	JGUIUtil.setWaitCursor ( this, false );
@@ -2537,8 +2603,7 @@ public TSTool_JFrame (
 Handle action events (menu and button actions).
 @param event Event to handle.
 */
-public void actionPerformed (ActionEvent event)
-{
+public void actionPerformed (ActionEvent event) {
 	if ( ui_GetIgnoreActionEvent() ) {
 		// Ignore ActionEvent for programmatic modification of data models.
 		return;
@@ -2574,7 +2639,7 @@ own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
 public void commandCanceled ( int icommand, int ncommand, Command command, float percent_complete, String message )
-{	String routine = "TSTool_JFrame.commandCanceled";
+{	String routine = getClass().getSimpleName() + ".commandCanceled";
 	
 	// Refresh the results with what is available.
 	//String command_string = command.toString();
@@ -2597,7 +2662,7 @@ own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
 public void commandCompleted ( int icommand, int ncommand, Command command, float percent_complete, String message )
-{	String routine = "TSTool_JFrame.commandCompleted";
+{	String routine = getClass().getSimpleName() + ".commandCompleted";
 	// Update the progress bar to indicate progress (1 to number of commands... completed).
 	__processor_JProgressBar.setValue ( icommand + 1 );
 	// For debugging.
@@ -2609,7 +2674,7 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 	
     // If the last command was a comment with @require that was not met, need to detect:
     // - for now brute force design is to search for "Exit processing" in command log message.
-    // - TODO sam 2021-10-19 could detect specific case with more coding
+    // - TODO smalers 2021-10-19 could detect specific case with more coding
     boolean requireExit = false;
     if ( command instanceof Comment_Command ) {
     	Comment_Command comment = (Comment_Command)command;
@@ -2633,8 +2698,8 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 }
 
 /**
-Determine whether commands are equal.  To allow for multi-line commands, each
-command is stored in a list (but typically only the first String is used.
+Determine whether commands are equal.
+To allow for multi-line commands, each command is stored in a list (but typically only the first String is used.
 @param original_command Original command as a list of String or Command.
 @param edited_command Edited command as a list of String or Command.
 */
@@ -2646,7 +2711,7 @@ private boolean commandList_CommandsAreEqual(List original_command, List edited_
 		return false;
 	}
 	else if ( (original_command == null) && (edited_command == null) ) {
-		// Should never occur???
+		// Should never occur?
 		return true;
 	}
 	int original_size = original_command.size();
@@ -2692,16 +2757,15 @@ private boolean commandList_CommandsAreEqual(List original_command, List edited_
 /**
 Edit a command in the command list using the command's editor dialog.
 @param action the string containing the event's action value.
-Typically this is the command name and a description: "CommandName() <description>".  This is checked
-for new commands.  When editing existing commands, commandsToEdit will contain
-a list of Command class instances.  Normally only the first command will be edited as
-a single-line command.  However, multiple # comment lines can be selected and edited at once.
-@param commandsToEdit If an update, this contains the current Command instances
-to edit.  If a new command, this is null and the action string will be consulted
-to construct the appropriate command.  The only time that multiple commands will
-be edited are when they are in a {# delimited comment block).
-@param mode the action to take when editing the command (INSERT for a
-new command or UPDATE for an existing command).
+Typically this is the command name and a description: "CommandName() <description>".
+This is checked for new commands.
+When editing existing commands, commandsToEdit will contain a list of Command class instances.
+Normally only the first command will be edited as a single-line command.
+However, multiple # comment lines can be selected and edited at once.
+@param commandsToEdit If an update, this contains the current Command instances to edit.
+If a new command, this is null and the action string will be consulted to construct the appropriate command.
+The only time that multiple commands will be edited are when they are in a {# delimited comment block).
+@param mode the action to take when editing the command (INSERT for a new command or UPDATE for an existing command).
 */
 private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode ) {
 	boolean editAsText = false;
@@ -2711,19 +2775,19 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 /**
 Edit a command in the command list using the command's edit dialog or a text editor.
 @param action the string containing the event's action value.
-Typically this is the command name and a description: "CommandName() <description>".  This is checked
-for new commands.  When editing existing commands, commandsToEdit will contain
-a list of Command class instances.  Normally only the first command will be edited as
-a single-line command.  However, multiple # comment lines can be selected and edited at once.
-@param commandsToEdit If an update, this contains the current Command instances
-to edit.  If a new command, this is null and the action string will be consulted
-to construct the appropriate command.  The only time that multiple commands will
-be edited are when they are in a {# delimited comment block).
+Typically this is the command name and a description: "CommandName() <description>".
+This is checked for new commands.
+When editing existing commands, commandsToEdit will contain a list of Command class instances.
+Normally only the first command will be edited as a single-line command.
+However, multiple # comment lines can be selected and edited at once.
+@param commandsToEdit If an update, this contains the current Command instances to edit.
+If a new command, this is null and the action string will be consulted to construct the appropriate command.
+The only time that multiple commands will be edited are when they are in a {# delimited comment block).
 @param mode the action to take when editing the command (INSERT for a
 new command or UPDATE for an existing command).
 @param editAsText if true, use a simple text editor rather than the command dialog editor
-(this is useful if the user is efficient at editing or if the editor is slow, such as
-when dealing with database metadata).
+(this is useful if the user is efficient at editing or if the editor is slow,
+such as when dealing with database metadata).
 */
 private void commandList_EditCommand ( String action, List<Command> commandsToEdit, CommandEditType mode, boolean editAsText )
 {	String routine = getClass().getSimpleName() + ".editCommand";
@@ -2734,7 +2798,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
     // Should not need this if set properly in the command processor.
     //Message.setPropValue ( "ShowWarningDialog=true" );
 	
-	// FIXME SAM 2011-02-19 Need to do a better job positioning the cursor in the list after edit.
+	// FIXME smalers 2011-02-19 Need to do a better job positioning the cursor in the list after edit.
 	
 	if ( mode == CommandEditType.CONVERT ) {
 	    // Special case for converting TSID commands to Read() commands.
@@ -2759,7 +2823,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	                // Run discovery mode on the command.
 	                if ( newCommand instanceof CommandDiscoverable ) {
 	                    commandList_EditCommand_RunDiscovery ( newCommand );
-	                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow.
+	                    // TODO smalers 2011-03-21 Should following commands run discovery - could be slow.
 	                }
 	            }
 	            catch ( Exception e ) {
@@ -2784,8 +2848,8 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	if ( mode == CommandEditType.UPDATE ) {
 		isCommentBlock = commandList_IsCommentBlock ( __tsProcessor,
 			commandsToEdit,
-			true,	// All must be comments
-			true );	// Comments must be contiguous
+			true,	// All must be comments.
+			true );	// Comments must be contiguous.
 	}
 	else {
 		// New command, so look for comment actions:
@@ -2829,8 +2893,8 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 	try {
         // Main try to help with troubleshooting since there is a lot going on.
 
-		// First make sure we have a Command object to edit.  If an old-style command
-		// or unknown command then it will be stored in a GenericCommand.
+		// First make sure we have a Command object to edit.
+		// If an old-style command or unknown command then it will be stored in a GenericCommand.
 		// The Command object is inserted in the processor in any case, to take advantage
 		// of processor information (such as being able to get the time series identifiers from previous commands.
 		// If a new command is being inserted and a cancel occurs, the command will simply be removed from the list.
@@ -2876,7 +2940,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 			else {
 				// New command so create a command as a place-holder for editing (filled out during the editing).
 				// Get everything before the ) in the command and then re-add the ").
-				// TODO SAM 2007-08-31 Why is this done?
+				// TODO smalers 2007-08-31 Why is this done?
 				// Need to handle:
 				//	1) Traditional commands foo()
 				//	2) Comments # blocks
@@ -2974,14 +3038,13 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 					// The command has already been inserted in the list.
 					Message.printStatus(2, routine, "After insert, command is:  \"" + commandToEdit + "\"" );
 	                // Connect the command to the UI to handle progress when the command is run.
-	                // TODO SAM 2009-03-23 Evaluate whether to define an interface rather than rely on
-	                // AbstractCommand here.
+	                // TODO smalers 2009-03-23 Evaluate whether to define an interface rather than rely on AbstractCommand here.
 	                if ( commandToEdit instanceof AbstractCommand ) {
 	                    ((AbstractCommand)commandToEdit).addCommandProgressListener ( this );
 	                }
 	                if ( commandToEdit instanceof CommandDiscoverable ) {
 	                    commandList_EditCommand_RunDiscovery ( commandToEdit );
-	                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+	                    // TODO smalers 2011-03-21 Should following commands run discovery - could be slow.
 	                }
 				}
 				commandList_SetDirty(true);
@@ -3007,7 +3070,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 						commandList_SetDirty(true);
 		                if ( commandToEditNew instanceof CommandDiscoverable ) {
 		                    commandList_EditCommand_RunDiscovery ( commandToEditNew );
-		                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow.
+		                    // TODO smalers 2011-03-21 Should following commands run discovery - could be slow.
 		                }
 					}
 					else {
@@ -3017,7 +3080,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 						}
 		                if ( commandToEdit instanceof CommandDiscoverable ) {
 		                    commandList_EditCommand_RunDiscovery ( commandToEdit );
-		                    // TODO SAM 2011-03-21 Should following commands run discovery - could be slow.
+		                    // TODO smalers 2011-03-21 Should following commands run discovery - could be slow.
 		                }
 					}
 				}
@@ -3042,7 +3105,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 				else {
 					// Else was an update so restore the original command.
 				    Message.printStatus(2, routine, "Edit was canceled.  Restoring pre-edit command." );
-			    	// Edit was done in command dialog
+			    	// Edit was done in command dialog.
 					int pos = commandList_IndexOf(commandToEdit);
 					commandList_RemoveCommand(commandToEdit);
 					commandList_InsertCommandAt(commandToEditOriginal, pos);
@@ -3050,12 +3113,12 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 			}
 		}
 		
-		// TODO SAM 2007-12-07 Evaluate whether to refresh the command list status?
+		// TODO smalers 2007-12-07 Evaluate whether to refresh the command list status?
 
 	    ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
 	}
 	catch ( Exception e2 ) {
-		// TODO SAM 2005-05-18 Evaluate handling of unexpected error.
+		// TODO smalers 2005-05-18 Evaluate handling of unexpected error.
 		Message.printWarning(1, routine, "Unexpected error editing command (" + e2 + ")." );
 		Message.printWarning ( 3, routine, e2 );
 	}
@@ -3072,11 +3135,11 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
     try {
         JGUIUtil.setWaitCursor ( this, true );
         ((CommandDiscoverable)command_to_edit).runCommandDiscovery(__tsProcessor.indexOf(command_to_edit));
-        // Redraw the status area
+        // Redraw the status area.
         ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
     }
     catch ( Exception e ) {
-        // TODO SAM 2011-02-17 Need to show warning to user?  With current design, code should have complete input.
+        // TODO smalers 2011-02-17 Need to show warning to user?  With current design, code should have complete input.
         // For now ignore because edit-time input may not be complete.
         String message = "Unable to make discover run - may be OK if partial data.";
         Message.printStatus(2, routine, message);
@@ -3091,8 +3154,7 @@ private void commandList_EditCommand_RunDiscovery ( Command command_to_edit )
 Edit a new-style command, which has a custom editor.
 @param commandToEdit the command to edit.
 */
-private boolean commandList_EditCommandNewStyle ( Command commandToEdit )
-{
+private boolean commandList_EditCommandNewStyle ( Command commandToEdit ) {
 	return commandToEdit.editCommand(this);
 }
 
@@ -3133,8 +3195,7 @@ private boolean commandList_EditCommandOldStyleComments (
 }
 
 /**
-Get the list of commands to process, as a list of Command, guaranteed
-to be non-null but may be zero length.
+Get the list of commands to process, as a list of Command, guaranteed to be non-null but may be zero length.
 @return the commands as a list of Command.
 @param get_all If false, return those that are selected in the command list, unless none are selected,
 in which case all are returned.  If true, all are returned, regardless of which are selected.
@@ -3186,9 +3247,9 @@ unless none are selected, in which case all are returned.  If true, all are
 returned, regardless of which are selected.
 */
 private List<String> commandList_GetCommandStrings ( boolean get_all )
-{	// Get the Command list, will not be non-null
+{	// Get the Command list, will not be non-null.
     List<Command> commands = commandList_GetCommands ( get_all );
-	// Convert to String instances
+	// Convert to String instances.
 	int size = commands.size();
 	List<String> strings = new ArrayList<>(size);
 	for ( int i = 0; i < size; i++ ) {
@@ -3200,8 +3261,7 @@ private List<String> commandList_GetCommandStrings ( boolean get_all )
 /**
 Return the number of commands with failure as max severity.
 */
-private int commandList_GetFailureCount()
-{
+private int commandList_GetFailureCount() {
 	int size = __commands_JListModel.size();
 	CommandStatusProvider command;
 	int failure_count = 0;
@@ -3217,8 +3277,7 @@ private int commandList_GetFailureCount()
 /**
 Return the number of commands with warnings as maximum severity.
 */
-private int commandList_GetWarningCount()
-{
+private int commandList_GetWarningCount() {
 	int size = __commands_JListModel.size();
 	CommandStatusProvider command;
 	int failure_count = 0;
@@ -3246,8 +3305,7 @@ Insert a command at the indicated position.
 @param command The Command to insert.
 @param pos The index in the command list at which to insert.
 */
-private void commandList_InsertCommandAt ( Command command, int pos )
-{
+private void commandList_InsertCommandAt ( Command command, int pos ) {
 	__tsProcessor.insertCommandAt( command, pos );
 	ui_GetCommandJList().ensureIndexIsVisible ( pos );
 	// Since an insert, mark the commands list as dirty.
@@ -3256,10 +3314,11 @@ private void commandList_InsertCommandAt ( Command command, int pos )
 }
 
 /**
-Insert a new command into the command list, utilizing the selected commands in the displayed
-list to determine the insert position.  If any commands are selected in the GUI, the insert will
-occur before the selection. If none are selected, the insert will occur at the end of the
-list.  For example this can occur in the following cases:
+Insert a new command into the command list,
+utilizing the selected commands in the displayed list to determine the insert position.
+If any commands are selected in the GUI, the insert will occur before the selection.
+If none are selected, the insert will occur at the end of the list.
+For example this can occur in the following cases:
 <ol>
 <li>	The user is interacting with the command list via command menus.</li>
 <li>	Time series identifiers are being transferred to the commands area from
@@ -3297,8 +3356,8 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command )
 }
 
 /**
-Insert comments into the command list, utilizing the selected commands in the displayed
-list to determine the insert position.
+Insert comments into the command list,
+utilizing the selected commands in the displayed list to determine the insert position.
 @param new_comments The comments to insert, as a list of String.
 */
 private void commandList_InsertCommentsBasedOnUI ( List<String> new_comments )
@@ -3388,12 +3447,11 @@ private boolean commandList_IsCommentBlock ( TSCommandProcessor processor,
 }
 
 /**
-Create a new Command instance given a command string.  This may be called when
-loading commands from a file or adding new commands while editing.
+Create a new Command instance given a command string.
+This may be called when loading commands from a file or adding new commands while editing.
 @param commandString Command as a string, to parse and create a Command instance.
-@param createUnknownCommandIfNotRecognized Indicate if a generic command should
-be created if not recognized.  For now this should generally be true, until all
-commands are recognized by the TSCommandFactory.
+@param createUnknownCommandIfNotRecognized Indicate if a generic command should be created if not recognized.
+For now this should generally be true, until all commands are recognized by the TSCommandFactory.
 */
 private Command commandList_NewCommand ( String commandString, boolean createUnknownCommandIfNotRecognized )
 {	int dl = 1;
@@ -3405,7 +3463,7 @@ private Command commandList_NewCommand ( String commandString, boolean createUnk
 	Command c = null;
 	try {
 		if ( commandString.equals(__Commands_Create_TSID_String) ) {
-			// Adding a new TSID
+			// Adding a new TSID:
 			// - be careful to not use the factory because it causes issues
 			c = new TSID_Command();
 		}
@@ -3427,28 +3485,28 @@ private Command commandList_NewCommand ( String commandString, boolean createUnk
 		return null;
 	}
 
-	// TODO SAM 2007-08-31 This is essentially validation.
+	// TODO smalers 2007-08-31 This is essentially validation.
 	// Need to evaluate for old-style commands, impacts on error-handling.
 	// New is command from the processor
 	try {
 		if ( c instanceof TSID_Command && commandString.equals(__Commands_Create_TSID_String)) {
-			// Don't want to use the command string from the menu, so initialize with empty TSID
-			// TODO smalers 2018-06-29 maybe should initialize with "loc.source.type.interval", but UI could ensure this
-			c.initializeCommand ( "", __tsProcessor, true );	// Full initialization
+			// Don't want to use the command string from the menu,
+			// so initialize with empty TSID TODO smalers 2018-06-29 maybe should initialize with "loc.source.type.interval",
+			// but UI could ensure this.
+			c.initializeCommand ( "", __tsProcessor, true );	// Full initialization.
 		}
 		else {
-			c.initializeCommand ( commandString, __tsProcessor, true );	// Full initialization
+			c.initializeCommand ( commandString, __tsProcessor, true );	// Full initialization.
 		}
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Initialized command for \"" + commandString + "\"" );
 		}
 	}
 	catch ( Exception e ) {
-		// Absorb the warning and make the user try to deal with it in the editor
-		// dialog.  They can always cancel out.
+		// Absorb the warning and make the user try to deal with it in the editor dialog.  They can always cancel out.
 
-		// TODO SAM 2005-05-09 Need to handle parse error.  Should the editor come
-		// up with limited information?
+		// TODO smalers 2005-05-09 Need to handle parse error.
+		// Should the editor come up with limited information?
 		Message.printWarning ( 3, routine, "Unexpected error initializing command \"" + commandString + "\"." );
 		Message.printWarning ( 3, routine, e );
 	}
@@ -3508,9 +3566,8 @@ private void commandList_RemoveCommandsBasedOnUI ()
 		__commands_JListModel.removeAllElements();
 	}
 	else {
-	    // Need to remove from back of selected_indices so that removing
-		// elements will not affect the index of items before that
-		// index.  At some point need to add an undo feature.
+	    // Need to remove from back of selected_indices so that removing elements
+		// will not affect the index of items before that index.  At some point need to add an undo feature.
 		JGUIUtil.setWaitCursor ( this, true );
 		ui_SetIgnoreItemEvent ( true );
 		ui_SetIgnoreListSelectionEvent ( true );
@@ -3648,7 +3705,7 @@ Indicate whether the commands have been modified.  The application title is also
 private void commandList_SetDirty ( boolean dirty )
 {	__commandsDirty = dirty;
 	ui_UpdateStatus ( false );
-	// TODO SAM 2007-08-31 Evaluate whether processor should have "dirty" property.
+	// TODO smalers 2007-08-31 Evaluate whether processor should have "dirty" property.
 }
 
 /**
@@ -3695,8 +3752,9 @@ private void commandProcessor_CancelCommandProcessesExternal ()
 }
 
 /**
-Get the command processor AutoExtendPeriod.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command initialization and processing.
+Get the command processor AutoExtendPeriod.
+This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
 @return The global AutoExtendPeriod as a Boolean from the command processor or null if not yet determined.
 */
 private Boolean commandProcessor_GetAutoExtendPeriod()
@@ -3719,33 +3777,30 @@ private Boolean commandProcessor_GetAutoExtendPeriod()
 }
 
 /**
-Return the command processor instance that is being used.  This method should be
-called to avoid direct interaction with the processor data member.
+Return the command processor instance that is being used.
+This method should be called to avoid direct interaction with the processor data member.
 @return the TSCommandProcessor instance that is being used.
 */
-private TSCommandProcessor commandProcessor_GetCommandProcessor ()
-{
+private TSCommandProcessor commandProcessor_GetCommandProcessor () {
     return __tsProcessor;
 }
 
 /**
 Get the thread that is running the command processor.
 */
-private Thread commandProcessor_GetCommandProcessorThread ()
-{
+private Thread commandProcessor_GetCommandProcessorThread () {
 	return this.__tsProcessorThread;
 }
 
 /**
 Get the command processor time series ensemble results for an index position.
-Typically this corresponds to a user selecting the ensemble from the
-results list, for further display.
+Typically this corresponds to a user selecting the ensemble from the results list, for further display.
 @param pos Position (0+ for the time series).
 @return The time series ensemble at the requested position in the results or null
 if the processor is not available.
 */
 private TSEnsemble commandProcessor_GetEnsembleAt( int pos )
-{   String message, routine = "TSTool_JFrame.commandProcessorGetEnsembleAt";
+{   String message, routine = getClass().getSimpleName() + ".commandProcessorGetEnsembleAt";
     if ( __tsProcessor == null ) {
         return null;
     }
@@ -3780,7 +3835,7 @@ if the processor is not available.
 */
 @SuppressWarnings("unchecked")
 private List<TSEnsemble> commandProcessor_GetEnsembleResultsList()
-{   String routine = "TSTool_JFrame.commandProcessorGetEnsembleResultsList";
+{   String routine = getClass().getSimpleName() + ".commandProcessorGetEnsembleResultsList";
     Object o = null;
     try {
         o = __tsProcessor.getPropContents ( "EnsembleResultsList" );
@@ -3801,8 +3856,7 @@ private List<TSEnsemble> commandProcessor_GetEnsembleResultsList()
 Get the size of the command processor ensemble results list.
 @return the size of the command processor ensemble results list.
 */
-private int commandProcessor_GetEnsembleResultsListSize()
-{
+private int commandProcessor_GetEnsembleResultsListSize() {
     List<TSEnsemble> results = commandProcessor_GetEnsembleResultsList();
     if ( results == null ) {
         return 0;
@@ -3811,10 +3865,10 @@ private int commandProcessor_GetEnsembleResultsListSize()
 }
 
 /**
-Get the command processor HydroBaseDMIList.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command initialization and processing.
-@return The HydroBaseDMIList as a list from the command processor or null if
-not yet determined or no connections.
+Get the command processor HydroBaseDMIList.
+This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
+@return The HydroBaseDMIList as a list from the command processor or null if not yet determined or no connections.
 */
 @SuppressWarnings("unchecked")
 private List<HydroBaseDMI> commandProcessor_GetHydroBaseDMIList()
@@ -3837,8 +3891,8 @@ private List<HydroBaseDMI> commandProcessor_GetHydroBaseDMIList()
 }
 
 /**
-Get the command processor IncludeMissingTS.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command initialization and processing.
+Get the command processor IncludeMissingTS.  This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
 @return The global IncludeMissingTS as a Boolean from the command processor or null if not yet determined.
 */
 private Boolean commandProcessor_GetIncludeMissingTS()
@@ -3861,8 +3915,8 @@ private Boolean commandProcessor_GetIncludeMissingTS()
 }
 
 /**
-Get the command processor InputEnd.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command initialization and processing.
+Get the command processor InputEnd.  This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
 @return The global InputEnd as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetInputEnd()
@@ -3885,8 +3939,8 @@ private DateTime commandProcessor_GetInputEnd()
 }
 
 /**
-Get the command processor InputStart.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command initialization and processing.
+Get the command processor InputStart.  This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
 @return The global InputStart as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetInputStart()
@@ -4027,8 +4081,8 @@ private List<JSONObject> commandProcessor_GetObjectResultsList()
 }
 
 /**
-Get the command processor OutputEnd.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command initialization and processing.
+Get the command processor OutputEnd.  This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
 @return The global OutputEnd as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetOutputEnd()
@@ -4051,9 +4105,8 @@ private DateTime commandProcessor_GetOutputEnd()
 }
 
 /**
-Get the command processor OutputStart.  This method is meant for simple
-reporting.  Any errors in the processor should be detected during command
-initialization and processing.
+Get the command processor OutputStart.  This method is meant for simple reporting.
+Any errors in the processor should be detected during command initialization and processing.
 @return The global OutputStart as a DateTime from the command processor or null if not yet determined.
 */
 private DateTime commandProcessor_GetOutputStart()
@@ -4117,7 +4170,7 @@ if the processor is not available.
 */
 @SuppressWarnings("unchecked")
 private List<DataTable> commandProcessor_GetTableResultsList()
-{   String routine = "TSTool_JFrame.commandProcessorGetTableResultsList";
+{   String routine = getClass().getSimpleName() + ".commandProcessorGetTableResultsList";
     Object o = null;
     try {
         o = __tsProcessor.getPropContents ( "TableResultsList" );
@@ -4136,13 +4189,12 @@ private List<DataTable> commandProcessor_GetTableResultsList()
 
 /**
 Get the command processor time series results for an index position.
-Typically this corresponds to a user selecting the time series from the
-results list, for further display.
+Typically this corresponds to a user selecting the time series from the results list, for further display.
 @param pos Position (0+ for the time series).
 @return The time series at the requested position in the results or null if the processor is not available.
 */
 private TS commandProcessor_GetTimeSeries( int pos )
-{	String message, routine = "TSTool_JFrame.commandProcessorGetTimeSeries";
+{	String message, routine = getClass().getSimpleName() + ".commandProcessorGetTimeSeries";
 	if ( __tsProcessor == null ) {
 		return null;
 	}
@@ -4171,12 +4223,11 @@ private TS commandProcessor_GetTimeSeries( int pos )
 
 /**
 Get the command processor time series results list.
-@return The time series results list or null
-if the processor is not available.
+@return The time series results list or null if the processor is not available.
 */
 @SuppressWarnings("unchecked")
 private List<TS> commandProcessor_GetTimeSeriesResultsList()
-{	String routine = "TSTool_JFrame.commandProcessorGetTimeSeriesResultsList";
+{	String routine = getClass().getSimpleName() + ".commandProcessorGetTimeSeriesResultsList";
 	Object o = null;
 	try {
 	    o = __tsProcessor.getPropContents ( "TSResultsList" );
@@ -4197,8 +4248,7 @@ private List<TS> commandProcessor_GetTimeSeriesResultsList()
 Get the size of the command processor time series results list.
 @return the size of the command processor time series results list.
 */
-private int commandProcessor_GetTimeSeriesResultsListSize()
-{
+private int commandProcessor_GetTimeSeriesResultsListSize() {
     List<TS> results = commandProcessor_GetTimeSeriesResultsList();
 	if ( results == null ) {
 		return 0;
@@ -4212,7 +4262,7 @@ Get the command processor time series view results list.
 */
 @SuppressWarnings("unchecked")
 private List<TimeSeriesView> commandProcessor_GetTimeSeriesViewResultsList()
-{   String routine = "TSTool_JFrame.commandProcessor_GetTimeSeriesViewResultsList";
+{   String routine = getClass().getSimpleName() + ".commandProcessor_GetTimeSeriesViewResultsList";
     Object o = null;
     try {
         o = __tsProcessor.getPropContents ( "TimeSeriesViewResultsList" );
@@ -4229,18 +4279,19 @@ private List<TimeSeriesView> commandProcessor_GetTimeSeriesViewResultsList()
     }
 }
 
-// TODO SAM 2008-01-05 Evaluate whether this should live in the processor.
+// TODO smalers 2008-01-05 Evaluate whether this should live in the processor.
 /**
 Process ensembles from the results list into a product (graph, etc).
 @param ensembleFromUI ensemble to graph (when ensemble time series are created in response to user action)
 or null when processing list of indices corresponding to processor results list
-@param tslistFromUI list of time series to graph (corresponding to ensemble and potentially other time series such
-as statistics for ensemble), or null when processing list of indices corresponding to processor results list
+@param tslistFromUI list of time series to graph
+(corresponding to ensemble and potentially other time series such as statistics for ensemble),
+or null when processing list of indices corresponding to processor results list
 @param indices Indices of the ensembles to process.
 @param props Properties to control output (graph type).
 */
 private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFromUI, List<TS> tslistFromUI, int [] indices, PropList props )
-{   String routine = "TSTool_JFrame.commandProcessor_ProcessEnsembleResultsList";
+{   String routine = getClass().getSimpleName() + ".commandProcessor_ProcessEnsembleResultsList";
     if ( (tslistFromUI == null) && (indices == null) ) {
         // No ensembles are selected so return.
         Message.printWarning( 1, "", "Select a time series or ensemble to graph." );
@@ -4248,7 +4299,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
     }
     if ( tslistFromUI != null ) {
 	    try {
-		    // Display the list of time series
+		    // Display the list of time series.
 		    PropList request_params = new PropList ( "" );
 		    request_params.setUsingObject ( "TSList", tslistFromUI );
 		    request_params.setUsingObject ( "Properties", props );
@@ -4315,7 +4366,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
 	            return;
 	        }
 	        TSEnsemble ensemble = (TSEnsemble)o_ensemble;
-	        // Loop through the time series in the ensemble and add to the time series index list for matches
+	        // Loop through the time series in the ensemble and add to the time series index list for matches.
 	        int ensemble_size = ensemble.size();
 	        TS ens_ts, ts;
 	        for ( int iens = 0; iens < ensemble_size; iens++ ) {
@@ -4323,18 +4374,18 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
 	            for ( int its = 0; its < tslist_size; its++ ) {
 	                ts = tslist.get(its);
 	                if ( ens_ts == ts ) {
-	                    // Have a matching time series
+	                    // Have a matching time series.
 	                    matchIndexList.add ( new Integer(its));
 	                }
 	            }
 	        }
 	    }
-	    // Convert the indices to an array
+	    // Convert the indices to an array.
 	    int [] indices2 = new int[matchIndexList.size()];
 	    for ( int i = 0; i < indices2.length; i++ ) {
 	        indices2[i] = matchIndexList.get(i).intValue();
 	    }
-	    // Now display the list of time series
+	    // Now display the list of time series.
 	    PropList request_params = new PropList ( "" );
 	    request_params.setUsingObject ( "Indices", indices2 );
 	    request_params.setUsingObject ( "Properties", props );
@@ -4354,7 +4405,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
 Process time series from the results list into a product (graph, etc).
 */
 private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, PropList props )
-{	String routine = "TSTool_JFrame.commandProcessorProcessTimeSeriesResultsList";
+{	String routine = getClass().getSimpleName() + ".commandProcessorProcessTimeSeriesResultsList";
 	PropList request_params = new PropList ( "" );
 	request_params.setUsingObject ( "Indices", indices );
 	request_params.setUsingObject ( "Properties", props );
@@ -4387,7 +4438,7 @@ throws IOException
 			runDiscoveryOnLoad );
     // Refresh the GUI list to show the status done in call to this method.
 	
-	// TODO SAM 2008-05-11 Evaluate whether to move this to the readCommandFile() method.
+	// TODO smalers 2008-05-11 Evaluate whether to move this to the readCommandFile() method.
 	// If any lines in the file are different from the commands, mark the file as dirty.
 	// Changes may automatically occur during the load because of automated updates to commands.
 	BufferedReader in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( path )) );
@@ -4421,7 +4472,7 @@ throws IOException
 	        ++numAutoChanges;
 	        if ( command instanceof CommandStatusProvider ) {
 	            csp = (CommandStatusProvider)command;
-	            // FIXME SAM 2008-05-11 This message gets clobbered by re-initialization before running
+	            // FIXME smalers 2008-05-11 This message gets clobbered by re-initialization before running.
 	            // Add a message that the command was updated during load.
 	            csp.getCommandStatus().addToLog ( CommandPhaseType.INITIALIZATION,
 	                new CommandLogRecord(CommandStatusType.UNKNOWN,
@@ -4435,9 +4486,9 @@ throws IOException
 }
 
 /**
-Run the commands through the processor.  Currently this supplies the list of
-Command instances to run because the user can select the commands in the
-interface.  In the future the command processor may put together the list without being passed from the GUI.
+Run the commands through the processor.
+Currently this supplies the list of Command instances to run because the user can select the commands in the interface.
+In the future the command processor may put together the list without being passed from the GUI.
 @param commands List of commands to run.
 @param createOutput whether to create output (slower) or skip those commands.
 */
@@ -4448,16 +4499,16 @@ private void commandProcessor_RunCommandsThreaded ( List<Command> commands, bool
 	requestParams.setUsingObject ( "CommandList", commands );
 	requestParams.setUsingObject ( "InitialWorkingDir", ui_GetInitialWorkingDir() );
 	requestParams.setUsingObject ( "CreateOutput", new Boolean(createOutput) );
-	// TODO sam 2017-02-08 the following does not seem to be recognized
-	requestParams.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+	// TODO smalers 2017-02-08 the following does not seem to be recognized.
+	requestParams.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
 	try {
 		TSCommandProcessorThreadRunner runner = new TSCommandProcessorThreadRunner ( __tsProcessor, requestParams );
 		Message.printStatus ( 2, routine, "Running commands in separate thread.");
 		Thread thread = new Thread ( runner );
 		commandProcessor_SetCommandProcessorThread(thread);
 		thread.start();
-		// Do one update of the GUI to reflect the GUI running.  This will disable run
-		// buttons, etc. until the current run is done.
+		// Do one update of the GUI to reflect the GUI running.
+		// This will disable run buttons, etc. until the current run is done.
 		ui_CheckGUIState ();
 		// At this point the GUI will get updated if any notification fires from the processor.
 	}
@@ -4472,8 +4523,7 @@ private void commandProcessor_RunCommandsThreaded ( List<Command> commands, bool
 Set the thread that is running for the command processor.
 This is set to allow a kill of the thread if necessary.
 */
-private void commandProcessor_SetCommandProcessorThread ( Thread thread )
-{
+private void commandProcessor_SetCommandProcessorThread ( Thread thread ) {
 	this.__tsProcessorThread = thread;
 }
 
@@ -4579,14 +4629,12 @@ no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandStarted ( int icommand, int ncommand, Command command,
-		float percent_complete, String message )
+public void commandStarted ( int icommand, int ncommand, Command command, float percent_complete, String message )
 {	String routine = "TSTool_JFrame.commandStarted";
 	// commandCompleted updates the progress bar after each command.
-	// For this method, only reset the bounds of the progress bar and
-	// clear if the first command.
+	// For this method, only reset the bounds of the progress bar and clear if the first command.
 	String tip = "Running command " + (icommand + 1) + " of " + ncommand;
-	// If RunCommands() is being run, then also put the input file name to make it easier to understand progress
+	// If RunCommands() is being run, then also put the input file name to make it easier to understand progress.
 	String additionalInfo = "";
 	String commandName = command.getCommandName();
 	if ( commandName.equalsIgnoreCase("RunCommands") ) {
@@ -4596,7 +4644,7 @@ public void commandStarted ( int icommand, int ncommand, Command command,
 	    }
 	    additionalInfo += "...";
 	}
-	// Use level zero because the command processor is already printing a log message when each command is run
+	// Use level zero because the command processor is already printing a log message when each command is run.
 	ui_UpdateStatusTextFields ( 0, routine, null, tip + ": \"" + commandName + "(..." +
 	    additionalInfo + ")\"", __STATUS_BUSY );
 	if ( icommand == 0 ) {
@@ -4604,22 +4652,19 @@ public void commandStarted ( int icommand, int ncommand, Command command,
 		__processor_JProgressBar.setMaximum ( ncommand );
 		__processor_JProgressBar.setValue ( 0 );
 	}
-	// Set the tooltip text for the progress bar to indicate the numbers
+	// Set the tooltip text for the progress bar to indicate the numbers.
 	__processor_JProgressBar.setToolTipText ( tip );
-	// Always set the value for the command progress so that it shows up
-	// as zero.  The commandProgres() method will do a better job of setting
-	// the limits and current status for a specific command.
+	// Always set the value for the command progress so that it shows up as zero.
+	// The commandProgres() method will do a better job of setting the limits and current status for a specific command.
 	__command_JProgressBar.setMinimum ( 0 );
 	__command_JProgressBar.setMaximum ( 100 );
 	__command_JProgressBar.setValue ( 0 );
 }
 
 /**
-Required by ListDataListener - receive notification when the contents of the
-commands list have changed.
+Required by ListDataListener - receive notification when the contents of the commands list have changed.
 */
-public void contentsChanged ( ListDataEvent e )
-{
+public void contentsChanged ( ListDataEvent e ) {
 	// The contents of the command list changed so check the GUI state.
 	ui_UpdateStatus ( true );	// true = also call checkGUIState();
 }
@@ -4668,7 +4713,7 @@ public String formatHelpViewerUrl ( String group, String item, String rootUrl ) 
     	String docRootUriVersion = docRootUri.replace("latest", version);
     	docRootUriList.add(docRootUriVersion);
     	if ( !docRootUriVersion.equals(docRootUri) ) {
-    		// Also add the URL with "latest"
+    		// Also add the URL with "latest".
     		docRootUriList.add(docRootUri);
     	}
     }
@@ -4677,7 +4722,7 @@ public String formatHelpViewerUrl ( String group, String item, String rootUrl ) 
     	String docRootUri2Version = docRootUri2.replace("latest", version);
     	docRootUriList.add(docRootUri2Version);
     	if ( !docRootUri2Version.equals(docRootUri2) ) {
-    		// Add the URL with "latest"
+    		// Add the URL with "latest".
     		docRootUriList.add(docRootUri2);
     	}
     }
@@ -4686,7 +4731,7 @@ public String formatHelpViewerUrl ( String group, String item, String rootUrl ) 
     	String docRootUriVersion = rootUrl.replace("latest", version);
     	docRootUriList.add(docRootUriVersion);
     	if ( !docRootUriVersion.equals(rootUrl) ) {
-    		// Add the URL with "latest"
+    		// Add the URL with "latest".
     		docRootUriList.add(rootUrl);
     	}
     }
@@ -4790,29 +4835,26 @@ public String geoViewGetLabel(GeoRecord record) {
 	return null;
 }
 
-// TODO SAM 2007-11-02 Review code.  Should this do the same as a select?
+// TODO smalers 2007-11-02 Review code.  Should this do the same as a select?
 /**
 Do nothing.
 @param devlimits Limits of select in device coordinates(pixels).
 @param datalimits Limits of select in data coordinates.
 @param selected list of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo(GRShape devlimits, GRShape datalimits, List<GeoRecord> selected)
-{
+public void geoViewInfo(GRShape devlimits, GRShape datalimits, List<GeoRecord> selected) {
 }
 
 /**
 Do nothing.
 */
-public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, List<GeoRecord> selected)
-{
+public void geoViewInfo(GRPoint devlimits, GRPoint datalimits, List<GeoRecord> selected) {
 }
 
 /**
 Do nothing.
 */
-public void geoViewInfo(GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected)
-{
+public void geoViewInfo(GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected) {
 }
 
 /**
@@ -4820,12 +4862,11 @@ Handle the mouse motion event from another GeoView (likely a ReferenceGeoView). 
 @param devpt Coordinates of mouse in device coordinates(pixels).
 @param datapt Coordinates of mouse in data coordinates.
 */
-public void geoViewMouseMotion(GRPoint devpt, GRPoint datapt)
-{
+public void geoViewMouseMotion(GRPoint devpt, GRPoint datapt) {
 }
 
-// TODO SAM 2006-03-02 Evaluate code
-// Should the select use the coordinates?  Not all time series have this information available
+// TODO smalers 2006-03-02 Evaluate code.
+// Should the select use the coordinates?  Not all time series have this information available.
 /**
 If a selection is made from the map, use the attributes specified in the lookup
 table file to match the attributes in the layer with time series in the query
@@ -4836,7 +4877,7 @@ list.  The coordinates of the select ARE NOT used in the selection.
 attributes for the selected feature with the time series query list.
 */
 public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecord> selected, boolean append )
-{	String routine = "TSTool_JFrame.geoViewSelect";
+{	String routine = getClass().getSimpleName() + ".geoViewSelect";
 
 	try {
 	    // Main try, for development and troubleshooting.
@@ -4844,7 +4885,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
 
     	// Select from the time series query list matching the attributes in the selected layer.
 
-    	// TODO SAM 2006-03-02 Need to evaluate how to best read this file once.
+    	// TODO smalers 2006-03-02 Need to evaluate how to best read this file once.
 
     	// Read the time series to layer lookup file.
 
@@ -4863,8 +4904,8 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     	}
     	
     	PropList props = new PropList ("");
-    	props.set ( "Delimiter=," );		// see existing prototype
-    	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this
+    	props.set ( "Delimiter=," );		// See existing prototype.
+    	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this.
     	props.set ( "TrimStrings=True" );	// If true, trim strings after reading.
     	DataTable table = null;
     	try {
@@ -4954,8 +4995,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     		",Layer_DataSource=" + Layer_DataSourceCol_int );
     	}
 
-    	// Now search through the time series that are in the query list and
-    	// select those that match the list of GeoRecord.
+    	// Now search through the time series that are in the query list and select those that match the list of GeoRecord.
     	// The current selections ARE NOT cleared first (the user can clear them manually if they want).
     	// In this way multiple selections can be made from the map.
 
@@ -4992,13 +5032,11 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     	for ( int igeo = 0; igeo < ngeo; igeo++ ) {
     		// Get the GeoRecord that was selected.
     		georec = (GeoRecord)selected.get(igeo);
-    		// Get the name of the layer that corresponds to the GeoRecord,
-    		// which is used to locate the record in the lookup file.
+    		// Get the name of the layer that corresponds to the GeoRecord, which is used to locate the record in the lookup file.
     		geolayerview = georec.getLayerView();
     		geolayer_name = geolayerview.getName();
-    		// Find layer that matches the record, using the layer name in
-    		// the lookup table.  More than one visible layer may be
-    		// searched.  The data interval is also used to find a layer to match.
+    		// Find layer that matches the record, using the layer name in the lookup table.
+    		// More than one visible layer may be searched.  The data interval is also used to find a layer to match.
     		for ( int ilook = 0; ilook < tsize; ilook++ ) {
     			Message.printStatus ( 2, routine, "Searching lookup file for the layer named \"" + geolayer_name + "\"" );
     			try {
@@ -5009,7 +5047,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     				layer_name = (String)rec.getFieldValue(Layer_NameCol_int);
     				layer_location = (String)rec.getFieldValue(Layer_LocationCol_int);
     				layer_datasource = (String)rec.getFieldValue(Layer_DataSourceCol_int);
-    				// TODO SAM 2006-03-02 Evaluate code
+    				// TODO smalers 2006-03-02 Evaluate code.
     				// Add layer_interval if such an attribute exists, and use this in addition to the
     				// layer name to find an appropriate layer in the lookup table.
     				Message.printStatus ( 2, routine,
@@ -5074,13 +5112,12 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     				}
     			}
 
-    			// TODO SAM 2006-03-02 Add attributes other than strings.
+    			// TODO smalers 2006-03-02 Add attributes other than strings.
     			// For now only deal with string attributes - later need to handle other types.
 
-    			// Get the attribute to be checked for the ID,
-    			// based on the attribute name in the lookup file.
+    			// Get the attribute to be checked for the ID, based on the attribute name in the lookup file.
 
-    			// TODO SAM 2006-03-02 Optimize code.
+    			// TODO smalers 2006-03-02 Optimize code.
     			// Need to implement DbaseDataTable.getTableRecord to
     			// handle on the fly reading to make this a little more directly.
 
@@ -5114,11 +5151,11 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
         				continue;
         			}
     			}
-    			// Now use the TS fields in the lookup table to match time series that are listed in the query
-    			// results.  This is done brute force by searching everything in the table model.
+    			// Now use the TS fields in the lookup table to match time series that are listed in the query results.
+    			// This is done brute force by searching everything in the table model.
     			for ( int its = 0; its < nrows; its++ ) {
     				// Get the attributes from the time series query list table model.
-    				// TODO SAM 2006-03-02 Refactor/optimize.
+    				// TODO smalers 2006-03-02 Refactor/optimize.
     				// Probably what is needed here is a generic interface on time series table models to
     				// have methods that return TSIdent or TSID parts.  For now do it brute force.
     				if ( __query_TableModel instanceof TSTool_TS_TableModel ) {
@@ -5152,9 +5189,10 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
                         tslist_datatype = (String)model.getValueAt(its,model.COL_DATA_TYPE);
                         tslist_interval = (String)model.getValueAt(its,model.COL_TIME_STEP);
                     }
-    				// Check the attributes against that in the map.  Use some of the look interval
-    				// information for data type and interval, unless that is supplied in a layer attribute.
-    				// TODO SAM 2006-03-02 Need to optimize/refactor.
+    				// Check the attributes against that in the map.
+    				// Use some of the look interval information for data type and interval,
+    				// unless that is supplied in a layer attribute.
+    				// TODO smalers 2006-03-02 Need to optimize/refactor.
     				// Currently check the ID and get the data type and interval from the lookup file.
     				// Later can get the interval from the layer attribute data.
     				if ( !georec_location.equalsIgnoreCase(tslist_id) ) {
@@ -5178,8 +5216,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     				// The checked attributes match so select the time series and increment the count (do not deselect first).
     				Message.printStatus ( 2, routine, "Selecting time seris [" + its + "]" );
     				__query_JWorksheet.selectRow ( its, false );
-    				// TODO SAM 2006-03-02 Evaluate usability - should the worksheet automatically scroll to
-    				// the last select?
+    				// TODO smalers 2006-03-02 Evaluate usability - should the worksheet automatically scroll to the last select?
     				++match_count;
     			}
     		}
@@ -5214,14 +5251,16 @@ public void geoViewSelect(GRLimits devlimits, GRLimits datalimits, List<GeoRecor
 
 /**
 Handle the zoom event from the GeoView map interface.
-This resets the data limits for this GeoView to those specified (if not
-null) and redraws the GeoView.  In this class it does nothing.
+This resets the data limits for this GeoView to those specified (if not null) and redraws the GeoView.
+In this class it does nothing.
 @param devlimits Limits of zoom in device coordinates(pixels).
 @param datalimits Limits of zoom in data coordinates.
 */
-public void geoViewZoom(GRShape devlimits, GRShape datalimits) {}
+public void geoViewZoom(GRShape devlimits, GRShape datalimits) {
+}
 
-public void geoViewZoom (GRLimits devlim, GRLimits datalim ) {}
+public void geoViewZoom (GRLimits devlim, GRLimits datalim ) {
+}
 
 /**
  * Get the command processor, needed to hand off to internal classes.
@@ -5231,8 +5270,8 @@ protected TSCommandProcessor getProcessor () {
 }
 
 /**
-Handle actions from the message log viewer.  In particular, when a command is
-selected and the user wants to go to the command in the interface.
+Handle actions from the message log viewer.
+In particular, when a command is selected and the user wants to go to the command in the interface.
 @param tag Tag that identifies the command.  This is of the format:
 <pre>
 <command,count>
@@ -5270,9 +5309,9 @@ public void goToMessageTag ( String tag )
 }
 
 /**
-Insert a command in the command list, depending on the state of the UI (e.g., insert before highlighted
-commands).  This method is called by command editors that are also stand-alone tools, when transferring
-commands to the main command processor.
+Insert a command in the command list, depending on the state of the UI (e.g., insert before highlighted commands).
+This method is called by command editors that are also stand-alone tools,
+when transferring commands to the main command processor.
 @param command single command to insert
 */
 public void insertCommand ( Command command )
@@ -5281,14 +5320,13 @@ public void insertCommand ( Command command )
 }
 
 /**
-Insert multiple commands in the command list, depending on the state of the UI (e.g., insert before highlighted
-commands).  This method is called by command editors that are also stand-alone tools, when transferring
-commands to the main command processor.
+Insert multiple commands in the command list, depending on the state of the UI (e.g., insert before highlighted commands).
+This method is called by command editors that are also stand-alone tools,
+when transferring commands to the main command processor.
 @param command single command to insert
 */
-/* FIXME SAM 2009-06-12 Enable when needed.
-public void insertCommands ( List<Command> commands )
-{
+/* FIXME smalers 2009-06-12 Enable when needed.
+public void insertCommands ( List<Command> commands ) {
     // Chain to the private method
     commandList_InsertCommandsBasedOnUI ( commands );
 }
@@ -5348,7 +5386,7 @@ public void itemStateChanged ( ItemEvent evt )
         else if ( (o == __input_type_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
     		// New input type selected.
     		queryResultsList_Clear();
-    		uiAction_InputTypeChoiceClicked(null); // null indicates datastore selection is not driving action
+    		uiAction_InputTypeChoiceClicked(null); // null indicates datastore selection is not driving action.
     	}
     	else if((o == __inputName_JComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
     		// New input name selected.
@@ -5423,8 +5461,9 @@ public void itemStateChanged ( ItemEvent evt )
 }
 
 /**
-Respond to KeyEvents.  Most single-key events are handled in keyReleased to
-prevent multiple events.  Do track when the shift is pressed here.
+Respond to KeyEvents.
+Most single-key events are handled in keyReleased to prevent multiple events.
+Do track when the shift is pressed here.
 */
 public void keyPressed ( KeyEvent event )
 {	int code = event.getKeyCode();
@@ -5458,19 +5497,20 @@ public void keyReleased ( KeyEvent event )
 	ui_UpdateStatus ( true );
 }
 
-public void keyTyped ( KeyEvent event )
-{
+public void keyTyped ( KeyEvent event ) {
 }
 
 /**
-Merge a new configuration file with the old configuration file.  It is assumed that the current configuration file
-is the most complete, likely being distributed with a demo or new version of the software.  Therefore the merge will
-accomplish the following cases:
+Merge a new configuration file with the old configuration file.
+It is assumed that the current configuration file is the most complete,
+likely being distributed with a demo or new version of the software.
+Therefore the merge will accomplish the following cases:
 <ol>
-<li>    If the user is merging with a complete old configuration file, the old license and settings will be
-    applied to the new software.  New settings will still be in effect.</li>
-<li>    If the user is applying a new license, for example to a demo installation, then only the license
-    properties will be applied.<li>
+<li>    If the user is merging with a complete old configuration file,
+		the old license and settings will be applied to the new software.
+		New settings will still be in effect.</li>
+<li>    If the user is applying a new license, for example to a demo installation,
+		then only the license properties will be applied.<li>
 </ol>
 @param currentConfigFile Current configuration file that was distributed with the current software.
 @param configFileToMerge The configuration file to merge with the current configuration file.
@@ -5478,7 +5518,7 @@ accomplish the following cases:
 */
 private void license_MergeConfigFiles ( File currentConfigFile, File configFileToMerge )
 throws IOException
-{   String routine = "TSTool_JFrame.license_MergeConfigFiles";
+{   String routine = getClass().getSimpleName() + ".license_MergeConfigFiles";
     int updatedPropCount = 0;
     // Read the current configuration.
     PropList currentProps = new PropList ( "current" );
@@ -5492,7 +5532,7 @@ throws IOException
             "Error reading current configuration file - cannot merge configuration properties." );
         return;
     }
-    // Read the configuration to merge
+    // Read the configuration to merge.
     PropList configToMergeProps = new PropList ( "current" );
     configToMergeProps.setPersistentName ( configFileToMerge.getPath() );
     try {
@@ -5503,18 +5543,18 @@ throws IOException
             "Error reading configuration file to merge - cannot merge configuration properties." );
         return;
     }
-    // Loop through he properties in the current file and reset to those in the file to merge
+    // Loop through he properties in the current file and reset to those in the file to merge.
     List<Prop> props = currentProps.getList();
     int size = props.size();
     for ( int i = 0; i < size; i++ ) {
-        // Get out of the current list
+        // Get out of the current list.
         Prop prop = props.get(i);
         String currentPropName = prop.getKey();
         String currentPropValue = prop.getValue();
-        // See if there is a match in the properties to be merged
+        // See if there is a match in the properties to be merged.
         String matchPropValue = configToMergeProps.getValue(currentPropName);
         if ( (matchPropValue != null) && !currentPropValue.equals(matchPropValue) ) {
-            // Property names match and values are different so reset in the current properties
+            // Property names match and values are different so reset in the current properties.
             prop.setValue ( matchPropValue );
             ++updatedPropCount;
         }
@@ -5541,15 +5581,13 @@ public void mouseClicked ( MouseEvent event )
 /**
 Handle mouse entered event.  Nothing is done.
 */
-public void mouseEntered ( MouseEvent event )
-{
+public void mouseEntered ( MouseEvent event ) {
 }
 
 /**
 Handle mouse exited event.  Nothing is done.
 */
-public void mouseExited ( MouseEvent event )
-{
+public void mouseExited ( MouseEvent event ) {
 }
 
 /**
@@ -5633,8 +5671,7 @@ public void mousePressed ( MouseEvent event )
 /**
 Handle mouse released event.  If the object is a results file, display the selected items.
 */
-public void mouseReleased ( MouseEvent event )
-{
+public void mouseReleased ( MouseEvent event ) {
 }
 
 /**
@@ -5667,8 +5704,8 @@ public void processTSProduct ( String productFile, PropList props ) {
 }
 
 /**
-Display the time series list query results in a string format.  These results are APPENDED to the list
-of strings already found in the __commands_JList.
+Display the time series list query results in a string format.
+These results are APPENDED to the list of strings already found in the __commands_JList.
 @param location Location part of TSIdent.
 @param source Source part of TSIdent.
 @param type Data type part of TSIdent.
@@ -5739,7 +5776,7 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
 	if ( (comment != null) && !comment.equals("") ) {
 	    // Insert a comment prior to the command, for example to include the station description.
 	    Command commentCommand = commandList_NewCommand ( "# " + comment, true );
-	    // Run the comment to set the status from unknown to success
+	    // Run the comment to set the status from unknown to success.
         try {
             commentCommand.checkCommandParameters(null, "", 3);
         }
@@ -5771,9 +5808,9 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
 	//commandList_SetDirty ( true );
 	//ui_UpdateStatus ( false );
     if ( tsid_command instanceof CommandDiscoverable ) {
-        // Run discovery on the command to do initial validation and provide data to other commands
+        // Run discovery on the command to do initial validation and provide data to other commands.
         commandList_EditCommand_RunDiscovery ( tsid_command );
-        // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+        // TODO smalers 2011-03-21 Should following commands run discovery - could be slow.
     }
     ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
     commandList_SetDirty ( true );
@@ -5781,8 +5818,8 @@ private int queryResultsList_AppendTSIDToCommandList ( String location,
 }
 
 /**
-Add the time series list query results TSID to the command list.  These results are APPENDED to the list
-of strings already found in the __commands_JList.
+Add the time series list query results TSID to the command list.
+These results are APPENDED to the list of strings already found in the __commands_JList.
 This version of the method is simpler than the overloaded version that takes as input the separate TSID parts.
 @param tsidentString Full time series identifier string to be inserted as a command.
 @param comment Comment for time series (null or empty for no comment).
@@ -5803,9 +5840,9 @@ private int queryResultsList_AppendTSIDToCommandList ( String tsidentString, Str
 	int insert_pos = 0;
 	if ( selected_size > 0 ) {
 		// Insert after the last item.
-	    // If this is part of a block of inserts, the insertOffset is also added to ensure that the
-	    // insert occurs at the end of the block (incremental).  Otherwise the insert is first in last
-	    // out and reversed the order of the block.
+	    // If this is part of a block of inserts,
+		// the insertOffset is also added to ensure that the insert occurs at the end of the block (incremental).
+		// Otherwise the insert is first in last out and reversed the order of the block.
 		insert_pos = selected_indices[selected_size - 1] + 1 + insertOffset;
 	}
 	else {
@@ -5819,7 +5856,7 @@ private int queryResultsList_AppendTSIDToCommandList ( String tsidentString, Str
 	if ( (comment != null) && !comment.equals("") ) {
 	    // Insert a comment prior to the command, for example to include the station description.
 	    Command commentCommand = commandList_NewCommand ( "# " + comment, true );
-	    // Run the comment to set the status from unknown to success
+	    // Run the comment to set the status from unknown to success.
         try {
             commentCommand.checkCommandParameters(null, "", 3);
         }
@@ -5840,9 +5877,9 @@ private int queryResultsList_AppendTSIDToCommandList ( String tsidentString, Str
 	//commandList_SetDirty ( true );
 	//ui_UpdateStatus ( false );
     if ( tsid_command instanceof CommandDiscoverable ) {
-        // Run discovery on the command to do initial validation and provide data to other commands
+        // Run discovery on the command to do initial validation and provide data to other commands.
         commandList_EditCommand_RunDiscovery ( tsid_command );
-        // TODO SAM 2011-03-21 Should following commands run discovery - could be slow
+        // TODO smalers 2011-03-21 Should following commands run discovery - could be slow.
     }
     ui_ShowCurrentCommandListStatus(CommandPhaseType.DISCOVERY);
     commandList_SetDirty ( true );
@@ -5872,8 +5909,7 @@ private void queryResultsList_Clear ()
 		}
 	}
 
-	// Set the data lists to empty and redraw the label (check for null
-	// because it seems to be an issue at startup).
+	// Set the data lists to empty and redraw the label (check for null because it seems to be an issue at startup).
 
 	ui_UpdateStatus ( false );
 }
@@ -5955,7 +5991,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 			// Alias is available so use it.
 			use_alias = true;
 		}
-		// TODO SAM 2004-01-06 - for now don't use the alias to put
+		// TODO smalers 2004-01-06 - for now don't use the alias to put
 		// together the ID - there are issues to resolve in how
 		// DateValueTS.readTimeSeries() handles the ID.
 		use_alias = false;
@@ -5991,7 +6027,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		}
 	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof GenericDatabaseDataStore) ) {
-        // TODO SAM 2013-08-27 Try this model but need to deal with location type.
+        // TODO smalers 2013-08-27 Try this model but need to deal with location type.
         GenericDatabaseDataStore_TS_TableModel model = (GenericDatabaseDataStore_TS_TableModel)__query_TableModel;
         String locType = (String)__query_TableModel.getValueAt( row, model.COL_LOC_TYPE );
         if ( !locType.equals("") ) {
@@ -6011,7 +6047,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             false, insertOffset );
     }
 	else if (  selectedInputType.equals ( __INPUT_TYPE_HECDSS ) ) {
-	    // TODO SAM 2009-01-13 Evaluate whether to remove some columns.
+	    // TODO smalers 2009-01-13 Evaluate whether to remove some columns.
 	    // Currently essentially the same as the generic model but have custom headings.
         // The location (id), type, and time step uniquely identify the time series.
         TSTool_HecDss_TableModel model = (TSTool_HecDss_TableModel)__query_TableModel;
@@ -6171,8 +6207,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 		}
 	}
 	else if ( selectedInputType.equals( __INPUT_TYPE_NWSRFS_ESPTraceEnsemble)) {
-		// The location (id), type, and time step uniquely identify the
-		// time series, but the input_name is needed to find the data.
+		// The location (id), type, and time step uniquely identify the time series,
+		// but the input_name is needed to find the data.
 		// If an alias is specified, assume that it should be used instead of the normal TSID.
 		TSTool_ESPTraceEnsemble_TableModel model = (TSTool_ESPTraceEnsemble_TableModel)__query_TableModel;
 		//String alias = ((String)__query_TableModel.getValueAt ( row, model.COL_ALIAS )).trim();
@@ -6237,8 +6273,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             use_alias, insertOffset );
     }
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
-        // The location (id), type, and time step uniquely
-        // identify the time series, but the input_name is needed to indicate the database.
+        // The location (id), type, and time step uniquely identify the time series,
+		// but the input_name is needed to indicate the database.
         TSTool_ReclamationHDB_TableModel model = (TSTool_ReclamationHDB_TableModel)__query_TableModel;
         ReclamationHDBDataStore ds = (ReclamationHDBDataStore)selectedDataStore;
         // Check the connection in case timeouts, etc.
@@ -6274,8 +6310,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 loc = "" + (Integer)__query_TableModel.getValueAt( row, model.COL_SITE_DATATYPE_ID );
                 scenario = siteCommonName;
             }
-            // Use data type common name as FYI and make sure no periods are in it because they will interfere
-            // with TSID syntax.
+            // Use data type common name as FYI and make sure no periods are in it because they will interfere with TSID syntax.
             String dataType = ((String)__query_TableModel.getValueAt( row, model.COL_DATA_TYPE_COMMON_NAME)).replace("."," ");
             numCommandsAdded = queryResultsList_AppendTSIDToCommandList (
                 (String)__query_TableModel.getValueAt( row, model.COL_OBJECT_TYPE_NAME ) + ":" + loc,
@@ -6298,8 +6333,7 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
                 if ( pos > 0 ) {
                     modelRunDate = modelRunDate.substring(0,pos);
                 }
-                // Replace "." with "?" in the model information so as to not conflict with TSID conventions - will
-                // switch again later.
+                // Replace "." with "?" in the model information so as to not conflict with TSID conventions - will switch again later.
                 String modelName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_NAME );
                 modelName = modelName.replace('.', '?');
                 String modelRunName = (String)__query_TableModel.getValueAt( row, model.COL_MODEL_RUN_NAME );
@@ -6382,8 +6416,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	    }
 	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore) ) {
-        // The location (id), type, and time step uniquely
-        // identify the time series, but the input_name is needed to indicate the database.
+        // The location (id), type, and time step uniquely identify the time series,
+    	// but the input_name is needed to indicate the database.
         TSTool_UsgsNwisDaily_TableModel model = (TSTool_UsgsNwisDaily_TableModel)__query_TableModel;
         if (model.getSortOrder() != null) {
             row = model.getSortOrder()[row];
@@ -6401,8 +6435,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             use_alias, insertOffset );
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisGroundwaterDataStore) ) {
-        // The location (id), type, and time step uniquely
-        // identify the time series, but the input_name is needed to indicate the database.
+        // The location (id), type, and time step uniquely identify the time series,
+    	// but the input_name is needed to indicate the database.
         TSTool_UsgsNwisGroundwater_TableModel model = (TSTool_UsgsNwisGroundwater_TableModel)__query_TableModel;
         if (model.getSortOrder() != null) {
             row = model.getSortOrder()[row];
@@ -6420,8 +6454,8 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
             use_alias, insertOffset );
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore) ) {
-        // The location (id), type, and time step uniquely
-        // identify the time series, but the input_name is needed to indicate the database.
+        // The location (id), type, and time step uniquely identify the time series,
+    	// but the input_name is needed to indicate the database.
         TSTool_UsgsNwisInstantaneous_TableModel model = (TSTool_UsgsNwisInstantaneous_TableModel)__query_TableModel;
         if (model.getSortOrder() != null) {
             row = model.getSortOrder()[row];
@@ -6512,15 +6546,14 @@ private void results_Ensembles_Clear()
 }
 
 /**
-Get the ensemble identifier from a displayed ensemble item, which is in the format
-"N) EnsembleID - Ensemble Name".
+Get the ensemble identifier from a displayed ensemble item,
+which is in the format "N) EnsembleID - Ensemble Name".
 */
 private TSEnsemble results_Ensembles_GetEnsembleID ( String displayItem )
 {   String routine = getClass().getSimpleName() + ".results_Ensembles_GetEnsembleID";
     String message;
     // Get the "N) EnsembleID" string.
-    // This could still be an issue if the ensemble ID has " - " in the name, but at least it is less
-    // likely than just "-"
+    // This could still be an issue if the ensemble ID has " - " in the name, but at least it is less likely than just "-".
     int pos = displayItem.indexOf( " - " );
     String s = displayItem.substring(0,pos).trim();
     // Now get the ensemble ID part of the string.
@@ -6548,7 +6581,7 @@ private TSEnsemble results_Ensembles_GetEnsembleID ( String displayItem )
     return ensemble;
 }
 
-// TODO SAM 2009-05-08 Evaluate sorting the files - maybe need to put in a worksheet so they can be sorted
+// TODO smalers 2009-05-08 Evaluate sorting the files - maybe need to put in a worksheet so they can be sorted.
 /**
 Add the specified output file to the list of output files that can be selected for viewing.
 Only files that exist are added.  Files are added in the order of processing.
@@ -6560,12 +6593,12 @@ private void results_OutputFiles_AddOutputFile ( File file ) {
         filePathString = file.getCanonicalPath();
     }
     catch ( IOException e ) {
-        // Should not happen
+        // Should not happen.
         return;
     }
-    /* TODO SAM 2015-07-10 Remove if the replacement code works
+    /* TODO smalers 2015-07-10 Remove if the replacement code works.
     if ( !IOUtil.fileExists(filePathString)) {
-        // File does not exist so don't show in the list of output files
+        // File does not exist so don't show in the list of output files.
         return;
     }
     */
@@ -6656,8 +6689,7 @@ private void results_TimeSeries_AddTimeSeriesToResults ( final String ts_info )
 }
 
 /**
-Clear the final time series List.  Updates to the label are also done.
-Also set the engine to null.
+Clear the final time series List.  Updates to the label are also done. Also set the engine to null.
 */
 private void results_TimeSeries_Clear()
 {	// Clear the visible list of results.
@@ -6672,13 +6704,13 @@ Add the specified view to the list of views that can be selected for viewing.
 private void results_Views_AddView ( TimeSeriesView view )
 {   String viewid = view.getViewID();
     // The tabbed pane is cleared before running commands so adding a view should be as simple
-    // as adding a new panel to the tabbed pane
+    // as adding a new panel to the tabbed pane.
     if ( view instanceof TimeSeriesTreeView ) {
-        // See the StateMod_DataSet_JTree for a more complex tree - this is pretty simple for now
+        // See the StateMod_DataSet_JTree for a more complex tree - this is pretty simple for now.
         TimeSeriesTreeView treeView = (TimeSeriesTreeView)view;
         //__resultsViews_JTabbedPane.add(viewid,new JScrollPane(new JTree(treeView.getRootNode())));
         TimeSeriesTreeView_JTree tree = new TimeSeriesTreeView_JTree(treeView.getRootNode());
-        tree.setTSProductProcessor(this); // Allows popup to graph time series with product file
+        tree.setTSProductProcessor(this); // Allows popup to graph time series with product file.
         __resultsViews_JTabbedPane.add(viewid,new JScrollPane(tree));
     }
     else {
@@ -6705,10 +6737,10 @@ public synchronized void setVisible(boolean state)
 }
 
 /**
-Check the state of the GUI and enable/disable features as necessary.  For
-example, if no time series are selected, disable output options.
-This is a more primitive call than ui_UpdateStatus(), which should
-generally be used rather than directly calling this method.
+Check the state of the GUI and enable/disable features as necessary.
+For example, if no time series are selected, disable output options.
+This is a more primitive call than ui_UpdateStatus(),
+which should generally be used rather than directly calling this method.
 */
 private void ui_CheckGUIState ()
 {	// Early on the GUI may not be initialized and some of the components seem to still be null.
@@ -6743,8 +6775,8 @@ private void ui_CheckGUIState ()
 	}
 	
 	// If no datastores are available, don't even show the datastore choices - this should hopefully
-	// minimize confusion between datastores and input type/name selections
-	/* TODO SAM 2013-04-15 Remove this if the tabbed pane works well for data stores and input types
+	// minimize confusion between datastores and input type/name selections.
+	/* TODO smalers 2013-04-15 Remove this if the tabbed pane works well for data stores and input types.
 	if ( dataStoreListSize == 0 ) {
 	    __dataStore_JLabel.setVisible(false);
 	    __dataStore_JComboBox.setVisible(false);
@@ -6898,7 +6930,7 @@ private void ui_CheckGUIState ()
 	JGUIUtil.setEnabled ( __Commands_Fill_FillHistMonthAverage_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Fill_FillHistYearAverage_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Fill_FillInterpolate_JMenuItem, enabled);
-	// TODO SAM 2005-04-26 This fill method is not enabled - may not be needed.
+	// TODO smalers 2005-04-26 This fill method is not enabled - may not be needed.
 	//JGUIUtil.setEnabled(__Commands_Fill_fillMOVE1_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( __Commands_Fill_FillMOVE2_JMenuItem, enabled);
 	JGUIUtil.setEnabled ( __Commands_Fill_FillMixedStation_JMenuItem,enabled );
@@ -7088,7 +7120,7 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 		JGUIUtil.setEnabled (__CommandsPopup_CancelCommandProcessing_JMenuItem,false );
 	}
 	if ( command_list_size > 0 ) {
-		/* TODO SAM 2007-11-01 Evaluate need
+		/* TODO smalers 2007-11-01 Evaluate need.
 		if ( __commands_dirty || (__commands_dirty && (ts_list_size == 0)) ) {
 			JGUIUtil.setEnabled (__run_commands_JButton, true );
 		}
@@ -7219,7 +7251,7 @@ private void ui_CheckNWSRFSFS5FilesFeatures ()
 
 /**
  * This function can be called to clear the initial label that is displayed.
- * TODO SAM 2015-02-15 Need a graceful way to hide the following but set text to blank as work-around:
+ * TODO smalers 2015-02-15 Need a graceful way to hide the following but set text to blank as work-around:
  * - otherwise, some of the text shows through behind the datastore panel
  * - I've tried several things and finally just call this in opportune places to make sure the old label is not shown
  */
@@ -7267,8 +7299,8 @@ private void ui_DataStoreList_Populate () {
             dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
             // For now disable in the main browser since no interactive browsing ability has been implemented.
-            // FIXME SAM 2012-10-26 For USGS enable when USGS site service is enabled.
-            // FIXME SAM 2012-12-18 Enable with filter panel is developed specific to web services.
+            // FIXME smalers 2012-10-26 For USGS enable when USGS site service is enabled.
+            // FIXME smalers 2012-12-18 Enable with filter panel is developed specific to web services.
             continue;
         }
         else if ( dataStore.getClass().getName().endsWith(".GenericDatabaseDataStore") ) {
@@ -7355,7 +7387,7 @@ private void ui_EnableInputTypesForConfiguration () {
     	propValueUser = session.getUserConfigPropValue ( "DateValueEnabled" );
     }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
+    	// User configuration value takes precedence.
     	propValue = propValueUser;
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
@@ -7379,7 +7411,7 @@ private void ui_EnableInputTypesForConfiguration () {
     }
 
     // HEC-DSS enabled by default on Windows and always off on UNIX because DLLs are for Windows.
-    // TODO SAM 2009-04-14 Emailed Bill Charley and waiting on answer for support of other OS.
+    // TODO smalers 2009-04-14 Emailed Bill Charley and waiting on answer for support of other OS.
 
     if ( IOUtil.isUNIXMachine() ) {
         // Disable on UNIX.
@@ -7412,11 +7444,11 @@ private void ui_EnableInputTypesForConfiguration () {
     }
     propValueUser = session.getUserConfigPropValue ( "TSTool.HydroBaseEnabled" );
     if ( (propValueUser == null) || propValueUser.isEmpty() ) {
-    	// Try alternative
+    	// Try alternative.
     	propValueUser = session.getUserConfigPropValue ( "HydroBaseEnabled" );
     }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
+    	// User configuration value takes precedence.
     	propValue = propValueUser;
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
@@ -7550,7 +7582,7 @@ private void ui_EnableInputTypesForConfiguration () {
     	propValueUser = session.getUserConfigPropValue ( "ReclamationHDBEnabled" );
     }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
+    	// User configuration value takes precedence.
     	propValue = propValueUser;
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
@@ -7646,7 +7678,7 @@ private void ui_EnableInputTypesForConfiguration () {
     	propValueUser = session.getUserConfigPropValue ( "StateModEnabled" );
     }
     if ( (propValueUser != null) && !propValueUser.isEmpty() ) {
-    	// User configuration value takes precedence
+    	// User configuration value takes precedence.
     	propValue = propValueUser;
     }
     if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
@@ -7782,30 +7814,27 @@ private JList ui_GetCommandJList() {
 Return the directory for the last "File...Open Command File".
 */
 private String ui_GetDir_LastCommandFileOpened()
-{   String routine = "TSTool_JFrame.ui_GetDir_LastCommandFileOpened";
+{   String routine = getClass().getSimpleName() + ".ui_GetDir_LastCommandFileOpened";
 	if ( __Dir_LastCommandFileOpened != null ) {
-	    Message.printStatus ( 2, routine,
-	        "Returning last (non null) command file directory: " + __Dir_LastCommandFileOpened );
+	    Message.printStatus ( 2, routine, "Returning last (non null) command file directory: " + __Dir_LastCommandFileOpened );
 	    return __Dir_LastCommandFileOpened;
 	}
 
 	// Try to get the generic dialog selection location.
 	__Dir_LastCommandFileOpened = JGUIUtil.getLastFileDialogDirectory();
     if ( __Dir_LastCommandFileOpened != null ) {
-        Message.printStatus ( 2, routine,
-            "Returning last command file directory from last dialog selection: " + __Dir_LastCommandFileOpened );
+        Message.printStatus ( 2, routine, "Returning last command file directory from last dialog selection: " + __Dir_LastCommandFileOpened );
         return __Dir_LastCommandFileOpened;
     }
 	// This will check user.dir
 	__Dir_LastCommandFileOpened = IOUtil.getProgramWorkingDir ();
-	Message.printStatus ( 2, routine,
-        "Returning last command file directory from working directory: " + __Dir_LastCommandFileOpened );
+	Message.printStatus ( 2, routine, "Returning last command file directory from working directory: " + __Dir_LastCommandFileOpened );
 	return __Dir_LastCommandFileOpened;
 }
 
 /**
-Return the last directory for "Run Command File", which runs an external command file
-but does not show the results.
+Return the last directory for "Run Command File",
+which runs an external command file but does not show the results.
 */
 private String ui_GetDir_LastExternalCommandFileRun() {
     if ( __Dir_LastExternalCommandFileRun != null ) {
@@ -7821,8 +7850,8 @@ private String ui_GetDir_LastExternalCommandFileRun() {
 }
 
 /**
-Return the legacy HydroBaseDataStore instance that is active for the UI, opened from
-the configuration file information or the HydroBase select dialog.
+Return the legacy HydroBaseDataStore instance that is active for the UI,
+opened from the configuration file information or the HydroBase select dialog.
 @return the HydroBaseDataStore instance that is active for the UI.
 */
 private HydroBaseDataStore ui_GetHydroBaseDataStoreLegacy () {
@@ -7866,8 +7895,8 @@ private boolean ui_GetIgnoreListSelectionEvent() {
 }
 
 /**
-Return the Y layout coordinate used with the input filter panel.  This is saved
-because input types can be opened interactively and need to be added to the same location in the layout.
+Return the Y layout coordinate used with the input filter panel.
+This is saved because input types can be opened interactively and need to be added to the same location in the layout.
 */
 private int ui_GetInputFilterY() {
     return __inputFilterY;
@@ -7877,15 +7906,16 @@ private int ui_GetInputFilterY() {
 Return the message input filter panel, with the indicated message.
 This is used, for example, when displaying a message that a HydroBase database connection is unavailable,
 rather than just showing the generic input filter that provides no information.
- */
+*/
 private InputFilter_JPanel ui_GetInputFilterMessageJPanel ( String text ) {
     __inputFilterMessage_JPanel.setText ( text );
     return __inputFilterMessage_JPanel;
 }
 
 /**
-Return the input filter panel for the specified datastore name.  By design, this method should only be called
-when working with datastores.  Eventually all the "database" input types will
+Return the input filter panel for the specified datastore name.
+By design, this method should only be called when working with datastores.
+Eventually all the "database" input types will
 be handled (including binary files and relational databases).
 @param selectedDataStoreName name of datastore to match
 @param selectedDataType the selected data type (e.g., "Streamflow, no "Group - " prefix)
@@ -8177,11 +8207,9 @@ private InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String selec
     return null;
 }
 
-//FIXME SAM 2007-11-01 Need to use /tmp etc for a startup home if not
-//specified so the software install home is not used.
+// FIXME smalers 2007-11-01 Need to use /tmp etc for a startup home if not specified so the software install home is not used.
 /**
-Return the initial working directory, which will be the software startup
-home, or the location of new command files.
+Return the initial working directory, which will be the software startup home, or the location of new command files.
 This directory is suitable for initializing a workflow processing run.
 @return the initial working directory, which should always be non-null.
 */
@@ -8190,8 +8218,8 @@ private String ui_GetInitialWorkingDir () {
 }
 
 /**
-Return the NWSRFSFS5Files instance that is active for the UI, opened from
-the configuration file information or the NWSRFS FS5Files select dialog.
+Return the NWSRFSFS5Files instance that is active for the UI,
+opened from the configuration file information or the NWSRFS FS5Files select dialog.
 @return the NWSRFSDMI instance that is active for the UI.
 */
 private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI () {
@@ -8201,18 +8229,18 @@ private NWSRFS_DMI ui_GetNWSRFSFS5FilesDMI () {
 /**
 Return the datastore for the selected datastore name.
 If the datastore name is a substitute, return the original datastore to which it refers.
-@return the datastore for the selected datastore name, or null if the selected name is blank (or for some
-reason is not in the processor - should not happen if data are being kept consistent).
+@return the datastore for the selected datastore name, or null if the selected name is blank
+(or for some reason is not in the processor - should not happen if data are being kept consistent).
 */
 private DataStore ui_GetSelectedDataStore () {
-    // TODO SAM 2010-09-02 How to ensure that name is unique until datastores are handled consistently?
+    // TODO smalers 2010-09-02 How to ensure that name is unique until datastores are handled consistently?
     String dataStoreName = __dataStore_JComboBox.getSelected();
     if ( Message.isDebugOn ) {
     	Message.printDebug(2, "ui_GetSelectedDataStore", "Getting datastore for selected name \"" +
     		dataStoreName + "\"" );
     }
     if ( (dataStoreName == null) || dataStoreName.equals("") ) {
-        // No need to request from processor
+        // No need to request from processor.
         return null;
     }
     boolean isActive = true;
@@ -8227,15 +8255,14 @@ private DataStore ui_GetSelectedDataStore () {
 /**
 Return the selected data type as a short string.  For some input types, data types have additional
 label-only information because the types are grouped in the GUI due to the list length.
-StateCUB has a lot of types but currently they are not grouped (AND THEY MAY INCLUDE "-" so
-don't do anything special).
+StateCUB has a lot of types but currently they are not grouped (AND THEY MAY INCLUDE "-" so don't do anything special).
 */
 private String ui_GetSelectedDataType () {
-    // First set the default for no special handling of data type in GUI.  This applies to many of
-    // the data types, including DateValue, HEC-DSS, MODSIM, NWSCard, NWSRFS ESP trace ensemble,
+    // First set the default for no special handling of data type in GUI.
+	// This applies to many of the data types, including DateValue, HEC-DSS, MODSIM, NWSCard, NWSRFS ESP trace ensemble,
     // RiverWare, StateCU, StateCUB, StateMod, StateModB (New - just use data types in files), USGS NWIS
     DataStore selectedDataStore = ui_GetSelectedDataStore();
-    String selectedInputType = ui_GetSelectedInputType(); // OK if null or blank
+    String selectedInputType = ui_GetSelectedInputType(); // OK if null or blank.
     String selectedDataTypeFull = ui_GetSelectedDataTypeFull();
     String selectedDataType = selectedDataTypeFull;
     // The displayed data type may not be the actual due to some annotation.
@@ -8343,7 +8370,7 @@ private void ui_InitGUI ( PropList initProps )
 	// Set the help viewer handler.
 	HelpViewer.getInstance().setUrlFormatter(this);
 
-	// TODO SAM 2013-11-16 Old note: need this even if no main GUI (why? secondary windows?).
+	// TODO smalers 2013-11-16 Old note: need this even if no main GUI (why? secondary windows?).
 
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 
@@ -8352,7 +8379,7 @@ private void ui_InitGUI ( PropList initProps )
 
 	// Remainder of main window.
 
-	// objects used throughout the GUI layout
+	// objects used throughout the GUI layout.
 	int buffer = 3;
 	Insets insetsNLNR = new Insets(0,buffer,0,buffer);
 	Insets insetsNNNR = new Insets(0,0,0,buffer);
@@ -8431,7 +8458,7 @@ private void ui_InitGUI ( PropList initProps )
 		0, ++yInputType, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __inputName_JComboBox = new SimpleJComboBox(false);
     __inputName_JComboBox.setMaximumRowCount ( 20 );
-    // Set a blank entry to work with datastore handling
+    // Set a blank entry to work with datastore handling.
     __inputName_JComboBox.add ( "" );
     tooltip = "<html>The input name is the name of the file or database" +
     " being read.<br>It will default or be prompted for after selecting the input type.</html>";
@@ -8545,7 +8572,7 @@ private void ui_InitGUI ( PropList initProps )
     center_JPanel.setLayout(gbl);
     getContentPane().add("Center", center_JPanel);
 
-    // Commands JPanel - 8 columns wide for grid bag layout
+    // Commands JPanel - 8 columns wide for grid bag layout.
     __commands_JPanel = new JPanel();
     __commands_JPanel.setLayout(gbl);
 	__commands_JPanel.setBorder(
@@ -8558,7 +8585,7 @@ private void ui_InitGUI ( PropList initProps )
 	this.__tsProcessor = new TSCommandProcessor( initProps );
 	ui_SetInitialWorkingDir( System.getProperty("user.dir") );
 	commandProcessor_SetInitialWorkingDir ( ui_GetInitialWorkingDir(), true );
-	// FIXME SAM 2007-08-28 Need to set a WindowListener for -nomaingui calls?
+	// FIXME smalers 2007-08-28 Need to set a WindowListener for -nomaingui calls?
 	//__ts_processor.setTSCommandProcessorUI ( this );
 	__tsProcessor.addCommandProcessorListener ( this );
 	__commands_JListModel = new TSCommandProcessorListModel(__tsProcessor);
@@ -8655,9 +8682,9 @@ private void ui_InitGUI ( PropList initProps )
             "GraphTSEnsembleWithTemplate",
             "Select a graph template to use to graph the selected time series ensemble.",
             insetsNLNR, false, this);
-	JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, new JLabel(""), // Use to fill space
+	JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, new JLabel(""), // Use to fill space.
 		0, 5, 1, 1, 1.0, 0.0, insetsNLNR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
-	__resultsTSEnsemblesGraphTemplates_JButton.setEnabled(false); // Disable until command processed and >0 time series ensembles available
+	__resultsTSEnsemblesGraphTemplates_JButton.setEnabled(false); // Disable until command processed and >0 time series ensembles available.
 	JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, __resultsTSEnsemblesGraphTemplates_JButton,
 		6, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__resultsTSEnsemblesGraphTemplates_JComboBox = new SimpleJComboBox(false);
@@ -8668,18 +8695,18 @@ private void ui_InitGUI ( PropList initProps )
 	}
 	__resultsTSEnsemblesGraphTemplates_JComboBox.setMaximumRowCount ( 20 );
 	__resultsTSEnsemblesGraphTemplates_JComboBox.setData(templateFileList2);
-	// Select graph template from the UI state
+	// Select graph template from the UI state.
 	String uiStateEnsembleGraphTemplate = this.session.getUIStateProperty("Results.Ensembles.GraphTemplate");
 	try {
 		__resultsTSEnsemblesGraphTemplates_JComboBox.select(uiStateEnsembleGraphTemplate);
 	}
 	catch ( Exception e ) {
-		// OK - previous state no longer a valid template so leave default selection
+		// OK - previous state no longer a valid template so leave default selection.
 	}
 	__resultsTSEnsemblesGraphTemplates_JComboBox.addItemListener( this );
 	JGUIUtil.addComponent(__resultsTSEnsembles_JPanel, __resultsTSEnsemblesGraphTemplates_JComboBox,
 		7, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	__resultsTSEnsemblesGraphTemplates_JComboBox.setEnabled(false); // Disable until command processed and >0 time series available
+	__resultsTSEnsemblesGraphTemplates_JComboBox.setEnabled(false); // Disable until command processed and >0 time series available.
 	
     // Results: networks.
 
@@ -8741,7 +8768,7 @@ private void ui_InitGUI ( PropList initProps )
         tableModel = new CommandLog_TableModel(new Vector<>());
     }
     catch ( Exception e ) {
-        // Should not happen but log
+        // Should not happen but log.
         Message.printWarning ( 3, routine, e );
         Message.printWarning(3, routine, "Error creating table model for problem display.");
         throw new RuntimeException ( e );
@@ -8750,7 +8777,7 @@ private void ui_InitGUI ( PropList initProps )
     PropList commandStatusProps = new PropList ( "Problems" );
     commandStatusProps.add("JWorksheet.ShowRowHeader=true");
     commandStatusProps.add("JWorksheet.AllowCopy=true");
-    // Initialize with null table model since no initial data
+    // Initialize with null table model since no initial data.
     JScrollWorksheet sjw = new JScrollWorksheet ( cellRenderer, tableModel, commandStatusProps );
     __resultsProblems_JWorksheet = sjw.getJWorksheet ();
     __resultsProblems_JWorksheet.setColumnWidths (cellRenderer.getColumnWidths(), getGraphics() );
@@ -8758,7 +8785,7 @@ private void ui_InitGUI ( PropList initProps )
     // Listen for mouse events to ?
     //__problems_JWorksheet.addMouseListener ( this );
     //__problems_JWorksheet.addJWorksheetListener ( this );
-    // TODO SAM 2015-07-09 Need the worksheet to fill the panel.
+    // TODO smalers 2015-07-09 Need the worksheet to fill the panel.
     JGUIUtil.addComponent(results_problems_JPanel, sjw,
         0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     __results_JTabbedPane.addTab ( "Problems", results_problems_JPanel );
@@ -8847,15 +8874,14 @@ private void ui_InitGUI ( PropList initProps )
 	// The following is 8 units wide and 5 high (y=0 to 4).
 	JGUIUtil.addComponent(__resultsTS_JPanel, results_ts_JScrollPane,
 		0, 0, 8, 5, 1.0, 1.0, insetsNLNR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
-    // Row at the bottom includes actions that can be taken on the time series list,
-    // in particular the graph templates.
+    // Row at the bottom includes actions that can be taken on the time series list, in particular the graph templates.
 	__resultsTSGraphTemplates_JButton = new SimpleJButton("Graph with template:",
             "GraphTSWithTemplate",
             "Select a graph template to use to graph the selected time series.",
             insetsNLNR, false, this);
-	JGUIUtil.addComponent(__resultsTS_JPanel, new JLabel(""), // Use to fill space
+	JGUIUtil.addComponent(__resultsTS_JPanel, new JLabel(""), // Use to fill space.
 		0, 5, 1, 1, 1.0, 0.0, insetsNLNR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
-	__resultsTSGraphTemplates_JButton.setEnabled(false); // Disable until command processed and >0 time series available
+	__resultsTSGraphTemplates_JButton.setEnabled(false); // Disable until command processed and >0 time series available.
 	JGUIUtil.addComponent(__resultsTS_JPanel, __resultsTSGraphTemplates_JButton,
 		6, 5, 1, 1, 0.0, 0.0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__resultsTSGraphTemplates_JComboBox = new SimpleJComboBox(false);
@@ -8932,7 +8958,7 @@ private void ui_InitGUI ( PropList initProps )
 			null, "Open a command file or add new commands.",
 			__STATUS_READY );
 	ui_UpdateStatus ( false );
-	// Set the initial window size to 2/3 of the screen
+	// Set the initial window size to 2/3 of the screen:
 	// - TODO smalers 2019-07-12 need to remember this in the UIState file
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     int screenWidth = (int)screenSize.getWidth();
@@ -8940,15 +8966,15 @@ private void ui_InitGUI ( PropList initProps )
     if ( Message.isDebugOn ) {
     	Message.printStatus(2, routine, "Screen size is " + screenWidth + "x" + screenHeight);
     }
-    // Size the screen to be at least 900x750 (legacy value), up to 2/3 of screen size
+    // Size the screen to be at least 900x750 (legacy value), up to 2/3 of screen size.
     int tstoolWidth = screenWidth*2/3;
     int tstoolHeight = screenHeight*2/3;
     if ( tstoolWidth < 900 ) {
-    	// Increase to size that has been used historically
+    	// Increase to size that has been used historically.
     	tstoolWidth = 900;
     }
     if ( tstoolHeight < 750 ) {
-    	// Increase to size that has been used historically
+    	// Increase to size that has been used historically.
     	tstoolHeight = 750;
     }
     if ( Message.isDebugOn ) {
@@ -8958,7 +8984,7 @@ private void ui_InitGUI ( PropList initProps )
     pack();
     //this.setLocationRelativeTo(null);
 	JGUIUtil.center ( this );
-	// TODO SAM 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor
+	// TODO smalers 2008-01-11 Need to evaluate whether server mode controls the GUI or only a command processor.
 	if ( !TSToolMain.isRestServer() ) {
        	setVisible ( true );
 	}
@@ -8996,8 +9022,8 @@ private void ui_InitGUIInputFilters ( final int y )
     Runnable r = new Runnable() {
         public void run() {
         	String routine = "TSTool_JFrame.ui_InitGUIInputFilters";
-        	// TODO SAM 2012-09-27 Want user to see something to cause them to wait while input filters
-        	// are initialized, but this does not seem to do anything.
+        	// TODO smalers 2012-09-27 Want user to see something to cause them to wait while input filters are initialized,
+        	// but this does not seem to do anything.
             ui_SetInputPanelTitle ("Initializing Input/Query Options...", Color.red );
         	int buffer = 3;
         	Insets insets = new Insets(0,buffer,0,0);
@@ -9006,10 +9032,10 @@ private void ui_InitGUIInputFilters ( final int y )
         	for ( int i = 0; i < __inputFilterJPanelList.size(); i++ ) {
                 __queryInput_JPanel.remove( (Component)__inputFilterJPanelList.get(i));
         	}
-        	// Remove from the list of filter panels
+        	// Remove from the list of filter panels.
         	__inputFilterJPanelList.clear();
         	// Now add the input filters for input types that are enabled, all on top of each other
-        	// Will set visible the one that is appropriate for the selections
+        	// Will set visible the one that is appropriate for the selections.
             if ( __source_ColoradoHydroBaseRest_enabled &&
                 (__tsProcessor.getDataStoresByType(ColoradoHydroBaseRestDataStore.class).size() > 0) ) {
                 try {
@@ -9056,8 +9082,8 @@ private void ui_InitGUIInputFilters ( final int y )
         	        ui_InitGUIInputFiltersHydroBaseLegacy(ui_GetHydroBaseDataStoreLegacy(), y );
         	    }
                 catch ( Throwable e ) {
-                    // This may happen if the web service static code cannot initialize.  Just catch
-                    // and let a blank panel be used for input filters.
+                    // This may happen if the web service static code cannot initialize.
+                	// Just catch and let a blank panel be used for input filters.
                     Message.printWarning(3, routine, "Error initializing legacy HydroBase input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
@@ -9166,7 +9192,7 @@ private void ui_InitGUIInputFilters ( final int y )
             	            JGUIUtil.addComponent(__queryInput_JPanel, ifp,
             	                0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
             	                GridBagConstraints.WEST );
-            	            // TODO SAM 2016-04-16 might need more care setting this name.
+            	            // TODO smalers 2016-04-16 might need more care setting this name.
             	            // However, class name, plus datastore name should be unique.
             	            ifp.setName(ds.getClass().getSimpleName() + "." + ds.getName() + ".InputFilterPanel");
             	            __inputFilterJPanelList.add ( ifp );
@@ -9208,7 +9234,7 @@ private void ui_InitGUIInputFilters ( final int y )
         	ui_SetInputFilterForSelections();
             ui_SetInputPanelTitle (null, Color.black );
             ui_ClearDataStoreInitializing();
-            __dataStore_JTabbedPane.setVisible(true); // This should now be visible
+            __dataStore_JTabbedPane.setVisible(true); // This should now be visible.
         	validate();
         	repaint();
         }
@@ -9452,7 +9478,7 @@ private void ui_InitGUIInputFiltersHydroBaseLegacy ( HydroBaseDataStore dataStor
         Message.printWarning ( 2, routine, e );
     }
 
-    // Add input filters for structure irrig_summary_ts,
+    // Add input filters for structure irrig_summary_ts.
 
     try {
         if ( __inputFilterHydroBaseIrrigts_JPanel != null ) {
@@ -9472,8 +9498,8 @@ private void ui_InitGUIInputFiltersHydroBaseLegacy ( HydroBaseDataStore dataStor
         Message.printWarning ( 2, routine, e );
     }
 
-    // Add input filters for CASS agricultural crop statistics,
-    // only available for newer databases.  For now, just catch an exception when not supported.
+    // Add input filters for CASS agricultural crop statistics, only available for newer databases.
+    // For now, just catch an exception when not supported.
 
     try {
         if ( __inputFilterHydroBaseCASSCropStats_JPanel != null ) {
@@ -9912,7 +9938,7 @@ private void ui_InitGUIInputFiltersReclamationPisces ( List<DataStore> dataStore
                 	Message.printStatus(2, routine, "Filter panel list size before removing=" + __inputFilterJPanelList.size() );
 	                __inputFilterJPanelList.remove ( ifp );
 	                Message.printStatus(2, routine, "Filter panel list size after removing=" + __inputFilterJPanelList.size() );
-	                // Also remove from the component
+	                // Also remove from the component.
 	                Component [] comps = __queryInput_JPanel.getComponents();
 	                Message.printStatus(2, routine, "Panel component list size before removing=" + comps.length );
 	                String oldName = "ReclamationPisces.InputFilterPanel." + dataStore.getName();
@@ -10148,7 +10174,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     __Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeInterval_JMenuItem =
         new SimpleJMenuItem(__Commands_Create_ChangeInterval_String, this) );
 	__Commands_Create_ChangeInterval_JMenuItem.setToolTipText("Create time series by changing the interval time series, handles small<->large, irregular/regular, etc.");
-    // TODO SAM 2017-04-24 need to enable these commands when they work
+    // TODO smalers 2017-04-24 need to enable these commands when they work
     //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalToLarger_JMenuItem =
     //    new SimpleJMenuItem(__Commands_Create_ChangeIntervalToLarger_String, this) );
     //__Commands_CreateTimeSeries_JMenu.add(__Commands_Create_ChangeIntervalToSmaller_JMenuItem =
@@ -10321,7 +10347,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeries_JMenuItem =
         new SimpleJMenuItem(__Commands_Read_ReadTimeSeries_String, this) );
     __Commands_Read_ReadTimeSeries_JMenuItem.setToolTipText("Read time series given a time series identifier (TSID).");
-    // Duplicate this menu from the Datastore menus because of common use
+    // Duplicate this menu from the Datastore menus because of common use.
     __Commands_ReadTimeSeries_JMenu.add(__Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem =
         new SimpleJMenuItem(__Commands_Datastore_ReadTimeSeriesFromDataStore_String, this) );
     __Commands_Read_ReadTimeSeriesFromDataStore_JMenuItem.setToolTipText("Read time series from a database datastore.");
@@ -10370,7 +10396,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_Read_StateModMax_JMenuItem.setToolTipText("Create maximum of time series from two StateMod input files, for matching identifiers.");
 	}
 
-	// "Commands...Fill Time Series".
+	// Menu: Commands / Fill Time Series
 
 	__Commands_JMenu.add ( __Commands_FillTimeSeries_JMenu = new JMenu(__Commands_FillTimeSeries_String));
 	//__Commands_FillTimeSeries_JMenu.setToolTipText("Fill time series missing data values by estimating values.");
@@ -10449,7 +10475,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Fill_SetIgnoreLEZero_String, this ) );
     __Commands_Fill_SetIgnoreLEZero_JMenuItem.setToolTipText("Indicate whether values <= 0 should be ignored when computing historical averages.");
 
-	// "Commands...Set Time Series".
+	// Menu: Commands / Set Time Series Contents
 
 	__Commands_JMenu.add ( __Commands_SetTimeSeries_JMenu=new JMenu(__Commands_SetTimeSeries_String));
 	//__Commands_SetTimeSeries_JMenu.setToolTipText("Set time series properties and data values.");
@@ -10485,7 +10511,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Set_SetTimeSeriesProperty_String, this ) );
     __Commands_Set_SetTimeSeriesProperty_JMenuItem.setToolTipText("Set time series properties.");
 
-	// "Commands...Manipulate Time Series" commands.
+	// Menu: Commands / Manipulate Time Series
 
 	__Commands_JMenu.add (__Commands_ManipulateTimeSeries_JMenu=new JMenu("Manipulate Time Series"));
 	//__Commands_ManipulateTimeSeries_JMenu.setToolTipText("Manipulate time series data values.");
@@ -10546,7 +10572,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Manipulate_Subtract_String, this ) );
     __Commands_Manipulate_Subtract_JMenuItem.setToolTipText("Subtract 1+ time series from a time series.");
 	
-	// "Commands...Analyze Time Series" commands.
+	// Menu: Commands / Analyze Time Series
 
 	__Commands_JMenu.add ( __Commands_AnalyzeTimeSeries_JMenu= new JMenu(__Commands_AnalyzeTimeSeries_String) );
 	//__Commands_AnalyzeTimeSeries_JMenu.setToolTipText("Analyze time series data values.");
@@ -10565,7 +10591,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Analyze_ComputeErrorTimeSeries_String, this ) );
     __Commands_Analyze_ComputeErrorTimeSeries_JMenuItem.setToolTipText("Create time series as the difference (error) between input time series, useful for simulation.");
 
-	// "Commands...Models" commands.
+	// Menu: Commands / Models - Routing
 
 	__Commands_JMenu.add ( __Commands_Models_Routing_JMenu = new JMenu(__Commands_Models_Routing_String) );
 	//__Commands_Models_Routing_JMenu.setToolTipText("Route time series (lag and attenuate over time).");
@@ -10576,7 +10602,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Models_Routing_VariableLagK_String, this ) );
     __Commands_Models_Routing_VariableLagK_JMenuItem.setToolTipText("Route (lag and attenuate) a time series using variable LagK approach.");
 
-	// "Commands...Output Time Series" commands.
+	// Menu: Commands / Output Time Series
 
 	__Commands_JMenu.add ( __Commands_OutputTimeSeries_JMenu=new JMenu(__Commands_OutputTimeSeries_String) );
 	//__Commands_OutputTimeSeries_JMenu.setToolTipText("Output (write) time series to files and databases.");
@@ -10628,7 +10654,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar )
         __Commands_Output_WriteRiverWare_JMenuItem.setToolTipText("Write time series to RiverWare modeling software text files.");
 	}
 
-	/* TODO SAM 2017-03-05 disable for now - need to work on in a branch in the processor library
+	/* TODO smalers 2017-03-05 disable for now - need to work on in a branch in the processor library.
     if ( __source_SHEF_enabled ) {
         __Commands_OutputTimeSeries_JMenu.add ( __Commands_Output_WriteSHEF_JMenuItem =
             new SimpleJMenuItem(  __Commands_Output_WriteSHEF_String, this ) );
@@ -10699,7 +10725,7 @@ Initialize the GUI "Commands...General" and Commands/Table (top level)
 private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
 {	__Commands_JMenu.addSeparator(); // Results in double separator.
 
-    // "Commands...Datastore processing" commands.
+    // Menu: Commands / Datastore processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Datastore_JMenu = new JMenu(__Commands_Datastore_String) );
@@ -10746,7 +10772,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_Datastore_CreateDataStoreDataDictionary_String, this) );
     __Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem.setToolTipText("Create an HTML database dictionary for a database datastore.");
 
-    // "Commands...Ensemble processing" commands.
+    // Menu: Commands / Ensemble processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add ( __Commands_Ensemble_JMenu = new JMenu(__Commands_Ensemble_String) );
@@ -10799,7 +10825,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         	" Ensemble Streamflow Prediction (ESP) binary file.");
     }
 
-    // Commands...Network processing commands.
+    // Menu: Commands / Network Processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Network_JMenu = new JMenu( __Commands_Network_String, true ) );
@@ -10812,7 +10838,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Network_AnalyzeNetworkPointFlow_String, this ) );
     __Commands_Network_AnalyzeNetworkPointFlow_JMenuItem.setToolTipText("Analyze a network point flow model and create output time series at each network node.");
 
-    // Commands...Object processing commands.
+    // Menu: Commands / Object Processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Object_JMenu = new JMenu( __Commands_Object_String, true ) );
@@ -10828,7 +10854,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_Object_JMenu.add( __Commands_Object_WriteObjectToJSON_JMenuItem =
         new SimpleJMenuItem( __Commands_Object_WriteObjectToJSON_String, this ) );
 
-    // Commands...Spatial processing commands.
+    // Menu: Commands / Spatial Processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spatial_JMenu = new JMenu( __Commands_Spatial_String, true ) );
@@ -10850,7 +10876,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
     __Commands_Spatial_WriteTimeSeriesToKml_JMenuItem.setToolTipText("Write time series with coordinate properties to a KML file.");
 
-    // Commands...Spreadsheet processing commands.
+    // Menu: Commands / Spreadsheet Processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Spreadsheet_JMenu = new JMenu( __Commands_Spreadsheet_String, true ) );
@@ -10896,15 +10922,15 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Spreadsheet_CloseExcelWorkbook_String, this ) );
     __Commands_Spreadsheet_CloseExcelWorkbook_JMenuItem.setToolTipText("Close an Excel workbook.");
 
-    // Commands...Table processing commands.
+    // Menu: Commands / Table Processing
 
     ui_InitGUIMenus_CommandsTable(menu_bar);
 
-    // Plugin commands.
+    // Menu: Commands(Plugin)
 
     ui_InitGUIMenus_CommandsPlugin(menu_bar);
 
-    // Commands...Template processing commands.
+    // Menu: Commands / Template Processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Template_JMenu = new JMenu( __Commands_Template_String, true ) );
@@ -10917,7 +10943,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_TemplateComment_String, this ) );
     __Commands_Template_Comments_Template_JMenuItem.setToolTipText("Insert a comment indicating that the commmand file is a template.");
 
-    // Commands...Visualization Processing commands.
+    // Menu: Commands / Visualization Processing
 
     __Commands_JMenu.addSeparator();
     __Commands_JMenu.add( __Commands_Visualization_JMenu = new JMenu( __Commands_Visualization_String, true ) );
@@ -10933,13 +10959,11 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_Visualization_NewTreeView_String, this ) );
     __Commands_Visualization_NewTreeView_JMenuItem.setToolTipText("Create a new tree view in the Results / View tab with hierarchy organizing time series.");
 
-    // Commands...General commands.
+    // Menu: Commands / General - Comments
 
 	__Commands_JMenu.addSeparator(); // Separate general commands from others.
 	__Commands_JMenu.addSeparator(); // Results in double separator.
 
-    // Commands / General / Comments commands.
-	
     __Commands_JMenu.add( __Commands_General_Comments_JMenu = new JMenu( __Commands_General_Comments_String, true ) );
     //__Commands_General_Comments_JMenu.setToolTipText("Insert comments.");
     __Commands_General_Comments_JMenu.add ( __Commands_General_Comments_Comment_JMenuItem =
@@ -11030,7 +11054,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_Comments_Empty_String, this ) );
     __Commands_General_Comments_Empty_JMenuItem.setToolTipText("Insert a empty (blank) line, to improve readability of the command file.");
 
-    // Commands / General / File Handling
+    // Menu: Commands / General - File Handling
 
     __Commands_JMenu.add( __Commands_General_FileHandling_JMenu = new JMenu( __Commands_General_FileHandling_String, true ) );
     //__Commands_General_FileHandling_JMenu.setToolTipText("Manipulate files.");
@@ -11075,7 +11099,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem( __Commands_General_FileHandling_PrintTextFile_String, this ) );
     __Commands_General_FileHandling_PrintTextFile_JMenuItem.setToolTipText("Print a text file to a printer.");
 
-    // Commands / General / Logging and Messaging
+    // Menu: Commands / General - Logging and Messaging
 
 	__Commands_JMenu.add( __Commands_General_Logging_JMenu = new JMenu( __Commands_General_Logging_String, true ) );	
 	//__Commands_General_Logging_JMenu.setToolTipText("Control logging (tracking).");
@@ -11100,7 +11124,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
         new SimpleJMenuItem(__Commands_General_Logging_SendEmailMessage_String, this ) );
     __Commands_General_Logging_SendEmailMessage_JMenuItem.setToolTipText("Send an email message.");
 
-    // Commands / General / Running and Properties
+    // Menu: Commands / General - Running and Properties
 
     __Commands_JMenu.add( __Commands_General_Running_JMenu = new JMenu( __Commands_General_Running_String, true ) );
     //__Commands_General_Running_JMenu.setToolTipText("Run external programs, command files, Python.");
@@ -11185,7 +11209,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     __Commands_General_Running_ProfileCommands_JMenuItem.setToolTipText(
     	"Save additional information about each command's run time, to optimize software and workflows.");
 
-    // Commands / General / Test Processing
+    // Menu: Commands / General - Test Processing
 
     __Commands_JMenu.add( __Commands_General_TestProcessing_JMenu = new JMenu( __Commands_General_TestProcessing_String, true ) );
     //__Commands_General_TestProcessing_JMenu.setToolTipText("Test the software and processes.");
@@ -11222,7 +11246,7 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar )
     	__Commands_JMenu.addSeparator();
     	__Commands_JMenu.addSeparator();
 
-    	// Commands / General / Deprecated Commands.
+    	// Menu: Commands / General - Deprecated Commands
 
     	__Commands_JMenu.add( __Commands_Deprecated_JMenu = new JMenu( __Commands_Deprecated_String, true ) );
     	// Handle each datastore type separately under the main menu.
@@ -11259,7 +11283,7 @@ private void ui_InitGUIMenus_CommandsPlugin ( JMenuBar menu_bar )
     	String name = c.getSimpleName();
     	int pos = name.indexOf("_Command");
     	if ( pos > 0 ) {
-    		// TODO SAM 2016-04-02 Need a way to get a short command description.
+    		// TODO smalers 2016-04-02 Need a way to get a short command description.
     		__Commands_Plugin_JMenu.add (
     		   new SimpleJMenuItem(name.substring(0,pos) + "()...", this ) );
     	}
@@ -11274,8 +11298,7 @@ private void ui_InitGUIMenus_CommandsPlugin ( JMenuBar menu_bar )
 /**
 Initialize the GUI "Commands(Table)" menu.
 */
-private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar )
-{
+private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar ) {
     menu_bar.add( __Commands_Table_JMenu = new JMenu( __Commands_Table_String, true ) );
 	__Commands_Table_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
 	
@@ -11661,10 +11684,9 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar )
 }
 
 /**
-Reset the File...Open...Command Files (Recent) menu items to recent files.
+Reset the File / Open / Command Files (Recent) menu items to recent files.
 */
-private void ui_InitGUIMenus_File_OpenRecentFiles ()
-{
+private void ui_InitGUIMenus_File_OpenRecentFiles () {
 	List<String> history = this.session.readHistory();
 	for ( int i = 0; i < this.MAX_RECENT_FILES; i++ ) {
 		String filename = "";
@@ -11673,7 +11695,7 @@ private void ui_InitGUIMenus_File_OpenRecentFiles ()
 		}
 		else {
 			// Long filenames will make the menu unwieldy so show the front and the back.
-			// TODO SAM 2014-12-19 Find a way to replace parts of the path with "..." to shorten the menu.
+			// TODO smalers 2014-12-19 Find a way to replace parts of the path with "..." to shorten the menu.
 			// Maybe add as an IOUtil method.
 			filename = history.get(i);
 		}
@@ -11695,8 +11717,8 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar )
 	File docFile = new File(IOUtil.verifyPathForOS(IOUtil.getApplicationHomeDir() + "/doc/UserManual/TSTool.pdf",true));
 	if ( docFile.exists() ) {
 	    // Old single-PDF help document:
-	    // - TODO SAM 2013-01-08 Remove this when CDSS is only version of TSTool
-		// - TODO sam 2021-12-20 will probably never go back to local documentation
+	    // - TODO smalers 2013-01-08 Remove this when CDSS is only version of TSTool
+		// - TODO smalers 2021-12-20 will probably never go back to local documentation
 	    __Help_JMenu.add ( __Help_ViewDocumentation_JMenuItem = new SimpleJMenuItem(__Help_ViewDocumentation_String,this));
 	}
 	else {
@@ -11727,7 +11749,7 @@ Initialize the GUI "Results" menu.
 private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 {	menu_bar.add( __Results_JMenu = new JMenu( "Results", true ) );	
 
-	/* TODO SAM 2004-08-04 Add later?
+	/* TODO smalers 2004-08-04 Add later?
 	__Results_JMenu.add( __Results_Graph_AnnualTraces_JMenuItem =
 		new SimpleJMenuItem(__Results_Graph_AnnualTraces_String, this));
 	__Results_Graph_AnnualTraces_JMenuItem.setEnabled ( false );
@@ -11748,7 +11770,7 @@ private void ui_InitGUIMenus_Results ( JMenuBar menu_bar )
 	__Results_JMenu.add( __Results_Graph_BarsRight_JMenuItem =
 		new SimpleJMenuItem( __Results_Graph_BarsRight_String, this ));
 
-	/* TODO SAM 2004-08-04 Add later?
+	/* TODO smalers 2004-08-04 Add later?
 	__Results_JMenu.add( __Results_Graph_DoubleMass_JMenuItem =
 		new SimpleJMenuItem( __Results_Graph_DoubleMass_String, this));
 	__Results_Graph_DoubleMass_JMenuItem.setEnabled ( false );
@@ -11891,9 +11913,9 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar )
 	__Run_JMenu.add ( __Run_CancelCommandProcessingKill_JMenuItem =
 	new SimpleJMenuItem(__Run_CancelCommandProcessingKill_String,this));
 	__Run_CancelCommandProcessingKill_JMenuItem.setToolTipText("Interrupt processing immediately, may result in lost data.");
-	/* TODO SAM 2009-04-10 Evaluate whether to allow this - the problem is that although the command processor
-	 * is run on a thread, the individual commands are not and therefore if a process hangs, it is hung in the
-	 * processor and the Process instances cannot be retrieved
+	/* TODO smalers 2009-04-10 Evaluate whether to allow this - the problem is that although the command processor
+	 * is run on a thread, the individual commands are not and therefore if a process hangs,
+	 * it is hung in the processor and the Process instances cannot be retrieved
     __Run_JMenu.add ( __Run_CancelAllCommandProcesses_JMenuItem =
         new SimpleJMenuItem(__Run_CancelAllCommandProcesses_String,this));
              */
@@ -11983,7 +12005,7 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar )
 	// Create the diagnostics GUI, specifying the key for the help
 	// button.  Events are handled from within the diagnostics GUI.
 	DiagnosticsJFrame diagnostics_JFrame = new DiagnosticsJFrame (this);
-	// TODO SAM 2005-04-05 some day need to enable on-line help. ("TSTool.PreferencesMenu");
+	// TODO smalers 2005-04-05 some day need to enable on-line help. ("TSTool.PreferencesMenu");
 	diagnostics_JFrame.attachMainMenu ( __Tools_JMenu );
 	Message.addMessageLogListener ( this );
 	// "View Log File (Startup)" menu is handled here and the "View Log File" uses utility setup code
@@ -12016,13 +12038,12 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar )
 /**
 Initialize the toolbar.
 */
-private void ui_InitToolbar ()
-{
+private void ui_InitToolbar () {
     JToolBar toolbar = new JToolBar("TSTool Control Buttons");
 
     Insets none = new Insets(0, 0, 0, 0);
     URL url = null;
-    /* TODO SAM 2007-12-04 Enable when decide how to handle blank file better - /tmp, etc.
+    /* TODO smalers 2007-12-04 Enable when decide how to handle blank file better - /tmp, etc.
     url = this.getClass().getResource( __TOOL_ICON_PATH + "/icon_newFile.gif" );
     String New_CommandFile_String = "New command file";
     if (url != null) {
@@ -12068,8 +12089,8 @@ private void ui_InitToolbar ()
         __toolbarSave_JButton.setToolTipText ( "<html>" + Save_CommandFile_String + "/html>" );
         toolbar.add(__toolbarSave_JButton);
     }
-    // FIXME SAM 2007-12-04 Add when some of the other layout changes - adding split pane to separate
-    // commands and results, etc.  Right now this conflicts with the query panel.
+    // FIXME smalers 2007-12-04 Add when some of the other layout changes - adding split pane to separate commands and results, etc.
+    // Right now this conflicts with the query panel.
     //getContentPane().add ("North", toolbar);
 }
 
@@ -12082,7 +12103,7 @@ if false (may be useful for very large command files), do not run discovery when
 */
 private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean runDiscoveryOnLoad )
 {   String routine = getClass().getSimpleName() + ".ui_LoadCommandFile";
-    int numAutoChanges = 0; // Number of lines automatically changed during load
+    int numAutoChanges = 0; // Number of lines automatically changed during load.
     try {
         ui_UpdateStatusTextFields ( 2, null, null, "Reading the selected command file.", __STATUS_BUSY );
         ui_StartWaitCursor();
@@ -12090,7 +12111,7 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
         // Add progress listeners to the commands
         for ( Command command : __tsProcessor.getCommands() ) {
             // Connect the command to the UI to handle progress when the command is run.
-            // TODO SAM 2009-03-23 Evaluate whether to define an interface rather than rely on
+            // TODO smalers 2009-03-23 Evaluate whether to define an interface rather than rely on
             // AbstractCommand here - too much overhead as is when only some commands implement.
             if ( command instanceof AbstractCommand ) {
                 ((AbstractCommand)command).addCommandProgressListener ( this );
@@ -12113,7 +12134,7 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
         return;
     }
     catch ( Exception e ) {
-        // FIXME SAM 2007-10-09 Perhaps should revert to previous.
+        // FIXME smalers 2007-10-09 Perhaps should revert to previous.
         // data model contents?  For now allow partial contents to be displayed.
         //
         // Error opening the file (should not happen but maybe a read permissions problem).
@@ -12148,8 +12169,7 @@ Indicate whether running commands should occur in a thread.
 The default if not specified is true.
 @return true if the commands should be run in a thread, false if not.
 */
-private boolean ui_Property_RunCommandProcessorInThread()
-{
+private boolean ui_Property_RunCommandProcessorInThread() {
 	String RunCommandProcessorInThread_String =
 	    __props.getValue ( TSTool_Options_JDialog.TSTool_RunCommandProcessorInThread );
 	if ( (RunCommandProcessorInThread_String != null) &&
@@ -12166,20 +12186,17 @@ private boolean ui_Property_RunCommandProcessorInThread()
 Set the directory for the last "File...Open Command File".
 @param Dir_LastCommandFileOpened Directory for last command file opened.
 */
-private void ui_SetDir_LastCommandFileOpened ( String Dir_LastCommandFileOpened )
-{
+private void ui_SetDir_LastCommandFileOpened ( String Dir_LastCommandFileOpened ) {
 	__Dir_LastCommandFileOpened = Dir_LastCommandFileOpened;
 	// Also set the last directory opened by a dialog.
 	JGUIUtil.setLastFileDialogDirectory(Dir_LastCommandFileOpened);
 }
 
 /**
-Set the last directory for "Run Command File", which runs an external command file
-but does not show the results.
-@param Dir_LastExternalCommandFileRun Directory for last command file ope
+Set the last directory for "Run Command File", which runs an external command file but does not show the results.
+@param Dir_LastExternalCommandFileRun Directory for last command file open
 */
-private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalCommandFileRun )
-{
+private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalCommandFileRun ) {
 	__Dir_LastExternalCommandFileRun = Dir_LastExternalCommandFileRun;
 	// Also set the last directory opened by a dialog.
 	JGUIUtil.setLastFileDialogDirectory(Dir_LastExternalCommandFileRun);
@@ -12187,13 +12204,11 @@ private void ui_SetDir_LastExternalCommandFileRun ( String Dir_LastExternalComma
 
 /**
 Set the HydroBaseDMI instance used by the GUI by encapsulating in a HydroBaseDataStore instance.
-This typically is the same as the command processor HydroBaseDMI;
-however, it is possible that OpenHydroBase() commands will be used and open up different HydroBase
-connections during processing.
+This typically is the same as the command processor HydroBaseDMI; however,
+it is possible that OpenHydroBase() commands will be used and open up different HydroBase connections during processing.
 @param hbdmi the HydroBaseDMI instance used by the GUI.
 */
-private void ui_SetHydroBaseDataStoreLegacy ( HydroBaseDMI hbdmi )
-{
+private void ui_SetHydroBaseDataStoreLegacy ( HydroBaseDMI hbdmi ) {
     if ( hbdmi == null ) {
         __hbDataStoreLegacy = null;
     }
@@ -12203,41 +12218,38 @@ private void ui_SetHydroBaseDataStoreLegacy ( HydroBaseDMI hbdmi )
 }
 
 /**
-Set whether ActionEvents should be ignored (or not).  In general they should
-not be ignored but in some cases when programmatically modifying data models
+Set whether ActionEvents should be ignored (or not).
+In general they should not be ignored but in some cases when programmatically modifying data models
 the spurious events do not need to trigger other actions.
 @param ignore whether to ignore ActionEvents.
 */
-private void ui_SetIgnoreActionEvent ( boolean ignore )
-{
+private void ui_SetIgnoreActionEvent ( boolean ignore ) {
 	__ignoreActionEvent = ignore;
 }
 
 /**
-Set whether ItemEvents should be ignored (or not).  In general they should
-not be ignored but in some cases when programmatically modifying data models
+Set whether ItemEvents should be ignored (or not).
+In general they should not be ignored but in some cases when programmatically modifying data models
 the spurious events do not need to trigger other actions.
 @param ignore whether to ignore ActionEvents.
 */
-private void ui_SetIgnoreItemEvent ( boolean ignore )
-{
+private void ui_SetIgnoreItemEvent ( boolean ignore ) {
 	__ignoreItemEvent = ignore;
 }
 
 /**
-Set whether ListSelectionEvents should be ignored (or not).  In general they should
-not be ignored but in some cases when programmatically modifying data models
+Set whether ListSelectionEvents should be ignored (or not).
+In general they should not be ignored but in some cases when programmatically modifying data models
 the spurious events do not need to trigger other actions.
 @param ignore whether to ignore ActionEvents.
 */
-private void ui_SetIgnoreListSelectionEvent ( boolean ignore )
-{
+private void ui_SetIgnoreListSelectionEvent ( boolean ignore ) {
 	__ignoreListSelectionEvent = ignore;
 }
 
 /**
-Set the initial working directory, which will be the software startup home or
-the location where the command file has been read/saved.
+Set the initial working directory,
+which will be the software startup home or the location where the command file has been read/saved.
 @param initialWorkingDir The initial working directory (should be non-null).
 */
 private void ui_SetInitialWorkingDir ( String initialWorkingDir )
@@ -12250,8 +12262,7 @@ private void ui_SetInitialWorkingDir ( String initialWorkingDir )
 
 /**
 Set the input filters based on the current settings (input type and name, datastore name, data type).
-This sets the appropriate input filter visible since all input filters are created at startup or
-when a datastore is opened.
+This sets the appropriate input filter visible since all input filters are created at startup or when a datastore is opened.
 */
 private void ui_SetInputFilterForSelections()
 {	String routine = getClass().getSimpleName() + ".ui_SetInputFilterForSelections";
@@ -12407,18 +12418,18 @@ private void ui_SetInputFilterForSelections()
 }
 
 /**
-Set the "Input name" label and choices visible.  This is called when a datastore or input type is selected
-because input name is only used by some.
+Set the "Input name" label and choices visible.
+This is called when a datastore or input type is selected because input name is only used by some.
 */
-private void ui_SetInputNameVisible(boolean isVisible )
-{
+private void ui_SetInputNameVisible(boolean isVisible ) {
     __inputName_JLabel.setVisible(isVisible);
     __inputName_JComboBox.setVisible(isVisible);
 }
 
 /**
 Set the title of the input panel.
-@param title the title for the input/query panel.  If null, use the default of "Input/Query Options..." with a black border.
+@param title the title for the input/query panel.
+If null, use the default of "Input/Query Options..." with a black border.
 @param color color of the line border.
 */
 private void ui_SetInputPanelTitle ( String title, Color color ) {
@@ -12442,7 +12453,7 @@ private void ui_SetInputTypeChoices ()
 	if ( __input_type_JComboBox.getItemCount() > 0 ) {
 		__input_type_JComboBox.removeAll ();
 	}
-	// Add a blank choice to allow working with datastores
+	// Add a blank choice to allow working with datastores.
 	__input_type_JComboBox.add ( "" );
 	if ( __source_DateValue_enabled ) {
 		__input_type_JComboBox.add( __INPUT_TYPE_DateValue );
@@ -12510,19 +12521,18 @@ private void ui_SetInputTypeChoices ()
 /**
 Set the message text field.
 */
-private void ui_SetMessageText ( String message )
-{
+private void ui_SetMessageText ( String message ) {
     __message_JTextField.setText (message);
 }
 
 /**
-Update the command list to show the current status.  This is called after all commands
-have been processed in run mode(), when a command has been edited(), and when loading commands from a file.
+Update the command list to show the current status.
+This is called after all commands have been processed in run mode(),
+when a command has been edited(), and when loading commands from a file.
 @param lastCommandPhase the last command phase run, provided as a hint to the annotated command list
 so earlier warnings like discovery are not shown after running
 */
-private void ui_ShowCurrentCommandListStatus (CommandPhaseType lastCommandPhase)
-{
+private void ui_ShowCurrentCommandListStatus (CommandPhaseType lastCommandPhase) {
 	__commands_AnnotatedCommandJList.setLastCommandPhase(lastCommandPhase);
     __commands_AnnotatedCommandJList.repaint();
 }
@@ -12546,8 +12556,8 @@ private void ui_StopWaitCursor() {
 }
 
 /**
-Update the main status information when the list contents have changed.  This
-method should be called after any change to the query, command, or time series results list.
+Update the main status information when the list contents have changed.
+This method should be called after any change to the query, command, or time series results list.
 Interface tasks include:
 <ol>
 <li>	Set the title bar.
@@ -12591,7 +12601,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 				selected_size=__query_JWorksheet.getSelectedRowCount();
 			}
 			catch ( Exception e ) {
-				// Absorb the exception in most cases - print if developing to see if this issue can be			// resolved.
+				// Absorb the exception in most cases - print if developing to see if this issue can be resolved.
 				if ( Message.isDebugOn && IOUtil.testing()  ) {
 					String routine = "TSTool_JFrame.updateStatus";
 					Message.printWarning ( 3, routine,
@@ -12619,7 +12629,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		commandList_GetFailureCount() + " with failures, " + commandList_GetWarningCount() + " with warnings)") );
 	}
 	
-	// Results ... Output Files.
+	// Results: Output Files.
 	
 	int nof = 0;
 	if ( __resultsOutputFiles_JListModel != null ) {
@@ -12627,7 +12637,7 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 	}
 	__resultsOutputFiles_JLabel.setText ( "" + nof + " output files:");
 	
-	// Results ... Time Series.
+	// Results: Time Series.
 	
 	selected_indices = __resultsTS_JList.getSelectedIndices();
 	selected_size = 0;
@@ -12640,24 +12650,24 @@ private void ui_UpdateStatus ( boolean check_gui_state )
 		//"Results: Time Series (" +	
         "" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
 	}
-	// TODO SAM 2007-08-31 Evaluate call here - probably should call elsewhere
+	// TODO smalers 2007-08-31 Evaluate call here - probably should call elsewhere
 	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null,
 	//			__STATUS_READY );
-	// FIXME SAM 2008-11-11 Why is this called no matter what is passed in for the parameter?
+	// FIXME smalers 2008-11-11 Why is this called no matter what is passed in for the parameter?
 	ui_CheckGUIState ();
 }
 
 /**
-Update the text fields at the bottom of the main interface.  This does NOT update
-all text fields like the number of commands, etc.
+Update the text fields at the bottom of the main interface.
+This does NOT update all text fields like the number of commands, etc.
 @param level Message level.  If > 0 and the message is not null, call
 Message.printStatus() to record a message.
 @param routine Routine name used if Message.printStatus() is called.
 @param commandPanelStatus currently ignored (intended that if not null set the status for the text in the command panel border)
-@param message If not null, update the __message_JTextField to contain this
-text.  If null, leave the contents as previously shown.  Specify "" to clear the text.
-@param status If not null, update the __status_JTextField to contain
-this text.  If null, leave the contents as previously shown.  Specify "" to clear the text.
+@param message If not null, update the __message_JTextField to contain this text.
+If null, leave the contents as previously shown.  Specify "" to clear the text.
+@param status If not null, update the __status_JTextField to contain this text.
+If null, leave the contents as previously shown.  Specify "" to clear the text.
 */
 private void ui_UpdateStatusTextFields ( int level, String routine,
 		String commandPanelStatus, String message, String status )
@@ -12763,49 +12773,49 @@ throws Exception
 		}
 	}
 	else if ( command.equals ( __File_Open_ReclamationHDB_String )) {
-		// This is used only to re-login to an existing data store
-		// The datastore with server, database, etc. must be configured in a datastore configuration file
+		// This is used only to re-login to an existing data store.
+		// The datastore with server, database, etc. must be configured in a datastore configuration file.
 		ReclamationHDBDataStoreFactory factory = new ReclamationHDBDataStoreFactory();
-		// Get the list of ReclamationHDB datastores that are open and send to the dialog
+		// Get the list of ReclamationHDB datastores that are open and send to the dialog.
 		// The user will be able to pick one and then re-login.  The updated datastore will be returned.
 		TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
-		List<DataStore> dslist = processor.getDataStoresByType(ReclamationHDBDataStore.class, false); // Returns all, even non-active
+		List<DataStore> dslist = processor.getDataStoresByType(ReclamationHDBDataStore.class, false); // Returns all, even non-active.
 		DataStore ds = factory.openDataStoreConnectionUI(dslist, this);
 		ReclamationHDBDataStore newrds = (ReclamationHDBDataStore)ds;
 		DMI newdmi = newrds.getDMI();
 		if ( (newdmi != null) && newdmi.isOpen() ) {
 			// New datastore login was successful.
-			// Get the old matching datastore, if any, in order to close the old DMI
-			// TODO SAM 2015-03-22 Setting the processor property may do this
+			// Get the old matching datastore, if any, in order to close the old DMI.
+			// TODO smalers 2015-03-22 Setting the processor property may do this.
 			ReclamationHDBDataStore oldds = (ReclamationHDBDataStore)__tsProcessor.getDataStoreForName ( newrds.getName(), ReclamationHDBDataStore.class );
 			DMI olddmi = oldds.getDMI();
 			if ( (oldds == newrds) && (olddmi == newdmi) ) {
-				// Don't need to do anything - likely a cancel out of the login with no change
+				// Don't need to do anything - likely a cancel out of the login with no change.
 				Message.printStatus(2,rtn,"New ReclamationHDB datastore is same as previous - leaving as is.");
 			}
 			else {
 				Message.printStatus(2,rtn,"New ReclamationHDB datastore is different, resetting in processor and updating filter panel.");
-				// Get the currently selected datastore
+				// Get the currently selected datastore.
 				String selectedDataStoreName = __dataStore_JComboBox.getSelected();
 				if ( olddmi.isOpen() ) {
 					try {
 						olddmi.close();
 					}
 					catch ( Exception e ) {
-						// May be a timeout, in which case just continue
+						// May be a timeout, in which case just continue.
 					}
 				}
-				// Once re-opened, reset in the command processor and refresh the UI components that depend on the datastore
+				// Once re-opened, reset in the command processor and refresh the UI components that depend on the datastore.
 				__tsProcessor.setPropContents("DataStore", newrds);
-				// Reset the input panel in the user interface
+				// Reset the input panel in the user interface.
 				List<DataStore> dsList = new ArrayList<>();
 				dsList.add(ds);
 				ui_InitGUIInputFiltersReclamationHDB(dsList, ui_GetInputFilterY());
-				// Reset the filters if the current selection is the one that was updated
+				// Reset the filters if the current selection is the one that was updated.
 				if ( selectedDataStoreName.equalsIgnoreCase(newrds.getName()) ) {
 					Message.printStatus(2,rtn,"Setting the input filters for current selections because new Reclamation HDB datastore is selected.");
 					ui_SetInputFilterForSelections();
-					//__queryInput_JPanel.repaint(); // See if this helps - without the filters don't always redraw
+					//__queryInput_JPanel.repaint(); // See if this helps - without the filters don't always redraw.
 				}
 			}
 		}
@@ -12866,26 +12876,26 @@ throws Exception
 		uiAction_SaveTimeSeries ();
 	}
     else if (command.equals(__File_Print_Commands_String) ) {
-        // Get all commands as strings for printing
+        // Get all commands as strings for printing.
         try {
             new TextPrinterJob ( commandList_GetCommandStrings(true), "TSTool Commands",
-                null, // printer name
-                "na-letter", // paper size
-                null, // paper source
-                "Landscape", // page orientation
-                .75, // left margin
-                .75, // right
-                .6, // top
-                .6, // bottom
-                0, // lines per page - let called code determine
-                null, // header
-                null, // footer
-                true, // show line count
-                true, // show page count
-                null, // print all pages
-                false, // double-sided
-                null, // print file
-                true ); // show print configuration dialog
+                null, // Printer name.
+                "na-letter", // Paper size.
+                null, // Paper source.
+                "Landscape", // Page orientation.
+                .75, // Left margin.
+                .75, // Right margin.
+                .6, // Top margin.
+                .6, // Bottom margin.
+                0, // Lines per page - let called code determine.
+                null, // Header.
+                null, // Footer.
+                true, // Show line count.
+                true, // Show page count.
+                null, // Print all pages.
+                false, // Double-sided.
+                null, // Print file.
+                true ); // Show print configuration dialog.
         }
         catch ( Exception e ) {
             Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
@@ -13000,8 +13010,7 @@ throws Exception
 	// Edit menu actions (in order of menu).
 
     if ( command.equals(__Edit_CutCommands_String) ) {
-		// Need to think whether this should work for the time series
-		// list or only the commands.  Copy to the buffer.
+		// Need to think whether this should work for the time series list or only the commands.  Copy to the buffer.
 		uiAction_CopyFromCommandListToCutBuffer( true );
 	}
     else if ( command.equals(__Edit_CopyCommands_String) ) {
@@ -13060,19 +13069,19 @@ throws Exception
     //String routine = getClass().getSimpleName() + ".uiAction_ActionPerformed3b_ViewMenu";
 
     if ( command.equals(__View_CommandFileDiff_String) ) {
-        // Show visual diff of current command file and saved version
+        // Show visual diff of current command file and saved version.
         uiAction_ViewCommandFileDiff();
     }
     else if ( command.equals(__View_DataStores_String) ) {
-        // Show the datastores
+        // Show the datastores.
         uiAction_ShowDataStores();
     }
     else if ( command.equals(__View_DataUnits_String) ) {
-        // Show the data units
+        // Show the data units.
         uiAction_ShowDataUnits();
     }
     else if ( command.equals(__View_CloseAllViewWindows_String) ) {
-        // Show the datastores
+        // Show the datastores.
         TSViewJFrame.getTSViewWindowManager().closeAll();
     }
     else {
@@ -13115,8 +13124,8 @@ private void uiAction_ActionPerformed05_CommandsCreateMenu (ActionEvent event)
 throws Exception
 {	String command = event.getActionCommand();
 
-	// TODO SAM 2006-05-02 Why is all of this needed?  Should rely on the command factory for
-	// commands.  Evaluate this when all commands are in the factory.
+	// TODO smalers 2006-05-02 Why is all of this needed?  Should rely on the command factory for commands.
+	// Evaluate this when all commands are in the factory.
 
 	if (command.equals( __Commands_Create_CreateFromList_String)){
 		commandList_EditCommand ( __Commands_Create_CreateFromList_String, null, CommandEditType.INSERT );
@@ -13332,7 +13341,7 @@ throws Exception
         commandList_EditCommand ( __Commands_Read_StateModMax_String, null, CommandEditType.INSERT );
     }
 	else {
-		// Chain to next menus
+		// Chain to next menus.
 		uiAction_ActionPerformed07_CommandsFillMenu ( event );
 	}
 }
@@ -13400,7 +13409,7 @@ throws Exception
 		commandList_EditCommand ( __Commands_Fill_SetIgnoreLEZero_String, null, CommandEditType.INSERT );
 	}
 	else {
-		// Chain to other menus
+		// Chain to other menus.
 		uiAction_ActionPerformed08_CommandsSetMenu ( event );
 	}
 }
@@ -13496,7 +13505,7 @@ throws Exception
 		commandList_EditCommand ( __Commands_Manipulate_Subtract_String, null, CommandEditType.INSERT );
 	}
 	else {
-		// Chain to next actions
+		// Chain to next actions.
 		uiAction_ActionPerformed10_CommandsAnalyzeMenu ( event );
 	}
 }
@@ -13522,7 +13531,7 @@ throws Exception
         commandList_EditCommand ( __Commands_Analyze_ComputeErrorTimeSeries_String, null, CommandEditType.INSERT );
     }
 	else {
-		// Chain to other actions
+		// Chain to other actions.
 		uiAction_ActionPerformed11_CommandsModelsMenu ( event );
 	}
 }
@@ -13542,7 +13551,7 @@ throws Exception
         commandList_EditCommand ( __Commands_Models_Routing_VariableLagK_String, null, CommandEditType.INSERT );
     }
 	else {
-		// Chain to other actions
+		// Chain to other actions.
 		uiAction_ActionPerformed12_CommandsEnsembleMenu ( event );
 	}
 }
@@ -13586,7 +13595,7 @@ throws Exception
         commandList_EditCommand ( __Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_String, null, CommandEditType.INSERT );
     }
     else {
-        // Chain to other actions
+        // Chain to other actions.
         uiAction_ActionPerformed13_CommandsOutputMenu ( event );
     }
 }
@@ -14427,31 +14436,31 @@ throws Exception
     	}
     	boolean ok = dialog.ok();
     	if ( ok ) {
-	    	// Create the ensemble from the single time series based on the properties from the dialog
-	    	// This is the same code called by the CreateEnsembleFromOneTimeSeries() command
+	    	// Create the ensemble from the single time series based on the properties from the dialog.
+	    	// This is the same code called by the CreateEnsembleFromOneTimeSeries() command.
 	    	TSUtil_CreateTracesFromTimeSeries util = new TSUtil_CreateTracesFromTimeSeries();
 	    	String alias = null;
-	    	String descriptionFormat = "%D"; // Just the main description rather than including trace ID
+	    	String descriptionFormat = "%D"; // Just the main description rather than including trace ID.
 	    	String traceLength = "1Year";
 	    	boolean createData = true;
 	    	String shiftDataHow = "ShiftToReference";
-	    	YearType outputYearType = YearType.CALENDAR; // default
+	    	YearType outputYearType = YearType.CALENDAR; // Default.
 	    	if ( (userOutputYearType != null) && !userOutputYearType.isEmpty() ) {
 	    		outputYearType = YearType.valueOfIgnoreCase(userOutputYearType);
 	    	}
-	    	// Default reference is the start of the current year type
+	    	// Default reference is the start of the current year type.
 	    	DateTime referenceDateTime = null;
 	    	if ( (userReferenceDateTime != null) && !userReferenceDateTime.isEmpty() ) {
 	    		referenceDateTime = DateTime.parse(userReferenceDateTime);
 	    	}
 	    	else {
-	    		// Default is to use start of current year for output year type
+	    		// Default is to use start of current year for output year type.
 	    		referenceDateTime = outputYearType.getStartDateTimeForCurrentYear();
 	    	}
 	    	Message.printStatus(2, "", "referenceDateTime=" + referenceDateTime);
 	    	DateTime inputStart = null;
 	    	DateTime inputEnd = null;
-	    	// Time series is the first selected time series in the results
+	    	// Time series is the first selected time series in the results.
 	    	int pos = -1;
 	    	if ( JGUIUtil.selectedSize(__resultsTS_JList) == 0 ) {
 				pos = 0;
@@ -14464,7 +14473,7 @@ throws Exception
 			if ( pos >= 0 ) {
 				ts = commandProcessor_GetTimeSeries(pos);
 			}
-			// Get the time series for the ensemble
+			// Get the time series for the ensemble.
 			String propVal = null;
 			File userGraphTemplateFile = null;
 			if ( (userGraphTemplate != null) && !userGraphTemplate.isEmpty() ) {
@@ -14473,12 +14482,12 @@ throws Exception
 				propVal = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
 				Message.printStatus(2,"","Value of TemplatePreprocessCommandFile = \"" + propVal + "\"");
 			}
-			// Ensemble is necessary when processing statistics
+			// Ensemble is necessary when processing statistics.
 			TSEnsemble tsensemble = null;
 			TSCommandFileRunner runner = null;
 			if ( (propVal != null) && !propVal.isEmpty() ) {
-				// Get the time series by processing the specified command file
-				// Command file in template is relative to the template folder
+				// Get the time series by processing the specified command file.
+				// Command file in template is relative to the template folder.
 				String preprocessCommandFile = IOUtil.verifyPathForOS(
 				    IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),propVal) );
 				runner = new TSCommandFileRunner(
@@ -14487,7 +14496,7 @@ throws Exception
 				Message.printStatus(2,"","Preprocess command file for graph template is \"" + preprocessCommandFile + "\"");
 				runner.readCommandFile(preprocessCommandFile, false);
 				// Have to seed the processor with the time series from the original processor
-				// so it can be found for subsequent processing
+				// so it can be found for subsequent processing.
 				Message.printStatus(2,"","Running internal processor to preprocess time series into ensemble");
 				@SuppressWarnings("unchecked")
 				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
@@ -14501,19 +14510,19 @@ throws Exception
 				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
 			}
 			else {
-				// Process the single time series from above into ensemble
+				// Process the single time series from above into ensemble.
 				TransferDataHowType transferDataHowType = TransferDataHowType.SEQUENTIALLY;
 		        tslist = util.getTracesFromTS ( ts, traceLength, referenceDateTime,
 			        outputYearType, shiftDataHow, transferDataHowType,
 			        inputStart, inputEnd, alias, descriptionFormat, createData );
 		        // Create a new list for the ensemble because when statistic time series are computed and
-		        // added below the should not be added to the original list
+		        // added below the should not be added to the original list.
 		        List<TS> tslist2 = new ArrayList<>();
 		        tslist2.addAll(tslist);
 		        tsensemble = new TSEnsemble (ts.getLocation() + "_Ensemble", ts.getDescription(), tslist2);
 			}
 			// If any statistics were requested, process and add to the list, but not in the ensemble itself.
-	        // This is similar to the NewStatisticTimeSeriesFromEnsemble() command functionality
+	        // This is similar to the NewStatisticTimeSeriesFromEnsemble() command functionality.
 			for ( int istat = 0; istat < statisticsArray.length; istat++ ) {
 				TSStatisticType statType = TSStatisticType.valueOfIgnoreCase(statisticsArray[istat]);
 				DateTime analysisStart = null;
@@ -14524,7 +14533,7 @@ throws Exception
 				Integer allowMissingCount = null;
 				Integer minimumSampleSize = null;
 				Double value1 = null;
-				// The newTSID is not critical, but want to make sure the alias and sequence ID is properly set
+				// The newTSID is not critical, but want to make sure the alias and sequence ID is properly set.
 				TSIdent tsident = new TSIdent(ts.getIdentifier());
 				tsident.setSequenceID("");
 				tsident.setInputName("");
@@ -14532,7 +14541,7 @@ throws Exception
 				tsident.setType(tsident.getType() + "-" + statType);
 				String newTSID = tsident.toString();
 				// Important - the tsensemble was created with a separate time series list,
-				// so it is OK to add statistic time series to the list below (won't be the same list in the ensemble)
+				// so it is OK to add statistic time series to the list below (won't be the same list in the ensemble).
 			    TSUtil_NewStatisticTimeSeriesFromEnsemble tsu = new TSUtil_NewStatisticTimeSeriesFromEnsemble (
 				    tsensemble, analysisStart, analysisEnd, outputStart, outputEnd,
 				    newTSID, description, statType, value1, allowMissingCount, minimumSampleSize );
@@ -14545,11 +14554,11 @@ throws Exception
 				// If a graph template was specified, expand it with properties that are relevant
 				// and then graph using similar logic to ProcessTSProduct() command,
 				// but pass the time series in directly rather than searching in the processor results.
-				// Determine whether a command file should be run to preprocess the time series for the template
+				// Determine whether a command file should be run to preprocess the time series for the template.
 				String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
 				GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (
 					this.session.getGraphTemplateFile(userGraphTemplate) );
-				// Create a model
+				// Create a model.
 				CommandProcessor runnerProcessor = null;
 				if ( runner != null ) {
 					runnerProcessor = runner.getProcessor();
@@ -14574,7 +14583,7 @@ throws Exception
 		    	// Display the graph using the created list of time series from the ensemble:
 		        // - rather than using the time series in the processor, use the supplied list
 				PropList graphProps = new PropList("GraphProps");
-				// TODO sam 2017-04-08 there is currently no way to pass these properties:
+				// TODO smalers 2017-04-08 there is currently no way to pass these properties:
 				// - alternative is to use the template
 				// - need to figure out how to pass in properties that goes to the TSProduct
 				// - currently the following does nothing
@@ -14594,7 +14603,7 @@ throws Exception
         else if ( command.equals("GraphPercentExceed") ) {
 		// Because Visualize can only handle grid-based data, only allow
 		// one time series to be graphed to ensure that the data set is
-		// nice...
+		// nice.
 		if ( _final__commands_JList != 1 ) {
 			Message.printWarning ( 1, rtn, "Only one time " +
 			"series can be graphed for Percent Exceedance Curve." );
@@ -14617,7 +14626,7 @@ throws Exception
     	uiAction_GraphTimeSeriesResults("-oPredictedValueResidual_graph" );
 	}
     else if ( command.equals(__Results_Graph_Raster_String) ) {
-        // TODO SAM 2013-09-11 allow raster if one time series and interval is day or month
+        // TODO smalers 2013-09-11 allow raster if one time series and interval is day or month
         // currently check is buried deep and not bubbled up.
         uiAction_GraphTimeSeriesResults("-oraster_graph" );
     }
@@ -14656,27 +14665,27 @@ throws Exception
 			// Now display the properties.
 			if ( pos >= 0 ) {
 				PropList props = new PropList ( "" );
-				props.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+				props.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
 				new TSPropertiesJFrame ( this, commandProcessor_GetTimeSeries(pos), props );
 			}
 		}
 	}
-    // Graph time series ensemble using template
+    // Graph time series ensemble using template.
     else if ( command.equals("GraphTSEnsembleWithTemplate") ) {
     	// The "Graph with template" button was pressed for a selected ensemble so there is no intervening dialog.
     	// Go straight to processing the template file.
     	Message.printStatus(2,"","Graphing ensemble using template (no dialog).");
 	    try {
 			String userGraphTemplate = __resultsTSEnsemblesGraphTemplates_JComboBox.getSelected();
-			// Save state for next TSTool session
+			// Save state for next TSTool session.
 			this.session.setUIStateProperty("Results.Ensembles.GraphTemplate",userGraphTemplate);
 			File userGraphTemplateFile = this.session.getGraphTemplateFile(userGraphTemplate);
-			// Determine whether a command file should be run to preprocess the time series for the template
+			// Determine whether a command file should be run to preprocess the time series for the template.
 			TSProduct tsp0 = new TSProduct(userGraphTemplateFile.getAbsolutePath(),new PropList(""));
 			String preprocessCommandFile = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
 			Message.printStatus(2,"","Value of *tsp TemplatePreprocessCommandFile=\"" + preprocessCommandFile + "\"");
 			List<TS> tslist = new ArrayList<>();
-			// Time series is the first selected time series in the results
+			// Time series is the first selected time series in the results.
 	    	int pos = -1;
 	    	TSEnsemble tsensemble = null;
 	    	if ( JGUIUtil.selectedSize(__resultsTSEnsembles_JList) == 0 ) {
@@ -14694,7 +14703,7 @@ throws Exception
 			List<TSEnsemble> tsensembleList = new ArrayList<>();
 			if ( (preprocessCommandFile != null) && !preprocessCommandFile.isEmpty() ) {
 				// Have a command file specified by TemplatePreprocessCommandFile property in the tsp
-				// so run the command file to preprocess the time series and use for the graph
+				// so run the command file to preprocess the time series and use for the graph.
 				preprocessCommandFile = IOUtil.verifyPathForOS(
 					IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),preprocessCommandFile) );
 				Message.printStatus(2,"","Preprocess command file for graph template is \"" + preprocessCommandFile + "\"");
@@ -14703,7 +14712,7 @@ throws Exception
 					this.__tsProcessor.getPluginCommandClasses());
 				runner.readCommandFile(preprocessCommandFile, false);
 				// Have to seed the processor with the ensemble and time series from the original processor
-				// so they can be found for subsequent processing
+				// so they can be found for subsequent processing.
 				Message.printStatus(2,"","Running internal processor to preprocess time series for graphing");
 				List<TSEnsemble> tsensembleList0 = (List<TSEnsemble>)runner.getProcessor().getPropContents("EnsembleResultsList");
 				tsensembleList0.add(tsensemble);
@@ -14718,14 +14727,14 @@ throws Exception
 				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
 			}
 			else {
-				// No preprocessor specified so process the time series directly
+				// No preprocessor specified so process the time series directly.
 				// Original ensemble and time series list from above are OK
-				// tslist was set above
+				// tslist was set above.
 				tsensembleList.add(tsensemble);
 			}
 			String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
 			GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (userGraphTemplateFile);
-			// Create a model
+			// Create a model.
 			CommandProcessor processorFromRunner = null;
 			if ( runner != null ) {
 				processorFromRunner = runner.getProcessor();
@@ -14747,21 +14756,21 @@ throws Exception
 			Message.printWarning ( 3, "", te );
 		}
     }
-    // Graph time series using template
+    // Graph time series using template.
     else if ( command.equals("GraphTSWithTemplate") ) {
     	// The "Graph with template" button was pressed for the selected time series so there is no intervening dialog.
     	// Go straight to processing the template file.
 	    try {
 			String userGraphTemplate = __resultsTSGraphTemplates_JComboBox.getSelected();
-			// Save state for next TSTool session
+			// Save state for next TSTool session.
 			this.session.setUIStateProperty("Results.TimeSeries.GraphTemplate",userGraphTemplate);
 			File userGraphTemplateFile = this.session.getGraphTemplateFile(userGraphTemplate);
-			// Determine whether a command file should be run to preprocess the time series for the template
+			// Determine whether a command file should be run to preprocess the time series for the template.
 			TSProduct tsp0 = new TSProduct(userGraphTemplateFile.getAbsolutePath(),new PropList(""));
 			String preprocessCommandFile = tsp0.getLayeredPropValue("TemplatePreprocessCommandFile", -1, -1);
 			List<TS> tslist = new ArrayList<>();
 			TS ts = null;
-			// Ensemble is the first selected ensemble in the results
+			// Ensemble is the first selected ensemble in the results.
 	    	int pos = -1;
 	    	if ( JGUIUtil.selectedSize(__resultsTS_JList) == 0 ) {
 				pos = 0;
@@ -14776,7 +14785,7 @@ throws Exception
 			TSCommandFileRunner runner = null;
 			if ( (preprocessCommandFile != null) && !preprocessCommandFile.isEmpty() ) {
 				// Have a command file specified by TemplatePreprocessCommandFile property in the tsp
-				// so run the command file to preprocess the ensemble and associated time series and use output for the graph
+				// so run the command file to preprocess the ensemble and associated time series and use output for the graph.
 				preprocessCommandFile = IOUtil.verifyPathForOS(
 					IOUtil.toAbsolutePath(userGraphTemplateFile.getParent(),preprocessCommandFile) );
 				Message.printStatus(2,"","Preprocess command file for ensemble graph template is \"" + preprocessCommandFile + "\"");
@@ -14785,9 +14794,9 @@ throws Exception
 					this.__tsProcessor.getPluginCommandClasses());
 				runner.readCommandFile(preprocessCommandFile, false);
 				// Have to seed the processor with the time series from the original processor
-				// so it can be found for subsequent processing
+				// so it can be found for subsequent processing.
 				Message.printStatus(2,"","Running internal processor to preprocess time series for graphing");
-				// First get the empty time series list
+				// First get the empty time series list.
 				@SuppressWarnings("unchecked")
 				List<TS> tslist0 = (List<TS>)runner.getProcessor().getPropContents("TSResultsList");
 				tslist0.add(ts);
@@ -14801,12 +14810,12 @@ throws Exception
 				Message.printStatus(2,"","After running internal processor have " + tslist.size() + " time series.");
 			}
 			else {
-				// No preprocessor specified so process the time series directly
+				// No preprocessor specified so process the time series directly.
 				tslist.add(ts);
 			}
 			String tempTSPFile = IOUtil.tempFileName() + "-TSTool-template.tsp";
 			GraphTemplateProcessor graphTemplateProcessor = new GraphTemplateProcessor (userGraphTemplateFile);
-			// Create a model
+			// Create a model.
 			CommandProcessor processorFromRunner = null;
 			if ( runner != null ) {
 				processorFromRunner = runner.getProcessor();
@@ -14854,7 +14863,7 @@ throws Exception
 	if ( o == __Tools_Analysis_MixedStationAnalysis_JMenuItem ) {
 		// Create the dialog using the available time series results (accessed by the processor).
 		try {
-		    // TODO SAM 2013-08-17 MixedStationAnalysis tool is no longer available - only command is available. Need to remove this.
+		    // TODO smalers 2013-08-17 MixedStationAnalysis tool is no longer available - only command is available. Need to remove this.
 			// new FillMixedStation_JDialog ( this, commandProcessor_GetCommandProcessor(), this );
 		}
 		catch ( Exception e ) {
@@ -14889,7 +14898,7 @@ throws Exception
 	else if ( o == __Tools_Datastore_ERDiagram_JMenuItem ) {
 		// Create the dialog using the available time series results (accessed by the processor).
 		try {
-			// TODO SAM 2015-02-14 need to pick the DMI to use - for now hard-code to HydroBase.
+			// TODO smalers 2015-02-14 need to pick the DMI to use - for now hard-code to HydroBase.
 			DMI dmi = commandProcessor_GetHydroBaseDMIList().get(0);
 			String tablesTableName = null; // Table in database containing the list of tables - need to switch to DataTable or list?
 			String tableNameField = null; // Column in tablesTableName that has the name of the tables.
@@ -15038,9 +15047,9 @@ throws Exception
 		}		
 	}
 	else if ( o == __Tools_ViewLogFile_Startup_JMenuItem ) {
-		// View the startup log file
+		// View the startup log file.
 		String logFile = session.getUserLogFile();
-		// Show in a simple viewer
+		// Show in a simple viewer.
 		PropList reportProp = new PropList ("Startup Log File");
 		reportProp.set ( "TotalWidth", "800" );
 		reportProp.set ( "TotalHeight", "600" );
@@ -15183,7 +15192,7 @@ private void uiAction_CheckForCommandFileUpdate() {
 		warning.append ( "The commands have no #@version or #@versionDate annotation - can't check for updates.\n" );
 	}
 	
-	// Retrieve the source file and get the properties
+	// Retrieve the source file and get the properties.
 	if ( !sourceUrl.isEmpty() ) {
 		if ( IOUtil.getUriContent(sourceUrl, file1Path, null, 5000, 5000) != 200 ) {
 			Message.printWarning(1, "", "Error retrieving command file source from: " + sourceUrl + "\n");
@@ -15633,7 +15642,7 @@ private void uiAction_DataStoreChoiceClicked()
     String selectedDataStoreName = __dataStore_JComboBox.getSelected();
     Message.printStatus(2, routine, "Selected datastore \"" + selectedDataStoreName + "\"." );
     if ( selectedDataStoreName.equals("") ) {
-        // Selected blank for some reason - do nothing
+        // Selected blank for some reason - do nothing.
         return;
     }
     DataStore selectedDataStore = ui_GetSelectedDataStore();
@@ -15741,8 +15750,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.setEnabled ( false );
 	}
     else if ( selectedInputType.equals(__INPUT_TYPE_HECDSS) ) {
-        // HEC-DSS database file - the time step is set when the
-        // input name is selected so do nothing here.
+        // HEC-DSS database file - the time step is set when the input name is selected so do nothing here.
     }
 	else if ( ((selectedDataStore != null) && (selectedDataStore instanceof HydroBaseDataStore)) ||
 	    selectedInputType.equals(__INPUT_TYPE_HydroBase) ) {
@@ -15837,7 +15845,7 @@ private void uiAction_DataTypeChoiceClicked()
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore)) {
         // Time steps are determined from the database based on the data type that is selected.
-        // FIXME SAM 2010-10-19 Need to enable.
+        // FIXME smalers 2010-10-19 Need to enable.
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore)) {
         // Set intervals for the data type and trigger a select to populate the input filters.
@@ -15866,8 +15874,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.setEnabled ( false );
 	}
     else if ( selectedInputType.equals(__INPUT_TYPE_StateCUB) ) {
-        // StateCU binary output file - the time step is set when the
-        // input name is selected so do nothing here.
+        // StateCU binary output file - the time step is set when the input name is selected so do nothing here.
     }
 	else if ( selectedInputType.equals(__INPUT_TYPE_StateMod) ) {
 		__timeStep_JComboBox.removeAll ();
@@ -15878,8 +15885,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.setEnabled ( true );
 	}
 	else if ( selectedInputType.equals(__INPUT_TYPE_StateModB) ) {
-		// StateMod binary output file - the time step is set when the
-		// input name is selected so do nothing here.
+		// StateMod binary output file - the time step is set when the input name is selected so do nothing here.
 	}
 	else if ( selectedInputType.equals(__INPUT_TYPE_UsgsNwisRdb) ) {
 		// USGS NWIS file.
@@ -15890,7 +15896,7 @@ private void uiAction_DataTypeChoiceClicked()
 		__timeStep_JComboBox.setEnabled ( false );
 	}
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisDailyDataStore)) {
-        // Set intervals for the data type and trigger a select to populate the input filters
+        // Set intervals for the data type and trigger a select to populate the input filters.
         UsgsNwisDailyDataStore dataStore = (UsgsNwisDailyDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
@@ -15899,7 +15905,7 @@ private void uiAction_DataTypeChoiceClicked()
         __timeStep_JComboBox.select ( 0 );
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisGroundwaterDataStore)) {
-        // Set intervals for the data type and trigger a select to populate the input filters
+        // Set intervals for the data type and trigger a select to populate the input filters.
         UsgsNwisGroundwaterDataStore dataStore = (UsgsNwisGroundwaterDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
@@ -15908,7 +15914,7 @@ private void uiAction_DataTypeChoiceClicked()
         __timeStep_JComboBox.select ( 0 );
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof UsgsNwisInstantaneousDataStore)) {
-        // Set intervals for the data type and trigger a select to populate the input filters
+        // Set intervals for the data type and trigger a select to populate the input filters.
         UsgsNwisInstantaneousDataStore dataStore = (UsgsNwisInstantaneousDataStore)selectedDataStore;
         __timeStep_JComboBox.removeAll ();
         __timeStep_JComboBox.setEnabled ( true );
@@ -15917,7 +15923,7 @@ private void uiAction_DataTypeChoiceClicked()
         __timeStep_JComboBox.select ( 0 );
     }
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof PluginDataStore) ) {
-    	// Plugin datastore - call its method to get the intervals
+    	// Plugin datastore - call its method to get the intervals.
     	PluginDataStore pluginDataStore = (PluginDataStore)selectedDataStore;
     	List<String> timeStepChoices = pluginDataStore.getTimeSeriesDataIntervalStrings(selectedDataType);
     	__timeStep_JComboBox.removeAll ();
@@ -15926,9 +15932,9 @@ private void uiAction_DataTypeChoiceClicked()
         __timeStep_JComboBox.select ( 0 );
     }
 
-	// Set the filter where clauses based on the data type changing (this only triggers a reset of the
-    // input filter for some input types/datastores, like HydroBase, which has different input filters
-    // for different data types).
+	// Set the filter where clauses based on the data type changing
+    // (this only triggers a reset of the input filter for some input types/datastores,
+    // like HydroBase, which has different input filters for different data types).
 
 	ui_SetInputFilterForSelections();
 }
@@ -15938,7 +15944,7 @@ Deselect all commands in the commands list.  This occurs in response to a user s
 */
 private void uiAction_DeselectAllCommands()
 {	ui_GetCommandJList().clearSelection();
-	// TODO SAM 2007-08-31 Should add list selection listener to handle updateStatus call.
+	// TODO smalers 2007-08-31 Should add list selection listener to handle updateStatus call.
 	ui_UpdateStatus ( false );
 }
 
@@ -15949,9 +15955,8 @@ Carry out the edit command action, triggered by:
 <li>	Pressing the enter key on the command list.</li>
 <li>	Double-clicking on a command in the command list.</li>
 </ol>
-This method will call the uiAction_EditCommand() method with a list of
-commands that were selected to be edited.  Multiple commands may be edited if
-a block of # delimited comments.
+This method will call the uiAction_EditCommand() method with a list of commands that were selected to be edited.
+Multiple commands may be edited if a block of # delimited comments.
 */
 private void uiAction_EditCommand ()
 {	int selectedSize = 0;
@@ -15981,7 +15986,7 @@ private void uiAction_EditCommand ()
 			commandsToEdit = new ArrayList<> ( 1 );
 			commandsToEdit.add ( command );
 		}
-		// Edit using the command dialog
+		// Edit using the command dialog.
 		commandList_EditCommand ( "", commandsToEdit, CommandEditType.UPDATE ); // No action event from menus
 	}
 }
@@ -15991,10 +15996,9 @@ Carry out the edit command action, but use a text editor rather than command dia
 <ol>
 <li>	Popup menu edit "as text" of a command on the command list.</li>
 </ol>
-This method will call the uiAction_EditCommand() method with a list of
-commands that were selected to be edited.  Multiple commands may be edited if
-a block of # delimited comments.  If all the lines start with #, then call
-the normal editor for comments.
+This method will call the uiAction_EditCommand() method with a list of commands that were selected to be edited.
+Multiple commands may be edited if a block of # delimited comments.
+If all the lines start with #, then call the normal editor for comments.
 */
 private void uiAction_EditCommandAsText ()
 {	// THIS CODE IS THE SAME AS uiAction_EditCommand() except that text editor is requested.
@@ -16031,11 +16035,11 @@ private void uiAction_EditCommandAsText ()
 }
 
 /**
-Export time series to a file.   Assume that if this is called, the state of the
-GUI is such that time series are available from the TSEngine.
+Export time series to a file.
+Assume that if this is called, the state of the GUI is such that time series are available from the TSEngine.
 @param format Format to export, as a tstool command line option.
-@param filename Name of file to save as, as a tstool command line option (e.g.,
-"-o filename").  If previewing output, this will be "-preview".
+@param filename Name of file to save as, as a tstool command line option (e.g., "-o filename").
+If previewing output, this will be "-preview".
 */
 private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 {	String routine = getClass().getSimpleName() + ".uiAction_ExportTimeSeriesResults";
@@ -16050,7 +16054,7 @@ private void uiAction_ExportTimeSeriesResults ( String format, String filename )
 	props.set ( "OutputFile=" + filename );
 	props.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
 	// Final list is selected.
-	 if ( __tsProcessor != null ) {
+	if ( __tsProcessor != null ) {
 		try {
             int selected_ts = JGUIUtil.selectedSize(__resultsTS_JList);
 			if ( selected_ts == 0 ) {
@@ -16071,8 +16075,7 @@ Handle "File...Exit" and Window X actions.
 */
 private void uiAction_FileExitClicked ()
 {	// If the commands are dirty, see if they want to save them.
-	// This code is also in openCommandFile - might be able to remove
-	// copy once all actions are implemented.
+	// This code is also in openCommandFile - might be able to remove copy once all actions are implemented.
 	int x = ResponseJDialog.YES;	// Default for batch mode.
 	boolean commandsAreTemplate = false;
 	if ( !TSToolMain.isRestServer() && !IOUtil.isBatch() ) {
@@ -16217,7 +16220,7 @@ private void uiAction_GetTimeSeriesListClicked()
 	// Read the time series list and display in the Time Series List area.
 	// Return if an error occurs because the message at the bottom should only be printed if successful.
 	// To avoid unnecessary class loads, check whether a datastore or input type is enabled.
-	// TODO SAM 2016-02-22 in the future this code will be split into separate classes
+	// TODO smalers 2016-02-22 in the future this code will be split into separate classes
 
     if ( (selectedDataStore != null) && __source_ColoradoHydroBaseRest_enabled && (selectedDataStore instanceof ColoradoHydroBaseRestDataStore) ) {
         try {
@@ -16503,7 +16506,7 @@ private void uiAction_GetTimeSeriesListClicked()
 Read ColoradoHydroBaseRest time series via web service and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders()
-{   String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders";
+{   String routine = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, routine, "Please wait... retrieving data");
 
@@ -16518,8 +16521,8 @@ private void uiAction_GetTimeSeriesListClicked_ReadColoradoHydroBaseRestHeaders(
         DataStore dataStore = ui_GetSelectedDataStore ();
         ColoradoHydroBaseRestDataStore ds = (ColoradoHydroBaseRestDataStore)dataStore;
         InputFilter_JPanel filterPanel = __selectedInputFilter_JPanel;
-        // Get the subject from the where filters.  If not set, warn and don't query
-        /* TODO smalers evaluate whether to keep this constraint to prevent slow/big queries
+        // Get the subject from the where filters.  If not set, warn and don't query.
+        /* TODO smalers evaluate whether to keep this constraint to prevent slow/big queries.
         List<String> inputDivision = __selectedInputFilter_JPanel.getInput("Division", null, false, null );
         List<String> inputDistrict = __selectedInputFilter_JPanel.getInput("District", null, false, null );
         if ( (inputDistrict.size() + inputDivision.size()) == 0 ) {
@@ -16658,7 +16661,7 @@ Read the list of time series from a DateValue file and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadDateValueHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.readDateValueHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readDateValueHeaders";
 
 	try {
 	    JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -16728,7 +16731,7 @@ throws IOException
 Read GenericDatabaseDatastore time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadGenericDatabaseDataStoreHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
@@ -16851,7 +16854,7 @@ throws IOException
         Message.printStatus ( 1, routine, "Reading HEC-DSS file \"" + inputNameSelected + "\" for TSID pattern \"" + tsidPattern + "\"" );
         List<TS> tslist = null;
         JGUIUtil.setWaitCursor ( this, true );
-        // TODO SAM 2008-09-03 Enable searchable fields.
+        // TODO smalers 2008-09-03 Enable searchable fields.
         boolean readData = false;
         boolean closeAfterRead = false;
         tslist = HecDssAPI.readTimeSeriesList ( new File(inputNameSelected), tsidPattern, null, null, null,
@@ -16896,7 +16899,7 @@ Query HydroBase time series and list in the GUI, using the current selections.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadHydroBaseHeaders ( GRLimits grlimits )
 throws Exception
-{	String message, routine = "TSTool_JFrame.readHydroBaseHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readHydroBaseHeaders";
 
     JGUIUtil.setWaitCursor ( this, true );
     String selectedDataType = ui_GetSelectedDataType();
@@ -16921,10 +16924,10 @@ throws Exception
 	String meas_type = hb_mt[0];
 	String hbtime_step = hb_mt[2];
 	try {
-		// List the time series by major category.
+		// List the time series by major category:
 		// - old code had this logic in HydroBase_Util and returned List (no generics)
 		// - new code calls specific HydroBaseUtil code in order to cleanly implement generics
-		// Specific objects are read from HydroBase based on the data type
+		// Specific objects are read from HydroBase based on the data type.
 		if ( HydroBase_Util.isAgriculturalCASSCropStatsTimeSeriesDataType ( hbdmi, selectedDataType ) ) {
 			// Data from agricultural_CASS_crop_statistics.
 	    	List<HydroBase_AgriculturalCASSCropStats>dataList = hbdmi.readAgriculturalCASSCropStatsList (
@@ -16993,7 +16996,7 @@ throws Exception
 		}
 		else if ( HydroBase_Util.isCUPopulationTimeSeriesDataType( hbdmi, selectedDataType) ) {
 		    List<HydroBase_CUPopulation> dataList = hbdmi.readCUPopulationList (
-				selectedInputFilterJPanel,	// From input filter
+				selectedInputFilterJPanel,	// From input filter.
 				null,		// county
 				null,		// commodity
 				null,		// type
@@ -17093,8 +17096,8 @@ throws Exception
 	    		}
     		}
     		else {
-    			// Real-time well elevation as station
-    			// TODO smalers 2019-06-02 evaluate if this is working (is it handled by the general station code?)
+    			// Real-time well elevation as station.
+    			// TODO smalers 2019-06-02 evaluate if this is working (is it handled by the general station code?).
     			List<HydroBase_StationGeolocMeasType> dataList = new ArrayList<>();
 	    		size = dataList.size();
 	    		if ( size > 0 ) {
@@ -17104,7 +17107,7 @@ throws Exception
     					    (TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel);
     				__query_JWorksheet.setCellRenderer ( cr );
     				__query_JWorksheet.setModel(__query_TableModel);
-    				// TODO SAM 2012-09-05 Verify that Abbrev should be on since station.
+    				// TODO smalers 2012-09-05 Verify that Abbrev should be on since station.
     				// Turn off columns in the table model that do not apply.
     				//__query_JWorksheet.removeColumn ( ((TSTool_HydroBase_StationGeolocMeasType_TableModel)__query_TableModel).COL_ABBREV );
     				__query_JWorksheet.setColumnWidths ( cr.getColumnWidths(), getGraphics() );
@@ -17206,7 +17209,7 @@ Read the list of time series from NWS CARD files and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders";
+{	String message, routine = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadNWSCARDHeaders";
 
 	// TODO - need to allow multiple file selections.
 	try {
@@ -17240,12 +17243,12 @@ throws IOException
 		List tslist = null;
 		try {
 		    tslist = NWSCardTS.readTimeSeriesList (
-				(TS)null,	// No requested time series
+				(TS)null,	// No requested time series.
 				path,
 				(DateTime)null,	// Start
 				(DateTime)null,	// End
 				(String)null,	// Units
-				false );	// No data, header only
+				false );	// No data, header only.
 		}
 		catch ( Exception e ) {
 			message = "Error reading NWS Card file.";
@@ -17285,7 +17288,7 @@ Read the list of time series from an NWSRFS ESPTraceEnsemble file and list in th
 */
 private void uiAction_GetTimeSeriesListClicked_ReadNwsrfsEspTraceEnsembleHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.ReadNwsrfsEspTraceEnsembleHeaders";
+{	String message, routine = getClass().getSimpleName() + ".ReadNwsrfsEspTraceEnsembleHeaders";
 
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -17357,7 +17360,7 @@ Read the list of time series from NWSRFS FS5Files and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadNWSRFSFS5FilesHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.readNWSRFSFS5FilesHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readNWSRFSFS5FilesHeaders";
 
 	try {
         JGUIUtil.setWaitCursor ( this, true );
@@ -17502,7 +17505,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadPluginTimeSeriesCatalog()
 Read RCC ACIS time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
@@ -17524,7 +17527,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders()
         }
 
         List<RccAcisStationTimeSeriesMetadata> results = null;
-        // Data type is shown with name so only use the first part of the choice
+        // Data type is shown with name so only use the first part of the choice.
         try {
             results = rccAcisDataStore.readStationTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
         }
@@ -17568,12 +17571,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadRccAcisHeaders()
 Read ReclamationHDB time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
     DataStore dataStore = ui_GetSelectedDataStore ();
-    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
+    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata.
     try {
         ReclamationHDBDataStore ds = (ReclamationHDBDataStore)dataStore;
         // Check the connection in case the connection timed out.
@@ -17581,7 +17584,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
         ReclamationHDB_DMI dmi = (ReclamationHDB_DMI)ds.getDMI();
         queryResultsList_Clear ();
 
-        String dataType = __dataType_JComboBox.getSelected(); // Object type - common data type
+        String dataType = __dataType_JComboBox.getSelected(); // Object type - common data type.
         String timeStep = __timeStep_JComboBox.getSelected();
         if ( timeStep == null ) {
             Message.printWarning ( 1, rtn, "No time series are available for timestep." );
@@ -17594,7 +17597,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
 
         List<ReclamationHDB_SiteTimeSeriesMetadata> results = null;
         if ( timeStep.equals("*") ) {
-            // Read the time series for each of the major intervals and then concatenate the results
+            // Read the time series for each of the major intervals and then concatenate the results.
             String [] timeSteps = { __TIMESTEP_HOUR, __TIMESTEP_DAY, __TIMESTEP_MONTH, __TIMESTEP_YEAR, __TIMESTEP_IRREGULAR };
             results = new ArrayList<>();
             List<ReclamationHDB_SiteTimeSeriesMetadata> results2 = null;
@@ -17608,15 +17611,15 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
                     }
                 }
                 catch ( Exception e ) {
-                    // Just skip the timestep
+                    // Just skip the timestep.
                 }
             }
             if ( results.size() == 0 ) {
-                results = null; // Handle warning below
+                results = null; // Handle warning below.
             }
         }
         else {
-            // Data type is shown with name so only use the first part of the choice
+            // Data type is shown with name so only use the first part of the choice.
             try {
                 results = dmi.readSiteTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
             }
@@ -17660,12 +17663,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationHDBHeaders()
 Read ReclamationPisces time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders";
     JGUIUtil.setWaitCursor ( this, true );
     Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
     DataStore dataStore = ui_GetSelectedDataStore ();
-    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata
+    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata.
     try {
         ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)dataStore;
         ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)ds.getDMI();
@@ -17685,7 +17688,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadReclamationPiscesHeaders()
         }
 
         List<ReclamationPisces_SiteCatalogSeriesCatalog> results = null;
-        // Data type is shown without name so use full choice
+        // Data type is shown without name so use full choice.
         try {
             results = dmi.readSiteCatalogSeriesCatalogList(null, null, dataType, timeStep, __selectedInputFilter_JPanel);
         }
@@ -17728,7 +17731,7 @@ Read the list of time series from RiverWare files and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadRiverWareHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.readRiverWareHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readRiverWareHeaders";
 
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -17783,7 +17786,7 @@ Read the list of time series from a StateCU file and display the list in the GUI
 */
 private void uiAction_GetTimeSeriesListClicked_ReadStateCUHeaders ()
 throws Exception
-{	String message, routine = "TSTool_JFrame.readStateCUHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readStateCUHeaders";
 
 	try {
 	    List<TS> tslist = null; // Time series to display.
@@ -17914,7 +17917,7 @@ The binary file is taken from the selected item in the __input_name_JComboBox.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadStateCUBHeaders ()
 throws IOException
-{   String routine = "TSTool_JFrame.readStateCUdBHeaders";
+{   String routine = getClass().getSimpleName() + ".readStateCUdBHeaders";
 
     String selectedDataType = ui_GetSelectedDataType();
     try {
@@ -17968,12 +17971,12 @@ Read the list of time series from a StateMod file and display the list in the GU
 */
 private void uiAction_GetTimeSeriesListClicked_ReadStateModHeaders ()
 throws Exception
-{	String message, routine = "TSTool_JFrame.readStateModHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readStateModHeaders";
 
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
         String selectedTimeStep = ui_GetSelectedTimeStep();
-		// TODO SAM 2007-05-14 Need to better handle picking files.
+		// TODO smalers 2007-05-14 Need to better handle picking files.
 		// Need to pick the file first and detect the time step from the file, similar to the binary file.
         // For now, key off the selected time step.
 		if ( selectedTimeStep.equals( __TIMESTEP_DAY)) {
@@ -18002,12 +18005,12 @@ throws Exception
 		else if ( selectedTimeStep.equals(__TIMESTEP_MONTH)) {
 			interval_base = TimeInterval.MONTH;
 		}
-		/* TODO SAM 2007-05-16 Resolve later.  Use readStateMod() in the meantime.
+		/* TODO smalers 2007-05-16 Resolve later.  Use readStateMod() in the meantime.
 		else if ( __selected_time_step.equals(__TIMESTEP_YEAR)) {
 			interval_base = TimeInterval.YEAR;
 		}
 		*/
-		// TODO SAM 2009-11-16 The well rights are not completely supported - can list but not read.
+		// TODO smalers 2009-11-16 The well rights are not completely supported - can list but not read.
 		// Use the ReadStateMod() command.
 		if ( StateMod_DiversionRight.isDiversionRightFile(path) ) {
 			// First read the diversion rights.
@@ -18041,18 +18044,18 @@ throws Exception
 		    List<StateMod_InstreamFlowRight> ifr_List = StateMod_InstreamFlowRight.readStateModFile ( path );
 			// Convert the rights to time series (one per location).
 			tslist = StateMod_Util.createWaterRightTimeSeriesList (
-					ifr_List,       // raw water rights
-					interval_base,  // time series interval
-					0,              // summarize time series at location
-					-1,				// Don't consider parcel year
-					true,			// Create data set total
-					null,           // time series start
-					null,           // time series end
-					999999.0,	    // No special treatment of junior rights
+					ifr_List,       // Raw water rights.
+					interval_base,  // Time series interval.
+					0,              // Summarize time series at location.
+					-1,				// Don't consider parcel year.
+					true,			// Create data set total.
+					null,           // Time series start.
+					null,           // Time series end.
+					999999.0,	    // No special treatment of junior rights.
 					null,
 					null,
-					false );        // don't read data - only header
-	        // Set the input name and input type, which are not set in the above call
+					false );        // Don't read data - only header.
+	        // Set the input name and input type, which are not set in the above call.
             int size = 0;
             if ( tslist != null ) {
                 size = tslist.size();
@@ -18175,7 +18178,7 @@ The binary file is taken from the selected item in the __input_name_JComboBox.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders ()
 throws IOException
-{	String routine = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders";
+{	String routine = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadStateModBHeaders";
 
     String selectedDataType = ui_GetSelectedDataType();
 	try {
@@ -18227,9 +18230,9 @@ throws IOException
 Read USGS NWIS daily values web service time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders";
     JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data.");
 
     DataStore dataStore = ui_GetSelectedDataStore ();
     // The headers are a list of UsgsNwisTimeSeriesMetadata.
@@ -18249,7 +18252,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
         }
 
         List<UsgsNwisSiteTimeSeriesMetadata> results = null;
-        // Data type is shown with name so only use the first part of the choice
+        // Data type is shown with name so only use the first part of the choice.
         try {
             results = usgsNwisDailyDataStore.readSiteTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
         }
@@ -18293,9 +18296,9 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisDailyHeaders()
 Read USGS NWIS groundwater web service time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders";
     JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data.");
 
     DataStore dataStore = ui_GetSelectedDataStore ();
     // The headers are a list of UsgsNwisTimeSeriesMetadata.
@@ -18359,12 +18362,12 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisGroundwaterHeaders()
 Read USGS NWIS instantaneous values web service time series and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders()
-{   String rtn = "TSTool_JFrame.uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders";
+{   String rtn = getClass().getSimpleName() + ".uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders";
     JGUIUtil.setWaitCursor ( this, true );
-    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
+    Message.printStatus ( 1, rtn, "Please wait... retrieving data.");
 
     DataStore dataStore = ui_GetSelectedDataStore ();
-    // The headers are a list of UsgsNwisTimeSeriesMetadata
+    // The headers are a list of UsgsNwisTimeSeriesMetadata.
     try {
         UsgsNwisInstantaneousDataStore usgsNwisInstantaneousDataStore = (UsgsNwisInstantaneousDataStore)dataStore;
         queryResultsList_Clear ();
@@ -18381,7 +18384,7 @@ private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisInstantaneousHeaders(
         }
 
         List<UsgsNwisSiteTimeSeriesMetadata> results = null;
-        // Data type is shown with name so only use the first part of the choice
+        // Data type is shown with name so only use the first part of the choice.
         try {
             results = usgsNwisInstantaneousDataStore.readSiteTimeSeriesMetadataList(dataType, timeStep, __selectedInputFilter_JPanel);
         }
@@ -18426,7 +18429,7 @@ Read the list of time series from a USGS NWIS RDB file and list in the GUI.
 */
 private void uiAction_GetTimeSeriesListClicked_ReadUsgsNwisRdbHeaders ()
 throws IOException
-{	String message, routine = "TSTool_JFrame.readUsgsNwisRdbHeaders";
+{	String message, routine = getClass().getSimpleName() + ".readUsgsNwisRdbHeaders";
 
 	try {
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( JGUIUtil.getLastFileDialogDirectory() );
@@ -18440,11 +18443,11 @@ throws IOException
 		JGUIUtil.setLastFileDialogDirectory ( fc.getSelectedFile().getParent() );
 		String path = fc.getSelectedFile().getPath();
 
-		Message.printStatus ( 1, routine, "Reading USGS NWIS RDB file \"" + path + "\"" );
+		Message.printStatus ( 1, routine, "Reading USGS NWIS RDB file \"" + path + "\"." );
 		JGUIUtil.setWaitCursor ( this, true );
 		TS ts = UsgsNwisRdbTS.readTimeSeries(path, null, null, null, null, null, null,false);
 		if ( ts == null ) {
-			message = "Error reading USGS NWIS RDB file \""+path + "\"";
+			message = "Error reading USGS NWIS RDB file \"" + path + "\".";
 			Message.printWarning ( 2, routine, message );
 			JGUIUtil.setWaitCursor ( this, false );
 			throw new IOException ( message );
@@ -18493,7 +18496,7 @@ private void uiAction_GraphEnsembleResults ( List<TS> tslistFromUI, String graph
         if ( __tsProcessor != null ) {
             try {
                 int selected_tsensembles = JGUIUtil.selectedSize(__resultsTSEnsembles_JList);
-            	TSEnsemble ensembleFromUI = null; // TODO sam 2017-04-05 evaluate whether needed in called code
+            	TSEnsemble ensembleFromUI = null; // TODO smalers 2017-04-05 evaluate whether needed in called code.
                 if ( selected_tsensembles == 0 ) {
                     commandProcessor_ProcessEnsembleResultsList ( ensembleFromUI, tslistFromUI, null, graphProps );
                 }
@@ -18565,7 +18568,7 @@ Import a configuration file and merge with the existing configuration file.
 */
 private void uiAction_ImportConfiguration ( String configFilePath )
 {   String routine = "TSTool_JFrame.uiAction_ImportConfiguration";
-    // Print an explanation before continuing
+    // Print an explanation before continuing.
     int x = ResponseJDialog.NO;
     x = new ResponseJDialog ( this, IOUtil.getProgramName(),
         "This functionality is being reviewed.  Refer to documentation instead of using this tool.\n\n" +
@@ -18589,7 +18592,7 @@ private void uiAction_ImportConfiguration ( String configFilePath )
     if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
         return;
     }
-    // Else, continue and do the merge
+    // Else, continue and do the merge.
     try {
         license_MergeConfigFiles ( currentConfigFile, new File(fc.getSelectedFile().getPath()));
         x = new ResponseJDialog ( this, IOUtil.getProgramName(),
@@ -18603,18 +18606,18 @@ private void uiAction_ImportConfiguration ( String configFilePath )
 }
 
 /**
-Reset the query options choices based on the selected input name.  Other
-method calls are cascaded to fully reset the choices.
-@param selectedDataStore if not null, then the blank input name is selected; if null, then the input name
-selection is processed
+Reset the query options choices based on the selected input name.
+Other method calls are cascaded to fully reset the choices.
+@param selectedDataStore if not null, then the blank input name is selected;
+if null, then the input name selection is processed
 */
 private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
 {	String routine = getClass().getSimpleName() + "uiAction_InputNameChoiceClicked";
 	if ( __inputName_JComboBox == null ) {
 		return;
 	}
-	// Default is for selected name and visible name to be the same, but phase in abbreviated visible names for
-	// some input types below.
+	// Default is for selected name and visible name to be the same,
+	// but phase in abbreviated visible names for some input types below.
 	String selectedInputName = ui_GetSelectedInputName();
 	String selectedInputNameVisible = selectedInputName;
 	
@@ -18661,7 +18664,7 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
     		// Reset the data types.
     		__dataType_JComboBox.setEnabled ( true );
     		__dataType_JComboBox.removeAll ();
-    		// TODO SAM 2004-09-01 need to find a way to not re-read the data types file.
+    		// TODO smalers 2004-09-01 need to find a way to not re-read the data types file.
     		List<String> dataTypes = NWSRFS_Util.getTimeSeriesDataTypes ( __nwsrfs_dmi, true ); // Include description.
     		__dataType_JComboBox.setData ( dataTypes );
     		__dataType_JComboBox.select ( null );
@@ -18674,8 +18677,8 @@ private void uiAction_InputNameChoiceClicked(DataStore selectedDataStore)
 }
 
 /**
-Reset the query options choices based on the selected input type.  Other
-method calls are cascaded to fully reset the choices.  This method also
+Reset the query options choices based on the selected input type.
+Other method calls are cascaded to fully reset the choices.  This method also
 shows/hides columns in the query results multilist to be appropriate for the data input source.
 @param selectedDataStore if not null, then the input type choice is being cascaded through from
 a datastore selection and just needs to further cascade to the input type, setting both to blank.
@@ -18709,8 +18712,7 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 	// Get the selected input type.
     String selectedInputType = ui_GetSelectedInputType();
 	if ( selectedInputType == null ) {
-		// Apparently this happens when setData() or similar is called
-	    // on the JComboBox, and before select() is called.
+		// Apparently this happens when setData() or similar is called on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, "Input type has been selected:  null (select is ignored)" );
 		}
@@ -18783,9 +18785,9 @@ private void uiAction_InputTypeChoiceClicked ( DataStore selectedDataStore )
 }
 
 /**
-Create a new command file.  If any existing commands have been modified the
-user has the option of saving.  Then, the existing commands are cleared and the
-command file name is reset to null.
+Create a new command file.
+If any existing commands have been modified the user has the option of saving.
+Then, the existing commands are cleared and the command file name is reset to null.
 */
 private void uiAction_NewCommandFile ()
 {   // See whether the old commands need to be saved/cleared.
@@ -18807,8 +18809,8 @@ private void uiAction_NewCommandFile ()
 }
 
 /**
-Open a command file and read into the list of commands.  A check is made to
-see if the list contains anything and if it does the user is prompted as to
+Open a command file and read into the list of commands.
+A check is made to see if the list contains anything and if it does the user is prompted as to
 whether need to save the previous commands.
 @param commandFile command file to open, specified if null if file selector dialog
 should display, or as the full, path to the command file if a recent file has been selected
@@ -18820,7 +18822,7 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
     // It is possible that the last command processor run is still going.
     TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
     if ( processor.getIsRunning() ) {
-        // TODO SAM 2013 figure out status of processing (percent complete).
+        // TODO smalers 2013 figure out status of processing (percent complete).
         int x = new ResponseJDialog ( this, IOUtil.getProgramName(),
         "The previous commands are still running (if commands were killed then ignore this warning).\n" +
         "Do you want to load a new command file?\n\n" +
@@ -18830,7 +18832,7 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
         if ( x == ResponseJDialog.NO ) {
             return;
         }
-        //TODO SAM 2016-02-14 Not sure why this is needed.
+        //TODO smalers 2016-02-14 Not sure why this is needed.
         //else if ( x == ResponseJDialog.YES ) {
             // Prompt for the name and then save.
         //    uiAction_WriteCommandFile ( __commandFileName, true, false );
@@ -18860,7 +18862,7 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
 			String directory = fc.getSelectedFile().getParent();
 			String path = fc.getSelectedFile().getPath();
 	
-			// TODO - is this necessary in Swing?
+			// TODO smalers - is this necessary in Swing?
 			// Set the "WorkingDir" property, which will NOT contain a trailing separator.
 			IOUtil.setProgramWorkingDir(directory);
 			ui_SetDir_LastCommandFileOpened(directory);
@@ -18879,7 +18881,7 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
     }
     else {
     	// Set some state information, similar to above, but no need to update menus since picking from visible choice.
-    	// TODO SAM 2014-12-19 maybe this information should be saved in the TSToolSession instance.
+    	// TODO smalers 2014-12-19 maybe this information should be saved in the TSToolSession instance.
     	File f = new File(commandFile);
     	String directory = f.getParent();
 		IOUtil.setProgramWorkingDir(directory);
@@ -18903,16 +18905,15 @@ private void uiAction_OpenCommandFile ( String commandFile, boolean runDiscovery
 Check whether existing commands need to be saved (called when loading or creating a new command file).
 @return true if the operation (open or new) should continue, or false if user has canceled.
 */
-private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
-{
+private boolean uiAction_OpenCommandFile_CheckForSavingCommands() {
     if ( !__commandsDirty ) {
-        // No need to do anything so return true that it is OK to continue with operation
+        // No need to do anything so return true that it is OK to continue with operation.
         return true;
     }
     if ( __commandFileName == null ) {
         // Have not been saved before.
         // Always allow save, even if read-only comment or template is set (since first save).
-        int x = ResponseJDialog.NO; // Blank commands will not be saved
+        int x = ResponseJDialog.NO; // Blank commands will not be saved.
         if ( __commands_JListModel.size() > 0 ) {
             x = new ResponseJDialog ( this, IOUtil.getProgramName(),
             "Do you want to save the changes you made?\n\n" +
@@ -18928,7 +18929,8 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
         }
     }
     else {
-        // A command file exists...  Warn the user.  They can save to the existing file name or can cancel and
+        // A command file exists...  Warn the user.
+    	// They can save to the existing file name or can cancel and
         // File...Save As... to a different name.
         int x = ResponseJDialog.NO;
         boolean commandsAreTemplate = false;
@@ -18973,21 +18975,20 @@ private boolean uiAction_OpenCommandFile_CheckForSavingCommands()
 }
 
 /**
-TODO SAM 2010-09-13 Streamline this when HydroBase is converted to a datastore from input type/name
+TODO smalers 2010-09-13 Streamline this when HydroBase is converted to a datastore from input type/name.
 Open a connection to the HydroBase database.
-@param startup if true, then the connection is being made at software startup.  In this case
-if AutoConnect=True in the configuration, the dialog will not be shown.
+@param startup if true, then the connection is being made at software startup.
+In this case if AutoConnect=True in the configuration, the dialog will not be shown.
 */
 private void uiAction_OpenHydroBase ( boolean startup )
-{	String routine = "TSTool_JFrame.uiAction_OpenHydroBase";
+{	String routine = getClass().getSimpleName() + ".uiAction_OpenHydroBase";
 	Message.printStatus ( 1, routine, "Opening HydroBase connection..." );
 
     // Running interactively so:
 	// 1) If AutoConnect=True, automatically connect using default info
 	// 2) If AutoConnect=False (default), prompt the user to select and login to HydroBase.
-	// This is a modal dialog that will not allow anything else to occur until the
-	// information is entered.  Use a PropList to pass information because there are many
-	// parameters that may change in the future.
+	// This is a modal dialog that will not allow anything else to occur until the information is entered.
+	// Use a PropList to pass information because there are many parameters that may change in the future.
 	
 	// Determine whether the database connection should be automatically made.
 	boolean AutoConnect_boolean = false; // Default is to use the login dialog.
@@ -19038,7 +19039,7 @@ private void uiAction_OpenHydroBase ( boolean startup )
     // If no HydroBase connection was opened, print an appropriate message.
     if ( hbdmi == null ) {
         if ( (ui_GetHydroBaseDataStoreLegacy() == null) && usedDialog ) {
-            // No previous connection known to the UI - print this warning if the dialog was attempted
+            // No previous connection known to the UI - print this warning if the dialog was attempted.
             Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
         }
         else if ( usedDialog ) {
@@ -19048,7 +19049,7 @@ private void uiAction_OpenHydroBase ( boolean startup )
     }
 	else if ( hbdmi == ui_GetHydroBaseDMILegacy() ) {
 	    // Same instance was returned as original (user canceled) - no need to do anything.
-	    // TODO SAM 2008-10-23 If this step is not ignored, the GUI removes HydroBase from the interface?
+	    // TODO smalers 2008-10-23 If this step is not ignored, the GUI removes HydroBase from the interface?
 	}
 	else {
 	    // New connection has been established.
@@ -19067,14 +19068,13 @@ private void uiAction_OpenHydroBase ( boolean startup )
 /**
 Open a connection to NWSRFS FS5Files.
 @param props NWSRFS FS5Files Properties read from a TSTool configuration file.
-If null, the properties will be determined from the TSTool configuration file,
-if available.  This will likely be the case at startup in systems where a
-connection to NWSRFS FS5Files will always be made.  If not null, the connection
-is likely being defined from a TSTool configuration file.
-@param startup If true, indicates that the database connection is being made
-at startup.  In this case, the NWSRFS_FS5Files input type is enabled but there
-may not actually be information in the TSTool.cfg file.  This is the case, for
-example, when multiple NWSRFS FS5Files databases may be available and there is
+If null, the properties will be determined from the TSTool configuration file, if available.
+This will likely be the case at startup in systems where a connection to NWSRFS FS5Files will always be made.
+If not null, the connection is likely being defined from a TSTool configuration file.
+@param startup If true, indicates that the database connection is being made at startup.
+In this case, the NWSRFS_FS5Files input type is enabled but there
+may not actually be information in the TSTool.cfg file.
+This is the case, for example, when multiple NWSRFS FS5Files databases may be available and there is
 no reason to automatically connect to one of them for all users.
 */
 private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
@@ -19108,7 +19108,7 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
             InputName = props.getValue(	"NWSRFSFS5Files.InputName");
 		}
 		
-		// If no configuration information is in the config file, do not open a connection here.
+		// If no configuration information is in the configuration file, do not open a connection here.
 
 		if ( (UseAppsDefaults != null) && (UseAppsDefaults.equalsIgnoreCase("true") ||
 			(UseAppsDefaults.equalsIgnoreCase("false") && (InputName != null))) ) {
@@ -19129,8 +19129,7 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 			// This will allow the user to pick this in the GUI later without reopening.
 			String path = __nwsrfs_dmi.getFS5FilesLocation();
 			__input_name_NWSRFS_FS5Files.add ( path );
-			// For now there is no way for the user to set a separate
-			// input name so set the same as the FS5 Files location.
+			// For now there is no way for the user to set a separate input name so set the same as the FS5 Files location.
 			// Is automatically set.
 			//__nwsrfs_dmi.setInputName ( path );
 			// Set the NWSRFSDMI for the command processor.
@@ -19144,9 +19143,8 @@ private void uiAction_OpenNWSRFSFS5Files ( PropList props, boolean startup )
 	catch ( Exception e ) {
 		Message.printWarning ( 1, routine, "Unable to open NWSRFS FS5Files database.");
 		Message.printWarning( 2, routine, e );
-		// Set the DMI to null so that features will be turned on but
-		// still allow the NWSRFS FS5Files input type to be enabled so
-		// that it can be tried again.
+		// Set the DMI to null so that features will be turned on but // still allow the NWSRFS FS5Files
+		// input type to be enabled so that it can be tried again.
 		__nwsrfs_dmi = null;
 		JGUIUtil.setWaitCursor ( this, false );
 	}
@@ -19174,7 +19172,7 @@ private void uiAction_PasteFromCutBufferToCommandList ()
 		// Nothing selected so set to last item in list.
 		last_selected = list_size - 1;
 	}
-	// Else, nothing in list so will insert at beginning
+	// Else, nothing in list so will insert at beginning.
 
 	// Transfer the cut buffer starting at one after the last selection.
 
@@ -19195,8 +19193,8 @@ private void uiAction_PasteFromCutBufferToCommandList ()
 /**
 Method to read a TSProduct file and process the product.
 @param tspFile if non-null, use it.  If null, prompt for the file.
-@param view_gui If true, the graph will be displayed on the screen.  If false,
-an output file will be prompted for.
+@param view_gui If true, the graph will be displayed on the screen.
+If false, an output file will be prompted for.
 */
 private void uiAction_ProcessTSProductFile ( File tspFile, boolean view_gui )
 throws Exception
@@ -19286,7 +19284,7 @@ private void uiAction_ResultsEnsembleProperties ()
             continue;
         }
         ensembleID = ensemble.getEnsembleID();
-        // TODO SAM 2016-02-25 Need a tabbed panel UI like for time series properties.
+        // TODO smalers 2016-02-25 Need a tabbed panel UI like for time series properties.
         // Format the output and append to what is displayed.
         v.add ( "" );
         v.add ( "EnsembleID = " + ensembleID );
@@ -19297,7 +19295,7 @@ private void uiAction_ResultsEnsembleProperties ()
             Collections.sort(keyList);
             for ( String key : keyList ) {
             	if ( key.equals("EnsembleID") || key.equals("EnsembleName") ) {
-            		// Printed above so don't print - case-specific
+            		// Printed above so don't print - case-specific.
             		continue;
             	}
                 Object value = properties.get(key);
@@ -19314,7 +19312,7 @@ private void uiAction_ResultsEnsembleProperties ()
             ts = ensemble.get(its);
             v.add ( "  " + StringUtil.formatString( (its + 1), "%4d") + " Time series identifier:  " + ts.getIdentifierString() + ", Alias: " + ts.getAlias() );
             v.add ( "        Period:  " + ts.getDate1() + " - " + ts.getDate2() );
-            // Determine if the time series exists in the main time series list
+            // Determine if the time series exists in the main time series list.
             boolean found = false;
             int foundPos = -1;
             if ( tslist == null ) {
@@ -19327,7 +19325,7 @@ private void uiAction_ResultsEnsembleProperties ()
                 TS tsr;
                 for ( int irts = 0; irts < tsResultsSize; irts++ ) {
                     tsr = tslist.get(irts);
-                    // Compare by reference
+                    // Compare by reference.
                     if ( tsr == ts ) {
                         found = true;
                         foundPos = irts;
@@ -19361,13 +19359,13 @@ private void uiAction_ResultsEnsembleProperties ()
 
 /**
 Run the commands in the command list.  These time series are saved in
-__ts_processor and are then available for export, analysis, or viewing.  This
-method should only be called if there are commands in the command list.
-@param runAllCommands If false, then only the selected commands are run.  If
-true, then all commands are run.
-@param createOutput If true, then all write* methods are processed by the
-TSEngine.  If false, only the time series in memory remain at the end and can
-be viewed.  The former is suitable for batch files, both for the GUI.
+__ts_processor and are then available for export, analysis, or viewing.
+This method should only be called if there are commands in the command list.
+@param runAllCommands If false, then only the selected commands are run.
+If true, then all commands are run.
+@param createOutput If true, then all write* methods are processed by the TSEngine.
+If false, only the time series in memory remain at the end and can be viewed.
+The former is suitable for batch files, both for the GUI.
 */
 private void uiAction_RunCommands ( boolean runAllCommands, boolean createOutput )
 {	String routine = "TSTool_JFrame.uiAction_RunCommands";
@@ -19387,10 +19385,9 @@ Display the results of the run, time series and output files.
 This is handled as a "pinch point" in hand-off from the processor and the UI, to try
 to gracefully handle displaying output.
 */
-private void uiAction_RunCommands_ShowResults()
-{
-	// This method may be called from a thread different than the Swing thread.  To
-	// avoid bad behavior in GUI components (like the results list having big gaps),
+private void uiAction_RunCommands_ShowResults() {
+	// This method may be called from a thread different than the Swing thread.
+	// To avoid bad behavior in GUI components (like the results list having big gaps),
 	// use the following to queue up GUI actions on the Swing thread.
 	
 	Runnable r = new Runnable() {
@@ -19475,7 +19472,7 @@ private void uiAction_RunCommands_ShowResultsNetworks()
     }
     ui_SetIgnoreActionEvent(true);
     NodeNetwork network;
-    // Use HTML only when needed to show a zero or 1-node (end node) size network
+    // Use HTML only when needed to show a zero or 1-node (end node) size network.
     String htmlStart = "<html><span style=\"color:red;font-weight:bold\">", htmlStart2;
     String htmlEnd = "</span></html>", htmlEnd2;
     String endNote;
@@ -19541,7 +19538,7 @@ private void uiAction_RunCommands_ShowResultsOutputFiles()
 {	String routine = getClass().getSimpleName() + ".ShowResultsOutputFiles";
 	// Loop through the commands.  For any that implement the FileGenerator interface,
 	// get the output file names and add to the list.
-	// Only add a file if not already in the list
+	// Only add a file if not already in the list.
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsOutputFiles", "Entering method.");
 	ui_SetIgnoreActionEvent(true);
 	try {
@@ -19582,7 +19579,7 @@ private void uiAction_RunCommands_ShowResultsProblems()
         Message.printStatus( 2, routine, "There were " + logRecordList.size() +
             " problems processing " + commands.size() + " commands.");
         // Create a new table model for the problem list.
-        // TODO SAM 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
+        // TODO smalers 2009-03-01 Evaluate whether should just update data in existing table model (performance?).
         CommandLog_TableModel tableModel = new CommandLog_TableModel ( logRecordList );
         CommandLog_CellRenderer cellRenderer = new CommandLog_CellRenderer( tableModel );
         __resultsProblems_JWorksheet.setCellRenderer ( cellRenderer );
@@ -19606,7 +19603,7 @@ private void uiAction_RunCommands_ShowResultsProperties()
     try {
         // Create a new table model for the command processor properties:
     	// - make a copy of the properties so as to not impact the processor
-        // - TODO SAM 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
+        // - TODO smalers 2009-03-01 Evaluate whether should just update data in existing table model (performance?)
         TSCommandProcessor processor = commandProcessor_GetCommandProcessor();
         Collection<String> propertyNames = processor.getPropertyNameList(true, true);
         PropList props = new PropList("processor");
@@ -19659,7 +19656,7 @@ private void uiAction_RunCommands_ShowResultsTables()
     }
     ui_SetIgnoreActionEvent(true);
     DataTable table;
-    // Use HTML only when needed to show a zero size table
+    // Use HTML only when needed to show a zero size table.
     String htmlStart = "<html><span style=\"color:red;font-weight:bold\">", htmlStart2;
     String htmlEnd = "</span></html>", htmlEnd2;
     int nRows, nCols;
@@ -19760,15 +19757,15 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	// Now create the list of indices to use for visually selecting.
 	int [] selected = null;
 	if ( num_selected == 0 ) {
-		// All need to be selected in output
-		selected = new int[size];	// Whether visually selected
+		// All need to be selected in output.
+		selected = new int[size];	// Whether visually selected.
 		for ( int i = 0; i < size; i++ ) {
 			selected[i] = i;
 		}
 	}
 	else {
         // Select the time series of interest.
-		selected = new int[num_selected];	// Whether visually selected
+		selected = new int[num_selected];	// Whether visually selected.
 		int selectedCount = 0;
 		for ( int i = 0; i < size; i++ ) {
 			if ( selected_boolean[i] ) {
@@ -19784,7 +19781,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ()
 	// Make sure that the user is not waiting on the wait cursor.
 	//JGUIUtil.setWaitCursor ( this, false );
 	
-	// TODO SAM 2010-08-09 Evaluate whether this fixes the problem and evaluate the approach.
+	// TODO smalers 2010-08-09 Evaluate whether this fixes the problem and evaluate the approach.
 	// Redraw the list because sometimes it gets out of sync with the UI.
 	__resultsTS_JList.invalidate();
 	
@@ -19847,7 +19844,7 @@ private void uiAction_RunCommandFile ()
 		String directory = fc.getSelectedFile().getParent();
 		String path = fc.getSelectedFile().getPath();
 		ui_SetDir_LastExternalCommandFileRun(directory);
-		// TODO SAM 2007-11-02 Put in thread - but need to figure out how to show completion.
+		// TODO smalers 2007-11-02 Put in thread - but need to figure out how to show completion.
 		try {
 			TSCommandFileRunner runner = new TSCommandFileRunner(
 				this.__tsProcessor.getInitialPropList(),
@@ -19878,10 +19875,10 @@ private void uiAction_RunCommandFile ()
 	}
 }
 
-//TODO SAM 2007-08-31 - need to enable/disable filters based on the list of time series that are selected.
+//TODO smalers 2007-08-31 - need to enable/disable filters based on the list of time series that are selected.
 /**
-Save the current time series to the selected format.  The user picks the file
-and the format, via the chooser filter.
+Save the current time series to the selected format.
+The user picks the file and the format, via the chooser filter.
 */
 private void uiAction_SaveTimeSeries ()
 {	JFileChooser fc = JFileChooserFactory.createJFileChooser( JGUIUtil.getLastFileDialogDirectory() );
@@ -19936,8 +19933,7 @@ private void uiAction_SaveTimeSeries ()
 	String path = fc.getSelectedFile().getPath();
 	
 	FileFilter ff = fc.getFileFilter();
-	// TODO - need to do this cleaner and perhaps let users pick some
-	// output options.  Do enforce the file extensions.
+	// TODO smalers - need to do this cleaner and perhaps let users pick some output options.  Do enforce the file extensions.
 	if ( ff == datevalue_sff ) {
 		uiAction_ExportTimeSeriesResults("-odatevalue", IOUtil.enforceFileExtension(path,"dv") );
 	}
@@ -19998,7 +19994,7 @@ throws Exception
     List<String> dataTypes = selectedDataStore.getTimeSeriesDataTypes ( includeDataTypeGroups, includeWildcards );
     __dataType_JComboBox.setData ( dataTypes );
     // Select the default (this causes the other choices to be updated).
-    // TODO SAM 2010-07-21 Default to Streamflow once implemented, like HydroBase.
+    // TODO smalers 2010-07-21 Default to Streamflow once implemented, like HydroBase.
     __dataType_JComboBox.select( null );
     try {
     	__dataType_JComboBox.select ( "Structure - DivTotal" );
@@ -20091,7 +20087,7 @@ private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDat
         HydroBase_Util.DATA_TYPE_HARDWARE |
         HydroBase_Util.DATA_TYPE_STATION_ALL |
         HydroBase_Util.DATA_TYPE_STRUCTURE_ALL,
-        true ); // Add notes
+        true ); // Add notes.
     __dataType_JComboBox.setData ( data_types );
 
     // Select the default (this causes the other choices to be updated).
@@ -20100,7 +20096,7 @@ private void uiAction_SelectDataStore_HydroBase ( HydroBaseDataStore selectedDat
     __dataType_JComboBox.select(HydroBase_Util.getDefaultTimeSeriesDataType(dmi, true ) );
 
     // Initialize with blank data list.
-    // TODO SAM 2012-09-05 Initialize with correct table model - for now use stations because it will get reset
+    // TODO smalers 2012-09-05 Initialize with correct table model - for now use stations because it will get reset
     // when data are read (different table model might confuse user).
 
     try {
@@ -20236,7 +20232,7 @@ throws Exception
     __timeStep_JComboBox.add ( __TIMESTEP_IRREGULAR ); // Instantaneous handled as irregular.
     __timeStep_JComboBox.add ( "*" ); // This will query hour, day, month, year, and irregular in sequence and concatenate the lists.
     __timeStep_JComboBox.setMaximumRowCount(__timeStep_JComboBox.getItemCount());
-    // FIXME SAM 2010-10-26 Could handle WY as YEAR, but need to think about it to be consistent with TSTool in general.
+    // FIXME smalers 2010-10-26 Could handle WY as YEAR, but need to think about it to be consistent with TSTool in general.
     __timeStep_JComboBox.select ( __TIMESTEP_MONTH );
     __timeStep_JComboBox.setEnabled ( true );
 
@@ -20278,7 +20274,7 @@ throws Exception
     __timeStep_JComboBox.add ( "*" );
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.HOUR, 0));
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.DAY, 0));
-    // TODO SAM 2015-08-26 Add week when enabled in TSTool.
+    // TODO smalers 2015-08-26 Add week when enabled in TSTool.
     //__timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.WEEK, 0));
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.MONTH, 0));
     __timeStep_JComboBox.add ( TimeInterval.getName(TimeInterval.YEAR, 0));
@@ -20554,7 +20550,7 @@ throws Exception
     // Turn off columns in the table model that do not apply.
     __query_JWorksheet.removeColumn (((TSTool_HecDss_TableModel)__query_TableModel).COL_SEQUENCE);
     __query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
-    
+
     // File was selected.
     return true;
 }
@@ -20569,7 +20565,7 @@ values from __input_name_NWSRFS_FS5Files.
 private void uiAction_SelectInputName_NWSRFS_FS5Files ( boolean reset_input_names )
 throws Exception
 {   String routine = "TSTool_JFrame.selectInputName_NWSRFS_FS5Files";
-    // TODO SAM 2004-09-10 it does not seem like the following case ever
+    // TODO smalers 2004-09-10 it does not seem like the following case ever
     // is true - need to decide whether to take out.
     if ( reset_input_names ) {
         // The NWSRFS_FS5Files input type has been selected as a change from another type.
@@ -20608,8 +20604,8 @@ throws Exception
 
         ui_SetIgnoreItemEvent ( true );
         if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox, inputName, JGUIUtil.NONE, null, null ) ) {
-            // Not already in so add after the browse string (files
-            // are listed chronologically by select with most recent at the top.
+            // Not already in so add after the browse string
+        	// (files are listed chronologically by select with most recent at the top).
             if ( IOUtil.isUNIXMachine() ) {
                 // Unix/Linux includes "Please Select...",
                 // "Use Apps Defaults", and "Browse..."...
@@ -20655,7 +20651,7 @@ throws Exception
         __nwsrfs_dmi = null;
         JGUIUtil.setWaitCursor ( this, false );
         return;
-        // TODO SAM 2004-09-08 need to remove from the input name list if an error?
+        // TODO smalers 2004-09-08 need to remove from the input name list if an error?
     }
 
     // Set the data types and time step based on what is available.
@@ -20728,7 +20724,7 @@ throws Exception
     	//__dataType_JComboBox.removeAll ();
     	//__timeStep_JComboBox.setEnabled ( false );
     	//__timeStep_JComboBox.removeAll ();
-    
+
     	// Initialize the time series list with blank data list.
     	__query_TableModel = new TSTool_HecDss_TableModel ( null, false );
     	TSTool_HecDss_CellRenderer cr = new TSTool_HecDss_CellRenderer( (TSTool_HecDss_TableModel)__query_TableModel);
@@ -20765,9 +20761,9 @@ private void uiAction_SelectInputType_HydroBase ()
     __dataType_JComboBox.select( null );
     __dataType_JComboBox.select(HydroBase_Util.getDefaultTimeSeriesDataType(ui_GetHydroBaseDMILegacy(), true ) );
 
-    // Initialize with blank data list
-    // TODO SAM 2012-09-05 Initialize with correct table model - for now use stations because it will get reset
-    // when data are read (different table model might confuse user)
+    // Initialize with blank data list.
+    // TODO smalers 2012-09-05 Initialize with correct table model - for now use stations because it will get reset
+    // when data are read (different table model might confuse user).
 
     try {
         __query_TableModel = new TSTool_HydroBase_StationGeolocMeasType_TableModel(
@@ -20802,7 +20798,7 @@ throws Exception
     __dataType_JComboBox.removeAll ();
     __dataType_JComboBox.add( __DATA_TYPE_AUTO );
 
-    // Initialize with blank data vector.
+    // Initialize with blank data list.
 
     __query_TableModel = new TSTool_TS_TableModel(null);
     TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)__query_TableModel);
@@ -20817,8 +20813,7 @@ throws Exception
 Set up query choices because NWS Card input type has been selected.
 */
 private void uiAction_SelectInputType_NwsCard ()
-throws Exception
-{
+throws Exception {
     // Most information is determined from the file.
     ui_SetInputNameVisible(false); // Not needed.
     __inputName_JComboBox.removeAll();
@@ -20843,8 +20838,7 @@ throws Exception
 Set up query choices becase NWSRFS ESP trace ensemble input type was seleted.
 */
 private void uiAction_SelectInputType_NwsrfsEspTraceEnsemble ()
-throws Exception
-{
+throws Exception {
     // Most information is determined from the file.
     ui_SetInputNameVisible(false); // Not needed.
     __inputName_JComboBox.removeAll();
@@ -20910,11 +20904,11 @@ throws Exception
     __timeStep_JComboBox.setEnabled ( false );
     __timeStep_JComboBox.removeAll ();
 
-    ui_SetIgnoreItemEvent ( false );        // Item events OK again
+    ui_SetIgnoreItemEvent ( false );  // Item events OK again.
 
     if ( (__inputName_JComboBox.getItemCount() == 1) && (__inputName_JComboBox.getSelected().equals(__BROWSE))){
-        // Only Browse is in the list so if the user picks, the
-        // component does not generate an event because the choice has not changed.
+        // Only Browse is in the list so if the user picks,
+    	// the component does not generate an event because the choice has not changed.
         try {
             uiAction_SelectInputName_NWSRFS_FS5Files ( false );
         }
@@ -20946,8 +20940,7 @@ throws Exception
 Set up query choices because the Riverware input type has been selected.
 */
 private void uiAction_SelectInputType_RiverWare ()
-throws Exception
-{
+throws Exception {
     // Most information is determined from the file.
     ui_SetInputNameVisible(false); // Not needed.
     __inputName_JComboBox.removeAll();
@@ -21054,8 +21047,8 @@ throws Exception
 			__inputName_JComboBox.add ( __BROWSE );
 		}
 		if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox, inputName, JGUIUtil.NONE, null, null ) ) {
-			// Not already in so add after the browse string (files
-			// are listed chronologically by select with most recent at the top.
+			// Not already in so add after the browse string
+			// (files are listed chronologically by select with most recent at the top).
 			if ( __inputName_JComboBox.getItemCount() > 1 ) {
 				__inputName_JComboBox.addAt ( inputName, 1 );
 				__inputNameStateCU.add ( 1, inputName );
@@ -21066,8 +21059,7 @@ throws Exception
 			}
 		}
 		ui_SetIgnoreItemEvent ( false );
-		// Select the file in the input name because leaving it on
-		// browse will disable the user's ability to reselect browse.
+		// Select the file in the input name because leaving it on browse will disable the user's ability to reselect browse.
 		__inputName_JComboBox.select ( null );
 		__inputName_JComboBox.select ( inputName );
 	}
@@ -21110,13 +21102,12 @@ throws Exception
 
 /**
 Prompt for a StateCUB input name (binary file name).  When selected, update the choices.
-@param reset_input_names If true, the input names will be repopulated with
-values from __input_name_StateModB.
+@param reset_input_names If true, the input names will be repopulated with values from __input_name_StateModB.
 @exception Exception if there is an error.
 */
 private void uiAction_SelectInputType_StateCUB ( boolean reset_input_names )
 throws Exception
-{   String routine = "TSTool_JFrame.selectInputName_StateCUB";
+{   String routine = getClass().getSimpleName() + ".selectInputName_StateCUB";
     ui_SetInputNameVisible(true); // Lists files.
     if ( reset_input_names ) {
         // The StateCUB input type has been selected as a change from another type.
@@ -21166,8 +21157,8 @@ throws Exception
             __inputName_JComboBox.add ( __BROWSE );
         }
         if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox,input_name, JGUIUtil.NONE, null, null ) ) {
-            // Not already in so add after the browse string (files
-            // are listed chronologically by select with most recent at the top.
+            // Not already in so add after the browse string
+        	// (files are listed chronologically by select with most recent at the top).
             if ( __inputName_JComboBox.getItemCount() > 1 ) {
                 __inputName_JComboBox.addAt ( input_name, 1 );
                 __input_name_StateCUB.add ( 1, input_name );
@@ -21178,8 +21169,7 @@ throws Exception
             }
         }
         ui_SetIgnoreItemEvent ( false );
-        // Select the file in the input name because leaving it on
-        // browse will disable the user's ability to reselect browse.
+        // Select the file in the input name because leaving it on browse will disable the user's ability to reselect browse.
         __inputName_JComboBox.select ( null );
         __inputName_JComboBox.select ( input_name );
     }
@@ -21192,13 +21182,13 @@ throws Exception
     __dataType_JComboBox.removeAll ();
     String extension = IOUtil.getFileExtension ( input_name );
 
-    int interval_base = TimeInterval.MONTH; // Default
+    int interval_base = TimeInterval.MONTH; // Default.
     int comp = StateCU_DataSet.COMP_UNKNOWN;
     if ( extension.equalsIgnoreCase("bd1" ) ) {
-        // CU Locations
+        // CU Locations.
         comp = StateCU_DataSet.COMP_CU_LOCATIONS;
     }
-    // TODO SAM 2006-01-15 The following is not overly efficient because of a transition in StateMod versions.
+    // TODO smalers 2006-01-15 The following is not overly efficient because of a transition in StateMod versions.
     // The version of the format is determined from the file.
     // For older versions, this is used to return hard-coded parameter lists.
     // For newer formats, the binary file is reopened and the parameters are determined from the file.
@@ -21211,7 +21201,7 @@ throws Exception
             interval_base,
             false,  // Include input (only output here).
             false,  // Include input, estimated (only output here).
-            true,   // Include output (what the binaries contain)
+            true,   // Include output (what the binaries contain).
             false,  // Check availability.
             true,   // Add group (if available).
             false );// Add note.
@@ -21256,9 +21246,8 @@ throws Exception
 Set up query choices because the StateMod input type has been selected.
 */
 private void uiAction_SelectInputType_StateMod ()
-throws Exception
-{
-    // We disable all but the time step so the user can pick from appropriate files.
+throws Exception {
+    // Disable all but the time step so the user can pick from appropriate files.
     ui_SetInputNameVisible(false); // Not needed.
     __inputName_JComboBox.removeAll();
     __inputName_JComboBox.setEnabled ( false );
@@ -21294,9 +21283,9 @@ throws Exception
 {	String routine = "TSTool_JFrame.selectInputName_StateModB";
     ui_SetInputNameVisible(true); // Lists files.
 	if ( resetInputNames ) {
-		// The StateModB input type has been selected as a change from
-		// another type.  Repopulate the list if previous choices exist.
-		// TODO - probably not needed.
+		// The StateModB input type has been selected as a change from another type.
+		// Repopulate the list if previous choices exist.
+		// TODO smalers - probably not needed.
 		//__input_name_JComboBox.removeAll();
 		__inputName_JComboBox.setData ( __input_name_StateModB );
 	}
@@ -21345,8 +21334,8 @@ throws Exception
 			__inputName_JComboBox.add ( __BROWSE );
 		}
 		if ( !JGUIUtil.isSimpleJComboBoxItem (__inputName_JComboBox,inputName, JGUIUtil.NONE, null, null ) ) {
-			// Not already in so add after the browse string (files
-			// are listed chronologically by select with most recent at the top.
+			// Not already in so add after the browse string
+			// (files are listed chronologically by select with most recent at the top).
 			if ( __inputName_JComboBox.getItemCount() > 1 ) {
 				__inputName_JComboBox.addAt ( inputName, 1 );
 				__input_name_StateModB.add ( 1, inputName );
@@ -21357,8 +21346,7 @@ throws Exception
 			}
 		}
 		ui_SetIgnoreItemEvent ( false );
-		// Select the file in the input name because leaving it on
-		// browse will disable the user's ability to reselect browse.
+		// Select the file in the input name because leaving it on browse will disable the user's ability to reselect browse.
 		__inputName_JComboBox.select ( null );
 		__inputName_JComboBox.select ( inputName );
 	}
@@ -21401,10 +21389,10 @@ throws Exception
 		interval_base = TimeInterval.DAY;
 		comp = StateMod_DataSet.COMP_WELL_STATIONS;
 	}
-	// TODO SAM 2006-01-15  The following is not overly efficient because of a transition in StateMod versions.
-	// The version of the format is determined from the file.  For older versions, this is used to
-	// return hard-coded parameter lists.  For newer formats, the binary file is reopened and
-	// the parameters are determined from the file.
+	// TODO smalers 2006-01-15  The following is not overly efficient because of a transition in StateMod versions.
+	// The version of the format is determined from the file.
+	// For older versions, this is used to return hard-coded parameter lists.
+	// For newer formats, the binary file is reopened and the parameters are determined from the file.
 	dataTypes = StateMod_Util.getTimeSeriesDataTypes (
 			inputName,	// Name of binary file.
 			comp,	// Component from above, from file extension.
@@ -21489,7 +21477,7 @@ upper right of the main TSTool interface and zoom to the selected features.
 */
 private void uiAction_SelectOnMap ()
 throws Exception
-{	String routine = "TSTool_JFrame.selectOnMap";
+{	String routine = getClass().getSimpleName() + ".selectOnMap";
 	int size = __query_JWorksheet.getRowCount();	// To size the list.
 	List<String> idlist = new ArrayList<>(size);
 	Message.printStatus ( 1, routine, "Selecting and zooming to stations on map.  Please wait...");
@@ -21502,9 +21490,9 @@ throws Exception
 	// Get the list of layers to select from, and the attributes to use.
 	// First read the file with the lookup of time series to layer information.
 
-	// TODO SAM 2006-03-01
-	// Currently read this each time because it is a small file and it
-	// helps in development to not restart.  However, in the future, change so that the file is read once.
+	// TODO smalers 2006-03-01
+	// Currently read this each time because it is a small file and it helps in development to not restart.
+	// However, in the future, change so that the file is read once.
 
 	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
 	if ( filename == null ) {
@@ -21520,8 +21508,8 @@ throws Exception
 	}
 	
 	PropList props = new PropList ("");
-	props.set ( "Delimiter=," );		// see existing prototype
-	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this
+	props.set ( "Delimiter=," );		// See existing prototype.
+	props.set ( "CommentLineIndicator=#" );	// New - skip lines that start with this.
 	props.set ( "TrimStrings=True" );	// If true, trim strings after reading.
 	DataTable table = DataTable.parseFile ( full_filename, props );
 	
@@ -21533,10 +21521,7 @@ throws Exception
 	int Layer_LocationCol_int = -1;
 	int Layer_DataSourceCol_int = -1;
 	int Layer_IntervalCol_int = -1;
-	StringBuffer attributes = new StringBuffer();	// To put together a
-							// list of attribute
-							// names and values for
-							// queries.
+	StringBuffer attributes = new StringBuffer();	// List of attribute names and values for queries.
 	if ( table != null ) {
 		tsize = table.getNumberOfRecords();
 
@@ -21613,8 +21598,7 @@ throws Exception
 	}
 
 	// Determine the list of features (by ID, and optionally data source and interval) to select.
-	// TODO SAM 2006-01-16
-	// Need to make this more generic by using an interface to retrieve important time series data?
+	// TODO smalers 2006-01-16 Need to make this more generic by using an interface to retrieve important time series data?
 
 	// Get the worksheet of interest.
 
@@ -21707,10 +21691,10 @@ throws Exception
 	Message.printStatus ( 2, routine, "AttributeList=" + mapidlist );
 	Message.printStatus ( 2, routine, "IDList=" + idlist );
 	List<GeoRecord> matching_features = __geoview_JFrame.getGeoViewJPanel().selectLayerFeatures(
-			layerlist,	// Layers to search
-			mapidlist,	// Attributes to use to compare to the identifiers
-			idlist,		// Identifiers to find
-			select_props );	// Properties to control search/select
+			layerlist,	// Layers to search.
+			mapidlist,	// Attributes to use to compare to the identifiers.
+			idlist,		// Identifiers to find.
+			select_props );	// Properties to control search/select.
 	int matches = 0;
 	if ( matching_features != null ) {
 		matches = matching_features.size();
@@ -21727,8 +21711,7 @@ throws Exception
 		" records were found in map data.\n" +
 		"This may be because of incomplete location data.");
 	}
-    //__statusJTextField.setText(
-	//"Map is zoomed to selected stations.  Ready.");
+    //__statusJTextField.setText("Map is zoomed to selected stations.  Ready.");
 	JGUIUtil.setWaitCursor(this, false);
 	idlist = null;
 }
@@ -21736,8 +21719,7 @@ throws Exception
 /**
 Display the status of the selected command(s).
 */
-private void uiAction_ShowCommandStatus()
-{
+private void uiAction_ShowCommandStatus() {
   SwingUtilities.invokeLater(new Runnable() {
     public void run() {
       try {
@@ -21759,12 +21741,11 @@ private void uiAction_ShowCommandStatus()
   }
 
 /**
-Gets Commands status in html - this is currently only a helper for
-the above method.  Rename if it will be used generically.
+Gets Commands status in html - this is currently only a helper for the above method.
+Rename if it will be used generically.
 @return command status in HTML format
 */
-private String uiAction_ShowCommandStatus_GetCommandsStatus()
-{
+private String uiAction_ShowCommandStatus_GetCommandsStatus() {
     List<Command> commands = commandList_GetCommandsBasedOnUI();
     return CommandStatusUtil.getHTMLStatusReport(commands);
 }
@@ -21798,8 +21779,7 @@ private void uiAction_ShowDataUnits ()
 /**
 Show the Help About dialog in response to a user selecting a menu.
 */
-private void uiAction_ShowHelpAbout ()
-{
+private void uiAction_ShowHelpAbout () {
     new HelpAboutJDialog ( this, "About TSTool",
     "TSTool - Time Series Tool " + IOUtil.getProgramVersion() + "\n" +
     " \n" +
@@ -21845,20 +21825,21 @@ private void uiAction_ShowNetworkProperties ()
         reportProp.set ( "PrintSize", "7" );
         reportProp.set ( "Title", "Network Properties" );
         List<String> v = new ArrayList<>();
-        // Get the network of interest
+        // Get the network of interest.
         if ( __resultsNetworks_JList.getModel().getSize() > 0 ) {
-            // If something is selected, show properties for the selected.  Otherwise, show properties for all.
-            // TODO SAM 2017-05-31 Add intelligence to select based on mouse click?
+            // If something is selected, show properties for the selected.
+        	// Otherwise, show properties for all.
+        	// TODO smalers 2017-05-31 Add intelligence to select based on mouse click?
             int [] sel = __resultsNetworks_JList.getSelectedIndices();
             if ( sel.length == 0 ) {
-                // Process all
+                // Process all.
                 sel = new int[__resultsNetworks_JList.getModel().getSize()];
                 for ( int i = 0; i < sel.length; i++ ) {
                     sel[i] = i;
                 }
             }
             for ( int i = 0; i < sel.length; i++ ) {
-                // TODO SAM 2012-10-15 Evaluate putting this in DataTable class for general use
+                // TODO smalers 2012-10-15 Evaluate putting this in DataTable class for general use.
                 String displayString = __resultsNetworks_JList.getModel().getElementAt(sel[i]);
                 String networkId = uiAction_ShowResultsTable_GetTableID ( displayString );
                 NodeNetwork network = commandProcessor_GetNetwork ( networkId );
@@ -21869,13 +21850,13 @@ private void uiAction_ShowNetworkProperties ()
                 v.add ( "Network nodes are listed below (most downstream to most upstream):" );
                 if ( network instanceof HydrologyNodeNetwork ) {
                 	HydrologyNodeNetwork hnetwork = (HydrologyNodeNetwork)network;
-                	// TODO sam 2017-05-31 need to evaluate how to get indentation working
+                	// TODO smalers 2017-05-31 need to evaluate how to get indentation working.
                 	boolean doIndent = false;
                 	if ( doIndent ) {
                 		v.addAll(hnetwork.createIndentedRiverNetworkStrings());
                 	}
                 	else {
-	                	// Start at the bottom and navigate the network to output basic information about the network
+	                	// Start at the bottom and navigate the network to output basic information about the network.
 	                	int count = 0;
 	                	for ( HydrologyNode node = hnetwork.getMostUpstreamNode(); ; node = HydrologyNodeNetwork.getDownstreamNode(node, HydrologyNodeNetwork.POSITION_COMPUTATIONAL) ) {
 	                		if ( node == null ) {
@@ -21896,7 +21877,7 @@ private void uiAction_ShowNetworkProperties ()
                 }
             }
         }
-        reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+        reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
         new ReportJFrame ( v, reportProp );
     }
     catch ( Exception e ) {
@@ -21923,7 +21904,7 @@ private void uiAction_ShowObjectProperties () {
         // Get the object of interest.
         if ( this.__resultsObjects_JList.getModel().getSize() > 0 ) {
             // If something is selected, show properties for the selected.  Otherwise, show properties for all.
-            // TODO SAM 2012-10-12 Add intelligence to select based on mouse click?
+            // TODO smalers 2012-10-12 Add intelligence to select based on mouse click?
             int [] sel = __resultsObjects_JList.getSelectedIndices();
             if ( sel.length == 0 ) {
                 // Process all.
@@ -21933,7 +21914,7 @@ private void uiAction_ShowObjectProperties () {
                 }
             }
             for ( int i = 0; i < sel.length; i++ ) {
-                // TODO SAM 2012-10-15 Evaluate putting this in JSON class for general use.
+                // TODO smalers 2012-10-15 Evaluate putting this in JSON class for general use.
                 String displayString = __resultsObjects_JList.getModel().getElementAt(sel[i]);
                 String objectId = uiAction_ShowResultsObject_GetObjectID ( displayString );
                 JSONObject object = commandProcessor_GetObject ( objectId );
@@ -22060,7 +22041,7 @@ private void uiAction_ShowProperties_CommandsRun () {
 			}
 		}
 	}
-	reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+	reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
 	new ReportJFrame ( v, reportProp );
 }
 
@@ -22232,7 +22213,7 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     v.add ( "" );
     v.add ( "Software installation directory = \"" + IOUtil.getApplicationHomeDir() + "\"" );
     v.add ( "Global working directory = \"" + IOUtil.getProgramWorkingDir() + "\"" );
-    reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI
+    reportProp.setUsingObject ( "ParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
     new ReportJFrame ( v, reportProp );
 }
 
@@ -22407,13 +22388,13 @@ private void uiAction_ShowResultsTable ( String selected )
 Helper method to get the table identifier from the displayed table results list string.
 */
 private String uiAction_ShowResultsTable_GetTableID ( String tableDisplayString ) {
-    // Determine the table identifier from the displayed string, which will always have at least one
-    // dash, but table identifiers may also have a dash
+    // Determine the table identifier from the displayed string,
+	// which will always have at least one dash, but table identifiers may also have a dash
     if ( tableDisplayString == null ) {
         return null;
     }
-    int pos1 = tableDisplayString.indexOf( ")"); // Count at start of string
-    int pos2 = tableDisplayString.indexOf( " -"); // Break between ID
+    int pos1 = tableDisplayString.indexOf( ")"); // Count at start of string.
+    int pos2 = tableDisplayString.indexOf( " -"); // Break between ID.
     String tableId = tableDisplayString.substring(pos1+1,pos2).trim();
     return tableId;
 }
@@ -22437,7 +22418,7 @@ private void uiAction_ShowTableProperties ()
         // Get the table of interest.
         if ( __resultsTables_JList.getModel().getSize() > 0 ) {
             // If something is selected, show properties for the selected.  Otherwise, show properties for all.
-            // TODO SAM 2012-10-12 Add intelligence to select based on mouse click?
+            // TODO smalers 2012-10-12 Add intelligence to select based on mouse click?
             int [] sel = __resultsTables_JList.getSelectedIndices();
             if ( sel.length == 0 ) {
                 // Process all.
@@ -22447,7 +22428,7 @@ private void uiAction_ShowTableProperties ()
                 }
             }
             for ( int i = 0; i < sel.length; i++ ) {
-                // TODO SAM 2012-10-15 Evaluate putting this in DataTable class for general use.
+                // TODO smalers 2012-10-15 Evaluate putting this in DataTable class for general use.
                 String displayString = __resultsTables_JList.getModel().getElementAt(sel[i]);
                 String tableId = uiAction_ShowResultsTable_GetTableID ( displayString );
                 DataTable t = commandProcessor_GetTable ( tableId );
@@ -22488,7 +22469,7 @@ Method to run test code.  This is usually accessible only when running with the 
 */
 private void uiAction_Test ()
 throws Exception
-{	String routine = "TSTool_JFrame.test";
+{	String routine = getClass().getSimpleName() + ".test";
 	int test_num = 9;
 	Message.printStatus ( 2, routine, "Executing test " + test_num );
 	if ( test_num == 0 ) {
@@ -22522,7 +22503,7 @@ throws Exception
 		// Read test input.
 		List<TS> tslist = DateValueTS.readTimeSeriesList ( "J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\TF24.mdk",
 			(DateTime)null, (DateTime)null, (String)null, true );
-		// Write the SHEF
+		// Write the SHEF.
 		ShefATS.writeTimeSeriesList ( tslist,
 			"J:\\cdss\\develop\\apps\\TSTool\\test\\Data_SHEF\\test.shef", false, (DateTime)null, (DateTime)null,
 			(List<String>)null, ShefATS.getPEForTimeSeries(tslist), (List<String>)null, (List<String>)null,
@@ -22537,8 +22518,8 @@ throws Exception
 		List<TS> tslist2 = new ArrayList<>(size);
 		TS ts;
 		for ( int i = 0; i < size; i++ ) {
-			// Add time series that have ACFT units and "accum" in the description, but not the
-			// last time series, which is the average that we are trying to test here.
+			// Add time series that have ACFT units and "accum" in the description,
+			// but not the last time series, which is the average that we are trying to test here.
 			ts = (TS)tslist.get(i);
 			if ( ts.getDataUnits().equalsIgnoreCase("ACFT") && (ts.getAlias().indexOf("Accum") >= 0) ) {
 				tslist2.add ( ts );
@@ -22638,8 +22619,8 @@ throws Exception
 	else if ( test_num == 5 ) {
 		// Test converting NWS MAP 6-hour time series to hydrologic day.
 		// This requires connecting to the NERFC files.
-		// Query each time series corresponding to the MAP centroid
-		// layer, using the AppJoinField as the ID part of the time series identifier.
+		// Query each time series corresponding to the MAP centroid layer,
+		// using the AppJoinField as the ID part of the time series identifier.
 		String loc;	// Location to process.
 		String tsid;	// Time series identifier string.
 		TS ts;		// 6-hour MAP time series.
@@ -22649,12 +22630,12 @@ throws Exception
 		int count;	// Count of values in a day (need 4).
 		double sum;	// Sum of 6-hour values for day.
 		double value;	// Value from the 6-hour time series.
-		// TODO SAM 2004-10-28 TOM Replace the following to loop through each feature in the MAP centroid layer.
+		// TODO smalers 2004-10-28 TOM Replace the following to loop through each feature in the MAP centroid layer.
 		for ( int i = 0; i < 1; i++ ) {
 		loc = "NYZ001";
-		// TODO SAM 2004-10-28 This will only work on systems with 6-hour MAP (which is most).
+		// TODO smalers 2004-10-28 This will only work on systems with 6-hour MAP (which is most).
 		// Additional work will need to be done to support other systems.
-		// TODO SAM 2004-10-28 - Tom replace the following with tsid = loc + ".NWSRFS.MAP.6Hour~NWSRFS_FS5Files";
+		// TODO smalers 2004-10-28 - Tom replace the following with tsid = loc + ".NWSRFS.MAP.6Hour~NWSRFS_FS5Files";
 		tsid = loc + ".NWSRFS.MAP.6Hour~NWSRFS_FS5Files" +
 			"~" + __nwsrfs_dmi.getFS5FilesLocation();
 		try {	ts = __nwsrfs_dmi.readTimeSeries ( tsid,
@@ -22672,17 +22653,17 @@ throws Exception
 			"No time series read for: \"" + tsid + "\"" );
 			// TODO Tom.
 			// Somehow need to add -999 to the attribute table for this location.
-			// Otherwise, if the time series is not null, do the following...
+			// Otherwise, if the time series is not null, do the following.
 		}
 		// Create a daily time series.
 		dayts = new DayTS ();
 		dayts.setIdentifier ( loc + ".NWSRFS.MAP.Day" );
 		dayts.setDataUnits ( ts.getDataUnits() );
 		dayts.setDataUnitsOriginal ( ts.getDataUnitsOriginal() );
-		// Set the dates to include whatever the original data do - this
-		// may result in some missing data at the ends -
-		// TODO SAM 2004-10-28 need to decide whether to include
-		// partial totals at the ends - does the processed DB always have full days?
+		// Set the dates to include whatever the original data do.
+		// This may result in some missing data at the ends.
+		// TODO smalers 2004-10-28 need to decide whether to include partial totals at the ends.
+		// Does the processed DB always have full days?
 		date = new DateTime ( ts.getDate1() );
 		date.setPrecision ( DateTime.PRECISION_DAY );
 		dayts.setDate1 ( date );
@@ -22694,7 +22675,7 @@ throws Exception
 		dayts.allocateDataSpace();
 		// Loop through the 6-hour time series and convert each
 		// 18, 00, 06, 12 combination to a single 1-day sum, corresponding to the hydrologic day.
-		// TODO SAM 2004-10-28 at some point this may just call a
+		// TODO smalers 2004-10-28 at some point this may just call a
 		// generic TSUtil.changeInterval() method, but that code is not ready.
 		count = 0;
 		sum = 0.0;
@@ -22704,7 +22685,7 @@ throws Exception
 			date.addHour ( 6 ) ) {
 			// Add to the sum.
 			value = ts.getDataValue(date);
-			// TODO SAM - Tom take out this status message after testing out.
+			// TODO smalers - Tom take out this status message after testing out.
 			Message.printStatus ( 2, "", " 6-hour " +
 				date.toString() + " value=" + value );
 			if ( !ts.isDataMissing(value) ) {
@@ -22716,11 +22697,10 @@ throws Exception
 			if ( date.getHour() == 12 ) {
 				if ( count == 4 ) {
 					// Assign the sum to the daily time series.
-					// OK to use the same date since it will
-					// be truncated and the hydrologic day
+					// OK to use the same date since it will be truncated and the hydrologic day
 					// ending on YYYY-MM-DD HH is YYYY-MM-DD.
 					dayts.setDataValue ( date, sum );
-					// TODO SAM - Tom take out this status message after testing out.
+					// TODO smalers - Tom take out this status message after testing out.
 					Message.printStatus ( 2, "", "24-hour "+
 					date.toString() + " value=" + sum );
 				}
@@ -22865,13 +22845,13 @@ throws Exception
 			"\" station_id=\"" + station_id + "\"" );
 			rec.addFieldValue ( station_id );
 			rec.addFieldValue ( lv_table.getFieldValue(i,"Name") );
-			rec.addFieldValue ( new Double(-1.0) );	// Value CFS
-			rec.addFieldValue ( "" );		// Date
-			rec.addFieldValue ( new Double(-1.0) );	// Average
-			rec.addFieldValue ( new Double(-1.0) );	// % of Average
-			rec.addFieldValue ( new Double(pt.x) );	// UTMX
-			rec.addFieldValue ( new Double(pt.y) );	// UTMY
-			table.addRecord ( rec );	// May be updated below
+			rec.addFieldValue ( new Double(-1.0) );	// Value CFS.
+			rec.addFieldValue ( "" );		// Date.
+			rec.addFieldValue ( new Double(-1.0) );	// Average.
+			rec.addFieldValue ( new Double(-1.0) );	// % of Average.
+			rec.addFieldValue ( new Double(pt.x) );	// UTMX.
+			rec.addFieldValue ( new Double(pt.y) );	// UTMY.
+			table.addRecord ( rec );	// May be updated below.
 
 			// Determine the most recent value of the time series.
 			// First loop through the time series to find one that matches the station.
@@ -22883,7 +22863,7 @@ throws Exception
 					tsident.getLocation().equalsIgnoreCase(station_id)) &&
 					tsident.getInterval().equalsIgnoreCase("Irregular") ) {
 					Message.printStatus ( 2, routine, "Found matching real-time time series.");
-					// have the matching station
+					// Have the matching station.
 					value = ts.getDataValue ( now );
 					Message.printStatus ( 2, routine, "Data value on " + now + " is " +	value );
 					rec.setFieldValue (3,new Double(value));
@@ -22975,8 +22955,7 @@ private void uiAction_TimeStepChoiceClicked()
 	}
 	String selectedTimeStep = ui_GetSelectedTimeStep();
 	if ( selectedTimeStep == null ) {
-		// Apparently this happens when setData() or similar is called
-		// on the JComboBox, and before select() is called.
+		// Apparently this happens when setData() or similar is called on the JComboBox, and before select() is called.
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, rtn, "Time step has been selected:  null (select is ignored)" );
 		}
@@ -22993,7 +22972,7 @@ private void uiAction_TimeStepChoiceClicked()
 Transfer all the time series from the query results to the command List.
 */
 private void uiAction_TransferAllQueryResultsToCommandList()
-{	String routine = "TSTool_JFrame.uiAction_TransferAllQueryResultsToCommandList";
+{	String routine = getClass().getSimpleName() + ".uiAction_TransferAllQueryResultsToCommandList";
 
 	int nrows = __query_TableModel.getRowCount();
 	Message.printStatus ( 1, routine, "Transferring all time series to commands (" + nrows + " in list)..." );
@@ -23024,7 +23003,7 @@ private void uiAction_TransferAllQueryResultsToCommandList()
 Transfer selected time series from the query results to the command List.
 */
 private void uiAction_TransferSelectedQueryResultsToCommandList ()
-{	String routine = "TSTool_JFrame.uiAction_TransferSelectedQueryResultsToCommandList";
+{	String routine = getClass().getSimpleName() + ".uiAction_TransferSelectedQueryResultsToCommandList";
 
 	int nrows = __query_JWorksheet.getSelectedRowCount();
 	Message.printStatus ( 1, routine, "Transferring selected time series to commands (" + nrows + " in list)..." );
@@ -23115,7 +23094,7 @@ private void uiAction_ViewCommandFileDiff () {
                   ResponseJDialog.OK).response();
 	         return;
 		}
-		// Write the commands to a temporary file
+		// Write the commands to a temporary file.
 		String tempFolder = System.getProperty("java.io.tmpdir");
 		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
 		try {
@@ -23125,13 +23104,13 @@ private void uiAction_ViewCommandFileDiff () {
 			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
 			return;
 		}
-		// Run the diff program
+		// Run the diff program.
 		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
 		try {
 			ProcessManager pm = new ProcessManager ( programAndArgsList,
-					0, // No timeout
-	                null, // Exit status indicator
-	                false, // Use command shell
+					0, // No timeout.
+	                null, // Exit status indicator.
+	                false, // Use command shell.
 	                new File(tempFolder) );
 			Thread t = new Thread ( pm );
             t.start();
@@ -23162,7 +23141,7 @@ private void uiAction_ViewDocumentation ( String command )
         }
     }
     else {
-		// Could not determine the URL to display
+		// Could not determine the URL to display.
 		Message.printWarning(1, "", "Unable to determine URL for documentation for \"" + command + "\"." );
     }
 }
@@ -23199,10 +23178,10 @@ private void uiAction_ViewTrainingMaterials () {
 }
 
 /**
-Write the current command file list (all lines, whether selected or not) to
-the specified file.  Do not prompt for header comments (and do not add).
-@param promptForFile If true, prompt for the file name rather than using the
-value that is passed.  An extension of .TSTool is enforced.
+Write the current command file list (all lines, whether selected or not) to the specified file.
+Do not prompt for header comments (and do not add).
+@param promptForFile If true, prompt for the file name rather than using the value that is passed.
+An extension of .TSTool is enforced.
 @param file Command file to write.
 @param saveVersion9 whether to save the file considering the software version (this is generally
 only needed when pre-10 TSTool version is saved, which will retain "TS Alias = " command notation
@@ -23238,7 +23217,7 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 		uiAction_WriteCommandFile_Helper(file, saveVersion9);
 		commandList_SetDirty(false);
 		commandList_SetCommandFileName ( file );
-		// Save the file in the history
+		// Save the file in the history.
 		this.session.pushHistory(file);
 		// Do this here because the write may be in a sequence of steps.
 		ui_InitGUIMenus_File_OpenRecentFiles();
@@ -23260,7 +23239,8 @@ private void uiAction_WriteCommandFile ( String file, boolean promptForFile, boo
 }
 
 
-/** Helper method to write the commands to a file.
+/**
+ * Helper method to write the commands to a file.
  * @param saveVersion9 if true, save version 9 syntax, false to save current syntax.
  * @param file Path to file to write.
  */
@@ -23271,7 +23251,7 @@ private void uiAction_WriteCommandFile_Helper(String file, boolean saveVersion9)
 	for (int i = 0; i < size; i++) {
 		command = (Command)__commands_JListModel.get(i);
 		if ( saveVersion9 && command instanceof CommandSavesMultipleVersions ) {
-		    // TODO SAM This is a work-around to transition from the "TS Alias = " notation to
+		    // TODO smalers This is a work-around to transition from the "TS Alias = " notation to
 		    // Command(Alias=...), which was introduced in version 10.
 		    CommandSavesMultipleVersions versionCommand = (CommandSavesMultipleVersions)command;
 		    out.println(versionCommand.toString(command.getCommandParameters(),9));
@@ -23357,7 +23337,7 @@ public void windowClosed ( WindowEvent e ) {
 		__geoview_JFrame = null;
 		__View_MapInterface_JCheckBoxMenuItem.setSelected ( false );
 	}
-	/* FIXME SAM 2008-01-11 Need to test how -nomaingui mode is working with recent changes and then delete this code.
+	/* FIXME smalers 2008-01-11 Need to test how -nomaingui mode is working with recent changes and then delete this code.
 	else if ( !__show_main ) {
 		// Running in hidden mode and the TSViewJFrame has closed so close the application.
 		uiAction_FileExitClicked ();
@@ -23400,7 +23380,7 @@ Needed for WindowListener interface.  Currently does nothing.
 public void windowOpened ( WindowEvent e ) {
 }
 
-// TODO SAM 2006-03-02 - Evaluate need
+// TODO smalers 2006-03-02 - Evaluate need.
 // The JWorksheet_Listener may be deprecated or reworked in the future.
 // It is used in a limited capacity here to detect row select/deselect from the popup menu,
 // so that the status labels can be updated properly.
@@ -23496,7 +23476,7 @@ private class ActionListener_ResultsEnsembles implements ActionListener {
 	    				// they don't get added to the original list.
 	    				tslist = tsensemble.getTimeSeriesList(true);
 	    			}
-	    			// Get the time series for the ensemble
+	    			// Get the time series for the ensemble.
 	    			String propVal = null;
 	    			File userGraphTemplateFile = null;
 	    			if ( (userGraphTemplate != null) && !userGraphTemplate.isEmpty() ) {
@@ -23601,7 +23581,7 @@ private class ActionListener_ResultsEnsembles implements ActionListener {
 	    		    	// Display the graph using the created list of time series from the ensemble:
 	    		        // - rather than using the time series in the processor, use the supplied list
 	    				PropList graphProps = new PropList("GraphProps");
-	    				// TODO sam 2017-04-08 there is currently no way to pass these properties:
+	    				// TODO smalers 2017-04-08 there is currently no way to pass these properties:
 	    				// - alternative is to use the template
 	    				// - need to figure out how to pass in properties that goes to the TSProduct
 	    				// - currently the following does nothing and the graph legend will be at the bottom (not desirable)
