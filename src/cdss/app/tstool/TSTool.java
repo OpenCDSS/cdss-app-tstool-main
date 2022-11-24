@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@ package cdss.app.tstool;
 import DWR.DMI.tstool.TSToolMain;
 
 /**
-Main (application startup) class for CDSS version of TSTool.  This class will start the TSTool GUI
-or run the TSCommandProcessor in batch mode with a command file.
+Main (application startup) class for CDSS version of TSTool.
+This class will starts the TSTool user interface (UI) or runs the TSCommandProcessor in batch mode with a command file.
 */
 public class TSTool
 {
