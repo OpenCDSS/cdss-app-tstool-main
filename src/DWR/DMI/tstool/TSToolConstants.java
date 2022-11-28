@@ -89,13 +89,33 @@ public class TSToolConstants {
 	*/
 	public static final String COMMANDS_FONT = "Lucida Console";
 
+	/**
+	 * TODO smalers 2022-11-23 can this be removed since menus have been reworked long ago?
+	 */
+	public static final String TAB = "";
+
+	/**
+	String to display in input name combo box to indicate that the NWSRFS_FS5Files
+	input type should use the current apps defaults to find the files to read.
+ 	*/
+	public static final String USE_APPS_DEFAULTS = "Use Apps Defaults";
+
+	/**
+	String to display in input name combo box to indicate that something should be selected.
+	The selection will force an event to happen, which will allow the proper settings.
+	*/
+	public static final String PLEASE_SELECT = "Please select...";
+
+	/**
+	String to display in input name combo box to browse for a new file.
+	*/
+	public static final String BROWSE = "Browse...";
+
 	// Button: String labels for buttons and menus.
 
-	public static final String	
-
-	TAB = "",	// not needed with reorganization?
-	//TAB = "       ",
 	// Buttons (in order from top to bottom of GUI).
+	
+	public static final String
 
 	BUTTON_TOP_GET_TIME_SERIES = "Get Time Series List",
 	BUTTON_TOP_COPY_ALL_TO_COMMANDS = "Copy All to Commands",
@@ -703,5 +723,27 @@ public class TSToolConstants {
 	InputName_BrowseHECDSS_String = "Browse for a HEC-DSS file...",
 	InputName_BrowseStateModB_String = "Browse for a StateMod binary file...",
 	InputName_BrowseStateCUB_String = "Browse for a StateCU binary file...";
+
+	// Status for UI message area.
+
+	/**
+	General status string to indicate that the GUI is ready for user input.
+	*/
+	public static final String STATUS_READY = "Ready";
+
+	/**
+	General status string to indicate that the user should wait for the GUI to finish a task.
+	*/
+	public static final String STATUS_BUSY = "Wait";
+
+	/**
+	General status string to indicate that command processing is being canceled.
+	*/
+	public static final String STATUS_CANCELING = "Canceling";
+
+	/**
+	General status string to indicate that command processing has been canceled.
+	*/
+	public static final String STATUS_CANCELED = "Canceled";
 
 }
