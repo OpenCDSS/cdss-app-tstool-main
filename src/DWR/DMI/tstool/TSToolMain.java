@@ -95,7 +95,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.5.0 (2022-11-17)";
+public static final String PROGRAM_VERSION = "14.5.0 (2022-11-28)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -163,8 +163,8 @@ private static boolean __run_commands_on_load = false;
 
 /**
 Indicates whether commands should have discovery run when commands are loaded.
-Running discovery is a performance hit, especially for very large command files that are generated from
-templates, and is generally unnecessary in batch mode.
+Running discovery is a performance hit, especially for very large command files that are generated from templates,
+and is generally unnecessary in batch mode.
 */
 private static boolean __runDiscoveryOnLoad = true;
 

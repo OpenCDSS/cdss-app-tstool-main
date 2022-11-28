@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
@@ -108,6 +107,7 @@ public class TSTool_UsgsNwis {
 
 		// Initialize the time series list with blank data list.
    		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_UsgsNwisDaily_TableModel( dataStore, null);
+   		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 		TSTool_UsgsNwisDaily_CellRenderer cr = new TSTool_UsgsNwisDaily_CellRenderer((TSTool_UsgsNwisDaily_TableModel)query_TableModel);
    		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
 		query_JWorksheet.setCellRenderer ( cr );
@@ -136,6 +136,7 @@ public class TSTool_UsgsNwis {
 
 		// Initialize the time series list with blank data list.
    		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_UsgsNwisGroundwater_TableModel( dataStore, null);
+   		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 		TSTool_UsgsNwisGroundwater_CellRenderer cr = new TSTool_UsgsNwisGroundwater_CellRenderer((TSTool_UsgsNwisGroundwater_TableModel)query_TableModel);
    		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
 		query_JWorksheet.setCellRenderer ( cr );
@@ -164,6 +165,7 @@ public class TSTool_UsgsNwis {
 
 		// Initialize the time series list with blank data list.
    		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_UsgsNwisInstantaneous_TableModel( dataStore, null);
+   		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 		TSTool_UsgsNwisInstantaneous_CellRenderer cr = new TSTool_UsgsNwisInstantaneous_CellRenderer((TSTool_UsgsNwisInstantaneous_TableModel)query_TableModel);
    		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
 		query_JWorksheet.setCellRenderer ( cr );
@@ -230,14 +232,6 @@ public class TSTool_UsgsNwis {
 
 	/**
 	 * Get the singleton instance.
-	 * Only call this after a previous call to the overloaded method.
-	 */
-	public static TSTool_UsgsNwis getInstance () {
-		return TSTool_UsgsNwis.instance;
-	}
-
-	/**
-	 * Get the singleton instance.
 	 */
 	public static TSTool_UsgsNwis getInstance ( TSTool_JFrame tstoolJFrame ) {
 		if ( TSTool_UsgsNwis.instance == null ) {
@@ -288,8 +282,8 @@ public class TSTool_UsgsNwis {
 	    		// TODO Does not work??
 	    		//__query_TableModel.setNewData ( results );
 	    		// Try brute force.
-	    		JWorksheet_AbstractRowTableModel query_TableModel =
-	    				new TSTool_UsgsNwisDaily_TableModel ( usgsNwisDailyDataStore, results );
+	    		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_UsgsNwisDaily_TableModel ( usgsNwisDailyDataStore, results );
+	    		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 	    		TSTool_UsgsNwisDaily_CellRenderer cr = new TSTool_UsgsNwisDaily_CellRenderer( (TSTool_UsgsNwisDaily_TableModel)query_TableModel);
 
 	    		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
@@ -357,6 +351,7 @@ public class TSTool_UsgsNwis {
 	    		// Try brute force...
 	    		JWorksheet_AbstractRowTableModel query_TableModel =
 	    			new TSTool_UsgsNwisGroundwater_TableModel ( usgsNwisGroundwaterDataStore, results );
+	    		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 	    		TSTool_UsgsNwisGroundwater_CellRenderer cr =
 	    				new TSTool_UsgsNwisGroundwater_CellRenderer( (TSTool_UsgsNwisGroundwater_TableModel)query_TableModel);
 
@@ -425,6 +420,7 @@ public class TSTool_UsgsNwis {
 	    		// Try brute force.
 	    		JWorksheet_AbstractRowTableModel query_TableModel =
 	    			new TSTool_UsgsNwisInstantaneous_TableModel ( usgsNwisInstantaneousDataStore, results );
+	    		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 	    		TSTool_UsgsNwisInstantaneous_CellRenderer cr =
 	    			new TSTool_UsgsNwisInstantaneous_CellRenderer( (TSTool_UsgsNwisInstantaneous_TableModel)query_TableModel);
 
@@ -480,6 +476,7 @@ public class TSTool_UsgsNwis {
 			List<TS> tslist = new ArrayList<>( 1 );
 			tslist.add ( ts );
     		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_TS_TableModel ( tslist );
+    		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 			TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer(	(TSTool_TS_TableModel)query_TableModel);
 
     		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
@@ -645,6 +642,7 @@ public class TSTool_UsgsNwis {
 		// Initialize with blank data list.
 
 		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_TS_TableModel(null);
+   		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 		TSTool_TS_CellRenderer cr = new TSTool_TS_CellRenderer((TSTool_TS_TableModel)query_TableModel);
 
 		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
@@ -738,6 +736,30 @@ public class TSTool_UsgsNwis {
             "", "",
             useAlias, insertOffset );
         return numCommandsAdded;
+    }
+
+	/**
+	 * Transfer one time series catalog row to a command, for RDB time series.
+	 * @param row the time series catalog row to transfer (0+)
+	 * @param useAlias whether to use an alias
+	 */
+    public int transferOneTimeSeriesCatalogRowToCommands_Rdb ( int row, boolean useAlias, int insertOffset ) {
+		// The location (id), type, and time step uniquely identify the time series.
+		JWorksheet_AbstractRowTableModel query_TableModel = this.tstoolJFrame.ui_GetTimeSeriesCatalogTableModel();
+		TSTool_TS_TableModel model = (TSTool_TS_TableModel)query_TableModel;
+		String seqnum = (String)query_TableModel.getValueAt( row, model.COL_SEQUENCE );
+		if ( seqnum.length() == 0 ) {
+			seqnum = null;
+		}
+		int numCommandsAdded = this.tstoolJFrame.queryResultsList_AppendTSIDToCommandList (
+		(String)query_TableModel.getValueAt( row, model.COL_ID ),
+		(String)query_TableModel.getValueAt( row, model.COL_DATA_SOURCE),
+		(String)query_TableModel.getValueAt( row, model.COL_DATA_TYPE),
+		(String)query_TableModel.getValueAt( row, model.COL_TIME_STEP ),
+		(String)query_TableModel.getValueAt( row, model.COL_SCENARIO ), seqnum, // Optional sequence number.
+		(String)query_TableModel.getValueAt( row, model.COL_INPUT_TYPE),
+		(String)query_TableModel.getValueAt( row, model.COL_INPUT_NAME), "", false, insertOffset );
+		return numCommandsAdded;
     }
 
 }
