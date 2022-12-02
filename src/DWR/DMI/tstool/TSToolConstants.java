@@ -404,9 +404,9 @@ public class TSToolConstants {
     Commands_Object_SetObjectPropertiesFromTable_String = TAB + "SetObjectPropertiesFromTable()... <set object properties from a table>",
     Commands_Object_WriteObjectToJSON_String = TAB + "WriteObjectToJSON()... <write an object to a JSON file>",
 
-    // Menu: Commands / Spatial Processing
+    // Menu: Commands / Spatial Data Processing
 
-    Commands_Spatial_String = "Spatial Processing",
+    Commands_Spatial_String = "Spatial Data Processing",
     Commands_Spatial_WriteTableToGeoJSON_String = TAB + "WriteTableToGeoJSON()... <write table to a GeoJSON file>",
     Commands_Spatial_WriteTableToKml_String = TAB + "WriteTableToKml()... <write table to a KML file>",
     Commands_Spatial_WriteTableToShapefile_String = TAB + "WriteTableToShapefile()... <write table to a Shapefile>",
