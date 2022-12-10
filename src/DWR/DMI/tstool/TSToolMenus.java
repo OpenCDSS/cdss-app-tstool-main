@@ -343,8 +343,13 @@ public class TSToolMenus {
 	public static JMenuItem
     	Commands_Object_NewObject_JMenuItem,
     	Commands_Object_FreeObject_JMenuItem,
+    	// ----
+    	Commands_Object_ReadTableFromJSON_JMenuItem,
+    	// ----
     	Commands_Object_SetObjectProperty_JMenuItem,
     	Commands_Object_SetObjectPropertiesFromTable_JMenuItem,
+    	Commands_Object_SetPropertyFromObject_JMenuItem,
+    	// ----
     	Commands_Object_WriteObjectToJSON_JMenuItem;
 
 	// Menu: Commands / Spatial Processing

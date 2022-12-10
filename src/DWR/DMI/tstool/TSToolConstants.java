@@ -400,8 +400,9 @@ public class TSToolConstants {
     Commands_Object_String = "Object Processing",
     Commands_Object_NewObject_String = TAB + "NewObject()... <create a new object>",
     Commands_Object_FreeObject_String = TAB + "FreeObject()... <free memory for an object>",
-    Commands_Object_SetObjectProperty_String = TAB + "SetObjectProperty()... <set object property>",
+    Commands_Object_SetObjectProperty_String = TAB + "SetObjectProperty()... <set an object's property>",
     Commands_Object_SetObjectPropertiesFromTable_String = TAB + "SetObjectPropertiesFromTable()... <set object properties from a table>",
+    Commands_Object_SetPropertyFromObject_String = TAB + "SetPropertyFromObject()... <set a property from an object>",
     Commands_Object_WriteObjectToJSON_String = TAB + "WriteObjectToJSON()... <write an object to a JSON file>",
 
     // Menu: Commands / Spatial Data Processing

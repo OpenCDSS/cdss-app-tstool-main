@@ -7833,10 +7833,16 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar ) {
     TSToolMenus.Commands_Object_JMenu.add( TSToolMenus.Commands_Object_FreeObject_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_Object_FreeObject_String, this ) );
     TSToolMenus.Commands_Object_JMenu.addSeparator();
+    // Command is also in table read commands.
+    TSToolMenus.Commands_Object_JMenu.add( TSToolMenus.Commands_Object_ReadTableFromJSON_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_TableRead_ReadTableFromJSON_String, this ) );
+    TSToolMenus.Commands_Object_JMenu.addSeparator();
     TSToolMenus.Commands_Object_JMenu.add( TSToolMenus.Commands_Object_SetObjectProperty_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_Object_SetObjectProperty_String, this ) );
     TSToolMenus.Commands_Object_JMenu.add( TSToolMenus.Commands_Object_SetObjectPropertiesFromTable_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_Object_SetObjectPropertiesFromTable_String, this ) );
+    TSToolMenus.Commands_Object_JMenu.add( TSToolMenus.Commands_Object_SetPropertyFromObject_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_Object_SetPropertyFromObject_String, this ) );
     TSToolMenus.Commands_Object_JMenu.addSeparator();
     TSToolMenus.Commands_Object_JMenu.add( TSToolMenus.Commands_Object_WriteObjectToJSON_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_Object_WriteObjectToJSON_String, this ) );
@@ -10547,16 +10553,16 @@ throws Exception {
     else if (command.equals( TSToolConstants.Commands_Datastore_RunSql_String) ) {
         commandList_EditCommand ( TSToolConstants.Commands_Datastore_RunSql_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( TSToolConstants.Commands_Datastore_ReadTimeSeriesFromDataStore_String)){
+    else if (command.equals( TSToolConstants.Commands_Datastore_ReadTimeSeriesFromDataStore_String)) {
         commandList_EditCommand ( TSToolConstants.Commands_Datastore_ReadTimeSeriesFromDataStore_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( TSToolConstants.Commands_Datastore_WriteTimeSeriesToDataStore_String)){
+    else if (command.equals( TSToolConstants.Commands_Datastore_WriteTimeSeriesToDataStore_String)) {
         commandList_EditCommand ( TSToolConstants.Commands_Datastore_WriteTimeSeriesToDataStore_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( TSToolConstants.Commands_Datastore_CloseDataStore_String)){
+    else if (command.equals( TSToolConstants.Commands_Datastore_CloseDataStore_String)) {
         commandList_EditCommand ( TSToolConstants.Commands_Datastore_CloseDataStore_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( TSToolConstants.Commands_Datastore_CreateDataStoreDataDictionary_String)){
+    else if (command.equals( TSToolConstants.Commands_Datastore_CreateDataStoreDataDictionary_String)) {
         commandList_EditCommand ( TSToolConstants.Commands_Datastore_CreateDataStoreDataDictionary_String, null, CommandEditType.INSERT );
     }
 
@@ -10582,6 +10588,9 @@ throws Exception {
     }
     else if (command.equals( TSToolConstants.Commands_Object_SetObjectPropertiesFromTable_String) ) {
         commandList_EditCommand ( TSToolConstants.Commands_Object_SetObjectPropertiesFromTable_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( TSToolConstants.Commands_Object_SetPropertyFromObject_String) ) {
+        commandList_EditCommand ( TSToolConstants.Commands_Object_SetPropertyFromObject_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( TSToolConstants.Commands_Object_WriteObjectToJSON_String) ) {
         commandList_EditCommand ( TSToolConstants.Commands_Object_WriteObjectToJSON_String, null, CommandEditType.INSERT );
