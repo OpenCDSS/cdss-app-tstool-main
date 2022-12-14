@@ -176,6 +176,7 @@ public class TSTool_HydroBaseRest {
 
 	/**
 	Read ColoradoHydroBaseRest time series via web service and list in the GUI.
+	@param selectedInputFilter_JPanel an input filter panel that includes where clauses to filter the request
 	*/
 	public void getTimeSeriesListClicked_ReadColoradoHydroBaseRestCatalog ( InputFilter_JPanel selectedInputFilter_JPanel) {
 		String routine = getClass().getSimpleName() + ".getTimeSeriesListClicked_ReadColoradoHydroBaseRestCatalog";
@@ -203,7 +204,7 @@ public class TSTool_HydroBaseRest {
             JGUIUtil.setWaitCursor ( this, false );
             return;
         }
-			 */
+			*/
 			this.tstoolJFrame.queryResultsList_Clear ();
 
 			Message.printStatus(2, routine, "Selected filter panel is: " + filterPanel );
