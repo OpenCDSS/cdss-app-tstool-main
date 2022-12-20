@@ -298,6 +298,7 @@ public class TSTool_HydroBaseRest {
 					JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
 					JWorksheet_AbstractRowTableModel query_TableModel =
 						new ColoradoHydroBaseRest_TelemetryStation_TableModel(query_JWorksheet, tslist, dataStore.getName() );
+					this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
 					ColoradoHydroBaseRest_TelemetryStation_CellRenderer cr = new ColoradoHydroBaseRest_TelemetryStation_CellRenderer(
 							(ColoradoHydroBaseRest_TelemetryStation_TableModel)query_TableModel);
 					query_JWorksheet.setCellRenderer ( cr );
