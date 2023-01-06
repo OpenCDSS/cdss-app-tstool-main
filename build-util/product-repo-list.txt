@@ -13,11 +13,6 @@ cdss-lib-dmi-hydrobase-java
 cdss-lib-dmi-hydrobase-rest-java
 # TODO smalers 2021-08-23 need to phase out the following such as moving to a plugin.
 cdss-lib-dmi-nwsrfs-java
-# The following could be re-enabled if code is moved to a plugin.
-#cdss-lib-dmi-riversidedb-java
-# The following is no longer used since SOAP web services have been replaced by REST services.
-# TODO smalers 2021-08-23 remove completely when the software is cleaned up.
-#cdss-lib-dmi-satmonsys-java
 cdss-lib-models-java
 cdss-lib-processor-ts-java
 cdss-util-buildtools

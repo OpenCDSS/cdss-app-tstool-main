@@ -67,7 +67,7 @@ SET HOMED=C:\CDSS\TSTool-08.17.00
 SET JREHOMED=%HOMED%\jre_142
 SET MAIN_CLASS=cdss.app.tstool.TSTool
 rem Class path (replaced at software build usin current software dependencies).
-SET TSTOOL_CP="%HOMED%\bin\batik-awt-util.jar;%HOMED%\bin\batik-dom.jar;%HOMED%\bin\batik-ext.jar;%HOMED%\bin\batik-svggen.jar;%HOMED%\bin\batik-util.jar;%HOMED%\bin\batik-xml.jar;%HOMED%\bin\cdss.domain_142.jar;%HOMED%\bin\jcommon.jar;%HOMED%\bin\jfreechart.jar;%HOMED%\bin\jsr173_1.0_api.jar;%HOMED%\bin\jython.jar;%HOMED%\bin\libXMLJava.jar;%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\TSCommandProcessor_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\SatmonSysDMI_142.jar;%HOMED%\bin\xbean.jar;%HOMED%\bin\xerces.jar;%HOMED%\bin\h2.jar"
+SET TSTOOL_CP="%HOMED%\bin\batik-awt-util.jar;%HOMED%\bin\batik-dom.jar;%HOMED%\bin\batik-ext.jar;%HOMED%\bin\batik-svggen.jar;%HOMED%\bin\batik-util.jar;%HOMED%\bin\batik-xml.jar;%HOMED%\bin\cdss.domain_142.jar;%HOMED%\bin\jcommon.jar;%HOMED%\bin\jfreechart.jar;%HOMED%\bin\jsr173_1.0_api.jar;%HOMED%\bin\jython.jar;%HOMED%\bin\libXMLJava.jar;%HOMED%\bin\TSTool_142.jar;%HOMED%\bin\TSCommandProcessor_142.jar;%HOMED%\bin\HydroBaseDMI_142.jar;%HOMED%\bin\NWSRFS_DMI_142.jar;%HOMED%\bin\msbase.jar;%HOMED%\bin\mssqlserver.jar;%HOMED%\bin\msutil.jar;%HOMED%\bin\RTi_Common_142.jar;%HOMED%\bin\StateMod_142.jar;%HOMED%\bin\Blowfish_142.jar;%HOMED%\bin\xbean.jar;%HOMED%\bin\xerces.jar;%HOMED%\bin\h2.jar"
 
 rem Run the Java Runtime Environment (JRE), which runs the TSTool software.
 rem If there is an error, try using "java" instead of "javaw" below.  Using

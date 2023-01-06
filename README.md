@@ -9,22 +9,21 @@ TSTool is part of
 [Colorado's Decision Support Systems (CDSS)](https://www.colorado.gov/cdss).
 See the following online resources:
 
-* [Colorado's Decision Support Systems](https://www.colorado.gov/cdss)
-* [OpenCDSS](http://learn.openwaterfoundation.org/cdss-emod-dev/) - currently
-hosted on the Open Water Foundation website while the OpenCDSS server is configured
-* [TSTool Developer Documentation](http://learn.openwaterfoundation.org/cdss-app-tstool-doc-dev/) - currently
-hosted on the Open Water Foundation website while the OpenCDSS server is configured
-* [TSTool User Documentation](http://learn.openwaterfoundation.org/cdss-app-tstool-doc-user/) - currently
-hosted on the Open Water Foundation website while the OpenCDSS server is configured
+*   [Colorado's Decision Support Systems](https://www.colorado.gov/cdss)
+*   [OpenCDSS](https://opencdss.state.co.us/opencdss/) - main page for the OpenCDSS initiative
+*   [OpenCDSS TSTool page](https://opencdss.state.co.us/opencdss/tstool/)
+*   [TSTool User Documentation](https://opencdss.state.co.us/tstool/latest/doc-user/)
+*   [TSTool Developer Documentation](https://opencdss.state.co.us/tstool/latest/doc-dev/)
 
-The developer documentation and guidelines will be updated as the development environment is used in development.  See the following sections in this page:
+The developer documentation and guidelines will be updated as the development environment is used in development.
+See the following sections in this page:
 
-* [Repository Folder Structure](#repository-folder-structure)
-* [Repository Dependencies](#repository-dependencies)
-* [Development Environment Folder Structure](#development-environment-folder-structure)
-* [Contributing](#contributing)
-* [License](#license)
-* [Contact](#contact)
+*   [Repository Folder Structure](#repository-folder-structure)
+*   [Repository Dependencies](#repository-dependencies)
+*   [Development Environment Folder Structure](#development-environment-folder-structure)
+*   [Contributing](#contributing)
+*   [License](#license)
+*   [Contact](#contact)
 
 -----
 
@@ -70,13 +69,13 @@ The following repositories are used to create the main TSTool application.
 Some repositories correspond to Eclipse projects and others are not used within Eclipse,
 indicated as follows:
 
-* Y - repository is included as Eclipse project.
-* Y2 - repository is currently included as Eclipse project but may be phased out or
-converted to a plugin because code is obsolete or is specific to third parties.
-* y - repository is included as Eclipse project but does not need to be.  The project may have been added to Eclipse to use the Git client,
-but files are often edited external to Eclipse.
-* N - repository is managed outside if Eclipse,
-such as documentation managed with command line Git or other Git tools.
+*   Y - repository is included as Eclipse project.
+*   Y2 - repository is currently included as Eclipse project but may be phased out or
+    converted to a plugin because code is obsolete or is specific to third parties.
+*   y - repository is included as Eclipse project but does not need to be.  The project may have been added to Eclipse to use the Git client,
+    but files are often edited external to Eclipse.
+*   N - repository is managed outside if Eclipse,
+    such as documentation managed with command line Git or other Git tools.
 
 |**Repository**|**Eclipse project?**|**Description**|
 |-------------------------------------------------------------------------------------------------------------|--|----------------------------------------------------|
@@ -91,7 +90,6 @@ such as documentation managed with command line Git or other Git tools.
 |[`cdss-lib-dmi-hydrobase-java`](https://github.com/OpenCDSS/cdss-lib-dmi-hydrobase-java)          |Y |Library to directly access Colorado's HydroBase database.|
 |[`cdss-lib-dmi-hydrobase-rest-java`](https://github.com/OpenCDSS/cdss-lib-dmi-hydrobase-rest-java)|Y |Library to access Colorado's HydroBase REST API.|
 |[`cdss-lib-dmi-nwsrfs-java`](https://github.com/OpenCDSS/cdss-lib-dmi-nwsrfs-java)                |Y2|Legacy library to access National Weather Service River Forecast System (NWSRFS) data files.|
-|[`cdss-lib-dmi-satmonsys-java`](https://github.com/OpenCDSS/cdss-lib-dmi-satmonsys-java)          |Y2|Legacy library to directly access Colorado's Satellite Monitoring System database.|
 |[`cdss-lib-models-java`](https://github.com/OpenCDSS/cdss-lib-models-java)                        |Y |Library to read/write CDSS StateCU and StateMod model files.|
 |[`cdss-lib-processor-ts-java`](https://github.com/OpenCDSS/cdss-lib-processor-ts-java)            |Y |Library containing processor code for TSTool commands.|
 |[`cdss-util-buildtools`](https://github.com/OpenCDSS/cdss-util-buildtools)                        |Y |Tools to create CDSS Java software installers.|
@@ -102,7 +100,7 @@ Plugins are a new design feature that allows third parties to develop command an
 Plugins therefore allow functionality to be added to TSTool for specific systems without burdening
 the core TSTool team with maintaining those plugins.
 
-This section will be updated as plugins are developed.
+See the [Plugin Reference](https://opencdss.state.co.us/tstool/latest/doc-user/plugin-ref/overview/) documentation.
 
 ### Repositories that Depend on TSTool Repository ###
 
@@ -135,7 +133,6 @@ C:\Users\user\                               Windows user home folder (typical d
         cdss-lib-dmi-hydrobase-java/
         cdss-lib-dmi-hydrobase-rest-java/
         cdss-lib-dmi-nwsrfs-java/
-        cdss-lib-dmi-satmonsys-java/
         cdss-lib-models-java/
         cdss-lib-processor-ts-java/
         cdss-util-buildtools/
@@ -147,12 +144,12 @@ C:\Users\user\                               Windows user home folder (typical d
 
 Contributions to this project can be submitted using the following options:
 
-1. TSTool software developers with commit privileges can write to this repository
-as per normal OpenCDSS development protocols.
-2. Post an issue on GitHub with suggested change.  Provide information using the issue template.
-3. Fork the repository, make changes, and do a pull request.
-Contents of the current master branch should be merged with the fork to minimize
-code review before committing the pull request.
+1.  TSTool software developers with commit privileges can write to this repository
+    as per normal OpenCDSS development protocols.
+2.  Post an issue on GitHub with suggested change.  Provide information using the issue template.
+3.  Fork the repository, make changes, and do a pull request.
+    Contents of the current master branch should be merged with the fork to minimize
+    code review before committing the pull request.
 
 See also the [OpenCDSS / TSTool protocols](http://learn.openwaterfoundation.org/cdss-website-opencdss/tstool/tstool/).
 
