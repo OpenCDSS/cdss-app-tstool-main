@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -81,9 +81,9 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.StopWatch;
 
 /**
-Main (application startup) class for TSTool.  This class will start the TSTool GUI
-or run the TSCommandProcessor in batch mode with a command file.  The methods in
-this file are called by the startup TSTool and CDSS versions of TSTool.
+Main (application startup) class for TSTool.
+This class will start the TSTool GUI or run the TSCommandProcessor in batch mode with a command file.
+The methods in this file are called by the startup TSTool and CDSS versions of TSTool.
 */
 public class TSToolMain
 {
@@ -95,7 +95,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.5.1 (2022-12-14)";
+public static final String PROGRAM_VERSION = "14.5.2 (2023-01-05)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -114,13 +114,14 @@ Path to the batch server hot folder.
 private static String __batchServerHotFolder = "";
 
 /**
-Timeout when running in batch mode.  TSTool will exit if processing has not finished
-(usually because of web service hang-up, etc.)
+Timeout when running in batch mode.
+TSTool will exit if processing has not finished (usually because of web service hang-up, etc.)
 */
 private static int __batchTimeoutSeconds = 0;
 
 /**
-Path to the configuration file.  This cannot be defaulted until the -home command line parameter is processed.
+Path to the configuration file.
+This cannot be defaulted until the -home command line parameter is processed.
 */
 private static String __configFile = "";
 
@@ -181,8 +182,8 @@ private static boolean __showMainGUI = true;
 private static List<DataStoreSubstitute> datastoreSubstituteList = new ArrayList<>();
 
 /**
-Indicates whether the -nomaingui command line argument is set.  This is used instead of
-just the above to know for sure the combination of command line parameters.
+Indicates whether the -nomaingui command line argument is set.
+This is used instead of just the above to know for sure the combination of command line parameters.
 */
 private static boolean __noMainGUIArgSpecified = false;    
 
@@ -282,16 +283,15 @@ private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List
 Return the batch server hot folder.
 @return the batch server hot folder
 */
-public static String getBatchServerHotFolder()
-{	return __batchServerHotFolder;
+public static String getBatchServerHotFolder() {
+	return __batchServerHotFolder;
 }
 
 /**
 Return the command file that is being processed, or null if not being run in batch mode.
 @return the path to the command file to run.
 */
-private static int getBatchTimeout ()
-{
+private static int getBatchTimeout () {
 	return __batchTimeoutSeconds;
 }
 
@@ -299,8 +299,7 @@ private static int getBatchTimeout ()
 Return the command file that is being processed, or null if not being run in batch mode.
 @return the path to the command file to run.
 */
-private static String getCommandFile ()
-{
+private static String getCommandFile () {
 	return __commandFile;
 }
 
@@ -310,8 +309,7 @@ from the -home command line parameter during command line parsing (default) and 
 specified with -config File on the command line (typically used to test different configurations).
 @return the full path to the configuration file.
 */
-public static String getConfigFile ()
-{
+public static String getConfigFile () {
     return __configFile;
 }
 
@@ -319,8 +317,8 @@ public static String getConfigFile ()
 Return the JFrame for the main TSTool GUI.
 @return the JFrame instance for use with low-level code that needs to pop up dialogs, etc.
 */
-public static JFrame getJFrame ()
-{	return (JFrame)__tstool_JFrame;
+public static JFrame getJFrame () {
+	return (JFrame)__tstool_JFrame;
 }
 
 /**
@@ -350,8 +348,8 @@ All commands file that end with ".jar" will be added to the list.
 @throws IOException 
  */
 private static void getMatchingFilenamesInTree ( List<String> fileList, File path, String pattern ) 
-throws IOException
-{   //String routine = "getMatchingFilenamesInTree";
+throws IOException {
+    //String routine = "getMatchingFilenamesInTree";
     if (path.isDirectory()) {
         String[] children = path.list();
         for (int i = 0; i < children.length; i++) {
@@ -377,8 +375,8 @@ Return a TSTool property.  The properties are defined in the TSTool configuratio
 @return the value(s) for a TSTool configuration property, or null if a properties file does not exist.
 Return null if the property is not found (or if no configuration file exists for TSTool).
 */
-public static List<Prop> getProps ( String propertyExp )
-{   if ( __tstool_props == null ) {
+public static List<Prop> getProps ( String propertyExp ) {
+    if ( __tstool_props == null ) {
         return null;
     }
     return __tstool_props.getPropsMatchingRegExp(propertyExp);
@@ -390,28 +388,27 @@ Return the value of a TSTool property.  The properties are defined in the TSTool
 @return the value for a TSTool configuration property, or null if a properties file does not exist.
 Return null if the property is not found (or if no configuration file exists for TSTool).
 */
-public static String getPropValue ( String property )
-{	if ( __tstool_props == null ) {
+public static String getPropValue ( String property ) {
+	if ( __tstool_props == null ) {
 		return null;
 	}
 	return __tstool_props.getValue ( property );
 }
 
 /**
-Indicate whether the commands should be run after loaded into the GUI (when a command
-file is specified on the command line).
+Indicate whether the commands should be run after loaded into the GUI
+(when a command file is specified on the command line).
 @return true if the commands should automatically be run after loading.
 */
-public static boolean getRunOnLoad ()
-{
+public static boolean getRunOnLoad () {
     return __run_commands_on_load;
 }
 
 /**
 Initialize important data and set message levels for application after startup.
 */
-private static void initializeLoggingLevelsAfterLogOpened ()
-{	// Initialize message levels.
+private static void initializeLoggingLevelsAfterLogOpened () {
+	// Initialize message levels.
     // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
 	Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
 	Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );
@@ -430,8 +427,8 @@ private static void initializeLoggingLevelsAfterLogOpened ()
 /**
 Initialize important data and set message levels for console startup.
 */
-private static void initializeLoggingLevelsBeforeLogOpened ()
-{   // Initialize message levels.
+private static void initializeLoggingLevelsBeforeLogOpened () {
+    // Initialize message levels.
     // FIXME SAM 2008-01-11 Need to have initialize2() reset message levels to not show on the console.
     Message.setDebugLevel ( Message.TERM_OUTPUT, 0 );
     Message.setDebugLevel ( Message.LOG_OUTPUT, 0 );
@@ -450,8 +447,8 @@ private static void initializeLoggingLevelsBeforeLogOpened ()
 /**
 Initialize important data relative to the installation home.
 */
-private static void initializeAfterHomeIsKnown ()
-{	String routine = "TSToolMain.initializeAfterHomeIsKnown";
+private static void initializeAfterHomeIsKnown () {
+	String routine = "TSToolMain.initializeAfterHomeIsKnown";
 
 	// Initialize the system data.
 
@@ -474,8 +471,8 @@ private static void initializeAfterHomeIsKnown ()
 Indicate whether TSTool is running in batch server mode.  This feature is under development.
 @return true if running in batch server mode.
 */
-public static boolean isBatchServer()
-{	return __isBatchServer;
+public static boolean isBatchServer() {
+	return __isBatchServer;
 }
 
 /**
@@ -572,8 +569,8 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			// Convert the file system filename to URL using forward slashes.
 			dataStoreJarURLs[0] = new URL("file:///" + pluginJar.replace("\\", "/"));
 			// Also add all the jar files in the "/dep" folder:
-			// -tried to figure out how to use MANIFEST-MF Class-Path property but seemed confusing
-			//  so just add all jar files that are found
+			// - tried to figure out how to use MANIFEST-MF Class-Path property but seemed confusing
+			//   so just add all jar files that are found
 			File f = new File(pluginJar);
 			List<File> depJarFiles = IOUtil.getFilesMatchingPattern(f.getParent() + File.separator + "dep", "jar", false);
 			URL [] dataStoreJarURLs2 = new URL[1 + depJarFiles.size()];
@@ -690,8 +687,8 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 Start the main application instance.
 @param args Command line arguments.
 */
-public static void main ( String args[] )
-{	String routine = "TSToolMain.main";
+public static void main ( String args[] ) {
+	String routine = "TSToolMain.main";
 
 	try {
 	// Main try...
@@ -735,11 +732,9 @@ public static void main ( String args[] )
 		Message.printWarning ( 3, routine, e );
 	}
 	
-	// Set the icon to RTi's logo by default.  This may be reset later after
-    // the license is checked in the GUI.  Do not do this in pure batch mode because it is not
-	// needed and may cause problems with X-Windows on UNIX.
-	// Do need to load it when -nomaingui is used because the windows that are shown will need
-	// to look nice with the icon.
+	// Set the application icon to the CDSS logo by default.
+    // Do not do this in pure batch mode because it is not needed and may cause problems with X-Windows on UNIX.
+	// Do need to load it when -nomaingui is used because the windows that are shown will need to look nice with the icon.
 
 	Message.printStatus( 2, routine, "isBatch=" + IOUtil.isBatch() + " -nomaingui specified = " + __noMainGUIArgSpecified );
 	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified || !isBatchServer() ) {
@@ -1257,7 +1252,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
         }
     }
     else {
-    	// No package path to load datastore
+    	// No package path to load datastore.
         return null;
     }
 }
@@ -1412,15 +1407,16 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
 // TODO SAM 2010-02-03 Evaluate whether non-null HydroBaseDMI return is OK or whether
 // should rely on exceptions.
 /**
-Open the HydroBase connection using the CDSS configuration file information, when running
-in batch mode or when auto-connecting in the GUI.  The CDSS configuration file is used to determine
-HydroBase server and database name properties to use for the initial connection.  If no configuration file
-exists, then a default connection is attempted.
+Open the HydroBase connection using the CDSS configuration file information,
+when running in batch mode or when auto-connecting in the GUI.
+The CDSS configuration file is used to determine
+HydroBase server and database name properties to use for the initial connection.
+If no configuration file exists, then a default connection is attempted.
 @param processor the command processor that needs the (default) HydroBase connection.
 @return opened HydroBaseDMI if the connection was made, or null if a problem.
 */
-public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
-{   String routine = "TSToolMain.openHydroBase";
+public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor ) {
+    String routine = "TSToolMain.openHydroBase";
     boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool configuration file.
     String propval = __tstool_props.getValue ( "TSTool.HydroBaseEnabled");
     if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
@@ -1438,8 +1434,7 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
         autoConnect = true;
     }
     if ( IOUtil.isBatch() || autoConnect ) {
-        // Running in batch mode or without a main GUI so automatically
-        // open HydroBase from the CDSS.cfg file information.
+        // Running in batch mode or without a main GUI so automatically open HydroBase from the CDSS.cfg file information.
         // Get the input needed to process the file.
         String hbcfg = HydroBase_Util.getConfigurationFile();
         PropList props = null;
@@ -1502,76 +1497,76 @@ public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor )
 Open the log file.  This should be done as soon as the application home
 directory is known so that remaining information can be captured in the log file.
 */
-private static void openLogFile ( TSToolSession session )
-{	String routine = "TSToolMain.openLogFile";
+private static void openLogFile ( TSToolSession session ) {
+	String routine = "TSToolMain.openLogFile";
 	String user = IOUtil.getProgramUser();
 
 	String logFile = null;
-		// Default as of 2016-02-18 is to open the log file as $home/.tstool/NN/logs/TSTool_user.log file unless specified on command line.
-		if ( __logFileFromCommandLine != null ) {
-			File f = new File(__logFileFromCommandLine);
-			if ( !f.getParentFile().exists() ) {
-				Message.printWarning ( 1, routine, "Error opening log file \"" + __logFileFromCommandLine +
-					"\" - log file parent folder does not exist.");
+	// Default as of 2016-02-18 is to open the log file as $home/.tstool/NN/logs/TSTool_user.log file unless specified on command line.
+	if ( __logFileFromCommandLine != null ) {
+		File f = new File(__logFileFromCommandLine);
+		if ( !f.getParentFile().exists() ) {
+			Message.printWarning ( 1, routine, "Error opening log file \"" + __logFileFromCommandLine +
+				"\" - log file parent folder does not exist.");
+		}
+		else {
+			logFile = __logFileFromCommandLine;
+			Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
+			try {
+                Message.openLogFile ( logFile );
+                // Do it again so it goes into the log file.
+                Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
 			}
-			else {
-				logFile = __logFileFromCommandLine;
-				Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
-				try {
-	                Message.openLogFile ( logFile );
-	                // Do it again so it goes into the log file.
-	                Message.printStatus ( 1, routine, "Log file name from -logFile: " + logFile );
-				}
-				catch (Exception e) {
-					Message.printWarning ( 1, routine, "Error opening log file \"" + logFile + "\"");
-				}
+			catch (Exception e) {
+				Message.printWarning ( 1, routine, "Error opening log file \"" + logFile + "\"");
+			}
+		}
+	}
+	else {
+		// Get the log file name from the session object...under user home folder.
+		if ( session.createUserLogsFolder(true) ) {
+			// Log folder already exists or was created, so OK to use.
+			logFile = session.getUserLogFile();
+			Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
+			try {
+                Message.openLogFile ( logFile );
+                // Also log for troubleshooting.
+                Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
+			}
+			catch (Exception e) {
+				Message.printWarning ( 1, routine, "Error opening log file \"" + logFile + "\"");
 			}
 		}
 		else {
-			// Get the log file name from the session object...under user home folder.
-			if ( session.createUserLogsFolder(true) ) {
-				// Log folder already exists or was created, so OK to use.
-				logFile = session.getUserLogFile();
-				Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
+			Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getUserLogsFolder() + "\".  Not opening log file.");
+		}
+	}
+    boolean oldWay = false;
+    if ( oldWay ) {
+    	// TODO SAM 2016-02-19 Remove this if the above logic works for the log file.
+	    if ( (__tstoolInstallHome == null) || (__tstoolInstallHome.length() == 0) || (__tstoolInstallHome.charAt(0) == '.')) {
+			Message.printWarning ( 2, routine, "Home directory is not defined.  Not opening log file.");
+		}
+		else {
+			// Home folder was specified so create log file in that folder logs folder.
+			String logfile = null;
+            if ( (user == null) || user.trim().equals("")) {
+				logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool.log";
+			}
+			else {
+                logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool_" +	user + ".log";
+			}
+			Message.printStatus ( 1, routine, "Log file name: " + logfile );
+			if ( logfile != null ) {
 				try {
-	                Message.openLogFile ( logFile );
-	                // Also log for troubleshooting.
-	                Message.printStatus ( 1, routine, "Log file name from TSTool default: " + logFile );
+	                Message.openLogFile ( logfile );
 				}
 				catch (Exception e) {
-					Message.printWarning ( 1, routine, "Error opening log file \"" + logFile + "\"");
+					Message.printWarning ( 1, routine, "Error opening log file \"" + logfile + "\"");
 				}
-			}
-			else {
-				Message.printWarning ( 2, routine, "Unable to create/open TSTool log folder \"" + session.getUserLogsFolder() + "\".  Not opening log file.");
 			}
 		}
-	    boolean oldWay = false;
-	    if ( oldWay ) {
-	    	// TODO SAM 2016-02-19 Remove this if the above logic works for the log file.
-		    if ( (__tstoolInstallHome == null) || (__tstoolInstallHome.length() == 0) || (__tstoolInstallHome.charAt(0) == '.')) {
-				Message.printWarning ( 2, routine, "Home directory is not defined.  Not opening log file.");
-			}
-			else {
-				// Home folder was specified so create log file in that folder logs folder.
-				String logfile = null;
-	            if ( (user == null) || user.trim().equals("")) {
-					logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool.log";
-				}
-				else {
-	                logfile = __tstoolInstallHome + File.separator + "logs" + File.separator + "TSTool_" +	user + ".log";
-				}
-				Message.printStatus ( 1, routine, "Log file name: " + logfile );
-				if ( logfile != null ) {
-					try {
-		                Message.openLogFile ( logfile );
-					}
-					catch (Exception e) {
-						Message.printWarning ( 1, routine, "Error opening log file \"" + logfile + "\"");
-					}
-				}
-			}
-	    }
+    }
 }
 
 /**
@@ -1723,8 +1718,8 @@ throws Exception
 			quitProgram(0);
 		}
 		else if (args[i].equalsIgnoreCase("-home") || args[i].equalsIgnoreCase("--home")) {
-		    // Should be specified in batch file or script that runs TSTool, or in properties for
-	        // a executable launcher.  Therefore this should be processed before any user command line
+		    // Should be specified in batch file or script that runs TSTool, or in properties for a executable launcher.
+			// Therefore this should be processed before any user command line
 	        // parameters and the log file should open up before much else is done.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-home'";
@@ -1952,7 +1947,7 @@ public static void printVersion ( )
 {	String nl = System.getProperty ( "line.separator" );
 	System.err.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
 	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-	"Copyright (C) 1997-2021 Colorado Department of Natural Resources\n" +
+	"Copyright (C) 1997-2023 Colorado Department of Natural Resources\n" +
     "\n" +
 	"TSTool is free software:  you can redistribute it and/or modify\n" +
 	"    it under the terms of the GNU General Public License as published by\n" +
@@ -1973,8 +1968,8 @@ public static void printVersion ( )
 Clean up and quit the program.
 @param status Program exit status.
 */
-public static void quitProgram ( int status )
-{	String	routine = "TSToolMain.quitProgram";
+public static void quitProgram ( int status ) {
+	String	routine = "TSToolMain.quitProgram";
 
 	Message.printStatus ( 1, routine, "Exiting with status " + status + "." );
 
@@ -1988,8 +1983,8 @@ Read the configuration file.  This should be done as soon as the application hom
 TODO SAM 2015-01-07 need to store configuration information in a generic "session" object to be developed.
 @param configFile Name of the configuration file.
 */
-private static void readConfigFile ( String configFile )
-{	String routine = "TSToolMain.readConfigFile";
+private static void readConfigFile ( String configFile ) {
+	String routine = "TSToolMain.readConfigFile";
     Message.printStatus ( 2, routine, "Reading TSTool configuration information from \"" + configFile + "\"." );
 	if ( IOUtil.fileReadable(configFile) ) {
 		__tstool_props = new PropList ( configFile );
@@ -2054,8 +2049,8 @@ private static void readConfigFile ( String configFile )
 /**
 Run TSTool in restlet server mode.
 */
-private static void runRestletServer ()
-{   String routine = "TSToolMain.runRestletServer()";
+private static void runRestletServer () {
+    String routine = "TSToolMain.runRestletServer()";
     try {
         int port = -1; // Default.
         TSToolServer server = new TSToolServer();
@@ -2071,23 +2066,21 @@ private static void runRestletServer ()
 /**
 Set the command file that is being used with TSTool.
 @param configFile Command file being processed, when started with
--commands File parameter.  This indicates that a batch run should be done, with
-no main TSTool GUI, although windows may display for graphical products.
+-commands File parameter.  This indicates that a batch run should be done,
+with no main TSTool GUI, although windows may display for graphical products.
 */
-private static void setCommandFile ( String configFile )
-{
+private static void setCommandFile ( String configFile ) {
 	__commandFile = configFile;
 }
 
 /**
-Set the configuration file that is being used with TSTool.  If a relative path is
-given, then the file is made into an absolute path by using the working directory.
-Typically an absolute path is provided when the -home command line parameter is parsed
-at startup, and a relative path may be provided if -config is specified on the command line.
+Set the configuration file that is being used with TSTool.
+If a relative path is given, then the file is made into an absolute path by using the working directory.
+Typically an absolute path is provided when the -home command line parameter is parsed at startup,
+and a relative path may be provided if -config is specified on the command line.
 @param configFile Configuration file.
 */
-private static void setConfigFile ( String configFile )
-{
+private static void setConfigFile ( String configFile ) {
     __configFile = configFile;
 }
 
@@ -2096,8 +2089,8 @@ Set the icon for the application.  This will be used for all windows.
 @param iconType The icon will be used by searching for
 TSToolXXXIcon32.gif (where XXX=iconType), both using a path for the main application.
 */
-public static void setIcon ( String iconType )
-{	// First try loading the icon from the JAR file or class path.
+public static void setIcon ( String iconType ) {
+	// First try loading the icon from the JAR file or class path.
 	String iconFile = "TSTool" + iconType + "Icon32.gif";
 	String iconPath ="";
 	try {
@@ -2113,13 +2106,12 @@ public static void setIcon ( String iconType )
 /**
 Setup the application using the specific command file, which either came in on the
 command line with "-commands CommandFile" or simply as an argument.
-@param command_file_arg Command file from the command line argument (no processing on the argument
-before this call).
+@param command_file_arg Command file from the command line argument (no processing on the argument before this call).
 @param is_batch Indicates if the command file was specified with "-commands CommandFile",
 indicating that a batch run is requested.
 */
-private static void setupUsingCommandFile ( String command_file_arg, boolean is_batch )
-{   String routine = "TSToolMain.setupUsingCommandFile";
+private static void setupUsingCommandFile ( String command_file_arg, boolean is_batch ) {
+    String routine = "TSToolMain.setupUsingCommandFile";
 
     // Make sure that the command file is an absolute path because it indicates the working
     // directory for all other processing.
@@ -2154,8 +2146,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
     }
     
     // Save the full path to the command file so it can be processed when the GUI initializes.
-    // TODO SAM 2007-09-09 Evaluate phasing global command file out - needs to be handled in
-    // the command processor.
+    // TODO SAM 2007-09-09 Evaluate phasing global command file out - needs to be handled in the command processor.
     Message.printStatus ( 1, routine, "Command file is \"" + command_file_full + "\"" );
     // FIXME SAM 2008-09-04 Confirm no negative effects from taking this out.
     //IOUtil.setProgramCommandFile ( command_file_full );
@@ -2185,12 +2176,12 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
 /**
 Set the working directory as the system "user.dir" property.
 */
-private static void setWorkingDirInitial()
-{   String routine = "TSToolMain.setWorkingDirInitial";
+private static void setWorkingDirInitial() {
+    String routine = "TSToolMain.setWorkingDirInitial";
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
-    // Set the dialog because if the running in batch mode and interaction with the graph
-    // occurs, this default for dialogs should be the home of the command file.
+    // Set the dialog because if the running in batch mode and interaction with the graph occurs,
+    // this default for dialogs should be the home of the command file.
     JGUIUtil.setLastFileDialogDirectory( working_dir );
     String message = "Setting working directory to user directory \"" + working_dir +"\".";
     Message.printStatus ( 1, routine, message );
@@ -2201,12 +2192,12 @@ private static void setWorkingDirInitial()
 Set the working directory as the parent of the command file.
 @param commandFileFull the full (absolute) path to the command file
 */
-private static void setWorkingDirUsingCommandFile ( String commandFileFull )
-{   File commandFileFull_File = new File ( commandFileFull );
+private static void setWorkingDirUsingCommandFile ( String commandFileFull ) {
+    File commandFileFull_File = new File ( commandFileFull );
     String workingDir = commandFileFull_File.getParent();
     IOUtil.setProgramWorkingDir ( workingDir );
-    // Set the dialog because if the running in batch mode and interaction with the graph
-    // occurs, this default for dialogs should be the home of the command file.
+    // Set the dialog because if the running in batch mode and interaction with the graph occurs,
+    // this default for dialogs should be the home of the command file.
     JGUIUtil.setLastFileDialogDirectory( workingDir );
     // Print at level 1 because the log file is not yet initialized.
     String message = "Setting working directory to command file folder \"" + workingDir + ".\"";
@@ -2215,9 +2206,9 @@ private static void setWorkingDirUsingCommandFile ( String commandFileFull )
 }
 
 // TODO SAM 2015-12-14 This does not seem to work as intended:
-// -The Excecutor service itself is not a thread and so does not return immediately
-// -What will happen if -nomaingui is used with a thread timeout
-// -Probably need timeout on start-up but not once graph is displayed
+// - the Excecutor service itself is not a thread and so does not return immediately
+// - what will happen if -nomaingui is used with a thread timeout
+// - probably need timeout on start-up but not once graph is displayed
 /**
 Start the timeout thread, which will exit TSTool if it is not finished within the timeout.
 This is needed in cases where something in the code hangs and TSTool never exits.
@@ -2225,8 +2216,8 @@ Ideally those situations can be handled with granular timeouts but that is somet
 due to limitations in the packages that are called.
 @param timeoutSeconds number of seconds before timing out (ignore if <= 0)
 */
-private static void startTimeoutThread ( int timeoutSeconds )
-{	String routine = "startTimeoutThread";
+private static void startTimeoutThread ( int timeoutSeconds ) {
+	String routine = "startTimeoutThread";
 	if ( timeoutSeconds <= 0 ) {
 		// No need to start timeout thread.
 		return;
