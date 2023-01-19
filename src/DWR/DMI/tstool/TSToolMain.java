@@ -95,7 +95,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.5.2 (2023-01-05)";
+public static final String PROGRAM_VERSION = "14.5.3 (2023-01-19)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -522,6 +522,47 @@ private static void loadPluginDataStores(TSToolSession session,
 	findPluginDataStoreJarFilesNew ( session, pluginJarListNew );
 	loadPluginDataStoresNew(session, pluginJarListNew, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 	Message.printStatus(2, routine, "...end loading plugin datastores and commands using the new approach.");
+	
+	// Globally save the folders for plugins:
+	// - this allows those folders to be added to the classpath in cases where a separate Java program is run later,
+	//   such as the S3 file browser run with the TSTool AWS plugin
+	// - also save the "dep" sub-folder if it exists
+	// - check both the old and new lists
+	// - only add files and associated "dep" folders once
+	List<String> pluginClasspathList = new ArrayList<>();
+	List<String> checkList = null;
+	for ( int i = 0; i < 2; i++ ) {
+		if ( i == 0 ) {
+			checkList = pluginJarListOld;
+		}
+		else {
+			checkList = pluginJarListNew;
+		}
+		for ( String jarFile : checkList ) {
+			File f = new File(jarFile);
+			if ( f.exists() ) {
+				// The jar file exists:
+				// - add to the list if it is not already in the list
+				if ( !StringUtil.isInList(pluginClasspathList, jarFile ) ) {
+					pluginClasspathList.add(jarFile);
+					continue;
+				}
+				// Also add the "dep" folder used with plugins if it exists.
+				String folder = f.getParent() + File.separator + "dep";
+				f = new File(folder);
+				if ( f.exists() ) {
+					if ( !StringUtil.isInList(pluginClasspathList, f.getAbsolutePath() ) ) {
+						// Add the folder with * wildcard to match all files in "dep".
+						pluginClasspathList.add(f.getAbsolutePath() + File.separator + "*");
+					}
+				}
+			}
+		}
+	}
+	if ( pluginClasspathList.size() > 0 ) {
+		// Set the application plugin classpath list.
+		IOUtil.setApplicationPluginClasspath ( pluginClasspathList );
+	}
 }
 
 /**

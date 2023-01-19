@@ -9290,20 +9290,26 @@ public void ui_SetInputFilterForSelections() {
 	// Loop through the available input filter panels and set not visible all others.
     if ( __selectedInputFilter_JPanel != null ) {
         __selectedInputFilter_JPanel.setVisible ( true );
-        Message.printStatus(2, routine, "Set input filter panel \"" + __selectedInputFilter_JPanel.getName() +
-            "\" visible TRUE." );
+        if ( Message.isDebugOn ) {
+        	Message.printStatus(2, routine, "Set input filter panel \"" + __selectedInputFilter_JPanel.getName() +
+        		"\" visible TRUE." );
+        }
     }
     int i = -1;
 	for ( JPanel input_filter_JPanel: __inputFilterJPanelList ) {
 		++i;
 	    if ( input_filter_JPanel == __selectedInputFilter_JPanel ) {
-	    	Message.printStatus(2, routine, "Set input filter panel [" + i + "] \"" + input_filter_JPanel.getName() +
-	            "\" visible TRUE." );
+	    	if ( Message.isDebugOn ) {
+	    		Message.printStatus(2, routine, "Set input filter panel [" + i + "] \"" + input_filter_JPanel.getName() +
+	            	"\" visible TRUE." );
+	    	}
 	    }
 	    else {
 		    input_filter_JPanel.setVisible ( false );
-		    Message.printStatus(2, routine, "Set input filter panel [" + i + "] \"" + input_filter_JPanel.getName() +
-            "\" visible FALSE." );
+	    	if ( Message.isDebugOn ) {
+	    		Message.printStatus(2, routine, "Set input filter panel [" + i + "] \"" + input_filter_JPanel.getName() +
+	    			"\" visible FALSE." );
+	    	}
 		}
 	}
 }
