@@ -486,6 +486,7 @@ public class TSToolConstants {
     Commands_General_FileHandling_FTPGet_String = TAB + "FTPGet()... <get file(s) using FTP>",
     Commands_General_FileHandling_WebGet_String = TAB + "WebGet()... <get file(s) from the web>",
     Commands_General_FileHandling_CreateFolder_String = TAB + "CreateFolder()... <create a folder>",
+    Commands_General_FileHandling_RemoveFolder_String = TAB + "RemoveFolder()... <remove a folder>",
     Commands_General_FileHandling_AppendFile_String = TAB + "AppendFile()... <append file(s)>",
     Commands_General_FileHandling_CheckFile_String = TAB + "CheckFile()... <check a file's contents>",
     Commands_General_FileHandling_CopyFile_String = TAB + "CopyFile()... <copy file(s)>",
