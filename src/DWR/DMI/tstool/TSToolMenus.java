@@ -445,6 +445,7 @@ public class TSToolMenus {
     	Commands_General_FileHandling_FTPGet_JMenuItem = null,
     	Commands_General_FileHandling_WebGet_JMenuItem = null,
     	Commands_General_FileHandling_CreateFolder_JMenuItem = null,
+    	Commands_General_FileHandling_RemoveFolder_JMenuItem = null,
     	Commands_General_FileHandling_AppendFile_JMenuItem = null,
     	Commands_General_FileHandling_CheckFile_JMenuItem = null,
     	Commands_General_FileHandling_CopyFile_JMenuItem = null,
@@ -613,8 +614,7 @@ public class TSToolMenus {
 	// Menu: Commands(Plugin)
 
 	public static JMenu
-		Commands_Plugin_JMenu,
-		Commands_Plugin_ReadTimeSeries_JMenu;
+		Commands_Plugin_JMenu = null;
 
 	// Menu: Run
 

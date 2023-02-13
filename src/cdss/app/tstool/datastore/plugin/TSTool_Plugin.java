@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ public class TSTool_Plugin {
 	 * Use getInstance() to return the singleton.
 	 */
 	private static TSTool_Plugin instance = null;
-	
+
 	/**
 	 * Instance of the TSTool main UI.
 	 */
@@ -76,18 +76,21 @@ public class TSTool_Plugin {
 	/**
 	List of plugin datastore classes, which allow third-party datastores to be opened and used for data.
 	*/
+	@SuppressWarnings("rawtypes")
 	private List<Class> pluginDataStoreClassList = new ArrayList<>();
 
 	/**
 	List of plugin datastore factory classes, which allow third-party datastores to be opened and used for data.
 	*/
+	@SuppressWarnings("rawtypes")
 	private List<Class> pluginDataStoreFactoryClassList = new ArrayList<>();
 
 	/**
 	List of plugin command classes, which allow third-party commands to be recognized and run.
 	*/
+	@SuppressWarnings("rawtypes")
 	private List<Class> pluginCommandClassList = new ArrayList<>();
-	
+
 	/**
 	 * Handle data type selection.
 	 */
@@ -113,6 +116,7 @@ public class TSTool_Plugin {
 	/**
 	 * Get the plugin datastore class list.
 	 */
+	@SuppressWarnings("rawtypes")
 	public List<Class> getPluginDataStoreClassList () {
 		return this.pluginDataStoreClassList;
 	}
@@ -120,6 +124,7 @@ public class TSTool_Plugin {
 	/**
 	 * Get the plugin datastore factory class list.
 	 */
+	@SuppressWarnings("rawtypes")
 	public List<Class> getPluginDataStoreFactoryClassList () {
 		return this.pluginDataStoreFactoryClassList;
 	}
@@ -127,6 +132,7 @@ public class TSTool_Plugin {
 	/**
 	 * Get the plugin command class list.
 	 */
+	@SuppressWarnings("rawtypes")
 	public List<Class> getPluginCommandClassList () {
 		return this.pluginCommandClassList;
 	}
@@ -138,7 +144,7 @@ public class TSTool_Plugin {
 		String rtn = getClass().getSimpleName() + "getTimeSeriesListClicked_ReadPluginTimeSeriesCatalog";
 		JGUIUtil.setWaitCursor ( this.tstoolJFrame, true );
 		Message.printStatus ( 1, rtn, "Please wait... retrieving data");
-		
+
 		SimpleJComboBox dataType_JComboBox = this.tstoolJFrame.ui_GetDataTypeJComboBox();
 		SimpleJComboBox timeStep_JComboBox = this.tstoolJFrame.ui_GetTimeStepJComboBox();
 
@@ -206,21 +212,29 @@ public class TSTool_Plugin {
 		}
 	}
 
+	// TODO smalers 2023-01-24 Add a separator before each plugin's menus if not the first set of commands in the menu.
 	/**
 	Initialize the GUI "Commands(Plugin)" menu.
+	@param menuBar the application menu bar where commands are being added
 	*/
-	public void initGUIMenus_Commands ( JMenuBar menu_bar ) {
+	public void initGUIMenus_Commands ( JMenuBar menuBar ) {
 		// "Commands(Plugin)".
 
-		menu_bar.add( TSToolMenus.Commands_Plugin_JMenu = new JMenu( TSToolConstants.Commands_Plugin_String, true ) );
-		TSToolMenus.Commands_Plugin_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
-
-		//__Commands_Plugin_JMenu.add( __Commands_Plugin_ReadTimeSeries_JMenu = new JMenu( TSToolConstants.Commands_Plugin_ReadTimeSeries_String, true ) );
-		//menu_bar.add( __Commands_JMenu = new JMenu( TSToolConstants.Commands_String, true ) );
+		if ( TSToolMenus.Commands_Plugin_JMenu == null ) {
+			// Add the main menu for plugin commands.
+			menuBar.add( TSToolMenus.Commands_Plugin_JMenu = new JMenu( TSToolConstants.Commands_Plugin_String, true ) );
+			TSToolMenus.Commands_Plugin_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
+		}
 
 		// Loop through the plugin command classes and add menus.
 
-		for ( Class c : this.pluginCommandClassList ) {
+		if ( TSToolMenus.Commands_Plugin_JMenu.getItemCount() > 0 ) {
+			// The Commands(Plugin) menu is not empty so add a separator to keep each plugin's commands visually separated
+			// from previously added menus.
+			// TODO smalers 2023-01-24 this does not work because all plugin commands are added at once, not separately.
+			TSToolMenus.Commands_Plugin_JMenu.addSeparator();
+		}
+		for ( @SuppressWarnings("rawtypes") Class c : this.pluginCommandClassList ) {
 			// For now use the class name to determine the menu.
 			String name = c.getSimpleName();
 			int pos = name.indexOf("_Command");
@@ -229,13 +243,8 @@ public class TSTool_Plugin {
 				TSToolMenus.Commands_Plugin_JMenu.add ( new SimpleJMenuItem(name.substring(0,pos) + "()...", this.tstoolJFrame ) );
 			}
 		}
-
-		//__Commands_JMenu.add ( __Commands_SelectTimeSeries_JMenu = new JMenu(TSToolConstants.Commands_SelectTimeSeries_String) );
-		//__Commands_SelectTimeSeries_JMenu.setToolTipText("Select time series for processing (use with TSList=SelectedTS).");
-		//__Commands_SelectTimeSeries_JMenu.add ( __Commands_Select_DeselectTimeSeries_JMenuItem =
-		//    new SimpleJMenuItem(TSToolConstants.Commands_Select_DeselectTimeSeries_String, this ) );
 	}
-	
+
 	/**
 	 * Initialize the GUI input filters.
 	 * @param dataStoreList
@@ -313,25 +322,25 @@ public class TSTool_Plugin {
 		query_JWorksheet.setModel ( query_TableModel );
 		query_JWorksheet.setColumnWidths ( cr.getColumnWidths() );
 	}
-	
+
 	/**
 	 * Set the plugin datastore class list.
 	 */
-	public void setPluginDataStoreClassList ( List<Class> pluginDataStoreClassList) {
+	public void setPluginDataStoreClassList ( @SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList) {
 		this.pluginDataStoreClassList = pluginDataStoreClassList;
 	}
 
 	/**
 	 * Set the plugin datastore factory class list.
 	 */
-	public void setPluginDataStoreFactoryClassList ( List<Class> pluginDataStoreFactoryClassList ) {
+	public void setPluginDataStoreFactoryClassList ( @SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList ) {
 		this.pluginDataStoreFactoryClassList = pluginDataStoreFactoryClassList;
 	}
 
 	/**
 	 * Set the plugin command class list.
 	 */
-	public void setPluginCommandClassList ( List<Class> pluginCommandClassList ) {
+	public void setPluginCommandClassList ( @SuppressWarnings("rawtypes") List<Class> pluginCommandClassList ) {
 		this.pluginCommandClassList = pluginCommandClassList;
 	}
 

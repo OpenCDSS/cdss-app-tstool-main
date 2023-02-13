@@ -95,7 +95,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.5.3 (2023-01-19)";
+public static final String PROGRAM_VERSION = "14.5.4 (2023-02-01)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -601,10 +601,12 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 	String routine = "TSToolMain.loadPluginDataStores" + messagePrefix;
 	// Create a separate class loader for each plugin to maintain separation.
 	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder.
-	Message.printStatus(2, routine, "Trying to load plugin datastores from " + pluginJarList.size() + " candidate jar files");
+	Message.printStatus(2, routine, "Trying to load plugin datastores from " + pluginJarList.size() + " candidate jar files.");
 	for ( String pluginJar : pluginJarList ) {
 		// TODO figure out if only the top level datastore Jar file should be included.
-		Message.printStatus(2, routine, "Trying to load plugin datastores from \"" + pluginJar + "\"");
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "Trying to load plugin datastores from \"" + pluginJar + "\"");
+		}
 		URL [] dataStoreJarURLs = new URL[2];
 		try {
 			// Convert the file system filename to URL using forward slashes.
@@ -661,8 +663,11 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 		}
 		else {
 			if ( pluginDataStoreList1.size() != 1 ) {
-				Message.printWarning(2,routine,"Datastore plugin list size (" + pluginDataStoreList1.size() +
-					") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+				// This may be due to dependencies so don't print to the log file.
+				if ( Message.isDebugOn ) {
+					Message.printWarning(2,routine,"Datastore plugin list size (" + pluginDataStoreList1.size() +
+						") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+				}
 			}
 			else {
 				// Add to the list to be known to TSTool.
@@ -675,8 +680,11 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 		}
 		else {
 			if ( pluginDataStoreFactoryList1.size() != 1 ) {
-				Message.printWarning(2,routine,"Datastore plugin factory list size (" + pluginDataStoreFactoryList1.size() +
-					") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+				// Probably a dependency jar so don't print to the log file.
+				if ( Message.isDebugOn ) {
+					Message.printWarning(2,routine,"Datastore plugin factory list size (" + pluginDataStoreFactoryList1.size() +
+						") is not size of 1 for Jar \"" + pluginJar + "\" - skipping plugin." );
+				}
 			}
 			else {
 				// Add to the list to be known to TSTool.
@@ -717,8 +725,10 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 			// Add to the list to be known to TSTool:
 			// - multiple commands can be associated with a plugin jar file
 			// - other plugins may also add to the list
-			Message.printStatus(2,routine,"Plugin command list for plugin Jar \"" + pluginJar + "\" includes " +
-				pluginCommandList1.size() + " commands." );
+			if ( pluginCommandList1.size() > 0 ) {
+				Message.printStatus(2,routine,"Plugin command list for plugin Jar \"" + pluginJar + "\" includes " +
+					pluginCommandList1.size() + " commands." );
+			}
 			pluginCommandList.addAll(pluginCommandList1);
 		}
 	}
