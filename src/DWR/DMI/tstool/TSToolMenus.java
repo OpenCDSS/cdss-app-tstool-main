@@ -16,6 +16,10 @@ public class TSToolMenus {
 
 	public static JMenuItem
     	CommandsPopup_ShowCommandStatus_JMenuItem,
+
+    	CommandsPopup_IndentRight_JMenuItem,
+    	CommandsPopup_IndentLeft_JMenuItem,
+
     	CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,
     	CommandsPopup_Edit_CommandAsText_JMenuItem,
 
@@ -58,7 +62,8 @@ public class TSToolMenus {
 		public static JMenuItem
 		File_Save_Commands_JMenuItem = null,
 		File_Save_CommandsAs_JMenuItem = null,
-		File_Save_CommandsAsVersion9_JMenuItem = null,
+		// TODO smalers 2023-02-19 remove ASAP since old and not used.
+		//File_Save_CommandsAsVersion9_JMenuItem = null,
 		File_Save_TimeSeriesAs_JMenuItem = null;
 	public static JMenu File_Print_JMenu = null;
 		public static JMenuItem

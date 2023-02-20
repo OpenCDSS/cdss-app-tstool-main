@@ -73,6 +73,11 @@ public class TSToolConstants {
 	Path to icons/graphics in class path.
 	*/
 	public static final String TOOL_ICON_PATH = "/DWR/DMI/tstool";
+	
+	/**
+	 * Command indent number of spaces for each level.
+	 */
+	public static final String INDENT_SPACES = "    ";
 
 	/**
 	Maximum number of files in recent files, taken from TSToolSession history.
@@ -138,6 +143,9 @@ public class TSToolConstants {
 	CommandsPopup_FindCommands_String = "Find Command(s)...",
 	
 	CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
+	
+	CommandsPopup_IndentRight_String = "Indent Right",
+	CommandsPopup_IndentLeft_String = "Indent Left",
 
 	// Menu: File
 
@@ -152,7 +160,8 @@ public class TSToolConstants {
 		File_Save_String = "Save",
 			File_Save_Commands_String = "Commands",
 			File_Save_CommandsAs_String = "Commands As...",
-			File_Save_CommandsAsVersion9_String = "Commands As (Version 9 Syntax)...",
+			// TODO smalers 2023-02-19 remove ASAP.
+			//File_Save_CommandsAsVersion9_String = "Commands As (Version 9 Syntax)...",
 			File_Save_TimeSeriesAs_String = "Time Series As...",
 		File_Print_String = "Print",
 			File_Print_Commands_String = "Commands...",

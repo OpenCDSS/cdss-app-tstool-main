@@ -1354,8 +1354,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 				commandList_RemoveCommand ( commandToEditOriginal );
 				// Insert the copy during the edit.
 				commandList_InsertCommandAt ( commandToEdit, pos );
-				Message.printStatus(2, routine,
-					"Will edit the copy and restore to the original if the edit is canceled.");
+				Message.printStatus(2, routine, "Will edit the copy and restore to the original if the edit is canceled.");
 			}
 		}
 		else if ( mode == CommandEditType.INSERT ) {
@@ -4775,7 +4774,8 @@ private void ui_CheckGUIState () {
             JGUIUtil.setEnabled ( TSToolMenus.File_Save_Commands_JMenuItem,false );
 		}
 		JGUIUtil.setEnabled ( TSToolMenus.File_Save_CommandsAs_JMenuItem, true );
-		JGUIUtil.setEnabled ( TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem, true );
+		// TODO smalers 2023-02-19 remove ASAP since not used.
+		//JGUIUtil.setEnabled ( TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem, true );
 		JGUIUtil.setEnabled ( TSToolMenus.File_Print_Commands_JMenuItem, true );
 		JGUIUtil.setEnabled ( TSToolMenus.File_Print_JMenu, true );
 		enabled = true;
@@ -4784,7 +4784,8 @@ private void ui_CheckGUIState () {
 	    // No commands are shown.
 		JGUIUtil.setEnabled ( TSToolMenus.File_Save_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( TSToolMenus.File_Save_CommandsAs_JMenuItem, false );
-		JGUIUtil.setEnabled ( TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem, false );
+		// TODO smalers 2023-02-19 remove ASAP since not used.
+		//JGUIUtil.setEnabled ( TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem, false );
 	    JGUIUtil.setEnabled ( TSToolMenus.File_Print_Commands_JMenuItem, false );
 		JGUIUtil.setEnabled ( TSToolMenus.File_Print_JMenu, false );
 	}
@@ -4825,6 +4826,8 @@ private void ui_CheckGUIState () {
 	if ( selectedCommandsSize > 0 ) {
 	    enabled = true;
 	}
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentRight_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentLeft_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( TSToolMenus.Edit_CutCommands_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Cut_JMenuItem,enabled);
 	JGUIUtil.setEnabled ( TSToolMenus.Edit_CopyCommands_JMenuItem,enabled);
@@ -8555,6 +8558,11 @@ private void ui_InitGUIMenus_CommandsPopup () {
 	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_ShowCommandStatus_JMenuItem =
 		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_ShowCommandStatus_String, TSToolConstants.CommandsPopup_ShowCommandStatus_String, this ) );
 	TSToolMenus.Commands_JPopupMenu.addSeparator();
+	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_IndentRight_JMenuItem =
+		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_IndentRight_String, TSToolConstants.CommandsPopup_IndentRight_String, this ) );
+	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_IndentLeft_JMenuItem =
+		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_IndentLeft_String, TSToolConstants.CommandsPopup_IndentLeft_String, this ) );
+	TSToolMenus.Commands_JPopupMenu.addSeparator();
 	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Edit_String, TSToolConstants.Edit_CommandWithErrorChecking_String, this ) );
 	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_Edit_CommandAsText_JMenuItem =
@@ -8709,10 +8717,13 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar ) {
     TSToolMenus.File_Save_Commands_JMenuItem.setToolTipText("Save commands using the same name as the original.");
 	TSToolMenus.File_Save_JMenu.add ( TSToolMenus.File_Save_CommandsAs_JMenuItem = new SimpleJMenuItem( TSToolConstants.File_Save_CommandsAs_String, this ) );
     TSToolMenus.File_Save_CommandsAs_JMenuItem.setToolTipText("Save commands using a new file name.");
+    /*
+	// TODO smalers 2023-02-19 remove ASAP since not used.
 	TSToolMenus.File_Save_JMenu.add ( TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem =
 	   new SimpleJMenuItem( TSToolConstants.File_Save_CommandsAsVersion9_String, this ) );
     TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem.setToolTipText("Save commands using a new file name, using Version 9 syntax.");
 	TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem.setToolTipText ( "Save commands using a new file name, using old TS Alias = Command(...) syntax" );
+    */
 	TSToolMenus.File_Save_JMenu.addSeparator();
 	TSToolMenus.File_Save_JMenu.add (	TSToolMenus.File_Save_TimeSeriesAs_JMenuItem =
         new SimpleJMenuItem(TSToolConstants.File_Save_TimeSeriesAs_String, this ) );
@@ -9842,6 +9853,8 @@ throws Exception {
 			Message.printWarning ( 1, rtn, "Error writing command file (" + e + ")." );
 		}
 	}
+    /*
+	// TODO smalers 2023-02-19 remove ASAP since not used.
     else if ( o == TSToolMenus.File_Save_CommandsAsVersion9_JMenuItem ) {
         try {
             // Prompt for the name.
@@ -9851,6 +9864,7 @@ throws Exception {
             Message.printWarning ( 1, rtn, "Error writing command file in version 9 format (" + e + ")." );
         }
     }
+    */
     else if ( command.equals(TSToolConstants.File_Save_TimeSeriesAs_String) ) {
 		// Can save in a number of formats.  Allow the user to pick using a file chooser.
 		uiAction_SaveTimeSeries ();
@@ -9989,7 +10003,15 @@ throws Exception {
 
 	// Edit menu actions (in order of menu).
 
-    if ( command.equals(TSToolConstants.Edit_CutCommands_String) ) {
+    if ( command.equals(TSToolConstants.CommandsPopup_IndentRight_String) ) {
+		// Indent selected commands.
+		uiAction_IndentCommands( 1 );
+	}
+    else if ( command.equals(TSToolConstants.CommandsPopup_IndentLeft_String) ) {
+		// Indent selected commands.
+		uiAction_IndentCommands( -1 );
+	}
+    else if ( command.equals(TSToolConstants.Edit_CutCommands_String) ) {
 		// Need to think whether this should work for the time series list or only the commands.  Copy to the buffer.
 		uiAction_CopyFromCommandListToCutBuffer( true );
 	}
@@ -13447,6 +13469,62 @@ private void uiAction_ImportConfiguration ( String configFilePath ) {
         Message.printWarning( 1, routine, "There was an error updating the configuration file.  Check permissions." );
         Message.printWarning(3, routine, e);
     }
+}
+
+/**
+Indent the selected commands in the commands list.
+@param indentDirection -1 to indent to the left, 1 to indent to the right
+*/
+private void uiAction_IndentCommands ( int indentDirection ) {
+	//String routine = getClass().getSimpleName() + ".uiAction_IndentCommands";
+	int size = 0;
+	int [] selected_indices = ui_GetCommandJList().getSelectedIndices();
+	if ( selected_indices != null ) {
+		size = selected_indices.length;
+	}
+	if ( size == 0 ) {
+		return;
+	}
+
+	Command command = null;
+	// TODO smalers 2023-02-19 invalidation is apparently not needed.
+	//boolean didChange = false;
+	for ( int i = 0; i < size; i++ ) {
+		command = (Command)__commands_JListModel.get(selected_indices[i]);
+		if ( indentDirection < 0 ) {
+			// Reduce indent if possible.
+			if ( command.toString().startsWith(TSToolConstants.INDENT_SPACES) ) {
+				//Message.printStatus(2, routine, "Decreasing command indent string to: \"" +
+				//command.toString().substring(TSToolConstants.INDENT_SPACES.length()) + "\"");
+				command.setCommandString(command.toString().substring(TSToolConstants.INDENT_SPACES.length()) );
+				//Message.printStatus(2, routine, "After decreasing command string indent: \"" + command.toString() + "\"");
+				//didChange = true;
+			}
+		}
+		else if ( indentDirection > 0 ) {
+			// Increase indent.
+			//Message.printStatus(2, routine, "Increasing command string indent to: \"" +
+			//TSToolConstants.INDENT_SPACES + command + "\"");
+			command.setCommandString(TSToolConstants.INDENT_SPACES + command );
+			//Message.printStatus(2, routine, "After increasing command string indent (" +
+			//		((AbstractCommand)command).getIndentSpaceCount() +
+			//		"): \"" + command.toString() + "\"");
+			//didChange = true;
+		}
+		/*
+		if ( didChange ) {
+			Message.printStatus(2, routine, "Command string after indent change (" +
+				((AbstractCommand)command).getIndentSpaceCount() +
+			"): \"" + command + "\"");
+		}
+		*/
+	}
+	
+	// Invalidate the list so that it shows the current contents:
+	// - need to do this since the list contents were changed independent of the list model
+	//if ( didChange ) {
+		//this.__commands_AnnotatedCommandJList.invalidate();
+	//}
 }
 
 /**
