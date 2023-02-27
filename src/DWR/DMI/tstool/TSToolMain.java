@@ -95,7 +95,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.6.0.dev1 (2023-02-20)";
+public static final String PROGRAM_VERSION = "14.6.0 (2023-02-26)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1710,7 +1710,7 @@ throws Exception
             // after -home is parsed will be reset if in both files.
             readConfigFile(getConfigFile());
 	    }
-		else if ( args[i].regionMatches(true,0,"-d",0,2)) {
+		else if ( args[i].regionMatches(true,0,"-d",0,2) || args[i].regionMatches(true, 0, "--debug", 0,7)) {
 			// Set debug information.
 			if ((i + 1)== args.length) {
 				// No argument.  Turn terminal and log file debug on to level 1.
