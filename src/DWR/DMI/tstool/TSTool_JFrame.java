@@ -148,8 +148,11 @@ import rti.tscommandprocessor.commands.usgs.nwis.instantaneous.UsgsNwisInstantan
 import rti.tscommandprocessor.commands.usgs.nwis.instantaneous.UsgsNwisInstantaneous_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.util.Comment_Command;
 import rti.tscommandprocessor.commands.util.Comment_JDialog;
+import rti.tscommandprocessor.commands.util.EndFor_Command;
+import rti.tscommandprocessor.commands.util.EndIf_Command;
 import rti.tscommandprocessor.commands.util.Exit_Command;
-
+import rti.tscommandprocessor.commands.util.For_Command;
+import rti.tscommandprocessor.commands.util.If_Command;
 // HydroBase datastore classes, which are built-in rather than a plugin.
 import DWR.DMI.HydroBaseDMI.HydroBaseDMI;
 import DWR.DMI.HydroBaseDMI.HydroBaseDataStore;
@@ -1190,6 +1193,71 @@ private boolean commandList_CommandsAreEqual(List original_command, List edited_
 }
 
 /**
+ * Determine the indent spaces for a command that is being inserted.
+ * This method should be called before inserting the command.
+ * The indent is determined as follows:
+ * <ul>
+ * <li> If the previous command is null, return an empty string.</li>
+ * <li> If the previous command is an If or For, indent one level more than the previous command.</li>
+ * <li> If the current command is an EndIf or EndFor, indent one level less than the previous command (or zero).</li>
+ * <li> Else, use the same indent as the previous command.</li>
+ * </ul>
+ * @param commandToInsert the command that will be inserted
+ * @param commandPrevious previous command
+ */
+private String commandList_DetermineNewCommandIndent(Command commandToInsert, Command commandPrevious) {
+	if ( commandPrevious == null ) {
+		// No previous command.
+		return "";
+	}
+	String routine = getClass().getSimpleName() + "commandList_DetermineNewCommandIndent";
+	String prevIndentSpaces = "";
+	String indentSpaces = "";
+	// Get the previous command.
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "Determining indent spaces for new command \"" + commandToInsert
+			+ "\" after command \"" + commandPrevious + "\"");
+	}
+	if ( commandPrevious instanceof AbstractCommand ) {
+		prevIndentSpaces = ((AbstractCommand)commandPrevious).getIndentSpaces();
+	}
+	if ( (commandToInsert instanceof EndIf_Command) || (commandToInsert instanceof EndFor_Command) ) {
+		if ( (commandPrevious instanceof If_Command) || (commandPrevious instanceof For_Command) ) {
+			// No need to adjust the indent since the end is immediately after the start.
+			indentSpaces = prevIndentSpaces;
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  New EndIf or Endif.  Previous command was If or For so use the same indent for new If or For command.");
+			}
+		}
+		else if ( prevIndentSpaces.startsWith(TSToolConstants.INDENT_SPACES) ) {
+			// Previous command is not If or For so can attempt to unindent.
+			indentSpaces = prevIndentSpaces.substring(TSToolConstants.INDENT_SPACES.length());
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  New EndIf or EndFor command.  Previous command is not If or For so reducing indent.");
+			}
+		}
+	}
+	else if ( (commandPrevious instanceof If_Command) || (commandPrevious instanceof For_Command) ) {
+		indentSpaces = prevIndentSpaces + TSToolConstants.INDENT_SPACES;
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "  Previous command was If or For so increasing indent.");
+		}
+	}
+	else {
+		// Indent spaces is the same as the previous command.
+		indentSpaces = prevIndentSpaces;
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "  Previous command is a normal command so using the same indent.");
+		}
+	}
+	// Return the indent spaces string determined above.
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "  New command indent is \"" + indentSpaces + "\", length=" + indentSpaces.length() );
+	}
+	return indentSpaces;
+}
+
+/**
 Edit a command in the command list using the command's editor dialog.
 @param action the string containing the event's action value.
 Typically this is the command name and a description: "CommandName() <description>".
@@ -1218,8 +1286,7 @@ However, multiple # comment lines can be selected and edited at once.
 @param commandsToEdit If an update, this contains the current Command instances to edit.
 If a new command, this is null and the action string will be consulted to construct the appropriate command.
 The only time that multiple commands will be edited are when they are in a {# delimited comment block).
-@param mode the action to take when editing the command (INSERT for a
-new command or UPDATE for an existing command).
+@param mode the action to take when editing the command (INSERT for a new command or UPDATE for an existing command).
 @param editAsText if true, use a simple text editor rather than the command dialog editor
 (this is useful if the user is efficient at editing or if the editor is slow,
 such as when dealing with database metadata).
@@ -1765,11 +1832,10 @@ If none are selected, the insert will occur at the end of the list.
 For example this can occur in the following cases:
 <ol>
 <li>	The user is interacting with the command list via command menus.</li>
-<li>	Time series identifiers are being transferred to the commands area from
-		the query results list.</li>
+<li>	Time series identifiers are being transferred to the commands area from the query results list.</li>
 </ol>
-The GUI should call this method WHENEVER a command is being inserted and
-is coded to respond to changes in the data model.
+The GUI should call this method WHENEVER a command is being inserted and is coded to respond to changes in the data model.
+The indent for the inserted command is determined based on the previous command.
 @param inserted_command The command to insert.
 */
 private void commandList_InsertCommandBasedOnUI ( Command inserted_command ) {
@@ -1783,13 +1849,37 @@ private void commandList_InsertCommandBasedOnUI ( Command inserted_command ) {
 	if (selectedSize > 0) {
 		// Insert before the first selected item.
 		insert_pos = selectedIndices[0];
+		if ( insert_pos > 0 ) {
+			// Determine the indent from the previous command.
+			Command commandPrevious = (Command)__commands_JListModel.getElementAt(insert_pos - 1);
+			String indentSpaces = commandList_DetermineNewCommandIndent(inserted_command, commandPrevious);
+			// Insert the command in the list model.
+			if ( indentSpaces.length() > 0 ) {
+				// Add the indent to the command string:
+				// - the number of spaces will be set by the following method
+				inserted_command.setCommandString(indentSpaces + inserted_command);
+			}
+		}
 		__commands_JListModel.insertElementAt (	inserted_command, insert_pos );
 		Message.printStatus(2, routine, "Inserting command \"" + inserted_command + "\" at [" + insert_pos + "]" );
 	}
 	else {
+		// Insert position is one after the current size, 0 index.
+		insert_pos = __commands_JListModel.size();
+		if ( insert_pos > 0 ) {
+			// Determine the indent from the previous command.
+			Command commandPrevious = (Command)__commands_JListModel.getElementAt(insert_pos - 1);
+			String indentSpaces = "";
+			if ( __commands_JListModel.size() > 0 ) {
+				indentSpaces = commandList_DetermineNewCommandIndent(inserted_command, commandPrevious);
+			}
+			if ( indentSpaces.length() > 0 ) {
+				// Add the indent to the command string.
+				inserted_command.setCommandString(indentSpaces + inserted_command);
+			}
+		}
 	    // Insert at end of commands list.
 		__commands_JListModel.addElement ( inserted_command );
-		insert_pos = __commands_JListModel.size() - 1;
 	}
 	// Make sure that the list scrolls to the position that has been updated.
 	if ( insert_pos >= 0 ) {
@@ -13497,6 +13587,8 @@ private void uiAction_IndentCommands ( int indentDirection ) {
 				//Message.printStatus(2, routine, "Decreasing command indent string to: \"" +
 				//command.toString().substring(TSToolConstants.INDENT_SPACES.length()) + "\"");
 				command.setCommandString(command.toString().substring(TSToolConstants.INDENT_SPACES.length()) );
+				// Set the command list dirty so that "modified" is shown for the command file.
+				commandList_SetDirty(true);
 				//Message.printStatus(2, routine, "After decreasing command string indent: \"" + command.toString() + "\"");
 				//didChange = true;
 			}
@@ -13506,6 +13598,8 @@ private void uiAction_IndentCommands ( int indentDirection ) {
 			//Message.printStatus(2, routine, "Increasing command string indent to: \"" +
 			//TSToolConstants.INDENT_SPACES + command + "\"");
 			command.setCommandString(TSToolConstants.INDENT_SPACES + command );
+			// Set the command list dirty so that "modified" is shown for the command file.
+			commandList_SetDirty(true);
 			//Message.printStatus(2, routine, "After increasing command string indent (" +
 			//		((AbstractCommand)command).getIndentSpaceCount() +
 			//		"): \"" + command.toString() + "\"");
@@ -13519,7 +13613,7 @@ private void uiAction_IndentCommands ( int indentDirection ) {
 		}
 		*/
 	}
-	
+
 	// Invalidate the list so that it shows the current contents:
 	// - need to do this since the list contents were changed independent of the list model
 	//if ( didChange ) {
