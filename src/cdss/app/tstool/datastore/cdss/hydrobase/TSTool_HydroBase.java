@@ -78,6 +78,7 @@ import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
+import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -1030,6 +1031,7 @@ public class TSTool_HydroBase {
 	 	HydroBaseDMI hbdmi = null; // DMI that is opened by the dialog or automatically - null if cancel or error.
 	 	String error = ""; // Message for whether there was an unexpected error opening HydroBase.
 	 	boolean usedDialog = false;
+	 	boolean hydroBaseSelectWasCanceled = false;
 	 	if ( startup && AutoConnect_boolean ) {
 	 		Message.printStatus ( 2, routine, "HydroBase.AutoConnect=True in TSTool.cfg configuration file so " +
 	 				"autoconnecting to HydroBase with default connection information from CDSS.cfg." );
@@ -1057,6 +1059,7 @@ public class TSTool_HydroBase {
 	 			// After getting to here, the dialog has been closed.
 	 			// The HydroBaseDMI from the dialog can be retrieved and used.
 	 			hbdmi = selectHydroBaseJDialog.getHydroBaseDMI();
+	 			hydroBaseSelectWasCanceled = selectHydroBaseJDialog.wasCancelled();
 	 		}
 	 		catch ( Exception e ) {
 	 			error = "Error opening HydroBase connection.  ";
@@ -1067,8 +1070,26 @@ public class TSTool_HydroBase {
 	 	// If no HydroBase connection was opened, print an appropriate message.
 	 	if ( hbdmi == null ) {
 	 		if ( (getHydroBaseDataStoreLegacy() == null) && usedDialog ) {
-	 			// No previous connection known to the UI - print this warning if the dialog was attempted.
-	 			Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
+	 			if ( hydroBaseSelectWasCanceled ) {
+	 				// A common situation is a new TSTool installation that does not use a local HydroBase.
+	 				// Show extra information to help non-HydroBase users disable HydroBase.
+	 				new ResponseJDialog ( this.tstoolJFrame, "Select HydroBase was Canceled",
+	 						"HydroBase features will be disabled.\n\n"
+							+ "The State of Colorado's HydroBase database datastore is enabled by default.\n"
+	 						+ "If HydroBase is not available, disable as follows:\n"
+							+ "1. Use the Tools / Options menu.\n"
+	 						+ "2. In the 'Datastores and Input Types (installation)' tab, deselect 'HydroBaseEnabled.'\n"
+	 						+ "3. In the 'Datastores and Input Types (User)' tab, deselect 'HydroBaseEnabled' (if shown).\n"
+	 						+ "4. Restart TSTool.\n"
+	 						+ "5. If the HydroBase login is still shown, check the TSTool.cfg files as shown in (2) and (3).\n"
+	 						+ "6. See also the 'Help / View Documentation - Troubleshooting' documentation.\n"
+	 						+ "7. If necessary, contact support for assistance.\n\n",
+							ResponseJDialog.OK).response();
+	 			}
+	 			else {
+	 				// No previous connection known to the UI - print this warning if the dialog was attempted.
+	 				Message.printWarning ( 1, routine, error + "HydroBase features will be disabled." );
+	 			}
 	 		}
 	 		else if ( usedDialog ) {
 	 			// Had a previous connection in the UI so continue to use it.

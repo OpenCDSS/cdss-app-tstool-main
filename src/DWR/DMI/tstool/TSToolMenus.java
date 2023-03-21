@@ -315,7 +315,8 @@ public class TSToolMenus {
     	Commands_Datastore_ReadTimeSeriesFromDataStore_JMenuItem,
     	Commands_Datastore_WriteTimeSeriesToDataStore_JMenuItem,
     	Commands_Datastore_CloseDataStore_JMenuItem,
-    	Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem;
+    	Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem,
+    	Commands_Datastore_SetPropertyFromDataStore_JMenuItem;
 
 	// Menu: Commands / Ensemble Processing
 

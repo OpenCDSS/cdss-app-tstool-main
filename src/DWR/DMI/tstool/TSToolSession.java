@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -67,8 +67,7 @@ private PropList uiStateProps = new PropList("ui-state");
 private static TSToolSession instance = null;
 
 /**
- * Major software version, used for folder below .tstool/,
- * for example .tstool/13.
+ * Major software version, used for folder below .tstool/, for example .tstool/13.
  * This is initialized as a parameter to the constructor.
  */
 private int majorVersion = 0; // 0 will be an obvious error if a folder is created.
@@ -77,8 +76,8 @@ private int majorVersion = 0; // 0 will be an obvious error if a folder is creat
 Private constructor for the session instance.
 @param majorVersion the major version of TSTool, necessary because user files are organized by TSTool version.
 */
-private TSToolSession ( int majorVersion )
-{	// Read UI state properties so they are available for interaction.
+private TSToolSession ( int majorVersion ) {
+	// Read UI state properties so they are available for interaction.
 	// They will be written when TSTool closes, and at other intermediate points, as appropriate,
 	// by calling writeUIState().
 	this.majorVersion = majorVersion;
@@ -93,7 +92,7 @@ private TSToolSession ( int majorVersion )
 private boolean checkHistoryFile() {
 	String routine = getClass().getSimpleName() + ".checkHistoryFile";
 	String historyFile = getHistoryFile();
-	Message.printStatus(2, routine, "History file is \"" + historyFile + "\"");
+	//Message.printStatus(2, routine, "History file is \"" + historyFile + "\"");
 	File f = new File(historyFile);
 	// Folder should match the major version.
 	File folder = f.getParentFile();
@@ -217,8 +216,7 @@ Create a new TSTool configuration file in user files.
 This is used when transitioning from TSTool earlier than 11.09.00 to version later.
 @return true if the file was created, false for all other cases.
 */
-public boolean createUserConfigFile ( )
-{
+public boolean createUserConfigFile ( ) {
 	String userTstoolFolder = getUserTstoolFolder();
 	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
 		// Don't allow files to be created under root on Linux.
@@ -647,19 +645,17 @@ public List<File> getGraphTemplateFileList ()
 Return the name of the TSTool history file.
 This exists under the TSTool version folder, used with TSTool 13.x and later.
 */
-public String getHistoryFile ()
-{
+public String getHistoryFile () {
 	return getHistoryFile ( getMajorVersion() );
 }
 
 /**
 Return the name of the TSTool history file for a TSTool major version.
 */
-public String getHistoryFile ( int majorVersion )
-{
+public String getHistoryFile ( int majorVersion ) {
 	String historyFile = "";
 	if ( majorVersion <= 12 ) {
-		// History file exists in ./tstool
+		// History file exists in: ./tstool
 		historyFile = getUserTstoolFolder() + File.separator + "command-file-history.txt";
 	}
 	else {
@@ -677,8 +673,7 @@ Return the folder where TSTool is installed, for example:
 <li>	Linux: /opt/TSTool-Version</li>
 </ul>
 */
-public String getInstallFolder ()
-{
+public String getInstallFolder () {
 	String installFolder = IOUtil.getApplicationHomeDir();
 	return installFolder;
 }
@@ -686,8 +681,7 @@ public String getInstallFolder ()
 /**
 Return the folder for TSTool datastore configuration files, in software install folder:
 */
-public String getInstallDatastoresFolder ()
-{
+public String getInstallDatastoresFolder () {
 	String installFolder = getInstallFolder();
 	return installFolder + File.separator + "datastores";
 }
@@ -695,8 +689,7 @@ public String getInstallDatastoresFolder ()
 /**
 Return the folder for TSTool plugin files, a folder named "plugins".
 */
-public String getInstallPluginsFolder ()
-{
+public String getInstallPluginsFolder () {
 	String installFolder = getInstallFolder();
 	return installFolder + File.separator + "plugins";
 }
@@ -747,8 +740,7 @@ Return the folder to the major version:
 <li>	Linux: /home/UserName/.tstool/12</li>
 </ul>
 */
-public String getMajorVersionFolder ()
-{
+public String getMajorVersionFolder () {
 	return getMajorVersionFolder(getMajorVersion());
 }
 
@@ -759,8 +751,7 @@ Return the folder to the major version:
 <li>	Linux: /home/UserName/.tstool/12</li>
 </ul>
 */
-public String getMajorVersionFolder (int majorVersion)
-{
+public String getMajorVersionFolder (int majorVersion) {
 	String majorVersionFolder = getUserTstoolFolder() + File.separator + majorVersion;
 	//Message.printStatus(1,"","Major version folder is \"" + majorVersionFolder + "\"");
 	return majorVersionFolder;
@@ -769,8 +760,7 @@ public String getMajorVersionFolder (int majorVersion)
 /**
 Return the name of the TSTool UI state file.
 */
-public String getUIStateFile ()
-{
+public String getUIStateFile () {
 	return getUIStateFile(getMajorVersion());
 }
 
@@ -778,8 +768,7 @@ public String getUIStateFile ()
 Return the name of the TSTool UI state file for a TSTool major version.
 @param majorVersion the major TSTool version of interest.
 */
-public String getUIStateFile ( int majorVersion )
-{
+public String getUIStateFile ( int majorVersion ) {
 	String uiStateFile = "";
 	if ( majorVersion <= 12 ) {
 		// UI state file exists in, for example:  ./tstool/
@@ -804,8 +793,7 @@ public String getUIStateProperty ( String propertyName ) {
 /**
 Return the name of the user's TSTool configuration file.
 */
-public String getUserConfigFile ()
-{
+public String getUserConfigFile () {
 	String logFile = getUserSystemFolder() + File.separator + "TSTool.cfg";
 	//Message.printStatus(1,"","Config file is \"" + logFolder + "\"");
 	return logFile;
@@ -817,8 +805,7 @@ This reads the configuration file each time to ensure synchronization.
 @param propName property name
 @return the value of the property or null if file or property is not found
 */
-public String getUserConfigPropValue ( String propName )
-{
+public String getUserConfigPropValue ( String propName ) {
 	String configFile = getUserConfigFile();
 	File f = new File(configFile);
 	if ( !f.exists() || !f.canRead() ) {
@@ -839,8 +826,7 @@ public String getUserConfigPropValue ( String propName )
 Return the name of the user's datastore configuration folder.
 @return the "datastores" folder path (no trailing /).
 */
-public String getUserDatastoresFolder ()
-{
+public String getUserDatastoresFolder () {
 	return getUserDatastoresFolder ( getMajorVersion() );
 }
 
@@ -848,11 +834,10 @@ public String getUserDatastoresFolder ()
 Return the name of the user's datastore configuration folder.
 @return the "datastores" folder path (no trailing /).
 */
-public String getUserDatastoresFolder ( int majorVersion )
-{
-	// 12.06.00 and earlier (not under version folder and singular)...
+public String getUserDatastoresFolder ( int majorVersion ) {
+	// 12.06.00 and earlier (not under version folder and singular).
 	//String datastoreFolder = getUserFolder() + File.separator + "datastore";
-	// 12.07.00 and later (under version folder and plural, which seems more appropriate)
+	// 12.07.00 and later (under version folder and plural, which seems more appropriate).
 	String datastoresFolder = getMajorVersionFolder(majorVersion) + File.separator + "datastores";
 	//Message.printStatus(1,"","Datastores folder is \"" + datastoreFolder + "\"");
 	return datastoresFolder;
@@ -862,8 +847,7 @@ public String getUserDatastoresFolder ( int majorVersion )
 Return the name of the user's graph templates folder.
 @return the "template-graphs" folder path (no trailing /).
 */
-public String getUserGraphTemplatesFolder ()
-{
+public String getUserGraphTemplatesFolder () {
 	return getUserGraphTemplatesFolder ( getMajorVersion() );
 }
 
@@ -871,8 +855,7 @@ public String getUserGraphTemplatesFolder ()
 Return the name of the user's graph templates folder.
 @return the "template-graphs" folder path (no trailing /).
 */
-public String getUserGraphTemplatesFolder ( int majorVersion )
-{
+public String getUserGraphTemplatesFolder ( int majorVersion ) {
 	if ( majorVersion <= 12 ) {
 		// Version 12 folder:
 		// - under main .tstool folder
@@ -890,8 +873,7 @@ public String getUserGraphTemplatesFolder ( int majorVersion )
 /**
 Return the name of the log file for the user.
 */
-public String getUserLogFile ()
-{
+public String getUserLogFile () {
 	String logFile = getUserLogsFolder() + File.separator + "TSTool_" + System.getProperty("user.name") + ".log";
 	//Message.printStatus(1,"","Log folder is \"" + logFolder + "\"");
 	return logFile;
@@ -901,8 +883,7 @@ public String getUserLogFile ()
 Return the name of the user's log file folder.
 @return the "logs" folder path (no trailing /).
 */
-public String getUserLogsFolder ()
-{
+public String getUserLogsFolder () {
 	int majorVersion = getMajorVersion();
 	String logsFolder = "";
 	if ( majorVersion <= 12 ) {
@@ -931,8 +912,7 @@ Return the name of the user's plugins configuration folder.
 @param majorVersion the major software version
 @return the "plugins" folder path (no trailing /).
 */
-public String getUserPluginsFolder ( int majorVersion )
-{
+public String getUserPluginsFolder ( int majorVersion ) {
 	// 12.06.00 and earlier was split into plugin-command and plugin-datastore.
 	// 12.07.00 and later (under version folder and plural, which seems more appropriate).
 	String pluginsFolder = getMajorVersionFolder(majorVersion) + File.separator + "plugins";
@@ -944,8 +924,7 @@ public String getUserPluginsFolder ( int majorVersion )
 Return the name of the user's system folder.
 @return the "system" folder path (no trailing /).
 */
-public String getUserSystemFolder ()
-{
+public String getUserSystemFolder () {
 	return getUserSystemFolder(getMajorVersion());
 }
 
@@ -953,9 +932,7 @@ public String getUserSystemFolder ()
 Return the name of the user's system folder.
 @return the "system" folder path (no trailing /).
 */
-public String getUserSystemFolder ( int majorVersion )
-{
-
+public String getUserSystemFolder ( int majorVersion ) {
 	// 12.06.00 and earlier (not under version folder).
 	//String systemFolder = getUserFolder() + File.separator + "system";
 	// 12.07.00 and later (under version folder).
@@ -971,8 +948,7 @@ Return the name of the TSTool user folder for the operating system, for example:
 <li>	Linux: /home/UserName/.tstool</li>
 </ul>
 */
-public String getUserTstoolFolder ()
-{
+public String getUserTstoolFolder () {
 	String userFolder = System.getProperty("user.home") + File.separator + ".tstool";
 	//Message.printStatus(1,"","User folder is \"" + userFolder + "\"");
 	return userFolder;
@@ -982,7 +958,7 @@ public String getUserTstoolFolder ()
  * Initialize user files.
  * This method should be called at application startup to make sure that user files are created.
  * TSTool 12.06.00 and earlier used the following folder structure, using Windows as example:
- * 
+ *
  * <pre>
  * C:/Users/user/
  *   .tstool/
@@ -1001,13 +977,13 @@ public String getUserTstoolFolder ()
  *          bin/
  *            SomeDataStore.jar
  * </pre>
- * 
- * The above has proven to be problematic for a number of reasons including
+ *
+ * The above has proven to be problematic for a number of reasons including:
  * 1) strict folder structure is prone to errors (flexible drop-in for jar files is better),
  * 2) TSTool version evolution is prone to breaking
- * 
+ *
  * Therefore the following alternative is now being implemented in TSTool 12.07.00:
- * 
+ *
  * <pre>
  * C:/Users/user/
  *   .tstool/
@@ -1026,15 +1002,14 @@ public String getUserTstoolFolder ()
  *      14/
  *        ...
  * </pre>
- * 
+ *
  * Conventions will be used to manage files but users will be able to organize as they prefer.
- * The jar files can contain datastores and commands in the same jar file so as to
- * minimize duplicate deployment of code.
+ * The jar files can contain datastores and commands in the same jar file so as to minimize duplicate deployment of code.
  * The use of a version folder is a compromise: users will need to use migration tools
- * to import previous version datastore configurations, etc., but the version folder
- * allows different major versions of TSTool to remain functional if major design changes occur.
- * @param majorVersion the major TSTool version, a parameter to allow calling multiple times
- * for different TSTool versions if necessary.
+ * to import previous version datastore configurations, etc.,
+ * but the version folder allows different major versions of TSTool to remain functional if major design changes occur.
+ * @param majorVersion the major TSTool version,
+ * a parameter to allow calling multiple times for different TSTool versions if necessary.
  * @param copyPreviousVersion if true, copy the nearest previous version's files,
  * if false only create folders
  * @return true if the files were initialized, false for all other cases.
@@ -1086,8 +1061,7 @@ Push a new command file onto the history.  This reads the history, updates it, a
 This is done because if multiple TSTool sessions are running they, will share the history.
 @param commandFile full path to command file that has been opened
 */
-public void pushHistory ( String commandFile )
-{
+public void pushHistory ( String commandFile ) {
 	// Read the history file from the .tstool-history file.
 	List<String> history = readHistory();
 	// Add in the first position so it will show up first in the File...Open... menu.
@@ -1116,11 +1090,11 @@ public void pushHistory ( String commandFile )
 Read the history of command files that have been opened.
 @return list of command files recently opened, newest first
 */
-public List<String> readHistory()
-{	//String routine = getClass().getSimpleName() + ".readHistory";
+public List<String> readHistory() {
+	//String routine = getClass().getSimpleName() + ".readHistory";
 	try {
-		// If the history file does not exist or is zero size, automatically copy from the previous
-		// version of TSTool if it exists.
+		// If the history file does not exist or is zero size,
+		// automatically copy from the previous version of TSTool if it exists.
 		if ( !checkHistoryFile() ) {
 			// History file could not be verified/created so return empty list.
 			return new ArrayList<String>();
@@ -1136,19 +1110,19 @@ public List<String> readHistory()
 		return history;
 	}
 	catch ( Exception e ) {
-		// For now just swallow exception - may be because the history folder does not exist
+		// For now just swallow exception - may be because the history folder does not exist.
 		//Message.printWarning(3,routine,e);
 		return new ArrayList<String>();
 	}
 }
 
 /**
-Read the UI state.  The UI state is saved as simple property=value text file in
-the .tstool/ui-state.txt file.
+Read the UI state.
+The UI state is saved as simple property=value text file in the .tstool/ui-state.txt file.
 Properties are saved in the uiStateProps PropList internally.
 */
-public void readUIState()
-{	//String routine = getClass().getSimpleName() + ".readUIState";
+public void readUIState() {
+	//String routine = getClass().getSimpleName() + ".readUIState";
 	// Check that the UI state file exists in the expected location.
 	checkUIStateFile();
 	try {
@@ -1157,8 +1131,7 @@ public void readUIState()
 		this.uiStateProps.readPersistent();
 	}
 	catch ( Exception e ) {
-		// For now just swallow exception - may be because the UI state file has not
-		// been created the first time.
+		// For now just swallow exception - may be because the UI state file has not been created the first time.
 		//Message.printWarning(3,routine,e);
 	}
 }
@@ -1175,11 +1148,10 @@ public void setUIStateProperty ( String propertyName, String propertyValue ) {
 /**
 Write the history of commands files that have been opened.
 */
-private void writeHistory ( List<String> history )
-{
+private void writeHistory ( List<String> history ) {
 	String nl = System.getProperty("line.separator");
 	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
-	
+
 	String userTstoolFolder = getUserTstoolFolder();
 	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
 		// Don't allow files to be created under root on Linux.
@@ -1199,12 +1171,12 @@ private void writeHistory ( List<String> history )
 	}
 	// Now can continue.
 	try {
-	
+
 		for ( String s : history ) {
 			sb.append(nl + s);
 		}
-		// If the history file does not exist or is zero size, automatically copy from the previous
-		// version of TSTool if it exists.
+		// If the history file does not exist or is zero size,
+		// automatically copy from the previous version of TSTool if it exists.
 		if ( !checkHistoryFile() ) {
 			return;
 		}
@@ -1226,8 +1198,7 @@ private void writeHistory ( List<String> history )
 /**
 Write the UI state properties.
 */
-public void writeUIState ()
-{
+public void writeUIState () {
 	String userTstoolFolder = getUserTstoolFolder();
 	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
 		// Don't allow files to be created under root on Linux.
