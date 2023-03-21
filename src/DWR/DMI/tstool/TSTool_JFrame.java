@@ -108,6 +108,8 @@ import javax.swing.filechooser.FileFilter;
 // Node network classes.
 import org.openwaterfoundation.network.NodeNetwork;
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 // Jackson classes for JSON processing.
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -740,10 +742,12 @@ private JTextField __message_JTextField;
 Progress bar to show progress of running commands in processor.
 */
 private JProgressBar __processor_JProgressBar;
+
 /**
 Progress bar to show progress of running a specific commands.
 */
 private JProgressBar __command_JProgressBar;
+
 /**
 Status area text field (e.g., "READY", "WAIT") - small and right-most.
 */
@@ -861,13 +865,13 @@ private SimpleJButton
 TSTool_JFrame constructor.
 @param session TSTool session, which provides user and environment information.
 @param commandFile Name of the command file to load at initialization.
-@param runOnLoad If true, a successful load of a command file will be followed by
-running the commands.  If false, the command file will be loaded but not automatically run.
+@param runOnLoad If true, a successful load of a command file will be followed by running the commands.
+If false, the command file will be loaded but not automatically run.
 @param pluginDataStoreClassList list of classes for plugin datastores.
 @param pluginCommandClassList list of classes for plugin commands.
 @param initialProps properties to initialize in the command processor at the start of processing
-@param datastoreSubstituteMap used by the processor to map datastore names in command files
-with the datastore to be used, useful for testing to globally use a different datastore
+@param datastoreSubstituteMap used by the processor to map datastore names in command files with the datastore to be used,
+useful for testing to globally use a different datastore
 @param titleMod modifier for the title, used with --ui-title to customize the TSTool title
 */
 public TSTool_JFrame (
@@ -966,7 +970,8 @@ public TSTool_JFrame (
 		if ( TSTool_HydroBase.getInstance(this).getHydroBaseDMILegacy() != null ) {
 			__inputType_JComboBox.select ( null );
 			__inputType_JComboBox.select (TSToolConstants.INPUT_TYPE_HydroBase);
-			__dataStore_JTabbedPane.setSelectedIndex(1);
+			// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
+			__dataStore_JTabbedPane.setSelectedIndex(0);
 		}
 	}
 	if ( __source_NWSRFS_FS5Files_enabled ) {
@@ -1069,9 +1074,8 @@ The success/failure of the command is not indicated (see CommandStatusProvider).
 @param ncommand The total number of commands to process
 @param command The reference to the command that has been canceled, either the
 one that has just been processed, or potentially the next one, depending on when the cancel was requested.
-@param percent_complete If >= 0, the value can be used to indicate progress
-running a list of commands (not the single command).  If less than zero, then
-no estimate is given for the percent complete and calling code can make its
+@param percent_complete If >= 0, the value can be used to indicate progress running a list of commands (not the single command).
+If less than zero, then no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
@@ -1093,8 +1097,7 @@ The success/failure of the command is not indicated (see CommandStatusProvider).
 @param ncommand The total number of commands to process
 @param command The reference to the command that is completed,
 provided to allow future interaction with the command.
-@param percent_complete If >= 0, the value can be used to indicate progress
-running a list of commands (not the single command).
+@param percent_complete If >= 0, the value can be used to indicate progress running a list of commands (not the single command).
 If less than zero, then no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
@@ -2256,8 +2259,7 @@ This level of monitoring is useful if more than one progress indicator is presen
 @param istep The number of steps being executed in a command (0+).
 @param nstep The total number of steps to process within a command.
 @param command The reference to the command that is running.
-@param percentComplete If >= 0, the value can be used to indicate progress
-running a single command (not the single command).
+@param percentComplete If >= 0, the value can be used to indicate progress running a single command (not the single command).
 If less than zero, then no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((istep + 1)/nstep)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
@@ -2941,6 +2943,8 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
 
 /**
 Process time series from the results list into a product (graph, etc).
+@param indices array of time series results positions (0+) to process, or null to process all
+@param props properties to configure the display
 */
 private void commandProcessor_ProcessTimeSeriesResultsList ( int [] indices, PropList props ) {
 	String routine = getClass().getSimpleName() + ".commandProcessor_ProcessTimeSeriesResultsList";
@@ -6509,7 +6513,7 @@ private void ui_InitGUI ( PropList initProps ) {
         0, ++yDataStore, 1, 1, 0.0, 0.0, insetsNLNN, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __dataStore_JComboBox = new SimpleJComboBox(false);
     __dataStore_JComboBox.setMaximumRowCount ( 20 );
-    String tooltip = "<html>Configured database and web service datastores <b>with no errors</b> - select a datastore OR input type.  See View...Datastores for status.</html>";
+    String tooltip = "<html>Configured database and web service datastores - select a datastore OR input type.  See <b><i>View / Datastores</i></b> for status and errors.</html>";
     __dataStore_JLabel.setToolTipText(tooltip);
     __dataStore_JComboBox.setToolTipText ( tooltip );
     __dataStore_JComboBox.addItemListener( this );
@@ -7081,13 +7085,15 @@ private void ui_InitGUI ( PropList initProps ) {
 		// Select HydroBase for CDSS use.
 		__inputType_JComboBox.select( null );
 		__inputType_JComboBox.select( TSToolConstants.INPUT_TYPE_HydroBase );
-		__dataStore_JTabbedPane.setSelectedIndex(1);
+		// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
+		__dataStore_JTabbedPane.setSelectedIndex(0);
 	}
 	else {
 		// Select DateValue, which is a simple general file format.
         __inputType_JComboBox.select( null );
 		__inputType_JComboBox.select( TSToolConstants.INPUT_TYPE_DateValue );
-		__dataStore_JTabbedPane.setSelectedIndex(1);
+		// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
+		__dataStore_JTabbedPane.setSelectedIndex(0);
 	}
 }
 
@@ -7970,6 +7976,11 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar ) {
     TSToolMenus.Commands_Datastore_JMenu.add(TSToolMenus.Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem =
         new SimpleJMenuItem(TSToolConstants.Commands_Datastore_CreateDataStoreDataDictionary_String, this) );
     TSToolMenus.Commands_Datastore_CreateDataStoreDataDictionary_JMenuItem.setToolTipText("Create an HTML database dictionary for a database datastore.");
+    TSToolMenus.Commands_Datastore_JMenu.addSeparator();
+    TSToolMenus.Commands_Datastore_JMenu.add (TSToolMenus.Commands_Datastore_SetPropertyFromDataStore_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_Datastore_SetPropertyFromDataStore_String,this));
+    TSToolMenus.Commands_Datastore_SetPropertyFromDataStore_JMenuItem.setToolTipText(
+    	"Set a processor property from a datastore, to use as ${Property} in commands parameters.");
 
     // Menu: Commands / Ensemble processing
 
@@ -9633,13 +9644,15 @@ public void ui_SetInputTypeChoices () {
 		// If enabled and available, select it because the users probably want it as the choice.
 		__inputType_JComboBox.select( null );
 		__inputType_JComboBox.select( TSToolConstants.INPUT_TYPE_HydroBase );
-		__dataStore_JTabbedPane.setSelectedIndex(1);
+		// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
+		__dataStore_JTabbedPane.setSelectedIndex(0);
 	}
 	else {
         // Select the DateValue format, which is generic.
 		__inputType_JComboBox.select ( null );
 		__inputType_JComboBox.select ( TSToolConstants.INPUT_TYPE_DateValue );
-		__dataStore_JTabbedPane.setSelectedIndex(1);
+		// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
+		__dataStore_JTabbedPane.setSelectedIndex(0);
 	}
 }
 
@@ -9893,7 +9906,8 @@ throws Exception {
 		if ( TSTool_HydroBase.getInstance(this).getHydroBaseDataStoreLegacy() != null ) {
 			__inputType_JComboBox.select ( null );
 			__inputType_JComboBox.select ( TSToolConstants.INPUT_TYPE_HydroBase);
-			__dataStore_JTabbedPane.setSelectedIndex(1);
+			// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
+			__dataStore_JTabbedPane.setSelectedIndex(0);
 		}
 	}
 	else if ( command.equals ( TSToolConstants.File_Open_ReclamationHDB_String )) {
@@ -10810,6 +10824,9 @@ throws Exception {
     }
     else if (command.equals( TSToolConstants.Commands_Datastore_CreateDataStoreDataDictionary_String)) {
         commandList_EditCommand ( TSToolConstants.Commands_Datastore_CreateDataStoreDataDictionary_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( TSToolConstants.Commands_Datastore_SetPropertyFromDataStore_String) ) {
+        commandList_EditCommand ( TSToolConstants.Commands_Datastore_SetPropertyFromDataStore_String, null, CommandEditType.INSERT );
     }
 
     // Network commands.
@@ -13132,8 +13149,8 @@ private void uiAction_GetTimeSeriesListClicked() {
         Message.printStatus ( 1, routine, "Getting time series list from " + selectedInputType + " input type..." );
     }
 
-	// Verify that the input filters have valid data.
-
+	// Verify that the input filters have valid data:
+    // - the following works for plugins also because the parent class implements the method
 	if ( __selectedInputFilter_JPanel != __inputFilterGeneric_JPanel ) {
 		String warning = __selectedInputFilter_JPanel.checkInputFilters(false);
 		if ( (warning != null) && !warning.isEmpty() ) {
@@ -15579,12 +15596,18 @@ private void uiAction_ShowResultsObject ( String selected ) {
         	List<String> lines = new ArrayList<>();
         	// Format using Jackson.
         	ObjectMapper mapper = new ObjectMapper();
+        	// Get the default pretty printer and set the indent:
+        	// - use two spaces to indent because
+        	DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", DefaultIndenter.SYS_LF);
+        	DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
+        	printer.indentObjectsWith(indenter);
+        	printer.indentArraysWith(indenter);
         	if ( object.getObjectMap() != null ) {
-        		String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object.getObjectMap());
+        		String json = mapper.writer(printer).writeValueAsString(object.getObjectMap());
             	lines.add ( json );
         	}
         	else if ( object.getObjectArray() != null ) {
-        		String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object.getObjectArray());
+        		String json = mapper.writer(printer).writeValueAsString(object.getObjectArray());
             	lines.add ( json );
         	}
         	// Use so that the dialog is displayed on same screen as TSTool main GUI.

@@ -382,6 +382,7 @@ public class TSToolConstants {
     Commands_Datastore_WriteTimeSeriesToDataStore_String = TAB + "WriteTimeSeriesToDataStore()... <write time series to database datastore>",
    	Commands_Datastore_CloseDataStore_String = TAB + "CloseDataStore()... <close a database datastore>",
     Commands_Datastore_CreateDataStoreDataDictionary_String = TAB + "CreateDataStoreDataDictionary()... <create a data dictionary for a datastore>",
+    Commands_Datastore_SetPropertyFromDataStore_String = TAB + "SetPropertyFromDataStore()... <set a processor property from a datastore>",
 
     // Menu: Commands / Ensemble Processing
 

@@ -114,13 +114,14 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 		// Loop through all of the URLs.
 		for ( int i = 0; i < pluginClassURLs.length; i++ ) {
 			JarInputStream jarStream = null;
+			String commandClassToLoad = null;
 			try {
 				// Open the META-INF/MANIFEST.MF file and get the property Command-Class, which is what needs to be loaded.
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
 				for ( int iCommand = 1 ; ; ++iCommand ) {
-					String commandClassToLoad = attributes.getValue("Command-Class" + iCommand);
+					commandClassToLoad = attributes.getValue("Command-Class" + iCommand);
 					if ( commandClassToLoad == null ) {
 						// No more command classes so break out of the loop.
 						if ( Message.isDebugOn ) {
@@ -131,7 +132,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 					else {
 						// The following will search the list of URLs that was provided to the constructor.
 						if ( Message.isDebugOn ) {
-							Message.printStatus(2, routine,  "Found MANIFEST entry for command class: " +
+							Message.printStatus(2, routine,  "Found META-INF/MANIFEST entry for command class: " +
 								commandClassToLoad.substring(0,(commandClassToLoad.length() - (("" + iCommand).length() - 1)) ));
 							Message.printStatus(2, routine, "Trying to load command class \"" + commandClassToLoad + "\"");
 						}
@@ -146,6 +147,12 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 			}
 			catch ( IOException ioe ) {
 				Message.printWarning(3,routine,"Error loading plugin commands from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(3,routine,"  Does the file exist and is readable?");
+			}
+			catch ( ClassNotFoundException ioe ) {
+				Message.printWarning(3,routine,"Error loading plugin commands from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(2, routine,"  Trying to load command class \"" + commandClassToLoad + "\"");
+				Message.printWarning(3,routine,"  Is there a typo in the META-INF/MANIFEST.MF file?");
 			}
 			finally {
 				if ( jarStream != null ) {
@@ -176,6 +183,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 		// Loop through all of the URLs
 		for ( int i = 0; i < pluginClassURLs.length; i++ ) {
 			JarInputStream jarStream = null;
+			String dataStoreClassToLoad = null;
 			try {
 				// Open the META-INF/MANIFEST.MF file and get the property Datastore-Class, which is what needs to be loaded.
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
@@ -183,11 +191,11 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 				// Try finding "Datastore-Class" in the main attributes, which was used in TSTool 12.06.00 and earlier.
 				Attributes attributes = manifest.getMainAttributes();
 				// TODO SAM 2016-04-03 may also need the datastore factory class.
-				String dataStoreClassToLoad = attributes.getValue("Datastore-Class");
+				dataStoreClassToLoad = attributes.getValue("Datastore-Class");
 				if ( dataStoreClassToLoad == null ) {
 					if ( Message.isDebugOn ) {
 						Message.printStatus(2, routine,
-							"Cannot find Datastore-Class property in jar file MANIFEST main section.  Cannot load as a datastore class.");
+							"Cannot find Datastore-Class property in jar file META-INF/MANIFEST main section.  Cannot load as a datastore class.");
 					}
 					// TODO smalers 2018-09-18 figure out how to load from Name: section,
 					// but would need to know how to request a name of interest.
@@ -205,6 +213,12 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 			}
 			catch ( IOException ioe ) {
 				Message.printWarning(3,routine,"Error loading plugin datastore from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(3,routine,"  Does the file exist and is readable?");
+			}
+			catch ( ClassNotFoundException ioe ) {
+				Message.printWarning(3,routine,"Error loading plugin datastore from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(2, routine,"  Trying to load datastore class \"" + dataStoreClassToLoad + "\"");
+				Message.printWarning(3,routine,"  Is there a typo in the META-INF/MANIFEST.MF file?");
 			}
 			finally {
 				if ( jarStream != null ) {
@@ -235,12 +249,13 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 		// Loop through all of the URLs.
 		for ( int i = 0; i < pluginClassURLs.length; i++ ) {
 			JarInputStream jarStream = null;
+			String dataStoreFactoryClassToLoad = null;
 			try {
 				// Open the META-INF/MANIFEST.MF file and get the property DatastoreFactory-Class, which is what needs to be loaded.
 				jarStream = new JarInputStream(pluginClassURLs[i].openStream());
 				Manifest manifest = jarStream.getManifest();
 				Attributes attributes = manifest.getMainAttributes();
-				String dataStoreFactoryClassToLoad = attributes.getValue("DataStoreFactory-Class");
+				dataStoreFactoryClassToLoad = attributes.getValue("DataStoreFactory-Class");
 				if ( dataStoreFactoryClassToLoad == null ) {
 					// Try old spelling - if null then have an issue.
 					dataStoreFactoryClassToLoad = attributes.getValue("DatastoreFactory-Class");
@@ -284,6 +299,12 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 			}
 			catch ( IOException ioe ) {
 				Message.printWarning(3,routine,"Error loading plugin datastore factory from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(3,routine,"  Does the file exist and is readable?");
+			}
+			catch ( ClassNotFoundException ioe ) {
+				Message.printWarning(3,routine,"Error loading plugin commands from \"" + pluginClassURLs[i] + "\"");
+				Message.printWarning(2, routine,"  Trying to load datastore factory class \"" + dataStoreFactoryClassToLoad + "\"");
+				Message.printWarning(3,routine,"  Is there a typo in the META-INF/MANIFEST.MF file?");
 			}
 			finally {
 				if ( jarStream != null ) {
