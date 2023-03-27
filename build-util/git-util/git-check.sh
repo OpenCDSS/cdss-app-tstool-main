@@ -4,7 +4,7 @@
 
 #-----------------------------------------------------------------NoticeStart-
 # Git Utilities
-# Copyright 2017-2022 Open Water Foundation.
+# Copyright 2017-2023 Open Water Foundation.
 #
 # License GPLv3+:  GNU GPL version 3 or later
 #
@@ -158,10 +158,10 @@ checkWorkingFiles() {
       if [ ${matchCount} -ge 1 ]; then
         # Empty folder found that is not git ignored.
         ${echo2} "  ${line2}" > ${emptyFoldersTmpFile}
+        # Track repositories with empty folders, often indicate an issue.
+        emptyFoldersRepoCount=$(expr ${emptyFoldersRepoCount} + 1)
       fi
-      done
-    # Track repositories with empty folders, often indicate an issue.
-    emptyFoldersRepoCount=$(expr ${emptyFoldersRepoCount} + 1)
+    done
     # If any empty untracked folders were detected, print the following.
     if [ -s "${emptyFoldersTmpFile}" ]; then
       matchCountTotal=$(cat ${emptyFoldersTmpFile} | wc -l)
@@ -406,7 +406,7 @@ printVersion() {
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
 
-version="1.9.1 2022-11-15"
+version="1.9.3 2023-03-26"
 
 # Set initial values.
 debug="false"
