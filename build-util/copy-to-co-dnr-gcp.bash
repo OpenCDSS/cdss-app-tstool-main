@@ -185,9 +185,10 @@ syncFiles() {
 updateIndex() {
   local answer
   echo ""
-  read -p "Do you want to update the GCP index file [Y/n]? " answer
+  read -p "Do you want to update the GCP index and usage index files [Y/n]? " answer
   if [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
     ${scriptFolder}/create-gcp-tstool-index.bash
+    ${scriptFolder}/create-gcp-tstool-usage-index.bash
   fi
 }
 
