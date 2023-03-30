@@ -188,7 +188,9 @@ updateIndex() {
   read -p "Do you want to update the GCP index and usage index files [Y/n]? " answer
   if [ -z "${answer}" -o "${answer}" = "y" -o "${answer}" = "Y" ]; then
     ${scriptFolder}/create-gcp-tstool-index.bash
-    ${scriptFolder}/create-gcp-tstool-usage-index.bash
+    # TODO smalers 2023-03-30 there are technical and possibly legal issues:
+    # - see:  https://stackoverflow.com/questions/75890133/google-analytics-4-for-desktop-java-application
+    #${scriptFolder}/create-gcp-tstool-usage-index.bash
   fi
 }
 

@@ -2320,10 +2320,19 @@ private static void startTimeoutThread ( int timeoutSeconds ) {
 
 /**
  * Do a GET request on the OpenCDSS website to cause Google Analytics to track a TSTool usage.
+ * TODO smalers 2023-03-30 This needs more work.
+ * See:  https://stackoverflow.com/questions/75890133/google-analytics-4-for-desktop-java-application
  * @param runMode the TSTool run mode, to understand how TSTool is being called
  */
 private static void trackUsage ( String runMode ) {
 	String routine = TSToolMain.class.getSimpleName() + ".trackUsage";
+	
+	boolean doTracking = false;
+	if ( !doTracking ) {
+		// TODO smalers 2023-03-30 figure out a good solution for tracking.
+		return;
+	}
+
 	// Operating system.
 	String os = "unknown";
 	if ( IOUtil.isUNIXMachine() ) {
