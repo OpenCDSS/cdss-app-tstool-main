@@ -191,7 +191,7 @@ uploadIndexHtmlFile() {
 
 echo "
 <!-- Start Google Analytics 4 property. -->
-<script async src=\"https://www.googletagmanager.com/gtag/js?id=TAG_ID\"></script>
+<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-PTJLXFDPDL\"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 
