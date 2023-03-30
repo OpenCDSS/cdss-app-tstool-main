@@ -28,6 +28,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -95,7 +96,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.7.0 (2023-03-26)";
+public static final String PROGRAM_VERSION = "14.8.0.dev1 (2023-03-29)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -205,7 +206,7 @@ private static String titleMod = "";
  * @param pluginJarList List of full path to plugin jar file.
  */
 private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List<String> pluginJarList ) {
-	String routine = "TSToolMain.findDataStorePluginJarFilesNew";
+	String routine = TSToolMain.class.getSimpleName() + ".findDataStorePluginJarFilesNew";
 	// Get a list of jar files in the user plugins folder (will take precedent over installation files).
 	File userPluginsFolder = new File(session.getUserPluginsFolder());
 	Message.printStatus(2, routine, "Finding plugin datastore jar files in plugins folder \"" + userPluginsFolder + "\"");
@@ -232,7 +233,7 @@ private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List
  * @param pluginJarList List of full path to plugin jar file.
  */
 private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List<String> pluginJarList ) {
-	String routine = "TSToolMain.findDatastorePluginJarFilesOld";
+	String routine = TSToolMain.class.getSimpleName() + ".findDatastorePluginJarFilesOld";
 	final String [] pluginHomeFolders = {
 			// InstallHome/plugin-datastore
 			__tstoolInstallHome + File.separator + "plugin-datastore",
@@ -349,7 +350,7 @@ All commands file that end with ".jar" will be added to the list.
  */
 private static void getMatchingFilenamesInTree ( List<String> fileList, File path, String pattern ) 
 throws IOException {
-    //String routine = "getMatchingFilenamesInTree";
+    //String routine = TSTool.class.getSimpleName() + ".getMatchingFilenamesInTree";
     if (path.isDirectory()) {
         String[] children = path.list();
         for (int i = 0; i < children.length; i++) {
@@ -448,7 +449,7 @@ private static void initializeLoggingLevelsBeforeLogOpened () {
 Initialize important data relative to the installation home.
 */
 private static void initializeAfterHomeIsKnown () {
-	String routine = "TSToolMain.initializeAfterHomeIsKnown";
+	String routine = TSToolMain.class.getSimpleName() + ".initializeAfterHomeIsKnown";
 
 	// Initialize the system data.
 
@@ -508,7 +509,7 @@ private static void loadPluginDataStores(TSToolSession session,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
 	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
-	final String routine = "TSToolMain.loadPluginDataStores";
+	final String routine = TSToolMain.class.getSimpleName() + ".loadPluginDataStores";
 	// Find jar files that contain datastores.
 	// First use the old approach (TSTool 12.06.00 and earlier).
 	final List<String> pluginJarListOld = new ArrayList<>();
@@ -598,7 +599,7 @@ private static void loadPluginDataStoresOld(String messagePrefix, TSToolSession 
 		messagePrefix = "Old";
 		// Use for messages so it is clear whether processing old or new datastore configurations.
 	}
-	String routine = "TSToolMain.loadPluginDataStores" + messagePrefix;
+	String routine = TSToolMain.class.getSimpleName() + ".loadPluginDataStores" + messagePrefix;
 	// Create a separate class loader for each plugin to maintain separation.
 	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder.
 	Message.printStatus(2, routine, "Trying to load plugin datastores from " + pluginJarList.size() + " candidate jar files.");
@@ -739,7 +740,7 @@ Start the main application instance.
 @param args Command line arguments.
 */
 public static void main ( String args[] ) {
-	String routine = "TSToolMain.main";
+	String routine = TSToolMain.class.getSimpleName() + ".main";
 
 	try {
 	// Main try...
@@ -833,6 +834,7 @@ public static void main ( String args[] ) {
 	// Run TSTool in the run mode indicated by command line parameters.
 	
 	if ( IOUtil.isBatch() ) {
+		trackUsage ( "batch" );
 		// Running like "tstool -commands file" (possibly with -nomaingui).
 		TSCommandFileRunner runner = new TSCommandFileRunner(processorProps, pluginCommandClasses);
 		// If the global timeout is set, start a thread that will time out when the batch run is complete.
@@ -911,6 +913,7 @@ public static void main ( String args[] ) {
 	}
 	else if ( isBatchServer() ) {
 		String batchServerHotFolder0 = getBatchServerHotFolder();
+		trackUsage ( "batchserver" );
 		Message.printStatus ( 1, routine, "Starting in batch server mode with hot folder \"" + batchServerHotFolder0 + "\"" );
 		// TODO SAM 2016-02-09 For now keep code here but may make more modular.
 		// Create a runner that will be re-used.
@@ -998,6 +1001,7 @@ public static void main ( String args[] ) {
 	else if ( isHttpServer() ) {
 		// See:  http://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
 		// Do something simple for now to test.
+		trackUsage ( "httpserver" );
 		int port = 8000;
 		HttpServer server = HttpServer.create(new InetSocketAddress(port),0);
 		String root = "/tstool";
@@ -1007,12 +1011,14 @@ public static void main ( String args[] ) {
 	}
 	else if ( isRestServer() ) {
 		// Run in server mode using REST API.
+		trackUsage ( "restservelet" );
 		runRestletServer();
 	}
 	else {
 		// Run the UI:
 		// - the processor for the UI is created in the called code
 		Message.printStatus ( 2, routine, "Starting TSTool UI..." );
+		trackUsage ( "ui" );
 		try {
             __tstool_JFrame = new TSTool_JFrame (
             	session,
@@ -1056,7 +1062,7 @@ protected static DataStore openDataStore ( TSToolSession session, PropList dataS
 	TSCommandProcessor processor, @SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch )
 throws ClassNotFoundException, IllegalAccessException, InstantiationException, Exception {
-    String routine = "TSToolMain.openDataStore";
+    String routine = TSToolMain.class.getSimpleName() + ".openDataStore";
     // Open the datastore depending on the type.
     String dataStoreType = dataStoreProps.getValue("Type");
     String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
@@ -1320,7 +1326,7 @@ that have a login of "prompt".
 protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch ) {
-    String routine = "TSToolMain.openDataStoresAtStartup";
+    String routine = TSToolMain.class.getSimpleName() + ".openDataStoresAtStartup";
 
     // Allow multiple database connections via the new convention using datastore configuration files.
     // The following code processes all datastores.
@@ -1467,7 +1473,7 @@ If no configuration file exists, then a default connection is attempted.
 @return opened HydroBaseDMI if the connection was made, or null if a problem.
 */
 public static HydroBaseDMI openHydroBase ( TSCommandProcessor processor ) {
-    String routine = "TSToolMain.openHydroBase";
+    String routine = TSToolMain.class.getSimpleName() + ".openHydroBase";
     boolean HydroBase_enabled = false;  // Whether HydroBaseEnabled = true in TSTool configuration file.
     String propval = __tstool_props.getValue ( "TSTool.HydroBaseEnabled");
     if ( (propval != null) && propval.equalsIgnoreCase("true") ) {
@@ -1549,7 +1555,7 @@ Open the log file.  This should be done as soon as the application home
 directory is known so that remaining information can be captured in the log file.
 */
 private static void openLogFile ( TSToolSession session ) {
-	String routine = "TSToolMain.openLogFile";
+	String routine = TSToolMain.class.getSimpleName() + ".openLogFile";
 	String user = IOUtil.getProgramUser();
 
 	String logFile = null;
@@ -1626,7 +1632,7 @@ Parse command line arguments.
 */
 public static void parseArgs ( TSToolSession session, String[] args )
 throws Exception
-{	String routine = "TSToolMain.parseArgs", message;
+{	String routine = TSToolMain.class.getSimpleName() + ".parseArgs", message;
 	int pos = 0; // Position in a string.
 
     // Allow setting of -home via system property "tstool.home".
@@ -1970,9 +1976,9 @@ private static String parseArgsCheckSpaceReplacement(String arg, String spaceRep
 /**
 Print the program usage to the log file.
 */
-public static void printUsage ( )
-{	String nl = System.getProperty ( "line.separator" );
-	String routine = "TSToolMain.printUsage";
+public static void printUsage ( ) {
+	String nl = System.getProperty ( "line.separator" );
+	String routine = TSToolMain.class.getSimpleName() + ".printUsage";
 	int len = PROGRAM_NAME.length();
 	String format = "%" + len + "." + len + "s";
 	String blanks = String.format(format,"");
@@ -2020,7 +2026,7 @@ Clean up and quit the program.
 @param status Program exit status.
 */
 public static void quitProgram ( int status ) {
-	String	routine = "TSToolMain.quitProgram";
+	String	routine = TSToolMain.class.getSimpleName() + ".quitProgram";
 
 	Message.printStatus ( 1, routine, "Exiting with status " + status + "." );
 
@@ -2035,7 +2041,7 @@ TODO SAM 2015-01-07 need to store configuration information in a generic "sessio
 @param configFile Name of the configuration file.
 */
 private static void readConfigFile ( String configFile ) {
-	String routine = "TSToolMain.readConfigFile";
+	String routine = TSToolMain.class.getSimpleName() + ".readConfigFile";
     Message.printStatus ( 2, routine, "Reading TSTool configuration information from \"" + configFile + "\"." );
 	if ( IOUtil.fileReadable(configFile) ) {
 		__tstool_props = new PropList ( configFile );
@@ -2101,7 +2107,7 @@ private static void readConfigFile ( String configFile ) {
 Run TSTool in restlet server mode.
 */
 private static void runRestletServer () {
-    String routine = "TSToolMain.runRestletServer()";
+    String routine = TSToolMain.class.getSimpleName() + ".runRestletServer()";
     try {
         int port = -1; // Default.
         TSToolServer server = new TSToolServer();
@@ -2162,7 +2168,7 @@ command line with "-commands CommandFile" or simply as an argument.
 indicating that a batch run is requested.
 */
 private static void setupUsingCommandFile ( String command_file_arg, boolean is_batch ) {
-    String routine = "TSToolMain.setupUsingCommandFile";
+    String routine = TSToolMain.class.getSimpleName() + ".setupUsingCommandFile";
 
     // Make sure that the command file is an absolute path because it indicates the working
     // directory for all other processing.
@@ -2228,7 +2234,7 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
 Set the working directory as the system "user.dir" property.
 */
 private static void setWorkingDirInitial() {
-    String routine = "TSToolMain.setWorkingDirInitial";
+    String routine = TSToolMain.class.getSimpleName() + ".setWorkingDirInitial";
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
     // Set the dialog because if the running in batch mode and interaction with the graph occurs,
@@ -2268,7 +2274,7 @@ due to limitations in the packages that are called.
 @param timeoutSeconds number of seconds before timing out (ignore if <= 0)
 */
 private static void startTimeoutThread ( int timeoutSeconds ) {
-	String routine = "startTimeoutThread";
+	String routine = TSToolMain.class.getSimpleName() + ".startTimeoutThread";
 	if ( timeoutSeconds <= 0 ) {
 		// No need to start timeout thread.
 		return;
@@ -2310,6 +2316,72 @@ private static void startTimeoutThread ( int timeoutSeconds ) {
         }
     };
     */
+}
+
+/**
+ * Do a GET request on the OpenCDSS website to cause Google Analytics to track a TSTool usage.
+ * @param runMode the TSTool run mode, to understand how TSTool is being called
+ */
+private static void trackUsage ( String runMode ) {
+	String routine = TSToolMain.class.getSimpleName() + ".trackUsage";
+	// Operating system.
+	String os = "unknown";
+	if ( IOUtil.isUNIXMachine() ) {
+		// This is not totally right but lump them together.
+		os = "linux";
+	}
+	else {
+		os = "windows";
+	}
+	
+	// Get the version (e.g., 1.2.3).
+	String [] versionParts = TSToolMain.PROGRAM_VERSION.split(" ");
+	String version = versionParts[0].trim();
+	
+	String usageUrl = "https://opencdss.state.co.us/tstool/" + version + "/usage/index.html?version=" + version + "&os=" + os;
+	
+	// Do a get to use Google Analytics:
+	// - use a short timeout so that this does not adversely impact TSTool startup time
+	// - set to follow redirects but only temporarily
+	boolean oldfollowRedirects = false; // Will be set in the try to the current value.
+	StopWatch sw = new StopWatch();
+	sw.start();
+	try {
+		URL url = new URL(usageUrl);
+		// Save so can set back to the default when done.
+		oldfollowRedirects = HttpURLConnection.getFollowRedirects();
+		HttpURLConnection con = (HttpURLConnection)url.openConnection();
+		// Follow redirects in case the documentation hosting location moves.
+		HttpURLConnection.setFollowRedirects(true);
+		int timeoutMs = 100;
+		con.setConnectTimeout(timeoutMs);
+		con.setReadTimeout(timeoutMs);
+		// Open the connection.
+		con.connect();
+		int responseCode = con.getResponseCode();
+		if ( responseCode != 200 ) {
+			Message.printWarning(3,routine,"Error (" + responseCode
+				+ ") getting tracking page. Unable to update TSTool tracking. Assume that network is locked.");
+		}
+		else {
+			// Assume that the GET worked.
+		}
+	}
+	catch ( MalformedURLException e ) {
+		Message.printWarning(2, "", "Unable to display documentation at \"" + usageUrl + "\" - malformed URL." );
+	}
+	catch ( IOException e ) {
+		Message.printWarning(2, "", "Unable to display documentation at \"" + usageUrl + "\" - IOException (" + e + ")." );
+	}
+	catch ( Exception e ) {
+		Message.printWarning(2, "", "Unable to display documentation at \"" + usageUrl + "\" - Exception (" + e + ")." );
+	}
+	finally {
+		// Reset back to the normal default
+		HttpURLConnection.setFollowRedirects(oldfollowRedirects);
+	}
+	sw.stop();
+	Message.printStatus(2, routine, "Took " + sw.getMilliseconds() + "ms to update tracking.");
 }
 
 }
