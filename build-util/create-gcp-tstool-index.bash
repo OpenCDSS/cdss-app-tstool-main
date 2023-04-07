@@ -206,7 +206,20 @@ uploadIndexHtmlFile() {
   indexCsvTmpFile="/tmp/${USER}-tstool-index.csv"
   gcpIndexCsvUrl="${gcpFolderUrl}/index.csv"
   echo '<!DOCTYPE html>
-<head>
+<head>' > ${indexHtmlTmpFile}
+
+  echo "
+<!-- Start Google Analytics 4 property. -->
+<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-PTJLXFDPDL\"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-PTJLXFDPDL');
+</script>
+<!-- End Google Analytics 4 property. -->" >> ${indexHtmlTmpFile}
+
+  echo '
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -248,11 +261,11 @@ uploadIndexHtmlFile() {
 <body>
 <h1>TSTool Software Downloads</h1>
 <p>
-<a href="https://opencdss.state.co.us/opencdss/tstool/">See also the OpenCDSS TSTool page</a>,
+<a href="https://opencdss.state.co.us/opencdss/tstool/">See the OpenCDSS TSTool page</a>,
 which provides additional information about TSTool.
 </p>
 <p>
-<a href="https://www.colorado.gov/pacific/cdss/tstool">See also the CDSS TSTool page</a>,
+<a href="https://www.colorado.gov/pacific/cdss/tstool">See the CDSS TSTool page</a>,
 which provides access to TSTool releases used in State of Colorado projects.
 </p>
 <p>
@@ -276,7 +289,7 @@ right-click on the link and use "Save link as..." (or similar).</b></li>
 <p>
 Install TSTool by downloading the executable setup file and then run using File Explorer.
 Then run TSTool from the Windows <b><i>Start / CDSS / TSTool-Version</i></b> menu.
-</p>' > ${indexHtmlTmpFile}
+</p>' >> ${indexHtmlTmpFile}
 
   # Generate a table of available versions for Windows.
 
@@ -285,10 +298,11 @@ Then run TSTool from the Windows <b><i>Start / CDSS / TSTool-Version</i></b> men
   # TODO smalers 2019-04-29 need to enable downloads for other operating systems.
 
 echo '<hr>
+
 <h2>Linux Download</h2>
 <p>
 Linux versions of TSTool are not currently provided by the State of Colorado.
-Contact the <a href="https://openwaterfoundation.org">Open Water Foundation</a> if interested.
+Download from the <a href="https://software.openwaterfoundation.org/tstool/">Open Water Foundation TSTool Downloads page</a>.
 </p>' >> ${indexHtmlTmpFile}
 
 #<p>
@@ -468,7 +482,7 @@ repoFolder=$(dirname "${scriptFolder}")
 srcFolder="${repoFolder}/src"
 
 # Version, mainly used to help understand changes over time when comparing files.
-version="1.1.0 (2021-09-01)"
+version="1.1.1 (2023-04-05)"
 
 echoStderr "scriptFolder=${scriptFolder}"
 echoStderr "repoFolder=${repoFolder}"
