@@ -1,10 +1,10 @@
-// TSTool_TS_CellRenderer - This class is used to render cells for TSTool_TS_TableModel data.
+// TSTool_TS_CellRenderer - cell renderer class to render cells for TSTool_TS_TableModel data
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,16 +29,19 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 This class is used to render cells for TSTool_TS_TableModel data.
 */
 @SuppressWarnings("serial")
-public class TSTool_TS_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
+public class TSTool_TS_CellRenderer extends JWorksheet_DefaultTableCellRenderer {
 
-TSTool_TS_TableModel __table_model = null;	// Table model to render
+/**
+ * Table model to render.
+ */
+TSTool_TS_TableModel __table_model = null;
 
 /**
 Constructor.
 @param table_model The TSTool_TS_TableModel to render.
 */
-public TSTool_TS_CellRenderer ( TSTool_TS_TableModel table_model )
-{	__table_model = table_model;
+public TSTool_TS_CellRenderer ( TSTool_TS_TableModel table_model ) {
+	__table_model = table_model;
 }
 
 /**
@@ -47,7 +50,7 @@ Returns the format for a given column.
 @return the column format as used by StringUtil.formatString().
 */
 public String getFormat(int column) {
-	return __table_model.getFormat(column);	
+	return __table_model.getFormat(column);
 }
 
 /**

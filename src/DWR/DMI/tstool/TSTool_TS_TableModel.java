@@ -1,10 +1,10 @@
-// TSTool_TS_TableModel - This class is a table model for time series header information for TS instances.
+// TSTool_TS_TableModel - table model class for time series header information for TS instances
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,9 +30,11 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
 This class is a table model for time series header information for TS instances.
-By default the sheet will contain row and column numbers.
+By default the worksheet will contain row and column numbers.
 The alias can be treated as a hidden column.
 This class may eventually be moved to the RTi.TS package.
+See also the cdss.app.tstool.datastore.* classes,
+which integrate built-in datastore table models with the TSTool user interface.
 */
 @SuppressWarnings("serial")
 public class TSTool_TS_TableModel extends JWorksheet_AbstractRowTableModel<TS>
@@ -66,20 +68,20 @@ Constructor.  This builds the model for displaying the given time series data.
 @throws Exception if an invalid results passed in.
 */
 public TSTool_TS_TableModel ( List<TS> data )
-throws Exception
-{	this ( data, false );
+throws Exception {
+	this ( data, false );
 }
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
 @param data the Vector of TS that will be displayed in the table (null is allowed).
-@param include_alias If true, an alias column will be included after the
-location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
+@param include_alias If true, an alias column will be included after the location column.
+The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
 @throws Exception if an invalid results passed in.
 */
 public TSTool_TS_TableModel ( List<TS> data, boolean include_alias )
-throws Exception
-{	if ( data == null ) {
+throws Exception {
+	if ( data == null ) {
 		_rows = 0;
 	}
 	else {
@@ -89,8 +91,8 @@ throws Exception
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.  All values are treated as strings.
+From AbstractTableModel.
+Returns the class of the data stored in a given column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
 public Class<?> getColumnClass (int columnIndex) {
@@ -113,7 +115,8 @@ public Class<?> getColumnClass (int columnIndex) {
 }
 
 /**
-From AbstractTableMode.  Returns the number of columns of data.
+From AbstractTableModel.
+Returns the number of columns of data.
 @return the number of columns of data.
 */
 public int getColumnCount() {
@@ -121,7 +124,8 @@ public int getColumnCount() {
 }
 
 /**
-From AbstractTableMode.  Returns the name of the column at the given position.
+From AbstractTableModel.
+Returns the name of the column at the given position.
 @return the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
@@ -155,20 +159,22 @@ public String getFormat ( int column ) {
 }
 
 /**
-From AbstractTableMode.  Returns the number of rows of data in the table.
+From AbstractTableModel.
+Returns the number of rows of data in the table.
 */
 public int getRowCount() {
 	return _rows;
 }
 
 /**
-From AbstractTableMode.  Returns the data that should be placed in the JTable at the given row and column.
+From AbstractTableModel.
+Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the absolute column for which to return data.
 @return the data that should be placed in the JTable at the given row and column.
 */
-public Object getValueAt(int row, int col)
-{	// make sure the row numbers are never sorted ...
+public Object getValueAt(int row, int col) {
+	// Make sure the row numbers are never sorted.
 
 	if (_sortOrder != null) {
 		row = _sortOrder[row];

@@ -1,4 +1,4 @@
-// PluginDataStoreClassLoader - Load plugin datastore classes.
+// PluginDataStoreClassLoader - load plugin datastore and command classes.
 
 /* NoticeStart
 
@@ -262,7 +262,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 				}
 				// If additional jar files are located in the path, they may be supporting packages rather than DataStore files.
 				if ( dataStoreFactoryClassToLoad == null ) {
-					if ( Message.isDebugOn ) { 
+					if ( Message.isDebugOn ) {
 						Message.printStatus(2, routine, "No DataStoreFactory-Class attribute in MANIFEST.MF for \"" +
 							pluginClassURLs[i] + "\" - OK if dependency jar file." );
 					}
