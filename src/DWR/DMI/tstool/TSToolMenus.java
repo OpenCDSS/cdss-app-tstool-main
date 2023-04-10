@@ -1,3 +1,26 @@
+// TSToolMenus - user interface menu objects
+
+/* NoticeStart
+
+TSTool
+TSTool is a part of Colorado's Decision Support Systems (CDSS)
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
+
+TSTool is free software:  you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TSTool is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
+
+NoticeEnd */
+
 package DWR.DMI.tstool;
 
 import javax.swing.JCheckBoxMenuItem;
@@ -5,6 +28,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+/**
+ * TSTool user interface menu objects.
+ * Putting in this file reduces the length of the TSTool_JFrame code.
+ */
 public class TSToolMenus {
 
 	//================================
@@ -37,7 +64,7 @@ public class TSToolMenus {
 		CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,
 		CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
 		CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
-	
+
 		CommandsPopup_CancelCommandProcessing_JMenuItem,
 
 		CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
@@ -704,13 +731,13 @@ public class TSToolMenus {
 		Tools_NWSRFS_ConvertJulianHour_JMenuItem = null;
 	public static JMenuItem
 		Tools_SelectOnMap_JMenuItem = null,
-	
+
 		Tools_Options_JMenuItem = null,
 		Tools_ViewLogFile_Startup_JMenuItem = null;
 
 	// Menu: Help
 
-	public static JMenu		
+	public static JMenu
 		Help_JMenu = null;
 	public static JMenuItem
 		Help_AboutTSTool_JMenuItem = null,

@@ -1,10 +1,10 @@
-// EnsembleGraph_JDialog - Dialog to select/confirm options for Ensemble Graph, to hand off to normal graph components.
+// EnsembleGraph_JDialog - dialog to select/confirm options for Ensemble Graph, to hand off to normal graph components.
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,16 +59,23 @@ Dialog to select/confirm options for Ensemble Graph, to hand off to normal graph
 public class EnsembleGraph_JDialog extends JDialog
 implements ActionListener, ItemListener, KeyListener, WindowListener
 {
-	
+
 private SimpleJButton cancel_JButton = null;
+
 private SimpleJButton ok_JButton = null;
 
 private JTextField referenceDate_JTextField = null;
+
 private SimpleJComboBox outputYearType_JComboBox = null;
+
 private JTextField statistics_JTextField = null;
+
 private SimpleJComboBox graphTemplates_JComboBox = null;
 
-private boolean ok = false; // Has the users pressed OK to close the dialog.
+/**
+ * Has the users pressed OK to close the dialog.
+ */
+private boolean ok = false;
 
 /**
 Is there an error waiting to be resolved before closing dialog?
@@ -120,8 +127,8 @@ if false, the dialog is being shown for ensemble results.
 @param appPropList Properties from the application - a subset of all props that are specifically handled.
 */
 public EnsembleGraph_JDialog ( TSTool_JFrame parent, TSToolSession session,
-	boolean isDialogForTS, PropList appPropList )
-{	super(parent, true);
+	boolean isDialogForTS, PropList appPropList ) {
+	super(parent, true);
 	this.session = session;
 	this.isDialogForTS = isDialogForTS;
 	if ( isDialogForTS ) {
@@ -130,7 +137,7 @@ public EnsembleGraph_JDialog ( TSTool_JFrame parent, TSToolSession session,
 	else {
 		this.propertyPrefix = "Results.Ensembles.";
 	}
-	// TODO sam 2017-04-09 Evaluate whether need given that TSTool session properties are supported
+	// TODO sam 2017-04-09 Evaluate whether need given that TSTool session properties are supported.
 	//this.appPropList = appPropList;
 	initialize ();
 }
@@ -139,8 +146,8 @@ public EnsembleGraph_JDialog ( TSTool_JFrame parent, TSToolSession session,
 Responds to ActionEvents.
 @param event ActionEvent object
 */
-public void actionPerformed( ActionEvent event )
-{	Object o = event.getSource();
+public void actionPerformed( ActionEvent event ) {
+	Object o = event.getSource();
 
 	if ( o == cancel_JButton ) {
 		response ( false );
@@ -154,11 +161,12 @@ public void actionPerformed( ActionEvent event )
 }
 
 /**
-Check the input.  If errors exist, warn the user and set the __error_wait flag
-to true.  This should be called before response() is allowed to complete.
+Check the input.
+If errors exist, warn the user and set the __error_wait flag to true.
+This should be called before response() is allowed to complete.
 */
-private void checkInput ()
-{	// TODO sam 2017-04-10 need to implement checks for statistics, reference date
+private void checkInput () {
+	// TODO sam 2017-04-10 need to implement checks for statistics, reference date.
 }
 
 /**
@@ -192,11 +200,11 @@ public String getGraphTemplate () {
 /**
 Instantiates the UI components.
 */
-private void initialize ()
-{	addWindowListener( this );
+private void initialize () {
+	addWindowListener( this );
 
     Insets insetsTLBR = new Insets(2,2,2,2);
-    
+
     TSToolSession session = TSToolSession.getInstance();
 
 	GridBagLayout gbl = new GridBagLayout();
@@ -247,18 +255,19 @@ private void initialize ()
     JGUIUtil.addComponent(main_JPanel, new JSeparator (SwingConstants.HORIZONTAL),
         0, ++y, 7, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
-    if ( this.isDialogForTS ) { // Only for time series since used in the TS->Ensemble process
-	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Output year type:" ), 
+    if ( this.isDialogForTS ) {
+    	// Only for time series since used in the TS->Ensemble process.
+	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Output year type:" ),
 			0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		outputYearType_JComboBox = new SimpleJComboBox ( false );
-		// Only include types that have been tested for all output.  More specific types may be included in
-		// some commands where local handling is enabled.
+		// Only include types that have been tested for all output.
+		// More specific types may be included in some commands where local handling is enabled.
 		outputYearType_JComboBox.add ( "" );
 	    outputYearType_JComboBox.add ( "" + YearType.CALENDAR );
 	    outputYearType_JComboBox.add ( "" + YearType.NOV_TO_OCT );
 	    outputYearType_JComboBox.add ( "" + YearType.WATER );
 	    if ( savedOutputYearType == null ) {
-	    	// See if the year type was in the TSTool state
+	    	// See if the year type was in the TSTool state.
 	    	savedOutputYearType = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.OutputYearType");
 	    }
 	    if ( savedOutputYearType != null ) {
@@ -266,7 +275,7 @@ private void initialize ()
 	    		outputYearType_JComboBox.select(savedOutputYearType);
 	    	}
 	    	catch ( Exception e ) {
-	    		// OK, default
+	    		// OK, default.
 	    	}
 	    }
 		outputYearType_JComboBox.addItemListener ( this );
@@ -276,13 +285,14 @@ private void initialize ()
 	        3, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     }
 
-    if ( this.isDialogForTS ) { // Only for time series since used in the TS->Ensemble process
-	    JGUIUtil.addComponent(main_JPanel, new JLabel (	"Reference date:" ), 
+    if ( this.isDialogForTS ) {
+    	// Only for time series since used in the TS->Ensemble process.
+	    JGUIUtil.addComponent(main_JPanel, new JLabel (	"Reference date:" ),
 			0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 		referenceDate_JTextField = new JTextField ( 20 );
 		referenceDate_JTextField.setToolTipText("Date at which to shift all ensemble traces to align start, YYYY-MM-DD for daily data.");
 	    if ( savedReferenceDate == null ) {
-	    	// See if the reference date was in the TSTool state
+	    	// See if the reference date was in the TSTool state.
 	    	savedReferenceDate = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.ReferenceDate");
 	    }
 	    if ( savedReferenceDate != null ) {
@@ -291,17 +301,17 @@ private void initialize ()
 		referenceDate_JTextField.addKeyListener(this);
 		JGUIUtil.addComponent(main_JPanel, referenceDate_JTextField,
 			1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=starting day for year type, for current date)."), 
+	    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=starting day for year type, for current date)."),
 	        3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     }
 
-    // Option to calculate statistics is available for time series and ensemble processing
-    JGUIUtil.addComponent(main_JPanel, new JLabel (	"Statistics:" ), 
+    // Option to calculate statistics is available for time series and ensemble processing.
+    JGUIUtil.addComponent(main_JPanel, new JLabel (	"Statistics:" ),
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	statistics_JTextField = new JTextField ( 20 );
 	statistics_JTextField.setToolTipText("Statistics to compute as time series, comma-separated:  Mean, Median, Max, Min.");
     if ( savedStatistics == null ) {
-    	// See if the statistics property was in the TSTool state
+    	// See if the statistics property was in the TSTool state.
     	savedStatistics = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.Statistics");
     }
     if ( savedStatistics != null ) {
@@ -310,23 +320,23 @@ private void initialize ()
 	statistics_JTextField.addKeyListener(this);
 	JGUIUtil.addComponent(main_JPanel, statistics_JTextField,
 		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=list of statistics to compute)."), 
+    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=list of statistics to compute)."),
         3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    // Option to to use graph template is available for time series and ensemble processing
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Graph template:" ), 
+    // Option to to use graph template is available for time series and ensemble processing.
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Graph template:" ),
     	0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	graphTemplates_JComboBox = new SimpleJComboBox(false);
 	List<File> templateFileList = this.session.getGraphTemplateFileList();
 	List<String> templateFileList2 = new ArrayList<String>();
-	templateFileList2.add(""); // Default is not to use a template
+	templateFileList2.add(""); // Default is not to use a template.
 	for ( File f : templateFileList ) {
 		templateFileList2.add(f.getName());
 	}
 	graphTemplates_JComboBox.setMaximumRowCount ( 20 );
 	graphTemplates_JComboBox.setData(templateFileList2);
     if ( savedGraphTemplate == null ) {
-    	// See if the graph template was in the TSTool state
+    	// See if the graph template was in the TSTool state.
     	savedGraphTemplate = session.getUIStateProperty(this.propertyPrefix + "EnsembleGraph.GraphTemplate");
     }
     if ( savedGraphTemplate != null ) {
@@ -334,19 +344,19 @@ private void initialize ()
     		graphTemplates_JComboBox.select(savedGraphTemplate);
     	}
     	catch ( Exception e ) {
-    		// OK, maybe template files renamed manually
+    		// OK, maybe template files renamed manually.
     	}
     }
 	graphTemplates_JComboBox.addItemListener( this );
-	JGUIUtil.addComponent(main_JPanel, graphTemplates_JComboBox, 
+	JGUIUtil.addComponent(main_JPanel, graphTemplates_JComboBox,
 		1, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=use default graph properties)."), 
+    JGUIUtil.addComponent(main_JPanel, new JLabel( "Optional (default=use default graph properties)."),
         3, y, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     JGUIUtil.addComponent(main_JPanel, new JSeparator (SwingConstants.HORIZONTAL),
         0, ++y, 7, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
-	// South Panel: North
+	// Panel for buttons.
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 	getContentPane().add ( "South", button_JPanel );
@@ -369,15 +379,15 @@ private void initialize ()
 Handle ItemEvent events.
 @param e ItemEvent to handle.
 */
-public void itemStateChanged ( ItemEvent e )
-{	//refresh();
+public void itemStateChanged ( ItemEvent e ) {
+	//refresh();
 }
 
 /**
 Respond to KeyEvents.
 */
-public void keyPressed ( KeyEvent event )
-{	int code = event.getKeyCode();
+public void keyPressed ( KeyEvent event ) {
+	int code = event.getKeyCode();
 
 	if ( code == KeyEvent.VK_ENTER ) {
 		checkInput();
@@ -387,40 +397,38 @@ public void keyPressed ( KeyEvent event )
 	}
 }
 
-public void keyReleased ( KeyEvent event )
-{	
+public void keyReleased ( KeyEvent event ) {
 }
 
-public void keyTyped ( KeyEvent event )
-{	
+public void keyTyped ( KeyEvent event ) {
 }
 
 /**
 Indicate if the user pressed OK (cancel otherwise).
 @return true if the edits were committed, false if the user canceled.
 */
-public boolean ok ()
-{   return this.ok;
+public boolean ok () {
+    return this.ok;
 }
 
 /**
 Close and return to parent UI component.
 */
-public void response ( boolean ok )
-{	this.ok = ok;
+public void response ( boolean ok ) {
+	this.ok = ok;
 	if ( ok ) {
-		// Save the choices that were selected
+		// Save the choices that were selected.
 		if ( this.isDialogForTS ) {
 			savedOutputYearType = outputYearType_JComboBox.getSelected();
 			savedReferenceDate = referenceDate_JTextField.getText();
 		}
 		savedStatistics = statistics_JTextField.getText();
 		savedGraphTemplate = graphTemplates_JComboBox.getSelected();
-		// Also save in TSTool session
-		// TODO sam 2017-04-09 decide whether to only rely on TSTool session
+		// Also save in TSTool session.
+		// TODO sam 2017-04-09 decide whether to only rely on TSTool session.
 		TSToolSession session = TSToolSession.getInstance();
 		if ( this.isDialogForTS ) {
-			// The following are only used for TS processing
+			// The following are only used for TS processing.
 			session.setUIStateProperty(this.propertyPrefix + "EnsembleGraph.OutputYearType",savedOutputYearType);
 			session.setUIStateProperty(this.propertyPrefix + "EnsembleGraph.ReferenceDate",savedReferenceDate);
 		}
@@ -435,15 +443,26 @@ public void response ( boolean ok )
 Responds to WindowEvents.
 @param event WindowEvent object
 */
-public void windowClosing( WindowEvent event )
-{	response ( false );
+public void windowClosing( WindowEvent event ) {
+	response ( false );
 }
 
-public void windowActivated( WindowEvent evt ){;}
-public void windowClosed( WindowEvent evt ){;}
-public void windowDeactivated( WindowEvent evt ){;}
-public void windowDeiconified( WindowEvent evt ){;}
-public void windowIconified( WindowEvent evt ){;}
-public void windowOpened( WindowEvent evt ){;}
+public void windowActivated( WindowEvent evt ) {
+}
+
+public void windowClosed( WindowEvent evt ) {
+}
+
+public void windowDeactivated( WindowEvent evt ) {
+}
+
+public void windowDeiconified( WindowEvent evt ) {
+}
+
+public void windowIconified( WindowEvent evt ) {
+}
+
+public void windowOpened( WindowEvent evt ) {
+}
 
 }

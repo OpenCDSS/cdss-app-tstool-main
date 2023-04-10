@@ -1,10 +1,10 @@
-// TSTool_UI_Constants - user interface constance
+// TSToolConstants - user interface constants
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,12 +33,11 @@ public class TSToolConstants {
 
 	// Used with HEC-DSS because filters provide data type and time step choices.
 	public static final String
-	
+
 	DATA_TYPE_USE_FILTERS = "Use filters below",
 
 	// Input types for the __input_type_JComboBox.
-	// Datastores are NOT listed here; consequently, the following are files or databases
-	// that have not been converted to datastores.
+	// Datastores are NOT listed here; consequently, the following are files or databases that have not been converted to datastores.
 
 	INPUT_TYPE_DateValue = "DateValue",
 	INPUT_TYPE_HECDSS = "HEC-DSS",
@@ -73,7 +72,7 @@ public class TSToolConstants {
 	Path to icons/graphics in class path.
 	*/
 	public static final String TOOL_ICON_PATH = "/DWR/DMI/tstool";
-	
+
 	/**
 	 * Command indent number of spaces for each level.
 	 */
@@ -119,7 +118,7 @@ public class TSToolConstants {
 	// Button: String labels for buttons and menus.
 
 	// Buttons (in order from top to bottom of GUI).
-	
+
 	public static final String
 
 	BUTTON_TOP_GET_TIME_SERIES = "Get Time Series List",
@@ -134,16 +133,16 @@ public class TSToolConstants {
 	BUTTON_TS_SELECT_ALL = "Select All for Output",
 	BUTTON_TS_DESELECT_ALL = "Deselect All",
 
-	// Menus in order that they appear in the GUI.
+	// Menus in order that they appear in the user interface.
 	// "ActionString"s are defined where needed to avoid ambiguity in the menu labels.
 
 	// Popup only.
 
 	CommandsPopup_Edit_AsText_String = "Edit - as text (do not use command editor)",
 	CommandsPopup_FindCommands_String = "Find Command(s)...",
-	
+
 	CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
-	
+
 	CommandsPopup_IndentRight_String = "Indent Right",
 	CommandsPopup_IndentLeft_String = "Indent Left",
 
@@ -202,7 +201,7 @@ public class TSToolConstants {
 	Commands_String = "Commands",
 
 	// Menu: Commands / Select, Free, Sort Time Series
-	
+
 	Commands_SelectTimeSeries_String = "Select, Free, Sort Time Series",
 	Commands_Select_DeselectTimeSeries_String = TAB + "DeselectTimeSeries()... <deselect time series for output/processing>",
 	Commands_Select_SelectTimeSeries_String = TAB + "SelectTimeSeries()... <select time series for output/processing>",
@@ -366,9 +365,9 @@ public class TSToolConstants {
 	Commands_Models_Routing_String = "Models - Routing",
 	Commands_Models_Routing_LagK_String = "LagK()... <lag and attenuate (route)>",
 	Commands_Models_Routing_VariableLagK_String = "VariableLagK()... <lag and attenuate (route)>",
-	
+
 	// Menu: Commands / Datastore Processing
-	
+
     Commands_Datastore_String = "Datastore Processing",
     Commands_Datastore_NewAccessDatabase_String = TAB + "NewAccessDatabase()... <create a Microsoft Access database>",
     Commands_Datastore_NewDerbyDatabase_String = TAB + "NewDerbyDatabase()... <create a Derby database (built-in Java database)>",
@@ -653,7 +652,7 @@ public class TSToolConstants {
 	Results_Graph_Point_String = "Graph - Point",
 	Results_Graph_PredictedValue_String =	"Graph - Predicted Value (under development)",
 	Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
-	Results_Graph_Raster_String = "Graph - Raster (day and month interval only)",
+	Results_Graph_Raster_String = "Graph - Raster (day and month interval only for single time series)",
 	Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 
 	Results_Ensemble_Graph_Line_String = "Graph - Line (Ensemble Graph)",
@@ -661,7 +660,7 @@ public class TSToolConstants {
 	Results_Ensemble_Properties_String = "Ensemble Properties",
 
 	Results_Object_Properties_String = "Object Properties",
-	
+
 	Results_Network_Properties_String = "Network Properties",
 
 	Results_Table_Properties_String = "Table properties...",

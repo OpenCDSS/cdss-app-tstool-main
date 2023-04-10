@@ -1,10 +1,10 @@
-// TSTool_Options_JDialog - Editor for TSTool configuration options.
+// TSTool_Options_JDialog - editor for TSTool configuration options
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,44 +60,55 @@ Editor for TSTool configuration options.
 public class TSTool_Options_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {
-	
+
 public static final String TSTool_RunCommandProcessorInThread = "TSTool.RunCommandProcessorInThread";
 
 private final String __False = "False";
+
 private final String __True = "True";
-	
+
 private SimpleJButton __cancel_JButton = null;
+
 private SimpleJButton __ok_JButton = null;
+
 private JCheckBox __General_RunThreaded_JCheckBox = null;
+
 /**
 Checkbox for installation configuration file datastore enable/disable state.
 */
 private JCheckBox [] __datastoreInstallEnabled_JCheckBox = null;
+
 /**
 Installation configuration file datastore enable/disable state when first read from configuration file.
 */
 private boolean [] __datastoreEnabledInstallOriginalState = null;
+
 /**
 Checkbox for user configuration file datastore enable/disable state.
 */
 private JCheckBox [] __datastoreUserEnabled_JCheckBox = null;
+
 /**
 User configuration file datastore enable/disable state when first read from configuration file.
 */
 private boolean [] __datastoreEnabledUserOriginalState = null;
+
 /**
 Is there an error waiting to be resolved before closing dialog?
 */
 private boolean __error_wait = false;
+
 /**
 PropList from TSTool installation configuration file, with configuration properties.
 Currently this has limited use and only applies to the installation configuration file.
 */
 private PropList __appPropList = null;
+
 /**
 TSTool session information, to locate user configuration files.
 */
 private TSToolSession __session = null;
+
 /**
 Path to TSTool.cfg for installation location.
 */
@@ -110,8 +121,8 @@ TSTool_Options_JDialog constructor.
 @param configFilePathInstall path to the installation TSTool configuration file.
 @param appPropList Properties from the application - a subset of all props that are specifically handled.
 */
-public TSTool_Options_JDialog ( JFrame parent, TSToolSession session, String configFilePathInstall, PropList appPropList )
-{	super(parent, true);
+public TSTool_Options_JDialog ( JFrame parent, TSToolSession session, String configFilePathInstall, PropList appPropList ) {
+	super(parent, true);
 	__session = session;
 	__appPropList = appPropList;
 	__configFilePathInstall = configFilePathInstall;
@@ -122,8 +133,8 @@ public TSTool_Options_JDialog ( JFrame parent, TSToolSession session, String con
 Responds to ActionEvents.
 @param event ActionEvent object
 */
-public void actionPerformed( ActionEvent event )
-{	Object o = event.getSource();
+public void actionPerformed( ActionEvent event ) {
+	Object o = event.getSource();
 
 	if ( o == __cancel_JButton ) {
 		response ( 0 );
@@ -137,18 +148,16 @@ public void actionPerformed( ActionEvent event )
 }
 
 /**
-Check the input.  If errors exist, warn the user and set the __error_wait flag
-to true.  This should be called before response() is allowed to complete.
+Check the input.  If errors exist, warn the user and set the __error_wait flag to true.
+This should be called before response() is allowed to complete.
 */
-private void checkInput ()
-{	
+private void checkInput () {
 }
 
 /**
 Get the configuration file properties that indicate whether a datastore or input type is enabled.
 */
-private PropList getDatastoreEnabledProperties ( PropList configFilePropList )
-{
+private PropList getDatastoreEnabledProperties ( PropList configFilePropList ) {
     PropList inputTypeProps = new PropList("");
     for ( int i = 0; i < configFilePropList.size(); i++ ) {
         Prop prop = configFilePropList.elementAt(i);
@@ -162,8 +171,8 @@ private PropList getDatastoreEnabledProperties ( PropList configFilePropList )
 /**
 Instantiates the UI components.
 */
-private void initialize ()
-{	addWindowListener( this );
+private void initialize () {
+	addWindowListener( this );
 
     Insets insetsTLBR = new Insets(2,2,2,2);
 
@@ -175,12 +184,12 @@ private void initialize ()
 		0, 0, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 	getContentPane().add ( "North", main_JPanel );
 
-	// Panel for datastores and input types overview, to provide useful information...
-	
+	// Panel for datastores and input types overview, to provide useful information.
+
     JPanel datastoresOverview_JPanel = new JPanel();
     datastoresOverview_JPanel.setLayout ( gbl );
     main_JTabbedPane.addTab ( "Datastores and Input Types (Overview)", datastoresOverview_JPanel );
-    
+
     int yDsOverview = -1;
     JGUIUtil.addComponent(datastoresOverview_JPanel,
         new JLabel("TSTool uses configurable \"datastores\" to connect to databases and web services."),
@@ -243,12 +252,12 @@ private void initialize ()
         new JLabel("<html><b>See the View / Datastores menu to list datastores that are configured, including location of configuration file, status, and errors.</b></html>"),
         0, ++yDsOverview, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	// Panel for enabled datastores and input types, from software installation...
-	
+	// Panel for enabled datastores and input types, from software installation.
+
     JPanel enabledDatastoresInstall_JPanel = new JPanel();
     enabledDatastoresInstall_JPanel.setLayout ( gbl );
     main_JTabbedPane.addTab ( "Datastores and Input Types (Installation)", enabledDatastoresInstall_JPanel );
-    
+
     int yDsInstall = -1;
     JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
         new JLabel("Specify the configuration file properties to enable/disable datastores and input types.  Restart TSTool to see changes."),
@@ -259,11 +268,11 @@ private void initialize ()
     JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
         new JLabel("<html><b>These settings are for the TSTool installation.  Also refer to TSTool user settings."),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    
-    // The __appPropList only contains a few special properties.  Because the input type enabling is
-    // handled by updating the configuration file, read the current configuration file here to get the current list
-    // of properties.
-    
+
+    // The __appPropList only contains a few special properties.
+    // Because the input type enabling is handled by updating the configuration file,
+    // read the current configuration file here to get the current list of properties.
+
     File configFileInstall = new File(__configFilePathInstall);
     if ( !configFileInstall.canRead() ) {
         JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
@@ -295,7 +304,7 @@ private void initialize ()
             int x = 0;
             for ( int i = 0; i < inputTypeProps.size(); i++ ) {
                 if ( i == inputTypeProps.size()/2 ) {
-                    // Start a second column
+                    // Start a second column.
                     x = 1;
                     yDsInstall -= inputTypeProps.size()/2;
                 }
@@ -326,13 +335,13 @@ private void initialize ()
     JGUIUtil.addComponent(enabledDatastoresInstall_JPanel,
         new JLabel("Built-in (default) datastore configuration files are located in the folder:  " + f.getParent()),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    
-	// Panel for enabled datastores and input types, from user folder...
-	
+
+	// Panel for enabled datastores and input types, from user folder.
+
     JPanel enabledDatastoresUser_JPanel = new JPanel();
     enabledDatastoresUser_JPanel.setLayout ( gbl );
     main_JTabbedPane.addTab ( "Datastores and Input Types (User)", enabledDatastoresUser_JPanel );
-    
+
     yDsInstall = -1;
     JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
         new JLabel("Specify the configuration file properties to enable/disable datastores and input types.  Restart TSTool to see changes."),
@@ -352,7 +361,7 @@ private void initialize ()
     JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
         new JLabel("<html><b>Press OK to initialize a new user configuration file.</b></html>"),
         0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    
+
     File configFileUser = new File(__session.getUserConfigFile());
     if ( !configFileUser.canRead() ) {
         JGUIUtil.addComponent(enabledDatastoresUser_JPanel,
@@ -384,7 +393,7 @@ private void initialize ()
             int x = 0;
             for ( int i = 0; i < inputTypeProps.size(); i++ ) {
                 if ( i == inputTypeProps.size()/2 ) {
-                    // Start a second column
+                    // Start a second column.
                     x = 1;
                     yDsInstall -= inputTypeProps.size()/2;
                 }
@@ -409,8 +418,8 @@ private void initialize ()
                 new JLabel("Error reading user configuration file \"" + __session.getUserConfigFile() + "\" (" + e + ")."),
                 0, ++yDsInstall, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         }
-    }   
-    
+    }
+
     /*
     __General_RunThreaded_JCheckBox = new JCheckBox ();
     boolean RunCommandProcessorInThread_boolean = true;     // Default
@@ -427,7 +436,7 @@ private void initialize ()
             0, 0, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
                     */
 
-	// Developer tab...
+	// Developer tab.
 	JPanel developer_JPanel = new JPanel();
 	developer_JPanel.setLayout ( gbl );
 	int ydp = -1;
@@ -437,7 +446,7 @@ private void initialize ()
         new JLabel("Developer options are used during software development and troubleshooting."),
         0, ++ydp, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-    boolean RunCommandProcessorInThread_boolean = true;		// Default
+    boolean RunCommandProcessorInThread_boolean = true;	// Default.
 	String RunCommandProcessorInThread_String = __appPropList.getValue ( TSTool_RunCommandProcessorInThread );
     if ( (RunCommandProcessorInThread_String != null) &&
     		RunCommandProcessorInThread_String.equalsIgnoreCase(__False) ) {
@@ -449,16 +458,16 @@ private void initialize ()
 		0, ++ydp, 10, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	main_JTabbedPane.addTab ( "Developer", developer_JPanel );
 
-	// Done with tabs
-   
-    // Select the "Datastores and Input Types (Overview)" because they are more generally of interest to users
-    
+	// Done with tabs.
+
+    // Select the "Datastores and Input Types (Overview)" because they are more generally of interest to users.
+
     main_JTabbedPane.setSelectedComponent(datastoresOverview_JPanel);
 
-	// South Panel: North
+	// Panel for buttons.
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        JGUIUtil.addComponent(main_JPanel, button_JPanel, 
+        JGUIUtil.addComponent(main_JPanel, button_JPanel,
 		0, 1, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 
 	__cancel_JButton = new SimpleJButton("Cancel", this);
@@ -476,8 +485,8 @@ private void initialize ()
 /**
 Respond to KeyEvents.
 */
-public void keyPressed ( KeyEvent event )
-{	int code = event.getKeyCode();
+public void keyPressed ( KeyEvent event ) {
+	int code = event.getKeyCode();
 
 	if ( code == KeyEvent.VK_ENTER ) {
 		checkInput();
@@ -487,55 +496,53 @@ public void keyPressed ( KeyEvent event )
 	}
 }
 
-public void keyReleased ( KeyEvent event )
-{	
+public void keyReleased ( KeyEvent event ) {
 }
 
-public void keyTyped ( KeyEvent event )
-{	
+public void keyTyped ( KeyEvent event ) {
 }
 
 /**
 Return the properties as a PropList.
 @return returns the command text or null if no command.
 */
-public PropList response ( int status )
-{	setVisible( false );
+public PropList response ( int status ) {
+	setVisible( false );
 	dispose();
 	if ( status == 0 ) {
-		// Cancel...
+		// Cancel.
 		return null;
 	}
 	else {
-	    // Update the properties in the PropList...
+	    // Update the properties in the PropList.
 		if ( __General_RunThreaded_JCheckBox.isSelected() ) {
 			__appPropList.set ( TSTool_RunCommandProcessorInThread, __True);
 		}
 		else {
 			__appPropList.set ( TSTool_RunCommandProcessorInThread, __False);
 		}
-		// Save the input type enabled values to the TSTool configuration files, for installation and user versions
+		// Save the input type enabled values to the TSTool configuration files, for installation and user versions.
 		updateConfigurationFile ( __configFilePathInstall, __datastoreInstallEnabled_JCheckBox, __datastoreEnabledInstallOriginalState );
-		// If necessary, initialize the user configuration file
+		// If necessary, initialize the user configuration file.
 		File f = new File(__session.getUserConfigFile());
 		if ( f.exists() || __session.createUserConfigFile() ) {
-			// File exists so update the file OR it did not exist but was created so update the file
+			// File exists so update the file OR it did not exist but was created so update the file.
 			updateConfigurationFile ( __session.getUserConfigFile(), __datastoreUserEnabled_JCheckBox, __datastoreEnabledUserOriginalState );
 		}
-		// Return the updated properties...
+		// Return the updated properties.
 		return __appPropList;
 	}
 }
 
-// TODO SAM 2011-05-22 Need a package to update the configuration file
+// TODO SAM 2011-05-22 Need a package to update the configuration file.
 /**
-Update the values in the configuration file.  So as to not change the comments
-in the file, specific strings are processed.
+Update the values in the configuration file.
+So as to not change the comments in the file, specific strings are processed.
 @param configurationFile full path to TSTool.cfg configuration file, can be installation or user version.
 */
-private void updateConfigurationFile ( String configurationFile, JCheckBox [] datastoreEnabled_JCheckBox, boolean [] datastoreEnabledOriginalState )
-{   String routine = getClass().getSimpleName() + ".updateConfigurationFile";
-    // Figure out if any configuration property values were changed by the user
+private void updateConfigurationFile ( String configurationFile, JCheckBox [] datastoreEnabled_JCheckBox, boolean [] datastoreEnabledOriginalState ) {
+    String routine = getClass().getSimpleName() + ".updateConfigurationFile";
+    // Figure out if any configuration property values were changed by the user.
     if ( datastoreEnabled_JCheckBox == null ) {
         // User did not have permission.
         return;
@@ -548,10 +555,10 @@ private void updateConfigurationFile ( String configurationFile, JCheckBox [] da
         }
     }
     if ( changeCount == 0 ) {
-        // No need to update configuration file
+        // No need to update configuration file.
         return;
     }
-    // Read the configuration file into a string list
+    // Read the configuration file into a string list.
     List<String> stringList = null;
     try {
         stringList = IOUtil.fileToStringList(configurationFile);
@@ -561,33 +568,33 @@ private void updateConfigurationFile ( String configurationFile, JCheckBox [] da
             configurationFile + "\" - cannot update (" + e + ")." );
         return;
     }
-    // Modify the strings
+    // Modify the strings.
     int pos;
     String s;
     for ( int iString = 0; iString < stringList.size(); ++iString) {
-        // First figure out if it is one of the InputTypeEnabled properties
+        // First figure out if it is one of the InputTypeEnabled properties.
         s = stringList.get(iString);
         pos = s.indexOf("=");
         if ( pos > 0 ) {
             String[] parts = s.split("=");
             if ( parts.length == 2 ) {
                 String propName = parts[0].trim();
-                // Find the matching checkbox
+                // Find the matching checkbox.
                 for ( int i = 0; i < datastoreEnabled_JCheckBox.length; i++ ) {
                     if ( datastoreEnabled_JCheckBox[i].getText().equalsIgnoreCase(propName) ) {
-                        // Matched the label so set the property if value has changed
+                        // Matched the label so set the property if value has changed.
                         if ( datastoreEnabledOriginalState[i] != datastoreEnabled_JCheckBox[i].isSelected() ) {
                             String newString = propName + " = " + datastoreEnabled_JCheckBox[i].isSelected();
                             stringList.set(iString, newString);
                         }
-                        // No need to continue searching
+                        // No need to continue searching.
                         break;
                     }
                 }
             }
         }
     }
-    // Now write out the file
+    // Now write out the file.
     try {
         IOUtil.writeFile(configurationFile,StringUtil.toString(stringList, System.getProperty("line.separator")));
     }
@@ -602,15 +609,26 @@ private void updateConfigurationFile ( String configurationFile, JCheckBox [] da
 Responds to WindowEvents.
 @param event WindowEvent object
 */
-public void windowClosing( WindowEvent event )
-{	response ( 0 );
+public void windowClosing( WindowEvent event ) {
+	response ( 0 );
 }
 
-public void windowActivated( WindowEvent evt ){;}
-public void windowClosed( WindowEvent evt ){;}
-public void windowDeactivated( WindowEvent evt ){;}
-public void windowDeiconified( WindowEvent evt ){;}
-public void windowIconified( WindowEvent evt ){;}
-public void windowOpened( WindowEvent evt ){;}
+public void windowActivated( WindowEvent evt ) {
+}
+
+public void windowClosed( WindowEvent evt ) {
+}
+
+public void windowDeactivated( WindowEvent evt ) {
+}
+
+public void windowDeiconified( WindowEvent evt ) {
+}
+
+public void windowIconified( WindowEvent evt ) {
+}
+
+public void windowOpened( WindowEvent evt ) {
+}
 
 }

@@ -1,10 +1,10 @@
-// TSToolBatchWindowListener - This class listens for WindowEvents and is used when TSTool is run in batch mode.
+// TSToolBatchWindowListener - class that listens for WindowEvents and is used when TSTool is run in batch mode
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,32 +34,27 @@ import RTi.GRTS.TSViewJFrame;
  * Its only purpose is to gracefully handle close-down of the application when no
  * main GUI is used and a plot window is closed (application needs to stay open to show
  * the plot but close completely when the plot window is closed).
- * @author sam
- *
  */
-public class TSToolBatchWindowListener implements WindowListener
-{
+public class TSToolBatchWindowListener implements WindowListener {
     /**
      * Constructor.
      */
-    public TSToolBatchWindowListener ()
-    {
+    public TSToolBatchWindowListener () {
     }
-    
+
     /**
     Needed for WindowListener interface.  Currently does nothing.
     */
-    public void windowActivated ( WindowEvent e )
-    {
+    public void windowActivated ( WindowEvent e ) {
     }
 
     /**
     This class is listening for GeoViewFrame closing so it can gracefully handle.
     */
-    public void windowClosed ( WindowEvent e )
-    {   Component c = e.getComponent();
+    public void windowClosed ( WindowEvent e ) {
+       Component c = e.getComponent();
         if ( c instanceof TSViewJFrame ) {
-            // Running in hidden mode and the TSViewJFrame has closed so close the application...
+            // Running in hidden mode and the TSViewJFrame has closed so close the application.
             TSToolMain.quitProgram(0);
         }
     }
@@ -67,35 +62,30 @@ public class TSToolBatchWindowListener implements WindowListener
     /**
     Need to monitor TSTool GUI is closing to shut it down gracefully.
     */
-    public void windowClosing ( WindowEvent e )
-    {
+    public void windowClosing ( WindowEvent e ) {
     }
 
     /**
     Needed for WindowListener interface.  Currently does nothing.
     */
-    public void windowDeactivated ( WindowEvent e )
-    {
+    public void windowDeactivated ( WindowEvent e ) {
     }
 
     /**
     Needed for WindowListener interface.  Currently does nothing.
     */
-    public void windowDeiconified ( WindowEvent e )
-    {
+    public void windowDeiconified ( WindowEvent e ) {
     }
 
     /**
     Needed for WindowListener interface.  Currently does nothing.
     */
-    public void windowIconified ( WindowEvent e )
-    {
+    public void windowIconified ( WindowEvent e ) {
     }
 
     /**
     Needed for WindowListener interface.  Currently does nothing.
     */
-    public void windowOpened ( WindowEvent e )
-    {
+    public void windowOpened ( WindowEvent e ) {
     }
 }
