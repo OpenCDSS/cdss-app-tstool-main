@@ -652,7 +652,7 @@ public class TSToolConstants {
 	Results_Graph_Point_String = "Graph - Point",
 	Results_Graph_PredictedValue_String =	"Graph - Predicted Value (under development)",
 	Results_Graph_PredictedValueResidual_String =	"Graph - Predicted Value Residual (under development)",
-	Results_Graph_Raster_String = "Graph - Raster (day and month interval only for single time series)",
+	Results_Graph_Raster_String = "Graph - Raster (heat map)",
 	Results_Graph_XYScatter_String = "Graph - XY-Scatter",
 
 	Results_Ensemble_Graph_Line_String = "Graph - Line (Ensemble Graph)",

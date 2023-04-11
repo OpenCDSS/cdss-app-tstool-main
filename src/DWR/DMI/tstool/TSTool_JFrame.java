@@ -204,6 +204,7 @@ import RTi.TS.TS;
 import RTi.TS.TSEnsemble;
 import RTi.TS.TSIdent;
 import RTi.TS.TSStatisticType;
+import RTi.TS.TSUtil;
 import RTi.TS.TSUtil_CreateTracesFromTimeSeries;
 import RTi.TS.TSUtil_NewStatisticTimeSeriesFromEnsemble;
 import RTi.TS.TransferDataHowType;
@@ -285,6 +286,7 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeBuilderJDialog;
 import RTi.Util.Time.DateTimeToolsJDialog;
 import RTi.Util.Time.StopWatch;
+import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.YearType;
 
 // Classes to integrate TSTool with datastores, mainly time series catalog and filters used in the UI.
@@ -4762,6 +4764,41 @@ private void results_TimeSeries_Clear() {
 	// Clear the visible list of results.
 	__resultsTS_JListModel.removeAllElements();
 	ui_UpdateStatus ( false );
+}
+
+/**
+ * Get the time series results.
+ * This is used by UI code that operates directly on the time series results,
+ * whereas graphing code calls the processor to do the work.
+ * @param selectedOnly if true, return only the selected time series (all if none are selected)
+ * @return the list of time series from the results
+ */
+private List<TS> results_TimeSeries_GetList ( boolean selectedOnly ) {
+	List<TS> tslist = new ArrayList<>();
+	// Work on the time series list model, which reflects selections.
+    int [] selectedIndices = __resultsTS_JList.getSelectedIndices();
+    if ( selectedOnly ) {
+    	if ( selectedIndices.length == 0 ) {
+    		// Return the full list.
+    		tslist = commandProcessor_GetTimeSeriesResultsList();
+    	}
+    	else {
+    		// Return the time series that are selected.
+    		List<TS> tsresultsList = commandProcessor_GetTimeSeriesResultsList();
+    		for ( int selectedIndex : selectedIndices ) {
+    			tslist.add(tsresultsList.get(selectedIndex));
+    		}
+    	}
+    }
+    else {
+    	// Return all.
+    	tslist = commandProcessor_GetTimeSeriesResultsList();
+    }
+    if ( tslist == null ) {
+    	// Create an empty list.
+    	tslist = new ArrayList<>();
+    }
+    return tslist;
 }
 
 /**
@@ -11741,8 +11778,37 @@ throws Exception {
     	uiAction_GraphTimeSeriesResults("-oPredictedValueResidual_graph" );
 	}
     else if ( command.equals(TSToolConstants.Results_Graph_Raster_String) ) {
-        // TODO smalers 2013-09-11 allow raster if one time series and interval is day or month
-        // currently check is buried deep and not bubbled up.
+    	// Do checks here rather than trying to handle low-level exceptions:
+    	// - if a single time series is selected, it must be day or month interval
+    	// - if multiple time series are selected, the interval must be the same
+    	List<TS> tslist = results_TimeSeries_GetList ( true );
+    	// Make sure that no time series are irregular interval.
+   		if ( TSUtil.areAnyTimeSeriesIrregular(tslist) ) {
+   			Message.printWarning(1, "", "Raster graphs cannot be created for irregular interval time series.");
+   			return;
+   		}
+    	// Time series are regular interval so do additional checks.
+    	if ( tslist.size() == 1 ) {
+    		// Single time series:
+    		// - must be day or month interval
+    		TS ts = tslist.get(0);
+    		int intervalBase = ts.getDataIntervalBase();
+    		if ( (intervalBase != TimeInterval.DAY) && (intervalBase != TimeInterval.MONTH) ) {
+    			Message.printWarning(1, "",
+    				"A single time series raster graph can only be created for day or month interval time series.");
+    			return;
+    		}
+    	}
+    	else {
+    		// Multiple time series:
+    		// - all the time series must have the same interval
+    		if ( !TSUtil.areIntervalsSame(tslist) ) {
+    			Message.printWarning(1, "",
+    				"A multiple time series raster graph can only be created for time series with the same regular interval.");
+    			return;
+    		}
+    	}
+    	// OK to graph.
         uiAction_GraphTimeSeriesResults("-oraster_graph" );
     }
     else if ( command.equals(TSToolConstants.Results_Graph_XYScatter_String) ) {
