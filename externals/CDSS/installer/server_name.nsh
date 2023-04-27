@@ -10,9 +10,27 @@ Function SetCustomHydrobaseServer
 
   strcpy $cdss_cfg "$INSTDIR\system\CDSS.cfg"
   
-  MessageBox MB_YESNO "Do you want to use a HydroBase database that is installed on another$\r$\n\
-  computer or change the default HydroBase configuration on this$\r$\n\
-  computer?$\r$\n$\r$\n\
+  MessageBox MB_YESNO "Colorado's HydroBase database is enabled by default for historical.$\r$\n\
+  reasons.  If you won't use a local HydroBase database:$\r$\n\
+  $\r$\n\
+     1. Answer No here.$\r$\n\
+     2. When a HydroBase login is shown when running software, Cancel.$\r$\n\
+     3. Follow the instructions to disable HydroBase.$\r$\n\
+     4. See also the software Troubleshooting documentation.$\r$\n\
+  $\r$\n\
+  If you are using a local HydroBase database:$\r$\n\
+  $\r$\n\
+     1. Usually can answer No here.$\r$\n\
+     2. If advanced configuration is needed, see below.$\r$\n\
+  $\r$\n\
+  Advanced configurations may provide multiple HydroBase databases on the local network.$\r$\n\
+  $\r$\n\
+     1. Answer No unless multiple databases are available and need to be configured.$\r$\n\
+     2. Otherwise, answer Yes below to configure.$\r$\n\
+  $\r$\n\
+  Do you want to use a HydroBase database that is installed on another$\r$\n\
+  networked computer or change the default HydroBase configuration on this computer?$\r$\n\
+  $\r$\n\
   Select Yes if you know the name of an available HydroBase$\r$\n\
   server or need to run CDSS software in batch mode with a specific$\r$\n\
   HydroBase version." IDYES true IDNO false

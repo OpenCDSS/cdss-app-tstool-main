@@ -224,7 +224,7 @@ private void initialize () {
 	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "The template file, if specified, provides properties for the graph, such as title and legend format."),
 	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "If the template file specifies a TemplateProcessCommandFile property, "
-	    	+ "then commands are used to preprocss the single input time series before display."),
+	    	+ "then commands are used to preprocess the single input time series before display."),
 	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "For example, preprocessing can replace the need to specify statistics here."),
 	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -243,7 +243,7 @@ private void initialize () {
 	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "The template file, if specified, provides properties for the graph, such as title and legend format."),
 	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "If the template file specifies a TemplateProcessCommandFile property, "
-	    	+ "then commands are used to preprocss the ensemble time series before display."),
+	    	+ "then commands are used to preprocess the ensemble time series before display."),
 	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	    JGUIUtil.addComponent(main_JPanel, new JLabel ( "For example, preprocessing can replace the need to specify statistics here."),
 	        0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);

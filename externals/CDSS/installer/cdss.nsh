@@ -497,9 +497,10 @@ Function .onInit
         Abort
         
     InsufficientRights:
-        IfSilent done
-        MessageBox MB_OK "You must log on using an account with administrator$\nprivileges to install this application."
-        Abort
+        #IfSilent done
+        # As of TSTool 14.8.0, don't require administrator privileges any more.
+        #MessageBox MB_OK "You must log on using an account with administrator$\nprivileges to install this application."
+        #Abort
         
     done:
     

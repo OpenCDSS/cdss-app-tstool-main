@@ -96,7 +96,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.8.0.dev1 (2023-03-29)";
+public static final String PROGRAM_VERSION = "14.8.0 (2023-04-27)";
 
 /**
 Main GUI instance, used when running interactively.
