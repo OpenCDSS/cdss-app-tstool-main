@@ -61,7 +61,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 // Classes for reading web content.
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -13216,9 +13217,47 @@ private void uiAction_GetTimeSeriesListClicked() {
     }
 
 	// Verify that the input filters have valid data:
-    // - the following works for plugins also because the parent class implements the method
+    // - the following works for plugins also because the parent InputFilter_JPanel class implements the method
+    //   so the method is always defined
 	if ( __selectedInputFilter_JPanel != __inputFilterGeneric_JPanel ) {
-		String warning = __selectedInputFilter_JPanel.checkInputFilters(false);
+		// Call the available check method:
+		// - if the newer method is available that takes the selected data type and interval, call it
+		// - otherwise, call the older method that does not have data type and interval
+		String warning = null;
+		Method newMethod = null;
+		try {
+			newMethod = __selectedInputFilter_JPanel.getClass().getMethod("checkInputFilters",
+				new Class[] {
+					String.class, // Data type.
+					String.class, // Data interval.
+					boolean.class } );  // Whether to display warnings.
+		}
+		catch ( NoSuchMethodException e ) {
+			newMethod = null;
+		}
+		if ( newMethod != null ) {
+			// Call the method with the new signature
+			// (not built into the InputFilter_JPanel so should only be found in derived class).
+			try {
+				warning = (String)newMethod.invoke(__selectedInputFilter_JPanel, ui_GetSelectedDataType(), ui_GetSelectedTimeStep(), false);
+			}
+			catch ( IllegalAccessException e ) {
+				// Call the built-in check method.
+				Message.printWarning(2, routine, "Error calling check on input filters.");
+				Message.printWarning(2, routine, e);
+				warning = __selectedInputFilter_JPanel.checkInputFilters(false);
+			}
+			catch ( InvocationTargetException e ) {
+				Message.printWarning(2, routine, "Error calling check on input filters.");
+				Message.printWarning(2, routine, e);
+				// Call the built-in check method.
+				warning = __selectedInputFilter_JPanel.checkInputFilters(false);
+			}
+		}
+		else {
+			// Call the method with the old signature (the method is built into InputFilter_JPanel).
+			warning = __selectedInputFilter_JPanel.checkInputFilters(false);
+		}
 		if ( (warning != null) && !warning.isEmpty() ) {
 			// An input error was detected so don't get the time series.
 			Message.printWarning(1, routine, warning);

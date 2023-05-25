@@ -88,7 +88,11 @@ The methods in this file are called by the startup TSTool and CDSS versions of T
 */
 public class TSToolMain
 {
-public static final String PROGRAM_NAME = "TSTool";
+	
+	/**
+	 * The program name.
+	 */
+	public static final String PROGRAM_NAME = "TSTool";
 
 /**
  * Semantic version, see:  https://semver.org/
@@ -96,7 +100,7 @@ public static final String PROGRAM_NAME = "TSTool";
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.8.0 (2023-04-27)";
+public static final String PROGRAM_VERSION = "14.8.1 (2023-05-25)";
 
 /**
 Main GUI instance, used when running interactively.
