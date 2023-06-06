@@ -11791,12 +11791,20 @@ throws Exception {
     	// Time series are regular interval so do additional checks.
     	if ( tslist.size() == 1 ) {
     		// Single time series:
-    		// - must be day or month interval
+    		// - must be N-minute, 1-hour, 1-day, 1-month, or 1-year interval
     		TS ts = tslist.get(0);
     		int intervalBase = ts.getDataIntervalBase();
-    		if ( (intervalBase != TimeInterval.DAY) && (intervalBase != TimeInterval.MONTH) ) {
+    		int intervalMult = ts.getDataIntervalMult();
+    		if ( (intervalBase == TimeInterval.MINUTE)
+    			|| ((intervalBase == TimeInterval.HOUR) && (intervalMult == 1))
+    			|| ((intervalBase == TimeInterval.DAY) && (intervalMult == 1))
+    			|| ((intervalBase == TimeInterval.MONTH) && (intervalMult == 1))
+    			|| ((intervalBase == TimeInterval.YEAR) && (intervalMult == 1)) ) {
+    			// OK
+    		}
+    		else {
     			Message.printWarning(1, "",
-    				"A single time series raster graph can only be created for day or month interval time series.");
+    				"A single time series raster graph can only be created for N-minute, 1-hour, day, month, or year interval time series.");
     			return;
     		}
     	}
