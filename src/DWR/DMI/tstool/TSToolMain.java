@@ -100,7 +100,7 @@ public class TSToolMain
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.8.4 (2023-07-07)";
+public static final String PROGRAM_VERSION = "14.8.4 (2023-07-11)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -187,6 +187,16 @@ private static boolean __showMainGUI = true;
 private static List<DataStoreSubstitute> datastoreSubstituteList = new ArrayList<>();
 
 /**
+ * Datastores to enable, used to fine-tune sessions, for example when run in batch mode.
+ */
+private static List<String> enabledDataStores = new ArrayList<>();
+
+/**
+ * Datastores to disable, used to fine-tune sessions, for example when run in batch mode.
+ */
+private static List<String> disabledDataStores = new ArrayList<>();
+
+/**
 Indicates whether the -nomaingui command line argument is set.
 This is used instead of just the above to know for sure the combination of command line parameters.
 */
@@ -201,6 +211,35 @@ private static String __commandFile = null;
  * Modification string for the title, used to customize TSTool.
  */
 private static String titleMod = "";
+
+/**
+ * Check command line parameters for whether a datastore is enabled.
+ * @param dataStoreName the data store being checked
+ * @param isEnabled initial property for whether the datastore is enabled, from datastore properties
+ * @param enabledDataStores list of datastore names that are to be enabled, can be * wildcard pattern.
+ * @param disabledDataStores list of datastore names that are to be disabled, can be * wildcard pattern.
+ * @return updated status for whether the datastore is enabled
+ */
+private static boolean checkEnabledDataStores ( String dataStoreName, boolean isEnabled,
+	List<String> enabledDataStores, List<String> disabledDataStores ) {
+	// First evaluate the 'enabledDataStores'.
+	for ( String enabledDataStore : enabledDataStores ) {
+		if ( dataStoreName.matches(enabledDataStore) ) {
+			// Found a datastore that should be enabled.
+			isEnabled = true;
+			break;
+		}
+	}
+	// Next evaluate the 'disabledDataStores'.
+	for ( String disabledDataStore : disabledDataStores ) {
+		if ( dataStoreName.matches(disabledDataStore) ) {
+			// Found a datastore that should be disabled.
+			isEnabled = false;
+			break;
+		}
+	}
+	return isEnabled;
+}
 
 /**
  * Find the list of plugin jar files using new (TSTool 12.07.00 and later approach).
@@ -1069,6 +1108,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     String routine = TSToolMain.class.getSimpleName() + ".openDataStore";
     // Open the datastore depending on the type.
     String dataStoreType = dataStoreProps.getValue("Type");
+    String dataStoreName = dataStoreProps.getValue("Name");
     String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
     Message.printStatus(2,routine,"DataStoreConfigFile=\""+dataStoreConfigFile+"\"");
     // For now hard-code this here.
@@ -1213,7 +1253,13 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     if ( !packagePath.equals("") ) {
         propValue = dataStoreProps.getValue("Enabled");
+        boolean isEnabled = true; // Default is datastore is enabled.
         if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
+        	isEnabled = false;
+        }
+        // Also check the command like parameters for enabling and disabling datastores.
+        isEnabled = checkEnabledDataStores ( dataStoreName, isEnabled, enabledDataStores, disabledDataStores );
+        if ( !isEnabled ) {
             // Datastore is disabled.  Do not even attempt to load.  This will minimize in-memory resource use.
             Message.printStatus(2, routine, "Created datastore type \"" + dataStoreType + "\", name \"" +
                 dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
@@ -1413,7 +1459,8 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 	continue;
                 }
                 // See if the datastore name matches one that is already open and if so, ignore it:
-                // - name must match, and must be enabled.
+                // - ignore because user datastores are opened first
+                // - name must match, and must be enabled
                 boolean dataStoreAlreadyOpened = false;
                 for ( DataStore openDataStore : openDataStoreList ) {
                 	String prop = openDataStore.getProperty("Enabled");
@@ -1632,16 +1679,17 @@ private static void openLogFile ( TSToolSession session ) {
 
 /**
 Parse command line arguments.
+@param session TSToolSession instance to track user and other data
 @param args Command line arguments.
 */
 public static void parseArgs ( TSToolSession session, String[] args )
-throws Exception
-{	String routine = TSToolMain.class.getSimpleName() + ".parseArgs", message;
+throws Exception {
+	String routine = TSToolMain.class.getSimpleName() + ".parseArgs", message;
 	int pos = 0; // Position in a string.
 
     // Allow setting of -home via system property "tstool.home".
     // This can be supplied by passing the -Dtstool.home=HOME option to the JVM.
-    // The following inserts the passed values into the front of the args array to
+    // The following inserts the passed values into the front of the 'args' array to
 	// make sure that the install home can be considered by following parameters.
     if (System.getProperty("tstool.home") != null) {
         String[] extArgs = new String[args.length + 2];
@@ -1771,6 +1819,46 @@ throws Exception
 			else {
 				Message.printWarning(1, routine, "Bad parameter \"" + args[i] +
 					"\", should be: --datastore-substitute=DatastoreNameToUse,DatastoreNameInCommands");
+			}
+		}
+		else if ( args[i].toLowerCase().startsWith("--disabled-datastores") ) {
+			// Used to disaable datastores when running in batch mode.
+			// - example: --disabled-datastores=datastore1,datastore2
+			pos = args[i].indexOf("=");
+			if ( pos >= 0 ) {
+				// Have well-formed parameter.
+				String [] parts = args[i].substring(pos + 1).split(",");
+				for ( String part : parts ) {
+					part = part.trim();
+					Message.printStatus ( 1, routine, "Will disable datastore \"" + part + "\"." );
+					// Convert * regular expressions to Java regular expression.
+					part = part.replace("*", ".*");
+					disabledDataStores.add(part);
+				}
+			}
+			else {
+				Message.printWarning(1, routine, "Bad parameter \"" + args[i] +
+					"\", should be: --enabled-datastores=datastore1,datastore2");
+			}
+		}
+		else if ( args[i].toLowerCase().startsWith("--enabled-datastores") ) {
+			// Used to enable datastores when running in batch mode.
+			// - example: --enabled-datastores=datastore1,datastore2
+			pos = args[i].indexOf("=");
+			if ( pos >= 0 ) {
+				// Have well-formed parameter.
+				String [] parts = args[i].substring(pos + 1).split(",");
+				for ( String part : parts ) {
+					part = part.trim();
+					Message.printStatus ( 1, routine, "Will enable datastore \"" + part + "\"." );
+					// Convert * regular expressions to Java regular expression.
+					part = part.replace("*", ".*");
+					enabledDataStores.add(part);
+				}
+			}
+			else {
+				Message.printWarning(1, routine, "Bad parameter \"" + args[i] +
+					"\", should be: --enabled-datastores=datastore1,datastore2");
 			}
 		}
 		else if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("-help") || args[i].equalsIgnoreCase("--help")) {
