@@ -3237,6 +3237,11 @@ public String formatHelpViewerUrl ( String group, String item ) {
  * @param item the specific item for the URL. For example, the item might be a command name.
  * @param rootUrl root URL to try, useful for plugins that provide documentation in an alternative location
  * than the defaults for an application, pass as null to ignore
+ * (e.g., "https://software.openwaterfoundation.org/tstool-zabbix-plugin/latest/doc-user").
+ * If the plugin's documentation matches TSTool's conventions (group=literal command' and item=the CommandName)
+ * the latest plugin documentation should be found by appending "command-ref/CommandName/" to the root URL.
+ * However, this does not find the documentation that matches the plugin version,
+ * which requires a plugin-specific URL formatter that implements logic similar to this method.
  */
 public String formatHelpViewerUrl ( String group, String item, String rootUrl ) {
 	String routine = getClass().getSimpleName() + ".formatHelpViewerUrl";
@@ -14566,10 +14571,12 @@ private void uiAction_RunCommands_ShowResultsProperties() {
         for ( String propertyName : propertyNames ) {
         	try {
         		propContents = processor.getPropContents(propertyName);
-        		if ( propContents != null ) {
-		     		Message.printStatus(2, "", "Property " + propertyName + " = " + propContents);
-		     		Message.printStatus(2, "", "Property " + propertyName + " (class) = " + propContents.getClass());
-	     		}
+        		// See the TSTool UI properties for values.
+        		// Want to minimize noise and possibly sensitive data in log file.
+        		//if ( propContents != null ) {
+		     	//	Message.printStatus(2, "", "Property " + propertyName + " = " + propContents);
+		     	//	Message.printStatus(2, "", "Property " + propertyName + " (class) = " + propContents.getClass());
+	     		//}
         	}
         	catch ( Exception e ) {
         		Message.printWarning(2,routine,e);

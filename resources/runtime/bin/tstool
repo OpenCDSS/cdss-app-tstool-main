@@ -382,8 +382,12 @@ printUsage() {
   echoStderr "This script runs the full TSTool software."
   echoStderr ""
   echoStderr "Examples of commands:"
-  echoStderr "  ${scriptName} --dev -- TSTool-options...         (run using Eclipse code)"
-  echoStderr "  ${scriptName} --headless -- TSTool-options...    (run in headless mode in Linux environment)"
+  echoStderr "  ${scriptName} -- Tool-options...                      (run interactive UI)"
+  echoStderr "    ${scriptName}                                       (open the UI)"
+  echoStderr "    ${scriptName} commandfile.tstool                    (open the UI and load the command file)"
+  echoStderr "  ${scriptName} --headless -- TSTool-options...         (run in headless mode)"
+  echoStderr "    ${scriptName} --headless -- --commands File.tstool  (run a command file in headless mode)"
+  echoStderr "  ${scriptName} --dev -- TSTool-options...              (run using Eclipse development code)"
   echoStderr ""
   echoStderr "Command parameter options:"
   echoStderr ""
@@ -421,7 +425,7 @@ printVersion() {
 # Folder where tstool script is located, should be the "bin" folder in a TSTool install.
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
-version="2.1.0 (2022-02-01)"
+version="2.1.1 (2023-07-24)"
 # Adjust the script folder if a symbolic link is used such as:
 #   /usr/bin/tstool -> /opt/tstool-version/tstool/bin
 if [ -L $0 ]; then
