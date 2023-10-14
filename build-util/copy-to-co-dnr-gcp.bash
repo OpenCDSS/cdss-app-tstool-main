@@ -39,9 +39,9 @@ echoStderr() {
 # - the first function argument is the full version, possibly including a space
 # - the modifier is echoed to stdout, so capture by assigning in the calling code
 getVersionModifier() {
-  local fullVersion
+  local fullVersion modifier
   fullVersion="$1"
-  # grep will print each found character on a separate line so concatenate output
+  # grep will print each found character on a separate line so concatenate output.
   modifier=$(echo ${fullVersion} | grep -o -E '[[:alpha:]]' | tr -d '\n' | tr -d ' ')
   echo ${modifier}
 }
@@ -127,7 +127,7 @@ printUsage() {
   echoStderr ""
 }
 
-# Print the version of this script
+# Print the version of this script.
 printVersion() {
   echoStderr "${version}"
 }

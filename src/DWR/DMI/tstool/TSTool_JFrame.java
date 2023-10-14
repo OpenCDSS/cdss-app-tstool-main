@@ -3438,14 +3438,14 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
 
     	String filename = TSToolMain.getPropValue ( "TSTool.MapLayerLookupFile" );
     	if ( filename == null ) {
-    		Message.printWarning ( 1, routine,
+    		Message.printWarning ( 3, routine,
     		"The TSTool.MapLayerLookupFile is not defined - cannot link map and time series." );
     		return;
     	}
 
     	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
     	if ( !IOUtil.fileExists(full_filename) ) {
-    		Message.printWarning ( 1, routine, "The map layer lookup file \"" + full_filename +
+    		Message.printWarning ( 3, routine, "The map layer lookup file \"" + full_filename +
     		"\" does not exist.  Cannot link map and time series." );
     		return;
     	}
@@ -3459,7 +3459,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     	    table = DataTable.parseFile ( full_filename, props );
     	}
     	catch ( Exception e ) {
-    		Message.printWarning ( 1, routine, "Error reading the map layer lookup file \"" + full_filename +
+    		Message.printWarning ( 3, routine, "Error reading the map layer lookup file \"" + full_filename +
     		"\".  Cannot link map and time series." );
     		return;
     	}
@@ -3478,7 +3478,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     		    TS_InputTypeCol_int = table.getFieldIndex ( "TS_InputType" );
     		}
     		catch ( Exception e ) {
-    			Message.printWarning ( 1, routine, "Error finding TS_InputType column in lookup file \"" +
+    			Message.printWarning ( 3, routine, "Error finding TS_InputType column in lookup file \"" +
     			full_filename + "\".  Cannot link map and time series." );
     			Message.printWarning ( 3, routine, e );
     			JGUIUtil.setWaitCursor ( this, false);
@@ -3488,7 +3488,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     		    TS_DataTypeCol_int = table.getFieldIndex("TS_DataType");
     		}
     		catch ( Exception e ) {
-    			Message.printWarning ( 1, routine, "Error finding TS_InputType column in lookup file \"" +
+    			Message.printWarning ( 3, routine, "Error finding TS_InputType column in lookup file \"" +
     			full_filename + "\".  Cannot link map and time series." );
     			Message.printWarning ( 3, routine, e );
     			JGUIUtil.setWaitCursor ( this, false);
@@ -3498,7 +3498,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     		    TS_IntervalCol_int = table.getFieldIndex("TS_Interval");
     		}
     		catch ( Exception e ) {
-    			Message.printWarning ( 1, routine, "Error finding TS_Interval column in lookup file \"" +
+    			Message.printWarning ( 3, routine, "Error finding TS_Interval column in lookup file \"" +
     			full_filename + "\".  Cannot link map and time series." );
     			Message.printWarning ( 3, routine, e );
     			JGUIUtil.setWaitCursor ( this, false);
@@ -3508,7 +3508,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     		    Layer_NameCol_int = table.getFieldIndex ( "Layer_Name");
     		}
     		catch ( Exception e ) {
-    			Message.printWarning ( 1, routine, "Error finding Layer_Name column in lookup file \"" +
+    			Message.printWarning ( 3, routine, "Error finding Layer_Name column in lookup file \"" +
     			full_filename + "\".  Cannot link map and time series." );
     			Message.printWarning ( 3, routine, e );
     			JGUIUtil.setWaitCursor ( this, false);
@@ -3518,7 +3518,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     		    Layer_LocationCol_int = table.getFieldIndex ("Layer_Location");
     		}
     		catch ( Exception e ) {
-    			Message.printWarning ( 1, routine, "Error finding Layer_Location column in lookup file \""+
+    			Message.printWarning ( 3, routine, "Error finding Layer_Location column in lookup file \""+
     			full_filename + "\".  Cannot link map and time series." );
     			Message.printWarning ( 3, routine, e );
     			JGUIUtil.setWaitCursor ( this, false);
@@ -3547,7 +3547,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     	// In this way multiple selections can be made from the map.
 
     	int nrows = __query_TableModel.getRowCount();
-    	Message.printStatus ( 1, routine, "Selecting query list time series based on map selections..." );
+    	Message.printStatus ( 2, routine, "Selecting query list time series based on map selections..." );
     	JGUIUtil.setWaitCursor ( this, true );
     	ui_SetIgnoreListSelectionEvent ( true ); // To increase performance during transfer.
     	ui_SetIgnoreItemEvent ( true );	// To increase performance.
@@ -3628,7 +3628,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     				"\" is field [" + layer_location_field_int+"]");
     			}
     			catch ( Exception e ) {
-    				Message.printWarning ( 1, routine, "Layer attribute column \"" + layer_location +
+    				Message.printWarning ( 3, routine, "Layer attribute column \"" + layer_location +
     				    "\" is not found.  Cannot link time series and map." );
     				Message.printWarning ( 3, routine, e );
     				JGUIUtil.setWaitCursor ( this, false);
@@ -3640,7 +3640,7 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     					try {
     					    layer_datasource_field_int =
     						georec.getLayer().getAttributeTable().getFieldIndex(layer_datasource);
-    						Message.printStatus ( 2,routine, "Attribute \"" + layer_datasource +
+    						Message.printStatus ( 2, routine, "Attribute \"" + layer_datasource +
     						"\" is field [" + layer_datasource_field_int+"]");
     					}
     					catch ( Exception e ) {
@@ -3652,8 +3652,8 @@ public void geoViewSelect (	GRShape devlimits, GRShape datalimits, List<GeoRecor
     					}
     				}
     				catch ( Exception e ) {
-    					Message.printWarning ( 3, routine, "Unable to determine data data source from layer " +
-    					"attribute table.  Ignoring data source." );
+    					Message.printWarning ( 3, routine,
+    						"Unable to determine data data source from layer attribute table.  Ignoring data source." );
     					// Ignore for now.
     					layer_datasource = null;
     				}
@@ -14233,7 +14233,7 @@ private void uiAction_ResultsEnsembleProperties () {
     TS ts;
     for ( int i = 0; i < selected.length; i++ ) {
         // Get the ensemble ID from the list.
-        ensembleDisplay = (String)__resultsTSEnsembles_JListModel.get(selected[i]);
+        ensembleDisplay = __resultsTSEnsembles_JListModel.get(selected[i]);
         ensemble = results_Ensembles_GetEnsembleID ( ensembleDisplay );
         if ( ensemble == null ) {
             continue;

@@ -12,14 +12,13 @@
 
 # Determine the operating system that is running the script:
 # - sets the variable operatingSystem to cygwin, linux, or mingw (Git Bash)
-checkOperatingSystem()
-{
+checkOperatingSystem() {
   if [ ! -z "${operatingSystem}" ]; then
     # Have already checked operating system so return.
     return
   fi
   operatingSystem="unknown"
-  os=`uname | tr [a-z] [A-Z]`
+  os=$(uname | tr [a-z] [A-Z])
   case "${os}" in
     CYGWIN*)
       operatingSystem="cygwin"
@@ -55,10 +54,10 @@ gcpUtilFileExists() {
   return $?
 }
 
-# Get the user's login to local temporary files:
+# Get the user's login to use for local temporary files:
 # - Git Bash apparently does not set ${USER} environment variable
-# - Set USER as script variable only if environment variable is not already set
-# - See: https://unix.stackexchange.com/questions/76354/who-sets-user-and-username-environment-variables
+# - set USER as script variable only if environment variable is not already set
+# - see: https://unix.stackexchange.com/questions/76354/who-sets-user-and-username-environment-variables
 getUserLogin() {
   if [ -z "${USER}" ]; then
     if [ ! -z "${LOGNAME}" ]; then
@@ -142,13 +141,13 @@ printVersion() {
   echoStderr "${version}"
 }
 
-# Upload the index.html file for the static website download page
+# Upload the index.html file for the static website download page:
 # - this is basic at the moment but can be improved in the future such as
 #   software.openwaterfoundation.org page, but for only one product, with list of variants and versions
 uploadIndexHtmlFile() {
   local indexHtmlTmpFile gcpIndexHtmlUrl
   local indexCsvTmpFile gcpIndexCsvlUrl
-  # List available software installer files
+  # List available software installer files:
   # - $gcpFolderUrl ends with /tstool
   # - the initial output will look like the following, with size, timestamp, resource URL:
   #
@@ -205,6 +204,7 @@ uploadIndexHtmlFile() {
   # Also create index as CSV to facilitate listing available versions.
   indexCsvTmpFile="/tmp/${USER}-tstool-index.csv"
   gcpIndexCsvUrl="${gcpFolderUrl}/index.csv"
+
   echo '<!DOCTYPE html>
 <head>' > ${indexHtmlTmpFile}
 
@@ -226,35 +226,35 @@ gtag('config', 'G-PTJLXFDPDL');
 <meta charset="utf-8"/>
 <link id="cdss-favicon" rel="shortcut icon" href="https://opencdss.state.co.us/opencdss/images/opencdss-favicon.ico" type="image.ico">
 <style>
-   body {
-     font-family: "Trebuchet MS", Helvetica, sans-serif !important;
-   }
-   table {
-     border-collapse: collapse;
-   }
-   th {
-     border-right: solid 1px;
-     border-left: solid 1px;
-     border-bottom: solid 1px;
-     padding-left: 5px;
-     padding-right: 5px;
-   }
-   td {
-     border-right: solid 1px;
-     border-left: solid 1px;
-     padding-left: 5px;
-     padding-right: 5px;
-   }
-   #installersize {
-     border-right: solid 1px;
-     border-left: solid 1px;
-     padding-left: 5px;
-     padding-right: 5px;
-     text-align: right;
-   }
-   tr {
-     border: none;
-   }
+  body {
+    font-family: "Trebuchet MS", Helvetica, sans-serif !important;
+  }
+  table {
+    border-collapse: collapse;
+  }
+  th {
+    border-right: solid 1px;
+    border-left: solid 1px;
+    border-bottom: solid 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  td {
+    border-right: solid 1px;
+    border-left: solid 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  tr {
+    border: none;
+  }
+  #installersize {
+    border-right: solid 1px;
+    border-left: solid 1px;
+    padding-left: 5px;
+    padding-right: 5px;
+    text-align: right;
+  }
 </style>
 <title>OpenCDSS TSTool Downloads</title>
 </head>
@@ -297,7 +297,7 @@ Then run TSTool from the Windows <b><i>Start / CDSS / TSTool-Version</i></b> men
 
   # TODO smalers 2019-04-29 need to enable downloads for other operating systems.
 
-echo '<hr>
+  echo '<hr>
 
 <h2>Linux Download</h2>
 <p>
@@ -305,14 +305,9 @@ Linux versions of TSTool are not currently provided by the State of Colorado.
 Download from the <a href="https://software.openwaterfoundation.org/tstool/">Open Water Foundation TSTool Downloads page</a>.
 </p>' >> ${indexHtmlTmpFile}
 
-#<p>
-#Install TSTool by downloading the *.run file, and run to install in /opt/tstool-version.
-#Then run tstool from the Linux command line.
-#</p>' >> ${indexHtmlTmpFile}
-
   # Generate a table of available versions for Linux.
 
-#  uploadIndexHtmlFile_Table lin Linux
+  # uploadIndexHtmlFile_Table lin Linux
 
   #echo '<hr>' >> ${indexHtmlTmpFile}
   #echo '<h2>Cygwin Download</h2>' >> ${indexHtmlTmpFile}
@@ -403,8 +398,8 @@ uploadIndexHtmlFile_Table() {
     #   then change back to previous strings for output.
     # The use space as the delimiter and sort on the 3rd token.
     #
-  tmpGcpDocDevCatalogPath="/tmp/${USER}-tstool-doc-dev-catalog-ls.txt"
-  echo '<tr><th>Download File</th><th>Product</th><th>Version</th><th>File Timestamp</th><th>Size (bytes)</th><th>Operating System</th><th>User Doc</th><th>Dev Doc</th></tr>' >> ${indexHtmlTmpFile}
+    tmpGcpDocDevCatalogPath="/tmp/${USER}-tstool-doc-dev-catalog-ls.txt"
+    echo '<tr><th>Download File</th><th>Product</th><th>Version</th><th>File Timestamp</th><th>Size (bytes)</th><th>Operating System</th><th>User Doc</th><th>Dev Doc</th></tr>' >> ${indexHtmlTmpFile}
     cat "${tmpGcpSoftwareCatalogPath}" | grep "${downloadPattern}" | awk '{ printf "%s %s %s\n", $1, $2, $3 }' | sed -E 's|([0-9][0-9]/)|\1-zzz|g' | sed 's|/-zzz|-zzz|g' | sed 's|dev|-dev|g' | sort -r -k3,3 | sed 's|-zzz||g' | sed 's|-dev|dev|g' | awk -v debug=${debug} -v tmpGcpDocUserCatalogPath=${tmpGcpDocUserCatalogPath} -v tmpGcpDocDevCatalogPath=${tmpGcpDocDevCatalogPath} '
       BEGIN {
         if ( debug == "true" ) {
@@ -458,15 +453,6 @@ uploadIndexHtmlFile_Table() {
           docDevHtml=""
         }
 
-        #if ( downloadFileOs == "cyg" ) {
-        #  downloadFileOs = "Cygwin"
-        #}
-        #else if ( downloadFileOs == "lin" ) {
-        #  downloadFileOs = "Linux"
-        #}
-        #else if ( downloadFileOs == "win" ) {
-        #  downloadFileOs = "Windows"
-        #}
         printf "<tr><td><a href=\"%s\"><code>%s</code></a></td><td>%s</td><td>%s</td><td>%s</td><td id=\"installersize\">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n", downloadFileUrl, downloadFile, downloadFileProduct, downloadFileVersion, downloadFileDateTime, downloadFileSize, downloadFileOs, docUserHtml, docDevHtml
       }' >> ${indexHtmlTmpFile}
   fi

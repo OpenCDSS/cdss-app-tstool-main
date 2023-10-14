@@ -52,6 +52,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 
 import javax.swing.JFrame;
 
@@ -100,7 +101,7 @@ public class TSToolMain
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.8.6 (2023-07-24)";
+public static final String PROGRAM_VERSION = "14.9.0 (2023-08-06)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -197,13 +198,13 @@ private static List<String> enabledDataStores = new ArrayList<>();
 private static List<String> disabledDataStores = new ArrayList<>();
 
 /**
-Indicates whether the -nomaingui command line argument is set.
+Indicates whether the --nomaingui command line argument is set.
 This is used instead of just the above to know for sure the combination of command line parameters.
 */
 private static boolean __noMainGUIArgSpecified = false;
 
 /**
-Command file being processed when run in batch mode with -commands File.
+Command file being processed when run in batch mode with --commands File.
 */
 private static String __commandFile = null;
 
@@ -501,7 +502,7 @@ private static void initializeAfterHomeIsKnown () {
 	Message.printStatus ( 2, routine, "Reading the units file \"" +	units_file + "\"" );
 	try {
         DataUnits.readUnitsFile( units_file );
-        Message.printStatus ( 2, routine, "  Read " + DataUnits.getUnitsData().size() + " definitions." );
+        Message.printStatus ( 2, routine, "  Read " + DataUnits.getUnitsData().size() + " units definitions." );
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine,
@@ -815,7 +816,7 @@ public static void main ( String args[] ) {
 	// Initialize the logging levels after the lot file is opened:
 	// - note that messages will not be printed to the log file until the log file is opened below
 	initializeLoggingLevelsAfterLogOpened();
-
+	
 	try {
         parseArgs ( session, args );
         // The result of this is that the full path to the command file will be set.
@@ -829,9 +830,11 @@ public static void main ( String args[] ) {
 
 	// Set the application icon to the CDSS logo by default.
     // Do not do this in pure batch mode because it is not needed and may cause problems with X-Windows on UNIX.
-	// Do need to load it when -nomaingui is used because the windows that are shown will need to look nice with the icon.
+	// Do need to load it when --nomaingui is used because the windows that are shown will need to look nice with the icon.
 
-	Message.printStatus( 2, routine, "isBatch=" + IOUtil.isBatch() + " -nomaingui specified = " + __noMainGUIArgSpecified );
+	Message.printStatus ( 2, routine, "isBatch=" + IOUtil.isBatch() + " --nomaingui specified = " + __noMainGUIArgSpecified );
+	Message.printStatus ( 2, routine, "Is TSTool running in headless mode = " + GraphicsEnvironment.isHeadless() );
+
 	if ( !IOUtil.isBatch() || __noMainGUIArgSpecified || !isBatchServer() ) {
 	    // Not "pure" batch so need to have the icon initialized.
 	    try {
@@ -878,7 +881,7 @@ public static void main ( String args[] ) {
 
 	if ( IOUtil.isBatch() ) {
 		trackUsage ( "batch" );
-		// Running like "tstool -commands file" (possibly with -nomaingui).
+		// Running like "tstool --commandfile" (possibly with --nomaingui).
 		TSCommandFileRunner runner = new TSCommandFileRunner(processorProps, pluginCommandClasses);
 		// If the global timeout is set, start a thread that will time out when the batch run is complete.
 		startTimeoutThread ( getBatchTimeout());
@@ -901,8 +904,8 @@ public static void main ( String args[] ) {
 			Message.printWarning ( 1, routine, e );
 			quitProgram ( 1 );
 		}
-		// If running with -nomaingui, then plot windows should be displayed and when closed cause the
-		// run to end - this should be used with external applications that use TSTool as a plotting tool>
+		// If running with --nomaingui, then plot windows should be displayed and when closed cause the
+		// run to end - this should be used with external applications that use TSTool as a plotting tool.
 		if ( !__showMainGUI ) {
 		    // Create a hidden listener to handle close-out of the application when a plot window is closed.
 		    Message.printStatus(2,routine, "Displaying plots with no main GUI.");
@@ -913,7 +916,7 @@ public static void main ( String args[] ) {
 		    // The following will throw an exception if there are any errors running.
             runner.runCommands();
             if ( __showMainGUI ) {
-                // No special handling of windows since -nomaingui was not not specified.  just exit.
+                // No special handling of windows since --nomaingui was not not specified.  Just exit.
                 quitProgram ( 0 );
             }
             else {
@@ -1730,6 +1733,7 @@ throws Exception {
 			}
 			i++;
 			String commandFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+			// Setup the application using the command file and indicate running in batch mode.
 			setupUsingCommandFile ( commandFile, true );
 		}
 		else if (args[i].equalsIgnoreCase("-batchTimeout") || args[i].equalsIgnoreCase("--batchTimeout")) {
@@ -2043,6 +2047,7 @@ throws Exception {
 		    // by a double-click on a file with a *.TSTool or *.tstool extension.
 			// In this case the GUI will start and load the command file.
 			String commandFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
+			// Setup the application using the command file and indicate NOT running in batch mode.
 		    setupUsingCommandFile ( commandFile, false );
 		}
 	}
@@ -2075,7 +2080,7 @@ public static void printUsage ( ) {
 	String format = "%" + len + "." + len + "s";
 	String blanks = String.format(format,"");
 	String usage =  nl +
-	"Usage:  " + PROGRAM_NAME + " [options] [[-commands CommandFile] | CommandFile]" + nl + nl +
+	"Usage:  " + PROGRAM_NAME + " [options] [[--commands CommandFile] | CommandFile]" + nl + nl +
 	"TSTool displays, analyzes, and manipulates time series." + nl+
 	"" + nl+
 	PROGRAM_NAME + " --commands CommandFile               Runs the commands in batch mode and exits." + nl+
@@ -2092,8 +2097,8 @@ public static void printUsage ( ) {
 /**
 Print the program version and exit the program.
 */
-public static void printVersion ( )
-{	String nl = System.getProperty ( "line.separator" );
+public static void printVersion ( ) {
+	String nl = System.getProperty ( "line.separator" );
 	System.err.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
 	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
 	"Copyright (C) 1997-2023 Colorado Department of Natural Resources\n" +
@@ -2118,7 +2123,7 @@ Clean up and quit the program.
 @param status Program exit status.
 */
 public static void quitProgram ( int status ) {
-	String	routine = TSToolMain.class.getSimpleName() + ".quitProgram";
+	String routine = TSToolMain.class.getSimpleName() + ".quitProgram";
 
 	Message.printStatus ( 1, routine, "Exiting with status " + status + "." );
 
@@ -2215,7 +2220,7 @@ private static void runRestletServer () {
 /**
 Set the command file that is being used with TSTool.
 @param configFile Command file being processed, when started with
--commands File parameter.  This indicates that a batch run should be done,
+--commands File parameter.  This indicates that a batch run should be done,
 with no main TSTool GUI, although windows may display for graphical products.
 */
 private static void setCommandFile ( String configFile ) {
@@ -2253,29 +2258,30 @@ public static void setIcon ( String iconType ) {
 }
 
 /**
-Setup the application using the specific command file, which either came in on the
-command line with "-commands CommandFile" or simply as an argument.
-@param command_file_arg Command file from the command line argument (no processing on the argument before this call).
-@param is_batch Indicates if the command file was specified with "-commands CommandFile",
+Setup the application using the specific command file,
+which either came in on the command line with "tstool --commands CommandFile" (run batch and exit)
+or "tstool CommandFile" (run UI and load the command file).
+@param commandFileArg Command file from the command line argument (no processing on the argument before this call).
+@param isBatch Indicates if the command file was specified with "--commands CommandFile",
 indicating that a batch run is requested.
 */
-private static void setupUsingCommandFile ( String command_file_arg, boolean is_batch ) {
+private static void setupUsingCommandFile ( String commandFileArg, boolean isBatch ) {
     String routine = TSToolMain.class.getSimpleName() + ".setupUsingCommandFile";
 
     // Make sure that the command file is an absolute path because it indicates the working
     // directory for all other processing.
-    String user_dir = System.getProperty("user.dir");
-    Message.printStatus (1, routine, "Startup (user.dir) directory is \"" + user_dir + "\"");
-    String command_file_canonical = null; // Does not need to be absolute.
-    File command_file_File = new File(command_file_arg);
-    File command_file_full_File = null;
-    String command_file_full = null;
+    String userDir = System.getProperty("user.dir");
+    Message.printStatus (1, routine, "Startup (user.dir) directory is \"" + userDir + "\"");
+    String commandFileCanonical = null; // Does not need to be absolute.
+    File commandFileFile = new File(commandFileArg);
+    File commandFileFullFile = null;
+    String commandFileFull = null;
     try {
-        command_file_canonical = command_file_File.getCanonicalPath();
-        Message.printStatus( 1, routine, "Canonical path for command file is \"" + command_file_canonical + "\"" );
+        commandFileCanonical = commandFileFile.getCanonicalPath();
+        Message.printStatus( 1, routine, "Canonical path for command file is \"" + commandFileCanonical + "\"" );
     }
     catch ( Exception e ) {
-        String message = "Unable to determine canonical path for \"" + command_file_arg + "\"." +
+        String message = "Unable to determine canonical path for \"" + commandFileArg + "\"." +
         "Check that the file exists and read permissions are granted.  Not using command file.";
         Message.printWarning ( 1, routine, message );
         System.err.println ( message );
@@ -2285,30 +2291,30 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
 
     // Get the absolute path to the command file.
     // TODO SAM 2008-01-11 Shouldn't a canonical path always be absolute?
-    File command_file_canonical_File = new File ( command_file_canonical );
-    if ( command_file_canonical_File.isAbsolute() ) {
-        command_file_full = command_file_canonical;
+    File commandFileCanonicalFile = new File ( commandFileCanonical );
+    if ( commandFileCanonicalFile.isAbsolute() ) {
+        commandFileFull = commandFileCanonical;
     }
     else {
         // Append the command file to the user directory and set the working directory to the resulting directory.
-        command_file_full = user_dir + File.separator + command_file_full;
+        commandFileFull = userDir + File.separator + commandFileFull;
     }
 
     // Save the full path to the command file so it can be processed when the GUI initializes.
     // TODO SAM 2007-09-09 Evaluate phasing global command file out - needs to be handled in the command processor.
-    Message.printStatus ( 1, routine, "Command file is \"" + command_file_full + "\"" );
+    Message.printStatus ( 1, routine, "Command file is \"" + commandFileFull + "\"" );
     // FIXME SAM 2008-09-04 Confirm no negative effects from taking this out.
     //IOUtil.setProgramCommandFile ( command_file_full );
-    setCommandFile ( command_file_full );
+    setCommandFile ( commandFileFull );
 
-    setWorkingDirUsingCommandFile ( command_file_full );
+    setWorkingDirUsingCommandFile ( commandFileFull );
 
-    command_file_full_File = new File ( command_file_full );
-    if ( !command_file_full_File.exists() ) {
-        String message = "Command file \"" + command_file_full + "\" does not exist.";
+    commandFileFullFile = new File ( commandFileFull );
+    if ( !commandFileFullFile.exists() ) {
+        String message = "Command file \"" + commandFileFull + "\" does not exist.";
         Message.printWarning(1, routine, message );
         System.err.println ( message );
-        if ( is_batch ) {
+        if ( isBatch ) {
              // Exit because there is nothing to do.
             quitProgram ( 1 );
         }
@@ -2317,9 +2323,9 @@ private static void setupUsingCommandFile ( String command_file_arg, boolean is_
         }
     }
 
-    // Indicate whether running in batch mode.
-
-    IOUtil.isBatch ( is_batch );
+    // Indicate whether running in batch mode:
+    // - if so TSTool will run and exit
+    IOUtil.isBatch ( isBatch );
 }
 
 /**
