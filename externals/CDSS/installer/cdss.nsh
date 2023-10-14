@@ -47,7 +47,7 @@ Name "${DISPLAYNAME}"
     !define NAMEVERSION ${CODENAME}_${VERSION}
 !else
     # This is preferable as it matches the historical use for installers:
-    # - for example TSTool-14.8.0
+    # - for example "TSTool-14.8.0"
     !define NAMEVERSION ${CODENAME}-${VERSION}
 !endif
 !define REGKEY "Software\State of Colorado\CDSS\${NAMEVERSION}"
@@ -57,11 +57,11 @@ Name "${DISPLAYNAME}"
 # Now use OpenCDSS since it has its own website.
 !define COMPANY "Colorado Department of Natural Resources"
 !define URL "https://opencdss.state.co.us"
-# The following used to be used with subversion version control and is now just a folder:
-# - is now a folder in the cdss-app-main-tstool folder
+# The following was previously used with subversion version control and is now just a folder:
+# - is now a folder in the cdss-app-tstool-main folder
 # - TODO smalers 2023-04-29 maybe not needed?
 !define EXTERNALS_DIR "externals"
-# The following used to be used when multiple TSTool installers were created:
+# The following was previously used when multiple TSTool installers were created:
 # - TODO smalers 2023-04-29 maybe not needed?
 !define INSTALL_IS_CDSS "true"
 # Where the installer is built in the TSTool main repository.
@@ -73,7 +73,7 @@ SetCompressor lzma
 BrandingText "OpenCDSS"
 
 # Include files:
-# - these are in the C:\Program Files (x86)\NSIS software
+# - these are in the "C:\Program Files (x86)\NSIS" software folder
 
 # User interface.
 !include "UMUI.nsh"
@@ -81,7 +81,7 @@ BrandingText "OpenCDSS"
 !include "Registry.nsh"
 # To manipulate text.
 !include "TextReplace.nsh"
-# To be able to use $(IF) for if conditional checks.
+# To be able to use $(IF) for conditional checks.
 !include "LogicLib.nsh"
 
 # Global Variables.
@@ -183,7 +183,7 @@ ReserveFile "externals\CDSS\installer\server_name.ini"
 ##################################################################
 # SECTION: -setInstallVariables
 #
-# initializes some global variables:
+# Initializes some global variables:
 #
 #   choseApp, choseDocs
 #             - Used for dependencies in later sections:
@@ -262,7 +262,7 @@ SectionEnd
 # BRIEF:
 #  - installs the TSTool specific files
 #  - these may change each release so the files included may need to be updated
-#  - see also the conf/build-cdss.xml file for files/folders to include.
+#  - see also the conf/build-cdss.xml file for files/folders to include
 #
 ##################################################
 Section "${CODENAME}" ${CODENAME}
@@ -332,7 +332,8 @@ SectionEnd
 # SECTION: Documentation
 #
 # BRIEF:
-#  Installs current documentation for TSTool to C:\CDSS\doc\TSTool.
+#  - installs current documentation for TSTool to C:\CDSS\doc\TSTool
+#  - documentation is now online, so a minimal README is installed locally
 #
 # The /o stands for optional.
 # This allows the component page to uncheck this box by default.
@@ -409,7 +410,7 @@ SectionEnd
 #
 # BRIEF:
 #  Creates a desktop shortcut to start the application.
-#  
+#
 ############################################
 Section /o "Desktop Shortcut" DesktopShortcut
 
@@ -417,7 +418,7 @@ Section /o "Desktop Shortcut" DesktopShortcut
     strcmp $choseApp "0" 0 +2
       Goto skipShortcut
    
-    # Installs shortcut on desktop>
+    # Installs shortcut on desktop.
     SetOutPath $INSTDIR\bin
     CreateShortCut "$DESKTOP\${NAMEVERSION}.lnk" "$INSTDIR\bin\${CODENAME}.exe"
 
@@ -503,7 +504,7 @@ Section "Uninstall"
     Call un.BaseComponents
     Call un.JRE
 
-    # DON'T DO /r HERE.
+    # DON'T DO /r HERE:
     # - why?  does the uninstall program need to be removed last?
     RmDir /REBOOTOK $INSTDIR
     RmDir /REBOOTOK $INSTDIR\..
@@ -542,6 +543,7 @@ Function .onInstSuccess
       Goto skipThis
       
     ### Delete these comments to include a readme.
+
     #MessageBox MB_YESNO "Would you like to view the README?" IDYES yes IDNO no
     #yes:
     #  Exec 'notepad.exe $INSTDIR\TSTool_README.txt'
@@ -554,7 +556,7 @@ Function .onInstSuccess
     # For now don't allow running the application because the install is as root
     # and don't know how to get back to normal user.
     # MessageBox MB_YESNO "Would you like to run the program (if installer is run as administrator you will not have access to specific user configuration TSTool files)?" IDYES true IDNO false
-    # true:
+    #true:
     #  Exec '"$INSTDIR\bin\${CODENAME}.exe"'
     #  Goto next
     #false:
@@ -569,8 +571,9 @@ FunctionEnd
 ########################################
 # FUNCTION: .onInit
 #
-# BRIEF: NSIS default function
-#  - executes on Init of Outfile created
+# BRIEF:
+# - NSIS default function
+# - executes on Init of Outfile created
 #
 ########################################
 Function .onInit
@@ -602,12 +605,11 @@ Function .onInit
     ##    #MessageBox MB_OK 'User "$0" is a guest'
     ##    Goto InsufficientRights
     ##MessageBox MB_OK "Unknown error"
-    ## --- End
+    ## ---- End
     Goto done
 
     Win9x:
-        # This one means you don't need to care about admin or
-        # not admin because Windows 9x doesn't either.
+        # This one means you don't need to care about admin or not admin because Windows 9x doesn't either.
         IfSilent done
         MessageBox MB_OK "Error! This DLL can't run under Windows 9x!"
         Abort

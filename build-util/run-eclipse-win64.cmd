@@ -2,14 +2,14 @@
 rem Configure and run Eclipse 64-bit Windows for standard TSTool development environment:
 rem - 64-bit is used consistent with StateDMI
 rem - this script assumes that Eclipse is installed in a specific location and more
-rem   locations can be added
+rem   locations can be added if necessary
 rem
 rem It is assumed that the development environment follows the standard folder structure, for example:
 rem - %USERPROFILE%\cdss-dev\TSTool\git-repos\cdss-app-tstool-main
 rem - HECLIB_FOLDER environment variable is used in cdss-app-tstool-main run configuration to find
 rem   dlls for HEC DSS support
 
-rem Determine the script folder and workspace folder.
+rem Determine the script folder and workspace folder:
 rem - %~dp0 has backslash at end
 set scriptFolder=%~dp0
 set workspaceFolder=%scriptFolder%..\..\..\eclipse-workspace
@@ -21,8 +21,8 @@ rem - special check for Steve Malers
 SET DEVUSERPROFILE=%USERPROFILE%
 if exist D:\Users\steve set DEVUSERPROFILE=D:\Users\steve
 
-rem TODO smalers 2017-03-11 Need to evaluate how to handle 64-bit and Linux versions of libraries:
-rem - try using this and then disable for 64-bit if necessary
+rem Indicate where to find the library needed for Army Corps HEC-DSS integration:
+rem - has been updated for 64-bit
 rem SET HECLIB_FOLDER=%DEVUSERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib\win32
 SET HECLIB_FOLDER=%DEVUSERPROFILE%\cdss-dev\TSTool\git-repos\cdss-lib-processor-ts-java\lib\heclib
 
@@ -50,7 +50,7 @@ if not exist %eclipseExe% goto noeclipse
 
 rem If here found Eclipse executable so also try to find Java 8:
 rem - this is 64-bit
-rem - a symbolic link was defined from jdk8 to the specific version to generalize the location
+rem - a symbolic for Java (jdk8 -> specific version) is used to generalize the configuration
 set javawExe=""
 echo Checking for Java in standard locations, oldest supported versions first...
 set javawTryExe="c:\Program Files\Java\jdk8\bin\javaw.exe"
