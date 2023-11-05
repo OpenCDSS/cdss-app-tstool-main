@@ -101,7 +101,7 @@ public class TSToolMain
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.9.0 (2023-08-06)";
+public static final String PROGRAM_VERSION = "14.9.0 (2023-10-30)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -188,14 +188,14 @@ private static boolean __showMainGUI = true;
 private static List<DataStoreSubstitute> datastoreSubstituteList = new ArrayList<>();
 
 /**
- * Datastores to enable, used to fine-tune sessions, for example when run in batch mode.
+ * Datastores to enable/disable, used to optimize session performance, for example when run in batch mode.
  */
-private static List<String> enabledDataStores = new ArrayList<>();
+private static DataStoreEnabledChecker dataStoreEnabledChecker = new DataStoreEnabledChecker();
 
 /**
- * Datastores to disable, used to fine-tune sessions, for example when run in batch mode.
+ * Count of message about --disable-datastores and --enable-datastores not being specified.
  */
-private static List<String> disabledDataStores = new ArrayList<>();
+private static int disableDatastoresMessageCount = 0;
 
 /**
 Indicates whether the --nomaingui command line argument is set.
@@ -212,35 +212,6 @@ private static String __commandFile = null;
  * Modification string for the title, used to customize TSTool.
  */
 private static String titleMod = "";
-
-/**
- * Check command line parameters for whether a datastore is enabled.
- * @param dataStoreName the data store being checked
- * @param isEnabled initial property for whether the datastore is enabled, from datastore properties
- * @param enabledDataStores list of datastore names that are to be enabled, can be * wildcard pattern.
- * @param disabledDataStores list of datastore names that are to be disabled, can be * wildcard pattern.
- * @return updated status for whether the datastore is enabled
- */
-private static boolean checkEnabledDataStores ( String dataStoreName, boolean isEnabled,
-	List<String> enabledDataStores, List<String> disabledDataStores ) {
-	// First evaluate the 'enabledDataStores'.
-	for ( String enabledDataStore : enabledDataStores ) {
-		if ( dataStoreName.matches(enabledDataStore) ) {
-			// Found a datastore that should be enabled.
-			isEnabled = true;
-			break;
-		}
-	}
-	// Next evaluate the 'disabledDataStores'.
-	for ( String disabledDataStore : disabledDataStores ) {
-		if ( dataStoreName.matches(disabledDataStore) ) {
-			// Found a datastore that should be disabled.
-			isEnabled = false;
-			break;
-		}
-	}
-	return isEnabled;
-}
 
 /**
  * Find the list of plugin jar files using new (TSTool 12.07.00 and later approach).
@@ -279,11 +250,11 @@ private static void findPluginDataStoreJarFilesNew ( TSToolSession session, List
 private static void findPluginDataStoreJarFilesOld ( TSToolSession session, List<String> pluginJarList ) {
 	String routine = TSToolMain.class.getSimpleName() + ".findDatastorePluginJarFilesOld";
 	final String [] pluginHomeFolders = {
-			// InstallHome/plugin-datastore
-			__tstoolInstallHome + File.separator + "plugin-datastore",
-			// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
-			session.getUserTstoolFolder() + File.separator + "plugin-datastore"
-		};
+		// InstallHome/plugin-datastore
+		__tstoolInstallHome + File.separator + "plugin-datastore",
+		// .tstool/plugin-datastore/DatastoreName/bin/Datastore-version.jar
+		session.getUserTstoolFolder() + File.separator + "plugin-datastore"
+	};
 	for ( int iPluginHome = 0; iPluginHome < 2; iPluginHome++ ) {
 		// First get a list of candidate URLs, using path to jar file.
 		String pluginDir = pluginHomeFolders[iPluginHome];
@@ -816,7 +787,7 @@ public static void main ( String args[] ) {
 	// Initialize the logging levels after the lot file is opened:
 	// - note that messages will not be printed to the log file until the log file is opened below
 	initializeLoggingLevelsAfterLogOpened();
-	
+
 	try {
         parseArgs ( session, args );
         // The result of this is that the full path to the command file will be set.
@@ -1113,7 +1084,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     String dataStoreType = dataStoreProps.getValue("Type");
     String dataStoreName = dataStoreProps.getValue("Name");
     String dataStoreConfigFile = dataStoreProps.getValue("DataStoreConfigFile");
-    Message.printStatus(2,routine,"DataStoreConfigFile=\""+dataStoreConfigFile+"\"");
+    Message.printStatus(2,routine,"DataStoreConfigFile=\"" + dataStoreConfigFile + "\"");
     // For now hard-code this here.
     // TODO SAM 2010-09-01 Make this more elegant.
     String packagePath = ""; // Make sure to include trailing period below.
@@ -1124,6 +1095,31 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 	//Class pluginDataStoreClass = null; // Will be used if a plugin.
     @SuppressWarnings("rawtypes")
 	Class pluginDataStoreFactoryClass = null; // Will be used if a plugin.
+
+    // Check the command like parameters for enabling and disabling datastores
+    // by using the dataStoreEnabledChecker.
+    if ( dataStoreEnabledChecker.size() > 0 ) {
+    	// Have --disable-datastores and/or --enable-datastores command line parameters.
+    	if ( dataStoreEnabledChecker.isDataStoreEnabled ( dataStoreName ) ) {
+			Message.printStatus(2, routine, "Datastore \"" + dataStoreName +
+				"\" is enabled after evaluating " + dataStoreEnabledChecker.size() +
+				" --disable-datastores and --enable-datastores command parameters.  Will check configuration file." );
+    	}
+    	else {
+    		// Datastore is disabled so don't need to do further checking.
+			Message.printStatus(2, routine, "Datastore \"" + dataStoreName +
+				"\" is disabled after evaluating --disable-datastores and --enable-datastores command parameters." );
+    		return null;
+    	}
+    }
+    else {
+    	if ( disableDatastoresMessageCount == 0 ) {
+    		Message.printStatus(2, routine,
+			  		"Command line parameters --disable-datastores and --enable-datastores were not specified." );
+    		++disableDatastoresMessageCount;
+    	}
+    }
+
     if ( dataStoreType.equalsIgnoreCase("ColoradoHydroBaseRestDataStore") ) {
         propValue = getPropValue("TSTool.ColoradoHydroBaseRestEnabled");
     	userPropValue = session.getUserConfigPropValue ( "ColoradoHydroBaseRestEnabled" );
@@ -1131,7 +1127,14 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     		propValue = userPropValue;
     	}
         if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+        	// HydroBase REST web services are enabled.
             packagePath = "cdss.dmi.hydrobase.rest.";
+        }
+        else if ( (propValue == null) || propValue.isEmpty() ) {
+        	Message.printStatus(2,routine,"ColoradoHydroBaseRestEnabled system property is null or empty.");
+        }
+        else {
+        	Message.printStatus(2,routine,"ColoradoHydroBaseRestEnabled system property is false.");
         }
     }
     else if ( dataStoreType.equalsIgnoreCase("GenericDatabaseDataStore") ) {
@@ -1254,21 +1257,30 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 	            "\" did not have factory class in plugins - cannot initialize datastore connection." );
     	}
     }
-    if ( !packagePath.equals("") ) {
-        propValue = dataStoreProps.getValue("Enabled");
+    if ( !packagePath.isEmpty() ) {
         boolean isEnabled = true; // Default is datastore is enabled.
-        if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
-        	isEnabled = false;
-        }
         // Also check the command like parameters for enabling and disabling datastores.
-        isEnabled = checkEnabledDataStores ( dataStoreName, isEnabled, enabledDataStores, disabledDataStores );
+        /*
+        isEnabled = dataStoreEnabledChecker.isDataStoreEnabled ( dataStoreName );
+        Message.printStatus(2, routine,
+        	"After checking enabled/disabled datastores from command line, datastore \"" + dataStoreName
+        	+ "\" is: " + isEnabled);
         if ( !isEnabled ) {
             // Datastore is disabled.  Do not even attempt to load.  This will minimize in-memory resource use.
             Message.printStatus(2, routine, "Created datastore type \"" + dataStoreType + "\", name \"" +
                 dataStoreProps.getValue("Name") + "\" is disabled.  Not opening." );
             return null;
         }
-        else {
+        */
+        // Datastore is OK to load:
+        // - check the datastore configuration file's "Enabled" property and if "True", continue with the load
+        // - otherwise don't attempt to load the datastore
+        propValue = dataStoreProps.getValue("Enabled");
+        if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
+        	// The datastore is disabled so don't load the plugin
+        	isEnabled = false;
+        }
+        if ( isEnabled ) {
             // Datastore is enabled so construct the instance.
             StopWatch sw = new StopWatch();
             sw.start();
@@ -1360,9 +1372,17 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 	            return dataStore;
             }
         }
+        else {
+        	// Datastore is not enabled.
+    		Message.printStatus(2, routine, "Datastore \"" + dataStoreName + "\" has Enabled=False in configuration file.  Skipping.");
+        	return null;
+        }
     }
     else {
     	// No package path to load datastore.
+   		Message.printWarning(2, routine, "No package path found for datastore \"" + dataStoreName + "\".  Skipping.");
+   		Message.printWarning(2, routine, "Check that the configuration file specifies a built-in or plug-in datastore type: " +
+   			"\"" + dataStoreConfigFile + "\"." );
         return null;
     }
 }
@@ -1430,7 +1450,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     Message.printStatus(2, routine, "Trying to open " + dataStoreConfigFiles.size() + " datastores (first user, then installation configuration files)." );
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
-        Message.printStatus ( 2, routine, "Opening datastore using properties in \"" + dataStoreFile + "\".");
+        Message.printStatus ( 2, routine, "Start opening datastore using properties in \"" + dataStoreFile + "\".");
         // Read the properties from the configuration file.
         PropList dataStoreProps = new PropList("");
         String dataStoreFileFull = dataStoreFile;
@@ -1438,7 +1458,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
             dataStoreFileFull = __tstoolInstallHome + File.separator + "system" + File.separator + dataStoreFile;
         }
         if ( !IOUtil.fileExists(dataStoreFileFull) ) {
-            Message.printWarning(3, routine, "Datastore configuration file \"" + dataStoreFileFull +
+            Message.printWarning(3, routine, "  Datastore configuration file \"" + dataStoreFileFull +
                 "\" does not exist - not opening datastore." );
         }
         else {
@@ -1457,7 +1477,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 // - need more time to fully remove the code
                 if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ||
                 	dataStoreType.equalsIgnoreCase("ColoradoWaterSMSDataStore")) {
-               		Message.printStatus(2,routine,"Datastore \"" + dataStoreName +
+               		Message.printStatus(2,routine,"  Datastore \"" + dataStoreName +
                			"\" type \"" + dataStoreType + "\" is obsolete.  Skipping." );
                 	continue;
                 }
@@ -1473,7 +1493,7 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 	}
                 	if ( openDataStore.getName().equalsIgnoreCase(dataStoreName) && isEnabled ) {
                 		// Found a matching datastore.
-                		Message.printStatus(2,routine,"Datastore \"" + dataStoreName +
+                		Message.printStatus ( 2, routine, "  Datastore \"" + dataStoreName +
                 			"\" matches previous enabled datastore (user datastores are used before system datastores).  Skipping.");
                 		dataStoreAlreadyOpened = true;
                 		break;
@@ -1488,24 +1508,25 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 	// DataStore will be null if disabled or a serious error occurred opening.
                 	openDataStoreList.add(dataStore);
                 }
+                Message.printStatus ( 2, routine, "  Done opening datastore using properties in \"" + dataStoreFile + "\".");
             }
             catch ( ClassNotFoundException e ) {
-                Message.printWarning (2,routine, "Datastore class \"" + dataStoreClassName +
+                Message.printWarning (2,routine, "  Datastore class \"" + dataStoreClassName +
                     "\" is not in the class path - report to software support (" + e + ")." );
                 Message.printWarning(2, routine, e);
             }
             catch( InstantiationException e ) {
-                Message.printWarning (2,routine, "Error instantiating datastore for class \"" + dataStoreClassName +
+                Message.printWarning (2,routine, "  Error instantiating datastore for class \"" + dataStoreClassName +
                     "\" - report to software support (" + e + ")." );
                 Message.printWarning(2, routine, e);
             }
             catch( IllegalAccessException e ) {
-                Message.printWarning (2,routine, "Datastore for class \"" + dataStoreClassName +
+                Message.printWarning (2,routine, "  Datastore for class \"" + dataStoreClassName +
                     "\" needs a no-argument constructor - report to software support (" + e + ")." );
                 Message.printWarning(2, routine, e);
             }
             catch ( Exception e ) {
-                Message.printWarning (2,routine,"Error reading datastore configuration file \"" +
+                Message.printWarning (2,routine,"  Error reading datastore configuration file \"" +
                     dataStoreFileFull + "\" - not opening datastore (" + e + ")." );
                 Message.printWarning(2, routine, e);
             }
@@ -1707,16 +1728,16 @@ throws Exception {
     // - for now only implement for parameters that are known to have issue with spaces
     String spaceReplacement = null;
     // Iterate through the command line parameters.
-	for (int i = 0; i < args.length; i++) {
+	for ( int i = 0; i < args.length; i++ ) {
 		//Message.printStatus(1, routine, "Parsing arg: " + args[i]);
 		//System.err.println("Parsing arg: " + args[i]);
-		if (args[i].equalsIgnoreCase("-batchServer") || args[i].equalsIgnoreCase("--batchServer") ) {
+		if ( args[i].equalsIgnoreCase("-batchServer") || args[i].equalsIgnoreCase("--batchServer") ) {
 			Message.printStatus ( 1, routine, "Will start TSTool in batch server mode." );
 			__isBatchServer = true;
 		}
-		else if (args[i].equalsIgnoreCase("-batchServerHotFolder") || args[i].equalsIgnoreCase("--batchServerHotFolder")) {
+		else if ( args[i].equalsIgnoreCase("-batchServerHotFolder") || args[i].equalsIgnoreCase("--batchServerHotFolder") ) {
 		    // Batch server hot folder name.
-			if ((i + 1)== args.length) {
+			if ( (i + 1) == args.length ) {
 				message = "No argument provided to '-batchServerHotFolder'";
 				Message.printWarning(1,routine, message);
 				throw new Exception(message);
@@ -1724,7 +1745,7 @@ throws Exception {
 			i++;
 			__batchServerHotFolder = args[i];
 		}
-		else if (args[i].equalsIgnoreCase("-commands") || args[i].equalsIgnoreCase("--commands") ) {
+		else if ( args[i].equalsIgnoreCase("-commands") || args[i].equalsIgnoreCase("--commands") ) {
 		    // Command file name.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '" + args[i] + "'";
@@ -1736,7 +1757,7 @@ throws Exception {
 			// Setup the application using the command file and indicate running in batch mode.
 			setupUsingCommandFile ( commandFile, true );
 		}
-		else if (args[i].equalsIgnoreCase("-batchTimeout") || args[i].equalsIgnoreCase("--batchTimeout")) {
+		else if ( args[i].equalsIgnoreCase("-batchTimeout") || args[i].equalsIgnoreCase("--batchTimeout") ) {
 		    // Batch timeout in seconds.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-batchTimeout'";
@@ -1759,7 +1780,7 @@ throws Exception {
 		    // Configuration file name.
 		    // TODO SAM 2011-12-07 Need to allow properties like ${UserHome} to read the configuration file from
 		    // a users' home folder, even if TSTool is installed in a central location
-            if ((i + 1)== args.length) {
+            if ( (i + 1) == args.length ) {
             	message = "No argument provided to '-config'";
                 Message.printWarning(1,routine,message);
                 throw new Exception(message);
@@ -1774,21 +1795,21 @@ throws Exception {
 	    }
 		else if ( args[i].regionMatches(true,0,"-d",0,2) || args[i].regionMatches(true, 0, "--debug", 0,7)) {
 			// Set debug information.
-			if ((i + 1)== args.length) {
+			if ( (i + 1) == args.length ) {
 				// No argument.  Turn terminal and log file debug on to level 1.
 				Message.isDebugOn = true;
 				Message.setDebugLevel ( Message.TERM_OUTPUT, 1);
 				Message.setDebugLevel ( Message.LOG_OUTPUT, 1);
 			}
 			i++;
-			if ( (i + 1) == args.length && args[i].indexOf(",") >= 0 ) {
+			if ( ((i + 1) == args.length) && (args[i].indexOf(",") >= 0) ) {
 				// Comma, set screen and file debug to different levels.
 				String token = StringUtil.getToken(args[i],",",0,0);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
 					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(token) );
 				}
-				token=StringUtil.getToken(args[i],",",0,1);
+				token = StringUtil.getToken(args[i],",",0,1);
 				if ( StringUtil.isInteger(token) ) {
 					Message.isDebugOn = true;
 					Message.setDebugLevel (	Message.LOG_OUTPUT, StringUtil.atoi(token) );
@@ -1825,52 +1846,38 @@ throws Exception {
 					"\", should be: --datastore-substitute=DatastoreNameToUse,DatastoreNameInCommands");
 			}
 		}
-		else if ( args[i].toLowerCase().startsWith("--disabled-datastores") ) {
-			// Used to disaable datastores when running in batch mode.
-			// - example: --disabled-datastores=datastore1,datastore2
+		else if ( args[i].toLowerCase().startsWith("--disable-datastores") ) {
+			// Used to disable datastores when running in batch mode:
+			// - example: --disable-datastores=datastore1,datastore2
 			pos = args[i].indexOf("=");
 			if ( pos >= 0 ) {
 				// Have well-formed parameter.
-				String [] parts = args[i].substring(pos + 1).split(",");
-				for ( String part : parts ) {
-					part = part.trim();
-					Message.printStatus ( 1, routine, "Will disable datastore \"" + part + "\"." );
-					// Convert * regular expressions to Java regular expression.
-					part = part.replace("*", ".*");
-					disabledDataStores.add(part);
-				}
+				dataStoreEnabledChecker.addParameter(args[i]);
 			}
 			else {
 				Message.printWarning(1, routine, "Bad parameter \"" + args[i] +
-					"\", should be: --enabled-datastores=datastore1,datastore2");
+					"\", should be: --disable-datastores=datastore1,datastore2");
 			}
 		}
-		else if ( args[i].toLowerCase().startsWith("--enabled-datastores") ) {
-			// Used to enable datastores when running in batch mode.
-			// - example: --enabled-datastores=datastore1,datastore2
+		else if ( args[i].toLowerCase().startsWith("--enable-datastores") ) {
+			// Used to enable datastores when running in batch mode:
+			// - example: --enable-datastores=datastore1,datastore2
 			pos = args[i].indexOf("=");
 			if ( pos >= 0 ) {
 				// Have well-formed parameter.
-				String [] parts = args[i].substring(pos + 1).split(",");
-				for ( String part : parts ) {
-					part = part.trim();
-					Message.printStatus ( 1, routine, "Will enable datastore \"" + part + "\"." );
-					// Convert * regular expressions to Java regular expression.
-					part = part.replace("*", ".*");
-					enabledDataStores.add(part);
-				}
+				dataStoreEnabledChecker.addParameter(args[i]);
 			}
 			else {
 				Message.printWarning(1, routine, "Bad parameter \"" + args[i] +
-					"\", should be: --enabled-datastores=datastore1,datastore2");
+					"\", should be: --enable-datastores=datastore1,datastore2");
 			}
 		}
-		else if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("-help") || args[i].equalsIgnoreCase("--help")) {
+		else if ( args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("-help") || args[i].equalsIgnoreCase("--help") ) {
 			// Print usage.
 			printUsage();
 			quitProgram(0);
 		}
-		else if (args[i].equalsIgnoreCase("-home") || args[i].equalsIgnoreCase("--home")) {
+		else if ( args[i].equalsIgnoreCase("-home") || args[i].equalsIgnoreCase("--home") ) {
 		    // Should be specified in batch file or script that runs TSTool, or in properties for a executable launcher.
 			// Therefore this should be processed before any user command line
 	        // parameters and the log file should open up before much else is done.
@@ -1918,11 +1925,11 @@ throws Exception {
 			    readConfigFile(getConfigFile());
 			}
 		}
-		else if (args[i].equalsIgnoreCase("-httpServer") || args[i].equalsIgnoreCase("--httpServer")) {
+		else if ( args[i].equalsIgnoreCase("-httpServer") || args[i].equalsIgnoreCase("--httpServer") ) {
 			Message.printStatus ( 1, routine, "Will start TSTool in HTTP server mode." );
 			__isHttpServer = true;
 		}
-		else if (args[i].equalsIgnoreCase("-logFile") || args[i].equalsIgnoreCase("--logFile")) {
+		else if ( args[i].equalsIgnoreCase("-logFile") || args[i].equalsIgnoreCase("--logFile") ) {
 		    // Specify the log file.
 			if ((i + 1)== args.length) {
 				message = "No argument provided to '-logFile'";
@@ -1933,24 +1940,24 @@ throws Exception {
 			String logFile = parseArgsCheckSpaceReplacement(args[i], spaceReplacement);
 			__logFileFromCommandLine = logFile;
 		}
-        else if (args[i].equalsIgnoreCase("-nodiscovery") || args[i].equalsIgnoreCase("--nodiscovery")) {
+        else if ( args[i].equalsIgnoreCase("-nodiscovery") || args[i].equalsIgnoreCase("--nodiscovery") ) {
             // Don't run commands in discovery mode on initial load (should only be used in large batch runs).
             Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
             __runDiscoveryOnLoad = false;
         }
-		else if (args[i].equalsIgnoreCase("-nomaingui") || args[i].equalsIgnoreCase("--nomaingui")) {
+		else if ( args[i].equalsIgnoreCase("-nomaingui") || args[i].equalsIgnoreCase("--nomaingui") ) {
 			// User specified or specified by a script/system call to the normal TSTool script/launcher.
 			// Don't make the main GUI visible...
 			Message.printStatus ( 1, routine, "Will process command file without main GUI (plot windows only)." );
 			__showMainGUI = false;
 			__noMainGUIArgSpecified = true;
 		}
-        else if (args[i].equalsIgnoreCase("-runcommandsonload") || args[i].equalsIgnoreCase("--runcommandsonload")) {
+        else if ( args[i].equalsIgnoreCase("-runcommandsonload") || args[i].equalsIgnoreCase("--runcommandsonload") ) {
         	// User specified or specified by a script/system call to the normal TSTool script/launcher.
             Message.printStatus ( 1, routine, "Will run commands on load." );
             __run_commands_on_load = true;
         }
-		else if (args[i].equalsIgnoreCase("-server") || args[i].equalsIgnoreCase("--server")) {
+		else if ( args[i].equalsIgnoreCase("-server") || args[i].equalsIgnoreCase("--server") ) {
 			// User specified or specified by a script/system call to the normal TSTool script/launcher.
 			Message.printStatus ( 1, routine, "Will start TSTool in restlet server mode." );
 			__isRestletServer = true;
@@ -1970,7 +1977,7 @@ throws Exception {
 				Message.printWarning(1, routine, "Bad parameter \"" + args[i] + "\", should be: --space-replacement=string");
 			}
 		}
-		else if (args[i].equalsIgnoreCase("-test") || args[i].equalsIgnoreCase("--test")) {
+		else if ( args[i].equalsIgnoreCase("-test") || args[i].equalsIgnoreCase("--test") ) {
 			// User specified (generally by developers).
 			IOUtil.testing(true);
 			Message.printStatus ( 1, routine, "Running in test mode." );
@@ -1985,11 +1992,11 @@ throws Exception {
 				Message.printWarning(1, routine, "Bad parameter \"" + args[i] + "\", should be: --ui-titlemod=text");
 			}
 		}
-		else if (args[i].equalsIgnoreCase("-verbose") || args[i].equalsIgnoreCase("--verbose")) {
+		else if ( args[i].equalsIgnoreCase("-verbose") || args[i].equalsIgnoreCase("--verbose") ) {
 			// Used to run verbose mode to see which classes are loaded by Java:
 			// - this is handled in the 'tstool' bash script so ignore here
 		}
-		else if (args[i].equalsIgnoreCase("-v") || args[i].equalsIgnoreCase("-version") || args[i].equalsIgnoreCase("--version")) {
+		else if ( args[i].equalsIgnoreCase("-v") || args[i].equalsIgnoreCase("-version") || args[i].equalsIgnoreCase("--version") ) {
 			// Print version.
 			printVersion();
 			quitProgram(0);
