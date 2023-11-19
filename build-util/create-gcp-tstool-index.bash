@@ -10,6 +10,61 @@
 
 # Supporting functions, alphabetized.
 
+# Add a zero padded version column to the file listing:
+# - this is used to help sort the installers for the table listing
+# - input:   94612246  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/12.06.00.dev1/software/TSTool_CDSS_12.06.00_Setup.exe
+# - output:  94612246  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/12.06.00.dev1/software/TSTool_CDSS_12.06.00_Setup.exe 012.006.000.dev1
+# - if a normal release, add zzz as the fourth part so it will sort before "dev" when sorted in reverse,
+#   which is what is done to get the largest version first
+# - the date/time at the end is the tie-breaker, for example when multiple same "div" release is made
+# - the first function parameter is the file to sort, it will be replaced
+addZeroPaddedVersion () {
+  local infile outfile
+
+  infile=$1
+
+  if [ -z "${infile}" ]; then
+    echoStdout "[ERROR] No input file provided to addZeroPaddedVersion.  Exiting."
+    exit 1
+  fi
+
+  outfile="${infile}.padded"
+
+  # Use awk to add the new column.
+  cat "${infile}" | awk '{
+    # Version is the 2nd field of the fourth input field.
+    downloadFilePath = $3
+    # Split the download file path into parts to get the download file without path:
+    # - index is 1+
+    nparts=split(downloadFilePath,downloadFilePathParts,"/")
+    downloadFile = downloadFilePathParts[nparts]
+    downloadFileUrl=downloadFilePath
+    gsub("gs:","https:",downloadFileUrl)
+    # Split the download file into parts to get other information:
+    # - index is 1+
+    split(downloadFile,downloadFileParts,"_")
+    downloadFileProduct=downloadFileParts[1]
+    downloadFileVersion=downloadFileParts[3]
+
+    nVersionParts = split(downloadFileVersion,versionParts,".")
+    version1 = sprintf("%03d", versionParts[1])
+    version2 = sprintf("%03d", versionParts[2])
+    version3 = sprintf("%03d", versionParts[3])
+    version4 = "zzz"
+    if ( nVersionParts > 3 ) {
+      # Also have something like 1.2.3.dev1.
+      version4 = versionParts[4]
+      version4
+    }
+    printf("%s %s %s %s.%s.%s.%s\n", $1, $2, $3, version1, version2, version3, version4)
+  }
+  ' > ${outfile}
+  # Replace the original file.
+  mv "${outfile}" "${infile}"
+  echoStderr "[INFO] Added zero-padded version to:"
+  echoStderr "[INFO]   ${outfile}"
+}
+
 # Determine the operating system that is running the script:
 # - sets the variable operatingSystem to cygwin, linux, or mingw (Git Bash)
 checkOperatingSystem() {
@@ -33,9 +88,9 @@ checkOperatingSystem() {
       operatingSystemShort="min"
       ;;
   esac
-  echoStderr ""
-  echoStderr "Detected operatingSystem=${operatingSystem} operatingSystemShort=${operatingSystemShort}"
-  echoStderr ""
+  echoStderr "[INFO]"
+  echoStderr "[INFO] Detected operatingSystem=${operatingSystem} operatingSystemShort=${operatingSystemShort}"
+  echoStderr "[INFO]"
 }
 
 # Echo a string to standard error (stderr).
@@ -52,6 +107,23 @@ gcpUtilFileExists() {
   # The following will return 0 if the file exists, 1 if not.
   gsutil.cmd -q stat ${fileToCheck}
   return $?
+}
+
+# Get the TSTool version:
+# - the version is echoed to stdout and can be assigned in the calling code
+# - sets the global 'tstoolVersion'
+getTstoolVersion() {
+  local tstoolFile
+
+  tstoolFile="${srcMainFolder}/TSToolMain.java"
+  if [ -f "${tstoolFile}" ]; then
+    tstoolVersion=$(cat ${tstoolFile} | grep -m 1 'String PROGRAM_VERSION' | cut -d '=' -f 2 | cut -d '(' -f 1 | tr -d " " | tr -d '"')
+  else
+    echoStderr "[ERROR] Cannot determine TSTool version because file not found:"
+    echoStderr "[ERROR]   ${tstoolFile}"
+    exit 1
+  fi
+  return 0
 }
 
 # Get the user's login to use for local temporary files:
@@ -97,7 +169,7 @@ parseCommandLine() {
     #echo "Command line option is ${opt}"
     case "${1}" in
       --debug) # --debug  Indicate to output debug messages.
-        echoStderr "--debug detected - will print debug messages."
+        echoStderr "[DEBUG] --debug detected - will print debug messages."
         debug="true"
         shift 1
         ;;
@@ -114,8 +186,8 @@ parseCommandLine() {
         break
         ;;
       *) # Unknown option.
-        echoStderr ""
-        echoStderr "Invalid option: ${1}" >&2
+        echoStderr "[ERROR]"
+        echoStderr "[ERROR] Invalid option: ${1}" >&2
         printUsage
         exit 1
         ;;
@@ -147,6 +219,7 @@ printVersion() {
 uploadIndexHtmlFile() {
   local indexHtmlTmpFile gcpIndexHtmlUrl
   local indexCsvTmpFile gcpIndexCsvlUrl
+
   # List available software installer files:
   # - $gcpFolderUrl ends with /tstool
   # - the initial output will look like the following, with size, timestamp, resource URL:
@@ -166,34 +239,48 @@ uploadIndexHtmlFile() {
 
   # First do a listing of the software folder.
   tmpGcpSoftwareCatalogPath="/tmp/${USER}-tstool-software-catalog-ls.txt"
-  echoStderr "tmpGcpSoftwareCatalogPath=${tmpGcpSoftwareCatalogPath}"
+  echoStderr "[INFO] tmpGcpSoftwareCatalogPath=${tmpGcpSoftwareCatalogPath}"
   # Match exe and tar.gz files to include Windows and Linux.
   gsutil.cmd ls -l "${gcpFolderUrl}/*/software" | grep -E -v '^gs*' | grep gs | grep -E 'exe|tar.gz' > ${tmpGcpSoftwareCatalogPath}
   if [ "${PIPESTATUS[0]}" -ne 0 ]; then
-    echoStderr ""
-    echoStderr "[Error] Error listing TSTool download files to create catalog."
+    echoStderr "[ERROR]"
+    echoStderr "[ERROR] Error listing TSTool download files to create catalog."
     exit 1
+  fi
+
+  # Add the zero-padded version on the end of the list to help with sorting.
+  addZeroPaddedVersion ${tmpGcpSoftwareCatalogPath}
+
+  # Check whether to add the pending row to the product file:
+  # - doPending is global since it is used in other functions
+  latestVersionCount=$(cat ${tmpGcpSoftwareCatalogPath} | grep ${tstoolVersion} | wc -l)
+  doPending="false"
+  if [ ${latestVersionCount} -eq 0 ]; then
+    # Did not find the latest version in the catalog of installers:
+    # - need to add a pending line because an installer has not been uploaded
+    echoStderr "[INFO] Will add pending documentation."
+    doPending="true"
   fi
 
   # Listing of the doc-user folders.
   tmpGcpDocUserCatalogPath="/tmp/${USER}-tstool-doc-user-catalog-ls.txt"
-  echoStderr "tmpGcpDocUserCatalogPath=${tmpGcpDocUserCatalogPath}"
+  echoStderr "[INFO] tmpGcpDocUserCatalogPath=${tmpGcpDocUserCatalogPath}"
   # Match index.html paths.
   gsutil.cmd ls -l "${gcpFolderUrl}/*/doc-user" | grep -E -v '^gs*' | grep gs | grep index.html > ${tmpGcpDocUserCatalogPath}
   if [ "${PIPESTATUS[0]}" -ne 0 ]; then
-    echoStderr ""
-    echoStderr "[Error] Error listing TSTool user documentation files to create catalog."
+    echoStderr "[ERROR]"
+    echoStderr "[ERROR] Error listing TSTool user documentation files to create catalog."
     exit 1
   fi
 
   # Listing of the doc-dev folders.
   tmpGcpDocDevCatalogPath="/tmp/${USER}-tstool-doc-dev-catalog-ls.txt"
-  echoStderr "tmpGcpDocDevCatalogPath=${tmpGcpDocDevCatalogPath}"
+  echoStderr "[INFO] tmpGcpDocDevCatalogPath=${tmpGcpDocDevCatalogPath}"
   # Match index.html paths.
   gsutil.cmd ls -l "${gcpFolderUrl}/*/doc-dev" | grep -E -v '^gs*' | grep gs | grep index.html > ${tmpGcpDocDevCatalogPath}
   if [ "${PIPESTATUS[0]}" -ne 0 ]; then
-    echoStderr ""
-    echoStderr "[Error] Error listing TSTool developer documentation files to create catalog."
+    echoStderr "[ERROR]"
+    echoStderr "[ERROR] Error listing TSTool developer documentation files to create catalog."
     exit 1
   fi
 
@@ -388,23 +475,67 @@ uploadIndexHtmlFile_Table() {
   # Listing local files does not show all available files on GCP but may be useful for testing.
   catalogSource="gcp"  # "gcp" or "local"
   if [ "${catalogSource}" = "gcp" ]; then
-    # Use GCP list from catalog file for the index.html file download file list, with format like
-    # the following (no space at beginning of the line):
+    # Use GCP zero-padded list from catalog file for the index.html file download file list,
+    # with format like the following (no space at beginning of the line):
     #
-    # 12464143  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/14.0.0/software/TSTool_CDSS_14.0.0_Setup.exe
+    # 12464143  2019-04-27T10:01:42Z  gs://opencdss.state.co.us/tstool/14.0.0/software/TSTool_CDSS_14.0.0_Setup.exe 014.000.000.zzz
     #
     # Use awk below to print the line with single space between tokens.
-    # Replace normal version to have -zzz at end and "dev" version to be "-dev" so that sort is correct,
-    #   then change back to previous strings for output.
-    # The use space as the delimiter and sort on the 3rd token.
     #
     tmpGcpDocDevCatalogPath="/tmp/${USER}-tstool-doc-dev-catalog-ls.txt"
     echo '<tr><th>Download File</th><th>Product</th><th>Version</th><th>File Timestamp</th><th>Size (bytes)</th><th>Operating System</th><th>User Doc</th><th>Dev Doc</th></tr>' >> ${indexHtmlTmpFile}
-    cat "${tmpGcpSoftwareCatalogPath}" | grep "${downloadPattern}" | awk '{ printf "%s %s %s\n", $1, $2, $3 }' | sed -E 's|([0-9][0-9]/)|\1-zzz|g' | sed 's|/-zzz|-zzz|g' | sed 's|dev|-dev|g' | sort -r -k3,3 | sed 's|-zzz||g' | sed 's|-dev|dev|g' | awk -v debug=${debug} -v tmpGcpDocUserCatalogPath=${tmpGcpDocUserCatalogPath} -v tmpGcpDocDevCatalogPath=${tmpGcpDocDevCatalogPath} '
+    cat "${tmpGcpSoftwareCatalogPath}" | sort -r -k4,4 | awk -v debug=${debug} -v doPending=${doPending} -v tstoolVersion=${tstoolVersion} -v tmpGcpDocUserCatalogPath=${tmpGcpDocUserCatalogPath} -v tmpGcpDocDevCatalogPath=${tmpGcpDocDevCatalogPath} '
       BEGIN {
         if ( debug == "true" ) {
           printf("<!-- [DEBUG] tmpGcpDocUserCatalogPath=%s -->\n", tmpGcpDocUserCatalogPath)
           printf("<!-- [DEBUG] tmpGcpDocDevCatalogPath=%s -->\n", tmpGcpDocDevCatalogPath)
+        }
+        if ( doPending == "true" ) {
+          # Output a row showing a pending release, with link to the draft documentation.
+          downloadFileProduct="TSTool"
+          downloadFileUrl="Pending"
+          downloadFileVersion=tstoolVersion
+          downloadFileDate="Pending"
+          downloadFileTime=""
+          downloadFileSize=""
+          downloadFileOs=""
+          # doc-dev
+          cmd=sprintf("cat %s | grep 'tstool/%s/doc-dev/index.html' | wc -l", tmpGcpDocUserCatalogPath, downloadFileVersion)
+          if ( debug == 1 ) {
+             printf("<!-- [DEBUG] Command to check for doc-dev: %s -->\n", cmd)
+          }
+          cmd | getline docCount
+          close(cmd)
+          if ( debug == 1 ) {
+             printf("<!-- [DEBUG] Count from above command: %d -->\n", docCount)
+          }
+          if ( docCount > 0 ) {
+            docDevUrl=sprintf("https://opencdss.state.co.us/tstool/%s/doc-dev", downloadFileVersion)
+            docDevHtml=sprintf("<a href=\"%s\">View</a>",docDevUrl)
+          }
+          else {
+            docDevHtml=""
+          }
+          # doc-user
+          # Get the count of matching doc-user in the original full bucket list.
+          cmd=sprintf("cat %s | grep 'tstool/%s/doc-user/index.html' | wc -l", tmpGcpDocUserCatalogPath, downloadFileVersion)
+          if ( debug == 1 ) {
+             printf("<!-- [DEBUG] Command to check for doc-user: %s -->\n", cmd)
+          }
+          cmd | getline docCount
+          close(cmd)
+          if ( debug == 1 ) {
+             printf("<!-- [DEBUG] Count from above command: %d -->\n", docCount)
+          }
+          if ( docCount > 0 ) {
+            docUserUrl=sprintf("https://opencdss.state.co.us/tstool/%s/doc-user/", downloadFileVersion)
+            docUserHtml=sprintf("<a href=\"%s\">View</a>",docUserUrl)
+          }
+          else {
+            docUserHtml=""
+          }
+          #       Download File       Product     Version    Timestamp      Size     OS       User doc   Dev doc
+          printf "<tr><td>Pending</td><td>%s</td><td>%s</td><td>Pending</td><td></td><td></td><td>%s</td><td>%s</td></tr>\n", downloadFileProduct, downloadFileVersion, docUserHtml, docDevHtml
         }
       }
       {
@@ -466,13 +597,15 @@ scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
 repoFolder=$(dirname "${scriptFolder}")
 srcFolder="${repoFolder}/src"
+srcMainFolder="${srcFolder}/DWR/DMI/tstool"
 
 # Version, mainly used to help understand changes over time when comparing files.
-version="1.1.1 (2023-04-05)"
+version="1.2.0 (2023-11-17)"
 
-echoStderr "scriptFolder=${scriptFolder}"
-echoStderr "repoFolder=${repoFolder}"
-echoStderr "srcFolder=${srcFolder}"
+echoStderr "[INFO] scriptFolder=${scriptFolder}"
+echoStderr "[INFO] repoFolder=${repoFolder}"
+echoStderr "[INFO] srcFolder=${srcFolder}"
+echoStderr "[INFO] srcMainFolder=${srcMainFolder}"
 
 # Whether or not debug messages are printed.
 debug="false"
@@ -485,6 +618,11 @@ parseCommandLine $@
 
 # Determine the user login, used for temporary file location.
 getUserLogin
+
+# Get the TSTool version so can add the pending index row:
+# - this sets the global tstoolVersion
+getTstoolVersion
+echoStderr "[INFO] Current TSTool version = ${tstoolVersion}"
 
 # Upload the created index file to GCP bucket.
 uploadIndexHtmlFile
