@@ -101,7 +101,7 @@ public class TSToolMain
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.9.0 (2023-10-30)";
+public static final String PROGRAM_VERSION = "14.9.1 (2023-11-15)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1240,8 +1240,10 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     	String dataStoreFactory = dataStoreType + "Factory";
 		for ( @SuppressWarnings("rawtypes") Class c : pluginDataStoreFactoryClassList ) {
 			String nameFromClass = c.getSimpleName(); // Something like DatabaseXDataStoreFactory.
-			Message.printStatus(2, routine, "Checking plugin datastore config file \"" +
-				dataStoreConfigFile + "\" for configuration datastore type \"" + nameFromClass + "\"");
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "Checking plugin datastore config file \"" +
+					dataStoreConfigFile + "\" for configuration datastore type \"" + nameFromClass + "\"");
+			}
 			if ( nameFromClass.equals(dataStoreFactory) ) {
 				// Construction will occur by the datastore factory below but need the package name.
 				packagePath = c.getPackage().toString() + "."; // Actually have problems with this.
