@@ -9825,11 +9825,38 @@ public void ui_UpdateStatus ( boolean check_gui_state ) {
 	if ( selected_indices != null ) {
 		selected_size = selected_indices.length;
 	}
+
+	int noDataCount = 0;
+	int size = commandProcessor_GetTimeSeriesResultsListSize();
+	TS ts = null;
+	for ( int i = 0; i < size; i++ ) {
+        ts = commandProcessor_GetTimeSeries(i);
+        if ( ts == null ) {
+        	// Should not happen because only non-null time series should be in the list.
+        	++noDataCount;
+        }
+        else if ( !ts.hasData() ) {
+        	// Could be because time series was not found (therefore minimal metadata populated),
+        	// or time series was found by no data are available in the input period.
+        	++noDataCount;
+        }
+	}
+
 	if ( __resultsTS_JPanel != null ) {
-       	__resultsTS_JPanel.setBorder(BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		//"Results: Time Series (" +
-        "" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
+		if ( noDataCount == 0 ) {
+			__resultsTS_JPanel.setBorder(BorderFactory.createTitledBorder (
+				BorderFactory.createLineBorder(Color.black),
+				//"Results: Time Series (" +
+				"" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
+		}
+		else {
+			// Show how many time series have no data (will be highlighted in red in the list).
+			__resultsTS_JPanel.setBorder(BorderFactory.createTitledBorder (
+				BorderFactory.createLineBorder(Color.black),
+				//"Results: Time Series (" +
+				"" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected, " +
+				noDataCount + " with no data"));
+		}
 	}
 	// TODO smalers 2007-08-31 Evaluate call here - probably should call elsewhere
 	//ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.updateStatus", null, __STATUS_READY );
