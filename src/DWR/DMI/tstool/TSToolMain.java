@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ public class TSToolMain
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.9.1 (2023-12-04)";
+public static final String PROGRAM_VERSION = "14.9.2 (2024-01-02)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -2110,7 +2110,7 @@ public static void printVersion ( ) {
 	String nl = System.getProperty ( "line.separator" );
 	System.err.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
 	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-	"Copyright (C) 1997-2023 Colorado Department of Natural Resources\n" +
+	"Copyright (C) 1997-2024 Colorado Department of Natural Resources\n" +
     "\n" +
 	"TSTool is free software:  you can redistribute it and/or modify\n" +
 	"    it under the terms of the GNU General Public License as published by\n" +
