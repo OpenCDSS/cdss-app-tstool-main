@@ -7076,7 +7076,7 @@ private void ui_InitGUI ( PropList initProps ) {
 	__command_JProgressBar.setStringPainted ( true );
 	JGUIUtil.addComponent(bottom_JPanel, __command_JProgressBar,
 		7, 0, 2, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	__status_JTextField = new JTextField ( 5 );
+	__status_JTextField = new JTextField ( 7 );
 	__status_JTextField.setEditable(false);
 	JGUIUtil.addComponent(bottom_JPanel, __status_JTextField,
 		9, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -11539,6 +11539,8 @@ throws Exception {
             ui_UpdateStatus ( true );
 	        commandProcessor_SetCommandProcessorThread(null);
 	        ui_UpdateStatusTextFields ( 1, routine, "Processing has been canceled.", null, TSToolConstants.STATUS_CANCELED );
+	        // Set the state on the run buttons so can run again:
+	        ui_CheckGUIState();
         }
     }
     else if ( command.equals(TSToolConstants.Run_CommandsFromFile_String) ) {
