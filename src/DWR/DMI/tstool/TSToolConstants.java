@@ -487,6 +487,8 @@ public class TSToolConstants {
     Commands_General_Comments_FixMeComment_String = "#@fixme ... <indicate something to fix>",
     Commands_General_Comments_ToDoComment_String = "#@todo ... <indicate something to do>",
     // -----------------
+    Commands_General_Comments_DocExampleComment_String = "#@docExample ... <command file is an example for documentation>",
+    // -----------------
     Commands_General_Comments_Empty_String = TAB + "<empty line>",
 
 	// Menu: Commands / General - File Handling
