@@ -1389,7 +1389,9 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
             action.equals(TSToolConstants.Commands_General_Comments_RequireUserComment_String) ||
 		    // -----------
             action.equals(TSToolConstants.Commands_General_Comments_FixMeComment_String) ||
-            action.equals(TSToolConstants.Commands_General_Comments_ToDoComment_String) ) {
+            action.equals(TSToolConstants.Commands_General_Comments_ToDoComment_String) ||
+		    // -----------
+            action.equals(TSToolConstants.Commands_General_Comments_DocExampleComment_String) ) {
 		    // -----------
 			isCommentBlock = true;
 		}
@@ -8312,6 +8314,10 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar ) {
         new SimpleJMenuItem( TSToolConstants.Commands_General_Comments_ToDoComment_String, this ) );
     // ---------
     TSToolMenus.Commands_General_Comments_JMenu.addSeparator();
+    TSToolMenus.Commands_General_Comments_JMenu.add (TSToolMenus.Commands_General_Comments_DocExampleComment_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_General_Comments_DocExampleComment_String, this ) );
+    // ---------
+    TSToolMenus.Commands_General_Comments_JMenu.addSeparator();
     TSToolMenus.Commands_General_Comments_JMenu.add (TSToolMenus.Commands_General_Comments_Empty_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_General_Comments_Empty_String, this ) );
     TSToolMenus.Commands_General_Comments_Empty_JMenuItem.setToolTipText("Insert a empty (blank) line, to improve readability of the command file.");
@@ -11162,6 +11168,14 @@ throws Exception {
         List<Command> comments = new ArrayList<>(1);
         comments.add ( commandList_NewCommand("#@author insert name, organization, contact, etc.",true) );
         commandList_EditCommand ( TSToolConstants.Commands_General_Comments_AuthorComment_String, comments, CommandEditType.INSERT );
+    }
+    else if (command.equals(TSToolConstants.Commands_General_Comments_DocExampleComment_String) ) {
+        // Most inserts let the editor format the command.
+    	// However, in this case the specific comment needs to be supplied.
+    	// Otherwise, the comment will be blank or the string from the menu, which has too much text.
+    	List<Command> comments = new ArrayList<>(1);
+        comments.add ( commandList_NewCommand("#@docExample - command file is used as an example in the command's documentation", true) );
+        commandList_EditCommand ( TSToolConstants.Commands_General_Comments_DocExampleComment_String, comments, CommandEditType.INSERT );
     }
     else if (command.equals(TSToolConstants.Commands_General_Comments_DocUrlComment_String) ) {
         // Most inserts let the editor format the command.

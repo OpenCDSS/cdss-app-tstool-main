@@ -468,6 +468,8 @@ public class TSToolMenus {
 		Commands_General_Comments_FixMeComment_JMenuItem = null,
 		Commands_General_Comments_ToDoComment_JMenuItem = null,
 		// ------------------
+		Commands_General_Comments_DocExampleComment_JMenuItem = null,
+		// ------------------
 		Commands_General_Comments_Empty_JMenuItem = null;
 
 	// Menu: Commands / General - File Handling
