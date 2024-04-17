@@ -92,6 +92,8 @@ public class TSToolMenus {
 		// TODO smalers 2023-02-19 remove ASAP since old and not used.
 		//File_Save_CommandsAsVersion9_JMenuItem = null,
 		File_Save_TimeSeriesAs_JMenuItem = null;
+	public static JMenuItem
+		File_CheckForUpdate_JMenuItem = null;
 	public static JMenu File_Print_JMenu = null;
 		public static JMenuItem
     	File_Print_Commands_JMenuItem = null;
@@ -130,6 +132,7 @@ public class TSToolMenus {
 	public static JMenu View_JMenu = null;
 	public static JMenuItem
     	View_CommandFileDiff_JMenuItem = null,
+    	View_CommandFileSourceDiff_JMenuItem = null,
     	View_DataStores_JMenuItem = null,
     	View_DataUnits_JMenuItem = null;
 	public static JCheckBoxMenuItem
@@ -708,7 +711,6 @@ public class TSToolMenus {
 		Tools_Analysis_MixedStationAnalysis_JMenuItem = null;
 	public static JMenu Tools_Commands_JMenu = null;
 	public static JMenuItem
-		Tools_Commands_CheckForUpdate_JMenuItem = null,
 		Tools_Commands_CompareCommandsWithSource_JMenuItem = null;
 	public static JMenu
 		Tools_Datastore_JMenu = null;

@@ -248,6 +248,7 @@ import RTi.Util.IO.CommandProcessorListener;
 import RTi.Util.IO.CommandProcessorRequestResultsBean;
 import RTi.Util.IO.CommandProgressListener;
 import RTi.Util.IO.CommandSavesMultipleVersions;
+import RTi.Util.IO.CommandStatus;
 import RTi.Util.IO.CommandStatusProvider;
 import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.CommandStatusUtil;
@@ -784,6 +785,13 @@ relative changes in the working directory will result in an inaccurate initial s
 private String __initialWorkingDir = "";
 
 /**
+ * Whether the command file has a #@sourceUrl annotation:
+ * - used to enable/disable the View / Command File Source Diff menu
+ * - change the value when inserting or editing a Comment_Command command
+ */
+private boolean commandsHaveSourceUrlAnnotation = false;
+
+/**
 The last directory selected with Run...Command File, to run an external command file.
 */
 private String __Dir_LastExternalCommandFileRun = null;
@@ -1142,55 +1150,80 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 }
 
 /**
+ * Check command list comments for needed information.
+ * Currently this only checks for #@sourceUrl in order to enable/disable the View / Command File Source Diff menu.
+ */
+private void commandList_CheckComments() {
+	// Loop through the commands.
+	int size = __commands_JListModel.size();
+	Object command = null;
+	String commandStringUpper = null;
+	Comment_Command commentCommand = null;
+
+	for ( int i = 0; i < size; i++ ) {
+		command = (Object)__commands_JListModel.get(i);
+		if ( command instanceof Comment_Command ) {
+			commentCommand = (Comment_Command)command;
+			commandStringUpper = commentCommand.getCommandString().toUpperCase();
+			if ( commandStringUpper.contains("@SOURCEURL") ) {
+				// This should be fast if the comment exists at the top of the command file.
+				this.commandsHaveSourceUrlAnnotation = true;
+				break;
+			}
+		}
+	}
+}
+
+/**
 Determine whether commands are equal.
 To allow for multi-line commands, each command is stored in a list (but typically only the first String is used.
-@param original_command Original command as a list of String or Command.
-@param edited_command Edited command as a list of String or Command.
+@param originalCommand Original command as a list of String or Command.
+@param editedCommand Edited command as a list of String or Command.
 */
-private boolean commandList_CommandsAreEqual(List original_command, List edited_command) {
-	if ( (original_command == null) && (edited_command != null) ) {
+private boolean commandList_CommandsAreEqual(List originalCommand, List editedCommand) {
+	if ( (originalCommand == null) && (editedCommand != null) ) {
 		return false;
 	}
-	else if ( (original_command != null) && (edited_command == null) ) {
+	else if ( (originalCommand != null) && (editedCommand == null) ) {
 		return false;
 	}
-	else if ( (original_command == null) && (edited_command == null) ) {
+	else if ( (originalCommand == null) && (editedCommand == null) ) {
 		// Should never occur?
 		return true;
 	}
-	int original_size = original_command.size();
-	int edited_size = edited_command.size();
-	if ( original_size != edited_size ) {
+	int originalSize = originalCommand.size();
+	int editedSize = editedCommand.size();
+	if ( originalSize != editedSize ) {
 		return false;
 	}
-	Object original_Object, edited_Object;
-	String original_String = null, edited_String = null;
-	for ( int i = 0; i < original_size; i++ ) {
-		original_Object = original_command.get(i);
-		edited_Object = edited_command.get(i);
-		if ( original_Object instanceof String ) {
-			original_String = (String)original_Object;
+	Object originalObject, editedObject;
+	String originalString = null, editedString = null;
+	for ( int i = 0; i < originalSize; i++ ) {
+		originalObject = originalCommand.get(i);
+		editedObject = editedCommand.get(i);
+		if ( originalObject instanceof String ) {
+			originalString = (String)originalObject;
 		}
-		else if ( original_Object instanceof Command ) {
-			original_String = ((Command)original_Object).toString();
+		else if ( originalObject instanceof Command ) {
+			originalString = ((Command)originalObject).toString();
 		}
-		if ( edited_Object instanceof String ) {
-			edited_String = (String)edited_Object;
+		if ( editedObject instanceof String ) {
+			editedString = (String)editedObject;
 		}
-		else if ( edited_Object instanceof Command ) {
-			edited_String = ((Command)edited_Object).toString();
+		else if ( editedObject instanceof Command ) {
+			editedString = ((Command)editedObject).toString();
 		}
 		// Must be an exact match.
-		if ( (original_String == null) && (edited_String != null) ) {
+		if ( (originalString == null) && (editedString != null) ) {
 			return false;
 		}
-		else if ((original_String != null) && (edited_String == null)) {
+		else if ((originalString != null) && (editedString == null)) {
 			return false;
 		}
-		else if ((original_String == null) && (edited_String == null)) {
+		else if ((originalString == null) && (editedString == null)) {
 			continue;
 		}
-		else if ( !original_String.equals(edited_String) ) {
+		else if ( !originalString.equals(editedString) ) {
 			return false;
 		}
 	}
@@ -1553,6 +1586,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 				if ( isCommentBlock ) {
 					// Insert the comments at the insert point.
 					commandList_InsertCommentsBasedOnUI ( newComments );
+					commandList_CheckComments();
 				}
 				else {
 					// The command has already been inserted in the list.
@@ -1576,6 +1610,7 @@ private void commandList_EditCommand ( String action, List<Command> commandsToEd
 					commandList_ReplaceComments ( commandsToEdit, newComments );
 					if ( !commandList_CommandsAreEqual(commandsToEdit,newComments)) {
 						commandList_SetDirty(true);
+						commandList_CheckComments();
 					}
 				}
 				else {
@@ -1779,34 +1814,55 @@ private List<String> commandList_GetCommandStrings ( boolean get_all ) {
 
 /**
 Return the number of commands with failure as max severity.
+@return the number of commands with failure as max severity
 */
 private int commandList_GetFailureCount() {
 	int size = __commands_JListModel.size();
 	CommandStatusProvider command;
-	int failure_count = 0;
+	int failureCount = 0;
 	for ( int i = 0; i < size; i++ ) {
 		command = (CommandStatusProvider)__commands_JListModel.get(i);
 		if ( CommandStatusUtil.getHighestSeverity(command).equals(CommandStatusType.FAILURE) ) {
-			++failure_count;
+			++failureCount;
 		}
 	}
-	return failure_count;
+	return failureCount;
+}
+
+/**
+Return the number of commands with notifications.
+@return the number of commands with notifications
+*/
+private int commandList_GetNotificationCount() {
+	int size = __commands_JListModel.size();
+	CommandStatusProvider command;
+	int notificationCount = 0;
+	for ( int i = 0; i < size; i++ ) {
+		command = (CommandStatusProvider)__commands_JListModel.get(i);
+		CommandStatusProvider csp = (CommandStatusProvider)command;
+		CommandStatus status = csp.getCommandStatus();
+		if ( status.getHasNotification(CommandPhaseType.ANY) ) {
+			++notificationCount;
+		}
+	}
+	return notificationCount;
 }
 
 /**
 Return the number of commands with warnings as maximum severity.
+@return the number of commands with warnings as maximum severity
 */
 private int commandList_GetWarningCount() {
 	int size = __commands_JListModel.size();
 	CommandStatusProvider command;
-	int failure_count = 0;
+	int warningCount = 0;
 	for ( int i = 0; i < size; i++ ) {
 		command = (CommandStatusProvider)__commands_JListModel.get(i);
 		if ( CommandStatusUtil.getHighestSeverity(command).equals(CommandStatusType.WARNING) ) {
-			++failure_count;
+			++warningCount;
 		}
 	}
-	return failure_count;
+	return warningCount;
 }
 
 /**
@@ -1814,6 +1870,7 @@ Return the index position of the command from the command list.
 Currently this assumes that there is a one to one correspondence between
 items in the list and commands in the processor.
 @param command The Command instance to determine the position in the command list.
+@return the index position (0+) of the command from the command list
 */
 private int commandList_IndexOf ( Command command ) {
 	return __tsProcessor.indexOf(command);
@@ -4860,7 +4917,7 @@ private void ui_CheckGUIState () {
 		return;
 	}
 
-	boolean enabled = true; // Used to enable/disable main menus based on submenus.
+	boolean enabled = true; // Used to enable/disable main menus based on sub-menus.
 
 	// Get the needed list sizes.
 
@@ -4937,6 +4994,13 @@ private void ui_CheckGUIState () {
 	}
 	JGUIUtil.setEnabled ( TSToolMenus.File_Save_JMenu, enabled );
 
+	if ( this.commandsHaveSourceUrlAnnotation ) {
+	    JGUIUtil.setEnabled ( TSToolMenus.File_CheckForUpdate_JMenuItem, true );
+	}
+	else {
+	    JGUIUtil.setEnabled ( TSToolMenus.File_CheckForUpdate_JMenuItem, false );
+	}
+
 	if ( TSTool_HydroBase.getInstance(this).getHydroBaseDMILegacy() != null ) {
 		JGUIUtil.setEnabled ( TSToolMenus.File_Properties_HydroBase_JMenuItem,true );
 	}
@@ -4956,33 +5020,33 @@ private void ui_CheckGUIState () {
 	if ( commandListSize > 0 ) {
 	    enabled = true;
 	}
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_SelectAllCommands_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_SelectAll_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_DeselectAllCommands_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_DeselectAll_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_SelectAllCommands_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_SelectAll_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_DeselectAllCommands_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_DeselectAll_JMenuItem, enabled );
 
 	enabled = false;
 	if ( selectedCommandsSize > 0 ) {
 	    enabled = true;
 	}
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentRight_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentLeft_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_CutCommands_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Cut_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_CopyCommands_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Copy_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_DeleteCommands_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Delete_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentRight_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentLeft_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_CutCommands_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Cut_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_CopyCommands_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Copy_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_DeleteCommands_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Delete_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Edit_CommandWithErrorChecking_JMenuItem, enabled );
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem,enabled );
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertSelectedCommandsToComments_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertSelectedCommandsFromComments_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertTSIDTo_ReadCommand_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertSelectedCommandsToComments_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertSelectedCommandsFromComments_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertTSIDTo_ReadTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Edit_ConvertTSIDTo_ReadCommand_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem, enabled );
 
 	if ( __commandsCutBuffer.size() > 0 ) {
 		// Paste button should be enabled.
@@ -4996,6 +5060,12 @@ private void ui_CheckGUIState () {
 
 	// View menu.
 
+	if ( this.commandsHaveSourceUrlAnnotation ) {
+	    JGUIUtil.setEnabled ( TSToolMenus.View_CommandFileSourceDiff_JMenuItem, true );
+	}
+	else {
+	    JGUIUtil.setEnabled ( TSToolMenus.View_CommandFileSourceDiff_JMenuItem, false );
+	}
 	if ( dataStoreListSize > 0 ) {
 	    JGUIUtil.setEnabled ( TSToolMenus.View_DataStores_JMenuItem, true );
 	}
@@ -5016,29 +5086,29 @@ private void ui_CheckGUIState () {
 	    // Some commands are available so enable commands that operate on other time series.
 	    enabled = true;
 	}
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_DeselectTimeSeries_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_SelectTimeSeries_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_Free_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_SortTimeSeries_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_DeselectTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_SelectTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_Free_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Select_SortTimeSeries_JMenuItem, enabled );
 
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Delta_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeInterval_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalToLarger_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalToSmaller_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Copy_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Disaggregate_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_LookupTimeSeriesFromTable_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Delta_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ResequenceTimeSeriesData_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeInterval_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalToLarger_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalToSmaller_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalIrregularToRegular_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_ChangeIntervalRegularToIrregular_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Copy_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Disaggregate_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_LookupTimeSeriesFromTable_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewDayTSFromMonthAndDayTS_JMenuItem,	enabled );
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Normalize_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_RelativeDiff_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticTimeSeries_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticMonthTimeSeries_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticYearTS_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_RunningStatisticTimeSeries_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewEndOfMonthTSFromDayTS_JMenuItem,enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_Normalize_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_RelativeDiff_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticMonthTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticYearTS_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_RunningStatisticTimeSeries_JMenuItem, enabled );
 
 	if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Read_ReadReclamationHDB_JMenuItem, enabled );
@@ -5047,97 +5117,97 @@ private void ui_CheckGUIState () {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Read_ReadReclamationHDB_JMenuItem, false );
 	}
 
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillConstant_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillFromTS_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillHistMonthAverage_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillHistYearAverage_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillInterpolate_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillConstant_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillFromTS_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillHistMonthAverage_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillHistYearAverage_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillInterpolate_JMenuItem, enabled );
 	// TODO smalers 2005-04-26 This fill method is not enabled - may not be needed.
 	//JGUIUtil.setEnabled(TSToolMenus.Commands_Fill_fillMOVE1_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillMOVE2_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillMixedStation_JMenuItem,enabled );
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillPattern_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillProrate_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillRegression_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillRepeat_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillUsingDiversionComments_JMenuItem,	enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillMOVE2_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillMixedStation_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillPattern_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillProrate_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillRegression_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillRepeat_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillUsingDiversionComments_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_FillTimeSeries_JMenu, enabled );
 
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_ReplaceValue_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetConstant_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetDataValue_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetFromTS_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetToMax_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetToMin_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_ReplaceValue_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetConstant_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetDataValue_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetFromTS_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetTimeSeriesValuesFromLookupTable_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetTimeSeriesValuesFromTable_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetToMax_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetToMin_JMenuItem, enabled );
     JGUIUtil.setEnabled ( TSToolMenus.Commands_Set_SetTimeSeriesProperty_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_SetTimeSeries_JMenu, enabled );
 
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Add_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_AddConstant_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_AdjustExtremes_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ARMA_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Blend_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ChangePeriod_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ChangeTimeZone_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ConvertDataUnits_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Cumulate_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Divide_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Multiply_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Scale_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ShiftTimeByInterval_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Subtract_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_ManipulateTimeSeries_JMenu,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Add_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_AddConstant_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_AdjustExtremes_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ARMA_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Blend_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ChangePeriod_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ChangeTimeZone_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ConvertDataUnits_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Cumulate_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Divide_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Multiply_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Scale_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_ShiftTimeByInterval_JMenuItem,enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Manipulate_Subtract_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_ManipulateTimeSeries_JMenu, enabled );
 
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_AnalyzePattern_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_CompareTimeSeries_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_AnalyzeTimeSeries_JMenu, enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_AnalyzePattern_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_CalculateTimeSeriesStatistic_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_CompareTimeSeries_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Analyze_ComputeErrorTimeSeries_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_AnalyzeTimeSeries_JMenu, enabled );
 
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Models_Routing_JMenu, enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Models_Routing_JMenu, enabled );
 
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDateValue_JMenuItem, enabled);
-	//JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDelftFewsPiXml_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDelimitedFile_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteHecDss_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteNwsCard_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDateValue_JMenuItem, enabled );
+	//JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDelftFewsPiXml_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDelimitedFile_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteHecDss_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteNwsCard_JMenuItem, enabled );
 	if ( __tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteReclamationHDB_JMenuItem, enabled );
 	}
 	else {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteReclamationHDB_JMenuItem, false );
 	}
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteRiverWare_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteSHEF_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteStateCU_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteStateMod_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteSummary_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToDataStream_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToJson_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteWaterML_JMenuItem, enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteWaterML2_JMenuItem, enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteRiverWare_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteSHEF_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteStateCU_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteStateMod_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteSummary_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToDataStore_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToDataStream_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToHydroJSON_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteTimeSeriesToJson_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteWaterML_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteWaterML2_JMenuItem, enabled );
 
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_CopyEnsemble_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_SetEnsembleProperty_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_NewStatisticEnsemble_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_WeightTraces_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_CreateEnsembleFromOneTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_CopyEnsemble_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_SetEnsembleProperty_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_InsertTimeSeriesIntoEnsemble_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_NewStatisticEnsemble_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_NewStatisticTimeSeriesFromEnsemble_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_WeightTraces_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Ensemble_WriteNwsrfsEspTraceEnsemble_JMenuItem, enabled );
 
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem,enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem,enabled);
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Check_CheckingResults_CheckTimeSeries_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Check_CheckingResults_CheckTimeSeriesStatistic_JMenuItem, enabled );
 
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Deprecated_RunningAverage_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Deprecated_RunningAverage_JMenuItem, enabled );
 
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem, enabled);
-    JGUIUtil.setEnabled ( TSToolMenus.Commands_Spatial_WriteTimeSeriesToKml_JMenuItem, enabled);
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem, enabled );
+    JGUIUtil.setEnabled ( TSToolMenus.Commands_Spatial_WriteTimeSeriesToKml_JMenuItem, enabled );
 
 	/* TODO - it is irritating to not be able to run commands when external input changes (or during debugging).
 	if ( __commands_dirty || (!__commands_dirty && (ts_list_size == 0)) ) {
@@ -5151,7 +5221,7 @@ private void ui_CheckGUIState () {
 		JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, true );
 	}
 	else {
-        JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton,false );
+        JGUIUtil.setEnabled ( __Run_SelectedCommands_JButton, false );
 	}
 	JGUIUtil.setEnabled ( __Run_AllCommands_JButton, true );
 	JGUIUtil.setEnabled ( __ClearCommands_JButton, true );
@@ -5160,8 +5230,8 @@ private void ui_CheckGUIState () {
 	if ( selectedCommandsSize > 0 ) {
 	    enabled = true;
 	}
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem,enabled);
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem,enabled);
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadTimeSeries_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ConvertTSIDTo_ReadCommand_JMenuItem, enabled );
 
 	// Run menu.
 
@@ -5217,16 +5287,18 @@ private void ui_CheckGUIState () {
 	}
 
 	// TODO Not available as a command yet - logic not coded.
-	JGUIUtil.setEnabled(TSToolMenus.Commands_Fill_FillMOVE1_JMenuItem,false);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillMOVE1_JMenuItem, false );
 
 	// TODO - can this be phased out?
-	JGUIUtil.setEnabled(TSToolMenus.Commands_Output_SetOutputDetailedHeaders_JMenuItem,false);
+	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_SetOutputDetailedHeaders_JMenuItem, false );
 }
 
 /**
 Enable/disable Run menu items based on the state of the GUI.
+@param commandListSize the number of commands
+@param selectedCommandsSize the number of selected commands
 */
-private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_commands_size ) {
+private void ui_CheckGUIState_RunMenu ( int commandListSize, int selectedCommandsSize ) {
 	// Running, so allow cancel but not another run.
 	boolean enable_run = false;
 	if ( (__tsProcessor != null) && __tsProcessor.getIsRunning() ) {
@@ -5242,7 +5314,7 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_JMenuItem, false);
 		JGUIUtil.setEnabled (TSToolMenus.CommandsPopup_CancelCommandProcessing_JMenuItem,false );
 	}
-	if ( command_list_size > 0 ) {
+	if ( commandListSize > 0 ) {
 		/* TODO smalers 2007-11-01 Evaluate need.
 		if ( __commands_dirty || (__commands_dirty && (ts_list_size == 0)) ) {
 			JGUIUtil.setEnabled (__run_commands_JButton, true );
@@ -5257,7 +5329,7 @@ private void ui_CheckGUIState_RunMenu ( int command_list_size, int selected_comm
 		JGUIUtil.setEnabled(TSToolMenus.Run_AllCommandsIgnoreOutput_JMenuItem, enable_run);
 		JGUIUtil.setEnabled(TSToolMenus.CommandsPopup_Run_AllCommandsIgnoreOutput_JMenuItem,enable_run);
 		JGUIUtil.setEnabled ( __Run_AllCommands_JButton, enable_run );
-		if ( selected_commands_size > 0 ) {
+		if ( selectedCommandsSize > 0 ) {
 			// Run selected commands menus.
 			JGUIUtil.setEnabled(TSToolMenus.Run_SelectedCommandsCreateOutput_JMenuItem, enable_run);
 			JGUIUtil.setEnabled(TSToolMenus.CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,enable_run);
@@ -7378,11 +7450,12 @@ private void ui_InitGUIMenus () {
 
 /**
 Initialize the GUI "Commands" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_Commands ( JMenuBar menuBar ) {
 	// "Commands...TS Create/Convert/Read Time Series"...
 
-	menu_bar.add( TSToolMenus.Commands_JMenu = new JMenu( TSToolConstants.Commands_String, true ) );
+	menuBar.add( TSToolMenus.Commands_JMenu = new JMenu( TSToolConstants.Commands_String, true ) );
 	TSToolMenus.Commands_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
 
 	TSToolMenus.Commands_JMenu.add ( TSToolMenus.Commands_SelectTimeSeries_JMenu = new JMenu(TSToolConstants.Commands_SelectTimeSeries_String) );
@@ -7970,9 +8043,10 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menu_bar ) {
 }
 
 /**
-Initialize the GUI "Commands...General" and Commands/Table (top level)
+Initialize the GUI "Commands...General" and Commands/Table (top level).
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menuBar ) {
 	TSToolMenus.Commands_JMenu.addSeparator(); // Results in double separator.
 
     // Menu: Commands / Datastore processing
@@ -8188,11 +8262,11 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar ) {
 
     // Menu: Commands / Table Processing
 
-    ui_InitGUIMenus_CommandsTable(menu_bar);
+    ui_InitGUIMenus_CommandsTable(menuBar);
 
     // Menu: Commands(Plugin)
 
-    TSTool_Plugin.getInstance(this).initGUIMenus_Commands(menu_bar);
+    TSTool_Plugin.getInstance(this).initGUIMenus_Commands(menuBar);
 
     // Menu: Commands / Template Processing
 
@@ -8537,9 +8611,10 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menu_bar ) {
 
 /**
 Initialize the GUI "Commands(Table)" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_CommandsTable ( JMenuBar menu_bar ) {
-    menu_bar.add( TSToolMenus.Commands_Table_JMenu = new JMenu( TSToolConstants.Commands_Table_String, true ) );
+private void ui_InitGUIMenus_CommandsTable ( JMenuBar menuBar ) {
+    menuBar.add( TSToolMenus.Commands_Table_JMenu = new JMenu( TSToolConstants.Commands_Table_String, true ) );
 	TSToolMenus.Commands_Table_JMenu.setToolTipText("Insert command into commands list (above first selected command, or at end).");
 
     TSToolMenus.Commands_Table_JMenu.add( TSToolMenus.Commands_TableCreate_JMenu = new JMenu( TSToolConstants.Commands_TableCreate_String, true ) );
@@ -8760,10 +8835,11 @@ private void ui_InitGUIMenus_CommandsPopup () {
 
 /**
 Initialize the GUI "Edit" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_Edit ( JMenuBar menuBar ) {
 	TSToolMenus.Edit_JMenu = new JMenu( "Edit", true);
-	menu_bar.add( TSToolMenus.Edit_JMenu );
+	menuBar.add( TSToolMenus.Edit_JMenu );
 
 	TSToolMenus.Edit_JMenu.add( TSToolMenus.Edit_CutCommands_JMenuItem = new SimpleJMenuItem( TSToolConstants.Edit_CutCommands_String, this ) );
     TSToolMenus.Edit_CutCommands_JMenuItem.setToolTipText("Cut (delete) selected commands, will be able to paste elsewhere in the commands.");
@@ -8812,10 +8888,11 @@ private void ui_InitGUIMenus_Edit ( JMenuBar menu_bar ) {
 
 /**
 Initialize the GUI "File" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_File ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_File ( JMenuBar menuBar ) {
  	TSToolMenus.File_JMenu = new JMenu( TSToolConstants.File_String, true );
-	menu_bar.add( TSToolMenus.File_JMenu );
+	menuBar.add( TSToolMenus.File_JMenu );
 
 	TSToolMenus.File_JMenu.add( TSToolMenus.File_New_JMenu=new JMenu(TSToolConstants.File_New_String,true));
     TSToolMenus.File_New_JMenu.add( TSToolMenus.File_New_CommandFile_JMenuItem =
@@ -8878,6 +8955,11 @@ private void ui_InitGUIMenus_File ( JMenuBar menu_bar ) {
 	TSToolMenus.File_Save_JMenu.add (	TSToolMenus.File_Save_TimeSeriesAs_JMenuItem =
         new SimpleJMenuItem(TSToolConstants.File_Save_TimeSeriesAs_String, this ) );
     TSToolMenus.File_Save_TimeSeriesAs_JMenuItem.setToolTipText("Save time series results in a file, for commonly-used formats.");
+
+	TSToolMenus.File_JMenu.add(	TSToolMenus.File_CheckForUpdate_JMenuItem =
+		new SimpleJMenuItem(TSToolConstants.File_CheckForUpdate_String, this ) );
+
+	TSToolMenus.File_JMenu.addSeparator( );
 
 	TSToolMenus.File_JMenu.add( TSToolMenus.File_Print_JMenu=new JMenu(TSToolConstants.File_Print_String,true));
     TSToolMenus.File_Print_JMenu.add ( TSToolMenus.File_Print_Commands_JMenuItem =
@@ -8958,10 +9040,11 @@ private void ui_InitGUIMenus_File_OpenRecentFiles () {
 
 /**
 Initialize the GUI "Help" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_Help ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_Help ( JMenuBar menuBar ) {
 	TSToolMenus.Help_JMenu = new JMenu ( TSToolConstants.Help_String );
-	menu_bar.add ( TSToolMenus.Help_JMenu );
+	menuBar.add ( TSToolMenus.Help_JMenu );
 	// TODO - not implemented by Java?
 	//menu_bar.setHelpMenu ( _help_JMenu );
 	TSToolMenus.Help_JMenu.add ( TSToolMenus.Help_AboutTSTool_JMenuItem = new SimpleJMenuItem(TSToolConstants.Help_AboutTSTool_String,this));
@@ -8997,9 +9080,10 @@ private void ui_InitGUIMenus_Help ( JMenuBar menu_bar ) {
 
 /**
 Initialize the GUI "Results" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_Results ( JMenuBar menu_bar ) {
-	menu_bar.add( TSToolMenus.Results_JMenu = new JMenu( "Results", true ) );
+private void ui_InitGUIMenus_Results ( JMenuBar menuBar ) {
+	menuBar.add( TSToolMenus.Results_JMenu = new JMenu( "Results", true ) );
 
 	/* TODO smalers 2004-08-04 Add later?
 	TSToolMenus.Results_JMenu.add( TSToolMenus.Results_Graph_AnnualTraces_JMenuItem =
@@ -9142,11 +9226,12 @@ private void ui_InitGUIMenus_ResultsPopup () {
 
 /**
 Initialize the GUI "Run" menu.
+@param menuBar the menu bar to add menus
 */
-private void ui_InitGUIMenus_Run ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_Run ( JMenuBar menuBar ) {
  	TSToolMenus.Run_JMenu = new JMenu( "Run", true);
 	TSToolMenus.Run_JMenu.setToolTipText("Run commands.  See also Run Selected Commands and Run All Commands buttons.");
-	menu_bar.add ( TSToolMenus.Run_JMenu );
+	menuBar.add ( TSToolMenus.Run_JMenu );
 	TSToolMenus.Run_JMenu.add( TSToolMenus.Run_AllCommandsCreateOutput_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Run_AllCommandsCreateOutput_String,this));
 	TSToolMenus.Run_AllCommandsCreateOutput_JMenuItem.setToolTipText("Run all commands and create output files.");
@@ -9186,11 +9271,11 @@ private void ui_InitGUIMenus_Run ( JMenuBar menu_bar ) {
 
 /**
 Initialize the GUI "Tools" menu.
-@param menu_bar menu bar to add menus
+@param menuBar menu bar to add menus
 */
-private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar ) {
+private void ui_InitGUIMenus_Tools ( JMenuBar menuBar ) {
 	TSToolMenus.Tools_JMenu = new JMenu();
-	menu_bar.add( TSToolMenus.Tools_JMenu = new JMenu( TSToolConstants.Tools_String, true ) );
+	menuBar.add( TSToolMenus.Tools_JMenu = new JMenu( TSToolConstants.Tools_String, true ) );
 
 	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Analysis_JMenu = new JMenu(TSToolConstants.Tools_Analysis_String, true ) );
 
@@ -9202,9 +9287,7 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar ) {
 
 	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Commands_JMenu = new JMenu(TSToolConstants.Tools_Commands_String, true ) );
 
-	TSToolMenus.Tools_Commands_JMenu.add(	TSToolMenus.Tools_Commands_CheckForUpdate_JMenuItem =
-		new SimpleJMenuItem(TSToolConstants.Tools_Commands_CheckForUpdate_String, this ) );
-	TSToolMenus.Tools_Commands_JMenu.add(	TSToolMenus.Tools_Commands_CompareCommandsWithSource_JMenuItem =
+	TSToolMenus.Tools_Commands_JMenu.add(TSToolMenus.Tools_Commands_CompareCommandsWithSource_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Tools_Commands_CompareCommandsWithSource_String, this ) );
 
 	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Datastore_JMenu = new JMenu(TSToolConstants.Tools_Datastore_String, true ) );
@@ -9266,6 +9349,7 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menu_bar ) {
 
 /**
 Initialize the View menu.
+@param menuBar the menu bar to add menus
 */
 private void ui_InitGUIMenus_View ( JMenuBar menuBar ) {
 	TSToolMenus.View_JMenu = new JMenu (TSToolConstants.View_String, true);
@@ -9273,10 +9357,15 @@ private void ui_InitGUIMenus_View ( JMenuBar menuBar ) {
 
     TSToolMenus.View_JMenu.add ( TSToolMenus.View_CommandFileDiff_JMenuItem=new SimpleJMenuItem( TSToolConstants.View_CommandFileDiff_String, this));
     TSToolMenus.View_CommandFileDiff_JMenuItem.setToolTipText("Use visual diff program to compare current commands with last saved version.");
+    TSToolMenus.View_JMenu.add ( TSToolMenus.View_CommandFileSourceDiff_JMenuItem=new SimpleJMenuItem( TSToolConstants.View_CommandFileSourceDiff_String, this));
+    TSToolMenus.View_CommandFileSourceDiff_JMenuItem.setToolTipText("Use visual diff program to compare current commands with original source version from #@sourceUrl.");
+    TSToolMenus.View_JMenu.addSeparator();
     TSToolMenus.View_JMenu.add ( TSToolMenus.View_DataStores_JMenuItem=new SimpleJMenuItem( TSToolConstants.View_DataStores_String, this));
     TSToolMenus.View_DataStores_JMenuItem.setToolTipText("View a list of datastores, with status and connection errors.");
+    TSToolMenus.View_JMenu.addSeparator();
 	TSToolMenus.View_JMenu.add ( TSToolMenus.View_DataUnits_JMenuItem=new SimpleJMenuItem( TSToolConstants.View_DataUnits_String, this));
     TSToolMenus.View_DataUnits_JMenuItem.setToolTipText("View a list of data units, used to convert units.");
+    TSToolMenus.View_JMenu.addSeparator();
     TSToolMenus.View_JMenu.add ( TSToolMenus.View_MapInterface_JCheckBoxMenuItem=new JCheckBoxMenuItem(TSToolConstants.View_Map_String) );
     TSToolMenus.View_MapInterface_JCheckBoxMenuItem.setToolTipText("Toggle the map view.");
     TSToolMenus.View_MapInterface_JCheckBoxMenuItem.setState ( false );
@@ -9402,6 +9491,8 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
     if ( numAutoChanges == 0 ) {
         commandList_SetDirty(false);
     }
+    // Check the comments for annotations that need to be handled.
+    commandList_CheckComments();
     // Clear the old results.
     results_Clear();
     ui_UpdateStatusTextFields ( 2, null, null, "Use the Run menu/buttons to run the commands.", TSToolConstants.STATUS_READY );
@@ -9813,7 +9904,8 @@ public void ui_UpdateStatus ( boolean check_gui_state ) {
     	__commands_JPanel.setBorder( BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
 		"Commands (" + __commands_JListModel.size() + " commands, " + selected_size + " selected, " +
-		commandList_GetFailureCount() + " with failures, " + commandList_GetWarningCount() + " with warnings)") );
+			commandList_GetFailureCount() + " with failures, " + commandList_GetWarningCount() + " with warnings, " +
+			commandList_GetNotificationCount() + " with notifications)") );
 	}
 
 	// Results: Output Files.
@@ -9948,7 +10040,7 @@ private void uiAction_ActionPerformed02_FileMenu (ActionEvent event)
 throws Exception {
 	Object o = event.getSource();
 	String command = event.getActionCommand();
-	String rtn = "FileMenu";
+	String routine = "FileMenu";
 
 	// File Menu actions.
     if ( o == TSToolMenus.File_New_CommandFile_JMenuItem ) {
@@ -9959,7 +10051,7 @@ throws Exception {
             uiAction_OpenCommandFile ( null, true );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
+			Message.printWarning ( 1, routine, "Error reading command file (" + e + ")." );
 			Message.printWarning( 3, "", e);
 		}
 	}
@@ -9968,7 +10060,7 @@ throws Exception {
             uiAction_OpenCommandFile ( null, false );
         }
         catch ( Exception e ) {
-            Message.printWarning ( 1, rtn, "Error reading command file (" + e + ")." );
+            Message.printWarning ( 1, routine, "Error reading command file (" + e + ")." );
             Message.printWarning( 3, "", e);
         }
     }
@@ -10021,7 +10113,7 @@ throws Exception {
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error writing command file (" + e + ")." );
+			Message.printWarning ( 1, routine, "Error writing command file (" + e + ")." );
 		}
 	}
 	else if ( o == TSToolMenus.File_Save_CommandsAs_JMenuItem ) {
@@ -10030,7 +10122,7 @@ throws Exception {
 			uiAction_WriteCommandFile ( __commandFileName, true, false );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, rtn, "Error writing command file (" + e + ")." );
+			Message.printWarning ( 1, routine, "Error writing command file (" + e + ")." );
 		}
 	}
     /*
@@ -10041,13 +10133,25 @@ throws Exception {
             uiAction_WriteCommandFile ( __commandFileName, true, true );
         }
         catch ( Exception e ) {
-            Message.printWarning ( 1, rtn, "Error writing command file in version 9 format (" + e + ")." );
+            Message.printWarning ( 1, routine, "Error writing command file in version 9 format (" + e + ")." );
         }
     }
     */
     else if ( command.equals(TSToolConstants.File_Save_TimeSeriesAs_String) ) {
 		// Can save in a number of formats.  Allow the user to pick using a file chooser.
 		uiAction_SaveTimeSeries ();
+	}
+	else if ( o == TSToolMenus.File_CheckForUpdate_JMenuItem ) {
+		// Check for an update to the command file:
+		// - use the @sourceUrl to retrieve the source copy
+		// - then use the @version and @versionDate in source and local copy to compare versions
+		try {
+			uiAction_CheckForCommandFileUpdate();
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error checking for command file update (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
 	}
     else if (command.equals(TSToolConstants.File_Print_Commands_String) ) {
         // Get all commands as strings for printing.
@@ -10072,8 +10176,8 @@ throws Exception {
                 true ); // Show print configuration dialog.
         }
         catch ( Exception e ) {
-            Message.printWarning ( 1, rtn, "Error printing commands (" + e + ").");
-            Message.printWarning ( 3, rtn, e );
+            Message.printWarning ( 1, routine, "Error printing commands (" + e + ").");
+            Message.printWarning ( 3, routine, e );
         }
     }
 	else if ( command.equals(TSToolConstants.File_Properties_CommandsRun_String) ) {
@@ -10253,6 +10357,10 @@ throws Exception {
     if ( command.equals(TSToolConstants.View_CommandFileDiff_String) ) {
         // Show visual diff of current command file and saved version.
         uiAction_ViewCommandFileDiff();
+    }
+    else if ( command.equals(TSToolConstants.View_CommandFileSourceDiff_String) ) {
+        // Show visual diff of current command file and source version (from #@sourceUrl).
+        uiAction_ViewCommandFileSourceDiff();
     }
     else if ( command.equals(TSToolConstants.View_DataStores_String) ) {
         // Show the datastores.
@@ -12115,18 +12223,6 @@ throws Exception {
 			Message.printWarning ( 3, routine, e );
 		}
 	}
-	else if ( o == TSToolMenus.Tools_Commands_CheckForUpdate_JMenuItem ) {
-		// Check for an update to the command file:
-		// - use the @sourceUrl to retrieve the source copy
-		// - then use the @version and @versionDate in source and local copy to compare versions
-		try {
-			uiAction_CheckForCommandFileUpdate();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error checking for command file update (" + e + ")." );
-			Message.printWarning ( 3, routine, e );
-		}
-	}
 	else if ( o == TSToolMenus.Tools_Commands_CompareCommandsWithSource_JMenuItem ) {
 		// Compare the current command file with the source:
 		// - this is similar to comparing the in-memory commands with file version,
@@ -12360,6 +12456,8 @@ private void uiAction_CheckForCommandFileUpdate() {
 	String localVersionDate = "";
 	String sourceVersion = "";
 	String sourceVersionDate = "";
+
+	// Get the local command file information.
 	if ( commands.size() == 0 ) {
 		warning.append ( "The commands have no #@sourceUrl annotation - can't get command file source.\n" );
 	}
@@ -12633,64 +12731,13 @@ private void uiAction_CompareCommandsWithSource () {
 	// - handle generic property name and versions for the operating system
 	// - the DiffProgram property can be a comma-separated list of paths to program to run,
 	//   or program name without path to find in the PATH
-	Prop prop = IOUtil.getProp("DiffProgram");
-	String diffProgram = null;
-	if ( prop != null ) {
-		diffProgram = prop.getValue();
-	}
-	if ( IOUtil.isUNIXMachine() ) {
-		prop = IOUtil.getProp("DiffProgram.Linux");
-		if ( prop != null ) {
-			diffProgram = prop.getValue();
-		}
-	}
-	else {
-		prop = IOUtil.getProp("DiffProgram.Windows");
-		if ( prop != null ) {
-			diffProgram = prop.getValue();
-		}
-	}
-	if ( diffProgram == null ) {
-         new ResponseJDialog ( this, IOUtil.getProgramName(),
-             "The visual diff program has not been configured in the TSTool.cfg file.\n" +
-             "Define the \"DiffProgram\" (or \"DiffProgram.Windows\" and \"DiffProgram.Linux\") property\n" +
-             "as the path to a visual diff program, for example:\n" +
-             "    DiffProgram.Windows = C:\\Program Files\\KDiff3\\kdiff3.exe\n" +
-             "    DiffProgram.Linux = /usr/bin/kdiff3\n" +
-             "Cannot show the command file difference.",
-             ResponseJDialog.OK).response();
-         return;
-	}
-	// Figure out the difference program to run as the first existing found program (from a path),
-	// or a program name found in the PATH.
-	// Make sure that the difference program exists specified as a path or in the PATH.
-	List<String> diffPrograms = new ArrayList<>();
-	if ( diffProgram.indexOf(",") < 0) {
-		// Have a single program.
-		diffPrograms.add(diffProgram);
-	}
-	else {
-		// Have more than one program.
-		diffPrograms = StringUtil.breakStringList(diffProgram, ",", StringUtil.DELIM_TRIM_STRINGS);
-	}
-	diffProgram = null;
-	for ( String prog : diffPrograms ) {
-		if ( prog == null ) {
-			continue;
-		}
-		File f = new File(prog);
-		// TODO smalers 2022-10-20 the following does not handle just a program found in the path.
-		if ( f.exists() || (IOUtil.findProgramInPath(prog) != null) ) {
-			diffProgram = prog;
-			break;
-		}
-	}
+	String diffProgram = uiAction_ViewCommandFileDiff_GetDiffProgram();
 	if ( diffProgram != null ) {
 		// Diff program exists so save a temporary file with UI commands,
 		// retrieve the source to another temporary file, and then compare.
 		// Then run the diff program on the files.
 
-		// Get the remote file:
+		// Get the remote source file:
 		// - time out is 5 seconds
 		String tempFolder = System.getProperty("java.io.tmpdir");
 		String file1Path = tempFolder + File.separator + "TSTool-commands-source.tstool";
@@ -12712,7 +12759,7 @@ private void uiAction_CompareCommandsWithSource () {
 			return;
 		}
 
-		// Write the commands to a temporary file.
+		// Write the UI commands to a temporary file.
 		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
 		try {
 			uiAction_WriteCommandFile_Helper(file2Path, false);
@@ -14572,11 +14619,17 @@ private void uiAction_RunCommands_ShowResultsProblems() {
 		List commands = __tsProcessor.getCommands();
         // For normal commands, the log records will be for the specific command.
         // For RunCommand() commands, the log records will include commands in the command file that was run.
-        CommandPhaseType [] commandPhases = { CommandPhaseType.RUN }; // If show discovery it can be confusing with ${Property}, etc.
-        CommandStatusType [] statusTypes = new CommandStatusType[2];
+        // If show discovery it can be confusing with ${Property}, etc.
+        // TODO smalers 2024-04-18 this may cause some notifications that are created in initialization to not show up.
+        CommandPhaseType [] commandPhases = {
+        	CommandPhaseType.RUN
+       	};
         // List failures first
-        statusTypes[0] = CommandStatusType.FAILURE;
-        statusTypes[1] = CommandStatusType.WARNING;
+        CommandStatusType [] statusTypes = {
+        	CommandStatusType.FAILURE,
+        	CommandStatusType.WARNING,
+        	CommandStatusType.NOTIFICATION
+        };
         @SuppressWarnings("unchecked")
 		List<CommandLogRecord> logRecordList = CommandStatusUtil.getLogRecordList ( commands, commandPhases, statusTypes );
         Message.printStatus( 2, routine, "There were " + logRecordList.size() +
@@ -16079,9 +16132,103 @@ private void uiAction_TransferSelectedQueryResultsToCommandList () {
 }
 
 /**
- * Show the difference between the current commands and the saved on disk command file.
+ * Show the difference between the current commands and the command file that is saved on disk.
  */
 private void uiAction_ViewCommandFileDiff () {
+	String diffProgram = uiAction_ViewCommandFileDiff_GetDiffProgram();
+	if ( diffProgram != null ) {
+		// Diff program exists so save a temporary file with UI commands and then compare with file version.
+		// Run the diff program on the two files.
+		String file1Path = this.__commandFileName;
+		if ( file1Path == null ) {
+	         new ResponseJDialog ( this, IOUtil.getProgramName(),
+                  "No command file was previously read or saved.  The commands being edited are new.",
+                  ResponseJDialog.OK).response();
+	         return;
+		}
+		// Write the UI commands to a temporary file.
+		String tempFolder = System.getProperty("java.io.tmpdir");
+		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
+		try {
+			uiAction_WriteCommandFile_Helper(file2Path, false);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
+			return;
+		}
+		// Run the diff program.
+		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
+		try {
+			ProcessManager pm = new ProcessManager (
+				programAndArgsList,
+				0, // No timeout.
+	            null, // Exit status indicator.
+	            false, // Use command shell.
+	            new File(tempFolder) );
+			Thread t = new Thread ( pm );
+            t.start();
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
+		}
+	}
+	else {
+		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
+	}
+}
+
+/**
+ * Show the difference between the current commands and the command file in the original source,
+ * from the #@sourceUrl annotation (typically a Git repository).
+ */
+private void uiAction_ViewCommandFileSourceDiff () {
+	String diffProgram = uiAction_ViewCommandFileDiff_GetDiffProgram();
+	if ( diffProgram != null ) {
+		// Diff program exists so save a temporary file with UI commands and then compare with file version.
+		// Run the diff program on the two files.
+		String file1Path = this.__commandFileName;
+		if ( file1Path == null ) {
+	         new ResponseJDialog ( this, IOUtil.getProgramName(),
+                  "No command file was previously read or saved.  The commands being edited are new.",
+                  ResponseJDialog.OK).response();
+	         return;
+		}
+		// Write the UI commands to a temporary file.
+		String tempFolder = System.getProperty("java.io.tmpdir");
+		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
+		try {
+			uiAction_WriteCommandFile_Helper(file2Path, false);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
+			return;
+		}
+		// Run the diff program.
+		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
+		try {
+			ProcessManager pm = new ProcessManager (
+				programAndArgsList,
+				0, // No timeout.
+	            null, // Exit status indicator.
+	            false, // Use command shell.
+	            new File(tempFolder) );
+			Thread t = new Thread ( pm );
+            t.start();
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
+		}
+	}
+	else {
+		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
+	}
+}
+
+/**
+ * Get the path to the diff program to used for file comparisons
+ * @return path for the diff program
+ */
+private String uiAction_ViewCommandFileDiff_GetDiffProgram () {
 	// If the diff tool is not configured, provide information:
 	// - handle generic property name and versions for the operating system
 	// - the DiffProgram property can be a comma-separated list of paths to program to run,
@@ -16112,7 +16259,7 @@ private void uiAction_ViewCommandFileDiff () {
              "    DiffProgram.Linux = /usr/bin/kdiff3\n" +
              "Cannot show the command file difference.",
              ResponseJDialog.OK).response();
-         return;
+         return null;
 	}
 	// Figure out the difference program to run as the first existing found program (from a path),
 	// or a program name found in the PATH.
@@ -16138,44 +16285,7 @@ private void uiAction_ViewCommandFileDiff () {
 			break;
 		}
 	}
-	if ( diffProgram != null ) {
-		// Diff program exists so save a temporary file with UI commands and then compare with file version.
-		// Run the diff program on the two files.
-		String file1Path = this.__commandFileName;
-		if ( file1Path == null ) {
-	         new ResponseJDialog ( this, IOUtil.getProgramName(),
-                  "No command file was previously read or saved.  The commands being edited are new.",
-                  ResponseJDialog.OK).response();
-	         return;
-		}
-		// Write the commands to a temporary file.
-		String tempFolder = System.getProperty("java.io.tmpdir");
-		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
-		try {
-			uiAction_WriteCommandFile_Helper(file2Path, false);
-		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
-			return;
-		}
-		// Run the diff program.
-		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
-		try {
-			ProcessManager pm = new ProcessManager ( programAndArgsList,
-					0, // No timeout.
-	                null, // Exit status indicator.
-	                false, // Use command shell.
-	                new File(tempFolder) );
-			Thread t = new Thread ( pm );
-            t.start();
-		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
-		}
-	}
-	else {
-		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
-	}
+	return diffProgram;
 }
 
 /**
