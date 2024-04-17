@@ -162,6 +162,7 @@ public class TSToolConstants {
 			// TODO smalers 2023-02-19 remove ASAP.
 			//File_Save_CommandsAsVersion9_String = "Commands As (Version 9 Syntax)...",
 			File_Save_TimeSeriesAs_String = "Time Series As...",
+		File_CheckForUpdate_String = "Check for Updated Command File",
 		File_Print_String = "Print",
 			File_Print_Commands_String = "Commands...",
 		File_Properties_String = "Properties",
@@ -191,6 +192,7 @@ public class TSToolConstants {
 
 	View_String = "View",
 		View_CommandFileDiff_String = "Command File Diff",
+		View_CommandFileSourceDiff_String = "Command File Source Diff",
 		View_DataStores_String = "Datastores",
 		View_DataUnits_String = "Data Units",
 	    View_Map_String = "Map",
@@ -699,7 +701,6 @@ public class TSToolConstants {
 			Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
 			Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
 		Tools_Commands_String = "Commands",
-			Tools_Commands_CheckForUpdate_String = "Check for Updated Command File",
 			Tools_Commands_CompareCommandsWithSource_String = "Compare Commands With Source",
 		Tools_Datastore_String = "Datastore",
 			Tools_Datastore_ERDiagram_String = "Entity Relationship Diagram (under development)",
