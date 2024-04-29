@@ -696,7 +696,7 @@ public class TSToolMenus {
 		Results_Graph_Raster_JMenuItem = null,
 		Results_Table_JMenuItem = null,
 		Results_Report_Summary_JMenuItem = null,
-		Results_FindTimeSeries_JMenuItem = null,
+		Results_TimeSeries_FindTimeSeries_JMenuItem = null,
 		Results_SelectAllForOutput_JMenuItem = null,
 		Results_DeselectAll_JMenuItem = null,
 		Results_TimeSeriesProperties_JMenuItem = null;
@@ -710,8 +710,6 @@ public class TSToolMenus {
 		Tools_Analysis_PrincipalComponentAnalysis_JMenuItem = null,
 		Tools_Analysis_MixedStationAnalysis_JMenuItem = null;
 	public static JMenu Tools_Commands_JMenu = null;
-	public static JMenuItem
-		Tools_Commands_CompareCommandsWithSource_JMenuItem = null;
 	public static JMenu
 		Tools_Datastore_JMenu = null;
 	public static JMenuItem
