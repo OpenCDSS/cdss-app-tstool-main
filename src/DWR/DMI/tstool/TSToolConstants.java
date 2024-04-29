@@ -665,9 +665,12 @@ public class TSToolConstants {
 
 	Results_Object_Properties_String = "Object Properties",
 
+	Results_OutputFile_FindOutputFiles_String = "Find Output Files...",
+
 	Results_Network_Properties_String = "Network Properties",
 
-	Results_Table_Properties_String = "Table properties...",
+	Results_Table_Properties_String = "Table Properties...",
+	Results_Table_FindTables_String = "Find Tables...",
 
 	// TODO smalers 2012-10-12 Need to clarify name on the following so grouped with time series choices.
 	Results_Table_String = "Table",
@@ -677,7 +680,7 @@ public class TSToolConstants {
 
 	// Only for popup Results menu.
 
-	Results_FindTimeSeries_String = "Find Time Series...",
+	Results_TimeSeries_FindTimeSeries_String = "Find Time Series...",
 	Results_SelectAllForOutput_String = BUTTON_TS_SELECT_ALL,
 	Results_DeselectAll_String = BUTTON_TS_DESELECT_ALL,
 
@@ -700,8 +703,6 @@ public class TSToolConstants {
 		Tools_Analysis_String = "Analysis",
 			Tools_Analysis_MixedStationAnalysis_String = "Mixed Station Analysis... (under development)",
 			Tools_Analysis_PrincipalComponentAnalysis_String = "Principal Component Analysis... (under development)",
-		Tools_Commands_String = "Commands",
-			Tools_Commands_CompareCommandsWithSource_String = "Compare Commands With Source",
 		Tools_Datastore_String = "Datastore",
 			Tools_Datastore_ERDiagram_String = "Entity Relationship Diagram (under development)",
 		Tools_DateTimeTools_String = "Date/time Tools",

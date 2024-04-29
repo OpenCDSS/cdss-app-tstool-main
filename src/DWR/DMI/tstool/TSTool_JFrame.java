@@ -694,6 +694,26 @@ JList data model for objects (a list of object identifiers associated with __res
 private DefaultListModel<String> __resultsObjects_JListModel;
 
 /**
+List of results output files for viewing with an editor.
+*/
+private JList<String> __resultsOutputFiles_JList = null;
+
+/**
+JList data model for final time series (a list of filenames associated with __resultsOutputFiles_JList).
+*/
+private DefaultListModel<String> __resultsOutputFiles_JListModel;
+
+/**
+Label for output file list, to indicate how many files.
+*/
+private JLabel __resultsOutputFiles_JLabel = null;
+
+/**
+Popup menu for objects results.
+*/
+private JPopupMenu __resultsOutputFiles_JPopupMenu = null;
+
+/**
 List of results tables for viewing with an editor.
 */
 private JList<String> __resultsTables_JList = null;
@@ -709,19 +729,9 @@ JList data model for final time series (a list of table identifiers associated w
 private DefaultListModel<String> __resultsTables_JListModel;
 
 /**
-List of results output files for viewing with an editor.
+Label for table file list, to indicate how many tables.
 */
-private JList<String> __resultsOutputFiles_JList = null;
-
-/**
-JList data model for final time series (a list of filenames associated with __resultsOutputFiles_JList).
-*/
-private DefaultListModel<String> __resultsOutputFiles_JListModel;
-
-/**
-Label for output file list, to indicate how many files.
-*/
-private JLabel __resultsOutputFiles_JLabel = null;
+private JLabel __resultsTables_JLabel = null;
 
 /**
 Panel for results views.
@@ -2309,7 +2319,7 @@ Indicate whether the commands have been modified.  The application title is also
 @param dirty Specify as true if the commands have been modified in some way.
 */
 private void commandList_SetDirty ( boolean dirty ) {
-	__commandsDirty = dirty;
+	this.__commandsDirty = dirty;
 	ui_UpdateStatus ( false );
 	// TODO smalers 2007-08-31 Evaluate whether processor should have "dirty" property.
 }
@@ -4233,6 +4243,12 @@ public void mousePressed ( MouseEvent event ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __resultsObjects_JPopupMenu );
         __resultsObjects_JPopupMenu.show ( c, pt.x, pt.y );
     }
+    // Popup for output files results list, right click since left click automatically shows object.
+    else if ( (c == __resultsOutputFiles_JList) && (__resultsOutputFiles_JListModel.size() > 0)
+        && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
+        Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, __resultsOutputFiles_JPopupMenu );
+        __resultsOutputFiles_JPopupMenu.show ( c, pt.x, pt.y );
+    }
     // Popup for table results list, right click since left click automatically shows table.
     else if ( (c == __resultsTables_JList) && (__resultsTables_JListModel.size() > 0)
         && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
@@ -4963,7 +4979,7 @@ private void ui_CheckGUIState () {
 	enabled = false;
 	if ( commandListSize > 0 ) {
 		// Have commands shown.
-		if ( __commandsDirty  ) {
+		if ( this.__commandsDirty  ) {
 			JGUIUtil.setEnabled ( TSToolMenus.File_Save_Commands_JMenuItem,true );
 		}
 		else {
@@ -7033,15 +7049,8 @@ private void ui_InitGUI ( PropList initProps ) {
 
     JPanel results_tables_JPanel = new JPanel();
     results_tables_JPanel.setLayout(gbl);
-    /*
-    results_tables_JPanel.setBorder(
-        BorderFactory.createTitledBorder (
-        BorderFactory.createLineBorder(Color.black),
-        "Results: Tables" ));
-        */
-    //JGUIUtil.addComponent(center_JPanel, results_tables_JPanel,
-    //    0, 2, 1, 1, 1.0, 0.0, insetsNNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
-    JGUIUtil.addComponent(results_tables_JPanel, new JLabel ("Tables:"),
+	this.__resultsTables_JLabel = new JLabel ("Tables:");
+    JGUIUtil.addComponent(results_tables_JPanel, this.__resultsTables_JLabel,
         0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.NONE, GridBagConstraints.EAST);
     __resultsTables_JListModel = new DefaultListModel<>();
     __resultsTables_JList = new JList<> ( __resultsTables_JListModel );
@@ -7057,16 +7066,7 @@ private void ui_InitGUI ( PropList initProps ) {
 
     __resultsTS_JPanel = new JPanel();
     __resultsTS_JPanel.setLayout(gbl);
-    /*
-	__results_ts_JPanel.setBorder(
-		BorderFactory.createTitledBorder (
-		BorderFactory.createLineBorder(Color.black),
-		"Results: Time Series" ));
-        */
-	//JGUIUtil.addComponent(center_JPanel, __ts_JPanel,
-	//	0, 1, 1, 1, 1.0, 1.0, insetsNNNN, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
-
-    // Most of the space is occupied by the list of time series
+    // Most of the space is occupied by the list of time series.
     __results_JTabbedPane.addTab ( "Time Series", __resultsTS_JPanel );
 	__resultsTS_JListModel = new DefaultListModel<>();
 	__resultsTS_JList = new JList<> ( __resultsTS_JListModel );
@@ -9159,8 +9159,8 @@ private void ui_InitGUIMenus_Results ( JMenuBar menuBar ) {
         new SimpleJMenuItem( TSToolConstants.Results_Report_Summary_Text_String, this ) );
 
 	TSToolMenus.Results_JMenu.addSeparator();
-    TSToolMenus.Results_JMenu.add(TSToolMenus.Results_FindTimeSeries_JMenuItem =
-        new SimpleJMenuItem( TSToolConstants.Results_FindTimeSeries_String, this ) );
+    TSToolMenus.Results_JMenu.add(TSToolMenus.Results_TimeSeries_FindTimeSeries_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Results_TimeSeries_FindTimeSeries_String, this ) );
     TSToolMenus.Results_JMenu.add(TSToolMenus.Results_SelectAllForOutput_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Results_SelectAllForOutput_String, this ) );
     TSToolMenus.Results_JMenu.add(TSToolMenus.Results_DeselectAll_JMenuItem =
@@ -9197,7 +9197,7 @@ private void ui_InitGUIMenus_ResultsPopup () {
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_Report_Summary_Html_String, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_Report_Summary_Text_String, this ) );
 	__resultsTS_JPopupMenu.addSeparator();
-	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_FindTimeSeries_String, this ) );
+	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_TimeSeries_FindTimeSeries_String, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.BUTTON_TS_SELECT_ALL, this ) );
 	__resultsTS_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.BUTTON_TS_DESELECT_ALL, this ) );
 	__resultsTS_JPopupMenu.addSeparator();
@@ -9219,9 +9219,15 @@ private void ui_InitGUIMenus_ResultsPopup () {
     __resultsObjects_JPopupMenu = new JPopupMenu("Object Results Actions");
     __resultsObjects_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_Object_Properties_String, objects_l ) );
 
+    ActionListener_ResultsOutputFiles outputFiles_l = new ActionListener_ResultsOutputFiles();
+    __resultsOutputFiles_JPopupMenu = new JPopupMenu("Output Files Results Actions");
+    __resultsOutputFiles_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_OutputFile_FindOutputFiles_String, outputFiles_l ) );
+
     ActionListener_ResultsTables tables_l = new ActionListener_ResultsTables();
     __resultsTables_JPopupMenu = new JPopupMenu("Table Results Actions");
     __resultsTables_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_Table_Properties_String, tables_l ) );
+    __resultsTables_JPopupMenu.addSeparator();
+    __resultsTables_JPopupMenu.add( new SimpleJMenuItem ( TSToolConstants.Results_Table_FindTables_String, tables_l ) );
 }
 
 /**
@@ -9279,16 +9285,11 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menuBar ) {
 
 	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Analysis_JMenu = new JMenu(TSToolConstants.Tools_Analysis_String, true ) );
 
-	TSToolMenus.Tools_Analysis_JMenu.add(	TSToolMenus.Tools_Analysis_MixedStationAnalysis_JMenuItem =
+	TSToolMenus.Tools_Analysis_JMenu.add ( TSToolMenus.Tools_Analysis_MixedStationAnalysis_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Tools_Analysis_MixedStationAnalysis_String, this ) );
 
-	TSToolMenus.Tools_Analysis_JMenu.add(	TSToolMenus.Tools_Analysis_PrincipalComponentAnalysis_JMenuItem =
+	TSToolMenus.Tools_Analysis_JMenu.add ( TSToolMenus.Tools_Analysis_PrincipalComponentAnalysis_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Tools_Analysis_PrincipalComponentAnalysis_String, this ) );
-
-	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Commands_JMenu = new JMenu(TSToolConstants.Tools_Commands_String, true ) );
-
-	TSToolMenus.Tools_Commands_JMenu.add(TSToolMenus.Tools_Commands_CompareCommandsWithSource_JMenuItem =
-		new SimpleJMenuItem(TSToolConstants.Tools_Commands_CompareCommandsWithSource_String, this ) );
 
 	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Datastore_JMenu = new JMenu(TSToolConstants.Tools_Datastore_String, true ) );
 	TSToolMenus.Tools_Datastore_JMenu.add(TSToolMenus.Tools_Datastore_ERDiagram_JMenuItem =
@@ -9838,15 +9839,18 @@ Update the main status information when the list contents have changed.
 This method should be called after any change to the query, command, or time series results list.
 Interface tasks include:
 <ol>
-<li>	Set the title bar.
+<li>
+	Set the title bar.
 	If no command file has been read, the title will be:  "TSTool - no commands saved".
 	If a command file has been read but not modified, the title will be:  "TSTool - "filename"".
 	If a command file has been read and modified, the title will be: "TSTool - "filename" (modified)".
 	</li>
-<li>	Call updateTextFields() to indicate the number of selected and total
+<li>
+	Call updateTextFields() to indicate the number of selected and total
 	commands and set the general status to "Ready".
 	</li>
-<li>	Call checkGUIState() to reset menus, etc.  Note this should be called
+<li>.
+	Call checkGUIState() to reset menus, etc.  Note this should be called
 	independently when the list appearance changes (selections, etc.).
 	</li>
 </ol>
@@ -9867,16 +9871,19 @@ public void ui_UpdateStatus ( boolean check_gui_state ) {
             setTitle ( "TSTool" + this.ui_GetTitleMod() + " - \"" + __commandFileName + "\"");
 		}
 	}
+	
+	// Variables that are reused below.
+	int selectedSize = 0;
+	int selectedIndices[] = null;
 
 	// Query results.
 
-	int selected_size = 0;
 	if ( __query_results_JPanel != null ) {
 		int size = 0;
 		if ( __query_JWorksheet != null ) {
 			try {
-                size=__query_JWorksheet.getRowCount();
-				selected_size=__query_JWorksheet.getSelectedRowCount();
+                size =__query_JWorksheet.getRowCount();
+				selectedSize = __query_JWorksheet.getSelectedRowCount();
 			}
 			catch ( Exception e ) {
 				// Absorb the exception in most cases - print if developing to see if this issue can be resolved.
@@ -9890,38 +9897,56 @@ public void ui_UpdateStatus ( boolean check_gui_state ) {
 		}
         __query_results_JPanel.setBorder( BorderFactory.createTitledBorder (
     		BorderFactory.createLineBorder(Color.black),
-    		"Time Series List (" + size + " time series, " + selected_size + " selected)") );
+    		"Time Series List (" + size + " time series, " + selectedSize + " selected)") );
 	}
 
 	// Commands.
 
-	int selected_indices[] = ui_GetCommandJList().getSelectedIndices();
-	selected_size = 0;
-	if ( selected_indices != null ) {
-		selected_size = selected_indices.length;
+	selectedIndices = ui_GetCommandJList().getSelectedIndices();
+	selectedSize = 0;
+	if ( selectedIndices != null ) {
+		selectedSize = selectedIndices.length;
 	}
 	if ( __commands_JPanel != null ) {
     	__commands_JPanel.setBorder( BorderFactory.createTitledBorder (
 		BorderFactory.createLineBorder(Color.black),
-		"Commands (" + __commands_JListModel.size() + " commands, " + selected_size + " selected, " +
+		"Commands (" + __commands_JListModel.size() + " commands, " + selectedSize + " selected, " +
 			commandList_GetFailureCount() + " with failures, " + commandList_GetWarningCount() + " with warnings, " +
 			commandList_GetNotificationCount() + " with notifications)") );
 	}
 
 	// Results: Output Files.
 
-	int nof = 0;
+	int numOutputFiles = 0;
 	if ( __resultsOutputFiles_JListModel != null ) {
-	    nof = __resultsOutputFiles_JListModel.size();
+	    numOutputFiles = __resultsOutputFiles_JListModel.size();
 	}
-	__resultsOutputFiles_JLabel.setText ( "" + nof + " output files:");
+	selectedIndices = __resultsOutputFiles_JList.getSelectedIndices();
+	selectedSize = 0;
+	if ( selectedIndices != null ) {
+		selectedSize = selectedIndices.length;
+	}
+	__resultsOutputFiles_JLabel.setText ( "" + numOutputFiles + " output files, " + selectedSize + " selected");
+
+	// Results: Tables.
+
+	int numTables = 0;
+	if ( __resultsTables_JListModel != null ) {
+	    numTables = __resultsTables_JListModel.size();
+	}
+	selectedIndices = __resultsTables_JList.getSelectedIndices();
+	selectedSize = 0;
+	if ( selectedIndices != null ) {
+		selectedSize = selectedIndices.length;
+	}
+	__resultsTables_JLabel.setText ( "" + numTables + " tables, " + selectedSize + " selected");
 
 	// Results: Time Series.
 
-	selected_indices = __resultsTS_JList.getSelectedIndices();
-	selected_size = 0;
-	if ( selected_indices != null ) {
-		selected_size = selected_indices.length;
+	selectedIndices = __resultsTS_JList.getSelectedIndices();
+	selectedSize = 0;
+	if ( selectedIndices != null ) {
+		selectedSize = selectedIndices.length;
 	}
 
 	int noDataCount = 0;
@@ -9945,14 +9970,14 @@ public void ui_UpdateStatus ( boolean check_gui_state ) {
 			__resultsTS_JPanel.setBorder(BorderFactory.createTitledBorder (
 				BorderFactory.createLineBorder(Color.black),
 				//"Results: Time Series (" +
-				"" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected") );
+				"" + __resultsTS_JListModel.size() + " time series, " + selectedSize + " selected") );
 		}
 		else {
 			// Show how many time series have no data (will be highlighted in red in the list).
 			__resultsTS_JPanel.setBorder(BorderFactory.createTitledBorder (
 				BorderFactory.createLineBorder(Color.black),
 				//"Results: Time Series (" +
-				"" + __resultsTS_JListModel.size() + " time series, " + selected_size + " selected, " +
+				"" + __resultsTS_JListModel.size() + " time series, " + selectedSize + " selected, " +
 				noDataCount + " with no data"));
 		}
 	}
@@ -10331,12 +10356,13 @@ throws Exception {
 	else if (command.equals(TSToolConstants.Edit_ConvertSelectedCommandsFromComments_String) ) {
 		uiAction_ConvertCommandsToComments ( false );
 	}
-	// Popup only.
 	else if (command.equals(TSToolConstants.CommandsPopup_FindCommands_String) ) {
+		// Popup only.
 		new FindInJListJDialog(this,ui_GetCommandJList(),"Find Command(s)");
 		ui_UpdateStatus ( true );
 	}
 	else if (command.equals(TSToolConstants.CommandsPopup_ShowCommandStatus_String) ) {
+		// Popup only.
 		uiAction_ShowCommandStatus();
 	}
 	else {
@@ -10359,9 +10385,17 @@ throws Exception {
         uiAction_ViewCommandFileDiff();
     }
     else if ( command.equals(TSToolConstants.View_CommandFileSourceDiff_String) ) {
-        // Show visual diff of current command file and source version (from #@sourceUrl).
-        uiAction_ViewCommandFileSourceDiff();
-    }
+		// Compare the current command file with the source:
+		// - this is similar to comparing the in-memory commands with file version,
+		//   but use the @sourceUrl to determine the source
+		try {
+			uiAction_ViewCommandFileSourceDiff();
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, "", "Error comparing commands with source (" + e + ")." );
+			Message.printWarning ( 3, "", e );
+		}
+	}
     else if ( command.equals(TSToolConstants.View_DataStores_String) ) {
         // Show the datastores.
         uiAction_ShowDataStores();
@@ -11995,7 +12029,8 @@ throws Exception {
     	// the user views first and then saves to disk.
 		uiAction_ExportTimeSeriesResults("-osummary", "-preview" );
 	}
-	else if (command.equals(TSToolConstants.Results_FindTimeSeries_String) ) {
+	else if (command.equals(TSToolConstants.Results_TimeSeries_FindTimeSeries_String) ) {
+		// Find time series in the time series results list.
 		new FindInJListJDialog ( this, false, __resultsTS_JList, "Find Time Series" );
 	}
     else if ( command.equals(TSToolConstants.Results_TimeSeriesProperties_String) ) {
@@ -12223,18 +12258,6 @@ throws Exception {
 			Message.printWarning ( 3, routine, e );
 		}
 	}
-	else if ( o == TSToolMenus.Tools_Commands_CompareCommandsWithSource_JMenuItem ) {
-		// Compare the current command file with the source:
-		// - this is similar to comparing the in-memory commands with file version,
-		//   but use the @sourceUrl to determine the source
-		try {
-			uiAction_CompareCommandsWithSource();
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 1, routine, "Error comparing commands with source (" + e + ")." );
-			Message.printWarning ( 3, routine, e );
-		}
-	}
 	else if ( o == TSToolMenus.Tools_Datastore_ERDiagram_JMenuItem ) {
 		// Create the dialog using the available time series results (accessed by the processor).
 		try {
@@ -12459,13 +12482,18 @@ private void uiAction_CheckForCommandFileUpdate() {
 
 	// Get the local command file information.
 	if ( commands.size() == 0 ) {
+		// Don't have any @sourceUrl annotations.
 		warning.append ( "The commands have no #@sourceUrl annotation - can't get command file source.\n" );
 	}
 	else if ( commands.size() > 1 ) {
+		// Have more than one @sourceUrl annotations:
+		// - therefore ambiguous
 		warning.append ( "The commands have multiple #@sourceUrl annotations - can't get command file source.\n" );
 	}
 	else {
-		// Get the URL from the command.
+		// Have exactly one @sourceUrl annotations:
+		// - therefore unambiguous
+		// - set the URL from the command
 		sourceUrl = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
 	}
 	commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"version");
@@ -12721,71 +12749,6 @@ private void uiAction_CheckForUpdates ( ) {
             Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
         }
     }
-}
-
-/**
- * Show the difference between the current commands and the source.
- */
-private void uiAction_CompareCommandsWithSource () {
-	// If the diff tool is not configured, provide information:
-	// - handle generic property name and versions for the operating system
-	// - the DiffProgram property can be a comma-separated list of paths to program to run,
-	//   or program name without path to find in the PATH
-	String diffProgram = uiAction_ViewCommandFileDiff_GetDiffProgram();
-	if ( diffProgram != null ) {
-		// Diff program exists so save a temporary file with UI commands,
-		// retrieve the source to another temporary file, and then compare.
-		// Then run the diff program on the files.
-
-		// Get the remote source file:
-		// - time out is 5 seconds
-		String tempFolder = System.getProperty("java.io.tmpdir");
-		String file1Path = tempFolder + File.separator + "TSTool-commands-source.tstool";
-		// Get the source URL from the #@sourceUrl annotation.
-		List<Command> commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"sourceUrl");
-		if ( commands.size() == 0 ) {
-			Message.printWarning(1, "", "The commands have no #@sourceUrl annotation - can't get command file source." );
-			return;
-		}
-		if ( commands.size() > 1 ) {
-			Message.printWarning(1, "", "The commands have multiple #@sourceUrl annotations - can't get command file source." );
-			return;
-		}
-		// Get the URL from the command.
-		String sourceUrl = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
-
-		if ( IOUtil.getUriContent(sourceUrl, file1Path, null, 5000, 5000) != 200 ) {
-			Message.printWarning(1, "", "Error retrieving command file source from: " + sourceUrl );
-			return;
-		}
-
-		// Write the UI commands to a temporary file.
-		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
-		try {
-			uiAction_WriteCommandFile_Helper(file2Path, false);
-		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
-			return;
-		}
-		// Run the diff program.
-		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
-		try {
-			ProcessManager pm = new ProcessManager ( programAndArgsList,
-					0, // No timeout.
-	                null, // Exit status indicator.
-	                false, // Use command shell.
-	                new File(tempFolder) );
-			Thread t = new Thread ( pm );
-            t.start();
-		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
-		}
-	}
-	else {
-		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
-	}
 }
 
 /**
@@ -13301,6 +13264,20 @@ private void uiAction_FileExitClicked () {
         // Cancel.
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
+}
+
+/**
+Find output file(s) in the results.
+*/
+private void uiAction_FindOutputFiles () {
+   	new FindInJListJDialog ( this, false, __resultsOutputFiles_JList, "Find Output Files (selecting a file will open it)" );
+}
+
+/**
+Find table(s) in the results.
+*/
+private void uiAction_FindTables () {
+   	new FindInJListJDialog ( this, false, __resultsTables_JList, "Find Tables (selecting a table will open it)" );
 }
 
 /**
@@ -16146,62 +16123,22 @@ private void uiAction_ViewCommandFileDiff () {
                   ResponseJDialog.OK).response();
 	         return;
 		}
-		// Write the UI commands to a temporary file.
 		String tempFolder = System.getProperty("java.io.tmpdir");
-		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
-		try {
-			uiAction_WriteCommandFile_Helper(file2Path, false);
+		String file2Path = null;
+		if ( this.__commandsDirty ) {
+			// Write the UI commands to a temporary file.
+			file2Path = tempFolder + File.separator + "TSTool-commands-from-UI.tstool";
+			try {
+				uiAction_WriteCommandFile_Helper(file2Path, false);
+			}
+			catch ( Exception e ) {
+				Message.printWarning(1, "", "Error saving commands to temporary file for diff (" + e + ")" );
+				return;
+			}
 		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
-			return;
-		}
-		// Run the diff program.
-		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
-		try {
-			ProcessManager pm = new ProcessManager (
-				programAndArgsList,
-				0, // No timeout.
-	            null, // Exit status indicator.
-	            false, // Use command shell.
-	            new File(tempFolder) );
-			Thread t = new Thread ( pm );
-            t.start();
-		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
-		}
-	}
-	else {
-		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
-	}
-}
-
-/**
- * Show the difference between the current commands and the command file in the original source,
- * from the #@sourceUrl annotation (typically a Git repository).
- */
-private void uiAction_ViewCommandFileSourceDiff () {
-	String diffProgram = uiAction_ViewCommandFileDiff_GetDiffProgram();
-	if ( diffProgram != null ) {
-		// Diff program exists so save a temporary file with UI commands and then compare with file version.
-		// Run the diff program on the two files.
-		String file1Path = this.__commandFileName;
-		if ( file1Path == null ) {
-	         new ResponseJDialog ( this, IOUtil.getProgramName(),
-                  "No command file was previously read or saved.  The commands being edited are new.",
-                  ResponseJDialog.OK).response();
-	         return;
-		}
-		// Write the UI commands to a temporary file.
-		String tempFolder = System.getProperty("java.io.tmpdir");
-		String file2Path = tempFolder + File.separator + "TSTool-commands.tstool";
-		try {
-			uiAction_WriteCommandFile_Helper(file2Path, false);
-		}
-		catch ( Exception e ) {
-			Message.printWarning(1, "", "Error saving commands to temporry file for diff (" + e + ")" );
-			return;
+		else {
+			// Can compare the existing commands file.
+			file2Path = this.__commandFileName;
 		}
 		// Run the diff program.
 		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
@@ -16286,6 +16223,87 @@ private String uiAction_ViewCommandFileDiff_GetDiffProgram () {
 		}
 	}
 	return diffProgram;
+}
+
+/**
+ * Show the difference between the current commands and the source version:
+ * - the source version is typically stored in a version control system such as GitHub
+ */
+private void uiAction_ViewCommandFileSourceDiff () {
+	String routine = getClass().getSimpleName() + ".uiAction_CompareCommandsWithSource";
+	// If the diff tool is not configured, provide information:
+	// - handle generic property name and versions for the operating system
+	// - the DiffProgram property can be a comma-separated list of paths to program to run,
+	//   or program name without path to find in the PATH
+	String diffProgram = uiAction_ViewCommandFileDiff_GetDiffProgram();
+	if ( diffProgram != null ) {
+		// Diff program exists so save a temporary file with UI commands,
+		// retrieve the source to another temporary file, and then compare.
+		// Then run the diff program on the files.
+
+		// Get the remote source file:
+		// - time out is 5 seconds
+		String tempFolder = System.getProperty("java.io.tmpdir");
+		String file1Path = tempFolder + File.separator + "TSTool-commands-from-sourceUrl.tstool";
+		// Get the source URL from the #@sourceUrl annotation.
+		List<Command> commands = TSCommandProcessorUtil.getAnnotationCommands(commandProcessor_GetCommandProcessor(),"sourceUrl");
+		if ( commands.size() == 0 ) {
+			Message.printWarning(1, "", "The commands have no #@sourceUrl annotation - can't get the source command file." );
+			return;
+		}
+		if ( commands.size() > 1 ) {
+			Message.printWarning(1, "", "The commands have multiple #@sourceUrl annotations - can't get the source command file." );
+			return;
+		}
+
+		// Else, able to continue and get the source copy:
+		// - get the URL from the command as parameter 1
+		// - timeout after 5 seconds
+		String sourceUrl = TSCommandProcessorUtil.getAnnotationCommandParameter(commands.get(0), 1);
+
+		if ( IOUtil.getUriContent(sourceUrl, file1Path, null, 5000, 5000) != 200 ) {
+			Message.printWarning(1, "", "Error retrieving source command file from: " + sourceUrl );
+			return;
+		}
+		else {
+			Message.printStatus(2, routine, "Retrieved source command file and saved to \"" + file1Path + "\"." );
+		}
+
+		// Write the UI commands to a second temporary file.
+		String file2Path = null;
+		if ( this.__commandsDirty ) {
+			file2Path = tempFolder + File.separator + "TSTool-commands-from-UI.tstool";
+			try {
+				uiAction_WriteCommandFile_Helper(file2Path, false);
+				Message.printStatus(2, routine, "Saved TSTool current command to \"" + file2Path + "\"." );
+			}
+			catch ( Exception e ) {
+				Message.printWarning(1, "", "Error saving current TSTool commands to temporary file for diff (" + e + ")" );
+				return;
+			}
+		}
+		else {
+			// Can compare the existing commands file.
+			file2Path = this.__commandFileName;
+		}
+		// Run the diff program.
+		String [] programAndArgsList = { diffProgram, file1Path, file2Path };
+		try {
+			ProcessManager pm = new ProcessManager ( programAndArgsList,
+					0, // No timeout.
+	                null, // Exit status indicator.
+	                false, // Use command shell.
+	                new File(tempFolder) );
+			Thread t = new Thread ( pm );
+            t.start();
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Unable to run diff program (" + e + ")" );
+		}
+	}
+	else {
+		Message.printWarning(1, "", "Visual diff program does not exist:  " + diffProgram );
+	}
 }
 
 /**
@@ -16801,6 +16819,22 @@ private class ActionListener_ResultsNetworks implements ActionListener {
 }
 
 /**
+Internal class to handle action events from output files results list.
+*/
+private class ActionListener_ResultsOutputFiles implements ActionListener {
+    /**
+    Handle a group of actions for the network popup menu.
+    @param event Event to handle.
+    */
+    public void actionPerformed (ActionEvent event) {
+        String command = event.getActionCommand();
+        if ( command.equals(TSToolConstants.Results_OutputFile_FindOutputFiles_String) ) {
+            uiAction_FindOutputFiles();
+        }
+    }
+}
+
+/**
 Internal class to handle action events from table results list.
 */
 private class ActionListener_ResultsTables implements ActionListener {
@@ -16812,6 +16846,10 @@ private class ActionListener_ResultsTables implements ActionListener {
         String command = event.getActionCommand();
         if ( command.equals(TSToolConstants.Results_Table_Properties_String) ) {
             uiAction_ShowTableProperties();
+        }
+        else if (command.equals(TSToolConstants.Results_Table_FindTables_String) ) {
+        	// Find tables in the table results list.
+        	uiAction_FindTables();
         }
     }
 }
