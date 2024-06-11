@@ -101,7 +101,7 @@ public class TSToolMain
  * - otherwise, there can be problems with the string being interpreted as hex code by installer tools
  * - as of version 14, do not pad version parts with zeros
  */
-public static final String PROGRAM_VERSION = "14.9.5 (2024-04-29)";
+public static final String PROGRAM_VERSION = "14.9.6 (2024-06-11)";
 
 /**
 Main GUI instance, used when running interactively.
