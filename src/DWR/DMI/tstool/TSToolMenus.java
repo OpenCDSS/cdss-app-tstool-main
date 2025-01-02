@@ -397,7 +397,10 @@ public class TSToolMenus {
     	Commands_Spatial_WriteTableToKml_JMenuItem,
     	Commands_Spatial_WriteTableToShapefile_JMenuItem,
     	Commands_Spatial_WriteTimeSeriesToGeoJSON_JMenuItem,
-    	Commands_Spatial_WriteTimeSeriesToKml_JMenuItem;
+    	Commands_Spatial_WriteTimeSeriesToKml_JMenuItem,
+    	// ----
+    	Commands_Spatial_GeoMapProject_JMenuItem,
+    	Commands_Spatial_GeoMap_JMenuItem;
 
 	// Menu: Commands / Spreadsheet Processing
 
