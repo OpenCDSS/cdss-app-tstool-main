@@ -8223,6 +8223,13 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menuBar ) {
     TSToolMenus.Commands_Spatial_JMenu.add( TSToolMenus.Commands_Spatial_WriteTimeSeriesToKml_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_Spatial_WriteTimeSeriesToKml_String, this ) );
     TSToolMenus.Commands_Spatial_WriteTimeSeriesToKml_JMenuItem.setToolTipText("Write time series with coordinate properties to a KML file.");
+    TSToolMenus.Commands_Spatial_JMenu.addSeparator();
+    TSToolMenus.Commands_Spatial_JMenu.add( TSToolMenus.Commands_Spatial_GeoMapProject_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_Spatial_GeoMapProject_String, this ) );
+    TSToolMenus.Commands_Spatial_GeoMapProject_JMenuItem.setToolTipText("Process a GeoMap project.");
+    TSToolMenus.Commands_Spatial_JMenu.add( TSToolMenus.Commands_Spatial_GeoMap_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_Spatial_GeoMap_String, this ) );
+    TSToolMenus.Commands_Spatial_GeoMap_JMenuItem.setToolTipText("Create a GeoMap and add to a map project.");
 
     // Menu: Commands / Spreadsheet Processing
 
@@ -11110,6 +11117,12 @@ throws Exception {
     }
     else if (command.equals( TSToolConstants.Commands_Spatial_WriteTimeSeriesToKml_String) ) {
         commandList_EditCommand ( TSToolConstants.Commands_Spatial_WriteTimeSeriesToKml_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( TSToolConstants.Commands_Spatial_GeoMapProject_String) ) {
+        commandList_EditCommand ( TSToolConstants.Commands_Spatial_GeoMapProject_String, null, CommandEditType.INSERT );
+    }
+    else if (command.equals( TSToolConstants.Commands_Spatial_GeoMap_String) ) {
+        commandList_EditCommand ( TSToolConstants.Commands_Spatial_GeoMap_String, null, CommandEditType.INSERT );
     }
 
     // Spreadsheet commands.

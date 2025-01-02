@@ -424,6 +424,8 @@ public class TSToolConstants {
     Commands_Spatial_WriteTableToShapefile_String = TAB + "WriteTableToShapefile()... <write table to a Shapefile>",
     Commands_Spatial_WriteTimeSeriesToGeoJSON_String = TAB + "WriteTimeSeriesToGeoJSON()... <write 1+ time series to a GeoJSON file>",
     Commands_Spatial_WriteTimeSeriesToKml_String = TAB + "WriteTimeSeriesToKml()... <write 1+ time series to a KML file>",
+    Commands_Spatial_GeoMapProject_String = TAB + "GeoMapProject()... <process a GeoMap project>",
+    Commands_Spatial_GeoMap_String = TAB + "GeoMap()... <process a GeoMap>",
 
     // Menu: Commands / Spreadsheet Processing
 
