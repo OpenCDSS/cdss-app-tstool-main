@@ -143,8 +143,8 @@ public class TSToolConstants {
 
 	CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
 
-	CommandsPopup_IndentRight_String = "Indent Right",
-	CommandsPopup_IndentLeft_String = "Indent Left",
+	CommandsPopup_IndentRight_String = "> Indent Right",
+	CommandsPopup_IndentLeft_String = "< Indent Left",
 
 	// Menu: File
 

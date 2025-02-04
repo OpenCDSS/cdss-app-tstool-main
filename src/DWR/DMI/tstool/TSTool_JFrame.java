@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -289,6 +289,7 @@ import RTi.Util.Time.DateTimeBuilderJDialog;
 import RTi.Util.Time.DateTimeToolsJDialog;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
+import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.YearType;
 
 // Classes to integrate TSTool with datastores, mainly time series catalog and filters used in the UI.
@@ -1093,24 +1094,26 @@ public void actionPerformed (ActionEvent event) {
 /**
 Indicate that a command has been canceled.
 The success/failure of the command is not indicated (see CommandStatusProvider).
-@param icommand The command index (0+).
-@param ncommand The total number of commands to process
+@param icommand The command index (1+).
+@param ncommand The total number of commands being processed, not currently used.
 @param command The reference to the command that has been canceled, either the
 one that has just been processed, or potentially the next one, depending on when the cancel was requested.
-@param percent_complete If >= 0, the value can be used to indicate progress running a list of commands (not the single command).
-If less than zero, then no estimate is given for the percent complete and calling code can make its
-own determination (e.g., ((icommand + 1)/ncommand)*100).
+@param percentComplete If > 0, the value can be used to indicate progress running a list of commands (not the single command).
+If <= 0, 'icommand' is used to indicate the progress.
+This parameter is currently not used (the previous process is retained).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandCanceled ( int icommand, int ncommand, Command command, float percent_complete, String message ) {
+public void commandCanceled ( int icommand, int ncommand, Command command, float percentComplete, String message ) {
 	String routine = getClass().getSimpleName() + ".commandCanceled";
 
-	// Refresh the results with what is available.
-	//String command_string = command.toString();
+	// Refresh the UI message with what is available.
+	Message.printStatus(2, routine, "Command processing was canceled.");
 	ui_UpdateStatusTextFields ( 1, routine,	"Canceled command processing.",
-			//"Canceled: " + command_string,
-				null, TSToolConstants.STATUS_CANCELED );
-	uiAction_RunCommands_ShowResults ();
+		"Canceled command " + (icommand + 1) + ": " + command,
+		TSToolConstants.STATUS_CANCELED );
+	// The following does not update the status text fields.
+	boolean updateStatusMessage = false;
+	uiAction_RunCommands_ShowResults ( updateStatusMessage );
 }
 
 /**
@@ -1154,9 +1157,15 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 		// Only need to do if threaded because otherwise will handle synchronously
 		// in the uiAction_RunCommands() method.
 		String command_string = command.toString();
-		ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string, TSToolConstants.STATUS_READY );
+		if ( command instanceof Exit_Command ) {
+			ui_UpdateStatusTextFields ( 1, routine, null, "Exit command (" + (icommand + 1) + ") detected - processing was stopped", TSToolConstants.STATUS_READY );
+		}
+		else {
+			ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string, TSToolConstants.STATUS_READY );
+		}
 		if ( ui_Property_RunCommandProcessorInThread() ) {
-			uiAction_RunCommands_ShowResults ();
+			boolean updateStatusMessage = false;
+			uiAction_RunCommands_ShowResults ( updateStatusMessage );
 		}
 	}
 }
@@ -2328,30 +2337,58 @@ private void commandList_SetDirty ( boolean dirty ) {
 /**
 Indicate the progress that is occurring within a command.
 This may be a chained call from a CommandProcessor that implements CommandListener to listen to a command.
-This level of monitoring is useful if more than one progress indicator is present in an application UI.
-@param istep The number of steps being executed in a command (0+).
+This level of progress is useful if more than one progress indicator is present in an application UI
+with the workflow progress indicated in one, and the progress within the command indicated in the other.
+Call this method with istep = 0 the first time to initialize the JProgressBar limits
+(all subsequent calls must use istep > 0).
+Call with istep = 1+ or perentComplete > 0 to indicate progress up until the value of 'nstep'
+(percentComplete takes precedence if > 0).
+If the progress bar shows a question mark, it is probably because these calling rules have not been followed.
+@param istep The number of the step that has completed command (0+).
+If zero, the limits to the progress bar will be set to 0 and 'nstep' and progress will be set to zero.
+If non-zero, 'istep' + 1 is used to set the progress bar value (unless 'percentComplete' is specified).
 @param nstep The total number of steps to process within a command.
-@param command The reference to the command that is running.
-@param percentComplete If >= 0, the value can be used to indicate progress running a single command (not the single command).
-If less than zero, then no estimate is given for the percent complete and calling code can make its
-own determination (e.g., ((istep + 1)/nstep)*100).
+@param command The command that is running (currently not used).
+@param percentComplete If > 0, the value is used to indicate progress running a single command,
+calculated as 'nstep'*(percentComplete/100.0), because the progress bar uses the integer range 0 to 'nstep'.
+If less than zero, set the progress to 'istep' + 1.
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
 public void commandProgress ( int istep, int nstep, Command command, float percentComplete, String message ) {
+	boolean debug = Message.isDebugOn;
+	String routine = getClass().getSimpleName() + ".commandProgress";
 	if ( istep == 0 ) {
-		// Initialize the limits of the command progress bar.
-		this.__command_JProgressBar.setMinimum ( 0 );
+		// Initialize the limits of the command progress bar:
+		// - also set the progress to zero
+		this.__command_JProgressBar.setMinimum ( 1 );
 		this.__command_JProgressBar.setMaximum ( nstep );
+        this.__command_JProgressBar.setValue ( 0 );
+		if ( debug ) {
+			Message.printStatus(2, routine, "Set progress bar limits to 0 and " + nstep );
+		}
+		if ( debug ) {
+			Message.printStatus(2, routine, "Set progress bar limit value to " + istep + ", message=" + message );
+		}
 	}
-	// Set the current value.
-    if ( percentComplete > 0.0 ) {
-        // Calling code is providing the percent complete.
-        this.__command_JProgressBar.setValue ( (int)(nstep*percentComplete/100.0) );
-    }
-    else {
-        // Calling code wants percentage to be computed here.
-        this.__command_JProgressBar.setValue ( istep + 1 );
-    }
+	else {
+		// Set the progress bar to the current value.
+    	if ( percentComplete > 0.0 ) {
+        	// Calling code is providing the percent complete.
+    		istep = (int)(nstep*(percentComplete/100.0));
+    	}
+    	if ( istep < 0 ) {
+    		istep = 0;
+    	}
+    	if ( istep > nstep ) {
+    		// Don't let the progress go past the limit.
+    		istep = nstep;
+    	}
+    	// Set the progress using the count (0 to 'nstep' as checked above).
+        this.__command_JProgressBar.setValue ( istep );
+		if ( debug ) {
+			Message.printStatus(2, routine, "Set progress bar limit value to " + istep + ", message=" + message );
+		}
+	}
 }
 
 // All of the following methods perform and interaction with the command processor,
@@ -3126,12 +3163,22 @@ private void commandProcessor_RunCommandsThreaded ( List<Command> commands, bool
 	requestParams.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
 	try {
 		TSCommandProcessorThreadRunner runner = new TSCommandProcessorThreadRunner ( __tsProcessor, requestParams );
-		Message.printStatus ( 2, routine, "Running commands in separate thread.");
+		Message.printStatus ( 2, routine, "Running commands in a separate thread.");
 		Thread thread = new Thread ( runner );
 		commandProcessor_SetCommandProcessorThread(thread);
 		thread.start();
-		// Do one update of the GUI to reflect the GUI running.
-		// This will disable run buttons, etc. until the current run is done.
+		// Do one update of the GUI to reflect the GUI running:
+		// - wait for a small amount of time to allow the TSEngine code to initialize and call 'setIsRunning' on the processor
+		// - this will disable run buttons, etc. until the current run is done
+		// - the run buttons should allow stopping the run (wait for command to finish or kill the thread)
+		// - if the Run / Cancel Command Processing (wait for command to complete) menu does not activate, lengthen the sleep
+		TimeUtil.sleep(10);
+		if ( this.__tsProcessor == null)  {
+			Message.printStatus ( 2, routine, "  Checking the UI state (null processor).");
+		}
+		else {
+			Message.printStatus ( 2, routine, "  Checking the UI state (processor is running=" + this.__tsProcessor.getIsRunning() + ").");
+		}
 		ui_CheckGUIState ();
 		// At this point the GUI will get updated if any notification fires from the processor.
 	}
@@ -9825,6 +9872,7 @@ public void ui_SetInputTypeChoices () {
 
 /**
 Set the message text field.
+@param message the message to display in the message text field
 */
 private void ui_SetMessageText ( String message ) {
     this.__message_JTextField.setText (message);
@@ -10016,7 +10064,7 @@ public void ui_UpdateStatus ( boolean check_gui_state ) {
 /**
 Update the text fields at the bottom of the main interface.
 This does NOT update all text fields like the number of commands, etc.
-@param level Message level.  If > 0 and the message is not null, call Message.printStatus() to record a message.
+@param level Message level.  If > 0 and the message is not null, call Message.printStatus() to log a message.
 @param routine Routine name used if Message.printStatus() is called.
 @param commandPanelStatus currently ignored (intended that if not null set the status for the text in the command panel border)
 @param message If not null, update the __message_JTextField to contain this text.
@@ -10026,7 +10074,7 @@ If null, leave the contents as previously shown.  Specify "" to clear the text.
 */
 private void ui_UpdateStatusTextFields ( int level, String routine, String commandPanelStatus, String message, String status ) {
 	if ( (level > 0) && (message != null) ) {
-		// Print a status message to the messaging system.
+		// Print a status message to the logging system.
 		Message.printStatus ( 1, routine, message );
 	}
 	if ( message != null ) {
@@ -11704,7 +11752,7 @@ throws Exception {
         // Cancel the current processor.  This may take awhile to occur if the current command is doing a lot of work.
         ui_UpdateStatusTextFields ( 1, routine, "Processing is being canceled...", null, TSToolConstants.STATUS_CANCELING );
         ui_UpdateStatus ( true );
-        __tsProcessor.setCancelProcessingRequested ( true );
+        this.__tsProcessor.setCancelProcessingRequested ( true );
     }
     else if (command.equals(TSToolConstants.Run_CancelCommandProcessesExternal_String) ) {
         // Cancel all processes being run by commands - to fix hung processes.
@@ -14433,8 +14481,9 @@ private void uiAction_RunCommands ( boolean runAllCommands, boolean createOutput
 Display the results of the run, time series and output files.
 This is handled as a "pinch point" in hand-off from the processor and the UI,
 to try to gracefully handle displaying output.
+@param updateStatusMessage whether to update the status message (use false for cancel or Exit command)
 */
-private void uiAction_RunCommands_ShowResults() {
+private void uiAction_RunCommands_ShowResults ( boolean updateStatusMessage ) {
 	// This method may be called from a thread different than the Swing thread.
 	// To avoid bad behavior in GUI components (like the results list having big gaps),
 	// use the following to queue up GUI actions on the Swing thread.
@@ -14445,14 +14494,14 @@ private void uiAction_RunCommands_ShowResults() {
             // layers of recursion can occur when running a command file).
             TSCommandProcessorUtil.closeRegressionTestReportFile();
 			results_Clear();
-            uiAction_RunCommands_ShowResultsEnsembles();
+            uiAction_RunCommands_ShowResultsEnsembles ( updateStatusMessage );
             uiAction_RunCommands_ShowResultsNetworks();
             uiAction_RunCommands_ShowResultsOutputFiles();
             uiAction_RunCommands_ShowResultsObjects();
             uiAction_RunCommands_ShowResultsProblems();
             uiAction_RunCommands_ShowResultsProperties();
             uiAction_RunCommands_ShowResultsTables();
-			uiAction_RunCommands_ShowResultsTimeSeries();
+			uiAction_RunCommands_ShowResultsTimeSeries ( updateStatusMessage );
 			uiAction_RunCommands_ShowResultsViews();
 
             // Repaint the list to reflect the status of the commands.
@@ -14469,8 +14518,9 @@ private void uiAction_RunCommands_ShowResults() {
 
 /**
 Display the ensembles from the command processor in the results list.
+@param updateStatusMessage if false, the status message is not updated because it is a cancel or Exit message, if true update the message
 */
-private void uiAction_RunCommands_ShowResultsEnsembles () {
+private void uiAction_RunCommands_ShowResultsEnsembles ( boolean updateStatusMessage ) {
     String routine = getClass().getSimpleName() + ".uiAction_RunCommands_ShowResultsEnsembles";
     //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsEnsembles", "Entering method.");
 
@@ -14501,8 +14551,10 @@ private void uiAction_RunCommands_ShowResultsEnsembles () {
     }
     ui_UpdateStatus ( false );
 
-    ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
+    if ( updateStatusMessage ) {
+    	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
            TSToolConstants.STATUS_READY );
+    }
     // Make sure that the user is not waiting on the wait cursor.
     //JGUIUtil.setWaitCursor ( this, false );
 
@@ -14740,8 +14792,9 @@ private void uiAction_RunCommands_ShowResultsTables() {
 
 /**
 Display the time series from the command processor in the results list.
+@param updateStatusMessage if false, the status message is not updated because it is a cancel or Exit message, if true update the message
 */
-private void uiAction_RunCommands_ShowResultsTimeSeries () {
+private void uiAction_RunCommands_ShowResultsTimeSeries ( boolean updateStatusMessage ) {
 	String routine = getClass().getSimpleName() + "uiAction_RunCommands_ShowResultsTimeSeries";
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Entering method.");
 
@@ -14835,8 +14888,11 @@ private void uiAction_RunCommands_ShowResultsTimeSeries () {
 	// Now actually select the time series in the visual output.
 	this.__resultsTS_JList.setSelectedIndices ( selected );
 	ui_UpdateStatus ( false );
-	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
-		TSToolConstants.STATUS_READY );
+	if ( updateStatusMessage ) {
+		// OK to update the status message.
+		ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
+			TSToolConstants.STATUS_READY );
+	}
 	// Make sure that the user is not waiting on the wait cursor.
 	//JGUIUtil.setWaitCursor ( this, false );
 
