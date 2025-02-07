@@ -1154,17 +1154,21 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
     }
 	if ( ((icommand + 1) == ncommand) || command instanceof Exit_Command || requireExit ) {
 		// Last command has completed (or Exit() command) so refresh the time series results.
-		// Only need to do if threaded because otherwise will handle synchronously
-		// in the uiAction_RunCommands() method.
-		String command_string = command.toString();
+		// Only need to do if threaded because otherwise will handle synchronously in the uiAction_RunCommands() method.
+		// By default, update the status message with a note abut viewing results.
+		boolean updateStatusMessage = true;
 		if ( command instanceof Exit_Command ) {
-			ui_UpdateStatusTextFields ( 1, routine, null, "Exit command (" + (icommand + 1) + ") detected - processing was stopped", TSToolConstants.STATUS_READY );
+			ui_UpdateStatusTextFields ( 1, routine, null, "Exit command (" + (icommand + 1) + ") detected - processing was stopped.",
+				TSToolConstants.STATUS_READY );
+			// Want the status message to indicate Exit.
+			updateStatusMessage = false;
 		}
 		else {
-			ui_UpdateStatusTextFields ( 1, routine, null, "Processed: " + command_string, TSToolConstants.STATUS_READY );
+			// Don't print the entire command string because it may be long, in which case it will smash the progress bars.
+			ui_UpdateStatusTextFields ( 1, routine, null, "Processed command " + (icommand + 1) + " of " + ncommand + ": " +
+				command.toString("..."), TSToolConstants.STATUS_READY );
 		}
 		if ( ui_Property_RunCommandProcessorInThread() ) {
-			boolean updateStatusMessage = false;
 			uiAction_RunCommands_ShowResults ( updateStatusMessage );
 		}
 	}
@@ -9515,7 +9519,7 @@ private void ui_LoadCommandFile ( String commandFile, boolean runOnLoad, boolean
     try {
         ui_UpdateStatusTextFields ( 2, null, null, "Reading the selected command file.", TSToolConstants.STATUS_BUSY );
         ui_StartWaitCursor();
-        
+
         // Read the command file into the command processor.
         numAutoChanges = commandProcessor_ReadCommandFile ( commandFile, runDiscoveryOnLoad );
 
@@ -14494,15 +14498,22 @@ private void uiAction_RunCommands_ShowResults ( boolean updateStatusMessage ) {
             // layers of recursion can occur when running a command file).
             TSCommandProcessorUtil.closeRegressionTestReportFile();
 			results_Clear();
-            uiAction_RunCommands_ShowResultsEnsembles ( updateStatusMessage );
+            uiAction_RunCommands_ShowResultsEnsembles();
             uiAction_RunCommands_ShowResultsNetworks();
             uiAction_RunCommands_ShowResultsOutputFiles();
             uiAction_RunCommands_ShowResultsObjects();
             uiAction_RunCommands_ShowResultsProblems();
             uiAction_RunCommands_ShowResultsProperties();
             uiAction_RunCommands_ShowResultsTables();
-			uiAction_RunCommands_ShowResultsTimeSeries ( updateStatusMessage );
+			uiAction_RunCommands_ShowResultsTimeSeries();
 			uiAction_RunCommands_ShowResultsViews();
+
+			if ( updateStatusMessage ) {
+				// This will be shown unless a cancel or Exit.
+				String routine = "uiAction_RunCommands_ShowResults";
+				ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
+					TSToolConstants.STATUS_READY );
+			}
 
             // Repaint the list to reflect the status of the commands.
             ui_ShowCurrentCommandListStatus (CommandPhaseType.RUN);
@@ -14518,9 +14529,8 @@ private void uiAction_RunCommands_ShowResults ( boolean updateStatusMessage ) {
 
 /**
 Display the ensembles from the command processor in the results list.
-@param updateStatusMessage if false, the status message is not updated because it is a cancel or Exit message, if true update the message
 */
-private void uiAction_RunCommands_ShowResultsEnsembles ( boolean updateStatusMessage ) {
+private void uiAction_RunCommands_ShowResultsEnsembles ( ) {
     String routine = getClass().getSimpleName() + ".uiAction_RunCommands_ShowResultsEnsembles";
     //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsEnsembles", "Entering method.");
 
@@ -14550,13 +14560,6 @@ private void uiAction_RunCommands_ShowResultsEnsembles ( boolean updateStatusMes
         }
     }
     ui_UpdateStatus ( false );
-
-    if ( updateStatusMessage ) {
-    	ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
-           TSToolConstants.STATUS_READY );
-    }
-    // Make sure that the user is not waiting on the wait cursor.
-    //JGUIUtil.setWaitCursor ( this, false );
 
     //Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Leaving method.");
 }
@@ -14792,9 +14795,8 @@ private void uiAction_RunCommands_ShowResultsTables() {
 
 /**
 Display the time series from the command processor in the results list.
-@param updateStatusMessage if false, the status message is not updated because it is a cancel or Exit message, if true update the message
 */
-private void uiAction_RunCommands_ShowResultsTimeSeries ( boolean updateStatusMessage ) {
+private void uiAction_RunCommands_ShowResultsTimeSeries ( ) {
 	String routine = getClass().getSimpleName() + "uiAction_RunCommands_ShowResultsTimeSeries";
 	//Message.printStatus ( 2, "uiAction_RunCommands_ShowResultsTimeSeries", "Entering method.");
 
@@ -14877,7 +14879,7 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ( boolean updateStatusMe
 	}
 	else {
         // Select the time series of interest.
-		selected = new int[num_selected];	// Whether visually selected.
+		selected = new int[num_selected]; // Whether visually selected.
 		int selectedCount = 0;
 		for ( int i = 0; i < size; i++ ) {
 			if ( selected_boolean[i] ) {
@@ -14888,13 +14890,6 @@ private void uiAction_RunCommands_ShowResultsTimeSeries ( boolean updateStatusMe
 	// Now actually select the time series in the visual output.
 	this.__resultsTS_JList.setSelectedIndices ( selected );
 	ui_UpdateStatus ( false );
-	if ( updateStatusMessage ) {
-		// OK to update the status message.
-		ui_UpdateStatusTextFields ( 1, routine, null, "Completed running commands.  Use Results and Tools menus.",
-			TSToolConstants.STATUS_READY );
-	}
-	// Make sure that the user is not waiting on the wait cursor.
-	//JGUIUtil.setWaitCursor ( this, false );
 
 	// TODO smalers 2010-08-09 Evaluate whether this fixes the problem and evaluate the approach.
 	// Redraw the list because sometimes it gets out of sync with the UI.
