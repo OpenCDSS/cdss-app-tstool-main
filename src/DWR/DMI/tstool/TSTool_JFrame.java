@@ -3313,14 +3313,17 @@ public void commandStarted ( int icommand, int ncommand, Command command, float 
 	String commandName = command.getCommandName();
 	if ( commandName.equalsIgnoreCase("RunCommands") ) {
 	    additionalInfo = command.getCommandParameters().getValue("InputFile");
-	    if ( additionalInfo.length() > 30 ) {
-	        additionalInfo = additionalInfo.substring(0,30);
+	    if ( additionalInfo.length() > 60 ) {
+	        additionalInfo = additionalInfo.substring(0,60);
 	    }
 	    additionalInfo += "...";
+		ui_UpdateStatusTextFields ( 0, routine, null, tip + ": " + commandName + "(InputFile=\"" +
+			additionalInfo + "\",...)", TSToolConstants.STATUS_BUSY );
 	}
-	// Use level zero because the command processor is already printing a log message when each command is run.
-	ui_UpdateStatusTextFields ( 0, routine, null, tip + ": \"" + commandName + "(..." +
-	    additionalInfo + ")\"", TSToolConstants.STATUS_BUSY );
+	else {
+		// Use level zero because the command processor is already printing a log message when each command is run.
+		ui_UpdateStatusTextFields ( 0, routine, null, tip + ": " + command.toString("..."), TSToolConstants.STATUS_BUSY );
+	}
 	if ( icommand == 0 ) {
 		this.__processor_JProgressBar.setMinimum ( 0 );
 		this.__processor_JProgressBar.setMaximum ( ncommand );
@@ -5380,15 +5383,18 @@ private void ui_CheckGUIState_RunMenu ( int commandListSize, int selectedCommand
 	if ( (this.__tsProcessor != null) && this.__tsProcessor.getIsRunning() ) {
 		// Running, so allow cancel but not another run.
 		enable_run = false;  // Handled below in second if.
-		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_JMenuItem, true);
-		JGUIUtil.setEnabled (TSToolMenus.CommandsPopup_CancelCommandProcessing_JMenuItem,true);
+		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_WaitForCommand_JMenuItem, true);
+		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_InterruptProcessor_JMenuItem, true);
+		JGUIUtil.setEnabled (TSToolMenus.CommandsPopup_CancelCommandProcessing_WaitForCommand_JMenuItem,true);
 
 	}
 	else {
+		// Process is null or not null and not running.
 		// Not running, so disable cancel, but do allow run if there are commands (see below).
 		enable_run = true;
-		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_JMenuItem, false);
-		JGUIUtil.setEnabled (TSToolMenus.CommandsPopup_CancelCommandProcessing_JMenuItem,false );
+		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_WaitForCommand_JMenuItem, false);
+		JGUIUtil.setEnabled (TSToolMenus.Run_CancelCommandProcessing_InterruptProcessor_JMenuItem, false);
+		JGUIUtil.setEnabled (TSToolMenus.CommandsPopup_CancelCommandProcessing_WaitForCommand_JMenuItem,false );
 	}
 	if ( commandListSize > 0 ) {
 		/* TODO smalers 2007-11-01 Evaluate need.
@@ -9321,18 +9327,12 @@ private void ui_InitGUIMenus_Run ( JMenuBar menuBar ) {
 	TSToolMenus.Run_JMenu.add( TSToolMenus.Run_SelectedCommandsIgnoreOutput_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Run_SelectedCommandsIgnoreOutput_String,this));
 	TSToolMenus.Run_SelectedCommandsIgnoreOutput_JMenuItem.setToolTipText("Run selected commands and ignore creating output files.");
-	TSToolMenus.Run_JMenu.add ( TSToolMenus.Run_CancelCommandProcessing_JMenuItem =
-		new SimpleJMenuItem(TSToolConstants.Run_CancelCommandProcessing_String,this));
-	TSToolMenus.Run_CancelCommandProcessing_JMenuItem.setToolTipText("Stop processing commands after the current command completes running.");
-	TSToolMenus.Run_JMenu.add ( TSToolMenus.Run_CancelCommandProcessingKill_JMenuItem =
-	new SimpleJMenuItem(TSToolConstants.Run_CancelCommandProcessingKill_String,this));
-	TSToolMenus.Run_CancelCommandProcessingKill_JMenuItem.setToolTipText("Interrupt processing immediately, may result in lost data.");
-	/* TODO smalers 2009-04-10 Evaluate whether to allow this - the problem is that although the command processor
-	 * is run on a thread, the individual commands are not and therefore if a process hangs,
-	 * it is hung in the processor and the Process instances cannot be retrieved
-    TSToolMenus.Run_JMenu.add ( TSToolMenus.Run_CancelAllCommandProcesses_JMenuItem =
-        new SimpleJMenuItem(TSToolConstants.Run_CancelAllCommandProcesses_String,this));
-             */
+	TSToolMenus.Run_JMenu.add ( TSToolMenus.Run_CancelCommandProcessing_WaitForCommand_JMenuItem =
+		new SimpleJMenuItem(TSToolConstants.Run_CancelCommandProcessing_WaitForCommand_String,this));
+	TSToolMenus.Run_CancelCommandProcessing_WaitForCommand_JMenuItem.setToolTipText("Stop processing commands after the current command completes running.");
+	TSToolMenus.Run_JMenu.add ( TSToolMenus.Run_CancelCommandProcessing_InterruptProcessor_JMenuItem =
+	new SimpleJMenuItem(TSToolConstants.Run_CancelCommandProcessing_InterruptProcessor_String,this));
+	TSToolMenus.Run_CancelCommandProcessing_InterruptProcessor_JMenuItem.setToolTipText("Interrupt processing immediately, may result in lost data.");
 	TSToolMenus.Run_JMenu.addSeparator();
 	TSToolMenus.Run_JMenu.add(TSToolMenus.Run_CommandsFromFile_JMenuItem =
 	    new SimpleJMenuItem ( TSToolConstants.Run_CommandsFromFile_String, this ));
@@ -11752,7 +11752,7 @@ throws Exception {
         // Process selected commands but ignore write* commands.
         uiAction_RunCommands ( false, false );
     }
-    else if (command.equals(TSToolConstants.Run_CancelCommandProcessing_String) ) {
+    else if (command.equals(TSToolConstants.Run_CancelCommandProcessing_WaitForCommand_String) ) {
         // Cancel the current processor.  This may take awhile to occur if the current command is doing a lot of work.
         ui_UpdateStatusTextFields ( 1, routine, "Processing is being canceled...", null, TSToolConstants.STATUS_CANCELING );
         ui_UpdateStatus ( true );
@@ -11762,12 +11762,12 @@ throws Exception {
         // Cancel all processes being run by commands - to fix hung processes.
         commandProcessor_CancelCommandProcessesExternal ();
     }
-    else if (command.equals(TSToolConstants.Run_CancelCommandProcessingKill_String) ) {
+    else if (command.equals(TSToolConstants.Run_CancelCommandProcessing_InterruptProcessor_String) ) {
         // Kill the current processor thread.
         Thread thread =  commandProcessor_GetCommandProcessorThread();
         Message.printStatus(1, routine, "Request to cancel processing, thread=" + thread);
         if ( thread != null ) {
-            ui_UpdateStatusTextFields ( 1, routine, "Processing is being canceled...", null, TSToolConstants.STATUS_CANCELING );
+            ui_UpdateStatusTextFields ( 1, routine, null, "Processing is being canceled...", TSToolConstants.STATUS_CANCELING );
             try {
             	// This may cause a cascade of InterruptedException:
             	// - more tricky if in a wait() or sleep, such as Wait() command
@@ -11779,9 +11779,14 @@ throws Exception {
             }
             ui_UpdateStatus ( true );
 	        commandProcessor_SetCommandProcessorThread(null);
-	        ui_UpdateStatusTextFields ( 1, routine, "Processing has been canceled.", null, TSToolConstants.STATUS_CANCELED );
+	        ui_UpdateStatusTextFields ( 1, routine, null, "Processing has been canceled.", TSToolConstants.STATUS_CANCELED );
 	        // Set the state on the run buttons so can run again:
 	        ui_CheckGUIState();
+        }
+        else {
+        	// Should not happen because thread is null and
+        	// 'Run / Cancel Command Processing (interrupt processor)' menu should be disabled.
+	        ui_UpdateStatusTextFields ( 1, routine, null, "Processing was previously canceled.", TSToolConstants.STATUS_CANCELED );
         }
     }
     else if ( command.equals(TSToolConstants.Run_CommandsFromFile_String) ) {
@@ -15399,7 +15404,7 @@ private void uiAction_ShowHelpAbout () {
     "TSTool - Time Series Tool " + IOUtil.getProgramVersion() + "\n" +
     " \n" +
     "TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-    "Copyright (C) 1997-2024 Colorado Department of Natural Resources\n" +
+    "Copyright (C) 1997-2025 Colorado Department of Natural Resources\n" +
     " \n" +
     "TSTool is free software:  you can redistribute it and/or modify\n" +
     "    it under the terms of the GNU General Public License as published by\n" +
