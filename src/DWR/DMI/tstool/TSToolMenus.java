@@ -65,7 +65,7 @@ public class TSToolMenus {
 		CommandsPopup_Run_SelectedCommandsCreateOutput_JMenuItem,
 		CommandsPopup_Run_SelectedCommandsIgnoreOutput_JMenuItem,
 
-		CommandsPopup_CancelCommandProcessing_JMenuItem,
+		CommandsPopup_CancelCommandProcessing_WaitForCommand_JMenuItem,
 
 		CommandsPopup_ConvertSelectedCommandsToComments_JMenuItem,
 		CommandsPopup_ConvertSelectedCommandsFromComments_JMenuItem,
@@ -667,9 +667,8 @@ public class TSToolMenus {
 		Run_AllCommandsIgnoreOutput_JMenuItem,
 		Run_SelectedCommandsCreateOutput_JMenuItem,
 		Run_SelectedCommandsIgnoreOutput_JMenuItem,
-		Run_CancelCommandProcessing_JMenuItem,
-		Run_CancelAllCommandProcesses_JMenuItem,
-		Run_CancelCommandProcessingKill_JMenuItem,
+		Run_CancelCommandProcessing_WaitForCommand_JMenuItem,
+		Run_CancelCommandProcessing_InterruptProcessor_JMenuItem,
 		Run_CommandsFromFile_JMenuItem,
 		Run_ProcessTSProductPreview_JMenuItem,
 		Run_ProcessTSProductOutput_JMenuItem;
