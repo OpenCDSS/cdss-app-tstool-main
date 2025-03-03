@@ -254,6 +254,8 @@ import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.CommandStatusUtil;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnits_JFrame;
+import RTi.Util.IO.FileManager;
+import RTi.Util.IO.FileManager_JFrame;
 import RTi.Util.IO.HTMLViewer;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList_CellRenderer;
@@ -1274,7 +1276,7 @@ private String commandList_DetermineNewCommandIndent(Command commandToInsert, Co
 		// No previous command.
 		return "";
 	}
-	String routine = getClass().getSimpleName() + "commandList_DetermineNewCommandIndent";
+	String routine = getClass().getSimpleName() + ".commandList_DetermineNewCommandIndent";
 	String prevIndentSpaces = "";
 	String indentSpaces = "";
 	// Get the previous command.
@@ -1918,62 +1920,62 @@ private void commandList_InsertCommandAt ( Command command, int pos ) {
 Insert a new command into the command list,
 utilizing the selected commands in the displayed list to determine the insert position.
 If any commands are selected in the GUI, the insert will occur before the selection.
-If none are selected, the insert will occur at the end of the list.
+If none are selected, the insert will occur at the end of the list (append after last command).
 For example this can occur in the following cases:
 <ol>
 <li>	The user is interacting with the command list via command menus.</li>
 <li>	Time series identifiers are being transferred to the commands area from the query results list.</li>
 </ol>
-The GUI should call this method WHENEVER a command is being inserted and is coded to respond to changes in the data model.
+The UI should call this method WHENEVER a command is being inserted and is coded to respond to changes in the data model.
 The indent for the inserted command is determined based on the previous command.
-@param inserted_command The command to insert.
+@param insertedCommand The command to insert.
 */
-private void commandList_InsertCommandBasedOnUI ( Command inserted_command ) {
+private void commandList_InsertCommandBasedOnUI ( Command insertedCommand ) {
 	String routine = getClass().getSimpleName() + ".insertCommand";
 
 	// Get the selected indices from the commands.
 	int selectedIndices[] = ui_GetCommandJList().getSelectedIndices();
 	int selectedSize = selectedIndices.length;
 
-	int insert_pos = 0;
+	int insertPos = 0;
 	if (selectedSize > 0) {
 		// Insert before the first selected item.
-		insert_pos = selectedIndices[0];
-		if ( insert_pos > 0 ) {
+		insertPos = selectedIndices[0];
+		if ( insertPos > 0 ) {
 			// Determine the indent from the previous command.
-			Command commandPrevious = (Command)this.__commands_JListModel.getElementAt(insert_pos - 1);
-			String indentSpaces = commandList_DetermineNewCommandIndent(inserted_command, commandPrevious);
+			Command commandPrevious = (Command)this.__commands_JListModel.getElementAt(insertPos - 1);
+			String indentSpaces = commandList_DetermineNewCommandIndent(insertedCommand, commandPrevious);
 			// Insert the command in the list model.
 			if ( indentSpaces.length() > 0 ) {
 				// Add the indent to the command string:
 				// - the number of spaces will be set by the following method
-				inserted_command.setCommandString(indentSpaces + inserted_command);
+				insertedCommand.setCommandString(indentSpaces + insertedCommand);
 			}
 		}
-		this.__commands_JListModel.insertElementAt ( inserted_command, insert_pos );
-		Message.printStatus(2, routine, "Inserting command \"" + inserted_command + "\" at [" + insert_pos + "]" );
+		this.__commands_JListModel.insertElementAt ( insertedCommand, insertPos );
+		Message.printStatus(2, routine, "Inserting command \"" + insertedCommand + "\" at [" + insertPos + "]" );
 	}
 	else {
 		// Insert position is one after the current size, 0 index.
-		insert_pos = this.__commands_JListModel.size();
-		if ( insert_pos > 0 ) {
+		insertPos = this.__commands_JListModel.size();
+		if ( insertPos > 0 ) {
 			// Determine the indent from the previous command.
-			Command commandPrevious = (Command)this.__commands_JListModel.getElementAt(insert_pos - 1);
+			Command commandPrevious = (Command)this.__commands_JListModel.getElementAt(insertPos - 1);
 			String indentSpaces = "";
 			if ( this.__commands_JListModel.size() > 0 ) {
-				indentSpaces = commandList_DetermineNewCommandIndent(inserted_command, commandPrevious);
+				indentSpaces = commandList_DetermineNewCommandIndent(insertedCommand, commandPrevious);
 			}
 			if ( indentSpaces.length() > 0 ) {
 				// Add the indent to the command string.
-				inserted_command.setCommandString(indentSpaces + inserted_command);
+				insertedCommand.setCommandString(indentSpaces + insertedCommand);
 			}
 		}
 	    // Insert at end of commands list.
-		this.__commands_JListModel.addElement ( inserted_command );
+		this.__commands_JListModel.addElement ( insertedCommand );
 	}
 	// Make sure that the list scrolls to the position that has been updated.
-	if ( insert_pos >= 0 ) {
-	    ui_GetCommandJList().ensureIndexIsVisible ( insert_pos );
+	if ( insertPos >= 0 ) {
+	    ui_GetCommandJList().ensureIndexIsVisible ( insertPos );
 	}
 	// Since an insert, mark the commands list as dirty.
 	//commandList_SetDirty(true);
@@ -2074,6 +2076,7 @@ This may be called when loading commands from a file or adding new commands whil
 @param commandString Command as a string, to parse and create a Command instance.
 @param createUnknownCommandIfNotRecognized Indicate if a generic command should be created if not recognized.
 For now this should generally be true, until all commands are recognized by the TSCommandFactory.
+@return a new command matching the command string, with no indentation (indentation must be set after creating the command)
 */
 private Command commandList_NewCommand ( String commandString, boolean createUnknownCommandIfNotRecognized ) {
 	int dl = 1;
@@ -2216,28 +2219,28 @@ private void commandList_RemoveCommandsBasedOnUI () {
 
 /**
 Replace a command with another.  This is used, for example, when converting commands to/from comments.
-@param old_command Old command to remove.
-@param new_command New command to insert in its place.
+@param oldCommand Old command to remove.
+@param newCommand New command to insert in its place.
 */
-private void commandList_ReplaceCommand ( Command old_command, Command new_command ) {
+private void commandList_ReplaceCommand ( Command oldCommand, Command newCommand ) {
 	// Probably could get the index passed in from list operations but
 	// do the lookup through the data model to be more independent.
-	int pos_old = this.__tsProcessor.indexOf(old_command);
-	if ( pos_old < 0 ) {
+	int posOld = this.__tsProcessor.indexOf(oldCommand);
+	if ( posOld < 0 ) {
 		// Can't find the old command so return.
 		return;
 	}
 	// Remove the old command.
-	this.__tsProcessor.removeCommandAt ( pos_old );
+	this.__tsProcessor.removeCommandAt ( posOld );
 	// Insert the new command at the same position.
 	// Handle the case that it is now at the end of the list.
-	if ( pos_old < this.__tsProcessor.size() ) {
+	if ( posOld < this.__tsProcessor.size() ) {
 		// Have enough elements to add at the requested position.
-		this.__tsProcessor.insertCommandAt( new_command, pos_old );
+		this.__tsProcessor.insertCommandAt( newCommand, posOld );
 	}
 	else {
 		// Add at the end.
-		this.__tsProcessor.addCommand ( new_command );
+		this.__tsProcessor.addCommand ( newCommand );
 	}
 	// Refresh the GUI.
 	//commandList_SetDirty ( true );
@@ -5108,8 +5111,8 @@ private void ui_CheckGUIState () {
 	if ( selectedCommandsSize > 0 ) {
 	    enabled = true;
 	}
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentRight_JMenuItem, enabled );
-	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_IndentLeft_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ShiftRight_JMenuItem, enabled );
+	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_ShiftLeft_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Edit_CutCommands_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.CommandsPopup_Cut_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Edit_CopyCommands_JMenuItem, enabled );
@@ -8861,10 +8864,10 @@ private void ui_InitGUIMenus_CommandsPopup () {
 	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_ShowCommandStatus_JMenuItem =
 		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_ShowCommandStatus_String, TSToolConstants.CommandsPopup_ShowCommandStatus_String, this ) );
 	TSToolMenus.Commands_JPopupMenu.addSeparator();
-	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_IndentRight_JMenuItem =
-		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_IndentRight_String, TSToolConstants.CommandsPopup_IndentRight_String, this ) );
-	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_IndentLeft_JMenuItem =
-		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_IndentLeft_String, TSToolConstants.CommandsPopup_IndentLeft_String, this ) );
+	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_ShiftRight_JMenuItem =
+		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_ShiftRight_String, TSToolConstants.CommandsPopup_ShiftRight_String, this ) );
+	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_ShiftLeft_JMenuItem =
+		new SimpleJMenuItem ( TSToolConstants.CommandsPopup_ShiftLeft_String, TSToolConstants.CommandsPopup_ShiftLeft_String, this ) );
 	TSToolMenus.Commands_JPopupMenu.addSeparator();
 	TSToolMenus.Commands_JPopupMenu.add( TSToolMenus.CommandsPopup_Edit_CommandWithErrorChecking_JMenuItem =
 		new SimpleJMenuItem(TSToolConstants.Edit_String, TSToolConstants.Edit_CommandWithErrorChecking_String, this ) );
@@ -9404,6 +9407,12 @@ private void ui_InitGUIMenus_Tools ( JMenuBar menuBar ) {
 
 	TSToolMenus.Tools_JMenu.addSeparator ();
 	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_Options_JMenuItem=new SimpleJMenuItem( TSToolConstants.Tools_Options_String, this ) );
+
+	TSToolMenus.Tools_JMenu.addSeparator ();
+	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_FileManager_JMenuItem=new SimpleJMenuItem( TSToolConstants.Tools_FileManager_String, this ) );
+	TSToolMenus.Tools_JMenu.add ( TSToolMenus.Tools_PluginManager_JMenuItem=new SimpleJMenuItem( TSToolConstants.Tools_PluginManager_String, this ) );
+	TSToolMenus.Tools_JMenu.add (
+		TSToolMenus.Tools_TSToolInstallationManager_JMenuItem=new SimpleJMenuItem( TSToolConstants.Tools_TSToolInstallationManager_String, this ) );
 
 	// View Log File.
 
@@ -10388,12 +10397,12 @@ throws Exception {
 
 	// Edit menu actions (in order of menu).
 
-    if ( command.equals(TSToolConstants.CommandsPopup_IndentRight_String) ) {
-		// Indent selected commands.
+    if ( command.equals(TSToolConstants.CommandsPopup_ShiftRight_String) ) {
+		// Shift selected commands to the right.
 		uiAction_IndentCommands( 1 );
 	}
-    else if ( command.equals(TSToolConstants.CommandsPopup_IndentLeft_String) ) {
-		// Indent selected commands.
+    else if ( command.equals(TSToolConstants.CommandsPopup_ShiftLeft_String) ) {
+		// Shift selected commands to the left.
 		uiAction_IndentCommands( -1 );
 	}
     else if ( command.equals(TSToolConstants.Edit_CutCommands_String) ) {
@@ -10481,7 +10490,9 @@ throws Exception {
         uiAction_ShowDataUnits();
     }
     else if ( command.equals(TSToolConstants.View_CloseAllViewWindows_String) ) {
-        // Show the datastores.
+        // Close all view data viewing windows:
+    	// - everything except the main TSTool window
+    	// - this is handy if a bunch of graphs are displayed from a workflow
         TSViewJFrame.getTSViewWindowManager().closeAll();
     }
     else {
@@ -12458,6 +12469,42 @@ throws Exception {
 			this.__query_TableModel).setWDIDLength(StringUtil.atoi(__props.getValue("HydroBase.WDIDLength")));
 		}
 	}
+	else if ( o == TSToolMenus.Tools_FileManager_JMenuItem ) {
+		// Show the file manager:
+		// - for now allow multiple windows to be shown
+		try {
+			FileManager fileManager = FileManager.getInstance();
+			new FileManager_JFrame ( this, "File Manager", fileManager );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error displaying file manager (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
+	else if ( o == TSToolMenus.Tools_PluginManager_JMenuItem ) {
+		// Show the plugin manager:
+		// - for now allow multiple windows to be shown
+		try {
+			TSToolPluginManager pluginManager = TSToolPluginManager.getInstance ( true );
+			new TSToolPluginManager_JFrame ( this, "TSTool Plugin Manager", pluginManager );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error displaying TSTool plugin manager (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
+	else if ( o == TSToolMenus.Tools_TSToolInstallationManager_JMenuItem ) {
+		// Show the installation manager:
+		// - for now allow multiple windows to be shown
+		try {
+			TSToolInstallationManager installManager = TSToolInstallationManager.getInstance ( true );
+			new TSToolInstallationManager_JFrame ( this, "TSTool Installation Manager", installManager );
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error displaying TSTool installation manager (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
+		}
+	}
 	else if ( o == TSToolMenus.Tools_ViewLogFile_Startup_JMenuItem ) {
 		// View the startup log file.
 		String logFile = session.getUserLogFile();
@@ -12847,47 +12894,73 @@ Each Command instance is retrieved, its command string is taken from the Command
 and a new GenericCommand is create, and the original Command is replaced in the list.
 When converting from commands, the GenericCommand is retrieved, a new Command instance is created,
 the original Command is replaced.
-@param to_comment If true, convert commands to comments, if false, from comments.
+@param toComment If true, convert commands to comments, if false, from comments.
 */
-private void uiAction_ConvertCommandsToComments ( boolean to_comment ) {
-	int selected_indexes[] = ui_GetCommandJList().getSelectedIndices();
-	int selected_size = JGUIUtil.selectedSize ( ui_GetCommandJList() );
-	String old_command_string = null;
-	Command old_command = null;
-	Command new_command = null;
+private void uiAction_ConvertCommandsToComments ( boolean toComment ) {
+	int selectedIndexes[] = ui_GetCommandJList().getSelectedIndices();
+	int selectedSize = JGUIUtil.selectedSize ( ui_GetCommandJList() );
+	String oldCommandString = null;
+	Command oldCommand = null;
+	Command newCommand = null;
 	// It is OK to loop through each item below.
 	// Even though the items in the data model will change, if a command is replaced each time,
 	// the indices will still be relevant.
-	for ( int i = 0; i < selected_size; i++ ) {
-		old_command = (Command)this.__commands_JListModel.get(selected_indexes[i]);
-		old_command_string = (String)old_command.toString();
-		if ( to_comment ) {
-			// Replace the current command with a new string that has the comment character.
-			new_command = commandList_NewCommand(
-				"# " + old_command_string,	// New command as comment.
+	for ( int i = 0; i < selectedSize; i++ ) {
+		oldCommand = (Command)this.__commands_JListModel.get(selectedIndexes[i]);
+		oldCommandString = oldCommand.toString();
+		if ( toComment ) {
+			// Convert the command to a comment:
+			// - replace the current command with a new string that has the comment character
+			int indentNum = 0;
+			String indentSpaces = "";
+			for ( int ichar = 0; ichar < oldCommandString.length(); ichar++ ) {
+				if ( oldCommandString.charAt(ichar) == ' ' ) {
+					++indentNum;
+				}
+				else {
+					break;
+				}
+			}
+			newCommand = commandList_NewCommand (
+				"# " + oldCommandString, // New command as comment (indent is handled below).
 				true );	// Create the command even if not recognized.
+			if ( indentNum > 0 ) {
+				// Set the indented command string.
+				indentSpaces = StringUtil.formatString(" ", "%" + indentNum + "." + indentNum + "s");
+				newCommand.setCommandString(indentSpaces + "# " + oldCommandString.trim());
+			}
 			// Check the status so that it will have a valid status and not "unknown", which triggers
 			// a decorator to be displayed (no reason to show decorator for comment).
 	        try {
-	            new_command.checkCommandParameters(null, "", 3);
+	            newCommand.checkCommandParameters(null, "", 3);
 	        }
 	        catch ( Exception e ) {
 	            // Should not happen.
 	        }
-			commandList_ReplaceCommand ( old_command, new_command );
+			commandList_ReplaceCommand ( oldCommand, newCommand );
 		}
 		else {
-		    // Remove comment.
-			if ( old_command_string.startsWith("#") ) {
-				new_command = commandList_NewCommand(
-					old_command_string.substring(1).trim(),	// New command as comment.
+		    // Convert the command from a comment:
+			// - trim because may be indented
+			// - keep the indent before the hash
+			if ( oldCommandString.trim().startsWith("#") ) {
+				String indentSpaces = "";
+				int hashPos = oldCommandString.indexOf("#");
+				newCommand = commandList_NewCommand (
+					oldCommandString.trim().substring(1).trim(), // New command as comment (indent is handled below).
 					true );	// Create the command even if not recognized.
-				commandList_ReplaceCommand ( old_command, new_command );
+				if ( hashPos > 0 ) {
+					// Handle the indentation:
+					// - trim the # command, remove the hash character, trim again, and prepend with the original indent
+					indentSpaces = StringUtil.formatString(" ", "%" + hashPos + "." + hashPos + "s");
+					newCommand.setCommandString(indentSpaces + oldCommandString.trim().substring(1).trim());
+				}
+				commandList_ReplaceCommand ( oldCommand, newCommand );
 			}
 		}
 	}
 	// Mark the commands as dirty.
-	if ( selected_size > 0 ) {
+	if ( selectedSize > 0 ) {
 		commandList_SetDirty ( true );
 	}
 }
@@ -13380,10 +13453,10 @@ private void uiAction_GetTimeSeriesListClicked() {
     // Call the following to help clear out an initial message.
     ui_ClearDataStoreInitializing();
     if ( selectedDataStore != null ) {
-        Message.printStatus ( 1, routine, "Getting time series list from " + selectedDataStore.getName() + " datastore..." );
+        Message.printStatus ( 1, routine, "Getting time series list from " + selectedDataStore.getName() + " datastore." );
     }
     else {
-        Message.printStatus ( 1, routine, "Getting time series list from " + selectedInputType + " input type..." );
+        Message.printStatus ( 1, routine, "Getting time series list from " + selectedInputType + " input type." );
     }
 
 	// Verify that the input filters have valid data:
@@ -13854,7 +13927,7 @@ private void uiAction_ImportConfiguration ( String configFilePath ) {
 }
 
 /**
-Indent the selected commands in the commands list.
+Shift the selected commands in the commands list by increasing or decreasing the indent spaces in front of the command.
 @param indentDirection -1 to indent to the left, 1 to indent to the right
 */
 private void uiAction_IndentCommands ( int indentDirection ) {
@@ -15870,7 +15943,7 @@ private void uiAction_ShowResultsObject ( String selected ) {
         	// Format using Jackson.
         	ObjectMapper mapper = new ObjectMapper();
         	// Get the default pretty printer and set the indent:
-        	// - use two spaces to indent because
+        	// - use two spaces to minimize width for deep objects
         	DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", DefaultIndenter.SYS_LF);
         	DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
         	printer.indentObjectsWith(indenter);

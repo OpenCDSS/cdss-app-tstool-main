@@ -4,19 +4,19 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    TSTool is distributed in the hope that it will be useful,
+TSTool is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -143,8 +143,8 @@ public class TSToolConstants {
 
 	CommandsPopup_ShowCommandStatus_String = "Show Command Status (Success/Warning/Failure)",
 
-	CommandsPopup_IndentRight_String = "> Indent Right",
-	CommandsPopup_IndentLeft_String = "< Indent Left",
+	CommandsPopup_ShiftRight_String = "> Shift Right",
+	CommandsPopup_ShiftLeft_String = "< Shift Left",
 
 	// Menu: File
 
@@ -709,17 +709,26 @@ public class TSToolConstants {
 		Tools_Datastore_String = "Datastore",
 			Tools_Datastore_ERDiagram_String = "Entity Relationship Diagram (under development)",
 		Tools_DateTimeTools_String = "Date/time Tools",
+		// ---------------
 		Tools_Report_String = "Report",
 			Tools_Report_DataCoverageByYear_String = "Data Coverage by Year...",
 			Tools_Report_DataLimitsSummary_String = "Data Limits Summary...",
 			Tools_Report_MonthSummaryDailyMeans_String = "Month Summary (Daily Means)...",
 			Tools_Report_MonthSummaryDailyTotals_String =	"Month Summary (Daily Totals)...",
 			Tools_Report_YearToDateTotal_String =	"Year to Date Total... <Daily or real-time CFS Only!>",
+		// ---------------
 		Tools_NWSRFS_String = "NWSRFS",
 			Tools_NWSRFS_ConvertNWSRFSESPTraceEnsemble_String = "Convert NWSRFS ESP Trace Ensemble File to Text...",
 			Tools_NWSRFS_ConvertJulianHour_String = "Convert Julian Hour...",
+		// ---------------
 		Tools_SelectOnMap_String = "Select on Map",
+		// ---------------
 		Tools_Options_String = "Options...",
+		// ---------------
+		Tools_FileManager_String = "File Manager...",
+		Tools_PluginManager_String = "Plugin Manager...",
+		Tools_TSToolInstallationManager_String = "TSTool Installation Manager...",
+		// ---------------
 		Tools_ViewLogFile_Startup_String = "Diagnostics - View Log File (Startup)...",
 
 	// Menu: Help
