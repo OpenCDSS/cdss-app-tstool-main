@@ -4,19 +4,19 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    TSTool is distributed in the hope that it will be useful,
+TSTool is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -36,7 +36,6 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 /**
-Class to maintain TSTool session information such as the history of command files opened.
 Class to maintain TSTool session information such as the history of command files opened.
 A singleton instance should be retrieve using the getInstance() method.
 */
@@ -136,7 +135,7 @@ private boolean checkHistoryFile() {
 	// If the file still does not exist, create an empty file.
 	if ( !f.exists() ) {
 		// The following will get overwritten by writeHistory()
-		StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
+		StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version." );
 		try {
 			IOUtil.writeFile ( f.getPath(), sb.toString() );
 			Message.printStatus(2,routine,"Create empty history file \"" + f + "\"" );
@@ -237,7 +236,7 @@ public boolean createUserConfigFile ( ) {
 	}
 	try {
 		String nl = System.getProperty("line.separator");
-		StringBuilder sb = new StringBuilder ( "# TSTool configuration file containing user settings, shared between TSTool versions" + nl );
+		StringBuilder sb = new StringBuilder ( "# TSTool configuration file containing user settings, shared between TSTool versions." + nl );
 		sb.append("# This file indicates which datastore software features should be enabled." + nl );
 		sb.append("# Disabling datastore types that are not used can improve TSTool performance and simplifies the user interface." + nl );
 		sb.append("# Refer to the TSTool.cfg file under the software installation folder for global configuration properties." + nl );
@@ -1150,7 +1149,7 @@ Write the history of commands files that have been opened.
 */
 private void writeHistory ( List<String> history ) {
 	String nl = System.getProperty("line.separator");
-	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version" );
+	StringBuilder sb = new StringBuilder ( "# TSTool command file history, most recent at top, shared between similar TSTool major version." );
 
 	String userTstoolFolder = getUserTstoolFolder();
 	if ( userTstoolFolder.equals("/") || userTstoolFolder.equals("/root") ) {
