@@ -157,7 +157,9 @@ private boolean checkHistoryFile() {
 private boolean checkUIStateFile() {
 	String routine = getClass().getSimpleName() + ".checkUIStateFile";
 	String uiStateFile = getUIStateFile();
-	Message.printStatus(2, routine, "UI state file is \"" + uiStateFile + "\"");
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "UI state file is \"" + uiStateFile + "\"");
+	}
 	File f = new File(uiStateFile);
 	File folder = f.getParentFile();
 	if ( !folder.exists() ) {

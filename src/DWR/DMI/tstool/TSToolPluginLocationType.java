@@ -30,6 +30,11 @@ in the TSTool software files or user files.
 public enum TSToolPluginLocationType {
 
 	/**
+	 * Location of the plugin files is unknown.
+	 */
+	UNKNOWN ("Unknown"),
+
+	/**
 	 * Location of the plugin files is with TSTool installation files.
 	 */
 	TSTOOL_FILES ("TSToolFiles"),

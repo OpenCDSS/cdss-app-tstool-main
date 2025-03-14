@@ -67,6 +67,11 @@ public class TSToolPluginManager_JPanel extends JPanel {
 	Properties for how the worksheet should display.
 	*/
 	private PropList props = null;
+	
+	/**
+	 * Table model for the worksheet, needed as data here to allow getting values for manipulation.
+	 */
+	TSToolPluginManager_TableModel tableModel = null;
 
 	/**
 	Constructor.  Set up the worksheet with a default set of properties:
@@ -116,6 +121,14 @@ public class TSToolPluginManager_JPanel extends JPanel {
 
 		setupUI();
 	}
+	
+	/**
+	 * Return the plugin for the row index.
+	 * @return the plugin for the row index.
+	 */
+	public TSToolPlugin getPlugin ( int row ) {
+		return this.tableModel.getPlugin ( row );
+	}
 
 	/**
 	Returns the number of columns in the worksheet.
@@ -136,7 +149,20 @@ public class TSToolPluginManager_JPanel extends JPanel {
 		if ( this.worksheet == null ) {
 			return 0;
 		}
-		return  this.worksheet.getRowCount();
+		return this.worksheet.getRowCount();
+	}
+
+	/**
+	Returns the indices of selected rows in the worksheet.
+	@return the indices of selected rows in the worksheet.
+	*/
+	public int [] getWorksheetSelectedRows () {
+		if ( this.worksheet == null ) {
+			return new int [0];
+		}
+		else {
+			return this.worksheet.getSelectedRows();
+		}
 	}
 
 	/**
@@ -149,10 +175,10 @@ public class TSToolPluginManager_JPanel extends JPanel {
 	
 		JScrollWorksheet jsw = null;
 		try {
-			TSToolPluginManager_TableModel tm = new TSToolPluginManager_TableModel ( this.pluginManager );
-			TSToolPluginManager_CellRenderer cr = new TSToolPluginManager_CellRenderer(tm);
+			this.tableModel = new TSToolPluginManager_TableModel ( this.pluginManager );
+			TSToolPluginManager_CellRenderer cr = new TSToolPluginManager_CellRenderer(this.tableModel);
 	
-			jsw = new JScrollWorksheet(cr, tm, this.props);
+			jsw = new JScrollWorksheet(cr, this.tableModel, this.props);
 			this.worksheet = jsw.getJWorksheet();
 			this.widths = cr.getColumnWidths();
 		}

@@ -5451,6 +5451,43 @@ private void ui_CheckGUIState_RunMenu ( int commandListSize, int selectedCommand
 }
 
 /**
+ * Check the TSTool environment, such as whether plugins are properly installed.
+ */
+private void ui_CheckTSToolInstallation() {
+	// Check to see whether any of the best compatible plugins need to be updated to version folders.
+	TSToolPluginManager pluginManager = TSToolPluginManager.getInstance();
+	TSToolSession session = TSToolSession.getInstance();
+	
+	StringBuilder b = new StringBuilder();
+	boolean introAdded = false;
+	for ( TSToolPlugin plugin : pluginManager.getPlugins() ) {
+		if ( !plugin.getUsesVersionFolder() ) {
+			if ( !introAdded ) {
+				b.append("The following plugins do not use a version folder.\n");
+				b.append("Plugin version folders are standard as of TSTool 15 and allow multiple plugin versions to be installed at the same time.\n");
+				b.append("Only the best compatible version is loaded for any TSTool version.\n");
+				b.append("Older plugin installers do not include the version folder but new installers include the folder.\n" );
+				b.append("For example, the plugin should be installed as follows:\n\n");
+				b.append("   " + session.getUserPluginsFolder() + File.separator + "\n");
+				b.append("     " + plugin.getName() + File.separator + "\n");
+				b.append("       " + plugin.getVersion() + File.separator + "\n");
+				b.append("         " + plugin.getPluginJarFile().getName() + "\n");
+				b.append("         dep" + File.separator + "   (dependencies if used)\n\n");
+				b.append("Use the 'Tools / Plugin Manager...' menu to fix.\n\n");
+				introAdded = true;
+			}
+			b.append ( "    Plugin: " + plugin.getName() + ", version: " + plugin.getVersion() + "\n" );
+		}
+	}
+	if ( b.length() > 0 ) {
+		b.append ( "\nThis warning will be shown each time that TSTool starts until the above is resolved.\n" );
+		new ResponseJDialog ( this, "TSTool Installation Check",
+			b.toString(),
+			ResponseJDialog.OK).response();
+	}
+}
+
+/**
  * This function can be called to clear the initial label that is displayed.
  * TODO smalers 2015-02-15 Need a graceful way to hide the following but set text to blank as work-around:
  * - otherwise, some of the text shows through behind the datastore panel
@@ -7282,6 +7319,9 @@ private void ui_InitGUI ( PropList initProps ) {
 		// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
 		this.__dataStore_JTabbedPane.setSelectedIndex(0);
 	}
+	
+	// Check the TSTool plugins and other environment.
+	ui_CheckTSToolInstallation();
 }
 
 /**
@@ -12484,8 +12524,9 @@ throws Exception {
 	else if ( o == TSToolMenus.Tools_PluginManager_JMenuItem ) {
 		// Show the plugin manager:
 		// - for now allow multiple windows to be shown
+		// - use the data that have previously been loaded so consistent with the application state
 		try {
-			TSToolPluginManager pluginManager = TSToolPluginManager.getInstance ( true );
+			TSToolPluginManager pluginManager = TSToolPluginManager.getInstance ();
 			new TSToolPluginManager_JFrame ( this, "TSTool Plugin Manager", pluginManager );
 		}
 		catch ( Exception e ) {

@@ -33,24 +33,30 @@ import RTi.Util.String.StringUtil;
 public class TSToolPluginComparator implements Comparator<TSToolPlugin> {
 
 	/**
-	 * Whether to sort ascending (default is true).
+	 * Whether to sort the name ascending (default is true, alphabetical).
 	 */
-	private boolean doAscending = true;
+	private boolean sortNameAscending = true;
+
+	/**
+	 * Whether to sort the version ascending (default is false, newest on top).
+	 */
+	private boolean sortVersionAscending = false;
 	
 	/**
 	 * Constructor.
-	 * Default sorting is ascending with version with newest last.
+	 * Default sorting is name ascending (alphabetical) with newest version first (descending).
 	 */
 	public TSToolPluginComparator () {
-		this.doAscending = true;
 	}
 
 	/**
 	 * Constructor.
-	 * @param doAscending if true, sort ascending; if false, sort descending
+	 * @param sortNameAscending if true, sort the name ascending; if false, sort descending
+	 * @param softVersionAscending if true, sort the version ascending; if false, sort descending
 	 */
-	public TSToolPluginComparator ( boolean doAscending ) {
-		this.doAscending = doAscending;
+	public TSToolPluginComparator ( boolean sortNameAscending, boolean sortVersionAscending ) {
+		this.sortNameAscending = sortNameAscending;
+		this.sortVersionAscending = sortVersionAscending;
 	}
 
 	/**
@@ -62,22 +68,35 @@ public class TSToolPluginComparator implements Comparator<TSToolPlugin> {
 	 * @param pluginB the second TSTool plugin to compare
 	 */
 	public int compare ( TSToolPlugin pluginA, TSToolPlugin pluginB ) {
-		String versionA = pluginA.getVersion();
-		String versionB = pluginB.getVersion();
-		int result = 0;
-		// First do an ascending comparison.
-		if ( StringUtil.compareSemanticVersions(versionA, "<", versionB, -1 ) ) {
-			result = -1;
-		}
-		else if ( StringUtil.compareSemanticVersions(versionA, ">", versionB, -1 ) ) {
-			result = 1;
+		// First sort by plugin name.
+		String nameA = pluginA.getName();
+		String nameB = pluginB.getName();
+		int result = nameA.compareTo(nameB);
+		if ( result == 0 ) {
+			// Then sort by plugin version in the same name.
+			String versionA = pluginA.getVersion();
+			String versionB = pluginB.getVersion();
+			result = 0;
+			// First do an ascending comparison.
+			if ( StringUtil.compareSemanticVersions(versionA, "<", versionB, -1 ) ) {
+				result = -1;
+			}
+			else if ( StringUtil.compareSemanticVersions(versionA, ">", versionB, -1 ) ) {
+				result = 1;
+			}
+			else {
+				result = 0;
+			}
+			if ( ! this.sortVersionAscending ) {
+				// Reverse the order.
+				result *= -1;
+			}
 		}
 		else {
-			result = 0;
-		}
-		if ( ! this.doAscending ) {
-			// Reverse the order.
-			result *= -1;
+			if ( ! this.sortNameAscending ) {
+				// Reverse the order.
+				result *= -1;
+			}
 		}
 
 		return result;
