@@ -212,36 +212,6 @@ private static String __commandFile = null;
  */
 private static String titleMod = "";
 
-/**
- * Find the list of plugin jar files using new (TSTool 12.07.00 and later approach).
- * Plugins may correspond to datastores or may provide one or more commands that are not related to a datastore.
- * This simply finds candidate jar files in the software installation 'plugins' folder and
- * the user files '.tstool/##/plugions' folder.
- * The loadPlugin* methods then examine the jar files and use if appropriate.
- * @param session TSTool session.
- * @param pluginJarList list of full path to plugin jar file (will be appended to).
- */
-private static void findPluginJarFiles ( TSToolSession session, List<String> pluginJarList ) {
-	String routine = TSToolMain.class.getSimpleName() + ".findPluginJarFiles";
-	// Get a list of jar files in the user plugins folder (will take precedent over installation files).
-	File userPluginsFolder = new File(session.getUserPluginsFolder());
-	Message.printStatus(2, routine, "Finding plugin jar files in user plugins folder \"" + userPluginsFolder + "\"");
-	try {
-		getMatchingFilenamesInTree ( pluginJarList, userPluginsFolder, ".*.jar" );
-	}
-	catch ( Exception e ) {
-		// Should not happen.
-	}
-	// Get a list of jar files in the software installation plugins folder.
-	File installPluginsFolder = new File(session.getInstallPluginsFolder());
-	Message.printStatus(2, routine, "Finding plugin jar files in TSTool software installation plugins folder \"" + installPluginsFolder + "\"");
-	try {
-		getMatchingFilenamesInTree ( pluginJarList, installPluginsFolder, ".*.jar" );
-	}
-	catch ( Exception e ) {
-		// Should not happen.
-	}
-}
 
 /**
  * Find the list of plugin jar files using old (pre-TSTool 12.06.00 approach).
@@ -359,37 +329,6 @@ private static int getMajorVersion () {
 }
 
 /**
-Visits all files and directories under the given directory and if
-the file matches the pattern it is added to the file list.
-All commands file that end with ".jar" will be added to the list.
-@param fileList List of command files that are matched, to be appended to.
-@param path Folder in which to start searching for command files.
-@param pattern Pattern to match when searching files, for example "*.jar".
-@throws IOException
- */
-private static void getMatchingFilenamesInTree ( List<String> fileList, File path, String pattern )
-throws IOException {
-    //String routine = TSTool.class.getSimpleName() + ".getMatchingFilenamesInTree";
-    if (path.isDirectory()) {
-        String[] children = path.list();
-        for (int i = 0; i < children.length; i++) {
-        	// Recursively call with full path using the directory and child name.
-        	getMatchingFilenamesInTree(fileList,new File(path,children[i]), pattern);
-        }
-    }
-    else {
-        // Add to list if command file is valid.
-        String pathName = path.getName();
-    	//Message.printStatus(2, routine, "Checking path \"" + pathName + "\" against \"" + pattern + "\"" );
-    	// Do comparison on file name without directory.
-        if( pathName.matches( pattern ) ) {
-        	//Message.printStatus(2, "", "File matched: \"" + path + "\".");
-        	fileList.add(path.toString());
-        }
-    }
-}
-
-/**
 Return a TSTool property.  The properties are defined in the TSTool configuration file.
 @param propertyExp name of property to look up as a Java regular expression.
 @return the value(s) for a TSTool configuration property, or null if a properties file does not exist.
@@ -499,16 +438,16 @@ public static boolean isBatchServer() {
 Indicate whether TSTool is running in HTTP server mode.  This feature is under development.
 @return true if running in server mode.
 */
-public static boolean isHttpServer()
-{	return __isHttpServer;
+public static boolean isHttpServer() {
+	return __isHttpServer;
 }
 
 /**
 Indicate whether TSTool is running in REST API server mode.  This feature is under development.
 @return true if running in server mode.
 */
-public static boolean isRestServer()
-{	return __isRestletServer;
+public static boolean isRestServer() {
+	return __isRestletServer;
 }
 
 /**
@@ -526,6 +465,7 @@ will ensure that it continues to work (prototyped in TSTool 12.06.00 and earlier
 */
 private static void loadPlugins (
 	TSToolSession session,
+	TSToolPluginManager pluginManager,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
 	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
@@ -534,7 +474,7 @@ private static void loadPlugins (
 	// First use the old approach (TSTool 12.06.00 and earlier):
 	// - use an empty list so that this can be phased out
 	final List<String> pluginJarListOld = new ArrayList<>();
-	/* TODO smalers 2025-02-24 remove whne tested out.
+	/* TODO smalers 2025-02-24 remove when tested out.
 	Message.printStatus(2, routine, "Start loading plugin datastores and commands using the old approach...");
 	findPluginDataStoreJarFilesOld ( session, pluginJarListOld );
 	loadPluginDataStoresOld("", session, pluginJarListOld, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
@@ -542,9 +482,13 @@ private static void loadPlugins (
 	*/
 	// Next use the new approach (TSTool 12.07.00 and later):
 	// - this is the current approach
-	final List<String> pluginJarListNew = new ArrayList<>();
+	// - only get the list of best available plugins for TSTool (the PluginManager lists all)
+	//final List<String> pluginJarListNew = new ArrayList<>();
 	Message.printStatus(2, routine, "Start loading plugin datastores and commands...");
-	findPluginJarFiles ( session, pluginJarListNew );
+	boolean doListAll = false;
+	// Old code before TSTool 15.
+	//pluginManager.findPluginJarFiles ( session, doListAll, pluginJarListNew );
+	List<File> pluginJarListNew = pluginManager.getAllBestCompatiblePluginJarFiles ( true );
 	loadPlugins ( session, pluginJarListNew, pluginDataStoreList, pluginDataStoreFactoryList, pluginCommandList );
 	Message.printStatus ( 2, routine, "...end loading plugin datastores and commands." );
 
@@ -555,16 +499,20 @@ private static void loadPlugins (
 	// - check both the old and new lists
 	// - only add files and associated "dep" folders once
 	List<String> pluginClasspathList = new ArrayList<>();
-	List<String> checkList = null;
+	List<File> checkList = null;
 	for ( int i = 0; i < 2; i++ ) {
 		if ( i == 0 ) {
-			checkList = pluginJarListOld;
+			//checkList = pluginJarListOld;
+			// No longer used.
+			continue;
 		}
 		else {
 			checkList = pluginJarListNew;
 		}
-		for ( String jarFile : checkList ) {
-			File f = new File(jarFile);
+		//for ( String jarFile : checkList ) {
+		for ( File f : checkList ) {
+			String jarFile = f.getAbsolutePath();
+			//File f = new File(jarFile);
 			if ( f.exists() ) {
 				// The jar file exists:
 				// - add to the list if it is not already in the list
@@ -600,7 +548,8 @@ private static void loadPlugins (
  */
 private static void loadPlugins (
 	TSToolSession session,
-	List<String> pluginJarList,
+	//List<String> pluginJarList,
+	List<File> pluginJarList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreList,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryList,
 	@SuppressWarnings("rawtypes") List<Class> pluginCommandList ) {
@@ -615,7 +564,9 @@ private static void loadPlugins (
 	// Create a separate class loader for each plugin to maintain separation.
 	// From this point forward the jar file path does not care if in the user folder or TSTool installation folder.
 	Message.printStatus(2, routine, "Trying to load plugin datastores from " + pluginJarList.size() + " candidate jar files.");
-	for ( String pluginJar : pluginJarList ) {
+	//for ( String pluginJar : pluginJarList ) {
+	for ( File f : pluginJarList ) {
+		String pluginJar = f.getAbsolutePath();
 		// TODO figure out if only the top level datastore Jar file should be included.
 		if ( Message.isDebugOn ) {
 			Message.printStatus(2, routine, "Trying to load plugin datastores from \"" + pluginJar + "\"");
@@ -627,7 +578,7 @@ private static void loadPlugins (
 			// Also add all the jar files in the "/dep" folder:
 			// - tried to figure out how to use MANIFEST-MF Class-Path property but seemed confusing
 			//   so just add all jar files that are found
-			File f = new File(pluginJar);
+			//File f = new File(pluginJar);
 			List<File> depJarFiles = IOUtil.getFilesMatchingPattern(f.getParent() + File.separator + "dep", "jar", false);
 			URL [] dataStoreJarURLs2 = new URL[1 + depJarFiles.size()];
 			dataStoreJarURLs2[0] = dataStoreJarURLs[0];
@@ -645,10 +596,10 @@ private static void loadPlugins (
 		// - this expects the datastore to be in the jar file with class name XXXXXDataStore
 		// - TODO smalers 2020-07-26 using different class loaders for datastore and command classes causes an issue later
 		//PluginDataStoreClassLoader pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs );
-		PluginDataStoreClassLoader pcl = null;
+		TSToolPluginClassLoader pcl = null;
 		boolean useChildClassLoader = false;
 		// Create a class loader for plugins.
-		pcl = new PluginDataStoreClassLoader ( dataStoreJarURLs, TSToolMain.class.getClassLoader(), useChildClassLoader );
+		pcl = new TSToolPluginClassLoader ( dataStoreJarURLs, TSToolMain.class.getClassLoader(), useChildClassLoader );
 		@SuppressWarnings("rawtypes")
 		List<Class> pluginDataStoreList1 = null;
 		@SuppressWarnings("rawtypes")
@@ -820,6 +771,15 @@ public static void main ( String args[] ) {
 	initializeAfterHomeIsKnown ();
 
 	Message.printStatus ( 1, routine, "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
+	
+	// Get the TSToolPloginManager:
+	// - this is a singleton that is used here and also the 'Tools / Plugin Manager...' UI menu.
+	// - this is the newer way of handling plugins
+	// - prior to TSTool 15, only one version of a plugin could exist under the 'plugins' folder
+	// - as of 15, multiple versions can exist and only the best compatible will be loaded
+	// - until fully implemented, the manager is redundant with some other code
+	
+	TSToolPluginManager pluginManager = TSToolPluginManager.getInstance ( true );
 
 	// Load plugin datastore classes.
 
@@ -827,9 +787,10 @@ public static void main ( String args[] ) {
 	List<Class> pluginDataStoreClasses = new ArrayList<>();
 	@SuppressWarnings("rawtypes")
 	List<Class> pluginDataStoreFactoryClasses = new ArrayList<>();
+	@SuppressWarnings("rawtypes")
 	List<Class> pluginCommandClasses = new ArrayList<>();
 	try {
-		loadPlugins ( session, pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
+		loadPlugins ( session, pluginManager, pluginDataStoreClasses, pluginDataStoreFactoryClasses, pluginCommandClasses );
 	}
 	catch ( Throwable e ) {
 		Message.printWarning ( 1, routine, "Error loading plugin datastores.  See log file for details." );

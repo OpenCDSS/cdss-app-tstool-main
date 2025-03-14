@@ -1,22 +1,22 @@
-// PluginDataStoreClassLoader - load plugin datastore and command classes.
+// TSToolPluginClassLoader - load TSTool plugin datastore and command classes.
 
 /* NoticeStart
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    TSTool is distributed in the hope that it will be useful,
+TSTool is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -35,7 +35,7 @@ import java.util.jar.Manifest;
 import RTi.Util.Message.Message;
 
 /**
- * Load plugin datastore classes.
+ * Load TSTool plugin classes, including datastore integration and command classes.
  * This loader loads the datastore class as an entry point into the plugin datastores integrated with TSTool.
  * Once the datastores have been loaded, other classes will be loaded, such as low-level package to read/write the database.
  * Java class loaders, including URLClassLoader, first ask to load classes from their parent class loader,
@@ -47,7 +47,7 @@ import RTi.Util.Message.Message;
  * @author sam
  *
  */
-public class PluginDataStoreClassLoader extends URLClassLoader {
+public class TSToolPluginClassLoader extends URLClassLoader {
 
 	private ChildClassLoader childClassLoader = null;
 
@@ -55,50 +55,51 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	 * TODO smalers 2020-07-26 this is new code to try to overcome class cast exception for same calls in different loaders.
 	 * Construct the class loader with a list of jar files that are candidates to load,
 	 * and specify a parent class loader.
-	 * @param dataStoreJarList list of jar files to load
+	 * @param pluginJarList list of plugin jar files to load
 	 * @param prerent class loader
 	 * @param useChildClassLoader if true, use the child class loader before giving the parent class loader a chance to load a class;
 	 * if false, let the parent load the class first, which is the typical default.
 	 */
-	public PluginDataStoreClassLoader ( URL [] dataStoreJarList, ClassLoader parent, boolean useChildClassLoader ) {
+	public TSToolPluginClassLoader ( URL [] pluginJarList, ClassLoader parent, boolean useChildClassLoader ) {
 		// Using URLClassLoader for the base class should result in the parent (application) class
 		// loader being used for for any other class loads, then this class.
 		// This won't work for new classes that are not in the parent classpath (manifest).
-		super ( dataStoreJarList, parent );
-		String routine = getClass().getSimpleName() + ".PluginDataStoreClassLoader";
+		super ( pluginJarList, parent );
+		String routine = getClass().getSimpleName() + ".TSToolPluginClassLoader";
 		// The following is used to allow classes referenced by the plugin class loader to be loaded
 		// here rather than the parent class loader.
 		if ( Message.isDebugOn ) {
-			Message.printStatus(2, routine, "Jar file list (classpath) size is " + dataStoreJarList.length );
-			for ( int i = 0; i < dataStoreJarList.length; i++ ) {
-				Message.printStatus(2, routine, "dataStoreJarList[" + i + "]=" + dataStoreJarList[i] );
+			Message.printStatus(2, routine, "Jar file list (classpath) size is " + pluginJarList.length );
+			for ( int i = 0; i < pluginJarList.length; i++ ) {
+				Message.printStatus(2, routine, "pluginJarList[" + i + "]=" + pluginJarList[i] );
 			}
 			Message.printStatus(2, routine, "In constructor, creating ChildClassLoader");
 		}
 		if ( useChildClassLoader ) {
-			this.childClassLoader = new ChildClassLoader(dataStoreJarList, new DetectClass(this.getParent()));
+			this.childClassLoader = new ChildClassLoader(pluginJarList, new DetectClass(this.getParent()));
 		}
 	}
 
 	/**
-	 * Construct the class loader with a list of jar files that are candidates to load
+	 * Construct the class loader with a list of jar files that are candidates to load.
+	 * @param pluginJarList list of plugin jar files to load
 	 */
-	public PluginDataStoreClassLoader ( URL [] dataStoreJarList ) {
+	public TSToolPluginClassLoader ( URL [] pluginJarList ) {
 		// Using URLClassLoader for the base class should result in the parent (application) class
 		// loader being used for for any other class loads, then this class.
 		// This won't work for new classes that are not in the parent classpath (manifest).
-		super ( dataStoreJarList );
-		String routine = getClass().getSimpleName() + ".PluginDataStoreClassLoader";
-		// The following is used to allow classes referenced by the plugin class loader to be loaded
+		super ( pluginJarList );
+		String routine = getClass().getSimpleName() + ".TSToolPluginClassLoader";
+		// The following is allows classes referenced by the plugin class loader to be loaded
 		// here rather than the parent class loader.
 		if ( Message.isDebugOn ) {
-			Message.printStatus(2, routine, "Jar file list (classpath) size is " + dataStoreJarList.length );
-			for ( int i = 0; i < dataStoreJarList.length; i++ ) {
-				Message.printStatus(2, routine, "dataStoreJarList[" + i + "]=" + dataStoreJarList[i] );
+			Message.printStatus(2, routine, "Jar file list (classpath) size is " + pluginJarList.length );
+			for ( int i = 0; i < pluginJarList.length; i++ ) {
+				Message.printStatus(2, routine, "dataStoreJarList[" + i + "]=" + pluginJarList[i] );
 			}
 			Message.printStatus(2, routine, "In constructor, creating ChildClassLoader");
 		}
-		this.childClassLoader = new ChildClassLoader(dataStoreJarList, new DetectClass(this.getParent()));
+		this.childClassLoader = new ChildClassLoader(pluginJarList, new DetectClass(this.getParent()));
 	}
 
 	/**
@@ -170,8 +171,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 
 	/**
 	 * Load the datastore classes found in the jar file.
-	 * Multiple datastores may be in one jar file, but for practical reasons probably only one should be included
-	 * to avoid confusion.
+	 * Multiple datastores may be in one jar file, but for practical reasons probably only one should be included to avoid confusion.
 	 */
 	@SuppressWarnings("rawtypes")
 	public List<Class> loadDataStoreClasses () throws ClassNotFoundException {
@@ -321,6 +321,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	}
 
 	// This method was added to support dependency loading.
+
 	/**
 	 * Override the ClassLoader.loadClass() method, thereby allowing control of class loading before the parent class loader
 	 * attempts to load the class.
@@ -328,7 +329,7 @@ public class PluginDataStoreClassLoader extends URLClassLoader {
 	 * @param resolve if true, then resolve the class (normally the case?)
 	 */
     @Override
-    protected synchronized Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+    protected synchronized Class<?> loadClass ( String className, boolean resolve ) throws ClassNotFoundException {
       	if ( this.childClassLoader == null ) {
        		// Load classes as normal.
           	return super.loadClass(className, resolve);
