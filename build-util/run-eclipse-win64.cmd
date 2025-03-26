@@ -1,6 +1,5 @@
 @echo off
 rem Configure and run Eclipse 64-bit Windows for standard TSTool development environment:
-rem - 64-bit is used consistent with StateDMI
 rem - this script assumes that Eclipse is installed in a specific location and more
 rem   locations can be added if necessary
 rem
@@ -38,22 +37,27 @@ rem - additional "standard" installation locations can be added for TSTool devel
 set eclipseExe=""
 echo Checking for Eclipse in standard locations, oldest supported versions first.
 echo Therefore, the newest supported version will be found and used.
+rem The following is used for TSTool < 15.0.0.
 set eclipseTryExe="C:\Program Files\Eclipse\eclipse-java-2019-03\eclipse.exe"
 echo Checking %eclipseTryExe%
 if exist %eclipseTryExe% set eclipseExe=%eclipseTryExe%
 rem If a newer version or a different drive is available, try it here.
-rem set eclipseTryExe="C:\Program Files (x86)\eclipse-java-neon-3-win32\eclipse\eclipse.exe"
+rem The following is used for TSTool 15.0.0+
+set eclipseTryExe="C:\Program Files\Eclipse\eclipse-java-2022-06\eclipse.exe"
 rem echo Checking %eclipseTryExe%
-rem if exist %eclipseTryExe% set eclipseExe=%eclipseTryExe%
+if exist %eclipseTryExe% set eclipseExe=%eclipseTryExe%
 rem The eclipseExe variable already contains surrounding double quotes so don't need to use below.
 if not exist %eclipseExe% goto noeclipse
 
-rem If here found Eclipse executable so also try to find Java 8:
+rem If here found Eclipse executable so also try to find Java 11:
 rem - this is 64-bit
-rem - a symbolic for Java (jdk8 -> specific version) is used to generalize the configuration
+rem - a symbolic for Java (e.g., jdk11 -> specific version) is used to generalize the configuration
 set javawExe=""
 echo Checking for Java in standard locations, oldest supported versions first...
 set javawTryExe="c:\Program Files\Java\jdk8\bin\javaw.exe"
+echo Checking %javawTryExe%
+if exist %javawTryExe% set javawExe=%javawTryExe%
+set javawTryExe="c:\Program Files\Java\jdk11\bin\javaw.exe"
 echo Checking %javawTryExe%
 if exist %javawTryExe% set javawExe=%javawTryExe%
 rem The javawExe variable already contains surrounding double quotes so don't need to use below.
@@ -61,13 +65,32 @@ if not exist %javawExe% goto nojavaw
 
 rem If here, run Eclipse using the executable that is known to exist from above checks:
 rem - also set the title of the window
-echo Starting Eclipse using %eclipseExe%
+echo Starting Eclipse using: %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M
 title Eclipse configured for TSTool development
-rem The -data option must come before -vm, etc.
+rem The -data and other options must come before -vm, with -vmargs at the end
+rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M --add-modules java.xml
 %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M
+rem Run the following to start Eclipse without opening the specific project.
+rem ================== Start troubleshooting ================
 rem Tried the following when Eclipse fails to start.
-rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M -consoleLog
-rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M -clean -clearPersistedState
+rem ----------
+rem Start up Eclipse with no additional parameters:
+rem - equivalent to running the 'eclipse.exe' executable in the Eclipse installation folder
+rem echo Full command is: %eclipseExe%
+rem %eclipseExe%
+rem ----------
+rem Don't specify the workspace but specify the JVM:
+rem - use the default memory
+rem echo Full command is: %eclipseExe% -vm %javawExe%
+rem %eclipseExe% -vm %javawExe%
+rem ----------
+rem Don't specify the workspace but specify the JVM.
+rem echo Full command is: %eclipseExe% -vm %javawExe% -vmargs -Xmx2048M
+rem %eclipseExe% -vm %javawExe% -vmargs -Xmx2048M
+rem ----------
+rem %eclipseExe% -data %workspaceFolder% -consoleLog -vm %javawExe% -vmargs -Xmx1024M
+rem %eclipseExe% -data %workspaceFolder% -clean -vm %javawExe% -vmargs -Xmx1024M -clearPersistedState
+rem ================== End troubleshooting ================
 goto end
 
 :noeclipse

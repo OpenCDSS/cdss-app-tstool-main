@@ -41,20 +41,29 @@ checkJava() {
     echo "Try running this script on a system where Java is installed."
     exit 1
   else
-    # Need Java 8 or later to run TSTool and get version:
+    # Need Java 11 or later to run TSTool and get version:
     # - version is printed to standard error so combine output
-    # - not sure what version will look like for 10, 11, etc. so check for older versions
-    javaVersion=$(java -version 2>&1 | grep -i version | cut -d ' ' -f 3 | tr -d '"')
+    # - not sure what version will look like for 11, 12, etc. so check for older versions
+    # - on Debian Bullseye, output is as follows (-version as shown is different from --version):
+    #   openjdk version "11.0.18" 2023-01-17
+    #   OpenJDK Runtime Environment (build 11.0.18+10-post-Debian-1deb11u1)
+    #   OpenJDK 64-Bit Server VM (build 11.0.18+10-post-Debian-1deb11u1, mixed mode, sharing)
+    javaVersion=$(java -version 2>&1 | grep -i "version" | cut -d ' ' -f 3 | tr -d '"')
     if [ "${javaVersion}" ]; then
       echo "Java version is: ${javaVersion}"
     fi
+    # Check for older versions, which will cause problems.
     java6Count=$(echo ${javaVersion} | grep '1\.6' | wc -l)
     java7Count=$(echo ${javaVersion} | grep '1\.7' | wc -l)
+    java8Count=$(echo ${javaVersion} | grep '1\.8' | wc -l)
     if [ "${java6Count}" -gt 0 ]; then
-      ${echo2} "${warnColor}'java' program is version 6.  Version 8 or later is required.${endColor}"
+      ${echo2} "${warnColor}'java' program is version 6.  Version 11 or later is required.${endColor}"
       exit 1
     elif [ "${java7Count}" -gt 0 ]; then
-      ${echo2} "${warnColor}'java' program is version 7.  Version 8 or later is required.${endColor}"
+      ${echo2} "${warnColor}'java' program is version 7.  Version 11 or later is required.${endColor}"
+      exit 1
+    elif [ "${java8Count}" -gt 0 ]; then
+      ${echo2} "${warnColor}'java' program is version 8.  Version 11 or later is required.${endColor}"
       exit 1
     fi
   fi
