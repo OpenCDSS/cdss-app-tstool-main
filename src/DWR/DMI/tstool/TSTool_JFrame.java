@@ -42,6 +42,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -2465,7 +2466,7 @@ private TSEnsemble commandProcessor_GetEnsembleAt( int pos ) {
         return null;
     }
     PropList request_params = new PropList ( "" );
-    request_params.setUsingObject ( "Index", new Integer(pos) );
+    request_params.setUsingObject ( "Index", Integer.valueOf(pos) );
     CommandProcessorRequestResultsBean bean = null;
     try {
         bean = this.__tsProcessor.processRequest( "GetEnsembleAt", request_params);
@@ -2856,7 +2857,7 @@ private TS commandProcessor_GetTimeSeries( int pos ) {
 		return null;
 	}
 	PropList request_params = new PropList ( "" );
-	request_params.setUsingObject ( "Index", new Integer(pos) );
+	request_params.setUsingObject ( "Index", Integer.valueOf(pos) );
 	CommandProcessorRequestResultsBean bean = null;
 	try {
 		bean = this.__tsProcessor.processRequest( "GetTimeSeries", request_params);
@@ -2873,7 +2874,8 @@ private TS commandProcessor_GetTimeSeries( int pos ) {
 		message = "Null TS returned from processor for GetTimeSeries(Index=\"" + pos + "\").";
 		Message.printWarning ( 2, routine, message );
 	}
-	else {	ts = (TS)o_TS;
+	else {
+		ts = (TS)o_TS;
 	}
 	return ts;
 }
@@ -3032,7 +3034,7 @@ private void commandProcessor_ProcessEnsembleResultsList ( TSEnsemble ensembleFr
 	                ts = tslist.get(its);
 	                if ( ens_ts == ts ) {
 	                    // Have a matching time series.
-	                    matchIndexList.add ( new Integer(its));
+	                    matchIndexList.add ( Integer.valueOf(its));
 	                }
 	            }
 	        }
@@ -3165,7 +3167,7 @@ private void commandProcessor_RunCommandsThreaded ( List<Command> commands, bool
 	PropList requestParams = new PropList ( "" );
 	requestParams.setUsingObject ( "CommandList", commands );
 	requestParams.setUsingObject ( "InitialWorkingDir", ui_GetInitialWorkingDir() );
-	requestParams.setUsingObject ( "CreateOutput", new Boolean(createOutput) );
+	requestParams.setUsingObject ( "CreateOutput", Boolean.valueOf(createOutput) );
 	// TODO smalers 2017-02-08 the following does not seem to be recognized.
 	requestParams.setUsingObject ( "TSViewParentUIComponent", this ); // Use so that interactive graphs are displayed on same screen as TSTool main GUI.
 	try {
@@ -4276,67 +4278,67 @@ public void mouseExited ( MouseEvent event ) {
 Handle mouse pressed event.
 */
 public void mousePressed ( MouseEvent event ) {
-	int mods = event.getModifiers();
+	int mods = event.getModifiersEx();
 	Component c = event.getComponent();
 	String selectedInputType = ui_GetSelectedInputType();
     // Popup for commands.
 	if ( (c == ui_GetCommandJList()) && (this.__commands_JListModel.size() > 0) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
+		((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {
 		Point pt = JGUIUtil.computeOptimalPosition ( event.getPoint(), c, TSToolMenus.Commands_JPopupMenu );
 		TSToolMenus.Commands_JPopupMenu.show ( c, pt.x, pt.y );
 	}
     // Popup for time series results list (right click).
 	else if ( (c == this.__resultsTS_JList) && (this.__resultsTS_JListModel.size() > 0) &&
-		((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
+		((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsTS_JPopupMenu );
 		__resultsTS_JPopupMenu.show ( c, pt.x, pt.y );
 	}
     // Popup for ensemble results list.
     else if ( (c == this.__resultsTSEnsembles_JList) && (this.__resultsTSEnsembles_JListModel.size() > 0) &&
-        ((mods & MouseEvent.BUTTON3_MASK) != 0) ) {
+        ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsTSEnsembles_JPopupMenu );
         this.__resultsTSEnsembles_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for network results list, right click since left click automatically shows network.
     else if ( (c == this.__resultsNetworks_JList) && (this.__resultsNetworks_JListModel.size() > 0)
-        && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
+        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsNetworks_JPopupMenu );
         this.__resultsNetworks_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for object results list, right click since left click automatically shows object.
     else if ( (c == this.__resultsObjects_JList) && (this.__resultsObjects_JListModel.size() > 0)
-        && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
+        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsObjects_JPopupMenu );
         this.__resultsObjects_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for output files results list, right click since left click automatically shows object.
     else if ( (c == this.__resultsOutputFiles_JList) && (this.__resultsOutputFiles_JListModel.size() > 0)
-        && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
+        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsOutputFiles_JPopupMenu );
         this.__resultsOutputFiles_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for table results list, right click since left click automatically shows table.
     else if ( (c == this.__resultsTables_JList) && (this.__resultsTables_JListModel.size() > 0)
-        && ((mods & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK) ) {
+        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsTables_JPopupMenu );
         this.__resultsTables_JPopupMenu.show ( c, pt.x, pt.y );
     }
 	// Popup for input name.
-    else if ( (c == this.__inputName_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+    else if ( (c == this.__inputName_JComboBox) && ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) &&
         selectedInputType.equals(TSToolConstants.INPUT_TYPE_HECDSS) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__input_name_JPopupMenu );
         this.__input_name_JPopupMenu.removeAll();
         this.__input_name_JPopupMenu.add( new SimpleJMenuItem (TSToolConstants.InputName_BrowseHECDSS_String, this ) );
         this.__input_name_JPopupMenu.show ( c, pt.x, pt.y );
     }
-    else if ( (c == this.__inputName_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+    else if ( (c == this.__inputName_JComboBox) && ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) &&
         selectedInputType.equals(TSToolConstants.INPUT_TYPE_StateCUB) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__input_name_JPopupMenu );
         this.__input_name_JPopupMenu.removeAll();
         this.__input_name_JPopupMenu.add( new SimpleJMenuItem (TSToolConstants.InputName_BrowseStateCUB_String, this ) );
         this.__input_name_JPopupMenu.show ( c, pt.x, pt.y );
     }
-	else if ( (c == this.__inputName_JComboBox) && ((mods & MouseEvent.BUTTON3_MASK) != 0) &&
+	else if ( (c == this.__inputName_JComboBox) && ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) &&
 		selectedInputType.equals(TSToolConstants.INPUT_TYPE_StateModB) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__input_name_JPopupMenu );
 		this.__input_name_JPopupMenu.removeAll();

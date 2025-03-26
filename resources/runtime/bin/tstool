@@ -55,9 +55,13 @@ checkConfiguration() {
     echoStderr ""
     exit 1
   fi
-  # Verify that expected main jar file exists:
-  # - this is consistent with the Java version used to compile the application
-  testFile="${installFolder}/bin/cdss-app-tstool-main_18.jar"
+  # Verify that expected TSTool file exists:
+  # - previously used the main program jar file with Java version, for example:
+  #      "${installFolder}/bin/cdss-app-tstool-main_18.jar"
+  # - this was consistent with the Java version used to compile the application
+  # - Java 8 used old-style version number
+  # - now use the Linux script file since it should always be present and don't need the specific version
+  testFile="${installFolder}/bin/tstool"
   if [ ! -e "${testFile}" ]; then
     echoStderr ""
     echoStderr "TSTool installation folder does not seem correct:"
@@ -109,10 +113,10 @@ checkOperatingSystem() {
 
 # Determine the location of the Java runtime environment:
 # - set the jreExe global variable to Java executable that it is used to run TSTool
-# - search for candidate Java 8 or later programs and confirm the version is 8 or later
+# - search for candidate Java 11 or later programs and confirm the version is 11 or later
 determineJavaExe() {
-  local jreExeCandidates javaExe8VersionCount javaExeTry
-  local java8AlternativeExe java8AlternativeExeCount
+  local jreExeCandidates javaExeNVersionCount javaExeTry
+  local javaNAlternativeExe javaNAlternativeExeCount
   # First check to see if available in TSTool distribution:
   # - use standard and likely folders used with TSTool on Linux
   # - also check likely folders
@@ -125,34 +129,31 @@ determineJavaExe() {
       #   update-alternatives --list java
       #   /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
       #   /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
-      # - may be able to add Java newer than 8 but for now filter to only Java 8
+      #   /usr/lib/jvm/java-11-openjdk-amd64/jre/bin/java
+      # - may be able to add Java newer than 11 but for now filter to only Java 11
       #   (need to test with newer Java to make sure it works)
-      java8AlternativeExeCount=$(update-alternatives --list java | grep 'java-8' | wc -l)
-      java8AlternativeExe=$(update-alternatives --list java | grep 'java-8' | head -1)
+      javaNAlternativeExeCount=$(update-alternatives --list java | grep 'java-11' | wc -l)
+      javaNAlternativeExe=$(update-alternatives --list java | grep 'java-11' | head -1)
       # Make sure only one option is used (TODO improve logic to handle more).
-      if [ "${java8AlternativeExeCount}" -eq 0 ]; then
-        echoStderr "Found NO Java 8 alternatives on system.  Will check standard locations."
+      if [ "${javaNAlternativeExeCount}" -eq 0 ]; then
+        echoStderr "Found NO Java 11 alternatives on system.  Will check standard locations."
       else
-        echoStderr "Found ${java8AlternativeExeCount} Java 8 alternatives on system (will check first found)"
+        echoStderr "Found ${javaNAlternativeExeCount} Java 11 alternatives on system (will check first found)"
       fi
     else
-      echoStderr "Don't know how to handle Linux distro '${linuxDistro}' to determine Java 8 alternatives on system.  Will check standard locations."
+      echoStderr "Don't know how to handle Linux distro '${linuxDistro}' to determine Java 11 alternatives on system.  Will check standard locations."
     fi
   fi
-  # The candidate java8 programs are checked in order so list the best candidates first:
+  # The candidate java programs are checked in order so list the best candidates first:
   # - first paths will be matched for a Windows install also
-  # - variables like ${java8AlternativeExe} if not defined will not add to the list so OK
+  # - variables like ${javaNAlternativeExe} if not defined will not add to the list so OK
   # - Java version nearest the development version are checked first
   # - most likely only one or two versions are available on the computer
   jreExeCandidates=(
-  ${installFolder}/jre_18/bin/java
-  ${installFolder}/jre8/bin/java
-  ${java8AlternativeExe}
+  ${installFolder}/jre_11/bin/java
+  ${installFolder}/jre11/bin/java
+  ${javaNAlternativeExe}
   /usr/bin/java
-  /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
-  /usr/lib/jvm/java-1.8.0-openjdk/jre/bin/java
-  /usr/lib/jvm/java-9-openjdk-amd64/jre/bin/java
-  /usr/lib/jvm/java-10-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-11-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-12-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-13-openjdk-amd64/jre/bin/java
@@ -160,28 +161,46 @@ determineJavaExe() {
   /usr/lib/jvm/java-15-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-16-openjdk-amd64/jre/bin/java
   /usr/lib/jvm/java-17-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-18-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-19-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-20-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-21-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-22-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-23-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-24-openjdk-amd64/jre/bin/java
+  /usr/lib/jvm/java-25-openjdk-amd64/jre/bin/java
   java)
+  # These are no longer supported as of TSTool 15.0.0, which is compiled with Java 11:
+  #/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
+  #/usr/lib/jvm/java-1.8.0-openjdk/jre/bin/java
+  #/usr/lib/jvm/java-9-openjdk-amd64/jre/bin/java
+  #/usr/lib/jvm/java-10-openjdk-amd64/jre/bin/java
   javaExe=""
   for javaExeTry in "${jreExeCandidates[@]}"; do
-    echoStderr "Checking candidate java program for existence and Java 8:"
+    echoStderr "Checking candidate java program for existence and Java 11:"
     echoStderr "  ${javaExeTry}"
     if [ -e "${javaExeTry}" ]; then
       # Java executable file exists, check the version:
       # - version may be printed to stderr rather than stdout
-      javaExe8VersionCount=$(${javaExeTry} -version 2>&1 | grep '1.8.' | wc -l)
-      if [ "${javaExe8VersionCount}" -ne 0 ]; then
-        # Found a Java 8 to use.
+      # - output on Debian Bullseye is as follows so check for a string that matches any line
+      #   (note that -version as shown below is different from --version):
+      #   openjdk version "11.0.18" 2023-01-17
+      #   OpenJDK Runtime Environment (build 11.0.18+10-post-Debian-1deb11u1)
+      #   OpenJDK 64-Bit Server VM (build 11.0.18+10-post-Debian-1deb11u1, mixed mode, sharing)
+      javaExeNVersionCount=$(${javaExeTry} -version 2>&1 | grep ' 11.' | wc -l)
+      if [ "${javaExeNVersionCount}" -ne 0 ]; then
+        # Found a Java 11 to use.
         javaExe=${javaExeTry}
-        echoStderr "   ...found Java8 'java' program to use."
+        echoStderr "   ...found Java11 'java' program to use."
         break
       else
-        echoStderr "   ...does not appear to be Java 8 using: ${javaExeTry} -version"
+        echoStderr "   ...does not appear to be Java 11 using: ${javaExeTry} -version"
       fi
     fi
   done
   if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
-    echoStderr "Unable to determine Java8 'java' program needed by TSTool."
-    #echoStderr "Need to install Java 8 (does not need to be the default Java)."
+    echoStderr "Unable to determine Java11 'java' program needed by TSTool."
+    #echoStderr "Need to install Java 11 (does not need to be the default Java)."
     #exit 1
     echoStderr "Will use the closest version."
     for javaExeTry in "${jreExeCandidates[@]}"; do
@@ -196,7 +215,7 @@ determineJavaExe() {
     done
     if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
       echoStderr "Unable to find 'java' program needed by TSTool."
-      echoStderr "Need to install Java 8 or higher (does not need to be the default Java)."
+      echoStderr "Need to install Java 11 or higher (does not need to be the default Java)."
       exit 1
     fi
   fi
@@ -206,29 +225,30 @@ determineJavaExe() {
 determineJavaExeDev() {
   # The java program in the development distribution should work.
   jreExeCandidates=(
-  ${installFolder}/jre_18/bin/java
-  ${installFolder}/jre8/bin/java)
+  ${installFolder}/jre11/bin/java)
+  # The following is no longer used as of Java 15.0.0, which uses Java 11:
+  #${installFolder}/jre_18/bin/java
   javaExe=""
   for javaExeTry in "${jreExeCandidates[@]}"; do
-    echoStderr "Checking candidate java program for existence and Java 8:"
+    echoStderr "Checking candidate java program for existence and Java 11:"
     echoStderr "  ${javaExeTry}"
     if [ -e "${javaExeTry}" ]; then
       # Java executable file exists, check the version:
       # - version may be printed to stderr rather than stdout
-      javaExe8VersionCount=$(${javaExeTry} -version 2>&1 | grep '1.8.' | wc -l)
-      if [ "${javaExe8VersionCount}" -ne 0 ]; then
-        # Found a Java 8 to use.
+      javaExeNVersionCount=$(${javaExeTry} -version 2>&1 | grep ' 11.' | wc -l)
+      if [ "${javaExeNVersionCount}" -ne 0 ]; then
+        # Found a Java 11 to use.
         javaExe=${javaExeTry}
-        echoStderr "   ...found Java8 'java' program to use."
+        echoStderr "   ...found Java11 'java' program to use."
         break
       else
-        echoStderr "   ...does not appear to be Java 8 using: ${javaExeTry} -version"
+        echoStderr "   ...does not appear to be Java 11 using: ${javaExeTry} -version"
       fi
     fi
   done
   if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
-    echoStderr "Unable to determine Java8 'java' program needed by TSTool."
-    #echoStderr "Need to install Java 8 (does not need to be the default Java)."
+    echoStderr "Unable to determine Java11 'java' program needed by TSTool."
+    #echoStderr "Need to install Java 11 (does not need to be the default Java)."
     #exit 1
     echoStderr "Will use the closest version."
     for javaExeTry in "${jreExeCandidates[@]}"; do
@@ -243,7 +263,7 @@ determineJavaExeDev() {
     done
     if [ -z "${javaExe}" -o "${javaExe}" = "" ]; then
       echoStderr "Unable to find 'java' program needed by TSTool."
-      echoStderr "Need to install Java 8 or higher (does not need to be the default Java)."
+      echoStderr "Need to install Java 11 or higher (does not need to be the default Java)."
       exit 1
     fi
   fi
@@ -425,7 +445,7 @@ printVersion() {
 # Folder where tstool script is located, should be the "bin" folder in a TSTool install.
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
-version="2.1.1 (2023-07-24)"
+version="2.2.0 (2025-03-19)"
 # Adjust the script folder if a symbolic link is used such as:
 #   /usr/bin/tstool -> /opt/tstool-version/tstool/bin
 if [ -L $0 ]; then

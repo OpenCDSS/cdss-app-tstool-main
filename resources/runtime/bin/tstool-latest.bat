@@ -27,7 +27,7 @@ rem The following works sorting alphabetically on install folder name since
 rem zero-padded version numbers will cause proper sort>
 rem Ignore "TSTool-latest" because that is the special folder that this script is in.
 FOR /F "delims=" %%i IN ('dir "c:\CDSS\TSTool-*" /b /ad-h /on') DO (
-	if not %%i == TSTool-latest SET TSTOOL_LATEST=%%i
+  if not %%i == TSTool-latest SET TSTOOL_LATEST=%%i
 )
 
 rem Now run TSTool with all the original command line parameters
