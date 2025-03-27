@@ -20,7 +20,7 @@
 # - configure hydrobase:
 #   - CONFIGURE_HYDROBASE - define this as "true" to allow user configuration of hydrobase
 # - location of files for installer:
-#   - INST_BUILD_DIR (e.g., dist\install-CDSS, which is the local TSTool build)
+#   - INST_BUILD_DIR (e.g., dist\install-cdss, which is the local TSTool build)
 #
 # Advanced functionality:
 #

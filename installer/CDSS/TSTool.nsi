@@ -14,7 +14,9 @@
 !define CONFIGURE_HYDROBASE "true"
 
 # Location of files to be packaged in the installer.
-!define INST_BUILD_DIR "dist\install-CDSS"
+# Before TSTool 15.0.0.
+#!define INST_BUILD_DIR "dist\install-CDSS"
+!define INST_BUILD_DIR "dist\install-cdss"
 
 # Uncomment to skip some sections to allow installer compilation to run faster.
 #!define TEST "true"

@@ -93,14 +93,7 @@ public class TSToolMain
  * - as of version 14, do not pad version parts with zeros
  * - this string is checked by scripts that require the version
  */
-public static final String PROGRAM_VERSION = "15.0.0 (2025-03-26)";
-
-/**
- * Used by --version-date:
- * - have a separate string with different spelling to avoid causing problems with scripts that
- *   search for the above string
- */
-public static final String PROGRAM_VERS_DATE = "2025-02-12";
+public static final String PROGRAM_VERSION = "15.0.0 (2025-03-27)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -316,11 +309,14 @@ public static JFrame getJFrame () {
  * @return the major TSTool version
  */
 private static int getMajorVersion () {
+	String routine = null;
     int majorVersion = 0;
     try {
-    	System.err.println("program version: " + IOUtil.getProgramVersion());
+    	//System.err.println("program version: " + IOUtil.getProgramVersion());
+    	Message.printStatus(1,routine,"Program version: " + IOUtil.getProgramVersion());
     	majorVersion = Integer.parseInt(IOUtil.getProgramVersion().split("\\.")[0].trim());
-    	System.err.println("Major version: " + majorVersion);
+    	//System.err.println("Major version: " + majorVersion);
+    	Message.printStatus(1,routine,"Major version: " + majorVersion);
     }
     catch ( Exception e ) {
     	Message.printWarning(1,"TSTool", "Error getting TSTool major version number (" + e + ")." );
@@ -742,8 +738,7 @@ public static void main ( String args[] ) {
         // Or the GUI will need to start up in the current directory.
 	}
 	catch ( Exception e ) {
-        Message.printWarning ( 1, routine,
-            "Error parsing command line arguments.  Using default behavior if necessary." );
+        Message.printWarning ( 1, routine, "Error parsing command line arguments.  Using default behavior if necessary." );
 		Message.printWarning ( 3, routine, e );
 	}
 
@@ -1688,6 +1683,7 @@ throws Exception {
     // - for now only implement for parameters that are known to have issue with spaces
     String spaceReplacement = null;
     // Iterate through the command line parameters.
+    Message.printStatus(2, routine, "Parsing " + args.length + " command line parameters.");
 	for ( int i = 0; i < args.length; i++ ) {
 		//Message.printStatus(1, routine, "Parsing arg: " + args[i]);
 		//System.err.println("Parsing arg: " + args[i]);
@@ -1965,7 +1961,9 @@ throws Exception {
 			// Print the date for the version:
 			// - used by the TSToolInstallationManager class to determine the version for an installation
 			// - works for TSTool 15 and later
-			System.err.println ( PROGRAM_VERS_DATE );
+			int pos2 = PROGRAM_VERSION.indexOf(" ");
+			String versionDate = PROGRAM_VERSION.substring(pos2).replace("(","").replace(")","").trim();
+			System.err.println ( "VersionDate=" + versionDate );
 			quitProgram (0);
 		}
 		else if ( args[i].indexOf("==") > 0 ) {
@@ -2306,7 +2304,7 @@ private static void setupUsingCommandFile ( String commandFileArg, boolean isBat
 Set the working directory as the system "user.dir" property.
 */
 private static void setWorkingDirInitial() {
-    String routine = TSToolMain.class.getSimpleName() + ".setWorkingDirInitial";
+    String routine = null;
     String working_dir = System.getProperty("user.dir");
     IOUtil.setProgramWorkingDir ( working_dir );
     // Set the dialog because if the running in batch mode and interaction with the graph occurs,
@@ -2314,6 +2312,7 @@ private static void setWorkingDirInitial() {
     JGUIUtil.setLastFileDialogDirectory( working_dir );
     String message = "Setting working directory to user directory \"" + working_dir +"\".";
     Message.printStatus ( 1, routine, message );
+    // Also print to standard error for troubleshooting.
     System.err.println(message);
 }
 

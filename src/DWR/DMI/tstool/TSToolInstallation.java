@@ -52,9 +52,9 @@ public class TSToolInstallation {
 
 	/**
 	 * TSTool installation folder size:
-	 * - initialize to negative to trigger refresh for the first call
+	 * - initialize to null if unknown
 	 */
-	private long installationFolderSize = -999;
+	private Long installationFolderSize = null;
 	
 	/**
 	 * Most recent modification time on software files in the 'bin' folder.
@@ -74,14 +74,14 @@ public class TSToolInstallation {
 
 	/**
 	 * TSTool user folder size:
-	 * - initialize to negative to trigger refresh for the first call
+	 * - initialize to null to trigger refresh for the first call
 	 */
-	private long userFolderSize = -999;
+	private Long userFolderSize = null;
 
 	/**
-	 * TSTool semantic version.
+	 * TSTool version from the installation folder.
 	 */
-	private String version = "";
+	private String versionFromInstallationFolder = "";
 
 	/**
 	 * TSTool version date.
@@ -91,15 +91,10 @@ public class TSToolInstallation {
 	/**
 	 * Create an instance of the installation.
 	 * The version is determined from the end of the installation folder
-	 * @param installationFolder the installation folder
+	 * @param installationFolder the installation folder (e.g., 'C:\CDSS\TSTool-version')
 	 */
 	public TSToolInstallation ( File installationFolder ) {
-		this.installationFolder = installationFolder;
-		setVersionFromFolder ( installationFolder );
-		this.installationFolderSize = -999;
-		this.userFolderSize = -999;
-		// Set the user folder based on the version.
-		setUserFolder ();
+		setInstallationFolder ( installationFolder );
 	}
 
 	/**
@@ -107,10 +102,12 @@ public class TSToolInstallation {
 	 * @param installationFolder the installation folder
 	 * @param version the TSTool version
 	 */
+	/*
 	public TSToolInstallation ( File installationFolder, String version ) {
 		this.installationFolder = installationFolder;
 		this.version = version;
 	}
+	*/
 
 	/**
 	 * Return the TSTool installation folder.
@@ -127,7 +124,7 @@ public class TSToolInstallation {
 	 * @return the installation folder size, or negative number if not known
 	 */
 	public long getInstallationFolderSize ( boolean refresh ) {
-		if ( refresh || (this.installationFolderSize < 0) ) {
+		if ( refresh || (this.installationFolderSize == null) ) {
 			refreshInstallationFolderAttributes ();
 		}
 		return this.installationFolderSize;
@@ -195,18 +192,23 @@ public class TSToolInstallation {
 	 * @return the user folder size, or negative number if not known
 	 */
 	public long getUserFolderSize ( boolean refresh ) {
-		if ( refresh || (this.userFolderSize < 0) ) {
+		if ( refresh || (this.userFolderSize == null) ) {
 			refreshUserFolderAttributes ();
 		}
 		return this.userFolderSize;
 	}
 
 	/**
-	 * Return the TSTool version.
+	 * Return the TSTool version, the first .
 	 * @return the TSTool version
 	 */
 	public String getVersion () {
-		return this.version;
+		if ( (this.versionFromInstallationFolder != null) && !this.versionFromInstallationFolder.isEmpty() ) {
+			return this.versionFromInstallationFolder;
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -218,16 +220,18 @@ public class TSToolInstallation {
 	}
 
 	/**
-	 * Refresh the installation folder attributes such as for all of the files.
+	 * Refresh the installation folder attributes including the size for all of the files.
 	 * @param refresh if true, refresh the size from the file system
 	 */
 	private void refreshInstallationFolderAttributes () {
 		try {
 			// Get folder attributes for the entire installation folder:
 			// - used to get the size
+			boolean listRecursive = true;
 			List<String> includePatterns = new ArrayList<>();
 			List<String> excludePatterns = new ArrayList<>();
-			BasicFolderAttributes folderAttrib = IOUtil.getFolderAttributes ( this.installationFolder, true, includePatterns, excludePatterns );
+			BasicFolderAttributes folderAttrib = IOUtil.getFolderAttributes (
+				this.installationFolder, listRecursive, includePatterns, excludePatterns );
 			this.installationFolderSize = folderAttrib.getSize();
 		}
 		catch ( IOException e ) {
@@ -235,13 +239,17 @@ public class TSToolInstallation {
 			String routine = getClass().getSimpleName() + ".refreshInstallationFolderAttributes";
 			Message.printWarning(3,routine,e);
 		}
+
+		// Determine the last modified time.
+		
 		try {
 			// Get the folder attributes for the 'bin' folder:
 			// - used to get the software last modified time
 			File binFolder = new File ( this.installationFolder.getAbsolutePath() + File.separator, "bin");
+			boolean listRecursive = true;
 			List<String> includePatterns = new ArrayList<>();
 			List<String> excludePatterns = new ArrayList<>();
-			BasicFolderAttributes folderAttrib = IOUtil.getFolderAttributes ( binFolder, true, includePatterns, excludePatterns );
+			BasicFolderAttributes folderAttrib = IOUtil.getFolderAttributes ( binFolder, listRecursive, includePatterns, excludePatterns );
 			FileTime time = folderAttrib.getFilesMaxLastModifiedTime();
 			if ( time != null ) {
 				this.softwareLastModifiedTime = new DateTime(time.toInstant(), 0, null);
@@ -252,6 +260,9 @@ public class TSToolInstallation {
 			String routine = getClass().getSimpleName() + ".refreshInstallationFolderAttributes";
 			Message.printWarning(3,routine,e);
 		}
+		
+		// Determine the last run time.
+		
 		try {
 			// Get the folder attributes for the startup 'logs' folder:
 			// - used to get the software last run time
@@ -263,9 +274,10 @@ public class TSToolInstallation {
 				// - necessary because the user log file may be a later minor version
 				this.softwareLastRunTime = new DateTime(Instant.ofEpochMilli(logsFolder.lastModified()), 0, null);
 			}
+			boolean listRecursive = true;
 			List<String> includePatterns = new ArrayList<>();
 			List<String> excludePatterns = new ArrayList<>();
-			BasicFolderAttributes folderAttrib = IOUtil.getFolderAttributes ( logsFolder, true, includePatterns, excludePatterns );
+			BasicFolderAttributes folderAttrib = IOUtil.getFolderAttributes ( logsFolder, listRecursive, includePatterns, excludePatterns );
 			FileTime time = folderAttrib.getFilesMaxLastModifiedTime();
 			if ( time != null ) {
 				// Always set here because if refreshed don't want the old value:
@@ -284,7 +296,6 @@ public class TSToolInstallation {
 			//      # program:      TSTool 14.10.1 (2025-02-12)
 			logsFolder = new File ( this.userFolder.getAbsolutePath() + File.separator, "logs");
 			//folderAttrib = IOUtil.getFolderAttributes ( logsFolder, true, includePatterns, excludePatterns );
-			boolean listRecursive = true;
 			boolean listFiles = true;
 			boolean listFolders = false;
 			List<File> logFiles = IOUtil.getFiles(logsFolder, listRecursive, listFiles, listFolders, includePatterns, excludePatterns);
@@ -331,17 +342,40 @@ public class TSToolInstallation {
 	}
 	
 	/**
+	 * Set the installation folder.
+	 * All other installation data are determined from the installation folder.
+	 * @param installationFolder the installation folder (e.g., 'C:\CDSS\TSTool-version')
+	 */
+	private void setInstallationFolder ( File installationFolder ) {
+		this.installationFolder = installationFolder;
+
+		// Set the version from the installation folder.
+		setVersionFromInstallationFolder ();
+
+		// Set the version by running the program.
+		// TODO smalers 2025-03-27 need to enable when working
+		//setVersionDateFromRun();
+
+		// The size will be determined in lazy fashion when the get*Size*() methods are called.
+		this.installationFolderSize = null;
+		this.userFolderSize = null;
+
+		// Set the user folder based on the version.
+		setUserFolder ();
+	}
+	
+	/**
 	 * Set the user folder based on the major version.
 	 * This method should be called from the constructor.
 	 */
 	private void setUserFolder () {
-		if ( (this.version == null) || !this.version.contains(".") ) {
+		if ( (this.versionFromInstallationFolder == null) || !this.versionFromInstallationFolder.contains(".") ) {
 			return;
 		}
 		else {
 			// Version contains a period so the major version is the first part.
-			int pos = this.version.indexOf(".");
-			String majorVersion = this.version.substring(0,pos);
+			int pos = this.versionFromInstallationFolder.indexOf(".");
+			String majorVersion = this.versionFromInstallationFolder.substring(0,pos);
 			if ( IOUtil.isUNIXMachine() ) {
 				// Linux.
 				String home = System.getenv("HOME");
@@ -354,6 +388,42 @@ public class TSToolInstallation {
 			}
 		}
 	}
+	
+	/**
+	 * Set the version date by running TSTool with the --version-date command parameter.
+	 */
+	private void setVersionDateFromRun() {
+		String routine = getClass().getSimpleName() + ".setVersionDateFromRun";
+		// Get the version date by running the program.
+		String executable = installationFolder.getAbsolutePath() + File.separator + "bin" + File.separator;
+		if ( IOUtil.isUNIXMachine() ) {
+			executable += "tstool";
+		}
+		else {
+			executable += "TSTool.exe";
+		}
+		
+		if ( (this.versionFromInstallationFolder != null) &&
+			!this.versionFromInstallationFolder.isEmpty() &&
+			StringUtil.compareSemanticVersions(this.versionFromInstallationFolder, ">=", "15", 1)) {
+			// Only TSTool installer > 15.0.0 has --version-date command parameter.
+			String command = executable + " --version-date";
+			ProcessManager pm = new ProcessManager(command);
+			pm.saveOutput(true);
+			pm.run();
+			List<String> outputList = pm.getOutputList();
+			if ( (outputList != null) && (outputList.size() > 0) ) {
+				for ( String output : outputList ) {
+					//Message.printStatus(2, routine, "Parsing output=\"" + output + "\"");
+					if ( output.startsWith("VersionDate") ) {
+						this.versionDate = StringUtil.getToken(output, "=", StringUtil.DELIM_TRIM_STRINGS,1);
+						break;
+					}
+				}
+			}
+			Message.printStatus(2, routine, "Command \"" + command + "\", VersionDate=\"" + this.versionDate + "\"");
+		}
+	}
 
 	/**
 	 * Set the semantic version from the installation folder,
@@ -361,35 +431,16 @@ public class TSToolInstallation {
 	 * @param installationFolder the TSTool installation folder, expected to end in a semantic version
 	 * (e.g., TSTool-14.10.0)
 	 */
-	private void setVersionFromFolder ( File installationFolder ) {
+	private void setVersionFromInstallationFolder ( ) {
 		// Parse the TSTool version from the installation folder.
 		String folderName = installationFolder.getName();
 		int pos = folderName.indexOf("-");
 		if ( (pos < 0) || ((pos + 1) >= folderName.length()) ) {
-			this.version = "";
+			this.versionFromInstallationFolder = "";
 		}
 		else {
 			// Get the version as 14.10.0, for example.
-			this.version = folderName.substring(pos + 1);
-		}
-		
-		// Get the version date by running the program.
-		String executable = installationFolder.getAbsolutePath() + File.separator + "bin" + File.separator;
-		if ( IOUtil.isUNIXMachine() ) {
-			executable += "TSTool.exe";
-		}
-		else {
-			executable += "tstool";
-		}
-		
-		if ( (this.version != null) && !this.version.isEmpty() && StringUtil.compareSemanticVersions(this.version, ">", "15", 1)) {
-			// Only TSTool installer > 15.0.0 has --version-date command parameter.
-			ProcessManager pm = new ProcessManager(executable + " --version-date");
-			pm.run();
-			List<String> output = pm.getOutputList();
-			if ( output.size() > 0 ) {
-				this.versionDate = output.get(0).trim();
-			}
+			this.versionFromInstallationFolder = folderName.substring(pos + 1);
 		}
 	}
 

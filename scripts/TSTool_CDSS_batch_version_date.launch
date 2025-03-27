@@ -14,7 +14,7 @@
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="cdss.app.tstool.TSTool"/>
     <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="cdss-app-tstool-main"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="--home test/operational/CDSS"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="--home test/operational/CDSS --version-date"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cdss-app-tstool-main"/>
     <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.library.path=${env_var:HECLIB_FOLDER} -Xmx950m -Dsun.java2d.noddraw=true -Djava.net.useSystemProxies=true -Dswing.aatext=true"/>
 </launchConfiguration>
