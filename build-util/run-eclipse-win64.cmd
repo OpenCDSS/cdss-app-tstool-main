@@ -69,7 +69,7 @@ echo Starting Eclipse using: %eclipseExe% -data %workspaceFolder% -vm %javawExe%
 title Eclipse configured for TSTool development
 rem The -data and other options must come before -vm, with -vmargs at the end
 rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M --add-modules java.xml
-%eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M
+%eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx2048M
 rem Run the following to start Eclipse without opening the specific project.
 rem ================== Start troubleshooting ================
 rem Tried the following when Eclipse fails to start.
