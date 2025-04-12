@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 (set -o igncr) 2>/dev/null && set -o igncr; # This comment is required.
 # The above line ensures that the script can be run on Cygwin/Linux even with Windows CRNL.
 
 #-----------------------------------------------------------------NoticeStart-
 # Git Utilities
-# Copyright 2017-2023 Open Water Foundation.
+# Copyright 2017-2025 Open Water Foundation.
 #
 # License GPLv3+:  GNU GPL version 3 or later
 #
@@ -315,44 +315,92 @@ getMainRepo() {
   fi
 }
 
-# Parse the command parameters.
+# Parse the command parameters:
+# - use the getopt command line program so long options can be handled
 parseCommandLine() {
-  local OPTIND opt d g h m p v
-  optstring="dg:hm:p:v"
-  while getopts ${optstring} opt; do
-    #echo "[DEBUG] Command line option is: ${opt}"
-    case ${opt} in
-      d) # -d  Turn on debug.
+  # Single character options.
+  optstring="dg::hm::p::v"
+  # Long options.
+  optstringLong="debug,help,mainrepo::,onlyplugin,reposfolder::,version"
+  # Parse the options using getopt command.
+  GETOPT_OUT=$(getopt --options ${optstring} --longoptions ${optstringLong} -- "$@")
+  exitCode=$?
+  if [ ${exitCode} -ne 0 ]; then
+    # Error parsing the parameters such as unrecognized parameter.
+    echo ""
+    printUsage
+    exit 1
+  fi
+  # The following constructs the command by concatenating arguments.
+  eval set -- "${GETOPT_OUT}"
+  # Loop over the options.
+  while true; do
+    # Uncomment the following when troubleshooting.
+    #echo "Command line options are \$1=$1 \$2=$2"
+    case "$1" in
+      -d|--debug) # Turn debug on.
         debug="true"
+        echo "debug=${debug}"
+        shift 1
         ;;
-      g) # -g  Specify folder containing Git repositories.
-        gitReposFolder=${OPTARG}
+      -g|--reposfolder) # -g gitReposFolder  Specify folder containing 1+ Git repositories.
+        case "$2" in
+          "") # Nothing specified so error.
+            echo "-g gitReposFolder is missing the folder name."
+            exit 1
+            ;;
+          *) # Git repo folder has been specified.
+            gitReposFolder=$2
+            if [ "${debug}" = "true" ]; then
+              echo "gitReposFolder=${gitReposFolder}"
+            fi
+            shift 2
+            ;;
+        esac
         ;;
-      h) # -h  Print the program usage.
+      -h|--help) # Print the program usage.
         printUsage
         exit 0
         ;;
-      m) # -m mainRepoName  Specify the main repository name, assumed that repository name will match folder for repository.
-        mainRepo=${OPTARG}
+      -m|--mainrepo) # -m mainRepo  Specify the main repository name, assumed that repository name will match folder for repository.
+        case "$2" in
+          "") # Nothing specified so error.
+            echo "-m mainRepo is missing the repository name."
+            exit 1
+            ;;
+          *) # Main repo has been specified.
+            mainRepo=$2
+            if [ "${debug}" = "true" ]; then
+              echo "mainRepo=${mainRepo}"
+            fi
+            shift 2
+            ;;
+        esac
         ;;
-      p) # -p productHome   Specify the product home, relative to ${HOME}, being phased out.
+      --onlyplugin) # Only check the plugin and don't prompt whether to check the full TSTool.
+        # Used in product-specific script.  Handle to avoid errors but Ignore here.
+        onlyplugin="true"
+        if [ "${debug}" = "true" ]; then
+          echo "onlyplugin=${onlyplugin}"
+        fi
+        shift 1
+        ;;
+      -p) # -g productName  Specify the product home, relative to ${HOME}, being phased out.
         echo ""
         echo "[ERROR] -p is obsolete.  Use -g instead."
         exit 1
         ;;
-      v) # -v  Print the program version.
+      -v|--version) # Print the program version.
         printVersion
         exit 0
         ;;
-      \?)
-        echo ""
-        echo "[ERROR] Invalid option:  -${OPTARG}" >&2
-        printUsage
-        exit 1
+      --) # No more arguments.
+        shift
+        break
         ;;
-      :)
+      *) # Unknown option.
         echo ""
-        echo "[ERROR] Option -${OPTARG} requires an argument" >&2
+        echo "Invalid option $1." >&2
         printUsage
         exit 1
         ;;
@@ -364,18 +412,21 @@ parseCommandLine() {
 # - calling code must exist with appropriate code
 printUsage() {
   echo ""
-  echo "Usage:  ${scriptName} -m product-main-repo -g gitReposFolder"
+  echo "Usage:  ${scriptName} --mainrepo=product-main-repo --reposfolder=repos-folder"
   echo ""
   echo "Check the status of all repositories that comprise a product."
   echo ""
   echo "Example:"
-  echo "  ${scriptName} -m owf-util-git -g \$HOME/owf-dev/Util-Git/git-repos"
+  echo "  ${scriptName} --mainrepo=owf-util-git --reposfolder=\$HOME/owf-dev/Util-Git/git-repos"
   echo ""
-  echo "-d  Print additional debug messages."
-  echo "-g  Specify the folder containing 1+ Git repositories for the product."
-  echo "-h  Print the usage"
-  echo "-m  Specify the main repository name."
-  echo "-v  Print the version"
+  echo "-d, --debug                Print additional debug messages."
+  echo "-g reposfolder             --reposfolder is preferred."
+  echo "-h, --help                 Print the usage"
+  echo "-m main-repo-name          --mainrepo is preferred."
+  echo "--mainrepo=main-repo-name  Specify the main repository name."
+  echo "--onlyplugin               Use when checking a single plugin (ignored by this command)."
+  echo "--reposfolder=reposfolder  Specify the folder containing 1+ Git repositories for the product."
+  echo "-v, --version              Print the version"
   echo ""
 }
 
@@ -386,7 +437,7 @@ printVersion() {
   echo "${scriptName} version ${version}"
   echo ""
   echo "Git Utilities"
-  echo "Copyright 2017-2022 Open Water Foundation."
+  echo "Copyright 2017-2025 Open Water Foundation."
   echo ""
   echo "License GPLv3+:  GNU GPL version 3 or later"
   echo ""
@@ -406,7 +457,7 @@ printVersion() {
 scriptFolder=$(cd $(dirname "$0") && pwd)
 scriptName=$(basename $0)
 
-version="1.9.3 2023-03-26"
+version="1.9.4 2025-04-11"
 
 # Set initial values.
 debug="false"
