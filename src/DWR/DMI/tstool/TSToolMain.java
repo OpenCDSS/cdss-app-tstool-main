@@ -93,7 +93,7 @@ public class TSToolMain
  * - as of version 14, do not pad version parts with zeros
  * - this string is checked by scripts that require the version
  */
-public static final String PROGRAM_VERSION = "15.0.0 (2025-03-27)";
+public static final String PROGRAM_VERSION = "15.1.0 (2025-04-12)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1126,6 +1126,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             packagePath = "rti.tscommandprocessor.commands.rccacis.";
         }
     }
+    /* TODO smalers 2025-04-13 remove when tested out:
+     * - datastores are disabled in the datastore configuration file as of TSTool 15.1.0
     else if ( dataStoreType.equalsIgnoreCase("ReclamationHDBDataStore") ) {
         propValue = getPropValue("TSTool.ReclamationHDBEnabled");
     	userPropValue = session.getUserConfigPropValue ( "ReclamationHDBEnabled" );
@@ -1136,6 +1138,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             packagePath = "rti.tscommandprocessor.commands.reclamationhdb.";
         }
     }
+    */
     else if ( dataStoreType.equalsIgnoreCase("ReclamationPiscesDataStore") ) {
         propValue = getPropValue("TSTool.ReclamationPiscesEnabled");
     	userPropValue = session.getUserConfigPropValue ( "ReclamationPiscesEnabled" );

@@ -192,7 +192,7 @@ public class TSTool_Pisces {
 	    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
 	    DataStore dataStore = this.tstoolJFrame.ui_GetSelectedDataStore ();
-	    // The headers are a list of ReclamationHDB_SiteTimeSeriesMetadata.
+	    // The headers are a list Pisces Metadata.
 	    try {
 	    	ReclamationPiscesDataStore ds = (ReclamationPiscesDataStore)dataStore;
 	    	ReclamationPiscesDMI dmi = (ReclamationPiscesDMI)ds.getDMI();
