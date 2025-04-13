@@ -138,8 +138,6 @@ import rti.tscommandprocessor.core.TimeSeriesView;
 // Command classes, some related to datastores that are built-in rather than plugins.
 import rti.tscommandprocessor.commands.rccacis.RccAcisDataStore;
 import rti.tscommandprocessor.commands.rccacis.RccAcis_TimeSeries_InputFilter_JPanel;
-import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDBDataStore;
-import rti.tscommandprocessor.commands.reclamationhdb.ReclamationHDB_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPiscesDataStore;
 import rti.tscommandprocessor.commands.reclamationpisces.ReclamationPisces_TimeSeries_InputFilter_JPanel;
 import rti.tscommandprocessor.commands.ts.FillPrincipalComponentAnalysis_JDialog;
@@ -311,7 +309,8 @@ import cdss.app.tstool.datastore.nwsrfs.fs5files.TSTool_FS5Files;
 import cdss.app.tstool.datastore.plugin.TSTool_Plugin;
 import cdss.app.tstool.datastore.rcc.acis.TSTool_RccAcis;
 import cdss.app.tstool.datastore.usace.hecdss.TSTool_HecDss;
-import cdss.app.tstool.datastore.usbr.hdb.TSTool_HDB;
+// Remove when tested out.
+//import cdss.app.tstool.datastore.usbr.hdb.TSTool_HDB;
 import cdss.app.tstool.datastore.usbr.pisces.TSTool_Pisces;
 import cdss.app.tstool.datastore.usbr.riverware.TSTool_RiverWare;
 // Classes that integrate TSTool with datastores and input types.
@@ -856,7 +855,8 @@ private boolean
 	__source_NWSRFS_FS5Files_enabled = false,
 	__source_NWSRFS_ESPTraceEnsemble_enabled = false,
 	__source_RCCACIS_enabled = false,
-	__source_ReclamationHDB_enabled = false,
+	// TODO smalers 2025-04-13 remove when tested out.
+	//__source_ReclamationHDB_enabled = false,
 	__source_ReclamationPisces_enabled = false,
 	__source_RiverWare_enabled = true,
 	__source_SHEF_enabled = true,
@@ -4682,9 +4682,10 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof RccAcisDataStore) ) {
     	numCommandsAdded = TSTool_RccAcis.getInstance(this).transferOneTimeSeriesCatalogRowToCommands_Daily(row, useAlias, insertOffset );
     }
-	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
-    	numCommandsAdded = TSTool_HDB.getInstance(this).transferOneTimeSeriesCatalogRowToCommands(row, useAlias, insertOffset );
-    }
+    // Remove when tested out.
+	//else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
+    //	numCommandsAdded = TSTool_HDB.getInstance(this).transferOneTimeSeriesCatalogRowToCommands(row, useAlias, insertOffset );
+    //}
 	else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore) ) {
 		numCommandsAdded = TSTool_Pisces.getInstance(this).transferOneTimeSeriesCatalogRowToCommands_Daily ( row, useAlias, insertOffset );
     }
@@ -5194,12 +5195,15 @@ private void ui_CheckGUIState () {
     JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_NewStatisticYearTS_JMenuItem, enabled );
     JGUIUtil.setEnabled ( TSToolMenus.Commands_Create_RunningStatisticTimeSeries_JMenuItem, enabled );
 
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
 	if ( this.__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Read_ReadReclamationHDB_JMenuItem, enabled );
 	}
 	else {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Read_ReadReclamationHDB_JMenuItem, false );
 	}
+	*/
 
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillConstant_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Fill_FillDayTSFrom2MonthTSAnd1DayTS_JMenuItem, enabled );
@@ -5258,12 +5262,15 @@ private void ui_CheckGUIState () {
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteDelimitedFile_JMenuItem, enabled );
     JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteHecDss_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteNwsCard_JMenuItem, enabled );
+    // TODO smalers 2025-04-12 remove when tested out.
+	/*
 	if ( this.__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0 ) {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteReclamationHDB_JMenuItem, enabled );
 	}
 	else {
 	    JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteReclamationHDB_JMenuItem, false );
 	}
+	*/
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteRiverWare_JMenuItem, enabled );
     JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteSHEF_JMenuItem, enabled );
 	JGUIUtil.setEnabled ( TSToolMenus.Commands_Output_WriteStateCU_JMenuItem, enabled );
@@ -5815,6 +5822,8 @@ private void ui_EnableInputTypesForConfiguration () {
 
     // Reclamation HDB disabled by default (not many users would have).
 
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
     this.__source_ReclamationHDB_enabled = false;
     propValue = TSToolMain.getPropValue ( "TSTool.ReclamationHDBEnabled" );
     propValueUser = this.session.getUserConfigPropValue ( "TSTool.ReclamationHDBEnabled" );
@@ -5828,6 +5837,7 @@ private void ui_EnableInputTypesForConfiguration () {
     if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
         this.__source_ReclamationHDB_enabled = true;
     }
+    */
 
     // Reclamation Pisces disabled by default (not many users would have).
 
@@ -6432,6 +6442,8 @@ public InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String select
                 return panel;
             }
         }
+        // TODO smalers 2025-04-12 remove when tested out.
+        /*
         else if ( panel instanceof ReclamationHDB_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore.
             DataStore dataStore = ((ReclamationHDB_TimeSeries_InputFilter_JPanel)panel).getDataStore();
@@ -6440,6 +6452,7 @@ public InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String select
                 return panel;
             }
         }
+        */
         else if ( panel instanceof ReclamationPisces_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore.
             DataStore dataStore = ((ReclamationPisces_TimeSeries_InputFilter_JPanel)panel).getDataStore();
@@ -7426,6 +7439,8 @@ private void ui_InitGUIInputFilters ( final int y ) {
                     Message.printWarning(3, routine, e);
                 }
             }
+            // TODO smalers 2025-04-12 remove when tested out.
+            /*
             if ( __source_ReclamationHDB_enabled && (__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class).size() > 0) ) {
                 try {
                     TSTool_HDB.getInstance(ui).initGUIInputFilters(__tsProcessor.getDataStoresByType(ReclamationHDBDataStore.class), y );
@@ -7436,6 +7451,7 @@ private void ui_InitGUIInputFilters ( final int y ) {
                     Message.printWarning(3, routine, e);
                 }
             }
+            */
             if ( __source_ReclamationPisces_enabled && (__tsProcessor.getDataStoresByType(ReclamationPiscesDataStore.class).size() > 0) ) {
                 try {
                     TSTool_Pisces.getInstance(ui).initGUIInputFilters(__tsProcessor.getDataStoresByType(ReclamationPiscesDataStore.class), y );
@@ -7744,11 +7760,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menuBar ) {
             new SimpleJMenuItem(TSToolConstants.Commands_Read_ReadRccAcis_String, this) );
         TSToolMenus.Commands_Read_ReadRccAcis_JMenuItem.setToolTipText("Read time series from US Reginal Climate Center (RCC) Applied Climate Information System (ACIS) web service.");
     }
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
     if ( this.__source_ReclamationHDB_enabled ) {
         TSToolMenus.Commands_ReadTimeSeries_JMenu.add(TSToolMenus.Commands_Read_ReadReclamationHDB_JMenuItem =
             new SimpleJMenuItem(TSToolConstants.Commands_Read_ReadReclamationHDB_String, this) );
         TSToolMenus.Commands_Read_ReadReclamationHDB_JMenuItem.setToolTipText("Read time series from US Bureau of Reclamation HDB database.");
     }
+    */
     if ( this.__source_ReclamationPisces_enabled ) {
         TSToolMenus.Commands_ReadTimeSeries_JMenu.add(TSToolMenus.Commands_Read_ReadReclamationPisces_JMenuItem =
             new SimpleJMenuItem(TSToolConstants.Commands_Read_ReadReclamationPisces_String, this) );
@@ -8077,11 +8096,14 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menuBar ) {
         TSToolMenus.Commands_Output_WriteNwsCard_JMenuItem.setToolTipText("Write time series to US National Weather Service (NWS) \"card\" format text file.");
 	}
 
+    // TODO smalers 2025-04-12 remove when tested out.
+	/*
     if ( this.__source_ReclamationHDB_enabled ) {
         TSToolMenus.Commands_OutputTimeSeries_JMenu.add( TSToolMenus.Commands_Output_WriteReclamationHDB_JMenuItem =
             new SimpleJMenuItem(TSToolConstants.Commands_Output_WriteReclamationHDB_String, this ) );
         TSToolMenus.Commands_Output_WriteReclamationHDB_JMenuItem.setToolTipText("Write time series to US Bureau of Reclamation HDB database.");
     }
+    */
 
 	if ( this.__source_RiverWare_enabled ) {
 		TSToolMenus.Commands_OutputTimeSeries_JMenu.add( TSToolMenus.Commands_Output_WriteRiverWare_JMenuItem =
@@ -9049,6 +9071,8 @@ private void ui_InitGUIMenus_File ( JMenuBar menuBar ) {
 		TSToolMenus.File_Open_HydroBase_JMenuItem.setToolTipText(
 			"Open a State of Colorado HydroBase database connection (legacy input type rather than datastore).");
 	}
+    // TODO smalers 2025-04-12 remove when tested out.
+	/*
 	if ( this.__source_ReclamationHDB_enabled ) {
 		if ( !separator_added ) {
 			TSToolMenus.File_Open_JMenu.addSeparator( );
@@ -9058,6 +9082,7 @@ private void ui_InitGUIMenus_File ( JMenuBar menuBar ) {
 			TSToolMenus.File_Open_ReclamationHDB_JMenuItem = new SimpleJMenuItem( TSToolConstants.File_Open_ReclamationHDB_String, this ) );
 		TSToolMenus.File_Open_ReclamationHDB_JMenuItem.setToolTipText("Open a Reclamation HDB database datastore connection");
 	}
+	*/
 
 	TSToolMenus.File_JMenu.add( TSToolMenus.File_Save_JMenu=new JMenu(TSToolConstants.File_Save_String,true));
 	//TSToolMenus.File_Save_Commands_JMenuItem = new SimpleJMenuItem(
@@ -10230,11 +10255,14 @@ throws Exception {
 			this.__dataStore_JTabbedPane.setSelectedIndex(0);
 		}
 	}
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
 	else if ( command.equals ( TSToolConstants.File_Open_ReclamationHDB_String )) {
 		// This is used only to re-login to an existing data store.
 		// The datastore with server, database, etc. must be configured in a datastore configuration file.
 		TSTool_HDB.getInstance(this).openDatabase();
 	}
+	*/
 	else if ( o == TSToolMenus.File_Save_Commands_JMenuItem ) {
 		try {
             if ( this.__commandFileName != null ) {
@@ -10735,9 +10763,12 @@ throws Exception {
     else if (command.equals( TSToolConstants.Commands_Read_ReadRccAcis_String)){
         commandList_EditCommand ( TSToolConstants.Commands_Read_ReadRccAcis_String, null, CommandEditType.INSERT );
     }
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
 	else if (command.equals( TSToolConstants.Commands_Read_ReadReclamationHDB_String)){
         commandList_EditCommand ( TSToolConstants.Commands_Read_ReadReclamationHDB_String, null, CommandEditType.INSERT );
     }
+    */
 	else if (command.equals( TSToolConstants.Commands_Read_ReadReclamationPisces_String)){
         commandList_EditCommand ( TSToolConstants.Commands_Read_ReadReclamationPisces_String, null, CommandEditType.INSERT );
     }
@@ -11082,9 +11113,12 @@ throws Exception {
 	else if (command.equals( TSToolConstants.Commands_Output_WriteNwsCard_String)){
 		commandList_EditCommand ( TSToolConstants.Commands_Output_WriteNwsCard_String, null, CommandEditType.INSERT );
 	}
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
     else if (command.equals( TSToolConstants.Commands_Output_WriteReclamationHDB_String)){
         commandList_EditCommand ( TSToolConstants.Commands_Output_WriteReclamationHDB_String, null, CommandEditType.INSERT );
     }
+    */
 	else if (command.equals( TSToolConstants.Commands_Output_WriteRiverWare_String)){
 		commandList_EditCommand ( TSToolConstants.Commands_Output_WriteRiverWare_String, null, CommandEditType.INSERT );
 	}
@@ -13081,9 +13115,12 @@ private void uiAction_DataStoreChoiceClicked() {
         else if ( selectedDataStore instanceof RccAcisDataStore ) {
             TSTool_RccAcis.getInstance(this).selectDataStore ( (RccAcisDataStore)selectedDataStore );
         }
+        // TODO smalers 2025-04-12 remove when tested out.
+        /*
         else if ( selectedDataStore instanceof ReclamationHDBDataStore ) {
             TSTool_HDB.getInstance(this).selectDataStore ( (ReclamationHDBDataStore)selectedDataStore );
         }
+        */
         else if ( selectedDataStore instanceof ReclamationPiscesDataStore ) {
             TSTool_Pisces.getInstance(this).selectDataStore ( (ReclamationPiscesDataStore)selectedDataStore );
         }
@@ -13171,10 +13208,13 @@ private void uiAction_DataTypeChoiceClicked() {
         // Set intervals for the data type and trigger a select to populate the input filters.
     	TSTool_RccAcis.getInstance(this).dataTypeSelected ();
     }
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationHDBDataStore)) {
         // Time steps are determined from the database based on the data type that is selected.
         // FIXME smalers 2010-10-19 Need to enable.
     }
+    */
     else if ( (selectedDataStore != null) && (selectedDataStore instanceof ReclamationPiscesDataStore)) {
         // Set intervals for the data type and trigger a select to populate the input filters.
     	TSTool_Pisces.getInstance(this).dataTypeSelected ( (ReclamationPiscesDataStore)selectedDataStore, selectedDataType );
@@ -13684,6 +13724,8 @@ private void uiAction_GetTimeSeriesListClicked() {
             return;
         }
     }
+    // TODO smalers 2025-04-12 remove when tested out.
+    /*
 	else if ( (selectedDataStore != null) && this.__source_ReclamationHDB_enabled && (selectedDataStore instanceof ReclamationHDBDataStore) ) {
         try {
             TSTool_HDB.getInstance(this).getTimeSeriesListClicked_ReadReclamationHDBCatalog();
@@ -13695,6 +13737,7 @@ private void uiAction_GetTimeSeriesListClicked() {
             return;
         }
     }
+    */
 	else if ( (selectedDataStore != null) && this.__source_ReclamationPisces_enabled && (selectedDataStore instanceof ReclamationPiscesDataStore) ) {
         try {
             TSTool_Pisces.getInstance(this).getTimeSeriesListClicked_ReadReclamationPiscesCatalog();
@@ -15888,12 +15931,14 @@ private void uiAction_ShowProperties_TSToolSession ( HydroBaseDataStore dataStor
     else {
         v.add ( "RCC ACIS datastore is not enabled");
     }
+    /* TODO smalers 2025-04-13 remove when tested out.
     if ( this.__source_ReclamationHDB_enabled ) {
         v.add ( "ReclamationHDB datastore is enabled" );
     }
     else {
         v.add ( "ReclamationHDB datastore is not enabled");
     }
+    */
     if ( this.__source_ReclamationPisces_enabled ) {
         v.add ( "ReclamationPisces datastore is enabled" );
     }

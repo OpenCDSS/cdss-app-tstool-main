@@ -155,7 +155,8 @@ public class TSToolConstants {
 			File_Open_CommandFile_String = "Command File...",
 			File_Open_CommandFileNoDiscovery_String = "Command File (no discovery)...",
 			File_Open_HydroBase_String = "HydroBase...",
-			File_Open_ReclamationHDB_String = "Reclamation HDB...",
+			// TODO  smalers 2025-04-12 remove when tested out.
+			//File_Open_ReclamationHDB_String = "Reclamation HDB...",
 		File_Save_String = "Save",
 			File_Save_Commands_String = "Commands",
 			File_Save_CommandsAs_String = "Commands As...",
@@ -253,7 +254,8 @@ public class TSToolConstants {
 	Commands_Read_ReadNwsCard_String = TAB + "ReadNwsCard()... <read 1+ time series from an NWS CARD file>",
 	Commands_Read_ReadNwsrfsFS5Files_String = TAB + "ReadNwsrfsFS5Files()... <read 1 time series from NWSRFS FS5 files>",
 	Commands_Read_ReadRccAcis_String = TAB + "ReadRccAcis()... <read 1+ time series from the RCC ACIS web service>",
-	Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series a Reclamation HDB database>",
+	// TODO  smalers 2025-04-12 remove when tested out.
+	//Commands_Read_ReadReclamationHDB_String = TAB + "ReadReclamationHDB()... <read 1+ time series a Reclamation HDB database>",
 	Commands_Read_ReadReclamationPisces_String = TAB + "ReadReclamationPisces()... <read 1+ time series a Reclamation Pisces database>",
 	Commands_Read_ReadRiverWare_String = TAB + "ReadRiverWare()... <read 1 time series from a RiverWare file>",
 	Commands_Read_ReadStateCU_String = TAB + "ReadStateCU()... <read 1+ time series from a StateCU file>",
@@ -333,7 +335,8 @@ public class TSToolConstants {
 	Commands_Output_WriteDelimitedFile_String = TAB + "WriteDelimitedFile()... <write time series to a delimited file>",
 	Commands_Output_WriteHecDss_String = TAB + "WriteHecDss()... <write time series to HEC-DSS file>",
 	Commands_Output_WriteNwsCard_String = TAB + "WriteNwsCard()... <write time series to NWS Card file>",
-	Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to a Reclamation HDB database>",
+	// TODO  smalers 2025-04-12 remove when tested out.
+	//Commands_Output_WriteReclamationHDB_String = TAB + "WriteReclamationHDB()... <write time series to a Reclamation HDB database>",
 	Commands_Output_WriteRiverWare_String = TAB +	"WriteRiverWare()... <write time series to RiverWare file>",
     Commands_Output_WriteSHEF_String = TAB + "WriteSHEF()... <write time series to SHEF file (under development)>",
 	Commands_Output_WriteStateCU_String = TAB + "WriteStateCU()... <write time series to StateCU file>",

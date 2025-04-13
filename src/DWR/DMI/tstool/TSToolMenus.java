@@ -83,8 +83,9 @@ public class TSToolMenus {
 	   	File_Open_CommandFile_JMenuItem = null,
 	   	File_Open_CommandFileNoDiscovery_JMenuItem = null,
 	   	File_Open_CommandFileRecent_JMenuItem[] = null,
-	   	File_Open_HydroBase_JMenuItem = null,
-	   	File_Open_ReclamationHDB_JMenuItem = null;
+	   	File_Open_HydroBase_JMenuItem = null;
+		// TODO smalers 2025-04-12 remove when tested out.
+	   	//File_Open_ReclamationHDB_JMenuItem = null;
 	public static JMenu File_Save_JMenu = null;
 		public static JMenuItem
 		File_Save_Commands_JMenuItem = null,
@@ -194,7 +195,8 @@ public class TSToolMenus {
 		Commands_Read_ReadNwsCard_JMenuItem,
 		Commands_Read_ReadNwsrfsFS5Files_JMenuItem,
 		Commands_Read_ReadRccAcis_JMenuItem,
-		Commands_Read_ReadReclamationHDB_JMenuItem,
+		// TODO smalers 2025-04-12 remove when tested out.
+		//Commands_Read_ReadReclamationHDB_JMenuItem,
 		Commands_Read_ReadReclamationPisces_JMenuItem,
 		Commands_Read_ReadRiverWare_JMenuItem,
 		Commands_Read_ReadStateCU_JMenuItem,
@@ -306,7 +308,8 @@ public class TSToolMenus {
 		Commands_Output_WriteDelimitedFile_JMenuItem,
 		Commands_Output_WriteHecDss_JMenuItem,
 		Commands_Output_WriteNwsCard_JMenuItem,
-		Commands_Output_WriteReclamationHDB_JMenuItem,
+		// TODO smalers 2025-04-12 remove when tested out.
+		//Commands_Output_WriteReclamationHDB_JMenuItem,
 		Commands_Output_WriteRiverWare_JMenuItem,
     	Commands_Output_WriteSHEF_JMenuItem,
 		Commands_Output_WriteStateCU_JMenuItem,
