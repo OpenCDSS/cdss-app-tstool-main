@@ -8648,6 +8648,10 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menuBar ) {
         new SimpleJMenuItem(TSToolConstants.Commands_General_Running_WritePropertiesToFile_String, this ) );
     TSToolMenus.Commands_General_Running_WritePropertiesToFile_JMenuItem.setToolTipText("Write processor properties to a file.");
     TSToolMenus.Commands_General_Running_JMenu.addSeparator();
+    TSToolMenus.Commands_General_Running_JMenu.add ( TSToolMenus.Commands_General_Running_EvaluateExpression_JMenuItem =
+        new SimpleJMenuItem(TSToolConstants.Commands_General_Running_EvaluateExpression_String,this));
+    TSToolMenus.Commands_General_Running_EvaluateExpression_JMenuItem.setToolTipText("Evaluate an expression.");
+    TSToolMenus.Commands_General_Running_JMenu.addSeparator();
     TSToolMenus.Commands_General_Running_JMenu.add (TSToolMenus.Commands_General_Running_RunCommands_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_General_Running_RunCommands_String,this));
     TSToolMenus.Commands_General_Running_RunCommands_JMenuItem.setToolTipText("Run a command file, useful for testing and implementing modular workflows.");
@@ -11722,6 +11726,9 @@ throws Exception {
     else if (command.equals( TSToolConstants.Commands_General_Running_WritePropertiesToFile_String)){
         commandList_EditCommand ( TSToolConstants.Commands_General_Running_WritePropertiesToFile_String, null, CommandEditType.INSERT );
     }
+	else if (command.equals( TSToolConstants.Commands_General_Running_EvaluateExpression_String) ) {
+		commandList_EditCommand ( TSToolConstants.Commands_General_Running_EvaluateExpression_String, null, CommandEditType.INSERT );
+	}
 	else if (command.equals( TSToolConstants.Commands_General_Running_RunCommands_String) ) {
 		commandList_EditCommand ( TSToolConstants.Commands_General_Running_RunCommands_String, null, CommandEditType.INSERT );
 	}

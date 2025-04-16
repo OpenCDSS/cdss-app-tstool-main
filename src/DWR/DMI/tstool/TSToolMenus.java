@@ -526,19 +526,26 @@ public class TSToolMenus {
     	Commands_General_Running_FormatDateTimeProperty_JMenuItem = null,
     	Commands_General_Running_FormatStringProperty_JMenuItem = null,
     	Commands_General_Running_WritePropertiesToFile_JMenuItem = null,
+    	//---
+    	Commands_General_Running_EvaluateExpression_JMenuItem = null,
+    	//---
 		Commands_General_Running_RunCommands_JMenuItem = null,
 		Commands_General_Running_RunProgram_JMenuItem = null,
     	Commands_General_Running_RunPython_JMenuItem = null,
     	Commands_General_Running_RunR_JMenuItem = null,
     	Commands_General_Running_RunDSSUTL_JMenuItem = null,
+    	//---
     	Commands_General_Running_If_JMenuItem = null,
     	Commands_General_Running_EndIf_JMenuItem = null,
+    	//---
     	Commands_General_Running_For_JMenuItem = null,
     	Commands_General_Running_EndFor_JMenuItem = null,
     	Commands_General_Running_Break_JMenuItem = null,
     	Commands_General_Running_Continue_JMenuItem = null,
+    	//---
     	Commands_General_Running_Exit_JMenuItem = null,
     	Commands_General_Running_Wait_JMenuItem = null,
+    	//---
     	Commands_General_Running_SetWorkingDir_JMenuItem = null,
     	Commands_General_Running_ProfileCommands_JMenuItem = null;
 
