@@ -538,19 +538,26 @@ public class TSToolConstants {
     Commands_General_Running_FormatDateTimeProperty_String = TAB + "FormatDateTimeProperty()... <format date/time property as string property>",
     Commands_General_Running_FormatStringProperty_String = TAB + "FormatStringProperty()... <format a string property>",
     Commands_General_Running_WritePropertiesToFile_String = TAB + "WritePropertiesToFile()... <write processor properties to file>",
+    // ----
+    Commands_General_Running_EvaluateExpression_String = TAB + "EvaluateExpression()... <evaluate an expression>",
+    // ----
     Commands_General_Running_RunCommands_String = TAB + "RunCommands()... <run a command file>",
 	Commands_General_Running_RunProgram_String = TAB + "RunProgram()... <run an external program>",
     Commands_General_Running_RunPython_String = TAB + "RunPython()... <run a Python script>",
     Commands_General_Running_RunR_String = TAB + "RunR()... <run an R script>",
     Commands_General_Running_RunDSSUTL_String = TAB + "RunDSSUTL()... <run the HEC DSSUTL program>",
+    // ----
     Commands_General_Running_If_String = TAB + "If() <check a condition and start a block of commands>",
     Commands_General_Running_EndIf_String = TAB + "EndIf() <end an If() block>",
+    // ----
     Commands_General_Running_For_String = TAB + "For() <repeatedly execute a block of commands>",
     Commands_General_Running_EndFor_String = TAB + "EndFor() <end a For() block>",
     Commands_General_Running_Break_String = TAB + "Break() <break out of a For() block>",
     Commands_General_Running_Continue_String = TAB + "Continue() <continue to next iteration of a For() block>",
+    // ----
     Commands_General_Running_Exit_String = TAB + "Exit() <end processing>",
     Commands_General_Running_Wait_String = TAB + "Wait() <pause processing within the command>",
+    // ----
     Commands_General_Running_SetWorkingDir_String = TAB + "SetWorkingDir()... <set the working directory for relative paths>",
     Commands_General_Running_ProfileCommands_String = TAB + "ProfileCommands()... <profile command performance>",
 
