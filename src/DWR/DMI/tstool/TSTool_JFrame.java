@@ -1137,6 +1137,9 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 	this.__processor_JProgressBar.setValue ( icommand + 1 );
 	// For debugging.
 	//Message.printStatus(2,getClass().getSimpleName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1,routine,"Setting command progress value to maximum value " + this.__command_JProgressBar.getMaximum() );
+	}
 	this.__command_JProgressBar.setValue ( this.__command_JProgressBar.getMaximum() );
 	// Set the tooltip text for the progress bar to indicate the numbers.
 	String tip = "Completed command " + (icommand + 1) + " of " + ncommand;
@@ -2368,14 +2371,15 @@ public void commandProgress ( int istep, int nstep, Command command, float perce
 	if ( istep == 0 ) {
 		// Initialize the limits of the command progress bar:
 		// - also set the progress to zero
-		this.__command_JProgressBar.setMinimum ( 1 );
+		//this.__command_JProgressBar.setMinimum ( 1 );
+		this.__command_JProgressBar.setMinimum ( 0 );
 		this.__command_JProgressBar.setMaximum ( nstep );
         this.__command_JProgressBar.setValue ( 0 );
 		if ( debug ) {
-			Message.printStatus(2, routine, "Set progress bar limits to 0 and " + nstep );
+			Message.printStatus(2, routine, "Set command progress bar limits to 1 and " + nstep );
 		}
 		if ( debug ) {
-			Message.printStatus(2, routine, "Set progress bar limit value to " + istep + ", message=" + message );
+			Message.printStatus(2, routine, "Set command progress bar limit value to " + istep + ", message=" + message );
 		}
 	}
 	else {
