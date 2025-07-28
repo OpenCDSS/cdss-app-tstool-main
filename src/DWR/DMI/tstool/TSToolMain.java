@@ -34,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -42,10 +43,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 
 import javax.swing.JFrame;
+import javax.swing.UIManager;
 
 import org.restlet.data.Parameter;
 
@@ -767,7 +770,7 @@ public static void main ( String args[] ) {
 
 	Message.printStatus ( 1, routine, "Setup completed.  showmain = " + __showMainGUI + " isbatch=" + IOUtil.isBatch() );
 	
-	// Get the TSToolPloginManager:
+	// Get the TSToolPluginManager:
 	// - this is a singleton that is used here and also the 'Tools / Plugin Manager...' UI menu.
 	// - this is the newer way of handling plugins
 	// - prior to TSTool 15, only one version of a plugin could exist under the 'plugins' folder
@@ -989,6 +992,12 @@ public static void main ( String args[] ) {
 		// - the processor for the UI is created in the called code
 		Message.printStatus ( 2, routine, "Starting TSTool UI..." );
 		trackUsage ( "ui" );
+		
+		// Configure global UI preferences:
+		// - TODO smalers 2025-07-15 need to evaluate how best to get fonts that match Windows default on large displays
+		//TSToolMain.setUIPreferences();
+		
+		// Open the UI.
 		try {
             __tstool_JFrame = new TSTool_JFrame (
             	session,
@@ -1323,7 +1332,8 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 	            DataStore dataStore = factory.create(dataStoreProps);
 	            // Add the datastore to the processor.
 	            processor.setPropContents ( "DataStore", dataStore );
-	            Message.printStatus(2, routine, "DataStore properties are: " + dataStore.getProperties().toString(","));
+	            // Only use the following during development because it may show sensitive information.
+	            //Message.printStatus(2, routine, "DataStore properties are: " + dataStore.getProperties().toString(","));
 	            sw.stop();
 	            Message.printStatus(2, routine, "Opening datastore type \"" + dataStoreType + "\", name \"" +
 	                dataStore.getName() + "\" took " + sw.getMilliseconds() + " ms" );
@@ -1755,28 +1765,33 @@ throws Exception {
 		else if ( args[i].regionMatches(true,0,"-d",0,2) || args[i].regionMatches(true, 0, "--debug", 0,7)) {
 			// Set debug information.
 			if ( (i + 1) == args.length ) {
-				// No argument.  Turn terminal and log file debug on to level 1.
+				// No argument (--debug):
+				// - turn terminal and log file debug on to level 1
 				Message.isDebugOn = true;
 				Message.setDebugLevel ( Message.TERM_OUTPUT, 1);
 				Message.setDebugLevel ( Message.LOG_OUTPUT, 1);
 			}
-			i++;
-			if ( ((i + 1) == args.length) && (args[i].indexOf(",") >= 0) ) {
-				// Comma, set screen and file debug to different levels.
-				String token = StringUtil.getToken(args[i],",",0,0);
-				if ( StringUtil.isInteger(token) ) {
-					Message.isDebugOn = true;
-					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(token) );
+			else {
+				// Not the last argument.
+				if ( args[i + 1].indexOf(",") >= 0) {
+					// Comma (--debug 1,2):
+					// - set screen and file debug to different levels
+					++i;
+					String token = StringUtil.getToken(args[i],",",0,0);
+					if ( StringUtil.isInteger(token) ) {
+						Message.isDebugOn = true;
+						Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(token) );
+					}
+					token = StringUtil.getToken(args[i],",",0,1);
+					if ( StringUtil.isInteger(token) ) {
+						Message.isDebugOn = true;
+						Message.setDebugLevel (	Message.LOG_OUTPUT, StringUtil.atoi(token) );
+					}
 				}
-				token = StringUtil.getToken(args[i],",",0,1);
-				if ( StringUtil.isInteger(token) ) {
-					Message.isDebugOn = true;
-					Message.setDebugLevel (	Message.LOG_OUTPUT, StringUtil.atoi(token) );
-				}
-			}
-			else if ( (i + 1) == args.length ) {
-			    // No comma.  Turn screen and log file debug on to the requested level.
-				if ( StringUtil.isInteger(args[i]) ) {
+				else if ( StringUtil.isInteger(args[i+1]) ) {
+					// No comma (--debug 1):
+					// - set screen and file debug to the same levels
+					++i;
 					Message.isDebugOn = true;
 					Message.setDebugLevel (	Message.TERM_OUTPUT, StringUtil.atoi(args[i]) );
 					Message.setDebugLevel ( Message.LOG_OUTPUT,	StringUtil.atoi(args[i]) );
@@ -2230,6 +2245,32 @@ public static void setIcon ( String iconType ) {
 	catch ( Exception e ) {
 		Message.printStatus ( 2, "", "TSTool icon \"" + iconPath +	"\" does not exist in classpath." );
 	}
+}
+
+/**
+ * Set UI global preferences:
+ * <ul>
+ * <li> Allow all fonts to be scaled.</li>
+ * </ul>
+ */
+private static void setUIPreferences ( ) {
+	String routine = TSToolMain.class.getSimpleName();
+    Enumeration<Object> keys = UIManager.getDefaults().keys();
+    while ( keys.hasMoreElements() ) {
+        Object key = keys.nextElement();
+        Object value = UIManager.get(key);
+        if ( Message.isDebugOn ) {
+        	Message.printStatus(2, routine, "UI property " + key + "=" + value );
+        }
+        float fontFactor = (float)(150.0/100.0);
+        if ( value instanceof Font ) {
+        	// A font has been found:
+        	// - print the current information.
+        	Font oldFont = (Font)value;
+        	Font scaledFont = oldFont.deriveFont(oldFont.getStyle(), oldFont.getSize2D() * fontFactor);
+            UIManager.put(key, scaledFont);
+        }
+    }
 }
 
 /**

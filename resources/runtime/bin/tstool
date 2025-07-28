@@ -117,6 +117,9 @@ checkOperatingSystem() {
 determineJavaExe() {
   local jreExeCandidates javaExeNVersionCount javaExeTry
   local javaNAlternativeExe javaNAlternativeExeCount
+
+  echoStderr "Determining the java executable program."
+
   # First check to see if available in TSTool distribution:
   # - use standard and likely folders used with TSTool on Linux
   # - also check likely folders
@@ -179,22 +182,38 @@ determineJavaExe() {
   for javaExeTry in "${jreExeCandidates[@]}"; do
     echoStderr "Checking candidate java program for existence and Java 11:"
     echoStderr "  ${javaExeTry}"
-    if [ -e "${javaExeTry}" ]; then
-      # Java executable file exists, check the version:
-      # - version may be printed to stderr rather than stdout
-      # - output on Debian Bullseye is as follows so check for a string that matches any line
-      #   (note that -version as shown below is different from --version):
-      #   openjdk version "11.0.18" 2023-01-17
-      #   OpenJDK Runtime Environment (build 11.0.18+10-post-Debian-1deb11u1)
-      #   OpenJDK 64-Bit Server VM (build 11.0.18+10-post-Debian-1deb11u1, mixed mode, sharing)
-      javaExeNVersionCount=$(${javaExeTry} -version 2>&1 | grep ' 11.' | wc -l)
-      if [ "${javaExeNVersionCount}" -ne 0 ]; then
-        # Found a Java 11 to use.
-        javaExe=${javaExeTry}
-        echoStderr "   ...found Java11 'java' program to use."
-        break
+    if [ -f "${javaExeTry}" ]; then
+      if [ "${debug}" = "true" ]; then
+        echoStderr "   File exists."
+      fi
+      if [ -e "${javaExeTry}" ]; then
+        # Java executable file exists and is executable, check the version:
+        # - version may be printed to stderr rather than stdout
+        # - output on Debian Bullseye is as follows so check for a string that matches any line
+        #   (note that -version as shown below is different from --version):
+        #   openjdk version "11.0.18" 2023-01-17
+        #   OpenJDK Runtime Environment (build 11.0.18+10-post-Debian-1deb11u1)
+        #   OpenJDK 64-Bit Server VM (build 11.0.18+10-post-Debian-1deb11u1, mixed mode, sharing)
+        if [ "${debug}" = "true" ]; then
+          echoStderr "   File is executable."
+        fi
+        javaExeNVersionCount=$(${javaExeTry} -version 2>&1 | grep ' 11.' | wc -l)
+        if [ "${javaExeNVersionCount}" -ne 0 ]; then
+          # Found a Java 11 to use.
+          javaExe=${javaExeTry}
+          echoStderr "   ...found Java11 'java' program to use."
+          break
+        else
+          echoStderr "   ...does not appear to be Java 11 using: ${javaExeTry} -version"
+        fi
       else
-        echoStderr "   ...does not appear to be Java 11 using: ${javaExeTry} -version"
+        if [ "${debug}" = "true" ]; then
+          echoStderr "   File is not executable."
+        fi
+      fi
+    else
+      if [ "${debug}" = "true" ]; then
+        echoStderr "   File does not exist."
       fi
     fi
   done
@@ -225,6 +244,7 @@ determineJavaExe() {
 determineJavaExeDev() {
   # The java program in the development distribution should work.
   jreExeCandidates=(
+  ${installFolder}/jre_11/bin/java
   ${installFolder}/jre11/bin/java)
   # The following is no longer used as of Java 15.0.0, which uses Java 11:
   #${installFolder}/jre_18/bin/java
@@ -462,7 +482,9 @@ fi
 # - see --dev parameter to use development environment class files
 # - set verbose to "" or "-verbose"
 headless="false"
+# Set 'debug' to true to troubleshoot.
 debug="false"
+#debug="true"
 devMode="false"
 #verbose="-verbose"
 verbose=""
