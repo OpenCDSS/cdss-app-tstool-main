@@ -53,14 +53,18 @@ public class DataStoreEnabledChecker {
 		// Default is enabled (Datastore configuration file Enabled is missing)
 		// which will result in the datastore configuration file Enabled to be checked.
 		boolean isEnabled = true;
-		Message.printStatus(2, routine, "Checking whether datastore \"" + datastore + "\" is enabled." );
-		Message.printStatus(2, routine, "  Starting with enabled = true.");
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "Checking whether datastore \"" + datastore + "\" is enabled." );
+			Message.printStatus(2, routine, "  Starting with enabled = true.");
+		}
 		for ( DataStoreEnabledParameter parameter : this.parameters ) {
 			if ( parameter.matches(datastore) ) {
 				// The datastore matches a saved parameter's datastore:
 				// - get the enabled/disabled state
 				isEnabled = parameter.getIsEnabled();
-				Message.printStatus(2, routine, "  Changed enabled to " + isEnabled );
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Changed enabled to " + isEnabled );
+				}
 			}
 		}
 		// Return the overall evaluation of whether the datastore should be considered enabled or disabled.

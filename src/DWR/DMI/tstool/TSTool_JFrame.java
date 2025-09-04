@@ -7110,7 +7110,7 @@ private void ui_InitGUI ( PropList initProps ) {
     results_problems_JPanel.setLayout(gbl);
     CommandLog_TableModel tableModel = null;
     try {
-        tableModel = new CommandLog_TableModel(new Vector<>());
+        tableModel = new CommandLog_TableModel(new ArrayList<>());
     }
     catch ( Exception e ) {
         // Should not happen but log.
@@ -14858,7 +14858,7 @@ private void uiAction_RunCommands_ShowResultsProblems() {
         CommandPhaseType [] commandPhases = {
         	CommandPhaseType.RUN
        	};
-        // List failures first
+        // List failures first.
         CommandStatusType [] statusTypes = {
         	CommandStatusType.FAILURE,
         	CommandStatusType.WARNING,

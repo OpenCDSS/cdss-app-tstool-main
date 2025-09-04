@@ -38,11 +38,15 @@ public class DataStoreEnabledParameter {
 		this.parameter = parameter;
 		boolean goodSyntax = true;
 		if ( parameter.startsWith("--disable-datastores") ) {
-			Message.printStatus ( 2, routine, "Added datastore disabled parameter: " + parameter );
+			if ( Message.isDebugOn ) {
+				Message.printStatus ( 2, routine, "Added datastore disabled parameter: " + parameter );
+			}
 			this.isEnabled = false;
 		}
 		else if ( parameter.startsWith("--enable-datastores") ) {
-			Message.printStatus ( 2, routine, "Added datastore enabled parameter: " + parameter );
+			if ( Message.isDebugOn ) {
+				Message.printStatus ( 2, routine, "Added datastore enabled parameter: " + parameter );
+			}
 			this.isEnabled = true;
 		}
 		else {
@@ -60,7 +64,9 @@ public class DataStoreEnabledParameter {
 					// Add the datastore patterns as Java regular expression.
 					String pattern = part.trim().replace("*", ".*");
 					this.datastores.add(pattern);
-					Message.printStatus ( 2, routine, "  Added datastore pattern \"" + pattern + "\"." );
+					if ( Message.isDebugOn ) {
+						Message.printStatus ( 2, routine, "  Added datastore pattern \"" + pattern + "\"." );
+					}
 				}
 			}
 		}
@@ -90,7 +96,9 @@ public class DataStoreEnabledParameter {
 	public boolean matches ( String datastoreToMatch ) {
 		String routine = getClass().getSimpleName() + ".matches";
 		for ( String datastore : this.datastores ) {
-			Message.printStatus(2, routine, "Comparing \"" + datastoreToMatch + "\" with \"" + datastore + "\".");
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "Comparing \"" + datastoreToMatch + "\" with \"" + datastore + "\".");
+			}
 			if ( datastoreToMatch.matches(datastore) ) {
 				// Matched a datastore from the command parameter.
 				return true;

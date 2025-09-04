@@ -239,7 +239,7 @@ public class TSToolPluginManager {
 	 * output will be full paths
 	 */
 	public void findPluginJarFiles ( TSToolSession session, boolean listAll, List<String> pluginJarList ) {
-		String routine = TSToolMain.class.getSimpleName() + ".findPluginJarFiles";
+		String routine = getClass().getSimpleName() + ".findPluginJarFiles";
 		
 		// List of candidate jar files:
 		// - initially, any jar files that are in the software installation or user files
@@ -279,26 +279,36 @@ public class TSToolPluginManager {
 		if ( listAll ) {
 		for ( String jarFile : jarFileList ) {
 			jarFile = jarFile.replace("\\", "/");
-			Message.printStatus(2, routine, "Checking \"" + jarFile + "\" for plugin (ignoring \"dep\" files).");
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "Checking \"" + jarFile + "\" for plugin (ignoring \"dep\" files).");
+			}
 			if ( ! jarFile.contains("/dep/") ) {
-				Message.printStatus(2, routine, "  Not a dependency, checking the jar file manifest.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Not a dependency, checking the jar file manifest.");
+				}
 				// Not a dependency jar file:
 				// - check the manifest attributes
 				SortedMap<String,String> manifestMap = new TreeMap<>();
 				try {
 					// Get the Manifest file attributes.
 					manifestMap = TSToolPlugin.readJarManifestMap ( jarFile );
-					Message.printStatus(2, routine, "  Have " + manifestMap.size() + " manifest attributes.");
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "  Have " + manifestMap.size() + " manifest attributes.");
+					}
 					
 					// Check the attributes for whether a plugin:
 					// - should have at least one of the standard attributes
 					boolean found = false;
 					if ( manifestMap.get("DataStore-Class") != null ) {
-						Message.printStatus(2, routine, "  Found 'DataStore-Class' in the manifest.");
+						if ( Message.isDebugOn ) {
+							Message.printStatus(2, routine, "  Found 'DataStore-Class' in the manifest.");
+						}
 						found = true;
 					}
 					else if ( manifestMap.get("Command-Class1") != null ) {
-						Message.printStatus(2, routine, "  Found 'Command-Class1' in the manifest.");
+						if ( Message.isDebugOn ) {
+							Message.printStatus(2, routine, "  Found 'Command-Class1' in the manifest.");
+						}
 						found = true;
 					}
 					if ( found ) {
@@ -313,7 +323,9 @@ public class TSToolPluginManager {
 				}
 			}
 			else {
-				Message.printStatus(2, routine, "  Ignoring dependency.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Ignoring dependency.");
+				}
 			}
 		}
 		}
@@ -457,7 +469,7 @@ public class TSToolPluginManager {
 		// - this pass the first test of being a plugin but may not be compatible with the TSToolSession
 		boolean listAll = true;
 		findPluginJarFiles ( TSToolSession.getInstance(), listAll, pluginJarList );
-		Message.printStatus ( 2, routine, "Have " + pluginJarList.size() + " plugin jar files from initial search." );
+		Message.printStatus ( 2, routine, "Have " + pluginJarList.size() + " candidate plugin jar files from initial search." );
 		
 		// Loop through the plugin jar files.
 		for ( String jarFile : pluginJarList ) {

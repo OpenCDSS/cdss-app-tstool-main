@@ -49,30 +49,30 @@ import RTi.Util.Time.DateTime;
  * <li> TSTool software installation 'plugins' folder</li>
  * <li> User's '.tstool/##/plugins' folder</li>
  * </ul>
- * 
+ *
  * The folder structure in the 'plugins' folder can be one of the following,
  * which is used for both the TSTool installation and user files.
- * 
+ *
  * As of TSTool 15, the plugins folder organization is similar to the following,
  * which allows multiple plugins to exist and be managed:
- * 
+ *
  * <pre>
  *    plugins/owf-tstool-aws-plugin/
  *      1.5.7/
  *        owf-tstool-aws-plugin-1.5.7.jar
  *        dep/
- *       
+ *
  * </pre>
- * 
+ *
  * Prior to TSTool 15, the plugins folder organization is similar to the following,
  * which DOES NOT allow multiple versions.
- * 
+ *
  * <pre>
  *    plugins/owf-tstool-aws-plugin/
  *      owf-tstool-aws-plugin-1.5.7.jar
  *      dep/
  * </pre>
- * 
+ *
  * The plugins that are managed allow checking the software version for plugin compatibility.
  * The TSToolPluginManager_JFrame can be used to display and handle installations.
  * Information fields are meant to display information but are not used internally for any functionality.
@@ -89,13 +89,13 @@ public class TSToolPlugin {
 	 * Plugin name from jar file name
 	 */
 	private String nameFromJarFile = "";
-	
+
 	/**
 	 * The location of the plugin installation,
 	 * either with TSTool software files or user files.
 	 */
 	private TSToolPluginLocationType pluginLocationType = TSToolPluginLocationType.UNKNOWN;
-	
+
 	/**
 	 * The Jar file for the plugin, for example:
 	 *   C:/Users/user/.tstool/##/plugins/owf-tstool-aws-plugin/owf-tstool-aws-plugin-1.5.7.jar (before TSTool 15.x)
@@ -127,7 +127,7 @@ public class TSToolPlugin {
 	 * - initialize to null
 	 */
 	private Long installationSize = null;
-	
+
 	/**
 	 * Most recent modification time for a plugin's version files.
 	 */
@@ -148,7 +148,7 @@ public class TSToolPlugin {
 
 	/**
 	 * TSTool plugin's semantic version:
-	 * - from the MANIFEST.MF file in the jar file 
+	 * - from the MANIFEST.MF file in the jar file
 	 */
 	private String versionFromJarManifest = "";
 
@@ -157,7 +157,7 @@ public class TSToolPlugin {
 	 * - enable later?
 	 */
 	private String versionDate = "";
-	
+
 	/**
 	 * Whether compatible with current TSTool.
 	 */
@@ -203,7 +203,7 @@ public class TSToolPlugin {
 	public DateTime getInstallationLastModifiedTime () {
 		return this.installationLastModifiedTime;
 	}
-	
+
 	/**
 	 * Return the plugin installation folder size.
 	 * The size is determined when called by getting the size of all files in the installation folder.
@@ -299,7 +299,7 @@ public class TSToolPlugin {
 			return req;
 		}
 	}
-	
+
 	/**
 	 * Return whether the installation folder parent matches the version.
 	 * @return true if the plugin jar file is in a version folder, false if not, and null if unknown
@@ -318,7 +318,7 @@ public class TSToolPlugin {
 			}
 		}
 	}
-	
+
 	/**
 	 * Return the plugin version as the manifest 'Plugin-Version' property, the version from the jar file, or the installation folder.
 	 * @return the plugin version, or an empty string if not known
@@ -436,7 +436,7 @@ public class TSToolPlugin {
 			Message.printWarning(3,routine,e);
 		}
 	}
-	
+
 	/**
 	 * Set whether the plugin is best for TSTool compatibility.
 	 * @param isBest whether the plugin is best for TSTool compatibility (OK to set to null if unknown).
@@ -465,7 +465,7 @@ public class TSToolPlugin {
 		}
 		this.nameFromJarFile = jarFile;
 	}
-	
+
 	/**
 	 * Set the plugin jar file.
 	 * All related data are (re)set.
@@ -488,14 +488,14 @@ public class TSToolPlugin {
 		else if ( pluginJarFile.getAbsolutePath().replace("\\", "/").startsWith(installPluginsFolder) ) {
 			this.pluginLocationType = TSToolPluginLocationType.TSTOOL_FILES;
 		}
-		
+
 		// Read the manifest from the jar file.
 		try {
 			this.pluginJarFileManifestMap = readJarManifestMap ( pluginJarFile.getAbsolutePath() );
 		}
 		catch ( IOException e ) {
 		}
-		
+
 		// Set data from the manifest data.
 		if ( this.pluginJarFileManifestMap.get("Plugin-Name") != null ) {
 			// Set the plugin name from the manifest 'Plugin-Name' attribute.
@@ -505,13 +505,13 @@ public class TSToolPlugin {
 			// Set the plugin version from the manifest 'Plugin-Version' attribute.
 			this.versionFromJarManifest = this.pluginJarFileManifestMap.get("Plugin-Version");
 		}
-		
+
 		// Set the version from the plugin jar file name.
 		setVersionFromJarFile ();
-		
+
 		// Set the name from the plugin jar file name.
 		setNameFromJarFile ();
-		
+
 		// Get dependency files.
 		if ( this.pluginJarFileManifestMap.get("Class-Path") != null ) {
 			// Get the dependency files.
@@ -529,8 +529,10 @@ public class TSToolPlugin {
 			List<String> excludePatterns = null;
 			try {
 				this.pluginDepList = IOUtil.getFiles(this.pluginDepFolder, listRecursive, listFiles, listFolders, includePatterns, excludePatterns);
-				Message.printStatus(2, routine, "Dependency folder \"" + this.pluginDepFolder.getAbsolutePath() +
-					"\" has " + this.pluginDepList.size() + " jar files.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "Dependency folder \"" + this.pluginDepFolder.getAbsolutePath() +
+						"\" has " + this.pluginDepList.size() + " jar files.");
+				}
 			}
 			catch ( Exception e ) {
 				Message.printWarning(3, routine, "Error getting dependency list.");
@@ -538,7 +540,9 @@ public class TSToolPlugin {
 			}
 		}
 		else {
-			Message.printStatus(2, routine, "Plugin for \"" + this.pluginJarFile.getAbsolutePath() + "\" has no dependency folder defined." );
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "Plugin for \"" + this.pluginJarFile.getAbsolutePath() + "\" has no dependency folder defined." );
+			}
 		}
 
 		// Determine whether this plugin is compatible with the current TSTool:
