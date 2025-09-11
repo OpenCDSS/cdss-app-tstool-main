@@ -549,29 +549,45 @@ public class TSToolPlugin {
 		// - currently only handle simple '> 1.2.3' and '>= 1.2.3' criteria
 		// - split the operator and required version
 
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "Checking whether the plugin is copatible with TSTool.");
+		}
 		String requiredVersion = getTSToolVersionRequirements();
+		if ( Message.isDebugOn ) {
+			Message.printStatus ( 2, routine, "  Plugin TSTool requirement is: " + requiredVersion );
+		}
 		if ( requiredVersion != null ) {
+			// Plugin has a TSTool version requirement that can be checked.
 			requiredVersion = requiredVersion.trim(); // Just to make sure there is no surrounding whitespace.
+			// Find the start of the version.  For now search for a digit.
 			int pos = -1;
-			for ( int i = 1; i <= 0; i++ ) {
+			for ( int i = 1; i <= 9; i++ ) {
 				pos = requiredVersion.indexOf("" + i);
-				if ( pos >- 0 ) {
+				if ( pos >= 0 ) {
 					// Found a version.
 					break;
 				}
 			}
 			if ( pos >= 0 ) {
+				// Get the version from string like "<= 1.2.3".
 				String requiredVersion2 = requiredVersion.substring(pos).trim();
 				String operator = "=="; // Default if no operator is provided.
 				if ( pos > 0 ) {
-					// An operator was specified.
+					// An operator was specified:
+					// - get from the front of the string
 					operator = requiredVersion.substring(0,pos).trim();
 				}
 				if ( StringUtil.compareSemanticVersions(IOUtil.getProgramVersion(), operator, requiredVersion2, -1) ) {
-					this.isBestCompatibleWithTSTool = Boolean.TRUE;
+					this.isCompatibleWithTSTool = Boolean.TRUE;
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "  Plugin IS compatible with TSTool." );
+					}
 				}
 				else {
-					this.isBestCompatibleWithTSTool = Boolean.FALSE;
+					this.isCompatibleWithTSTool = Boolean.FALSE;
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "  Plugin IS NOT compatible with TSTool." );
+					}
 				}
 			}
 		}
@@ -579,6 +595,9 @@ public class TSToolPlugin {
 			// Can't check the version so set to null:
 			// - newest installed version will be assumed to be compatible
 			this.isCompatibleWithTSTool = null;
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  Plugin compatibility with TSTool is UNKNOWN." );
+			}
 		}
 	}
 

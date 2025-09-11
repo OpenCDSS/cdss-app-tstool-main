@@ -242,8 +242,10 @@ extends JWorksheet_AbstractRowTableModel<TSToolPlugin> {
 	    	case COL_COMPATIBLE_WITH_TSTOOL:
 	    		return plugin.getIsCompatibleWithTSTool();
 	    	case COL_BEST_COMPATIBLE_WITH_TSTOOL:
-	    		Message.printStatus(2, "TableModel", "Plugin \"" + plugin.getName() + "\" version=" +
-	    			plugin.getVersion() + " isBest=" + plugin.getIsBestCompatibleWithTSTool() );
+	    		if ( Message.isDebugOn ) {
+	    			Message.printStatus(2, "TableModel", "Plugin \"" + plugin.getName() + "\" version=" +
+	    				plugin.getVersion() + " isBest=" + plugin.getIsBestCompatibleWithTSTool() );
+	    		}
 	    		return plugin.getIsBestCompatibleWithTSTool();
 	    	case COL_INSTALLATION_FOLDER:
 	    		File installationFolder = plugin.getPluginJarFolder();
