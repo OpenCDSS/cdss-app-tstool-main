@@ -744,7 +744,7 @@ public static void main ( String args[] ) {
         openHydroBase ( runner.getProcessor() );
         // Open datastores in a generic way if the configuration file specifies the information:
         // - do this before reading the command file because commands may try to run discovery during load and will need the datastores
-        openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
+        openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true, null );
         if ( Message.isDebugOn ) {
         	Message.printDebug(1, routine, "After opening datastores at startup, processor has " + runner.getProcessor().getDataStores().size() + " datastores.");
         }
@@ -843,7 +843,7 @@ public static void main ( String args[] ) {
         openHydroBase ( runner.getProcessor() );
         // Open datastores in a generic way if the configuration file specifies the information.
         // Do this before reading the command file because commands may try to run discovery during load.
-        openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true );
+        openDataStoresAtStartup ( session, runner.getProcessor(), pluginDataStoreClasses, pluginDataStoreFactoryClasses, true, null );
         File f = null;
 		String commandFileFull = "";
 	    boolean runDiscoveryOnLoad = false;
@@ -1290,16 +1290,19 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
 
 /**
 Open the datastores (e.g., database and web service connection(s)) using datastore configuration files.
-This method can be called from the UI code to automatically establish database startup database connections.
+This method can be called from this class (when running batch or server),
+or the UI code, to establish database startup database connections.
+Global data will be read for the datastore.
 @param session TSTool session, which provides user and environment information.
 @param processor Command processor that will have datastores opened.
 @param pluginDataStoreClassList List of plugin datastore classes to be loaded dynamically.
-@param isBatch Is the software running in batch mode?  If in batch mode do not open up datastores
-that have a login of "prompt".
+@param isBatch Is the software running in batch mode?  If in batch mode do not open up datastores that have a login of "prompt".
+@param tstoolJFrame if not null, the status will be set so that progress on loading datastores is shown
 */
 protected static void openDataStoresAtStartup ( TSToolSession session, TSCommandProcessor processor,
 	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreClassList,
-	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch ) {
+	@SuppressWarnings("rawtypes") List<Class> pluginDataStoreFactoryClassList, boolean isBatch,
+	TSTool_JFrame tstoolJFrame ) {
     String routine = TSToolMain.class.getSimpleName() + ".openDataStoresAtStartup";
 
     // Allow multiple database connections via the new convention using datastore configuration files.
@@ -1365,8 +1368,10 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
     Message.printStatus(2, routine, "  Opening a datastore may read data." );
     int iDataStore1; // Datastore index (1+).
     int openDatastoreCount = 0;
+    int iCount = 0; // For UI messages.
     for ( int iDataStore = nDataStores - 1; iDataStore >= 0; iDataStore-- ) {
     	iDataStore1 = iDataStore + 1;
+    	iCount++;
     	String dataStoreFile = dataStoreConfigFiles.get(iDataStore);
         Message.printStatus ( 2, routine, "(" + iDataStore1 + ") Start opening datastore using properties in \"" + dataStoreFile + "\".");
         // Read the properties from the configuration file.
@@ -1391,6 +1396,11 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 dataStoreProps.set("DataStoreConfigFile",dataStoreFileFull);
                 String dataStoreName = dataStoreProps.getValue("Name");
                 String dataStoreType = dataStoreProps.getValue("Type");
+                if ( tstoolJFrame != null ) {
+                	// Update the progress in the UI.
+        	        String message = "Opening datastore \"" + dataStoreName + "\" (" + iCount + " of " + nDataStores + ")...";
+        	        tstoolJFrame.ui_UpdateStatusTextFields ( 0, routine, null, message, null );
+                }
                 // If the datastore type is no longer supported, skip because it can slow down startup:
                 // - need more time to fully remove the code
                 if ( dataStoreType.equalsIgnoreCase("ColoradoWaterHBGuestDataStore") ||
@@ -1459,6 +1469,12 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                 Message.printWarning(2, routine, e);
             }
         }
+    }
+
+    if ( tstoolJFrame != null ) {
+      	// Update the progress in the UI.
+        String message = "Opened " + openDataStoreList.size() + " enabled datastores.";
+        tstoolJFrame.ui_UpdateStatusTextFields ( 0, routine, null, message, null );
     }
     
     Message.printStatus(2,routine,"Opened " + openDatastoreCount + " datastores considering --disable-datastores and --enable-datastores command parameters." );

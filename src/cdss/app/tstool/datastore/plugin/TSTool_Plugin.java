@@ -247,8 +247,10 @@ public class TSTool_Plugin {
 
 	/**
 	 * Initialize the GUI input filters.
-	 * @param dataStoreList
-	 * @param y
+	 * @param pds plugin datastore for the input filter
+	 * @param queryInput_JPanel the JPanel to contain input filters (will be stacked on top of each other)
+	 * @param inputFilterJPanelList the list of input filter panels to add to
+	 * @param y the UI layout Y position
 	 */
 	public void initGUIInputFilters ( PluginDataStore pds,
 		JPanel queryInput_JPanel, List<InputFilter_JPanel> inputFilterJPanelList, Insets insets, int y ) {
