@@ -992,6 +992,8 @@ public TSTool_JFrame (
 	// FIXME smalers 2008-10-02 Need to confirm that information can be put in the file.
 	if ( this.__source_HydroBase_enabled ) { //&& license_IsInstallCDSS(__licenseManager) ) { // }
 		// Login to HydroBase using information in the TSTool configuration file.
+		String message = "Opening HydroBase datastore (may be slow if searching for databases)...";
+        ui_UpdateStatusTextFields ( 0, routine, null, message, null );
 		TSTool_HydroBase.getInstance(this).openHydroBase ( true, TSToolMenus.File_Properties_HydroBase_JMenuItem );
 		// Force the choices to refresh.
 		if ( TSTool_HydroBase.getInstance(this).getHydroBaseDMILegacy() != null ) {
@@ -1000,6 +1002,8 @@ public TSTool_JFrame (
 			// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
 			this.__dataStore_JTabbedPane.setSelectedIndex(0);
 		}
+		message = "Done opening HydroBase datastore";
+        ui_UpdateStatusTextFields ( 0, routine, null, message, null );
 	}
 	if ( this.__source_NWSRFS_FS5Files_enabled ) {
 		// Open NWSRFS FS5Files using information in the TSTool configuration file.
@@ -1019,7 +1023,9 @@ public TSTool_JFrame (
 		Message.printStatus(2, routine, "Opening datastores from TSTool GUI...");
 	    TSToolMain.openDataStoresAtStartup(session,__tsProcessor,
 	    	TSTool_Plugin.getInstance(this).getPluginDataStoreClassList(),
-	    	TSTool_Plugin.getInstance(this).getPluginDataStoreFactoryClassList(),false);
+	    	TSTool_Plugin.getInstance(this).getPluginDataStoreFactoryClassList(),
+	    	false, // Not running in batch mode.
+	    	this ); // So that UI status can be updated.
 	}
 	catch ( Exception e ) {
 	    Message.printStatus ( 1, routine, "Error opening datastores (" + e + ")." );
@@ -1060,6 +1066,11 @@ public TSTool_JFrame (
 	if ( (commandFile != null) && (commandFile.length() > 0) ) {
 	    ui_LoadCommandFile ( commandFile, runOnLoad, runDiscoveryOnLoad );
 	}
+
+	// Final UI status to tell user to open a command file.
+	ui_UpdateStatusTextFields ( -1, "TSTool_JFrame.initGUI",
+			null, "Use 'File / Open / Command File...' or add new commands using the Commands menus.",
+			TSToolConstants.STATUS_READY );
 
 	Message.printStatus(2, routine, "====================================================================================");
 	Message.printStatus(2, routine, "Done initializing the TSTool user interface (UI) and datastores:" );
@@ -10160,7 +10171,7 @@ If null, leave the contents as previously shown.  Specify "" to clear the text.
 @param status If not null, update the __status_JTextField to contain this text.
 If null, leave the contents as previously shown.  Specify "" to clear the text.
 */
-private void ui_UpdateStatusTextFields ( int level, String routine, String commandPanelStatus, String message, String status ) {
+public void ui_UpdateStatusTextFields ( int level, String routine, String commandPanelStatus, String message, String status ) {
 	if ( (level > 0) && (message != null) ) {
 		// Print a status message to the logging system.
 		Message.printStatus ( 1, routine, message );
