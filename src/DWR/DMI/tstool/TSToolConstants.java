@@ -512,7 +512,7 @@ public class TSToolConstants {
     Commands_General_FileHandling_ListFiles_String = TAB + "ListFiles()... <list file(s) to a table>",
     Commands_General_FileHandling_RemoveFile_String = TAB + "RemoveFile()... <remove file(s)>",
     Commands_General_FileHandling_TextEdit_String = TAB + "TextEdit()... <edit a text file>",
-    Commands_General_FileHandling_PDFMerge_String = TAB + "PDFMerge()... <merge PDF files>",
+    Commands_General_FileHandling_PDF_String = TAB + "PDF()... <manipulate PDF files>",
     Commands_General_FileHandling_UnzipFile_String = TAB + "UnzipFile()... <unzip file>",
     Commands_General_FileHandling_PrintTextFile_String = TAB + "PrintTextFile()... <print a text file>",
 
