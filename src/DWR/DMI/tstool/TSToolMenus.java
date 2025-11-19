@@ -497,7 +497,7 @@ public class TSToolMenus {
     	Commands_General_FileHandling_ListFiles_JMenuItem = null,
     	Commands_General_FileHandling_RemoveFile_JMenuItem = null,
     	Commands_General_FileHandling_TextEdit_JMenuItem = null,
-    	Commands_General_FileHandling_PDFMerge_JMenuItem = null,
+    	Commands_General_FileHandling_PDF_JMenuItem = null,
     	Commands_General_FileHandling_UnzipFile_JMenuItem = null,
     	Commands_General_FileHandling_PrintTextFile_JMenuItem = null;
 

@@ -8592,9 +8592,9 @@ private void ui_InitGUIMenus_CommandsGeneral ( JMenuBar menuBar ) {
         new SimpleJMenuItem( TSToolConstants.Commands_General_FileHandling_TextEdit_String, this ) );
     TSToolMenus.Commands_General_FileHandling_TextEdit_JMenuItem.setToolTipText("Edit a file.");
     TSToolMenus.Commands_General_FileHandling_JMenu.addSeparator();
-    TSToolMenus.Commands_General_FileHandling_JMenu.add ( TSToolMenus.Commands_General_FileHandling_PDFMerge_JMenuItem =
-        new SimpleJMenuItem( TSToolConstants.Commands_General_FileHandling_PDFMerge_String, this ) );
-    TSToolMenus.Commands_General_FileHandling_PDFMerge_JMenuItem.setToolTipText("Merge PDF files.");
+    TSToolMenus.Commands_General_FileHandling_JMenu.add ( TSToolMenus.Commands_General_FileHandling_PDF_JMenuItem =
+        new SimpleJMenuItem( TSToolConstants.Commands_General_FileHandling_PDF_String, this ) );
+    TSToolMenus.Commands_General_FileHandling_PDF_JMenuItem.setToolTipText("Manipulate PDF files.");
     TSToolMenus.Commands_General_FileHandling_JMenu.addSeparator();
     TSToolMenus.Commands_General_FileHandling_JMenu.add ( TSToolMenus.Commands_General_FileHandling_UnzipFile_JMenuItem =
         new SimpleJMenuItem( TSToolConstants.Commands_General_FileHandling_UnzipFile_String, this ) );
@@ -11792,8 +11792,8 @@ throws Exception {
     else if (command.equals( TSToolConstants.Commands_General_FileHandling_TextEdit_String)){
         commandList_EditCommand ( TSToolConstants.Commands_General_FileHandling_TextEdit_String, null, CommandEditType.INSERT );
     }
-    else if (command.equals( TSToolConstants.Commands_General_FileHandling_PDFMerge_String)){
-        commandList_EditCommand ( TSToolConstants.Commands_General_FileHandling_PDFMerge_String, null, CommandEditType.INSERT );
+    else if (command.equals( TSToolConstants.Commands_General_FileHandling_PDF_String)){
+        commandList_EditCommand ( TSToolConstants.Commands_General_FileHandling_PDF_String, null, CommandEditType.INSERT );
     }
     else if (command.equals( TSToolConstants.Commands_General_FileHandling_UnzipFile_String)){
         commandList_EditCommand ( TSToolConstants.Commands_General_FileHandling_UnzipFile_String, null, CommandEditType.INSERT );
