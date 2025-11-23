@@ -4,19 +4,19 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    TSTool is distributed in the hope that it will be useful,
+TSTool is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with TSTool.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -25,6 +25,7 @@ package cdss.app.tstool.datastore.plugin;
 
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,7 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJMenuItem;
+import RTi.Util.Help.HelpViewerUrlFormatter;
 import RTi.Util.Message.Message;
 import riverside.datastore.DataStore;
 import riverside.datastore.PluginDataStore;
@@ -347,16 +349,49 @@ public class TSTool_Plugin {
 	}
 
 	/**
-	 * Transfer one time series catalog row to a command, for daily time series.
+	 * Transfer one time series catalog row to a command.
 	 * @param row the time series catalog row to transfer (0+)
 	 * @param useAlias whether to use an alias
 	 */
-    public int transferOneTimeSeriesCatalogRowToCommands ( int row, boolean useAlias, int insertOffset,
+    @SuppressWarnings("rawtypes")
+	public int transferOneTimeSeriesCatalogRowToCommands ( int row, boolean useAlias, int insertOffset,
     	JWorksheet_AbstractRowTableModel query_TableModel, DataStore selectedDataStore ) {
     	// The time series identifier parts are retrieved from the datastore.
     	PluginDataStore pds = (PluginDataStore)selectedDataStore;
-    	TSIdent tsident = pds.getTimeSeriesIdentifierFromTableModel(query_TableModel,row);
+    	// Add the TSID command for the time series.
+    	// The following method only allows a single comment to be added.
         String comment = "";
+    	TSIdent tsident = pds.getTimeSeriesIdentifierFromTableModel(query_TableModel,row);
+    	try {
+    		// The method needs to be added to the plugin interface but this will break old plugins so check for the method for a while.
+    		Method method = pds.getClass().getMethod("getTimeSeriesCommentsFromTableModel", new Class[] {
+    			JWorksheet_AbstractRowTableModel.class,
+    			int.class
+    		});
+    		// If here, the method was found and can be called (invoked).
+    		try {
+    			Object result = method.invoke(pds, query_TableModel, row);
+    			List<String> comments = null;
+    			if ( result != null ) {
+    				comments = (List<String>)result;
+    			}
+    			if ( (comments != null) && (comments.size() > 0) ) {
+    				comment = comments.get(0);
+    			}
+    		}
+    		catch ( Exception e ) {
+    			// Error invoking the method.
+    			String routine = getClass().getSimpleName() + ".transferOneTimeSeriesRowToCommands";
+    			Message.printWarning(3, routine, "Error invoking getTimeSeriesCommentsFromTableModel");
+    			Message.printWarning(3, routine, e );
+    		}
+    	}
+    	catch ( NoSuchMethodException e ) {
+    		// The method does not exist so no comment to add before the TSID.
+   			String routine = getClass().getSimpleName() + ".transferOneTimeSeriesRowToCommands";
+    		Message.printStatus(2, routine, "Plugin does not have a 'getTimeSeriesCommentsFromTableModel' method.");
+    	}
+    	// If the datastore has a method to get comments, call it.
         int numCommandsAdded = this.tstoolJFrame.queryResultsList_AppendTSIDToCommandList (
             tsident.getLocation(),
             tsident.getSource(),
