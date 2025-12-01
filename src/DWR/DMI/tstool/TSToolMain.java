@@ -1453,6 +1453,11 @@ protected static void openDataStoresAtStartup ( TSToolSession session, TSCommand
                     "\" is not in the class path - report to software support (" + e + ")." );
                 Message.printWarning(2, routine, e);
             }
+            catch ( NoClassDefFoundError e ) {
+                Message.printWarning (2,routine, "  Datastore class \"" + dataStoreClassName +
+                    "\" is not in the class path - report to software support (" + e + ")." );
+                Message.printWarning(2, routine, e);
+            }
             catch( InstantiationException e ) {
                 Message.printWarning (2,routine, "  Error instantiating datastore for class \"" + dataStoreClassName +
                     "\" - report to software support (" + e + ")." );

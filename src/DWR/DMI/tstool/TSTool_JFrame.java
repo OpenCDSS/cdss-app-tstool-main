@@ -1149,7 +1149,7 @@ public void commandCompleted ( int icommand, int ncommand, Command command, floa
 	// For debugging.
 	//Message.printStatus(2,getClass().getSimpleName()+".commandCompleted", "Setting processor progress bar to " + (icommand + 1));
 	if ( Message.isDebugOn ) {
-		Message.printDebug(1,routine,"Setting command progress value to maximum value " + this.__command_JProgressBar.getMaximum() );
+		//Message.printDebug(1,routine,"Setting command progress value to maximum value " + this.__command_JProgressBar.getMaximum() );
 	}
 	this.__command_JProgressBar.setValue ( this.__command_JProgressBar.getMaximum() );
 	// Set the tooltip text for the progress bar to indicate the numbers.
