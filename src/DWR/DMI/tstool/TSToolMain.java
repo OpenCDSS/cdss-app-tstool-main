@@ -96,7 +96,7 @@ public class TSToolMain
  * - as of version 14, do not pad version parts with zeros
  * - this string is checked by scripts that require the version
  */
-public static final String PROGRAM_VERSION = "15.2.0 (2025-09-04)";
+public static final String PROGRAM_VERSION = "15.2.0 (2026-01-04)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1009,8 +1009,7 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else {
     	if ( disableDatastoresMessageCount == 0 ) {
-    		Message.printStatus(2, routine,
-			  		"Command line parameters --disable-datastores and --enable-datastores were not specified." );
+    		Message.printStatus(2, routine, "Command line parameters --disable-datastores and --enable-datastores were not specified." );
     		++disableDatastoresMessageCount;
     	}
     }

@@ -65,11 +65,14 @@ if not exist %javawExe% goto nojavaw
 
 rem If here, run Eclipse using the executable that is known to exist from above checks:
 rem - also set the title of the window
-echo Starting Eclipse using: %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M
+rem - memory of 1024M (1GB) seems to be sufficient for the core product
+rem - use 3072 (3GB) if many plugins are included
+set maxMemory=3072M
+echo Starting Eclipse using: %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx%maxMemory%
 title Eclipse configured for TSTool development
 rem The -data and other options must come before -vm, with -vmargs at the end
-rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx1024M --add-modules java.xml
-%eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx2048M
+rem %eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx%maxMemory% --add-modules java.xml
+%eclipseExe% -data %workspaceFolder% -vm %javawExe% -vmargs -Xmx%maxMemory%
 rem Run the following to start Eclipse without opening the specific project.
 rem ================== Start troubleshooting ================
 rem Tried the following when Eclipse fails to start.
