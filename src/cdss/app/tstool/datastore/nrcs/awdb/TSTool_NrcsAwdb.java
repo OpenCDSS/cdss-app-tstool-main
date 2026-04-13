@@ -1,4 +1,4 @@
-// TSTool_RccAcis - integration between TSTool UI and RCC ACIS web service datastore
+// TSTool_NrcsAwdb - integration between TSTool UI and NRCS AWdb NWIS REST web service datastore
 
 /* NoticeStart
 
@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License
 
 NoticeEnd */
 
-package cdss.app.tstool.datastore.rcc.acis;
+package cdss.app.tstool.datastore.nrcs.awdb;
 
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -36,27 +36,28 @@ import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.Message.Message;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.datastore.NrcsAwdbRestApiDataStore;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.dto.TimeSeriesCatalog;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.ui.NrcsAwdbRestApi_TimeSeries_CellRenderer;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.ui.NrcsAwdbRestApi_TimeSeries_InputFilter_JPanel;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.ui.NrcsAwdbRestApi_TimeSeries_TableModel;
 import riverside.datastore.DataStore;
-import rti.tscommandprocessor.commands.rccacis.RccAcisDataStore;
-import rti.tscommandprocessor.commands.rccacis.RccAcisStationTimeSeriesMetadata;
-import rti.tscommandprocessor.commands.rccacis.RccAcis_TimeSeries_InputFilter_JPanel;
-import rti.tscommandprocessor.commands.rccacis.ui.TSTool_RccAcis_CellRenderer;
-import rti.tscommandprocessor.commands.rccacis.ui.TSTool_RccAcis_TableModel;
 
 /**
- * This class provides integration between TSTool and the
- * Regional Climate Center (RCC) Applied Climate Information System (ACIS) web service datastore.
- * This datastore is currently built into TSTool, rather than being a plugin.
+ * This class provides integration between TSTool and the * NRCS AWDB web service datastore.
+ * The older SOAP API is being phased out and had limitations.
+ * This class focuses on the REST API.
+ * This datastore is currently built into TSTool, rather than being a plugin but may be moved to a plugin later.
  * Isolating the code simplifies maintenance.
  * The class is a singleton.  Use getInstance() to get the instance to call methods.
  */
-public class TSTool_RccAcis {
+public class TSTool_NrcsAwdb {
 
 	/**
 	 * Singleton instance of this class.
 	 * Use getInstance() to return the singleton.
 	 */
-	private static TSTool_RccAcis instance = null;
+	private static TSTool_NrcsAwdb instance = null;
 	
 	/**
 	 * Instance of the TSTool main UI.
@@ -66,7 +67,7 @@ public class TSTool_RccAcis {
 	/**
 	 * Private constructor for lazy initialization.
 	 */
-	private TSTool_RccAcis ( TSTool_JFrame tstoolJFrame ) {
+	private TSTool_NrcsAwdb ( TSTool_JFrame tstoolJFrame ) {
 		this.tstoolJFrame = tstoolJFrame;
 	}
 	
@@ -75,7 +76,7 @@ public class TSTool_RccAcis {
 	 */
 	public void dataTypeSelected () {
         // Set intervals for the data type and trigger a select to populate the input filters.
-        RccAcisDataStore dataStore = (RccAcisDataStore)this.tstoolJFrame.ui_GetSelectedDataStore();
+        NrcsAwdbRestApiDataStore dataStore = (NrcsAwdbRestApiDataStore)this.tstoolJFrame.ui_GetSelectedDataStore();
         SimpleJComboBox timeStep_JComboBox = this.tstoolJFrame.ui_GetTimeStepJComboBox();
         timeStep_JComboBox.removeAll ();
         timeStep_JComboBox.setEnabled ( true );
@@ -87,21 +88,21 @@ public class TSTool_RccAcis {
 	/**
 	 * Get the singleton instance.
 	 */
-	public static TSTool_RccAcis getInstance ( TSTool_JFrame tstoolJFrame ) {
-		if ( TSTool_RccAcis.instance == null ) {
-			TSTool_RccAcis.instance = new TSTool_RccAcis( tstoolJFrame );
+	public static TSTool_NrcsAwdb getInstance ( TSTool_JFrame tstoolJFrame ) {
+		if ( TSTool_NrcsAwdb.instance == null ) {
+			TSTool_NrcsAwdb.instance = new TSTool_NrcsAwdb( tstoolJFrame );
 		}
-		return TSTool_RccAcis.instance;
+		return TSTool_NrcsAwdb.instance;
 	}
 
 	/**
-	Initialize the RCC ACIS input filter (may be called at startup).
+	Initialize the NRCS AWDB input filter (may be called at startup).
 	@param dataStoreList the list of datastores for which input filter panels are to be added.
 	@param y the position in the input panel that the filter should be added
 	*/
 	public void initGUIInputFilters ( List<DataStore> dataStoreList, int y ) {
 	    String routine = getClass().getSimpleName() + ".initGUIInputFilters";
-	    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() + " RCC ACIS datastores." );
+	    Message.printStatus ( 2, routine, "Initializing input filter(s) for " + dataStoreList.size() + " NRCS AWDB REST API datastores." );
 	    String selectedDataType = this.tstoolJFrame.ui_GetSelectedDataType();
 	    String selectedTimeStep = this.tstoolJFrame.ui_GetSelectedTimeStep();
 	    for ( DataStore dataStore: dataStoreList ) {
@@ -114,7 +115,7 @@ public class TSTool_RccAcis {
 	    			this.tstoolJFrame.ui_GetInputFilterJPanelList().remove ( ifp );
 	    		}
 	    		// Create a new panel.
-	    		RccAcis_TimeSeries_InputFilter_JPanel newIfp = new RccAcis_TimeSeries_InputFilter_JPanel((RccAcisDataStore)dataStore, 3);
+	    		NrcsAwdbRestApi_TimeSeries_InputFilter_JPanel newIfp = new NrcsAwdbRestApi_TimeSeries_InputFilter_JPanel((NrcsAwdbRestApiDataStore)dataStore, 3);
 
 	    		// Add the new panel to the layout and set in the global data.
 	    		int buffer = 3;
@@ -122,30 +123,30 @@ public class TSTool_RccAcis {
 	    		JGUIUtil.addComponent(this.tstoolJFrame.ui_GetQueryInputJPanel(), newIfp,
 	    				0, y, 3, 1, 1.0, 0.0, insets, GridBagConstraints.HORIZONTAL,
 	    				GridBagConstraints.WEST );
-	    		newIfp.setName("RccAcis.InputFilterPanel");
+	    		newIfp.setName("NrcsAwdb.InputFilterPanel");
 	    		this.tstoolJFrame.ui_GetInputFilterJPanelList().add ( newIfp );
 	    	}
 	    	catch ( Exception e ) {
 	    		Message.printWarning ( 2, routine,
-	    				"Unable to initialize input filter for RCC ACIS time series " +
-	    						"for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
+    				"Unable to initialize input filter for NRCS AWDB REST API time series for datastore \"" + dataStore.getName() + "\" (" + e + ")." );
 	    		Message.printWarning ( 2, routine, e );
 	    	}
 	    }
 	}
 
 	/**
-	Read RCC ACIS time series and list in the GUI.
+	Read NRCS AWDB time series and list in the UI.
+	@param selectedInputFilter_JPanel the selected InputFilter_JPanel, to apply filters, or null to ignore
 	*/
-	public void getTimeSeriesListClicked_ReadRccAcisCatalog( InputFilter_JPanel selectedInputFilter_JPanel) {
-	    String rtn = getClass().getSimpleName() + ".getTimeSeriesListClicked_ReadRccAcisCatalog";
+	public void getTimeSeriesListClicked_ReadTimeSeriesCatalog ( InputFilter_JPanel selectedInputFilter_JPanel)  {
+	    String rtn = getClass().getSimpleName() + ".getTimeSeriesListClicked_ReadTimeSeriesCatalog";
 	    JGUIUtil.setWaitCursor ( this.tstoolJFrame, true );
 	    Message.printStatus ( 1, rtn, "Please wait... retrieving data");
 
 	    DataStore dataStore = this.tstoolJFrame.ui_GetSelectedDataStore ();
-	    // The headers are a list of RccAcisTimeSeriesMetadata.
+	    // The headers are a list of NRCS AWDB TimeSeriesCatalog.
 	    try {
-	    	RccAcisDataStore rccAcisDataStore = (RccAcisDataStore)dataStore;
+	    	NrcsAwdbRestApiDataStore nrcsAwdbDataStore = (NrcsAwdbRestApiDataStore)dataStore;
 	    	this.tstoolJFrame.queryResultsList_Clear ();
 
 	    	String dataType = this.tstoolJFrame.ui_GetSelectedDataType();
@@ -159,13 +160,13 @@ public class TSTool_RccAcis {
 	    		timeStep = timeStep.trim();
 	    	}
 
-	    	List<RccAcisStationTimeSeriesMetadata> results = null;
+	    	List<TimeSeriesCatalog> results = null;
 	    	// Data type is shown with name so only use the first part of the choice.
 	    	try {
-	    		results = rccAcisDataStore.readStationTimeSeriesMetadataList(dataType, timeStep, selectedInputFilter_JPanel);
+	    		results = nrcsAwdbDataStore.readTimeSeriesCatalogList(dataType, timeStep, selectedInputFilter_JPanel);
 	    	}
 	    	catch ( Exception e ) {
-	    		Message.printWarning(1, rtn, "Error getting time series list from ACIS (" + e + ").");
+	    		Message.printWarning(1, rtn, "Error getting time series list from the NRCS AWDB REST API (" + e + ").");
 	    		Message.printWarning(3, rtn, e );
 	    		results = null;
 	    	}
@@ -176,9 +177,9 @@ public class TSTool_RccAcis {
 	    		// TODO Does not work??
 	    		//__query_TableModel.setNewData ( results );
 	    		// Try brute force.
-	    		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_RccAcis_TableModel ( rccAcisDataStore, results );
+	    		JWorksheet_AbstractRowTableModel query_TableModel = new NrcsAwdbRestApi_TimeSeries_TableModel ( nrcsAwdbDataStore, results );
 	    		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
-	    		TSTool_RccAcis_CellRenderer cr = new TSTool_RccAcis_CellRenderer( (TSTool_RccAcis_TableModel)query_TableModel);
+	    		NrcsAwdbRestApi_TimeSeries_CellRenderer cr = new NrcsAwdbRestApi_TimeSeries_CellRenderer( (NrcsAwdbRestApi_TimeSeries_TableModel)query_TableModel);
 
 	    		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
 	    		query_JWorksheet.setCellRenderer ( cr );
@@ -202,12 +203,13 @@ public class TSTool_RccAcis {
 	}
 
 	/**
-	Refresh the query choices for the currently selected RCC ACIS store.
+	Refresh the query choices for the currently selected NRCS AWDB datastore.
+	@param selectedDataStore the NRCS AWDB datastore that has been selected
 	*/
-	public void selectDataStore ( RccAcisDataStore selectedDataStore )
+	public void selectDataStore ( NrcsAwdbRestApiDataStore selectedDataStore )
 	throws Exception {
-	    //String routine = getClass().getSimpleName() + "uiAction_SelectDataStore_RccAcis";
-		RccAcisDataStore dataStore = (RccAcisDataStore)selectedDataStore;
+	    //String routine = getClass().getSimpleName() + ".selectDataStore";
+		NrcsAwdbRestApiDataStore dataStore = selectedDataStore;
 		this.tstoolJFrame.ui_SetInputNameVisible(false); // Not needed for datastores.
 		// Get the list of valid object/data types from the datastore.
 		List<String> dataTypes = dataStore.getDataTypeStrings ( true, true );
@@ -218,12 +220,15 @@ public class TSTool_RccAcis {
 		dataType_JComboBox.removeAll ();
 		dataType_JComboBox.setData ( dataTypes );
 		dataType_JComboBox.select ( null );
-		dataType_JComboBox.select ( 0 );
+		if ( ! dataTypes.isEmpty() ) {
+			// May occur if there is a datastore initialization problem.
+			dataType_JComboBox.select ( 0 );
+		}
 
 		// Initialize the time series list with blank data list.
-		JWorksheet_AbstractRowTableModel query_TableModel = new TSTool_RccAcis_TableModel( dataStore, null);
+		JWorksheet_AbstractRowTableModel query_TableModel = new NrcsAwdbRestApi_TimeSeries_TableModel ( dataStore, null );
    		this.tstoolJFrame.ui_SetTimeSeriesCatalogTableModel ( query_TableModel );
-		TSTool_RccAcis_CellRenderer cr = new TSTool_RccAcis_CellRenderer((TSTool_RccAcis_TableModel)query_TableModel);
+		NrcsAwdbRestApi_TimeSeries_CellRenderer cr = new NrcsAwdbRestApi_TimeSeries_CellRenderer((NrcsAwdbRestApi_TimeSeries_TableModel)query_TableModel);
 
    		JWorksheet query_JWorksheet = tstoolJFrame.ui_GetTimeSeriesCatalogWorksheet();
 		query_JWorksheet.setCellRenderer ( cr );
@@ -236,29 +241,24 @@ public class TSTool_RccAcis {
 	 * @param row the time series catalog row to transfer (0+)
 	 * @param useAlias whether to use an alias
 	 */
-    public int transferOneTimeSeriesCatalogRowToCommands_Daily ( int row, boolean useAlias, int insertOffset ) {
+    public int transferOneTimeSeriesCatalogRowToCommands ( int row, boolean useAlias, int insertOffset ) {
         // The location (id), type, and time step uniquely
         // identify the time series, but the input_name is needed to indicate the database.
-        RccAcisDataStore rccAcisDataStore = (RccAcisDataStore)this.tstoolJFrame.ui_GetSelectedDataStore();
 		JWorksheet_AbstractRowTableModel query_TableModel = this.tstoolJFrame.ui_GetTimeSeriesCatalogTableModel();
-        TSTool_RccAcis_TableModel model = (TSTool_RccAcis_TableModel)query_TableModel;
+        NrcsAwdbRestApi_TimeSeries_TableModel model = (NrcsAwdbRestApi_TimeSeries_TableModel)query_TableModel;
         if (model.getSortOrder() != null) {
             row = model.getSortOrder()[row];
         }
-        RccAcisStationTimeSeriesMetadata ts = (RccAcisStationTimeSeriesMetadata)model.getData().get(row);
-        String dataType = "" + query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_ELEM);
-        if ( rccAcisDataStore.getAPIVersion() == 1 ) {
-            dataType = "" + query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR);
-        }
+        // Get the matching TimeSeriesCatalog and use that to get the values for the TSID.
+        TimeSeriesCatalog tscatalog = (TimeSeriesCatalog)model.getData().get(row);
         int numCommandsAdded = this.tstoolJFrame.queryResultsList_AppendTSIDToCommandList (
-            ts.getIDPreferred(true),
-            "ACIS", //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_SOURCE),
-            //(String)__query_TableModel.getValueAt ( row, model.COL_DATA_TYPE_MAJOR),
-            dataType,
-            (String)query_TableModel.getValueAt ( row, model.COL_TIME_STEP),
+            tscatalog.getStationState() + "-" + tscatalog.getStationId(),
+            tscatalog.getDataSource(),
+            tscatalog.getDataType(),
+            tscatalog.getDataInterval(),
             null, // No scenario.
             null, // No sequence number.
-            (String)query_TableModel.getValueAt ( row, model.COL_DATA_STORE_NAME),
+            tscatalog.getDataStore(),
             "", "",
             useAlias, insertOffset );
         return numCommandsAdded;

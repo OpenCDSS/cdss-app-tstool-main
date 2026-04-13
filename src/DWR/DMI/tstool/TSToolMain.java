@@ -96,7 +96,7 @@ public class TSToolMain
  * - as of version 14, do not pad version parts with zeros
  * - this string is checked by scripts that require the version
  */
-public static final String PROGRAM_VERSION = "15.2.0 (2026-01-04)";
+public static final String PROGRAM_VERSION = "15.3.0 (2026-04-13)";
 
 /**
 Main GUI instance, used when running interactively.
@@ -1057,6 +1057,20 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
             packagePath = "rti.tscommandprocessor.commands.nrcs.awdb.";
         }
     }
+    else if ( dataStoreType.equalsIgnoreCase("NrcsAwdbRestApiDataStore") ) {
+    	// The datastore is currently built in (even though the class includes 'plugin'):
+    	// - might move to a full plugin in the future
+        propValue = getPropValue("TSTool.NrcsAwdbEnabled");
+    	userPropValue = session.getUserConfigPropValue ( "NrcsAwdbEnabled" );
+    	if ( (userPropValue != null) && !userPropValue.isEmpty() ) {
+    		// User property is set.
+    		propValue = userPropValue;
+    	}
+        if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+        	// The package path is where the datastore and factory class exist.
+            packagePath = "gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.datastore.";
+        }
+    }
     else if ( dataStoreType.equalsIgnoreCase("RccAcisDataStore") ) {
         propValue = getPropValue("TSTool.RCCACISEnabled");
     	userPropValue = session.getUserConfigPropValue ( "RCCACISEnabled" );
@@ -1280,9 +1294,9 @@ throws ClassNotFoundException, IllegalAccessException, InstantiationException, E
     }
     else {
     	// No package path to load datastore.
-   		Message.printWarning(2, routine, "No package path found for datastore \"" + dataStoreName + "\".  Skipping.");
-   		Message.printWarning(2, routine, "Check that the configuration file specifies a built-in or plug-in datastore type: " +
-   			"\"" + dataStoreConfigFile + "\"." );
+   		Message.printWarning(2, routine, "No package path \"" + packagePath + "\" found for datastore \"" + dataStoreName + "\".  Skipping.");
+   		Message.printWarning(2, routine, "Check that the configuration file specifies a built-in or plug-in datastore \"Type\" property:" );
+   		Message.printWarning(2, routine, "  " + dataStoreConfigFile );
         return null;
     }
 }

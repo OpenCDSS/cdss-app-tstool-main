@@ -4,7 +4,7 @@
 
 TSTool
 TSTool is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2025 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 TSTool is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,7 +42,6 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -303,6 +302,7 @@ import cdss.app.tstool.datastore.cdss.statemod.TSTool_StateMod;
 import cdss.app.tstool.datastore.cdss.statemodb.TSTool_StateModB;
 import cdss.app.tstool.datastore.csu.modsim.TSTool_Modsim;
 import cdss.app.tstool.datastore.generic.TSTool_Generic;
+import cdss.app.tstool.datastore.nrcs.awdb.TSTool_NrcsAwdb;
 import cdss.app.tstool.datastore.nwsrfs.card.TSTool_NwsrfsCard;
 import cdss.app.tstool.datastore.nwsrfs.esp.TSTool_NwsrfsEsp;
 import cdss.app.tstool.datastore.nwsrfs.fs5files.TSTool_FS5Files;
@@ -327,6 +327,8 @@ import cdss.dmi.hydrobase.rest.ui.ColoradoHydroBaseRest_Well_InputFilter_JPanel;
 // CDSS node network core classes.
 import cdss.domain.hydrology.network.HydrologyNode;
 import cdss.domain.hydrology.network.HydrologyNodeNetwork;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.datastore.NrcsAwdbRestApiDataStore;
+import gov.usda.egov.sc.wcc.tstool.plugin.nrcsawdb.ui.NrcsAwdbRestApi_TimeSeries_InputFilter_JPanel;
 
 /**
 JFrame to provide the application interface for TSTool.
@@ -4293,68 +4295,58 @@ public void mouseExited ( MouseEvent event ) {
 Handle mouse pressed event.
 */
 public void mousePressed ( MouseEvent event ) {
-	int mods = event.getModifiersEx();
 	Component c = event.getComponent();
 	String selectedInputType = ui_GetSelectedInputType();
+	boolean isRightMouseEvent = JGUIUtil.isRightMouseEvent(event);
     // Popup for commands.
-	if ( (c == ui_GetCommandJList()) && (this.__commands_JListModel.size() > 0) &&
-		((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {
+	if ( (c == ui_GetCommandJList()) && (this.__commands_JListModel.size() > 0) && isRightMouseEvent ) {
 		Point pt = JGUIUtil.computeOptimalPosition ( event.getPoint(), c, TSToolMenus.Commands_JPopupMenu );
 		TSToolMenus.Commands_JPopupMenu.show ( c, pt.x, pt.y );
 	}
     // Popup for time series results list (right click).
-	else if ( (c == this.__resultsTS_JList) && (this.__resultsTS_JListModel.size() > 0) &&
-		((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {
+	else if ( (c == this.__resultsTS_JList) && (this.__resultsTS_JListModel.size() > 0) && isRightMouseEvent ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsTS_JPopupMenu );
 		__resultsTS_JPopupMenu.show ( c, pt.x, pt.y );
 	}
     // Popup for ensemble results list.
-    else if ( (c == this.__resultsTSEnsembles_JList) && (this.__resultsTSEnsembles_JListModel.size() > 0) &&
-        ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {
+    else if ( (c == this.__resultsTSEnsembles_JList) && (this.__resultsTSEnsembles_JListModel.size() > 0) && isRightMouseEvent ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsTSEnsembles_JPopupMenu );
         this.__resultsTSEnsembles_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for network results list, right click since left click automatically shows network.
-    else if ( (c == this.__resultsNetworks_JList) && (this.__resultsNetworks_JListModel.size() > 0)
-        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
+    else if ( (c == this.__resultsNetworks_JList) && (this.__resultsNetworks_JListModel.size() > 0) && isRightMouseEvent ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsNetworks_JPopupMenu );
         this.__resultsNetworks_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for object results list, right click since left click automatically shows object.
-    else if ( (c == this.__resultsObjects_JList) && (this.__resultsObjects_JListModel.size() > 0)
-        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
+    else if ( (c == this.__resultsObjects_JList) && (this.__resultsObjects_JListModel.size() > 0) && isRightMouseEvent ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsObjects_JPopupMenu );
         this.__resultsObjects_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for output files results list, right click since left click automatically shows object.
-    else if ( (c == this.__resultsOutputFiles_JList) && (this.__resultsOutputFiles_JListModel.size() > 0)
-        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
+    else if ( (c == this.__resultsOutputFiles_JList) && (this.__resultsOutputFiles_JListModel.size() > 0) && isRightMouseEvent ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsOutputFiles_JPopupMenu );
         this.__resultsOutputFiles_JPopupMenu.show ( c, pt.x, pt.y );
     }
     // Popup for table results list, right click since left click automatically shows table.
-    else if ( (c == this.__resultsTables_JList) && (this.__resultsTables_JListModel.size() > 0)
-        && ((mods & InputEvent.BUTTON3_DOWN_MASK) == InputEvent.BUTTON3_DOWN_MASK) ) {
+    else if ( (c == this.__resultsTables_JList) && (this.__resultsTables_JListModel.size() > 0) && isRightMouseEvent ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__resultsTables_JPopupMenu );
         this.__resultsTables_JPopupMenu.show ( c, pt.x, pt.y );
     }
 	// Popup for input name.
-    else if ( (c == this.__inputName_JComboBox) && ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) &&
-        selectedInputType.equals(TSToolConstants.INPUT_TYPE_HECDSS) ) {
+    else if ( (c == this.__inputName_JComboBox) && isRightMouseEvent && selectedInputType.equals(TSToolConstants.INPUT_TYPE_HECDSS) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__input_name_JPopupMenu );
         this.__input_name_JPopupMenu.removeAll();
         this.__input_name_JPopupMenu.add( new SimpleJMenuItem (TSToolConstants.InputName_BrowseHECDSS_String, this ) );
         this.__input_name_JPopupMenu.show ( c, pt.x, pt.y );
     }
-    else if ( (c == this.__inputName_JComboBox) && ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) &&
-        selectedInputType.equals(TSToolConstants.INPUT_TYPE_StateCUB) ) {
+    else if ( (c == this.__inputName_JComboBox) && isRightMouseEvent && selectedInputType.equals(TSToolConstants.INPUT_TYPE_StateCUB) ) {
         Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__input_name_JPopupMenu );
         this.__input_name_JPopupMenu.removeAll();
         this.__input_name_JPopupMenu.add( new SimpleJMenuItem (TSToolConstants.InputName_BrowseStateCUB_String, this ) );
         this.__input_name_JPopupMenu.show ( c, pt.x, pt.y );
     }
-	else if ( (c == this.__inputName_JComboBox) && ((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) &&
-		selectedInputType.equals(TSToolConstants.INPUT_TYPE_StateModB) ) {
+	else if ( (c == this.__inputName_JComboBox) && isRightMouseEvent && selectedInputType.equals(TSToolConstants.INPUT_TYPE_StateModB) ) {
 		Point pt = JGUIUtil.computeOptimalPosition (event.getPoint(), c, this.__input_name_JPopupMenu );
 		this.__input_name_JPopupMenu.removeAll();
 		this.__input_name_JPopupMenu.add( new SimpleJMenuItem (TSToolConstants.InputName_BrowseStateModB_String, this ) );
@@ -4680,6 +4672,9 @@ private int queryResultsList_TransferOneTSFromQueryResultsListToCommandList (
 	else if ( selectedInputType.equals ( TSToolConstants.INPUT_TYPE_MODSIM ) ) {
     	numCommandsAdded = TSTool_Modsim.getInstance(this).transferOneTimeSeriesCatalogRowToCommands(row, useAlias, insertOffset );
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof NrcsAwdbRestApiDataStore) ) {
+    	numCommandsAdded = TSTool_NrcsAwdb.getInstance(this).transferOneTimeSeriesCatalogRowToCommands (row, useAlias, insertOffset );
+    }
 	else if ( selectedInputType.equals ( TSToolConstants.INPUT_TYPE_NWSCARD ) ) {
     	numCommandsAdded = TSTool_NwsrfsCard.getInstance(this).transferOneTimeSeriesCatalogRowToCommands(row, useAlias, insertOffset );
 	}
@@ -5481,7 +5476,7 @@ private void ui_CheckTSToolInstallation() {
 	// Check to see whether any of the best compatible plugins need to be updated to version folders.
 	TSToolPluginManager pluginManager = TSToolPluginManager.getInstance();
 	TSToolSession session = TSToolSession.getInstance();
-	
+
 	StringBuilder b = new StringBuilder();
 	boolean introAdded = false;
 	for ( TSToolPlugin plugin : pluginManager.getPlugins() ) {
@@ -5556,7 +5551,7 @@ private void ui_DataStoreList_Populate () {
     // Get all enabled datastores, even those not active - the View ... Datastores menu can be used to show errors.
     List<DataStore> dataStoreList = this.__tsProcessor.getDataStores();
     for ( DataStore dataStore : dataStoreList ) {
-        if ( dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") ||
+        if ( dataStore.getClass().getName().endsWith(".NrcsAwdbDataStore") || // NrcsAwdbRestApiDataStore is added in TSTool 15.2.0.
             dataStore.getClass().getName().endsWith(".UsgsNwisDailyDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisGroundwaterDataStore") ||
             dataStore.getClass().getName().endsWith(".UsgsNwisInstantaneousDataStore") ) {
@@ -6449,6 +6444,15 @@ public InputFilter_JPanel ui_GetInputFilterPanelForDataStoreName ( String select
                 return panel;
             }
         }
+        else if ( panel instanceof NrcsAwdbRestApi_TimeSeries_InputFilter_JPanel ) {
+        	// NRCS AWDB REST API.
+            // This type of filter uses a DataStore.
+            DataStore dataStore = ((NrcsAwdbRestApi_TimeSeries_InputFilter_JPanel)panel).getDataStore();
+            if ( dataStore.getName().equalsIgnoreCase(selectedDataStoreName) ) {
+                // Have a match in the datastore name so return the panel.
+                return panel;
+            }
+        }
         else if ( panel instanceof RccAcis_TimeSeries_InputFilter_JPanel ) {
             // This type of filter uses a DataStore.
             DataStore dataStore = ((RccAcis_TimeSeries_InputFilter_JPanel)panel).getDataStore();
@@ -6732,7 +6736,7 @@ private void ui_InitGUI ( PropList initProps ) {
 
 	// Remainder of main window.
 
-	// objects used throughout the GUI layout.
+	// Objects used throughout the GUI layout.
 	int buffer = 3;
 	Insets insetsNLNR = new Insets(0,buffer,0,buffer);
 	Insets insetsNNNR = new Insets(0,0,0,buffer);
@@ -7349,7 +7353,7 @@ private void ui_InitGUI ( PropList initProps ) {
 		// As of TSTool 14.6.1 default to the datastore tab (previously defaulted to "Input Type" tab).
 		this.__dataStore_JTabbedPane.setSelectedIndex(0);
 	}
-	
+
 	// Check the TSTool plugins and other environment.
 	ui_CheckTSToolInstallation();
 }
@@ -7431,6 +7435,16 @@ private void ui_InitGUIInputFilters ( final int y ) {
                 catch ( Throwable e ) {
                     // This may happen if the database is unavailable or inconsistent with expected design.
                     Message.printWarning(3, routine, "Error initializing HydroBase datastore input filters (" + e + ").");
+                    Message.printWarning(3, routine, e);
+                }
+            }
+            if ( __source_NrcsAwdb_enabled && (__tsProcessor.getDataStoresByType(NrcsAwdbRestApiDataStore.class).size() > 0) ) {
+                try {
+                	TSTool_NrcsAwdb.getInstance(ui).initGUIInputFilters ( __tsProcessor.getDataStoresByType(NrcsAwdbRestApiDataStore.class), y );
+                }
+                catch ( Throwable e ) {
+                    // This may happen if the database is unavailable or inconsistent with expected design.
+                    Message.printWarning(3, routine, "Error initializing NRCS AWDB datastore input filters (" + e + ").");
                     Message.printWarning(3, routine, e);
                 }
             }
@@ -7756,6 +7770,7 @@ private void ui_InitGUIMenus_Commands ( JMenuBar menuBar ) {
         TSToolMenus.Commands_Read_ReadMODSIM_JMenuItem.setToolTipText("Read time series from MODSIM modeling software text file.");
 	}
     if ( this.__source_NrcsAwdb_enabled ) {
+    	// One command is used for the REST API and older SOAP API web services.
         TSToolMenus.Commands_ReadTimeSeries_JMenu.add(TSToolMenus.Commands_Read_ReadNrcsAwdb_JMenuItem =
             new SimpleJMenuItem(TSToolConstants.Commands_Read_ReadNrcsAwdb_String, this) );
         TSToolMenus.Commands_Read_ReadNrcsAwdb_JMenuItem.setToolTipText("Read time series from US Natural Resources Conservation Service (NRCS) web service.");
@@ -13134,6 +13149,9 @@ private void uiAction_DataStoreChoiceClicked() {
         else if ( selectedDataStore instanceof HydroBaseDataStore ) {
             TSTool_HydroBase.getInstance(this).selectDataStore ( (HydroBaseDataStore)selectedDataStore );
         }
+        else if ( selectedDataStore instanceof NrcsAwdbRestApiDataStore ) {
+            TSTool_NrcsAwdb.getInstance(this).selectDataStore ( (NrcsAwdbRestApiDataStore)selectedDataStore );
+        }
         else if ( selectedDataStore instanceof RccAcisDataStore ) {
             TSTool_RccAcis.getInstance(this).selectDataStore ( (RccAcisDataStore)selectedDataStore );
         }
@@ -13215,6 +13233,10 @@ private void uiAction_DataTypeChoiceClicked() {
 		// MODSIM file.
 		TSTool_Modsim.getInstance(this).dataTypeSelected();
 	}
+    else if ( (selectedDataStore != null) && (selectedDataStore instanceof NrcsAwdbRestApiDataStore)) {
+        // Set intervals for the data type and trigger a select to populate the input filters.
+    	TSTool_NrcsAwdb.getInstance(this).dataTypeSelected ();
+    }
 	else if ( selectedInputType.equals(TSToolConstants.INPUT_TYPE_NWSCARD) ) {
 		// NWSCard file.
 		TSTool_NwsrfsCard.getInstance(this).dataTypeSelected();
@@ -13701,6 +13723,17 @@ private void uiAction_GetTimeSeriesListClicked() {
 			return;
 		}
 	}
+    else if ( (selectedDataStore != null) && this.__source_NrcsAwdb_enabled && (selectedDataStore instanceof NrcsAwdbRestApiDataStore) ) {
+        try {
+            TSTool_NrcsAwdb.getInstance(this).getTimeSeriesListClicked_ReadTimeSeriesCatalog(this.__selectedInputFilter_JPanel);
+        }
+        catch ( Exception e ) {
+            message = "Error reading RCC ACIS - cannot display time series list (" + e + ").";
+            Message.printWarning ( 1, routine, message );
+            Message.printWarning ( 3, routine, e );
+            return;
+        }
+    }
 	else if ( this.__source_NWSCard_enabled && selectedInputType.equals (TSToolConstants.INPUT_TYPE_NWSCARD)) {
 		try {
             TSTool_NwsrfsCard.getInstance(this).getTimeSeriesListClicked_ReadNwsCardCatalog ();
@@ -15585,7 +15618,7 @@ private void uiAction_ShowHelpAbout () {
     "TSTool - Time Series Tool " + IOUtil.getProgramVersion() + "\n" +
     " \n" +
     "TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-    "Copyright (C) 1997-2025 Colorado Department of Natural Resources\n" +
+    "Copyright (C) 1997-2026 Colorado Department of Natural Resources\n" +
     " \n" +
     "TSTool is free software:  you can redistribute it and/or modify\n" +
     "    it under the terms of the GNU General Public License as published by\n" +
@@ -16188,7 +16221,9 @@ private void uiAction_ShowResultsTable ( String selected ) {
         if ( table == null ) {
             Message.printWarning (1, routine, "Unable to get table \"" + tableId + "\" from processor to view." );
         }
-        new DataTable_JFrame ( this, "Table \"" + tableId + "\"", table );
+        else {
+        	new DataTable_JFrame ( this, "Table \"" + tableId + "\"", table );
+        }
     }
     catch (Exception e2) {
         Message.printWarning (1, routine, "Unable to view table \"" + tableId + "\"" );
