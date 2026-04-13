@@ -2088,7 +2088,7 @@ public static void printVersion ( ) {
 	String nl = System.getProperty ( "line.separator" );
 	System.err.println (  nl + PROGRAM_NAME + " version: " + PROGRAM_VERSION + nl + nl +
 	"TSTool is a part of Colorado's Decision Support Systems (CDSS)\n" +
-	"Copyright (C) 1997-2025 Colorado Department of Natural Resources\n" +
+	"Copyright (C) 1997-2026 Colorado Department of Natural Resources\n" +
     "\n" +
 	"TSTool is free software:  you can redistribute it and/or modify\n" +
 	"    it under the terms of the GNU General Public License as published by\n" +
