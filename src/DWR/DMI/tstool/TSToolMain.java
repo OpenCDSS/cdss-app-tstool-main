@@ -96,7 +96,7 @@ public class TSToolMain
  * - as of version 14, do not pad version parts with zeros
  * - this string is checked by scripts that require the version
  */
-public static final String PROGRAM_VERSION = "15.3.1 (2026-04-14)";
+public static final String PROGRAM_VERSION = "15.3.2 (2026-05-01)";
 
 /**
 Main GUI instance, used when running interactively.
